@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Panoramica Contabilità — MyFinancePlace{% endblock %}
+{% block page_title %}Panoramica Contabilità{% endblock %}
+{% block breadcrumb %}<li>Contabilità</li>{% endblock %}
+
+{% block content %}
+
+<!-- Statement Cards ────────────────────────────────────────────────────── -->
+<div class="grid-3 mb-24">
+  <a href="{{ url_for('accounting.balance_sheet') }}" style="text-decoration:none;">
+    <div class="card" style="padding:24px;transition:box-shadow .2s;cursor:pointer;" onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
+      <div style="font-size:32px;color:var(--clr-primary);margin-bottom:12px;"><i class="bi bi-clipboard-data"></i></div>
+      <div style="font-weight:700;font-size:var(--font-size-lg);color:var(--clr-text-primary);margin-bottom:4px;">Stato Patrimoniale</div>
+      <div style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">Attività, passività e patrimonio netto.</div>
+      <div style="margin-top:16px;" class="btn btn-primary btn-sm">Apri <i class="bi bi-arrow-right"></i></div>
+    </div>
+  </a>
+  <a href="{{ url_for('accounting.income_statement') }}" style="text-decoration:none;">
+    <div class="card" style="padding:24px;transition:box-shadow .2s;cursor:pointer;" onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
+      <div style="font-size:32px;color:var(--clr-positive);margin-bottom:12px;"><i class="bi bi-receipt"></i></div>
+      <div style="font-weight:700;font-size:var(--font-size-lg);color:var(--clr-text-primary);margin-bottom:4px;">Conto Economico</div>
+      <div style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">Ricavi, spese e risultato netto per periodo.</div>
+      <div style="margin-top:16px;" class="btn btn-primary btn-sm">Apri <i class="bi bi-arrow-right"></i></div>
+    </div>
+  </a>
+  <a href="{{ url_for('accounting.cash_flow') }}" style="text-decoration:none;">
+    <div class="card" style="padding:24px;transition:box-shadow .2s;cursor:pointer;" onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
+      <div style="font-size:32px;color:var(--clr-neutral);margin-bottom:12px;"><i class="bi bi-arrow-left-right"></i></div>
+      <div style="font-weight:700;font-size:var(--font-size-lg);color:var(--clr-text-primary);margin-bottom:4px;">Flusso di Cassa</div>
+      <div style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">Flussi operativi, di investimento e di finanziamento.</div>
+      <div style="margin-top:16px;" class="btn btn-primary btn-sm">Apri <i class="bi bi-arrow-right"></i></div>
+    </div>
+  </a>
+</div>
+
+<!-- Summary Charts ─────────────────────────────────────────────────────── -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Andamento Patrimonio Netto</div>
+      <div class="card-header-sub">Istantanea mensile</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;">
+        <canvas id="netWorthChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Entrate vs Uscite</div>
+      <div class="card-header-sub">Da inizio anno</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;">
+        <canvas id="incomeExpChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+makeLineChart('netWorthChart', months, [
+  { label:'Net Worth', data:[45000,46200,47100,46800,48500,49200,50100,50800,51500,52300,53100,54000], fill:true }
+]);
+makeBarChart('incomeExpChart', months.slice(0,6), [
+  { label:'Entrate',  data:[3200,3200,3400,3200,3200,3500] },
+  { label:'Uscite',   data:[2100,2400,1900,2200,2600,1800] },
+], { stacked: false });
+</script>
+{% endblock %}

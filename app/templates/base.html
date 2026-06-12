@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}MyFinancePlace{% endblock %}</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- App CSS: load theme first, then main -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+
+  {% block head %}{% endblock %}
+
+  <!-- Apply saved theme before paint to avoid flash -->
+  <script>(function(){var t=localStorage.getItem('mfp-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}());</script>
+</head>
+<body>
+
+<!-- Mobile overlay -->
+<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;"
+     onclick="document.getElementById('sidebar').classList.remove('open');this.style.display='none'"></div>
+
+<div class="app-wrapper">
+
+  <!-- ══ Sidebar ═══════════════════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+
+    <a class="sidebar-brand" href="{{ url_for('dashboard.dashboard') }}">
+      <div class="sidebar-brand-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">MyFinancePlace</span>
+        <span class="sidebar-brand-sub">Personal Finance</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+
+      <!-- PANORAMICA -->
+      <div class="nav-section">
+        <div class="nav-section-title">Panoramica</div>
+        <a href="{{ url_for('dashboard.dashboard') }}"
+           class="nav-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+      </div>
+
+      <!-- CONTABILITÀ -->
+      <div class="nav-section">
+        <div class="nav-section-title">Contabilità</div>
+        <a href="{{ url_for('accounting.index') }}"
+           class="nav-item {% if request.endpoint == 'accounting.index' %}active{% endif %}">
+          <i class="bi bi-bar-chart-line"></i> Panoramica
+        </a>
+        {% if settings.accounting_balance_sheet %}
+        <a href="{{ url_for('accounting.balance_sheet') }}"
+           class="nav-item nav-sub {% if request.endpoint == 'accounting.balance_sheet' %}active{% endif %}">
+          <i class="bi bi-clipboard-data"></i> Stato Patrimoniale
+        </a>
+        {% endif %}
+        {% if settings.accounting_income_statement %}
+        <a href="{{ url_for('accounting.income_statement') }}"
+           class="nav-item nav-sub {% if request.endpoint == 'accounting.income_statement' %}active{% endif %}">
+          <i class="bi bi-receipt"></i> Conto Economico
+        </a>
+        {% endif %}
+        {% if settings.accounting_cash_flow %}
+        <a href="{{ url_for('accounting.cash_flow') }}"
+           class="nav-item nav-sub {% if request.endpoint == 'accounting.cash_flow' %}active{% endif %}">
+          <i class="bi bi-arrow-left-right"></i> Flusso di Cassa
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- STILE DI VITA -->
+      <div class="nav-section">
+        <div class="nav-section-title">Stile di Vita</div>
+        <a href="{{ url_for('lifestyle.index') }}"
+           class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
+          <i class="bi bi-pie-chart"></i> Spese e Tendenze
+        </a>
+        {% if settings.lifestyle_goals %}
+        <a href="{{ url_for('lifestyle.goals') }}"
+           class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
+          <i class="bi bi-trophy"></i> Obiettivi
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- GESTIONE -->
+      <div class="nav-section">
+        <div class="nav-section-title">Gestione</div>
+        <a href="{{ url_for('transactions.index') }}"
+           class="nav-item {% if 'transactions' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-list-ul"></i> Transazioni
+        </a>
+        {% if settings.module_portfolio %}
+        <a href="{{ url_for('portfolio.index') }}"
+           class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-briefcase"></i> Portafoglio
+        </a>
+        {% endif %}
+        {% if settings.module_debt %}
+        <a href="{{ url_for('debt.index') }}"
+           class="nav-item {% if 'debt' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-credit-card"></i> Debiti
+        </a>
+        {% endif %}
+        {% if settings.module_insurance %}
+        <a href="{{ url_for('insurance.index') }}"
+           class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-shield-check"></i> Assicurazioni
+        </a>
+        {% endif %}
+        {% if settings.module_documents %}
+        <a href="{{ url_for('documents.index') }}"
+           class="nav-item {% if 'documents' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-folder2-open"></i> Documenti
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- STRUMENTI -->
+      <div class="nav-section">
+        <div class="nav-section-title">Strumenti</div>
+        {% if settings.module_snapshots %}
+        <a href="{{ url_for('snapshots.index') }}"
+           class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-camera"></i> Istantanee
+        </a>
+        {% endif %}
+        {% if settings.module_export %}
+        <a href="{{ url_for('export.index') }}"
+           class="nav-item {% if 'export' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-box-arrow-up"></i> Esporta
+        </a>
+        {% endif %}
+        <a href="{{ url_for('settings.index') }}"
+           class="nav-item {% if 'settings' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-gear"></i> Impostazioni
+        </a>
+      </div>
+
+    </nav>
+
+    <!-- User footer -->
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">
+          {{ current_user.username[0]|upper if current_user is defined and current_user.is_authenticated else 'U' }}
+        </div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">
+            {{ current_user.username if current_user is defined and current_user.is_authenticated else 'User' }}
+          </div>
+          <div class="sidebar-user-role">Account Personale</div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="Logout">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══ Main ═══════════════════════════════════════════════════════════════ -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" style="display:none;">
+        <i class="bi bi-list" style="font-size:20px;"></i>
+      </button>
+
+      <div class="topbar-title">
+        <h1>{% block page_title %}Page{% endblock %}</h1>
+        <ul class="breadcrumb">
+          <li><a href="{{ url_for('dashboard.dashboard') }}">Home</a></li>
+          {% block breadcrumb %}{% endblock %}
+        </ul>
+      </div>
+
+      <div class="topbar-actions">
+        {% block topbar_actions %}{% endblock %}
+
+        <!-- Dark / Light mode toggle -->
+        <button id="theme-toggle" class="btn btn-ghost btn-icon" title="Cambia tema"
+                style="font-size:18px;">
+          <i class="bi bi-moon-stars" id="theme-icon-dark"></i>
+          <i class="bi bi-sun" id="theme-icon-light" style="display:none;"></i>
+        </button>
+
+        <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">
+          {{ moment().format('D MMM YYYY') if moment is defined else '' }}
+        </span>
+      </div>
+    </header>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="padding: 12px 28px 0;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" data-autohide>
+              <i class="bi bi-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Page content -->
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<!-- App JS -->
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

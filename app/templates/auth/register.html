@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrazione — MyFinancePlace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width:460px;">
+
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="auth-logo-text">
+        <h2>MyFinancePlace</h2>
+        <span>Gestione Finanze Personali</span>
+      </div>
+    </div>
+
+    <h2 class="auth-title">Crea il tuo account</h2>
+    <p class="auth-subtitle">Gestisci le tue finanze con la visione di un economista.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          <i class="bi bi-exclamation-circle"></i> {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="first_name">Nome</label>
+          <input type="text" id="first_name" name="first_name" class="form-control"
+                 placeholder="Mario" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="last_name">Cognome</label>
+          <input type="text" id="last_name" name="last_name" class="form-control"
+                 placeholder="Rossi" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input type="text" id="username" name="username" class="form-control"
+               placeholder="johndoe" required autocomplete="username" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input type="email" id="email" name="email" class="form-control"
+               placeholder="john@example.com" required autocomplete="email" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="currency">Valuta Predefinita</label>
+        <select id="currency" name="currency" class="form-select">
+          <option value="EUR" selected>EUR — Euro</option>
+          <option value="USD">USD — US Dollar</option>
+          <option value="GBP">GBP — British Pound</option>
+          <option value="CHF">CHF — Swiss Franc</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div style="position:relative;">
+          <input type="password" id="password" name="password" class="form-control"
+                 placeholder="Minimo 8 caratteri" required autocomplete="new-password"
+                 oninput="checkStrength(this.value)" />
+          <button type="button" onclick="togglePassword('password', this)"
+                  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--clr-text-muted);">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+        <!-- Password strength bar -->
+        <div style="margin-top:8px;">
+          <div class="progress-bar-wrap" style="height:4px;">
+            <div class="progress-bar-fill" id="strength-bar" style="width:0%;transition:width .3s,background .3s;"></div>
+          </div>
+          <span id="strength-label" style="font-size:var(--font-size-xs);color:var(--clr-text-muted);"></span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password2">Conferma Password</label>
+        <input type="password" id="password2" name="password2" class="form-control"
+               placeholder="Ripeti la password" required autocomplete="new-password" />
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">
+        <i class="bi bi-person-plus"></i> Crea Account
+      </button>
+    </form>
+
+    <div class="auth-divider">hai già un account?</div>
+
+    <p style="text-align:center;font-size:var(--font-size-sm);">
+      <a href="{{ url_for('auth.login') }}" style="font-weight:600;">Accedi</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.querySelector('i').className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+}
+
+function checkStrength(val) {
+  const bar   = document.getElementById('strength-bar');
+  const label = document.getElementById('strength-label');
+  let score = 0;
+  if (val.length >= 8)  score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { pct:'20%', color:'var(--clr-negative)',  text:'Debole' },
+    { pct:'40%', color:'var(--clr-warning)',   text:'Discreta' },
+    { pct:'70%', color:'var(--clr-warning)',   text:'Buona' },
+    { pct:'100%',color:'var(--clr-positive)',  text:'Ottima' },
+  ];
+  const l = levels[Math.max(0, score - 1)] || levels[0];
+  bar.style.width      = val.length ? l.pct : '0%';
+  bar.style.background = l.color;
+  label.textContent    = val.length ? l.text : '';
+}
+</script>
+</body>
+</html>

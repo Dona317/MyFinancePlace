@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Assicurazioni — MyFinancePlace{% endblock %}
+{% block page_title %}Gestione Assicurazioni{% endblock %}
+{% block breadcrumb %}<li>Assicurazioni</li>{% endblock %}
+
+{% block topbar_actions %}
+  <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-policy')">
+    <i class="bi bi-plus-lg"></i> Nuova Polizza
+  </button>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI ──────────────────────────────────────────────────────────────────── -->
+<div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
+  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+    <div class="kpi-icon"><i class="bi bi-shield-check"></i></div>
+    <div class="kpi-label">Polizze Attive</div>
+    <div class="kpi-value">{{ policies|length if policies else 0 }}</div>
+    <div class="kpi-sub">In corso</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+    <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
+    <div class="kpi-label">Premio Annuo Totale</div>
+    <div class="kpi-value">€ 0</div>
+    <div class="kpi-sub">Tutte le polizze</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
+    <div class="kpi-icon"><i class="bi bi-calendar-event"></i></div>
+    <div class="kpi-label">Prossima Scadenza</div>
+    <div class="kpi-value">—</div>
+    <div class="kpi-sub">Nessuna in scadenza</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+    <div class="kpi-icon"><i class="bi bi-umbrella"></i></div>
+    <div class="kpi-label">Copertura Totale</div>
+    <div class="kpi-value">€ 0</div>
+    <div class="kpi-sub">Massimali cumulati</div>
+  </div>
+</div>
+
+<!-- Main Content ─────────────────────────────────────────────────────────── -->
+<div style="display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;">
+
+  <!-- Policies Table -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Polizze Assicurative</div>
+        <div class="card-header-sub">Elenco completo delle coperture attive</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <select class="form-select" style="width:180px;">
+          <option value="">Tutti i tipi</option>
+          <option>Vita</option>
+          <option>Salute</option>
+          <option>Auto</option>
+          <option>Casa</option>
+          <option>Infortuni</option>
+          <option>RC Professionale</option>
+          <option>Viaggi</option>
+        </select>
+      </div>
+    </div>
+
+    {% if not policies %}
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-shield-slash"></i></div>
+      <div class="empty-state-text">Nessuna polizza registrata. Aggiungi la prima copertura.</div>
+      <button class="btn btn-primary" onclick="openModal('modal-new-policy')">
+        <i class="bi bi-plus"></i> Aggiungi Polizza
+      </button>
+    </div>
+    {% else %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Compagnia</th>
+            <th>N° Polizza</th>
+            <th style="text-align:right;">Premio</th>
+            <th>Frequenza</th>
+            <th>Scadenza</th>
+            <th>Stato</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in policies %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="badge badge-neutral">
+                  <i class="bi bi-{{ 'heart-pulse' if p.type=='Salute' else 'car-front' if p.type=='Auto' else 'house' if p.type=='Casa' else 'shield' }}"></i>
+                </span>
+                {{ p.type }}
+              </div>
+            </td>
+            <td style="font-weight:500;">{{ p.company }}</td>
+            <td style="font-family:monospace;color:var(--clr-text-muted);">{{ p.policy_number }}</td>
+            <td style="text-align:right;font-weight:600;">€ {{ "%.2f"|format(p.premium) }}</td>
+            <td>{{ p.frequency }}</td>
+            <td>
+              {% if p.expiry_date %}
+              <span style="color:var(--clr-text-muted);">{{ p.expiry_date }}</span>
+              {% else %}
+              <span class="badge badge-neutral">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge {{ 'badge-positive' if p.active else 'badge-negative' }}">
+                {{ 'Attiva' if p.active else 'Scaduta' }}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:4px;justify-content:flex-end;">
+                <a href="{{ url_for('insurance.edit', policy_id=p.id) }}" class="btn btn-ghost btn-sm" title="Modifica">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="{{ url_for('insurance.delete', policy_id=p.id) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-ghost btn-sm text-negative"
+                          onclick="return confirmDelete('{{ p.company }} — {{ p.type }}')" title="Elimina">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar: Chart + Summary -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Premi per tipo -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">Premi per Tipo</div>
+        <div class="card-header-sub">Distribuzione annua</div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container" style="height:200px;">
+          <canvas id="premiumPieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prossime scadenze -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">Prossime Scadenze</div>
+      </div>
+      <div class="card-body">
+        <div class="empty-state" style="padding:16px;">
+          <div class="empty-state-icon" style="font-size:24px;"><i class="bi bi-calendar-check"></i></div>
+          <div class="empty-state-text" style="font-size:var(--font-size-xs);">Nessuna scadenza imminente</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Modal: Nuova Polizza ─────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-new-policy">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="bi bi-shield-plus"></i> Nuova Polizza Assicurativa</h3>
+      <button class="modal-close" onclick="closeModal('modal-new-policy')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('insurance.new') }}" id="form-new-policy">
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Tipo di Polizza</label>
+            <select name="type" class="form-select" required>
+              <option value="">— Seleziona —</option>
+              {% for t in ['Vita', 'Salute', 'Auto', 'Casa', 'Infortuni', 'RC Professionale', 'Viaggi', 'Altro'] %}
+              <option>{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Compagnia Assicurativa</label>
+            <input type="text" name="company" class="form-control"
+                   placeholder="es. Generali, UnipolSai..." required />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Numero Polizza</label>
+            <input type="text" name="policy_number" class="form-control"
+                   placeholder="es. POL-2024-001234" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Frequenza Pagamento</label>
+            <select name="frequency" class="form-select">
+              <option value="monthly">Mensile</option>
+              <option value="quarterly">Trimestrale</option>
+              <option value="biannual">Semestrale</option>
+              <option value="annual" selected>Annuale</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Premio (€)</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
+              <input type="number" name="premium" class="form-control" style="padding-left:28px;"
+                     placeholder="0,00" step="0.01" min="0" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Massimale / Copertura (€)</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
+              <input type="number" name="coverage_limit" class="form-control" style="padding-left:28px;"
+                     placeholder="0,00" step="0.01" min="0" />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Data Inizio</label>
+            <input type="date" name="start_date" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data Scadenza</label>
+            <input type="date" name="expiry_date" class="form-control" />
+            <div class="form-hint">Lascia vuoto per polizze senza scadenza fissa.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <textarea name="notes" class="form-control" rows="2"
+                    placeholder="Condizioni particolari, franchigie, esclusioni..."></textarea>
+        </div>
+
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-policy')">
+        <i class="bi bi-x"></i> Annulla
+      </button>
+      <button type="submit" form="form-new-policy" class="btn btn-primary">
+        <i class="bi bi-check-lg"></i> Aggiungi Polizza
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+makeDoughnutChart('premiumPieChart',
+  ['Vita', 'Salute', 'Auto', 'Casa', 'Infortuni', 'Altro'],
+  [30, 25, 20, 15, 5, 5]
+);
+</script>
+{% endblock %}

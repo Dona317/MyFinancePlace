@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Debiti — MyFinancePlace{% endblock %}
+{% block page_title %}Gestione Debiti{% endblock %}
+{% block breadcrumb %}<li>Debiti</li>{% endblock %}
+
+{% block topbar_actions %}
+  <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-debt')">
+    <i class="bi bi-plus-lg"></i> Nuovo Debito
+  </button>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI ──────────────────────────────────────────────────────────────── -->
+<div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
+  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+    <div class="kpi-icon"><i class="bi bi-credit-card-2-back"></i></div>
+    <div class="kpi-label">Debito Totale</div>
+    <div class="kpi-value text-negative">€ 0</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
+    <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
+    <div class="kpi-label">Rata Mensile Totale</div>
+    <div class="kpi-value">€ 0</div>
+    <div class="kpi-sub">Tutte le rate</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+    <div class="kpi-icon"><i class="bi bi-percent"></i></div>
+    <div class="kpi-label">Interessi Pagati YTD</div>
+    <div class="kpi-value">€ 0</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
+    <div class="kpi-label">Debito/Reddito</div>
+    <div class="kpi-value">0%</div>
+    <div class="kpi-sub">Del reddito mensile</div>
+  </div>
+</div>
+
+<!-- Grafico amortamento ──────────────────────────────────────────────── -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Piano di Ammortamento — Tutti i Debiti</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;"><canvas id="debtAmortChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">Distribuzione Debiti</div></div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;"><canvas id="debtPieChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabella debiti ────────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-header"><div class="card-header-title">Debiti in Corso</div></div>
+
+  {% if debts %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Istituto</th>
+          <th style="text-align:right;">Capitale Iniziale</th>
+          <th style="text-align:right;">Residuo</th>
+          <th style="text-align:right;">Tasso (%)</th>
+          <th style="text-align:right;">Rata Mensile</th>
+          <th>Scadenza</th>
+          <th>Progresso</th>
+          <th style="text-align:center;">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for debt in debts %}
+        <tr>
+          <td><span class="badge badge-neutral">{{ debt.type }}</span></td>
+          <td style="font-weight:500;color:var(--clr-text-primary);">{{ debt.lender }}</td>
+          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(debt.principal) }}</td>
+          <td class="amount negative" style="text-align:right;">€ {{ '%.2f'|format(debt.balance) }}</td>
+          <td style="text-align:right;">{{ debt.rate }}%</td>
+          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(debt.monthly_payment) }}</td>
+          <td style="white-space:nowrap;font-size:var(--font-size-xs);">{{ debt.due_date }}</td>
+          <td style="min-width:120px;">
+            {% set pct = ((debt.principal - debt.balance) / debt.principal * 100)|round(1) %}
+            <div class="progress-bar-wrap" style="height:6px;margin-bottom:2px;">
+              <div class="progress-bar-fill positive" style="width:{{ pct }}%;"></div>
+            </div>
+            <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ pct }}% rimborsato</span>
+          </td>
+          <td style="text-align:center;">
+            <a href="#" class="btn btn-ghost btn-icon btn-sm" title="Dettaglio">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-credit-card"></i></div>
+    <div class="empty-state-title">Nessun debito registrato</div>
+    <div class="empty-state-text">Aggiungi mutui, prestiti personali o altre passività per monitorarli nel flusso di cassa.</div>
+    <a href="{{ url_for('debt.new') }}" class="btn btn-primary">
+      <i class="bi bi-plus-lg"></i> Aggiungi Debito
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const mesi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+makeLineChart('debtAmortChart', mesi, [
+  { label:'Mutuo', data:[180000,179500,179000,178400,177900,177400,176800,176200,175700,175100,174500,173900], fill:false },
+]);
+makeDoughnutChart('debtPieChart', ['Mutuo','Prestito Auto','Carta di Credito'], [85, 10, 5]);
+</script>
+
+<!-- Modal: Nuovo Debito ──────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-new-debt">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="bi bi-plus-circle"></i> Nuovo Debito</h3>
+      <button class="modal-close" onclick="closeModal('modal-new-debt')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('debt.new') }}" id="form-new-debt">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Tipo di Debito</label>
+            <select name="type" class="form-select">
+              {% for t in ['Mutuo', 'Prestito Personale', 'Prestito Auto', 'Carta di Credito', 'Prestito Studentesco', 'Altro'] %}
+              <option>{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Istituto / Creditore</label>
+            <input type="text" name="lender" class="form-control" placeholder="es. UniCredit" required />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Capitale Iniziale (€)</label>
+            <input type="number" name="principal" class="form-control" step="0.01" min="0" placeholder="0.00" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Saldo Residuo (€)</label>
+            <input type="number" name="balance" class="form-control" step="0.01" min="0" placeholder="0.00" required />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Tasso di Interesse (%)</label>
+            <input type="number" name="rate" class="form-control" step="0.01" min="0" max="100" placeholder="0.00" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rata Mensile (€)</label>
+            <input type="number" name="monthly_payment" class="form-control" step="0.01" min="0" placeholder="0.00" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Data Inizio</label>
+            <input type="date" name="start_date" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data Scadenza</label>
+            <input type="date" name="due_date" class="form-control" />
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-debt')">
+        <i class="bi bi-x"></i> Annulla
+      </button>
+      <button type="submit" form="form-new-debt" class="btn btn-primary">
+        <i class="bi bi-check-lg"></i> Aggiungi Debito
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

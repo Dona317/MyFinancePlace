@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accedi — MyFinancePlace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="auth-logo-text">
+        <h2>MyFinancePlace</h2>
+        <span>Gestione Finanze Personali</span>
+      </div>
+    </div>
+
+    <h2 class="auth-title">Bentornato</h2>
+    <p class="auth-subtitle">Accedi al tuo pannello finanziario personale.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          <i class="bi bi-exclamation-circle"></i> {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+
+      <div class="form-group">
+        <label class="form-label" for="username">Username o Email</label>
+        <input type="text" id="username" name="username" class="form-control"
+               placeholder="nome@email.com" required autocomplete="username" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">
+          Password
+          <a href="#" style="float:right;font-weight:400;font-size:var(--font-size-xs);">Password dimenticata?</a>
+        </label>
+        <div style="position:relative;">
+          <input type="password" id="password" name="password" class="form-control"
+                 placeholder="••••••••" required autocomplete="current-password" />
+          <button type="button" onclick="togglePassword('password', this)"
+                  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--clr-text-muted);">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+        <input type="checkbox" id="remember" name="remember" style="width:16px;height:16px;accent-color:var(--clr-primary);" />
+        <label for="remember" style="font-size:var(--font-size-sm);color:var(--clr-text-secondary);cursor:pointer;">
+          Ricordami
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">
+        <i class="bi bi-box-arrow-in-right"></i> Accedi
+      </button>
+    </form>
+
+    <div class="auth-divider">oppure</div>
+
+    <p style="text-align:center;font-size:var(--font-size-sm);color:var(--clr-text-muted);">
+      Non hai un account?
+      <a href="{{ url_for('auth.register') }}" style="font-weight:600;">Creane uno</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.querySelector('i').className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+}
+</script>
+</body>
+</html>
