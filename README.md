@@ -36,6 +36,17 @@ python run.py
 
 Open `http://localhost:5000` in your browser.
 
+## How to Commit Changes to the Project
+
+1. Before starting a new task, you need to switch to the main branch (located at the bottom left) and pull (download) the latest version of the main branch.
+2. Select “main” at the bottom left of the VS Code window; a prompt will appear at the top. Select “+ Create new Branch.”
+3. In the “+ Create new Branch” window, enter the branch name (a title representing the task).
+4. I navigate to the tree view section (similar to the Git icon), the third one at the top left, and commit the changes by entering a description of the modifications made, e g., “Code Refactoring,” “Update Class ...”
+5. When the task is complete, proceed to publish the branch
+6. Create the “Pull Request”
+7. Request approval for the “Pull Request”
+8. Once approved, click “Merge”
+
 ## Project Structure
 
 ```
