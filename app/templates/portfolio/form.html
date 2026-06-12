@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% set is_edit = holding is not none %}
+{% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Posizione — MyFinancePlace{% endblock %}
+{% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Posizione{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">Portafoglio</a></li><li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>{% endblock %}
+
+{% block content %}
+<div style="max-width:640px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">{{ 'Modifica Posizione' if is_edit else 'Aggiungi Posizione al Portafoglio' }}</div>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Ticker / Codice</label>
+            <input type="text" name="ticker" class="form-control" placeholder="es. AAPL, BTC, VWCE"
+                   value="{{ holding.ticker if is_edit else '' }}" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nome Strumento</label>
+            <input type="text" name="name" class="form-control" placeholder="es. Apple Inc."
+                   value="{{ holding.name if is_edit else '' }}" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Classe di Attività</label>
+            <select name="asset_class" class="form-select">
+              {% for cls in ['Azione', 'ETF', 'Criptovaluta', 'Obbligazione', 'Conto Risparmio', 'Fondo Pensione', 'Altro'] %}
+              <option {{ 'selected' if is_edit and holding.asset_class == cls }}>{{ cls }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data Acquisto</label>
+            <input type="date" name="purchase_date" class="form-control"
+                   value="{{ holding.purchase_date if is_edit else '' }}" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Quantità</label>
+            <input type="number" name="quantity" class="form-control" step="0.0001" min="0"
+                   placeholder="0" value="{{ holding.quantity if is_edit else '' }}" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prezzo Medio di Acquisto (€)</label>
+            <input type="number" name="avg_price" class="form-control" step="0.01" min="0"
+                   placeholder="0.00" value="{{ holding.avg_price if is_edit else '' }}" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <textarea name="notes" class="form-control" rows="2"
+                    placeholder="Note facoltative...">{{ holding.notes if is_edit else '' }}</textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
+          <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if is_edit else 'Aggiungi al Portafoglio' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

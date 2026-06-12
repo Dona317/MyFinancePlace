@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — MyFinancePlace{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb %}<li>Cruscotto</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('transactions.new') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> Nuova Transazione
+  </a>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI Row ─────────────────────────────────────────────────────────────── -->
+<div class="kpi-grid mb-24">
+
+  {% if settings.dashboard_net_worth %}
+  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
+    <div class="kpi-label">Patrimonio Netto</div>
+    <div class="kpi-value" data-amount="{{ kpis.net_worth }}" data-currency="EUR">—</div>
+    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> 2,4% vs mese scorso</div>
+  </div>
+  {% endif %}
+
+  {% if settings.dashboard_income %}
+  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
+    <div class="kpi-label">Entrate Mensili</div>
+    <div class="kpi-value" data-amount="{{ kpis.monthly_income }}" data-currency="EUR">—</div>
+    <div class="kpi-sub">Questo mese</div>
+  </div>
+  {% endif %}
+
+  {% if settings.dashboard_expenses %}
+  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+    <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
+    <div class="kpi-label">Uscite Mensili</div>
+    <div class="kpi-value" data-amount="{{ kpis.monthly_expenses }}" data-currency="EUR">—</div>
+    <div class="kpi-sub">Questo mese</div>
+  </div>
+  {% endif %}
+
+  {% if settings.dashboard_savings_rate %}
+  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+    <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
+    <div class="kpi-label">Tasso di Risparmio</div>
+    <div class="kpi-value">{{ "%.1f"|format(kpis.savings_rate) }}%</div>
+    <div class="kpi-sub">del reddito lordo</div>
+  </div>
+  {% endif %}
+
+  {% if settings.dashboard_investments %}
+  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:#F3EFFF;">
+    <div class="kpi-icon" style="background:#F3EFFF;color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
+    <div class="kpi-label">Investimenti</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_investments }}" data-currency="EUR">—</div>
+    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> Portafoglio</div>
+  </div>
+  {% endif %}
+
+  {% if settings.dashboard_debt %}
+  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
+    <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
+    <div class="kpi-label">Debito Totale</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_debt }}" data-currency="EUR">—</div>
+    <div class="kpi-sub">In corso</div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Charts Row ──────────────────────────────────────────────────────────── -->
+{% if settings.dashboard_cashflow_chart or settings.dashboard_expense_pie %}
+<div style="display:grid;grid-template-columns:{% if settings.dashboard_cashflow_chart and settings.dashboard_expense_pie %}2fr 1fr{% else %}1fr{% endif %};gap:16px;margin-bottom:16px;">
+
+  {% if settings.dashboard_cashflow_chart %}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Flusso di Cassa — Ultimi 12 Mesi</div>
+        <div class="card-header-sub">Entrate vs Uscite</div>
+      </div>
+      <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">
+        Vedi tutto <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:240px;">
+        <canvas id="cashFlowChart"></canvas>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if settings.dashboard_expense_pie %}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Spese per Categoria</div>
+        <div class="card-header-sub">Questo mese</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:240px;">
+        <canvas id="expensePieChart"></canvas>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endif %}
+
+<!-- Bottom Row ───────────────────────────────────────────────────────────── -->
+{% if settings.dashboard_recent_tx or settings.dashboard_health %}
+<div style="display:grid;grid-template-columns:{% if settings.dashboard_recent_tx and settings.dashboard_health %}1fr 1fr 1fr{% else %}1fr{% endif %};gap:16px;">
+
+  {% if settings.dashboard_recent_tx %}
+  <div class="card" style="{% if settings.dashboard_health %}grid-column:span 2;{% endif %}">
+    <div class="card-header">
+      <div class="card-header-title">Transazioni Recenti</div>
+      <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">
+        Tutte <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrizione</th>
+            <th>Categoria</th>
+            <th style="text-align:right;">Importo</th>
+          </tr>
+        </thead>
+        <tbody id="recent-tx-body">
+          <tr>
+            <td colspan="4">
+              <div class="empty-state" style="padding:32px;">
+                <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+                <div class="empty-state-text">Nessuna transazione. Aggiungi la prima!</div>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-transaction')">
+                  <i class="bi bi-plus"></i> Aggiungi Transazione
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if settings.dashboard_health %}
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Salute Finanziaria</div>
+    </div>
+    <div class="card-body">
+
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:var(--font-size-xs);font-weight:600;">Tasso di Risparmio</span>
+          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ "%.0f"|format(kpis.savings_rate) }}%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill positive" style="width:{{ kpis.savings_rate }}%;"></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:var(--font-size-xs);font-weight:600;">Debito/Reddito</span>
+          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">—</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill warning" style="width:30%;"></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:var(--font-size-xs);font-weight:600;">Fondo d'Emergenza</span>
+          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">—</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:0%;"></div>
+        </div>
+      </div>
+
+      <a href="{{ url_for('snapshots.index') }}" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px;">
+        <i class="bi bi-camera"></i> Crea Istantanea
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const months = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const income   = [3200,3200,3400,3200,3200,3500,3200,3200,3200,3400,3200,3200];
+const expenses = [2100,2400,1900,2200,2600,1800,2300,2100,2000,2400,1900,2200];
+
+{% if settings.dashboard_cashflow_chart %}
+makeLineChart('cashFlowChart', months, [
+  { label: 'Entrate',  data: income,   color: 'var(--clr-positive)', fill: false },
+  { label: 'Uscite',   data: expenses, color: 'var(--clr-negative)', fill: false },
+]);
+{% endif %}
+
+{% if settings.dashboard_expense_pie %}
+makeDoughnutChart('expensePieChart',
+  ['Casa','Alimentari','Trasporto','Salute','Svago','Altro'],
+  [35, 20, 12, 8, 15, 10]
+);
+{% endif %}
+</script>
+{% endblock %}

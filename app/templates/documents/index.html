@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Documenti — MyFinancePlace{% endblock %}
+{% block page_title %}Archivio Documenti{% endblock %}
+{% block breadcrumb %}<li>Documenti</li>{% endblock %}
+
+{% block topbar_actions %}
+  <label class="btn btn-primary btn-sm" style="cursor:pointer;">
+    <i class="bi bi-upload"></i> Carica Documento
+    <input type="file" style="display:none;" multiple accept=".pdf,.jpg,.jpeg,.png,.xml"
+           onchange="handleUpload(this)" />
+  </label>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filtri ────────────────────────────────────────────────────────────── -->
+<div class="card mb-16">
+  <div class="filter-bar">
+    <input type="text" class="form-control" placeholder="Cerca documento..." style="flex:1;" />
+    <select class="form-select">
+      <option value="">Tipo</option>
+      <option>Fattura</option>
+      <option>Scontrino</option>
+      <option>Estratto Conto</option>
+      <option>Contratto</option>
+      <option>CU / 730</option>
+      <option>Altro</option>
+    </select>
+    <select class="form-select">
+      <option value="">Anno Fiscale</option>
+      <option>2024</option>
+      <option>2023</option>
+      <option>2022</option>
+    </select>
+    <select class="form-select">
+      <option value="">Categoria</option>
+      <option>Casa</option>
+      <option>Salute</option>
+      <option>Lavoro</option>
+      <option>Investimenti</option>
+    </select>
+  </div>
+</div>
+
+<!-- Archivio ──────────────────────────────────────────────────────────── -->
+{% if documents %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+  {% for doc in documents %}
+  <div class="card" style="cursor:pointer;transition:box-shadow .2s;"
+       onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
+    <div style="padding:20px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:10px;color:var(--clr-primary);">
+        <i class="bi bi-{{ 'file-earmark-pdf' if doc.mime == 'pdf' else 'file-earmark-image' }}"></i>
+      </div>
+      <div style="font-weight:600;font-size:var(--font-size-sm);color:var(--clr-text-primary);
+                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        {{ doc.filename }}
+      </div>
+      <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:4px;">
+        {{ doc.date }} · {{ doc.size }}
+      </div>
+      {% if doc.category %}
+      <span class="badge badge-primary" style="margin-top:8px;">{{ doc.category }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-folder2-open"></i></div>
+    <div class="empty-state-title">Archivio vuoto</div>
+    <div class="empty-state-text">
+      Carica fatture, scontrini, estratti conto e contratti per tenerli sempre a portata di mano,
+      collegati alle tue transazioni e categorizzati per anno fiscale.
+    </div>
+    <label class="btn btn-primary" style="cursor:pointer;">
+      <i class="bi bi-upload"></i> Carica il primo documento
+      <input type="file" style="display:none;" multiple accept=".pdf,.jpg,.jpeg,.png" />
+    </label>
+  </div>
+</div>
+{% endif %}
+
+<!-- Area drag & drop ─────────────────────────────────────────────────── -->
+<div id="drop-zone" style="margin-top:16px;border:2px dashed var(--clr-border);border-radius:var(--border-radius);
+     padding:32px;text-align:center;color:var(--clr-text-muted);font-size:var(--font-size-sm);
+     transition:border-color .2s,background .2s;"
+     ondragover="this.style.borderColor='var(--clr-primary)';this.style.background='var(--clr-primary-light)';event.preventDefault();"
+     ondragleave="this.style.borderColor='var(--clr-border)';this.style.background='';"
+     ondrop="handleDrop(event)">
+  <i class="bi bi-cloud-upload" style="font-size:28px;margin-bottom:8px;display:block;"></i>
+  Trascina i file qui per caricarli · PDF, JPG, PNG, XML
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function handleUpload(input) {
+  // TODO: implement file upload to backend
+  console.log('Files selected:', input.files);
+}
+function handleDrop(e) {
+  e.preventDefault();
+  const zone = document.getElementById('drop-zone');
+  zone.style.borderColor = 'var(--clr-border)';
+  zone.style.background  = '';
+  // TODO: implement drag-and-drop upload
+  console.log('Files dropped:', e.dataTransfer.files);
+}
+</script>
+{% endblock %}

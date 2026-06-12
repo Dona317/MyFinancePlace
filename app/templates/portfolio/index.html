@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Portafoglio — MyFinancePlace{% endblock %}
+{% block page_title %}Portafoglio Investimenti{% endblock %}
+{% block breadcrumb %}<li>Portafoglio</li>{% endblock %}
+
+{% block topbar_actions %}
+  <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-holding')">
+    <i class="bi bi-plus-lg"></i> Aggiungi Posizione
+  </button>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI ──────────────────────────────────────────────────────────────── -->
+<div class="kpi-grid mb-24" style="grid-template-columns:repeat(5,1fr);">
+  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+    <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
+    <div class="kpi-label">Valore Totale</div>
+    <div class="kpi-value">€ 0</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+    <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+    <div class="kpi-label">Guadagno/Perdita</div>
+    <div class="kpi-value">€ 0</div>
+    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> 0%</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+    <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
+    <div class="kpi-label">Capitale Investito</div>
+    <div class="kpi-value">€ 0</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:#F3EFFF;">
+    <div class="kpi-icon" style="background:#F3EFFF;color:var(--chart-5);"><i class="bi bi-percent"></i></div>
+    <div class="kpi-label">Rendimento YTD</div>
+    <div class="kpi-value">0%</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
+    <div class="kpi-icon"><i class="bi bi-building-check"></i></div>
+    <div class="kpi-label">Dividendi YTD</div>
+    <div class="kpi-value">€ 0</div>
+  </div>
+</div>
+
+<!-- Grafici ──────────────────────────────────────────────────────────── -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Allocazione per Classe</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;"><canvas id="allocationChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Andamento Valore Portafoglio</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;"><canvas id="portfolioTrendChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabella posizioni ─────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-header-title">Posizioni Aperte</div>
+    <div style="display:flex;gap:6px;">
+      <select class="form-select" style="width:auto;">
+        <option>Tutte le classi</option>
+        <option>Azioni</option>
+        <option>ETF</option>
+        <option>Criptovalute</option>
+        <option>Obbligazioni</option>
+        <option>Conto Risparmio</option>
+      </select>
+    </div>
+  </div>
+
+  {% if holdings %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Strumento</th>
+          <th>Classe</th>
+          <th style="text-align:right;">Quantità</th>
+          <th style="text-align:right;">Prezzo Medio</th>
+          <th style="text-align:right;">Prezzo Attuale</th>
+          <th style="text-align:right;">Valore Attuale</th>
+          <th style="text-align:right;">G/P</th>
+          <th style="text-align:right;">G/P %</th>
+          <th style="text-align:center;">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in holdings %}
+        <tr>
+          <td>
+            <div style="font-weight:600;color:var(--clr-text-primary);">{{ h.ticker }}</div>
+            <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ h.name }}</div>
+          </td>
+          <td><span class="badge badge-primary">{{ h.asset_class }}</span></td>
+          <td class="amount" style="text-align:right;">{{ h.quantity }}</td>
+          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(h.avg_price) }}</td>
+          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(h.current_price) }}</td>
+          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(h.current_value) }}</td>
+          <td class="amount {{ 'positive' if h.gain >= 0 else 'negative' }}" style="text-align:right;">
+            {{ '+' if h.gain >= 0 else '' }}€ {{ '%.2f'|format(h.gain) }}
+          </td>
+          <td style="text-align:right;">
+            <span class="badge {{ 'badge-positive' if h.gain_pct >= 0 else 'badge-negative' }}">
+              {{ '+' if h.gain_pct >= 0 else '' }}{{ '%.1f'|format(h.gain_pct) }}%
+            </span>
+          </td>
+          <td style="text-align:center;">
+            <form method="POST" action="{{ url_for('portfolio.delete', holding_id=h.id) }}"
+                  data-confirm="Eliminare questa posizione?">
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm" style="color:var(--clr-negative);">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5">Totale Portafoglio</td>
+          <td class="amount" style="text-align:right;">€ 0</td>
+          <td class="amount" style="text-align:right;">€ 0</td>
+          <td class="amount" style="text-align:right;">0%</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-briefcase"></i></div>
+    <div class="empty-state-title">Nessuna posizione nel portafoglio</div>
+    <div class="empty-state-text">Aggiungi azioni, ETF, criptovalute, obbligazioni o conti di risparmio.</div>
+    <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary">
+      <i class="bi bi-plus-lg"></i> Aggiungi Posizione
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+makeDoughnutChart('allocationChart',
+  ['Azioni', 'ETF', 'Criptovalute', 'Obbligazioni', 'Liquidità'],
+  [40, 30, 10, 15, 5]
+);
+const mesi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+makeLineChart('portfolioTrendChart', mesi, [
+  { label:'Valore Portafoglio', data:[20000,21200,20800,22400,23100,22600,24300,25100,24800,26200,27000,28400] }
+]);
+</script>
+
+<!-- Modal: Aggiungi Posizione ────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-new-holding">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="bi bi-plus-circle"></i> Aggiungi Posizione</h3>
+      <button class="modal-close" onclick="closeModal('modal-new-holding')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('portfolio.new') }}" id="form-new-holding">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Ticker / Codice</label>
+            <input type="text" name="ticker" class="form-control" placeholder="es. AAPL, BTC, VWCE" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nome Strumento</label>
+            <input type="text" name="name" class="form-control" placeholder="es. Apple Inc." />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Classe di Attività</label>
+            <select name="asset_class" class="form-select">
+              {% for cls in ['Azione', 'ETF', 'Criptovaluta', 'Obbligazione', 'Conto Risparmio', 'Fondo Pensione', 'Altro'] %}
+              <option>{{ cls }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data Acquisto</label>
+            <input type="date" name="purchase_date" class="form-control" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Quantità</label>
+            <input type="number" name="quantity" class="form-control" step="0.0001" min="0" placeholder="0" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prezzo Medio Acquisto (€)</label>
+            <input type="number" name="avg_price" class="form-control" step="0.01" min="0" placeholder="0.00" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="Note facoltative..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-holding')">
+        <i class="bi bi-x"></i> Annulla
+      </button>
+      <button type="submit" form="form-new-holding" class="btn btn-primary">
+        <i class="bi bi-check-lg"></i> Aggiungi al Portafoglio
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

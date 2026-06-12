@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% set is_edit = transaction is not none %}
+{% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione — MyFinancePlace{% endblock %}
+{% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione{% endblock %}
+{% block breadcrumb %}
+  <li><a href="{{ url_for('transactions.index') }}">Transazioni</a></li>
+  <li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>
+{% endblock %}
+
+{% block content %}
+
+<div style="max-width:780px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">
+        <i class="bi bi-{{ 'pencil' if is_edit else 'plus-circle' }}"></i>
+        {{ 'Modifica Transazione' if is_edit else 'Inserisci Nuova Transazione' }}
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
+
+        <!-- Tipo e Data ───────────────────────────────────────────────── -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <div style="display:flex;gap:8px;">
+              {% for val, label, color in [('expense','Uscita','negative'), ('income','Entrata','positive'), ('transfer','Trasferimento','neutral')] %}
+              <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;transition:background .2s,border-color .2s;font-size:var(--font-size-sm);font-weight:500;">
+                <input type="radio" name="type" value="{{ val }}" style="display:none;"
+                       {{ 'checked' if (transaction and transaction.type == val) or (not is_edit and val == 'expense') else '' }}
+                       onchange="this.closest('form').querySelectorAll('[data-type-label]').forEach(el => el.style.outline='');" />
+                <span style="color:var(--clr-{{ color }}-text if color != 'neutral' else 'var(--clr-neutral)');">{{ label }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data</label>
+            <input type="date" name="date" class="form-control"
+                   value="{{ transaction.date if is_edit else '' }}" required />
+          </div>
+        </div>
+
+        <!-- Importo e Valuta ─────────────────────────────────────────── -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Importo</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
+              <input type="number" name="amount" class="form-control" style="padding-left:28px;"
+                     placeholder="0,00" step="0.01" min="0"
+                     value="{{ '%.2f'|format(transaction.amount|abs) if is_edit else '' }}" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valuta</label>
+            <select name="currency" class="form-select">
+              <option value="EUR" {{ 'selected' if not is_edit or transaction.currency == 'EUR' }}>EUR — Euro</option>
+              <option value="USD" {{ 'selected' if is_edit and transaction.currency == 'USD' }}>USD — Dollaro</option>
+              <option value="GBP" {{ 'selected' if is_edit and transaction.currency == 'GBP' }}>GBP — Sterlina</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Descrizione ──────────────────────────────────────────────── -->
+        <div class="form-group">
+          <label class="form-label">Descrizione</label>
+          <input type="text" name="description" class="form-control"
+                 placeholder="es. Spesa al supermercato"
+                 value="{{ transaction.description if is_edit else '' }}" required />
+        </div>
+
+        <!-- Categoria e Controparte ──────────────────────────────────── -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Categoria</label>
+            <select name="category" class="form-select">
+              <option value="">— Seleziona —</option>
+              {% for cat in ['Casa','Alimentari','Trasporto','Salute','Svago','Abbonamenti','Stipendio','Freelance','Investimenti','Rimborsi','Altro'] %}
+              <option value="{{ cat }}" {{ 'selected' if is_edit and transaction.category == cat else '' }}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Controparte</label>
+            <input type="text" name="counterparty" class="form-control"
+                   placeholder="es. Esselunga, Datore di lavoro..."
+                   value="{{ transaction.counterparty if is_edit else '' }}" />
+          </div>
+        </div>
+
+        <!-- Tag ─────────────────────────────────────────────────────── -->
+        <div class="form-group">
+          <label class="form-label">Tag <span style="font-weight:400;color:var(--clr-text-muted);">(separati da virgola)</span></label>
+          <input type="text" name="tags" class="form-control"
+                 placeholder="es. deducibile, lavoro, vacanza"
+                 value="{{ transaction.tags|join(', ') if is_edit and transaction.tags else '' }}" />
+          <div class="form-hint">I tag facilitano la ricerca e il raggruppamento delle transazioni.</div>
+        </div>
+
+        <!-- Ricorrente ───────────────────────────────────────────────── -->
+        <div class="card" style="background:var(--clr-bg-input);margin-bottom:18px;">
+          <div class="card-body-sm">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <input type="checkbox" id="is_recurring" name="is_recurring" style="width:16px;height:16px;accent-color:var(--clr-primary);"
+                     {{ 'checked' if is_edit and transaction.is_recurring else '' }}
+                     onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
+              <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">
+                Transazione Ricorrente
+              </label>
+            </div>
+            <div id="recurring-opts" style="display:{{ 'block' if is_edit and transaction.is_recurring else 'none' }};">
+              <div class="grid-2">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label">Frequenza</label>
+                  <select name="recurrence" class="form-select">
+                    <option value="weekly">Settimanale</option>
+                    <option value="monthly" selected>Mensile</option>
+                    <option value="quarterly">Trimestrale</option>
+                    <option value="yearly">Annuale</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label">Fine Ricorrenza</label>
+                  <input type="date" name="recurrence_end" class="form-control" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Note ─────────────────────────────────────────────────────── -->
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <textarea name="notes" class="form-control" rows="2"
+                    placeholder="Note facoltative...">{{ transaction.notes if is_edit else '' }}</textarea>
+        </div>
+
+        <!-- Azioni ──────────────────────────────────────────────────── -->
+        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
+          <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost">
+            <i class="bi bi-x"></i> Annulla
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if is_edit else 'Aggiungi Transazione' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

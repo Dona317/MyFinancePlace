@@ -1,0 +1,154 @@
+/*
+ * theme.css — MyFinancePlace
+ * ─────────────────────────────────────────────────────────────────────────────
+ * ALL colors, fonts, and spacing tokens live here.
+ * To retheme the entire app, only edit this file.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+
+  /* ── Brand ────────────────────────────────────────────────────── */
+  --clr-primary:        #3B5BDB;   /* main accent (buttons, links, active nav) */
+  --clr-primary-hover:  #364FC7;
+  --clr-primary-light:  #EDF2FF;   /* light tint for badges / highlights */
+  --clr-primary-muted:  #748FFC;
+
+  /* ── Sidebar ──────────────────────────────────────────────────── */
+  --clr-sidebar-bg:     #0F1C3F;   /* sidebar background */
+  --clr-sidebar-hover:  #1A2D5A;
+  --clr-sidebar-active: #243570;   /* active nav item */
+  --clr-sidebar-text:   #8BA3C8;   /* default sidebar text */
+  --clr-sidebar-title:  #C6D4EE;   /* section titles */
+  --clr-sidebar-border: #1E2F5C;
+
+  /* ── Financial Signals ────────────────────────────────────────── */
+  --clr-positive:       #2F9E44;   /* income, gains, green */
+  --clr-positive-bg:    #EBFBEE;
+  --clr-positive-text:  #1E7E34;
+  --clr-negative:       #E03131;   /* expenses, losses, red */
+  --clr-negative-bg:    #FFF0F0;
+  --clr-negative-text:  #C92A2A;
+  --clr-neutral:        #1971C2;   /* neutral financial info, blue */
+  --clr-neutral-bg:     #E7F5FF;
+  --clr-warning:        #E67700;   /* warnings, alerts */
+  --clr-warning-bg:     #FFF4E6;
+
+  /* ── App Backgrounds ──────────────────────────────────────────── */
+  --clr-bg-app:         #F0F3F9;   /* main content area background */
+  --clr-bg-card:        #FFFFFF;   /* cards, panels */
+  --clr-bg-input:       #F8FAFD;   /* form inputs */
+  --clr-bg-table-alt:   #F8FAFD;   /* alternating table rows */
+
+  /* ── Typography ───────────────────────────────────────────────── */
+  --clr-text-primary:   #1A2540;   /* headings, strong text */
+  --clr-text-secondary: #4A5E80;   /* body text */
+  --clr-text-muted:     #8A9DC0;   /* hints, placeholders */
+  --clr-text-inverse:   #FFFFFF;   /* text on dark backgrounds */
+
+  /* ── Borders ──────────────────────────────────────────────────── */
+  --clr-border:         #DDE3F0;
+  --clr-border-light:   #EEF2FA;
+
+  /* ── Shadows ──────────────────────────────────────────────────── */
+  --shadow-sm:   0 1px 3px rgba(15, 28, 63, 0.08);
+  --shadow-md:   0 4px 12px rgba(15, 28, 63, 0.10);
+  --shadow-lg:   0 8px 24px rgba(15, 28, 63, 0.12);
+  --shadow-card: 0 2px 8px rgba(15, 28, 63, 0.08);
+
+  /* ── Chart Palette ────────────────────────────────────────────── */
+  --chart-1:  #3B5BDB;
+  --chart-2:  #2F9E44;
+  --chart-3:  #E67700;
+  --chart-4:  #C92A2A;
+  --chart-5:  #7048E8;
+  --chart-6:  #1098AD;
+  --chart-7:  #D6336C;
+  --chart-8:  #5C7CFA;
+
+  /* ── Layout ───────────────────────────────────────────────────── */
+  --sidebar-width:    260px;
+  --topbar-height:    60px;
+  --border-radius:    10px;
+  --border-radius-sm: 6px;
+  --border-radius-lg: 16px;
+
+  /* ── Fonts ────────────────────────────────────────────────────── */
+  --font-body:    'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+
+  /* ── Transitions ──────────────────────────────────────────────── */
+  --transition: 0.18s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Dark Mode — override every token by setting data-theme="dark" on <html>
+ * To retheme dark mode, edit only this block.
+ * ───────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+
+  /* ── Brand ────────────────────────────────────────────────────── */
+  --clr-primary:        #7C9EFF;
+  --clr-primary-hover:  #9DB4FF;
+  --clr-primary-light:  #1E2A4A;
+  --clr-primary-muted:  #5A78D4;
+
+  /* ── Sidebar ──────────────────────────────────────────────────── */
+  --clr-sidebar-bg:     #0A1020;
+  --clr-sidebar-hover:  #141F38;
+  --clr-sidebar-active: #1C2B52;
+  --clr-sidebar-text:   #7090B8;
+  --clr-sidebar-title:  #A0B4D0;
+  --clr-sidebar-border: #151F38;
+
+  /* ── Financial Signals ────────────────────────────────────────── */
+  --clr-positive:       #40C057;
+  --clr-positive-bg:    #0D2414;
+  --clr-positive-text:  #69DB7C;
+  --clr-negative:       #FF6B6B;
+  --clr-negative-bg:    #2A0D0D;
+  --clr-negative-text:  #FF8787;
+  --clr-neutral:        #4DABF7;
+  --clr-neutral-bg:     #0D1F2E;
+  --clr-warning:        #FFB84D;
+  --clr-warning-bg:     #2A1800;
+
+  /* ── App Backgrounds ──────────────────────────────────────────── */
+  --clr-bg-app:         #0E1623;
+  --clr-bg-card:        #141E30;
+  --clr-bg-input:       #1A2540;
+  --clr-bg-table-alt:   #162033;
+
+  /* ── Typography ───────────────────────────────────────────────── */
+  --clr-text-primary:   #E8EEFA;
+  --clr-text-secondary: #A0B4D0;
+  --clr-text-muted:     #5A78A0;
+  --clr-text-inverse:   #0E1623;
+
+  /* ── Borders ──────────────────────────────────────────────────── */
+  --clr-border:         #233050;
+  --clr-border-light:   #1C2840;
+
+  /* ── Shadows ──────────────────────────────────────────────────── */
+  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.40);
+  --shadow-md:   0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg:   0 8px 24px rgba(0, 0, 0, 0.50);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.40);
+
+  /* ── Chart Palette ────────────────────────────────────────────── */
+  --chart-1:  #7C9EFF;
+  --chart-2:  #40C057;
+  --chart-3:  #FFB84D;
+  --chart-4:  #FF6B6B;
+  --chart-5:  #B197FC;
+  --chart-6:  #22D3EE;
+  --chart-7:  #F472B6;
+  --chart-8:  #A5B4FC;
+}

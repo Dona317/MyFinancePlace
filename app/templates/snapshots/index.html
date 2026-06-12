@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Istantanee — MyFinancePlace{% endblock %}
+{% block page_title %}Istantanee Finanziarie{% endblock %}
+{% block breadcrumb %}<li>Istantanee</li>{% endblock %}
+
+{% block topbar_actions %}
+  <form method="POST" action="{{ url_for('snapshots.create') }}">
+    <button type="submit" class="btn btn-primary btn-sm">
+      <i class="bi bi-camera"></i> Crea Istantanea Ora
+    </button>
+  </form>
+{% endblock %}
+
+{% block content %}
+
+<!-- Info banner ─────────────────────────────────────────────────────── -->
+<div class="alert alert-info mb-16">
+  <i class="bi bi-info-circle"></i>
+  Un'<strong>istantanea</strong> fotografa l'intera situazione finanziaria in un dato momento:
+  patrimonio netto, saldi, portafoglio, debiti. Puoi confrontare istantanee nel tempo per vedere la tua evoluzione.
+</div>
+
+{% if snapshots %}
+<!-- Timeline istantanee ─────────────────────────────────────────────── -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Andamento Patrimonio Netto</div>
+      <div class="card-header-sub">Da tutte le istantanee</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;"><canvas id="snapshotTrend"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Confronta Istantanee</div>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">Istantanea A</label>
+        <select class="form-select">
+          {% for s in snapshots %}
+          <option value="{{ s.id }}">{{ s.label }} ({{ s.date }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Istantanea B</label>
+        <select class="form-select">
+          {% for s in snapshots %}
+          <option value="{{ s.id }}" {{ 'selected' if loop.last }}>{{ s.label }} ({{ s.date }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <a href="{{ url_for('snapshots.compare') }}" class="btn btn-primary" style="width:100%;justify-content:center;">
+        <i class="bi bi-arrow-left-right"></i> Confronta
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Elenco istantanee ────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-header"><div class="card-header-title">Tutte le Istantanee</div></div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Etichetta</th>
+          <th style="text-align:right;">Patrimonio Netto</th>
+          <th style="text-align:right;">Attività</th>
+          <th style="text-align:right;">Passività</th>
+          <th style="text-align:right;">Portafoglio</th>
+          <th style="text-align:right;">Variazione</th>
+          <th style="text-align:center;">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in snapshots %}
+        <tr>
+          <td style="font-size:var(--font-size-xs);color:var(--clr-text-muted);white-space:nowrap;">{{ s.date }}</td>
+          <td style="font-weight:500;color:var(--clr-text-primary);">{{ s.label }}</td>
+          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(s.net_worth) }}</td>
+          <td class="amount positive" style="text-align:right;">€ {{ '%.2f'|format(s.total_assets) }}</td>
+          <td class="amount negative" style="text-align:right;">€ {{ '%.2f'|format(s.total_liabilities) }}</td>
+          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(s.portfolio_value) }}</td>
+          <td style="text-align:right;">
+            {% if s.delta is defined %}
+            <span class="badge {{ 'badge-positive' if s.delta >= 0 else 'badge-negative' }}">
+              {{ '+' if s.delta >= 0 else '' }}€ {{ '%.0f'|format(s.delta) }}
+            </span>
+            {% else %}
+            <span class="badge badge-muted">—</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center;">
+            <a href="#" class="btn btn-ghost btn-icon btn-sm" title="Dettaglio">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-camera"></i></div>
+    <div class="empty-state-title">Nessuna istantanea ancora</div>
+    <div class="empty-state-text">
+      Crea la prima istantanea per iniziare a tracciare l'evoluzione del tuo patrimonio nel tempo.
+    </div>
+    <form method="POST" action="{{ url_for('snapshots.create') }}">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-camera"></i> Crea Prima Istantanea
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if snapshots %}
+<script>
+const labels = {{ snapshots | map(attribute='date') | list | tojson }};
+const netWorths = {{ snapshots | map(attribute='net_worth') | list | tojson }};
+makeLineChart('snapshotTrend', labels, [
+  { label: 'Patrimonio Netto', data: netWorths, fill: true }
+]);
+</script>
+{% endif %}
+{% endblock %}

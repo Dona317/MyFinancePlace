@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% set is_edit = debt is not none %}
+{% block title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Debito — MyFinancePlace{% endblock %}
+{% block page_title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Debito{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">Debiti</a></li><li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>{% endblock %}
+
+{% block content %}
+<div style="max-width:640px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">{{ 'Modifica Debito' if is_edit else 'Inserisci Nuovo Debito' }}</div>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Tipo di Debito</label>
+            <select name="type" class="form-select">
+              {% for t in ['Mutuo', 'Prestito Personale', 'Prestito Auto', 'Carta di Credito', 'Prestito Studentesco', 'Altro'] %}
+              <option {{ 'selected' if is_edit and debt.type == t }}>{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Istituto / Creditore</label>
+            <input type="text" name="lender" class="form-control" placeholder="es. UniCredit"
+                   value="{{ debt.lender if is_edit else '' }}" required />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Capitale Iniziale (€)</label>
+            <input type="number" name="principal" class="form-control" step="0.01" min="0"
+                   placeholder="0.00" value="{{ debt.principal if is_edit else '' }}" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Saldo Residuo (€)</label>
+            <input type="number" name="balance" class="form-control" step="0.01" min="0"
+                   placeholder="0.00" value="{{ debt.balance if is_edit else '' }}" required />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Tasso di Interesse (%)</label>
+            <input type="number" name="rate" class="form-control" step="0.01" min="0" max="100"
+                   placeholder="0.00" value="{{ debt.rate if is_edit else '' }}" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rata Mensile (€)</label>
+            <input type="number" name="monthly_payment" class="form-control" step="0.01" min="0"
+                   placeholder="0.00" value="{{ debt.monthly_payment if is_edit else '' }}" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Data Inizio</label>
+            <input type="date" name="start_date" class="form-control"
+                   value="{{ debt.start_date if is_edit else '' }}" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data Scadenza</label>
+            <input type="date" name="due_date" class="form-control"
+                   value="{{ debt.due_date if is_edit else '' }}" />
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
+          <a href="{{ url_for('debt.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if is_edit else 'Aggiungi Debito' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
