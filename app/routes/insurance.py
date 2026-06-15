@@ -1,7 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for
+from apiflask import APIBlueprint
 
-insurance_bp = Blueprint("insurance", __name__, url_prefix="/insurance")
-
+insurance_bp = APIBlueprint(
+    "insurance",
+    __name__,
+    url_prefix="/insurance",
+    tag="Insurance"
+)
 
 @insurance_bp.route("/")
 def index():

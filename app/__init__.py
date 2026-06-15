@@ -1,11 +1,33 @@
-from flask import Flask, session
+from apiflask import APIFlask
+from apiflask import APIBlueprint
+from flask import session
 from config import config
 from .routes.settings import DEFAULT_SETTINGS
 
 
 def create_app(config_name="default"):
-    app = Flask(__name__)
+    app = APIFlask(
+        __name__,
+        title='MyFinancePlace | API',
+        version='1.0.0',
+        docs_path='/swagger'
+    )
     app.config.from_object(config[config_name])
+    
+    
+    app.config["DESCRIPTION"] = """
+    REST API per MyFinancePlace.
+    """
+
+    app.config["CONTACT"] = {
+        "name": "MyFinancePlace",
+        "email": "dennisturco@gmail.com"
+    }
+
+    # app.config["LICENSE"] = {
+    #     "name": "Proprietary"
+    # }
+        
 
     # ── Register blueprints ────────────────────────────────────────────────────
     from .routes.auth import auth_bp

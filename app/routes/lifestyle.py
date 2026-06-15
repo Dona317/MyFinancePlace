@@ -1,6 +1,12 @@
-from flask import Blueprint, render_template
+from flask import render_template
+from apiflask import APIBlueprint
 
-lifestyle_bp = Blueprint("lifestyle", __name__, url_prefix="/lifestyle")
+lifestyle_bp = APIBlueprint(
+    "lifestyle",
+    __name__,
+    url_prefix="/lifestyle",
+    tag="Lifestyle"
+)
 
 
 @lifestyle_bp.route("/")
