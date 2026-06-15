@@ -1,6 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for
+from apiflask import APIBlueprint
 
-documents_bp = Blueprint("documents", __name__, url_prefix="/documents")
+documents_bp = APIBlueprint(
+    "documents",
+    __name__,
+    url_prefix="/documents",
+    tag="Documents"
+)
 
 
 @documents_bp.route("/")

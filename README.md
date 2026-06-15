@@ -34,7 +34,8 @@ cp .env.example .env         # edit SECRET_KEY
 python run.py
 ```
 
-Open `http://localhost:5000` in your browser.
+- Open `http://localhost:5000` in your browser.
+- The API swagger documentation: `http://localhost:5000/swagger`
 
 ## How to Commit Changes to the Project
 

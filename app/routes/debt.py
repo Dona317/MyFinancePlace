@@ -1,6 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for
+from apiflask import APIBlueprint
 
-debt_bp = Blueprint("debt", __name__, url_prefix="/debt")
+debt_bp = APIBlueprint(
+    "debt",
+    __name__,
+    url_prefix="/debt",
+    tag="Debt"
+)
 
 
 @debt_bp.route("/")

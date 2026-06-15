@@ -1,6 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import render_template, request, redirect, url_for, flash, session
+from apiflask import APIBlueprint
 
-settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
+settings_bp = APIBlueprint(
+    "settings",
+    __name__,
+    url_prefix="/settings",
+    tag="Settings"
+)
 
 # Default values for every toggle — all sections enabled out of the box
 DEFAULT_SETTINGS = {

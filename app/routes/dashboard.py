@@ -1,6 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for
+from flask import render_template, redirect, url_for
+from apiflask import APIBlueprint
 
-dashboard_bp = Blueprint("dashboard", __name__)
+dashboard_bp = APIBlueprint(
+    "dashboard",
+    __name__,
+    tag="Dashboard"    
+)
 
 
 @dashboard_bp.route("/")

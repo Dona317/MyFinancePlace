@@ -1,6 +1,12 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash
+from apiflask import APIBlueprint
 
-auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+auth_bp = APIBlueprint(
+    "auth",
+    __name__,
+    url_prefix="/auth",
+    tag="Auth"
+)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])

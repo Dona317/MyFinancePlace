@@ -1,6 +1,12 @@
-from flask import Blueprint, render_template, request, send_file
+from flask import render_template, request, send_file
+from apiflask import APIBlueprint
 
-export_bp = Blueprint("export", __name__, url_prefix="/export")
+export_bp = APIBlueprint(
+    "export",
+    __name__,
+    url_prefix="/export",
+    tag="Export"
+)
 
 
 @export_bp.route("/")

@@ -1,6 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for
+from apiflask import APIBlueprint
 
-portfolio_bp = Blueprint("portfolio", __name__, url_prefix="/portfolio")
+portfolio_bp = APIBlueprint(
+    "portfolio",
+    __name__,
+    url_prefix="/portfolio",
+    tag="Portfolio"
+)
 
 
 @portfolio_bp.route("/")
