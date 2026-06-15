@@ -3,6 +3,7 @@ from apiflask import APIBlueprint
 from flask import session
 from config import config
 from .routes.settings import DEFAULT_SETTINGS
+from .extensions import db, migrate
 
 
 def create_app(config_name="default"):
@@ -13,6 +14,11 @@ def create_app(config_name="default"):
         docs_path='/swagger'
     )
     app.config.from_object(config[config_name])
+
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
     
     
     app.config["DESCRIPTION"] = """
