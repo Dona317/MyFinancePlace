@@ -242,56 +242,135 @@ type  = String(validate=OneOf(["income", "expense"]))
 
 ---
 
-## 4. Adding a Database
+## 4. Database — PostgreSQL via Docker
 
-Install Flask-SQLAlchemy and Flask-Migrate:
+The project uses **PostgreSQL** running in Docker. The container is defined in `docker-compose.yml` at the project root.
 
-```bash
-pip install Flask-SQLAlchemy Flask-Migrate
+### Connection details
+
+| Parameter | Value |
+|---|---|
+| Host | `localhost` |
+| Port | `5332` (mapped from container's 5432) |
+| Database | `myfinanceplace` |
+| User | `sa` |
+| Password | `Pa55w0rd` |
+
+### Start / stop the database
+
+```powershell
+# Start (detached)
+docker compose up -d
+
+# Stop
+docker compose down
+
+# Stop and delete the volume (wipes all data)
+docker compose down -v
 ```
 
-Add to `config.py`:
+### Connect with psql (inside the container)
+
+```powershell
+# connect_to_postgres_db.ps1
+docker compose exec db psql -U sa -d myfinanceplace
+```
+
+Or run the helper script directly:
+
+```powershell
+.\connect_to_postgres_db.ps1
+```
+
+### Connect from the Flask app
+
+Dependencies are already in `requirements.txt` (`Flask-SQLAlchemy`, `Flask-Migrate`, `psycopg2-binary`). Just install them:
+
+```bash
+pip install -r requirements.txt
+```
+
+Add to `.env` (never commit this file):
+
+```
+DATABASE_URL=postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace
+```
+
+The `config.py` already reads `DATABASE_URL` and falls back to the local Docker instance:
 
 ```python
-SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or "sqlite:///myfinanceplace.db"
+SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace"
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 ```
 
-Initialize in `app/__init__.py`:
+### Architecture — avoiding circular imports
 
-```python
-from flask_sqlalchemy import SQLAlchemy
-db = SQLAlchemy()
+`db` and `migrate` live in `app/extensions.py` (not in `app/__init__.py`). This means models and routes can import `db` from `extensions` without triggering a circular import chain.
 
-def create_app():
-    app = APIFlask(__name__)
-    db.init_app(app)
-    ...
+```
+app/extensions.py   ← db, migrate created here
+app/__init__.py     ← db.init_app(app), migrate.init_app(app, db)
+app/models/*.py     ← from app.extensions import db
 ```
 
-Create your first model in `app/models/transaction.py`:
+### Adding a model
+
+Create a file in `app/models/`. Example — `app/models/transaction.py`:
 
 ```python
-from app import db
+from app.extensions import db
 
 class Transaction(db.Model):
-    id           = db.Column(db.Integer, primary_key=True)
-    date         = db.Column(db.Date, nullable=False)
-    title        = db.Column(db.String(255), nullable=False)
+    __tablename__ = "transactions"
+
+    id           = db.Column(db.Integer,        primary_key=True)
+    date         = db.Column(db.Date,           nullable=False)
+    title        = db.Column(db.String(255),    nullable=False)
     amount       = db.Column(db.Numeric(12, 2), nullable=False)
     category     = db.Column(db.String(100))
-    type         = db.Column(db.String(20))   # "income" | "expense"
+    type         = db.Column(db.String(20))     # "income" | "expense"
     notes        = db.Column(db.Text)
-    is_recurring = db.Column(db.Boolean, default=False)
+    is_recurring = db.Column(db.Boolean,        default=False)
 ```
 
-Run migrations:
+Then import it in `app/models/__init__.py` so SQLAlchemy registers it:
 
-```bash
+```python
+from .transaction import Transaction
+```
+
+### Migration workflow
+
+This is the daily workflow whenever you add or change a model.
+
+```powershell
+# One-time setup (already done — migrations/ folder already exists)
 flask db init
-flask db migrate -m "Initial tables"
-flask db upgrade
+
+# After every model change:
+flask db migrate -m "describe what changed"   # generates a new file in migrations/versions/
+flask db upgrade                               # applies it to the database
 ```
+
+To roll back the last migration:
+
+```powershell
+flask db downgrade
+```
+
+To see which migration is currently applied:
+
+```powershell
+flask db current
+```
+
+To see the full migration history:
+
+```powershell
+flask db history
+```
+
+> **Important:** always commit the generated `migrations/versions/*.py` files to git. They are the source of truth for the database schema.
 
 ---
 

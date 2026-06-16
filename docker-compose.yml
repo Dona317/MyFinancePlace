@@ -1,0 +1,23 @@
+services:
+  db:
+    container_name: postgres-myfinanceplace
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: myfinanceplace
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: Pa55w0rd
+      PGDARE: /data/postgres
+    volumes:
+      - db:/data/postgres
+    ports:
+      - "5332:5432"
+    networks:
+      - db
+    restart: unless-stopped
+
+networks:
+  db:
+    driver: bridge
+
+volumes:
+  db:
