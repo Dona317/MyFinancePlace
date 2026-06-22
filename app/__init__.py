@@ -19,8 +19,8 @@ def create_app(config_name="default"):
     migrate.init_app(app, db)
 
     from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
-    
-    
+
+
     app.config["DESCRIPTION"] = """
     REST API per MyFinancePlace.
     """
@@ -33,7 +33,7 @@ def create_app(config_name="default"):
     # app.config["LICENSE"] = {
     #     "name": "Proprietary"
     # }
-        
+
 
     # ── Register blueprints ────────────────────────────────────────────────────
     from .routes.auth import auth_bp
