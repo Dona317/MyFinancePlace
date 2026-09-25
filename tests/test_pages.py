@@ -97,3 +97,12 @@ def test_theme_switch_in_topbar(client, app):
     head = html.split("</head>")[0]
     assert "mfp-theme" in head and "prefers-color-scheme: dark" in head
     assert 'id="theme-toggle"' not in html
+
+
+def test_settings_button_next_to_theme_switch(client, app):
+    html = client.get("/transactions/").get_data(as_text=True)
+    after_switch = html.split('class="topbar-actions"')[1].split('class="theme-switch"')[1]
+    button = re.search(r'<a href="(/settings/)" class="btn btn-ghost btn-icon topbar-settings"(.*?)>', after_switch, re.S)
+    assert button and 'aria-label="Impostazioni"' in button.group(2) and "aria-current" not in button.group(2)
+    # highlighted while on the settings pages
+    assert 'aria-current="page"' in client.get("/settings/").get_data(as_text=True).split("topbar-settings")[1][:300]

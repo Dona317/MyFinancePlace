@@ -243,6 +243,13 @@
           </button>
         </div>
 
+        <!-- Settings -->
+        <a href="{{ url_for('settings.index') }}" class="btn btn-ghost btn-icon topbar-settings"
+           title="Impostazioni" aria-label="Impostazioni"
+           {% if request.endpoint and request.endpoint.startswith('settings.') %}aria-current="page"{% endif %}>
+          <i class="bi bi-gear"></i>
+        </a>
+
         <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">
           {{ moment().format('D MMM YYYY') if moment is defined else '' }}
         </span>

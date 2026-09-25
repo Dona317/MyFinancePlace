@@ -1146,6 +1146,10 @@ tfoot td {
 .theme-switch button i { font-size: 14px; }
 @media (max-width: 576px) { .theme-switch .theme-label { display: none; } }
 
+/* Settings shortcut next to the theme switch */
+.topbar-settings { font-size: 18px; }
+.topbar-settings[aria-current="page"] { color: var(--clr-primary); background: var(--clr-primary-light); }
+
 /* Phones: the page's buttons and the theme switch wrap under the title instead of overflowing */
 @media (max-width: 768px) {
   .topbar { height: auto; min-height: var(--topbar-height); flex-wrap: wrap; padding: 10px 16px; row-gap: 8px; }
