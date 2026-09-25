@@ -17,6 +17,7 @@ but aren't flagged are suggested, so they can be flagged with one click.
 from __future__ import annotations
 
 import calendar
+import json
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -85,6 +86,57 @@ def save_preferences(method=None, window=None, horizon=None, recurring=None) -> 
     for key, value in prefs.items():
         settings_store.set(f"forecast.{key}", str(value))
     return prefs
+
+
+# ── Page layout: which panels, in which order, half or whole row ──────────────
+
+WIDGETS = {  # id: (title, default span: 1 = half row, 2 = whole row)
+    "kpi":        ("Indicatori", 2),
+    "net":        ("Netto mensile", 1),
+    "methods":    ("Confronto dei metodi", 1),
+    "income":     ("Entrate", 1),
+    "expenses":   ("Uscite", 1),
+    "balance":    ("Saldo di cassa previsto", 1),
+    "months":     ("Mese per mese", 1),
+    "categories": ("Previsione per categoria", 1),
+    "upcoming":   ("Prossime ricorrenti", 1),
+    "candidates": ("Sembrano ricorrenti", 1),
+    "help":       ("Come funziona", 1),
+}
+
+
+def default_layout() -> list[dict]:
+    return [{"id": key, "span": span, "visible": True} for key, (_, span) in WIDGETS.items()]
+
+
+def normalize_layout(items) -> list[dict]:
+    """Keep known panels once each, in the given order; panels missing from it are added at the end."""
+    out, seen = [], set()
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict) or item.get("id") not in WIDGETS or item["id"] in seen:
+            continue
+        seen.add(item["id"])
+        out.append({"id": item["id"], "span": 2 if str(item.get("span")) == "2" else 1,
+                    "visible": item.get("visible", True) is not False})
+    return out + [w for w in default_layout() if w["id"] not in seen]
+
+
+def layout() -> list[dict]:
+    try:
+        return normalize_layout(json.loads(settings_store.get("forecast.layout") or "[]"))
+    except (TypeError, ValueError):
+        return default_layout()
+
+
+def save_layout(items) -> list[dict]:
+    items = normalize_layout(items)
+    settings_store.set("forecast.layout", json.dumps(items))
+    return items
+
+
+def reset_layout() -> list[dict]:
+    settings_store.set("forecast.layout", None)
+    return default_layout()
 
 
 # ── Forecasting one monthly series ─────────────────────────────────────────────

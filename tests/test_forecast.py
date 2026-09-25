@@ -231,7 +231,11 @@ def test_page_is_a_two_column_dashboard(client, db):
     db.session.commit()
     html = client.get("/forecast/").get_data(as_text=True)
     assert_divs_balanced(html)
-    assert html.count('class="dash-grid') == 5
+    # one grid of two equal columns, with every panel in the default order
+    assert html.count('class="fc-grid"') == 1 and "dash-grid" not in html
+    assert re.findall(r'<section class="fc-widget" data-widget="(\w+)" data-span="(\d)"', html) == [
+        (key, str(span)) for key, (_, span) in forecast.WIDGETS.items()]
+    assert 'id="layout-edit"' in html and 'id="layout-bar"' in html
     for title in ("Netto mensile: storico e previsione", "Confronto dei metodi", "Saldo di cassa previsto",
                   "Mese per mese", "per categoria", "Prossime ricorrenti", "Sembrano ricorrenti", "Come funziona"):
         assert title in html
@@ -239,8 +243,8 @@ def test_page_is_a_two_column_dashboard(client, db):
         assert f'id="{chart}"' in html
     assert "Entrate: storico e previsione" in html and "Uscite: storico e previsione" in html
     assert '<select name="recurring"' in html and "Err. entrate" in html and "Err. uscite" in html
-    assert "Netflix" in html.split("Sembrano ricorrenti")[1]      # suggested
-    assert "Stipendio" in html.split("Prossime ricorrenti")[1]    # scheduled
+    assert "Netflix" in html.split('<div class="card-header-title">Sembrano ricorrenti')[1]      # suggested
+    assert "Stipendio" in html.split('<div class="card-header-title">Prossime ricorrenti')[1]    # scheduled
     for label, _ in forecast.METHODS.values():
         assert label in html
     assert 'href="/forecast/"' in client.get("/transactions/").get_data(as_text=True)  # sidebar link
@@ -287,3 +291,42 @@ def test_transactions_can_be_filtered_to_recurring_ones(client, db):
     html = client.get("/transactions/?recurring=1").get_data(as_text=True)
     assert "Affitto" in html and "Pizzeria Da Mario" not in html
     assert "Pizzeria Da Mario" in client.get("/transactions/").get_data(as_text=True)
+
+
+# ── Layout of the page ─────────────────────────────────────────────────────────
+
+def test_layout_is_normalized():
+    assert forecast.normalize_layout(None) == forecast.default_layout()
+    items = forecast.normalize_layout([
+        {"id": "months", "span": 2, "visible": False},
+        {"id": "boh"}, "x", {"id": "months", "span": 1},     # unknown, malformed and repeated entries are dropped
+        {"id": "net", "span": "7"},
+    ])
+    assert items[0] == {"id": "months", "span": 2, "visible": False}
+    assert items[1] == {"id": "net", "span": 1, "visible": True}
+    assert [w["id"] for w in items[2:]] == [k for k in forecast.WIDGETS if k not in ("months", "net")]  # the rest appended
+
+
+def test_layout_is_saved_and_applied(client, db):
+    db.session.add_all([tx(recent(k, 3), "Esselunga", 100 + k, category="Alimentari") for k in range(1, 4)])
+    db.session.commit()
+    widgets = [{"id": "balance", "span": 2, "visible": True}, {"id": "kpi", "span": 2, "visible": True},
+               {"id": "methods", "span": 1, "visible": False}]
+    response = client.post("/forecast/layout", json={"widgets": widgets})
+    assert response.status_code == 200
+    saved = response.get_json()["layout"]
+    assert [w["id"] for w in saved[:3]] == ["balance", "kpi", "methods"] and len(saved) == len(forecast.WIDGETS)
+    html = client.get("/forecast/").get_data(as_text=True)
+    order = re.findall(r'<section class="fc-widget" data-widget="(\w+)" data-span="(\d)"[^>]*?( hidden)?>', html)
+    assert order[:3] == [("balance", "2", ""), ("kpi", "2", ""), ("methods", "1", " hidden")]
+    assert_divs_balanced(html)
+    # reset
+    assert client.post("/forecast/layout", json={"reset": True}).get_json()["layout"] == forecast.default_layout()
+    assert forecast.layout() == forecast.default_layout()
+
+
+def test_layout_endpoint_rejects_bad_input(client, app):
+    assert client.post("/forecast/layout", data="nope", content_type="application/json").status_code == 400
+    assert client.post("/forecast/layout", json={"widgets": "all"}).status_code == 400
+    assert client.post("/forecast/layout", json=[1, 2]).status_code == 400
+    assert forecast.layout() == forecast.default_layout()
