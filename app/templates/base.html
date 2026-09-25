@@ -22,7 +22,10 @@
   <!-- Apply saved theme before paint to avoid flash -->
   <script>(function(){var t=localStorage.getItem('mfp-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}());</script>
   <!-- Apply the saved sidebar layout before paint (icons-only sidebar) -->
-  <script>(function(){try{if(localStorage.getItem('mfp-sidebar-mini')==='1')document.documentElement.classList.add('sidebar-mini');}catch(e){}}());</script>
+  <script>(function(){try{
+    if(localStorage.getItem('mfp-sidebar-mini')==='1')document.documentElement.classList.add('sidebar-mini');
+    if(localStorage.getItem('mfp-sidebar-hidden')==='1')document.documentElement.classList.add('sidebar-hidden');
+  }catch(e){}}());</script>
 </head>
 <body>
 
@@ -210,7 +213,9 @@
 
     <!-- Topbar -->
     <header class="topbar">
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon sidebar-toggle-btn" aria-label="Apri il menu">
+      <!-- Hides / shows the whole left column (desktop); opens it over the page on phones -->
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon sidebar-toggle-btn"
+              aria-controls="sidebar" aria-expanded="true" aria-label="Nascondi il menu" title="Nascondi il menu">
         <i class="bi bi-list" style="font-size:20px;"></i>
       </button>
 

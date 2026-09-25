@@ -80,6 +80,7 @@ def test_sidebar_sections_are_collapsible(client, app):
         # each title is a button controlling its own group of links
         assert f'aria-controls="nav-{key}"' in html and f'<div class="nav-section-items" id="nav-{key}">' in html
     assert 'id="sidebar-mini-toggle"' in html  # icons-only mode
+    assert 'aria-controls="sidebar"' in html and "mfp-sidebar-hidden" in html  # hide the whole column, remembered
     assert 'class="btn btn-ghost btn-icon sidebar-toggle-btn"' in html and 'style="display:none;"' not in html.split("sidebar-toggle-btn")[1][:40]
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
     assert len(re.findall(r'class="nav-item', html)) == len(re.findall(r'<span class="nav-label">', html)) - len(sections) - 1

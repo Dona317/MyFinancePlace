@@ -1071,7 +1071,7 @@ tfoot td {
 .sidebar-mini-toggle:hover { background: var(--clr-sidebar-hover); color: var(--clr-sidebar-title); }
 .sidebar-mini-toggle i { width: 20px; text-align: center; font-size: 14px; transition: transform .2s ease; }
 
-.sidebar, .main-content { transition: width .2s ease, margin-left .2s ease; }
+.sidebar, .main-content { transition: width .2s ease, margin-left .2s ease, transform .2s ease; }
 
 @media (min-width: 993px) {
   html.sidebar-mini { --sidebar-width: 68px; }
@@ -1096,11 +1096,16 @@ tfoot td {
   html.sidebar-mini .sidebar-footer { padding-left: 0; padding-right: 0; }
 }
 
+/* ── Whole left column hidden (desktop), toggled by the ☰ button in the topbar ── */
+.sidebar-toggle-btn { display: inline-flex; margin-right: 4px; }
+@media (min-width: 993px) {
+  html.sidebar-hidden .sidebar { transform: translateX(-100%); }
+  html.sidebar-hidden .main-content { margin-left: 0; }
+}
+
 /* ── Sidebar on tablets and phones: hidden, opened by the ☰ button ─────────── */
-.sidebar-toggle-btn { display: none; }
 #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, .4); z-index: 99; }
 @media (max-width: 992px) {
-  .sidebar-toggle-btn { display: inline-flex; }
   .sidebar { z-index: 100; transition: transform .2s ease; }
   #sidebar-overlay.active { display: block; }
   .sidebar-mini-toggle { display: none; }

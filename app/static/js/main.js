@@ -57,15 +57,32 @@ document.addEventListener("DOMContentLoaded", () => {
   const sidebar   = document.getElementById("sidebar");
   const overlay   = document.getElementById("sidebar-overlay");
 
-  // Phones and tablets: the ☰ button slides the sidebar in; the dark overlay or ESC closes it
+  // The ☰ button: on desktop it hides / shows the whole left column (remembered);
+  // on phones and tablets it slides the sidebar in, and the dark overlay or ESC closes it
+  const phone = window.matchMedia("(max-width: 992px)");
   const closeSidebar = () => {
     sidebar && sidebar.classList.remove("open");
     overlay && overlay.classList.remove("active");
   };
+  const applyHidden = (hidden) => {
+    document.documentElement.classList.toggle("sidebar-hidden", hidden);
+    if (!toggleBtn) return;
+    const label = hidden ? "Mostra il menu" : "Nascondi il menu";
+    toggleBtn.setAttribute("aria-label", label);
+    toggleBtn.setAttribute("aria-expanded", String(!hidden));
+    toggleBtn.title = label;
+  };
+  applyHidden(document.documentElement.classList.contains("sidebar-hidden"));
   if (toggleBtn && sidebar) {
     toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("open");
-      overlay && overlay.classList.toggle("active", sidebar.classList.contains("open"));
+      if (phone.matches) {
+        sidebar.classList.toggle("open");
+        overlay && overlay.classList.toggle("active", sidebar.classList.contains("open"));
+        return;
+      }
+      const hidden = !document.documentElement.classList.contains("sidebar-hidden");
+      applyHidden(hidden);
+      try { localStorage.setItem("mfp-sidebar-hidden", hidden ? "1" : "0"); } catch (e) { /* private mode */ }
     });
   }
   overlay && overlay.addEventListener("click", closeSidebar);
