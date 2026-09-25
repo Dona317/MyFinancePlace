@@ -12,6 +12,7 @@ from app.models.transaction import Transaction
     "/lifestyle/?year=2026",
     "/transactions/",
     "/export/",
+    "/forecast/",
 ])
 def test_pages_render_with_data(client, sample_data, url):
     assert client.get(url).status_code == 200
@@ -64,7 +65,7 @@ def test_api_rejects_invalid_type(client, db):
 @pytest.mark.parametrize("url", [
     "/dashboard", "/transactions/", "/transactions/?category=Nope",
     "/accounting/income-statement", "/accounting/cash-flow", "/lifestyle/", "/export/",
-    "/transactions/duplicates", "/settings/ai", "/settings/", "/transactions/new",
+    "/transactions/duplicates", "/settings/ai", "/settings/", "/transactions/new", "/forecast/",
 ])
 def test_pages_have_balanced_divs(client, sample_data, url):
     """A stray </div> closes the page container early and breaks the layout (browsers hide it)."""

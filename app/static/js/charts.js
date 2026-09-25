@@ -85,18 +85,20 @@ function buildLineChart(ctx, labels, datasets) {
         label: ds.label,
         data:  ds.data,
         borderColor:     themeColor(ds.color, Theme.chart[i % Theme.chart.length]),
-        backgroundColor: hexAlpha(themeColor(ds.color, Theme.chart[i % Theme.chart.length]), 0.08),
+        backgroundColor: hexAlpha(themeColor(ds.color, Theme.chart[i % Theme.chart.length]), ds.fillAlpha ?? 0.08),
         tension: 0.4,
-        fill: ds.fill !== undefined ? ds.fill : true,
-        pointRadius: 4,
+        fill: ds.fill !== undefined ? ds.fill : true,   // also "-1": fill down to the previous dataset (a band)
+        pointRadius: ds.pointRadius ?? 4,
         pointHoverRadius: 6,
-        borderWidth: 2,
+        borderWidth: ds.borderWidth ?? 2,
+        borderDash: ds.dash || [],                       // e.g. [6, 4] for forecast values
       })),
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: "index", intersect: false },
+      plugins: { legend: { labels: { filter: item => !datasets[item.datasetIndex].noLegend } } },
       scales: {
         x: { grid: { color: Theme.border }, ticks: { color: Theme.textMuted } },
         y: { grid: { color: Theme.border }, ticks: { color: Theme.textMuted } },

@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}Previsioni — MyFinancePlace{% endblock %}
+{% block page_title %}Previsioni{% endblock %}
+{% block breadcrumb %}<li>Previsioni</li>{% endblock %}
+
+{% block content %}
+{% set cur = fc.current %}
+{% set nxt = fc.next_month %}
+{% set best = fc.methods|selectattr('best')|first %}
+
+<!-- Impostazioni della previsione ──────────────────────────────────────── -->
+<div class="card mb-16">
+  <form class="filter-bar forecast-controls" method="POST" action="{{ url_for('forecast.save_preferences') }}" id="forecast-form">
+    <label>
+      <span>Metodo</span>
+      <select name="method" class="form-select">
+        {% for key, (label, _) in methods.items() %}
+        <option value="{{ key }}" {{ 'selected' if key == prefs.method else '' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label title="Quanti mesi completi recenti usare per stimare le spese e le entrate variabili">
+      <span>Finestra mobile</span>
+      <input type="number" name="window" value="{{ prefs.window }}" min="{{ window_range[0] }}" max="{{ window_range[1] }}"
+             list="window-presets" class="form-control" style="width:80px;" />
+      <span>mesi</span>
+      <datalist id="window-presets">{% for n in [3, 6, 9, 12, 18, 24, 36] %}<option value="{{ n }}">{% endfor %}</datalist>
+    </label>
+    <label>
+      <span>Orizzonte</span>
+      <select name="horizon" class="form-select">
+        {% for n in ([3, 6, 12, 18, 24] + [prefs.horizon])|unique|sort %}
+        <option value="{{ n }}" {{ 'selected' if n == prefs.horizon else '' }}>{{ n }} mesi</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-repeat"></i> Aggiorna</button>
+    <span class="forecast-note"><i class="bi bi-bookmark-check"></i> Le scelte vengono ricordate</span>
+  </form>
+</div>
+
+{% if not fc.history_months and not fc.scheduled %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-graph-up-arrow"></i></div>
+    <div class="empty-state-title">Servono dei movimenti per fare una previsione</div>
+    <div class="empty-state-text">Importa un estratto conto o inserisci le transazioni di almeno un mese completo.</div>
+    <a href="{{ url_for('export.index', _anchor='bank-import') }}" class="btn btn-primary"><i class="bi bi-bank2"></i> Importa estratto conto</a>
+  </div>
+</div>
+{% else %}
+
+<!-- KPI ─────────────────────────────────────────────────────────────── -->
+<div class="kpi-grid mb-24" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));">
+  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+    <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
+    <div class="kpi-label">Chiusura {{ cur.label }}</div>
+    <div class="kpi-value {{ 'positive' if cur.net >= 0 else 'negative' }}" data-amount="{{ cur.net }}" data-currency="EUR">—</div>
+    <div class="kpi-sub">Registrato fino al {{ fc.cutoff.strftime('%d/%m') }} + previsto</div>
+  </div>
+  {% if nxt %}
+  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
+    <div class="kpi-label">Entrate {{ nxt.label }}</div>
+    <div class="kpi-value" data-amount="{{ nxt.income }}" data-currency="EUR">—</div>
+    <div class="kpi-sub">di cui ricorrenti {{ nxt.scheduled_income|money }}</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+    <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
+    <div class="kpi-label">Uscite {{ nxt.label }}</div>
+    <div class="kpi-value" data-amount="{{ nxt.expenses }}" data-currency="EUR">—</div>
+    <div class="kpi-sub">di cui ricorrenti {{ nxt.scheduled_expenses|money }}</div>
+  </div>
+  {% endif %}
+  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+    <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+    <div class="kpi-label">Saldo tra {{ fc.horizon }} mesi</div>
+    <div class="kpi-value" data-amount="{{ fc.final_balance }}" data-currency="EUR">—</div>
+    <div class="kpi-sub">Oggi {{ fc.balance_now|money }}</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
+    <div class="kpi-icon"><i class="bi bi-arrow-repeat"></i></div>
+    <div class="kpi-label">Ricorrenti al mese</div>
+    <div class="kpi-value" data-amount="{{ fc.recurring_monthly }}" data-currency="EUR">—</div>
+    <div class="kpi-sub">{{ fc.scheduled|length }} programmate{% if fc.candidates %} · {{ fc.candidates|length }} da confermare{% endif %}</div>
+  </div>
+</div>
+
+<!-- Riga 1: grafico del netto · confronto metodi ─────────────────────── -->
+<div class="dash-grid dash-grid-wide mb-16">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Netto mensile: storico e previsione</div>
+        <div class="card-header-sub">{{ fc.method_label }}, finestra di {{ fc.window }} mesi · l'area mostra l'intervallo tra tutti i metodi</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:300px;"><canvas id="netChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Confronto dei metodi</div>
+        <div class="card-header-sub">Errore medio prevedendo gli ultimi {{ [fc.history_months - 1, 6]|min if fc.history_months > 1 else 0 }} mesi dai precedenti</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="methods-table table-compact">
+        <thead><tr><th>Metodo</th><th style="text-align:right;">Netto {{ nxt.label if nxt else cur.label }}</th><th style="text-align:right;">Errore</th></tr></thead>
+        <tbody>
+          {% for m in fc.methods %}
+          <tr class="{{ 'selected' if m.selected else '' }}">
+            <td>
+              <form method="POST" action="{{ url_for('forecast.save_preferences') }}">
+                <input type="hidden" name="method" value="{{ m.key }}" />
+                <button type="submit" class="method-pick" title="{{ m.description }}" {{ 'aria-current=true' if m.selected else '' }}>
+                  <i class="bi bi-{{ 'record-circle-fill' if m.selected else 'circle' }}"></i> {{ m.label }}
+                </button>
+              </form>
+              {% if m.best %}<span class="badge badge-positive">più preciso</span>{% endif %}
+              {% if m.fallback %}<span class="badge badge-muted" title="Storico insufficiente: usa la media mobile">= media</span>{% endif %}
+            </td>
+            <td class="amount {{ 'positive' if m.next_net >= 0 else 'negative' }}" style="text-align:right;white-space:nowrap;">{{ m.next_net|money }}</td>
+            <td style="text-align:right;white-space:nowrap;color:var(--clr-text-muted);">{{ m.error|money if m.error is not none else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if best and not best.selected %}
+    <div class="card-body forecast-hint">
+      <i class="bi bi-lightbulb"></i> Sui tuoi dati il metodo più preciso è <strong>{{ best.label }}</strong>: clicca sul nome per usarlo.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Riga 2: saldo previsto · tabella mensile ─────────────────────────── -->
+<div class="dash-grid mb-16">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Saldo di cassa previsto</div>
+        <div class="card-header-sub">Saldo di oggi più il netto previsto di ogni mese</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:280px;"><canvas id="balanceChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Mese per mese</div>
+        <div class="card-header-sub">Ricorrenti programmate + variabili stimate</div>
+      </div>
+    </div>
+    <div class="table-wrapper" style="max-height:340px;overflow-y:auto;">
+      <table class="table-compact">
+        <thead><tr><th>Mese</th><th style="text-align:right;">Entrate</th><th style="text-align:right;">Uscite</th><th style="text-align:right;">Netto</th><th class="col-optional" style="text-align:right;">Saldo</th></tr></thead>
+        <tbody>
+          {% for row in fc.months %}
+          <tr>
+            <td style="white-space:nowrap;">{{ row.label }}{% if row.current %} <span class="badge badge-muted">in corso</span>{% endif %}</td>
+            <td class="amount positive" style="text-align:right;white-space:nowrap;">{{ row.income|money }}</td>
+            <td class="amount negative" style="text-align:right;white-space:nowrap;">{{ (-row.expenses)|money }}</td>
+            <td class="amount {{ 'positive' if row.net >= 0 else 'negative' }}" style="text-align:right;white-space:nowrap;font-weight:600;">{{ row.net|money }}</td>
+            <td class="col-optional" style="text-align:right;white-space:nowrap;">{{ row.balance|money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Riga 3: per categoria · prossime ricorrenti ──────────────────────── -->
+<div class="dash-grid mb-16">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ nxt.label if nxt else cur.label }} per categoria</div>
+        <div class="card-header-sub">Confronto con la media degli ultimi {{ fc.window }} mesi</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="table-compact">
+        <thead><tr><th>Categoria</th><th style="text-align:right;">Media</th><th class="col-optional" style="text-align:right;">Ricorrenti</th><th class="col-optional" style="text-align:right;">Variabili</th><th style="text-align:right;">Previsto</th></tr></thead>
+        <tbody>
+          {% for c in fc.categories %}
+          {% set sign = -1 if c.type == 'expense' else 1 %}
+          <tr>
+            <td><span class="badge {{ 'badge-positive' if c.type == 'income' else 'badge-primary' }}">{{ c.category }}</span></td>
+            <td style="text-align:right;white-space:nowrap;color:var(--clr-text-muted);">{{ (sign * c.average)|money }}</td>
+            <td class="col-optional" style="text-align:right;white-space:nowrap;">{{ (sign * c.scheduled)|money if c.scheduled else '—' }}</td>
+            <td class="col-optional" style="text-align:right;white-space:nowrap;">{{ (sign * c.variable)|money if c.variable else '—' }}</td>
+            <td class="amount {{ 'negative' if c.type == 'expense' else 'positive' }}" style="text-align:right;white-space:nowrap;font-weight:600;">
+              {{ (sign * c.total)|money }}
+              {% if c.average and c.total > c.average * 1.2 %}<i class="bi bi-arrow-up-short" title="Oltre il 20% sopra la media"></i>{% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" style="color:var(--clr-text-muted);">Nessuna categoria prevista.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Prossime ricorrenti</div>
+        <div class="card-header-sub">Programmate fino a fine {{ nxt.label if nxt else cur.label }}</div>
+      </div>
+      <a href="{{ url_for('transactions.index', recurring=1) }}" class="btn btn-ghost btn-sm">Tutte</a>
+    </div>
+    <div class="table-wrapper">
+      <table class="table-compact">
+        <thead><tr><th>Data</th><th>Descrizione</th><th class="col-optional">Frequenza</th><th style="text-align:right;">Importo</th><th></th></tr></thead>
+        <tbody>
+          {% for item in fc.upcoming[:15] %}
+          {% set tx = item.tx %}
+          <tr>
+            <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ item.date.strftime('%d/%m/%Y') }}</td>
+            <td>{{ tx.description }}</td>
+            <td class="col-optional"><span class="badge badge-muted">{{ frequencies[tx.recurrence][0] if tx.recurrence in frequencies else 'Mensile' }}</span></td>
+            <td class="amount {{ 'negative' if tx.type == 'expense' else 'positive' }}" style="text-align:right;white-space:nowrap;">
+              {{ (-(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs)|money }}</td>
+            <td><a href="{{ url_for('transactions.edit', tx_id=tx.id, next=url_for('forecast.index')) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica o interrompi"><i class="bi bi-pencil"></i></a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" style="color:var(--clr-text-muted);">
+            Nessuna transazione ricorrente programmata. Segna come ricorrenti affitto, stipendio, abbonamenti{% if fc.candidates %} (qui sotto trovi quelle rilevate){% endif %}.
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Riga 4: ricorrenti rilevate · come funziona ──────────────────────── -->
+<div class="dash-grid dash-grid-wide">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Sembrano ricorrenti</div>
+        <div class="card-header-sub">Stessa descrizione, ritmo regolare e importo stabile, ma non segnate come ricorrenti</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="table-compact">
+        <thead><tr><th>Descrizione</th><th class="col-optional">Categoria</th><th style="text-align:right;">Importo tipico</th><th>Prossima</th><th>Frequenza</th></tr></thead>
+        <tbody>
+          {% for c in fc.candidates %}
+          {% set tx = c.template %}
+          <tr>
+            <td><div style="font-weight:500;">{{ tx.description }}</div>
+                <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ c.count }} volte, ultima il {{ tx.date.strftime('%d/%m/%Y') }}</div></td>
+            <td class="col-optional">{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
+            <td class="amount {{ 'negative' if tx.type == 'expense' else 'positive' }}" style="text-align:right;white-space:nowrap;">
+              {{ (-c.typical_amount if tx.type == 'expense' else c.typical_amount)|money }}</td>
+            <td style="white-space:nowrap;font-size:var(--font-size-xs);">{{ c.next_date.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('forecast.mark_recurring', tx_id=tx.id) }}" class="candidate-form">
+                <select name="frequency" class="form-select" aria-label="Frequenza">
+                  {% for key, f in frequencies.items() %}<option value="{{ key }}" {{ 'selected' if key == c.frequency else '' }}>{{ f[0] }}</option>{% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm" title="Segna come ricorrente"><i class="bi bi-check2"></i> Conferma</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" style="color:var(--clr-text-muted);">Nessuna serie ricorrente da confermare.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">Come funziona</div></div>
+    <div class="card-body forecast-help">
+      <p>Ogni mese previsto è la somma di due parti:</p>
+      <ul>
+        <li><strong>Ricorrenti</strong>: le transazioni segnate come ricorrenti, proiettate nelle loro date con la loro frequenza, fino alla data di fine.</li>
+        <li><strong>Variabili</strong>: tutto il resto, categoria per categoria, stimato dagli ultimi <strong>{{ fc.window }}</strong> mesi completi (la finestra mobile) con il metodo scelto.</li>
+      </ul>
+      <p>I giroconti non contano: spostano soldi tra i tuoi conti senza cambiarne il totale. Il mese in corso somma ciò che è già registrato e ciò che manca.</p>
+      <details>
+        <summary>I metodi</summary>
+        <dl>
+          {% for key, (label, description) in methods.items() %}<dt>{{ label }}</dt><dd>{{ description }}</dd>{% endfor %}
+        </dl>
+      </details>
+      <p style="margin-bottom:0;color:var(--clr-text-muted);">Storico disponibile: {{ fc.history_months }} mesi completi.
+        {% if fc.history_months < fc.window %}La finestra ne usa quindi solo {{ fc.history_months }}.{% endif %}</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if fc.history_months or fc.scheduled %}
+<script>
+{
+const hist = {{ fc.history|tojson }};
+const months  = {{ fc.months|tojson }};
+const labels  = hist.labels.concat(months.map(m => m.current ? m.label + ' (in corso)' : m.label));
+const gap     = n => Array(n).fill(null);
+const h = hist.labels.length;
+// The forecast line starts from the last actual month so the two lines join
+const joinAt  = h ? [hist.net[h - 1]] : [];
+makeLineChart('netChart', labels, [
+  { label: 'Storico', data: hist.net.concat(gap(months.length)), color: 'primary', fill: false },
+  { label: 'Previsione', data: gap(Math.max(h - 1, 0)).concat(joinAt, months.map(m => m.net)), color: 'warning', fill: false, dash: [6, 4] },
+  { label: 'Minimo tra i metodi', data: gap(h).concat(months.map(m => m.low)), color: 'neutral', fill: false, pointRadius: 0, borderWidth: 0, noLegend: true },
+  { label: 'Intervallo tra i metodi', data: gap(h).concat(months.map(m => m.high)), color: 'neutral', fill: '-1', fillAlpha: 0.15, pointRadius: 0, borderWidth: 0 },
+]);
+makeLineChart('balanceChart', months.map(m => m.current ? m.label + ' (in corso)' : m.label), [
+  { label: 'Saldo previsto', data: months.map(m => m.balance), color: 'primary', fill: true },
+]);
+// Controls: every change is applied and remembered
+const form = document.getElementById('forecast-form');
+form.querySelectorAll('select').forEach(el => el.addEventListener('change', () => form.requestSubmit()));
+form.querySelector('[name=window]').addEventListener('change', e => { if (e.target.checkValidity()) form.requestSubmit(); });
+}
+</script>
+{% endif %}
+{% endblock %}

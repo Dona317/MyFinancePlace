@@ -1161,3 +1161,34 @@ tfoot td {
   .card-header { flex-wrap: wrap; }
   .filter-bar > * { max-width: 100%; }
 }
+
+/* ── Forecast dashboard ────────────────────────────────────────────────────── */
+.dash-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.dash-grid-wide { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+@media (max-width: 1100px) { .dash-grid, .dash-grid-wide { grid-template-columns: minmax(0, 1fr); } }
+.forecast-controls label { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); }
+.forecast-controls label > span:first-child { color: var(--clr-text-muted); }
+.forecast-controls .form-select { width: auto; }
+.forecast-note { margin-left: auto; font-size: var(--font-size-xs); color: var(--clr-text-muted); }
+.methods-table tr.selected td { background: var(--clr-primary-light); }
+.methods-table td form { display: inline; }
+.method-pick { background: none; border: 0; padding: 0; color: var(--clr-text-primary); font: inherit; font-weight: 500; cursor: pointer; }
+.method-pick:hover { color: var(--clr-primary); }
+.method-pick i { color: var(--clr-primary); font-size: 12px; margin-right: 4px; }
+.forecast-hint { font-size: var(--font-size-sm); border-top: 1px solid var(--clr-border-light); }
+.forecast-hint i { color: var(--clr-warning); }
+.forecast-help { font-size: var(--font-size-sm); line-height: 1.55; }
+.forecast-help ul { padding-left: 18px; margin: 6px 0 10px; }
+.forecast-help details { margin: 10px 0; }
+.forecast-help summary { cursor: pointer; font-weight: 600; }
+.forecast-help dt { font-weight: 600; margin-top: 8px; }
+.forecast-help dd { margin: 2px 0 0; color: var(--clr-text-muted); }
+.candidate-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.table-compact thead th { padding: 8px 10px; }
+.table-compact tbody td { padding: 9px 8px; }
+.table-compact thead th { padding-left: 8px; padding-right: 8px; }
+.table-compact, .table-compact .amount { font-size: 0.8125rem; }
+/* Two columns on a narrow screen: secondary columns (shown elsewhere on the page) give way */
+@media (min-width: 1101px) and (max-width: 1399px) { .dash-grid .col-optional { display: none; } }
+.table-compact thead th:first-child, .table-compact tbody td:first-child { padding-left: 16px; }
+.candidate-form .form-select { width: auto; padding: 4px 8px; }

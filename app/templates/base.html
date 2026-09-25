@@ -91,6 +91,10 @@
           <i class="bi bi-arrow-left-right"></i> <span class="nav-label">Flusso di Cassa</span>
         </a>
         {% endif %}
+        <a href="{{ url_for('forecast.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">Previsioni</span>
+        </a>
         </div></div>
       </div>
 

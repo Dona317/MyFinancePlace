@@ -16,6 +16,9 @@ Current status and roadmap. Update this file as items are completed.
   schema-validated JSON and a live balance check
 - **Editable import preview** (every field, add/remove rows) and **duplicate finder**
 - **Bank causale kept on record** and **AI quick classification** (category + counterparty, reviewed by the user)
+- **Forecast** (Contabilità → Previsioni): recurring transactions projected on their dates plus variable
+  spending per category from a rolling window of N months, with six methods (moving, weighted and exponential
+  average, median, linear trend, seasonal) compared on the past; unflagged recurring series are suggested
 
 ## 🔜 To do
 

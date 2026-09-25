@@ -1,0 +1,233 @@
+from datetime import date, timedelta
+
+import re
+
+import pytest
+
+from app.models.transaction import Transaction
+from app.services import forecast
+from tests.conftest import make_tx
+
+TODAY = date(2026, 9, 15)
+
+
+def assert_divs_balanced(html):
+    assert len(re.findall(r"<div\b", html)) == len(re.findall(r"</div>", html))
+
+
+def tx(d, description, amount, type="expense", category="Altro", **kw):
+    return make_tx(date=d, description=description, amount=amount, type=type, category=category, **kw)
+
+
+# ── Methods ────────────────────────────────────────────────────────────────────
+
+def test_methods_on_a_known_series():
+    history = [100, 200, 300, 400]
+    assert forecast.predict("media", history, 2, 4) == [250, 250]
+    assert forecast.predict("media", history, 1, 2) == [350]            # only the last N months
+    assert forecast.predict("mediana", [100, 110, 900, 120], 1, 4) == [115]  # the one-off month is ignored
+    assert forecast.predict("ponderata", history, 1, 4) == [300]        # (100·1 + 200·2 + 300·3 + 400·4) / 10
+    ema = forecast.predict("esponenziale", history, 1, 4)[0]           # α = 0.4: between the mean and the last value
+    assert 250 < ema < 400
+    assert forecast.predict("trend", history, 3, 4) == [500, 600, 700]  # the line continues
+    assert forecast.predict("trend", [300, 200, 100], 5, 3) == [0, 0, 0, 0, 0]  # amounts never go negative
+
+
+def test_seasonal_method_uses_the_same_month_a_year_earlier():
+    year = [100] * 11 + [500]                  # December costs more
+    history = year + [110] * 11                # this year runs 10% higher
+    predicted = forecast.predict("stagionale", history, 1, 3)
+    assert predicted == [pytest.approx(550)]   # last December scaled by the recent level (+10%)
+    # without a full year it falls back to the moving average
+    assert forecast.predict("stagionale", [100, 200], 1, 6) == [150]
+
+
+def test_empty_history_forecasts_zero():
+    assert forecast.predict("trend", [], 3, 6) == [0, 0, 0]
+
+
+def test_occurrences_follow_the_frequency_and_stop_at_the_end_date():
+    rent = tx(date(2026, 1, 31), "Affitto", 700, is_recurring=True, recurrence="monthly")
+    got = forecast.occurrences(rent, date(2026, 2, 1), date(2026, 5, 1))
+    assert got == [date(2026, 2, 28), date(2026, 3, 31), date(2026, 4, 30)]   # day clamped, not drifting
+    gym = tx(date(2026, 3, 2), "Palestra", 10, is_recurring=True, recurrence="weekly", recurrence_end=date(2026, 3, 20))
+    assert forecast.occurrences(gym, date(2026, 3, 1), date(2026, 4, 1)) == [date(2026, 3, 9), date(2026, 3, 16)]
+    insurance = tx(date(2025, 11, 5), "Assicurazione", 400, is_recurring=True, recurrence="yearly")
+    assert forecast.occurrences(insurance, date(2026, 1, 1), date(2027, 1, 1)) == [date(2026, 11, 5)]
+
+
+# ── The forecast ───────────────────────────────────────────────────────────────
+
+def household():
+    """Six complete months (Mar–Aug 2026) plus the first half of September."""
+    rows = []
+    for m in range(3, 10):
+        rows.append(tx(date(2026, m, 1), "Affitto", 700, category="Casa"))
+        if m < 9:
+            rows.append(tx(date(2026, m, 27), "Stipendio ACME", 2500, type="income", category="Stipendio"))
+            rows.append(tx(date(2026, m, 10), "Esselunga", 300 + 20 * m, category="Alimentari"))
+        rows.append(tx(date(2026, m, 5), "Giroconto", 1000, type="transfer", category="Giroconto"))
+    # only the latest rent and salary are flagged: the earlier rows must not be counted twice
+    rent = [r for r in rows if r.description == "Affitto"][-1]
+    rent.is_recurring, rent.recurrence = True, "monthly"
+    salary = [r for r in rows if r.description == "Stipendio ACME"][-1]
+    salary.is_recurring, salary.recurrence = True, "monthly"
+    rows.append(tx(date(2026, 9, 8), "Esselunga", 150, category="Alimentari"))
+    return rows
+
+
+def test_forecast_adds_scheduled_and_variable_parts():
+    fc = forecast.build(household(), "media", 3, 6, TODAY)
+    assert fc.history_months == 6
+    assert [t.description for t in fc.scheduled] == ["Affitto", "Stipendio ACME"]
+    assert fc.recurring_monthly == 1800
+    october = fc.next_month
+    assert october["label"] == "Ott 26"
+    assert october["scheduled_income"] == 2500 and october["scheduled_expenses"] == 700
+    # groceries: mean of Jun–Aug (420, 440, 460); rent and salary are not counted again as variable
+    assert october["income"] == 2500
+    assert october["expenses"] == pytest.approx(700 + 440)
+    assert len(fc.months) == 7 and fc.months[0]["current"]
+    # transfers don't change the balance
+    assert fc.balance_now == pytest.approx(6 * 2500 - 7 * 700 - sum(300 + 20 * m for m in range(3, 9)) - 150)
+    assert fc.final_balance == pytest.approx(fc.balance_now + sum(r["net"] for r in fc.months[1:])
+                                             + (fc.months[0]["net"] - (0 - 700 - 150)))
+
+
+def test_current_month_adds_what_is_still_to_come():
+    fc = forecast.build(household(), "media", 3, 3, TODAY)
+    september = fc.current
+    assert fc.cutoff == date(2026, 9, 8)  # the last recorded movement, not today
+    # salary on the 27th is still to come; rent (1st) and 150 of groceries are already recorded
+    assert september["income"] == 2500
+    remaining = (30 - 8) / 30
+    assert september["expenses"] == pytest.approx(700 + 150 + 440 * remaining, abs=0.01)
+
+
+def test_categories_compare_the_forecast_with_the_window_average():
+    fc = forecast.build(household(), "media", 3, 3, TODAY)
+    by_name = {c["category"]: c for c in fc.categories}
+    assert by_name["Casa"]["scheduled"] == 700 and by_name["Casa"]["variable"] == 0
+    assert by_name["Alimentari"]["variable"] == pytest.approx(440)
+    assert by_name["Alimentari"]["average"] == pytest.approx(440)
+    assert "Giroconto" not in by_name
+    assert fc.categories[0]["type"] == "expense"
+
+
+def test_methods_are_compared_on_the_past():
+    rows = [tx(date(2026, m, 10), "Spesa", 100 * m, category="Alimentari") for m in range(1, 9)]
+    fc = forecast.build(rows, "media", 4, 3, TODAY)
+    by_key = {m["key"]: m for m in fc.methods}
+    assert set(by_key) == set(forecast.METHODS)
+    best = [m for m in fc.methods if m["best"]]
+    assert [m["key"] for m in best] == ["trend"]           # steadily rising expenses: the trend wins
+    assert by_key["trend"]["error"] == 0
+    assert by_key["media"]["error"] > 0 and by_key["media"]["selected"]
+    assert by_key["stagionale"]["fallback"]                # less than a year of history
+    # the band spans every method's forecast
+    for row in fc.months:
+        assert row["low"] <= row["net"] <= row["high"]
+
+
+def test_no_history():
+    fc = forecast.build([], "media", 6, 3, TODAY)
+    assert fc.history_months == 0 and fc.months[0]["net"] == 0 and fc.final_balance == 0
+    assert all(m["error"] is None for m in fc.methods)
+
+
+# ── Detection of recurring series ──────────────────────────────────────────────
+
+def test_detects_regular_series_with_a_stable_amount():
+    rows = [tx(date(2026, m, 12), "Netflix", 17.99, category="Abbonamenti") for m in range(5, 10)]
+    rows += [tx(date(2026, 3, 1) + timedelta(days=7 * k), "Palestra", 10) for k in range(28)]
+    rows += [tx(date(2026, m, 3), "Esselunga", a) for m, a in zip(range(5, 10), [80, 230, 45, 150, 310])]  # amount varies
+    rows += [tx(date(2026, m, 20), "Vecchio abbonamento", 9.99) for m in range(1, 5)]  # stopped in April
+    found = {c.template.description: c for c in forecast.detect_candidates(rows, TODAY)}
+    assert set(found) == {"Netflix", "Palestra"}
+    assert found["Netflix"].frequency == "monthly" and found["Netflix"].template.date == date(2026, 9, 12)
+    assert found["Netflix"].next_date == date(2026, 10, 12)
+    assert found["Palestra"].frequency == "weekly"
+
+
+def test_flagged_series_are_not_suggested_again():
+    rows = [tx(date(2026, m, 12), "Netflix", 17.99) for m in range(5, 10)]
+    rows[-1].is_recurring = True
+    assert forecast.detect_candidates(rows, TODAY) == []
+
+
+# ── Pages ──────────────────────────────────────────────────────────────────────
+
+def recent(months_back: int, day: int) -> date:
+    today = date.today()
+    y, m = forecast.shift_month(today.year, today.month, -months_back)
+    return date(y, m, min(day, 28))
+
+
+def test_page_renders_without_data(client, app):
+    response = client.get("/forecast/")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Servono dei movimenti" in html
+    assert_divs_balanced(html)
+
+
+def test_page_is_a_two_column_dashboard(client, db):
+    db.session.add_all([tx(recent(k, 12), "Netflix", 17.99, category="Abbonamenti") for k in range(1, 6)])
+    db.session.add_all([tx(recent(k, 3), "Esselunga", 100 + k, category="Alimentari") for k in range(1, 7)])
+    db.session.add(tx(recent(1, 27), "Stipendio", 2500, type="income", category="Stipendio", is_recurring=True, recurrence="monthly"))
+    db.session.commit()
+    html = client.get("/forecast/").get_data(as_text=True)
+    assert_divs_balanced(html)
+    assert html.count('class="dash-grid') == 4
+    for title in ("Netto mensile: storico e previsione", "Confronto dei metodi", "Saldo di cassa previsto",
+                  "Mese per mese", "per categoria", "Prossime ricorrenti", "Sembrano ricorrenti", "Come funziona"):
+        assert title in html
+    assert 'id="netChart"' in html and 'id="balanceChart"' in html
+    assert "Netflix" in html.split("Sembrano ricorrenti")[1]      # suggested
+    assert "Stipendio" in html.split("Prossime ricorrenti")[1]    # scheduled
+    for label, _ in forecast.METHODS.values():
+        assert label in html
+    assert 'href="/forecast/"' in client.get("/transactions/").get_data(as_text=True)  # sidebar link
+
+
+def test_preferences_are_remembered_and_validated(client, app):
+    assert forecast.preferences() == {"method": "media", "window": 6, "horizon": 12}
+    response = client.post("/forecast/preferences", data={"method": "trend", "window": "9", "horizon": "24"})
+    assert response.status_code == 302
+    assert forecast.preferences() == {"method": "trend", "window": 9, "horizon": 24}
+    html = client.get("/forecast/").get_data(as_text=True)
+    assert 'name="window" value="9"' in html and '<option value="trend" selected>' in html
+    # out of range or invalid values are clamped or ignored
+    client.post("/forecast/preferences", data={"method": "magia", "window": "99", "horizon": "0"})
+    assert forecast.preferences() == {"method": "trend", "window": 36, "horizon": 1}
+    client.post("/forecast/preferences", data={"window": "abc"})
+    assert forecast.preferences()["window"] == 6
+    # values in the address are used for that page only
+    html = client.get("/forecast/?method=mediana&window=3").get_data(as_text=True)
+    assert '<option value="mediana" selected>' in html and 'name="window" value="3"' in html
+    assert forecast.preferences()["method"] == "trend"
+
+
+def test_confirming_a_suggestion_flags_the_latest_transaction(client, db):
+    rows = [tx(recent(k, 12), "Netflix", 17.99, category="Abbonamenti") for k in range(1, 6)]
+    db.session.add_all(rows)
+    db.session.commit()
+    latest = max(rows, key=lambda r: r.date)
+    response = client.post(f"/forecast/recurring/{latest.id}", data={"frequency": "monthly"}, follow_redirects=True)
+    assert "è ora una transazione ricorrente" in response.get_data(as_text=True)
+    db.session.refresh(latest)
+    assert latest.is_recurring and latest.recurrence == "monthly"
+    assert Transaction.query.filter_by(is_recurring=True).count() == 1
+    html = response.get_data(as_text=True)
+    assert "Nessuna serie ricorrente da confermare" in html
+    assert client.post(f"/forecast/recurring/{latest.id}", data={"frequency": "daily"}).status_code == 302
+    assert client.post("/forecast/recurring/99999", data={"frequency": "monthly"}).status_code == 404
+
+
+def test_transactions_can_be_filtered_to_recurring_ones(client, db):
+    db.session.add_all([tx(date(2026, 6, 1), "Affitto", 700, is_recurring=True, recurrence="monthly"),
+                        tx(date(2026, 6, 2), "Pizzeria Da Mario", 50)])
+    db.session.commit()
+    html = client.get("/transactions/?recurring=1").get_data(as_text=True)
+    assert "Affitto" in html and "Pizzeria Da Mario" not in html
+    assert "Pizzeria Da Mario" in client.get("/transactions/").get_data(as_text=True)

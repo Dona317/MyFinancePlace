@@ -43,6 +43,10 @@
       {% endfor %}
     </select>
     <input type="month" name="month" value="{{ filters.month }}" class="form-control" style="width:160px;" onchange="this.form.submit()" />
+    <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);white-space:nowrap;">
+      <input type="checkbox" name="recurring" value="1" {{ 'checked' if filters.recurring else '' }} onchange="this.form.submit()"
+             style="width:16px;height:16px;accent-color:var(--clr-primary);" /> Solo ricorrenti
+    </label>
     <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> Filtra</button>
     <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Azzera</a>
   </form>

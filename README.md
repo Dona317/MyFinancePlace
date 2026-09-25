@@ -9,6 +9,7 @@ Personal finance management app — from household budgeting to investment portf
 | **Dashboard** | KPI cockpit — net worth, income, expenses, savings rate |
 | **Accounting** | Balance Sheet, Income Statement, Cash Flow Statement |
 | **Lifestyle** | Expenses by category, trends, personal goals |
+| **Forecast** | Cash-flow forecast: recurring entries + variable spending over a rolling window, six methods compared |
 | **Transactions** | Full CRUD with tags, categories, counterparties, recurring entries |
 | **Portfolio** | Stocks, ETFs, crypto, bonds, savings accounts |
 | **Debt** | Mortgages and loans with amortization schedules |

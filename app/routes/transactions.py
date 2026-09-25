@@ -48,7 +48,7 @@ def _tx_from_form(tx: Transaction) -> Transaction:
 # ── HTML routes ────────────────────────────────────────────────────────────────
 
 def _filtered_query(filters: dict):
-    """Apply the filter-bar values (q, type, category, month=YYYY-MM) to the transactions query."""
+    """Apply the filter-bar values (q, type, category, month=YYYY-MM, recurring) to the transactions query."""
     query = Transaction.query
     if filters["q"]:
         pattern = f"%{filters['q']}%"
@@ -61,6 +61,8 @@ def _filtered_query(filters: dict):
         query = query.filter(Transaction.type == filters["type"])
     if filters["category"]:
         query = query.filter(Transaction.category == filters["category"])
+    if filters.get("recurring"):
+        query = query.filter(Transaction.is_recurring.is_(True))
     if filters["month"]:
         try:
             year, month = (int(part) for part in filters["month"].split("-"))
@@ -73,7 +75,7 @@ def _filtered_query(filters: dict):
 
 @transactions_bp.route("/")
 def index():
-    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month")}
+    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring")}
     transactions = _filtered_query(filters).order_by(Transaction.date.desc(), Transaction.id.desc()).all()
     categories = [
         row[0] for row in

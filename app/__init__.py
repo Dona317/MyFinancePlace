@@ -56,6 +56,7 @@ def create_app(config_name="default"):
     from .routes.export import export_bp
     from .routes.settings import settings_bp
     from .routes.insurance import insurance_bp
+    from .routes.forecast import forecast_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -69,6 +70,7 @@ def create_app(config_name="default"):
     app.register_blueprint(export_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(insurance_bp)
+    app.register_blueprint(forecast_bp)
 
     # ── Template filters ───────────────────────────────────────────────────────
     @app.template_filter("money")
