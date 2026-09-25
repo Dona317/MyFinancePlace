@@ -1,8 +1,10 @@
 from datetime import date as date_type
 from flask import render_template, request, redirect, url_for
 from apiflask import APIBlueprint
+from sqlalchemy import or_
 from app.extensions import db
 from app.models.transaction import Transaction
+from app.services.analytics import month_bounds
 from app.schemas.transaction import TransactionIn, TransactionOut, TransactionListOut
 from app.schemas.common import DeleteOut
 
@@ -38,10 +40,45 @@ def _tx_from_form(tx: Transaction) -> Transaction:
 
 # ── HTML routes ────────────────────────────────────────────────────────────────
 
+def _filtered_query(filters: dict):
+    """Apply the filter-bar values (q, type, category, month=YYYY-MM) to the transactions query."""
+    query = Transaction.query
+    if filters["q"]:
+        pattern = f"%{filters['q']}%"
+        query = query.filter(or_(
+            Transaction.description.ilike(pattern),
+            Transaction.counterparty.ilike(pattern),
+            Transaction.notes.ilike(pattern),
+        ))
+    if filters["type"]:
+        query = query.filter(Transaction.type == filters["type"])
+    if filters["category"]:
+        query = query.filter(Transaction.category == filters["category"])
+    if filters["month"]:
+        try:
+            year, month = (int(part) for part in filters["month"].split("-"))
+            start, end = month_bounds(year, month)
+            query = query.filter(Transaction.date >= start, Transaction.date < end)
+        except ValueError:
+            pass
+    return query
+
+
 @transactions_bp.route("/")
 def index():
-    transactions = Transaction.query.order_by(Transaction.date.desc()).all()
-    return render_template("transactions/index.html", transactions=transactions)
+    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month")}
+    transactions = _filtered_query(filters).order_by(Transaction.date.desc(), Transaction.id.desc()).all()
+    categories = [
+        row[0] for row in
+        db.session.query(Transaction.category).filter(Transaction.category.isnot(None))
+        .distinct().order_by(Transaction.category).all()
+    ]
+    return render_template(
+        "transactions/index.html",
+        transactions=transactions,
+        filters=filters,
+        categories=categories,
+    )
 
 
 @transactions_bp.route("/new", methods=["GET", "POST"])

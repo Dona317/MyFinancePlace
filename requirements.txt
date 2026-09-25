@@ -2,8 +2,10 @@ Flask==3.0.3
 Flask-Login==0.6.3
 Flask-WTF==1.2.1
 Flask-SQLAlchemy==3.1.1
+SQLAlchemy>=2.0,<2.1  # 2.1 switched the default postgresql:// driver to psycopg 3
 Flask-Migrate==4.0.7
 python-dotenv==1.0.1
 Werkzeug==3.0.3
 apiflask
 psycopg2-binary
+pytest

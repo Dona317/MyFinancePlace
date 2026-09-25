@@ -14,29 +14,24 @@
 
 <!-- Filtri ──────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
-  <div class="filter-bar">
-    <input type="text" class="form-control" placeholder="Cerca per descrizione o controparte..." style="flex:1;min-width:200px;" />
-    <select class="form-select">
+  <form class="filter-bar" method="GET" action="{{ url_for('transactions.index') }}">
+    <input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Cerca per descrizione o controparte..." style="flex:1;min-width:200px;" />
+    <select name="type" class="form-select" onchange="this.form.submit()">
       <option value="">Tipo</option>
-      <option value="income">Entrata</option>
-      <option value="expense">Uscita</option>
-      <option value="transfer">Trasferimento</option>
+      {% for val, lbl in [('income','Entrata'),('expense','Uscita'),('transfer','Trasferimento')] %}
+      <option value="{{ val }}" {{ 'selected' if filters.type == val else '' }}>{{ lbl }}</option>
+      {% endfor %}
     </select>
-    <select class="form-select">
+    <select name="category" class="form-select" onchange="this.form.submit()">
       <option value="">Categoria</option>
-      <option>Casa</option>
-      <option>Alimentari</option>
-      <option>Trasporto</option>
-      <option>Salute</option>
-      <option>Svago</option>
-      <option>Abbonamenti</option>
-      <option>Stipendio</option>
-      <option>Investimenti</option>
-      <option>Altro</option>
+      {% for cat in categories %}
+      <option value="{{ cat }}" {{ 'selected' if filters.category == cat else '' }}>{{ cat }}</option>
+      {% endfor %}
     </select>
-    <input type="month" class="form-control" style="width:160px;" />
-    <button class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> Filtri avanzati</button>
-    <button class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Azzera</button>
+    <input type="month" name="month" value="{{ filters.month }}" class="form-control" style="width:160px;" onchange="this.form.submit()" />
+    <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> Filtra</button>
+    <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Azzera</a>
+  </form>
   </div>
 </div>
 
@@ -83,8 +78,9 @@
             {% endfor %}
           </td>
           <td style="text-align:right;">
-            <span class="amount {{ 'positive' if tx.amount > 0 else 'negative' }}">
-              {{ '%.2f'|format(tx.amount) }} €
+            {% set signed = -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs %}
+            <span class="amount {{ 'negative' if tx.type == 'expense' else ('positive' if tx.type == 'income' else '') }}">
+              {{ signed|money(tx.currency if tx.currency and tx.currency != 'EUR' else '€') }}
             </span>
           </td>
           <td style="text-align:center;">
@@ -106,6 +102,15 @@
       </tbody>
     </table>
   </div>
+  {% elif filters.values()|select|list %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-search"></i></div>
+    <div class="empty-state-title">Nessun risultato</div>
+    <div class="empty-state-text">Nessuna transazione corrisponde ai filtri selezionati.</div>
+    <a href="{{ url_for('transactions.index') }}" class="btn btn-outline">
+      <i class="bi bi-arrow-counterclockwise"></i> Azzera filtri
+    </a>
+  </div>
   {% else %}
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
@@ -115,8 +120,8 @@
       <a href="{{ url_for('transactions.new') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> Aggiungi Manualmente
       </a>
-      <a href="#" class="btn btn-outline">
-        <i class="bi bi-file-earmark-excel"></i> Importa da Excel
+      <a href="{{ url_for('export.index') }}" class="btn btn-outline">
+        <i class="bi bi-file-earmark-excel"></i> Importa da CSV
       </a>
     </div>
   </div>

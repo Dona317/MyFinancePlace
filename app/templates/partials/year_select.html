@@ -1,0 +1,9 @@
+{# Year picker that reloads the current page with ?year=<value>. Expects `years` and `year`. #}
+<form method="GET" style="display:inline;">
+  <select name="year" class="form-select" style="width:auto;" onchange="this.form.submit()">
+    {% set options = (years + [year])|unique|sort(reverse=True) %}
+    {% for y in options %}
+    <option value="{{ y }}" {{ 'selected' if y == year else '' }}>Anno {{ y }}</option>
+    {% endfor %}
+  </select>
+</form>

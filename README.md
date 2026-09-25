@@ -40,6 +40,27 @@ python run.py
 - Open `http://localhost:5000` in your browser.
 - The API swagger documentation: `http://localhost:5000/swagger`
 
+## Tests
+
+The test suite runs against a real PostgreSQL database (the models use `ARRAY` columns).
+Create an empty test database once, then point `TEST_DATABASE_URL` at it:
+
+```bash
+docker compose exec db createdb -U sa myfinanceplace_test   # once
+TEST_DATABASE_URL=postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test pytest
+```
+
+## Implementation Status
+
+| Module | Status |
+|---|---|
+| Transactions | ✅ CRUD, REST API, search & filters |
+| Dashboard | ✅ KPIs, 12-month cash flow, expenses by category, recent transactions |
+| Accounting | ✅ Income Statement, Cash Flow · ⏳ Balance Sheet (needs Portfolio/Debt models) |
+| Lifestyle | ✅ Category breakdown, trends, month-over-month · ⏳ Goals |
+| Export | ✅ CSV, JSON, tax export, printable report, CSV import |
+| Portfolio, Debt, Insurance, Documents, Snapshots, Auth | ⏳ UI only — models not implemented yet |
+
 ## Database
 
 PostgreSQL runs in Docker. The `docker-compose.yml` at the project root defines the container.

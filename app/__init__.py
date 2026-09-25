@@ -62,6 +62,14 @@ def create_app(config_name="default"):
     app.register_blueprint(settings_bp)
     app.register_blueprint(insurance_bp)
 
+    # ── Template filters ───────────────────────────────────────────────────────
+    @app.template_filter("money")
+    def money(value, symbol="€"):
+        """Format a number Italian-style: 1234.5 → '€ 1.234,50'."""
+        formatted = f"{abs(float(value or 0)):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        sign = "-" if float(value or 0) < 0 else ""
+        return f"{sign}{symbol} {formatted}"
+
     # ── Settings context processor ─────────────────────────────────────────────
     # Makes `settings` available in every template automatically.
     # Priority: session (user has saved preferences) → defaults (all on).

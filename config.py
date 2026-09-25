@@ -19,8 +19,15 @@ class ProductionConfig(Config):
     DEBUG = False
 
 
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test"
+    WTF_CSRF_ENABLED = False
+
+
 config = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
+    "testing": TestingConfig,
     "default": DevelopmentConfig,
 }
