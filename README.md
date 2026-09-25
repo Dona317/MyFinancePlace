@@ -53,6 +53,9 @@ python run.py
 Re-importing the same (or an overlapping) statement is safe: each row gets a fingerprint (`import_ref`) and duplicates are skipped.
 Categorization rules live in `app/services/bank_import.py` (`CATEGORY_RULES`).
 
+Fake statements to try it with (Fineco, Intesa Sanpaolo, UniCredit-style CSV, Revolut, legacy `.xls`) are in
+[`samples/bank_statements/`](samples/bank_statements/README.md).
+
 After pulling this change run `flask --app run db upgrade` to add the `import_ref` column.
 
 See [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md) for the roadmap.

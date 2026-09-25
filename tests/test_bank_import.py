@@ -1,5 +1,6 @@
 import io
 import re
+from pathlib import Path
 from datetime import date
 from decimal import Decimal
 
@@ -149,3 +150,34 @@ def test_upload_error_is_reported(client, db):
     assert response.status_code == 302
     with client.session_transaction() as session:
         assert "Intestazione" in session["_flashes"][0][1]
+
+
+# ── Sample statements shipped in samples/bank_statements ──────────────────────
+
+SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
+
+
+@pytest.mark.parametrize("filename, bank", [
+    ("fineco_2026-06_2026-07.xlsx", "fineco"),
+    ("fineco_2026-07_2026-09.xlsx", "fineco"),
+    ("intesa_sanpaolo_2026-04_2026-09.xlsx", "intesa"),
+    ("intesa_sanpaolo_legacy_2026-03.xls", "intesa"),
+    ("unicredit_2026-08_2026-09.csv", "generic"),
+    ("revolut_2026-09.csv", "generic"),
+    ("banca_generica_2026-02.xls", "generic"),  # binary Excel 97-2003, read with xlrd
+])
+def test_sample_statements_parse(app, filename, bank):
+    preview = bank_import.analyze_statement(filename, (SAMPLES / filename).read_bytes())
+    assert preview.bank.key == bank
+    assert len(preview.rows) >= 10
+    assert preview.total_expenses > 0
+
+
+def test_overlapping_sample_statements_are_deduplicated(app, db):
+    first = bank_import.analyze_statement("a.xlsx", (SAMPLES / "fineco_2026-06_2026-07.xlsx").read_bytes())
+    db.session.add_all([bank_import.build_transaction(r.to_dict(), "fineco") for r in first.rows])
+    db.session.commit()
+
+    second = bank_import.analyze_statement("b.xlsx", (SAMPLES / "fineco_2026-07_2026-09.xlsx").read_bytes())
+    july_in_both = [r for r in second.rows if r.date.month == 7 and r.import_ref in {x.import_ref for x in first.rows}]
+    assert second.duplicates == len(july_in_both) > 0
