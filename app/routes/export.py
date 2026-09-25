@@ -236,7 +236,7 @@ def bank_confirm():
         return redirect(url_for("export.index"))
 
     rows = data["rows"]
-    selected = sorted({int(i) for i in request.form.getlist("include") if i.isdigit() and int(i) < 5000})
+    selected = sorted({int(i) for i in request.form.getlist("include") if i.isdigit()})
     refs = [rows[i]["import_ref"] for i in selected if i < len(rows)]
     existing = {
         ref for (ref,) in
@@ -279,12 +279,12 @@ def bank_classify():
     body = request.get_json(silent=True)
     rows = body.get("rows") if isinstance(body, dict) else None
     items = []
-    for row in rows[:1000] if isinstance(rows, list) else []:
+    for row in rows if isinstance(rows, list) else []:
         if not isinstance(row, dict):
             continue
         try:
             amount = float(row.get("amount") or 0)
-            items.append({"id": int(row["index"]), "text": str(row.get("text") or "")[:500],
+            items.append({"id": int(row["index"]), "text": str(row.get("text") or ""),
                           "amount": amount if math.isfinite(amount) else 0.0})
         except (KeyError, TypeError, ValueError):
             continue

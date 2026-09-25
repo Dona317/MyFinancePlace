@@ -7,12 +7,12 @@ class Transaction(db.Model):
 
     id             = db.Column(db.Integer,        primary_key=True)
     date           = db.Column(db.Date,           nullable=False)
-    description    = db.Column(db.String(255),    nullable=False)
-    amount         = db.Column(db.Numeric(12, 2), nullable=False)
+    description    = db.Column(db.Text,           nullable=False)
+    amount         = db.Column(db.Numeric(38, 2), nullable=False)  # 36 integer digits: no practical limit
     currency       = db.Column(db.String(3),      default="EUR")
     type           = db.Column(db.String(20))     # "income" | "expense" | "transfer"
-    category       = db.Column(db.String(100))
-    counterparty   = db.Column(db.String(255))
+    category       = db.Column(db.Text)
+    counterparty   = db.Column(db.Text)
     tags           = db.Column(ARRAY(db.String),  default=list)
     is_recurring   = db.Column(db.Boolean,        default=False)
     recurrence     = db.Column(db.String(20))     # "weekly" | "monthly" | "quarterly" | "yearly"

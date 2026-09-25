@@ -105,7 +105,7 @@ def response_schema(categories: list[str]) -> dict:
 def _prompt(batch: list[dict], categories: list[str]) -> str:
     listed = "\n".join(f"- {c}" + (f": {CATEGORY_HINTS[c]}" if c in CATEGORY_HINTS else "") for c in categories)
     movements = [
-        {"id": item["id"], "importo": round(float(item["amount"]), 2), "causale": item["text"][:300]}
+        {"id": item["id"], "importo": round(float(item["amount"]), 2), "causale": item["text"]}
         for item in batch
     ]
     return (
@@ -154,6 +154,6 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
             if item_id not in batch_ids or item_id in suggestions or category not in categories:
                 continue
             confidence = entry.get("confidence") if entry.get("confidence") in CONFIDENCE else "bassa"
-            counterparty = " ".join(str(entry.get("counterparty") or "").split())[:100]
+            counterparty = " ".join(str(entry.get("counterparty") or "").split())
             suggestions[item_id] = Suggestion(category, counterparty, confidence)
     return suggestions

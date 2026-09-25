@@ -140,7 +140,7 @@ def rows_to_transactions(rows: list[dict], mapping: dict) -> tuple[list[Transact
 
             transactions.append(Transaction(
                 date=parse_date(row.get(mapping["date"]) or ""),
-                description=description[:255],
+                description=description,
                 amount=abs(amount),
                 currency="EUR",
                 type=tx_type,

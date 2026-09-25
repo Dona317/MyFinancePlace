@@ -38,13 +38,25 @@ def test_invalid_edit_shows_an_error_instead_of_crashing(client, db):
     assert float(tx.amount) == 30  # nothing half-saved
 
 
-@pytest.mark.parametrize("amount", ["nan", "NaN", "sNaN", "inf", "-Infinity", "1e20", "0", "12345678901"])
+@pytest.mark.parametrize("amount", ["nan", "NaN", "sNaN", "inf", "-Infinity", "1e40", "0"])
 def test_form_rejects_unusable_amounts(client, db, amount):
     page = client.get("/transactions/new").get_data(as_text=True)
     data = form_data(page, "edit-form", date="2026-06-01", description="Test", amount=amount, type="expense")
     response = client.post("/transactions/new", data=data)
     assert response.status_code == 200 and "Controlla i dati" in response.get_data(as_text=True)
     assert Transaction.query.count() == 0
+
+
+def test_no_limits_on_text_length_or_amount_size(client, db):
+    """Descriptions, categories and counterparties of any length; amounts beyond the old 9,999,999,999.99."""
+    long_text = "Bonifico " + "molto lungo " * 200  # ~2,400 characters (old limit: 255)
+    page = client.get("/transactions/new").get_data(as_text=True)
+    client.post("/transactions/new", data=form_data(page, "edit-form", date="2026-06-01", description=long_text,
+                                                    amount="12345678901.50", type="income",
+                                                    category="C" * 300, counterparty="P" * 400))
+    tx = Transaction.query.one()
+    assert (tx.description, float(tx.amount)) == (long_text, 12345678901.50)
+    assert len(tx.category) == 300 and len(tx.counterparty) == 400
 
 
 def test_edit_page_can_delete_and_return_to_where_you_were(client, db):
@@ -172,3 +184,20 @@ def test_import_preview_warns_about_similar_transactions(client, db):
     assert "Possibile duplicato di: 04/06/2026 · ESSELUNGA MILANO" in html
     data = form_data(html, "preview-form")
     assert "0" not in data["include"] and "1" in data["include"]  # Esselunga (row 0) unchecked
+
+
+def test_editing_keeps_recurrence_frequency_and_end_date(client, db):
+    """Regression: the edit form always showed "Mensile" and an empty end date, so saving lost both."""
+    tx = add(db, description="Palestra", is_recurring=True, recurrence="yearly", recurrence_end=date(2027, 12, 31))
+    page = client.get(f"/transactions/{tx.id}/edit").get_data(as_text=True)
+    client.post(f"/transactions/{tx.id}/edit", data=form_data(page, "edit-form", description="Palestra FIT"))
+    db.session.refresh(tx)
+    assert (tx.is_recurring, tx.recurrence, tx.recurrence_end) == (True, "yearly", date(2027, 12, 31))
+
+
+def test_non_recurring_transactions_store_no_frequency(client, db):
+    page = client.get("/transactions/new").get_data(as_text=True)
+    client.post("/transactions/new", data=form_data(page, "edit-form", date="2026-06-01", description="Una tantum",
+                                                    amount="10", type="expense"))
+    tx = Transaction.query.one()
+    assert (tx.is_recurring, tx.recurrence, tx.recurrence_end) == (False, None, None)

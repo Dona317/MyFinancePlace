@@ -31,10 +31,11 @@ from app.services import settings_store
 DEFAULT_MODELS = {"ollama": "qwen2.5vl:7b", "anthropic": "claude-opus-5"}
 PROVIDER_LABELS = {"ollama": "Ollama (locale)", "anthropic": "Anthropic Claude (cloud)"}
 
-MAX_OLLAMA_PAGES = 12            # local models read one page per call: keep uploads bounded
-MAX_IMAGE_SIDE = 2000            # px; larger photos are downscaled before sending
-MAX_TEXT_CHARS = 200_000         # text documents longer than this are refused, never truncated
-MAX_TEXT_CHARS_LOCAL = 40_000    # ~12k tokens: what fits in the local model's context with the prompt
+# No document is too long: long ones are read in parts and the results merged (movements in order,
+# opening balance from the first part, closing balance from the last).
+TEXT_CHUNK_CHARS = {"ollama": 30_000, "anthropic": 150_000}  # per request: fits the model's context
+ANTHROPIC_PDF_PAGES_PER_REQUEST = 20   # keeps each reply well under the output limit
+MAX_IMAGE_SIDE = 2000            # px; larger photos are downscaled before sending (not a size limit)
 OLLAMA_CONTEXT_TOKENS = 16_384   # Ollama's default context (2-4k) would silently cut a page image + prompt
 PDF_RENDER_DPI = 150
 
@@ -157,9 +158,6 @@ def extract(filename: str, raw: bytes, text: str | None = None, model: str | Non
     kind = _file_kind(raw)
     if kind is None and not (text and text.strip()):
         raise AIExtractionError("Formato non leggibile dal modello: carica un PDF, un'immagine (JPG/PNG) o un documento di testo.")
-    limit = MAX_TEXT_CHARS if name == "anthropic" else MAX_TEXT_CHARS_LOCAL
-    if kind is None and len(text) > limit:
-        raise AIExtractionError("Il documento è troppo lungo per la lettura AI: dividilo in più file (es. un mese per file).")
 
     if name == "anthropic":
         return _extract_anthropic(raw, kind, text, model or model_name())
@@ -173,6 +171,60 @@ def _file_kind(raw: bytes) -> str | None:
             or (raw[:4] == b"RIFF" and raw[8:12] == b"WEBP"):
         return "image"
     return None
+
+
+def split_text(text: str, size: int) -> list[str]:
+    """Split on line boundaries into parts of at most `size` characters (a longer single line is cut)."""
+    parts, current = [], ""
+    for line in text.splitlines(keepends=True):
+        for piece in (line[i:i + size] for i in range(0, len(line), size)):
+            if current and len(current) + len(piece) > size:
+                parts.append(current)
+                current = ""
+            current += piece
+    if current:
+        parts.append(current)
+    return [part for part in parts if part.strip()] or [text]
+
+
+def split_pdf(raw: bytes, pages_per_part: int) -> list[bytes]:
+    """Split a PDF into smaller PDFs of `pages_per_part` pages each."""
+    import pypdfium2 as pdfium
+
+    try:
+        source = pdfium.PdfDocument(raw)
+    except Exception as exc:
+        raise AIExtractionError(f"Impossibile leggere il PDF: {exc}")
+    total = len(source)
+    if total <= pages_per_part:
+        return [raw]
+    parts = []
+    for start in range(0, total, pages_per_part):
+        part = pdfium.PdfDocument.new()
+        part.import_pages(source, list(range(start, min(start + pages_per_part, total))))
+        buffer = io.BytesIO()
+        part.save(buffer)
+        parts.append(buffer.getvalue())
+    return parts
+
+
+def _merge(parts: list[AIExtraction], model: str) -> AIExtraction:
+    """One result from the parts of a long document, read separately."""
+    result = AIExtraction(model=model)
+    opening = closing = None
+    for part in parts:
+        result.movements.extend(part.movements)
+        result.bank_name = result.bank_name or part.bank_name
+        if part.has_balances:
+            opening = part.opening_balance if opening is None else opening
+            closing = part.closing_balance
+    if opening is not None and closing is not None:
+        result.has_balances, result.opening_balance, result.closing_balance = True, opening, closing
+    return result
+
+
+def _part_label(number: int, total: int, unit: str) -> str:
+    return "" if total == 1 else f" ({unit} {number} di {total})"
 
 
 def _parse_result(payload: str, model: str) -> AIExtraction:
@@ -213,16 +265,11 @@ def _normalize_image(raw: bytes) -> tuple[bytes, str]:
     return buffer.getvalue(), "image/jpeg"
 
 
-def _pdf_page_images(raw: bytes, max_pages: int) -> list[bytes]:
+def _pdf_page_images(raw: bytes) -> list[bytes]:
     import pdfplumber
 
     try:
         with pdfplumber.open(io.BytesIO(raw)) as pdf:
-            if len(pdf.pages) > max_pages:
-                raise AIExtractionError(
-                    f"Il PDF ha {len(pdf.pages)} pagine: con il modello locale ne vengono lette al massimo "
-                    f"{max_pages}. Dividi il file (es. un mese per file)."
-                )
             pages = []
             for page in pdf.pages:
                 buffer = io.BytesIO()
@@ -288,18 +335,26 @@ def anthropic_json(model: str, system: str, content: list[dict], schema: dict, m
 
 def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:
     if kind == "pdf":
-        source = {"type": "base64", "media_type": "application/pdf", "data": base64.standard_b64encode(raw).decode()}
-        content = [{"type": "document", "source": source}]
+        parts = [
+            [{"type": "document", "source": {"type": "base64", "media_type": "application/pdf",
+                                             "data": base64.standard_b64encode(chunk).decode()}}]
+            for chunk in split_pdf(raw, ANTHROPIC_PDF_PAGES_PER_REQUEST)
+        ]
+        unit = "blocco di pagine"
     elif kind == "image":
         data, media_type = _normalize_image(raw)
         source = {"type": "base64", "media_type": media_type, "data": base64.standard_b64encode(data).decode()}
-        content = [{"type": "image", "source": source}]
+        parts, unit = [[{"type": "image", "source": source}]], ""
     else:
-        content = [{"type": "text", "text": f"<documento>\n{text}\n</documento>"}]
-    content.append({"type": "text", "text": USER_PROMPT})
-    payload = anthropic_json(model, SYSTEM_PROMPT, content, MOVEMENTS_SCHEMA,
-                             too_long="L'estratto conto è troppo lungo per una sola lettura: dividilo in più file.")
-    return _parse_result(payload, model)
+        parts = [[{"type": "text", "text": f"<documento>\n{chunk}\n</documento>"}]
+                 for chunk in split_text(text, TEXT_CHUNK_CHARS["anthropic"])]
+        unit = "parte"
+    results = []
+    for number, content in enumerate(parts, start=1):
+        prompt = USER_PROMPT + _part_label(number, len(parts), unit)
+        payload = anthropic_json(model, SYSTEM_PROMPT, content + [{"type": "text", "text": prompt}], MOVEMENTS_SCHEMA)
+        results.append(_parse_result(payload, model))
+    return _merge(results, model)
 
 
 # ── Ollama (local) ─────────────────────────────────────────────────────────────
@@ -339,20 +394,16 @@ def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> 
 
 def _extract_ollama(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:
     if kind is None:
-        return _parse_result(_ollama_chat(model, f"{USER_PROMPT}\n\n<documento>\n{text}\n</documento>"), model)
+        chunks = split_text(text, TEXT_CHUNK_CHARS["ollama"])
+        return _merge([
+            _parse_result(_ollama_chat(model, f"{USER_PROMPT}{_part_label(n, len(chunks), 'parte')}\n\n"
+                                              f"<documento>\n{chunk}\n</documento>"), model)
+            for n, chunk in enumerate(chunks, start=1)
+        ], model)
 
-    pages = _pdf_page_images(raw, MAX_OLLAMA_PAGES) if kind == "pdf" else [_normalize_image(raw)[0]]
-    # Small models are more accurate one page at a time: read each page, then merge
-    result = AIExtraction(model=model)
-    opening = closing = None
-    for number, page in enumerate(pages, start=1):
-        prompt = USER_PROMPT if len(pages) == 1 else f"{USER_PROMPT} (pagina {number} di {len(pages)})"
-        part = _parse_result(_ollama_chat(model, prompt, [page]), model)
-        result.movements.extend(part.movements)
-        result.bank_name = result.bank_name or part.bank_name
-        if part.has_balances:
-            opening = part.opening_balance if opening is None else opening
-            closing = part.closing_balance
-    if opening is not None and closing is not None:
-        result.has_balances, result.opening_balance, result.closing_balance = True, opening, closing
-    return result
+    # Small models are more accurate one page at a time: read every page, then merge
+    pages = _pdf_page_images(raw) if kind == "pdf" else [_normalize_image(raw)[0]]
+    return _merge([
+        _parse_result(_ollama_chat(model, USER_PROMPT + _part_label(n, len(pages), "pagina"), [page]), model)
+        for n, page in enumerate(pages, start=1)
+    ], model)

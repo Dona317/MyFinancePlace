@@ -131,6 +131,14 @@ After pulling this change run `flask --app run db upgrade` to add the `import_re
 
 See [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md) for the roadmap.
 
+## Size limits
+
+There are none on your data: uploads of any size, statements with any number of rows, descriptions,
+categories and counterparties of any length, amounts up to 36 integer digits (`NUMERIC(38, 2)`).
+Long documents are read by the AI in parts (every page of a scan; long texts in blocks; Claude gets long
+PDFs in blocks of 20 pages) and the results are merged. What remains is only practical: time — a local
+model on CPU needs about a minute per scanned page.
+
 ## Tests
 
 The test suite runs against a real PostgreSQL database (the models use `ARRAY` columns).

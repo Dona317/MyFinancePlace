@@ -59,7 +59,7 @@
             <td><input type="text" name="category-{{ tx.id }}" value="{{ tx.category if worse else s.category }}" list="category-options"
                        class="form-control" style="padding:6px 8px;{{ 'border-color:var(--clr-warning);' if s.confidence == 'bassa' else 'border-color:var(--chart-5);' }}" /></td>
             <td><input type="text" name="counterparty-{{ tx.id }}" value="{{ s.counterparty or tx.counterparty or '' }}"
-                       class="form-control" style="padding:6px 8px;" maxlength="255" placeholder="Controparte" /></td>
+                       class="form-control" style="padding:6px 8px;" placeholder="Controparte" /></td>
             <td>
               <span class="badge {{ 'badge-positive' if s.confidence == 'alta' else ('badge-negative' if s.confidence == 'bassa' else 'badge-muted') }}">
                 {{ s.confidence }}</span>

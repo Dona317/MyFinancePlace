@@ -156,12 +156,38 @@ def test_invalid_edited_rows_are_not_saved(client, db):
         assert any("Righe non salvate" in message for _, message in session["_flashes"])
 
 
-@pytest.mark.parametrize("amount", ["NaN", "sNaN", "Infinity", "1e20", "0"])
+@pytest.mark.parametrize("amount", ["NaN", "sNaN", "Infinity", "1e40", "0"])
 def test_preview_rejects_unusable_amounts_without_crashing(client, db, amount):
     html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
     response = _confirm(client, html, include=["0", "1"], **{"amount-0": amount})
     assert response.status_code == 302
     assert Transaction.query.count() == 1  # only row 1 saved
+
+
+def test_uploads_over_16_mb_are_accepted(client, db, app):
+    """No upload size limit (it used to be 16 MB): a 17 MB file reaches the reader instead of a 413 error."""
+    assert app.config["MAX_CONTENT_LENGTH"] is None
+    response = _upload(client, b"\xd0\xcf\x11\xe0" + b"\0" * (17 * 1024 * 1024), "vecchio.doc")
+    assert response.status_code == 302
+    with client.session_transaction() as session:
+        assert ".docx" in session["_flashes"][0][1]  # read and understood, not rejected for its size
+
+
+def test_large_statement_with_long_descriptions_is_imported_whole(client, db):
+    """No limits: thousands of rows, descriptions longer than 255 characters, all saved from the preview."""
+    from datetime import timedelta
+    from tests.statements import xlsx
+    header = ["Data_Operazione", "Data_Valuta", "Entrate", "Uscite", "Descrizione", "Descrizione_Completa", "Stato", "Moneymap"]
+    long_tail = " dettaglio" * 60  # ~600 characters
+    rows = [header] + [
+        [f"{date(2020, 1, 1) + timedelta(days=i):%d/%m/%Y}"] * 2 + [None, -(i + 1), "Pagamento", f"NEGOZIO {i}{long_tail}", "Contabilizzato", "Shopping"]
+        for i in range(6000)
+    ]
+    html = _upload(client, xlsx(rows), "grande.xlsx").get_data(as_text=True)
+    _confirm(client, html)
+    assert Transaction.query.count() == 6000  # rows past the old 5,000th are no longer dropped
+    tx = Transaction.query.filter(Transaction.description.like("NEGOZIO 5999 %")).one()
+    assert len(tx.description) > 600 and tx.bank_description == f"{tx.description} (Pagamento)"
 
 
 def test_reimport_flags_duplicates(client, db):

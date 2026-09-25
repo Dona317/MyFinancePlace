@@ -272,3 +272,12 @@ def test_review_never_proposes_a_worse_category(client, ollama, db):
     page = client.post("/transactions/classify", data={"ids": [str(tx.id)]}).get_data(as_text=True)
     assert f'name="apply" value="{tx.id}" ' in page and f'name="apply" value="{tx.id}" checked' not in page
     assert form_data(page, "classify-form")[f"category-{tx.id}"] == ["Giroconto"]  # kept, even if applied
+
+
+def test_classify_more_than_300_saved_transactions(client, ollama, db):
+    """No cap on how many transactions are classified at once (it used to be 300)."""
+    db.session.add_all([make_tx(description=f"ESSELUNGA {i}", category="Altro", amount=10 + i) for i in range(350)])
+    db.session.commit()
+    page = client.post("/transactions/classify", data={}).get_data(as_text=True)
+    assert len(ollama.calls) == 9  # batches of 40
+    assert page.count('name="apply"') == 350

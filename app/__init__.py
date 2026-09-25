@@ -15,6 +15,14 @@ def create_app(config_name="default"):
     )
     app.config.from_object(config[config_name])
 
+    # No limits on request size: large statements and previews with thousands of rows must go through.
+    # (Newer Flask/Werkzeug versions default to 1000 form fields / 500 KB per form; switch those off.)
+    class UnlimitedRequest(app.request_class):
+        max_form_memory_size = None
+        max_form_parts = None
+
+    app.request_class = UnlimitedRequest
+
     db.init_app(app)
     migrate.init_app(app, db)
 

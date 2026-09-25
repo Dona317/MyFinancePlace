@@ -7,7 +7,7 @@ RECURRENCES       = ["weekly", "monthly", "quarterly", "yearly"]
 
 
 class TransactionIn(Schema):
-    description     = String(required=True,  validate=Length(min=1, max=255), metadata={"example": "Grocery shopping"})
+    description     = String(required=True,  validate=Length(min=1), metadata={"example": "Grocery shopping"})
     amount          = Float(required=True,   validate=Range(min=0.01), metadata={"example": 49.99})
     currency        = String(load_default="EUR", validate=Length(equal=3), metadata={"example": "EUR"})
     date            = Date(required=True,    metadata={"example": "2026-06-15"})

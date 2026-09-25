@@ -152,10 +152,10 @@
                        style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} /></td>
             <td>
               <input type="text" name="description-{{ i }}" value="{{ row.description }}" class="form-control row-field"
-                     style="padding:6px 8px;" maxlength="255" required {{ '' if checked else 'disabled' }} />
+                     style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} />
               {% if row.details %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:2px;">{{ row.details|truncate(90) }}</div>{% endif %}
               <input type="text" name="counterparty-{{ i }}" class="form-control row-field row-counterparty" placeholder="Controparte"
-                     style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" maxlength="255" {{ '' if checked else 'disabled' }} />
+                     style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" {{ '' if checked else 'disabled' }} />
               {% if row.similar_to %}
               <div class="badge badge-negative" style="margin-top:4px;white-space:normal;" title="Stesso importo, data vicina e descrizione simile a una transazione già salvata">
                 <i class="bi bi-exclamation-triangle"></i> Possibile duplicato di: {{ row.similar_to }}
@@ -191,9 +191,9 @@
     <tr class="preview-row statement-row" data-sign="-1" data-index="__i__" data-causale="">
       <td><input type="checkbox" name="include" value="__i__" class="row-include" checked style="width:16px;height:16px;accent-color:var(--clr-primary);" /></td>
       <td><input type="date" name="date-__i__" class="form-control row-field" style="padding:6px 8px;" required /></td>
-      <td><input type="text" name="description-__i__" class="form-control row-field" style="padding:6px 8px;" maxlength="255" required placeholder="Descrizione" />
+      <td><input type="text" name="description-__i__" class="form-control row-field" style="padding:6px 8px;" required placeholder="Descrizione" />
           <input type="text" name="counterparty-__i__" class="form-control row-field row-counterparty" placeholder="Controparte"
-                 style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" maxlength="255" />
+                 style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" />
           <span class="badge badge-primary" style="margin-top:4px;">Aggiunta a mano</span></td>
       <td><input type="text" name="category-__i__" list="category-options" class="form-control row-field row-category" style="padding:6px 8px;" placeholder="Categoria" /></td>
       <td>{{ type_select('type-__i__', 'expense') }}</td>

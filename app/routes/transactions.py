@@ -35,10 +35,11 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     tx.counterparty  = request.form.get("counterparty") or None
     tx.tags          = [t.strip() for t in request.form.get("tags", "").split(",") if t.strip()]
     tx.is_recurring  = "is_recurring" in request.form
-    tx.recurrence    = request.form.get("recurrence") or None
+    # frequency and end date only mean something for a recurring transaction
+    tx.recurrence    = (request.form.get("recurrence") or None) if tx.is_recurring else None
     tx.recurrence_end = (
         date_type.fromisoformat(request.form["recurrence_end"])
-        if request.form.get("recurrence_end") else None
+        if tx.is_recurring and request.form.get("recurrence_end") else None
     )
     tx.notes = request.form.get("notes") or None
     return tx
@@ -240,9 +241,6 @@ def api_delete(tx_id):
 
 # ── AI classification of saved transactions ──────────────────────────────────
 
-MAX_TO_CLASSIFY = 300
-
-
 def _unclassified_query():
     return Transaction.query.filter(or_(Transaction.category.is_(None), Transaction.category.in_(["", "Altro"])))
 
@@ -257,7 +255,7 @@ def classify():
     """Ask the AI for category/counterparty suggestions and show them for review (nothing is saved)."""
     ids = {int(i) for i in request.form.getlist("ids") if i.isdigit()}
     query = Transaction.query.filter(Transaction.id.in_(ids)) if ids else _unclassified_query()
-    transactions = query.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(MAX_TO_CLASSIFY).all()
+    transactions = query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
     if not transactions:
         flash("Nessuna transazione da classificare.", "warning")
         return redirect(_safe_next() or url_for("transactions.index"))
@@ -285,8 +283,8 @@ def classify_apply():
     ids = {int(i) for i in request.form.getlist("apply") if i.isdigit()}
     updated = 0
     for tx in Transaction.query.filter(Transaction.id.in_(ids)).all() if ids else []:
-        category = (request.form.get(f"category-{tx.id}") or "").strip()[:100]
-        counterparty = (request.form.get(f"counterparty-{tx.id}") or "").strip()[:255]
+        category = (request.form.get(f"category-{tx.id}") or "").strip()
+        counterparty = (request.form.get(f"counterparty-{tx.id}") or "").strip()
         if not category:
             continue
         tx.category = category

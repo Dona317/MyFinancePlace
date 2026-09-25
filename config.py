@@ -8,7 +8,7 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "change-me-in-production"
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # uploads (bank statements) up to 16 MB
+    MAX_CONTENT_LENGTH = None  # no limit on uploaded statements
 
     # AI reading of scanned/photographed/non-standard statements (app/services/ai_extraction.py)
     # LLM_PROVIDER: "ollama" (local, private) | "anthropic" (Claude API) | empty = disabled

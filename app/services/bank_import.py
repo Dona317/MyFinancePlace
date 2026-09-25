@@ -164,7 +164,7 @@ def categorize(description: str, details: str | None = None, bank_category: str 
         for category, pattern in _RULE_PATTERNS:
             if pattern.search(bank_text):
                 return category
-        return bank_category.strip()[:100]
+        return bank_category.strip()
     return "Altro"
 
 
@@ -383,8 +383,7 @@ def parse_text_lines(lines: list[str]) -> list[StatementRow]:
         if not match:
             if rows and line.strip() and not re.search(AMOUNT_PATTERN, line) and not PAGE_FOOTER.match(line.strip()):
                 last = rows[-1]
-                if len(last.description) < 200:
-                    last.description = f"{last.description} {line.strip()}"[:255]
+                last.description = f"{last.description} {line.strip()}"
             continue
         tx_date = _to_date(match.group("date"))
         raw_amount = match.group("amount").replace(" ", "")
@@ -395,7 +394,7 @@ def parse_text_lines(lines: list[str]) -> list[StatementRow]:
         explicit_sign = raw_amount.lstrip("€")[:1] in "+-" or raw_amount.endswith(("-", "+"))
         if not explicit_sign and not INCOME_HINTS.search(description):
             amount = -abs(amount)
-        rows.append(StatementRow(date=tx_date, description=description[:255], amount=amount))
+        rows.append(StatementRow(date=tx_date, description=description, amount=amount))
     return rows
 
 
@@ -478,7 +477,7 @@ def _to_decimal(value) -> Decimal | None:
     return -abs(amount) if negative else amount
 
 
-MAX_AMOUNT = Decimal("9999999999.99")  # transactions.amount is Numeric(12, 2)
+MAX_AMOUNT = Decimal("9" * 36 + ".99")  # transactions.amount is Numeric(38, 2): no practical limit
 
 
 def valid_amount(amount: Decimal | None) -> bool:
@@ -533,7 +532,7 @@ def parse_rows(rows: list[list], layout: Layout) -> tuple[list[StatementRow], in
         currency = (_text(_cell(row, columns, "currency")) or "EUR").upper()
         parsed.append(StatementRow(
             date=tx_date,
-            description=description[:255],
+            description=description,
             amount=amount,
             details=details,
             bank_category=_text(_cell(row, columns, "category")),
@@ -694,7 +693,7 @@ def analyze_with_ai(filename: str, raw: bytes, bank: str = AUTO, model: str | No
             discarded += 1
             continue
         rows.append(StatementRow(
-            date=tx_date, description=description[:255], amount=amount.quantize(Decimal("0.01")),
+            date=tx_date, description=description, amount=amount.quantize(Decimal("0.01")),
             details=_text(item.get("details")),
         ))
     if not rows:
@@ -751,7 +750,7 @@ def build_transaction(data: dict, bank_key: str, category: str | None = None, ai
         amount=abs(amount),
         currency=data.get("currency") or "EUR",
         type=data["type"],
-        category=(category or data.get("category") or "Altro").strip()[:100],
+        category=(category or data.get("category") or "Altro").strip(),
         counterparty=None,
         tags=["importato", bank_key] + (["ai"] if ai else []),
         is_recurring=False,
@@ -789,12 +788,12 @@ def build_edited_transaction(base: dict, fields: dict, bank_key: str, ai: bool =
         tags.append("categoria-ai")  # category suggested by the AI and accepted unchanged: worth a later review
     return Transaction(
         date=tx_date,
-        description=description[:255],
+        description=description,
         amount=abs(amount).quantize(Decimal("0.01")),
         currency=base.get("currency") or "EUR",
         type=tx_type,
-        category=(_text(fields.get("category")) or "Altro")[:100],
-        counterparty=(_text(fields.get("counterparty")) or "")[:255] or None,
+        category=_text(fields.get("category")) or "Altro",
+        counterparty=_text(fields.get("counterparty")),
         tags=tags,
         is_recurring=False,
         notes=base.get("details"),

@@ -122,15 +122,16 @@
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label">Frequenza</label>
                   <select name="recurrence" class="form-select">
-                    <option value="weekly">Settimanale</option>
-                    <option value="monthly" selected>Mensile</option>
-                    <option value="quarterly">Trimestrale</option>
-                    <option value="yearly">Annuale</option>
+                    {% set current = transaction.recurrence if is_edit and transaction.recurrence else 'monthly' %}
+                    {% for val, lbl in [('weekly','Settimanale'),('monthly','Mensile'),('quarterly','Trimestrale'),('yearly','Annuale')] %}
+                    <option value="{{ val }}" {{ 'selected' if current == val else '' }}>{{ lbl }}</option>
+                    {% endfor %}
                   </select>
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label">Fine Ricorrenza</label>
-                  <input type="date" name="recurrence_end" class="form-control" />
+                  <input type="date" name="recurrence_end" class="form-control"
+                         value="{{ transaction.recurrence_end.isoformat() if is_edit and transaction.recurrence_end else '' }}" />
                 </div>
               </div>
             </div>

@@ -181,7 +181,7 @@ def test_invalid_rows_from_the_model_are_discarded(ollama):
     reply["movements"][1]["amount"] = 0            # no amount
     reply["movements"][2]["description"] = "  "    # no description
     reply["movements"].append(dict(reply["movements"][3], amount=float("nan")))  # json.loads accepts NaN
-    reply["movements"].append(dict(reply["movements"][3], amount=1e20))            # too large for the column
+    reply["movements"].append(dict(reply["movements"][3], amount=1e40))            # beyond Numeric(38, 2)
     ollama.replies.append(reply)
     preview = read_with_ai("foto.jpg", (SAMPLES / PHOTO).read_bytes())
     assert len(preview.rows) == 1 and preview.discarded == 5
@@ -208,11 +208,57 @@ def test_non_standard_text_document_goes_to_the_model_as_text(ollama):
     ]
 
 
-def test_long_text_is_refused_not_truncated_for_the_local_model(ollama):
-    text = "Movimento senza data riconoscibile\n" * 2000  # ~70k chars, over the local limit
-    with pytest.raises(bank_import.StatementImportError, match="troppo lungo"):
-        read_with_ai("lungo.txt", text.encode())
-    assert ollama.calls == []
+def test_long_text_is_read_in_parts_not_refused(ollama):
+    text = "Movimento senza data riconoscibile\n" * 3000  # ~105k chars: several parts for the local model
+    ollama.replies.append(model_reply(truth_movements()[:1], has_balances=False))
+    preview = read_with_ai("lungo.txt", text.encode())
+    sizes = [len(call["body"]["messages"][1]["content"]) for call in ollama.calls]
+    assert len(ollama.calls) == 4 and all(size < ai_extraction.TEXT_CHUNK_CHARS["ollama"] + 500 for size in sizes)
+    assert "(parte 1 di 4)" in ollama.calls[0]["body"]["messages"][1]["content"]
+    assert len(preview.rows) == 4  # one movement per part, all merged
+
+
+@pytest.mark.parametrize("text, size, expected", [
+    ("a\nb\nc\n", 4, ["a\nb\n", "c\n"]),
+    ("x" * 10, 4, ["xxxx", "xxxx", "xx"]),       # a line longer than the part is cut
+    ("", 5, [""]),
+])
+def test_split_text(text, size, expected):
+    parts = ai_extraction.split_text(text, size)
+    assert parts == expected and "".join(parts) == text
+
+
+def test_every_page_of_a_long_scan_is_read(ollama):
+    """No page limit: a 30-page scan is read page by page."""
+    import io as _io
+    from PIL import Image
+    pages = [Image.new("L", (200, 280), 255) for _ in range(30)]
+    buffer = _io.BytesIO()
+    pages[0].save(buffer, "PDF", save_all=True, append_images=pages[1:])
+    ollama.replies.append(model_reply(truth_movements()[:1], has_balances=False))
+    preview = read_with_ai("lunga_scansione.pdf", buffer.getvalue())
+    assert len(ollama.calls) == 30 and len(preview.rows) == 30
+    assert "(pagina 30 di 30)" in ollama.calls[-1]["body"]["messages"][1]["content"]
+
+
+def test_claude_reads_a_long_pdf_in_page_blocks(claude):
+    """A 45-page PDF goes to Claude as 3 requests of at most 20 pages, merged with the balances."""
+    import io as _io
+    import pdfplumber
+    from PIL import Image
+    pages = [Image.new("L", (200, 280), 255) for _ in range(45)]
+    buffer = _io.BytesIO()
+    pages[0].save(buffer, "PDF", save_all=True, append_images=pages[1:])
+    claude.reply = model_reply(truth_movements()[:2], opening=100.0, closing=100.0 + sum(m["amount"] for m in truth_movements()[:2]))
+    preview = read_with_ai("lungo.pdf", buffer.getvalue())
+    counts = []
+    for request in claude.requests:
+        data = base64.b64decode(request["messages"][0]["content"][0]["source"]["data"])
+        with pdfplumber.open(_io.BytesIO(data)) as pdf:
+            counts.append(len(pdf.pages))
+    assert counts == [20, 20, 5]
+    assert len(preview.rows) == 6
+    assert preview.balance_check.opening == Decimal("100.00")  # from the first block
 
 
 def test_ollama_not_running(app, monkeypatch):
