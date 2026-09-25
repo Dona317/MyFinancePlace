@@ -18,6 +18,8 @@ by hand: **Esporta → Importa Estratto Conto Bancario**, pick a file, keep "Ril
 | `estratto_conto_word_2026-01.docx` | Word document with a table | Jan 2026 | Word tables |
 | `estratto_conto_libreoffice_2025-12.ods` | LibreOffice Calc spreadsheet | Dec 2025 | OpenDocument, typed date cells |
 | `estratto_conto_2025-11.rtf` | RTF with tab-separated columns | Nov 2025 | Rich Text Format |
+| `SCANSIONE_fineco_2026-07_2026-08.pdf` | **Scanned** PDF: page images only, no text layer | Jul–Aug 2026 | Needs the AI reader (`LLM_PROVIDER`); without it, a clear error |
+| `FOTO_estratto_conto_intesa_2026-09.jpg` | **Phone photo** (JPEG, slightly rotated) | Sep 2026 | Needs the AI reader |
 
 Suggested demo:
 

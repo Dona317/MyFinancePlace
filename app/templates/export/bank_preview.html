@@ -34,6 +34,31 @@
   </div>
 </div>
 
+{% if preview.ai_model %}
+<div class="alert alert-warning mb-16" style="display:block;">
+  <i class="bi bi-stars"></i>
+  <strong>Movimenti letti con intelligenza artificiale</strong> ({{ preview.ai_model }}).
+  Il modello può sbagliare: controlla date, importi e segni prima di confermare.
+  {% if preview.discarded %}{{ preview.discarded }} righe con data o importo non validi sono state scartate.{% endif %}
+</div>
+{% if preview.balance_check %}
+{% set bc = preview.balance_check %}
+<div class="alert {{ 'alert-success' if bc.ok else 'alert-error' }} mb-16" id="balance-check">
+  <i class="bi bi-{{ 'check-circle' if bc.ok else 'exclamation-triangle' }}"></i>
+  {% if bc.ok %}
+    Quadratura verificata: saldo iniziale {{ bc.opening|money }} + movimenti {{ bc.movements_total|money }} = saldo finale {{ bc.closing|money }}.
+  {% else %}
+    I movimenti non tornano con i saldi del documento: saldo iniziale {{ bc.opening|money }} + movimenti {{ bc.movements_total|money }}
+    ≠ saldo finale {{ bc.closing|money }} (differenza {{ bc.difference|money }}). Probabilmente manca o è sbagliata qualche riga.
+  {% endif %}
+</div>
+{% else %}
+<div class="alert alert-info mb-16">
+  <i class="bi bi-info-circle"></i> Il documento non riporta saldo iniziale e finale: non è stato possibile verificare la quadratura.
+</div>
+{% endif %}
+{% endif %}
+
 {% if preview.duplicates or preview.pending_skipped %}
 <div class="alert alert-info mb-16">
   <i class="bi bi-info-circle"></i>

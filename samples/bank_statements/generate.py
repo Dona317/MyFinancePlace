@@ -448,6 +448,32 @@ def generic_rtf(path: Path, start: date, end: date, seed: int):
     return len(rows)
 
 
+# ── Scans and photos (for the AI reader) ────────────────────────────────────────
+
+def _render_pages(pdf_path: Path, dpi: int):
+    import pdfplumber
+    with pdfplumber.open(str(pdf_path)) as pdf:
+        return [page.to_image(resolution=dpi).original.convert("L") for page in pdf.pages]
+
+
+def scanned_pdf(path: Path, source: Path):
+    """Image-only PDF (no text layer), slightly rotated and grey like a real scan."""
+    from PIL import ImageFilter
+    pages = [
+        img.rotate(0.6, expand=True, fillcolor=255).filter(ImageFilter.GaussianBlur(0.4))
+        for img in _render_pages(source, dpi=110)
+    ]
+    pages[0].save(str(path), "PDF", resolution=110, save_all=True, append_images=pages[1:])
+    return len(pages)
+
+
+def statement_photo(path: Path, source: Path):
+    """JPEG "phone photo" of the first page of a statement."""
+    page = _render_pages(source, dpi=100)[0].rotate(-1.5, expand=True, fillcolor=235)
+    page.convert("RGB").save(str(path), "JPEG", quality=70)
+    return 1
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -467,6 +493,11 @@ def main():
         ("estratto_conto_libreoffice_2025-12.ods", generic_ods, (date(2025, 12, 1), date(2025, 12, 31), 122)),
         ("estratto_conto_2025-11.rtf", generic_rtf, (date(2025, 11, 1), date(2025, 11, 30), 133)),
     ]
+    files += [
+        # Built from the PDFs above: need fpdf2 only through them
+        ("SCANSIONE_fineco_2026-07_2026-08.pdf", lambda p, *_: scanned_pdf(p, OUT / "fineco_estratto_conto_2026-07_2026-08.pdf"), (None, None, None)),
+        ("FOTO_estratto_conto_intesa_2026-09.jpg", lambda p, *_: statement_photo(p, OUT / "intesa_sanpaolo_lista_movimenti_2026-09.pdf"), (None, None, None)),
+    ]
     for name, builder, (start, end, seed) in files:
         # The Fineco files share a seed so the overlapping July movements are identical
         try:
@@ -474,7 +505,8 @@ def main():
         except ImportError as exc:
             print(f"skip  {name}: {exc}")
             continue
-        print(f"wrote {name} ({count} movimenti)")
+        unit = "pagine" if name.startswith(("SCANSIONE", "FOTO")) else "movimenti"
+        print(f"wrote {name} ({count} {unit})")
 
 
 if __name__ == "__main__":

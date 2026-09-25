@@ -10,10 +10,12 @@ Supported layouts:
 
 Accepted files: Excel (.xlsx/.xls), CSV, TXT, PDF (text-based), Word (.docx), RTF, OpenDocument (.ods/.odt).
 
-Pipeline:  read_document() → candidate tables → detect_layout() → parse_rows() → enrich() (category, dedup)
+Pipeline:  readers.read_document() → candidate tables → detect_layout() → parse_rows() → enrich() (category, dedup)
   • Structured tables (spreadsheets, Word/ODF tables, ruled PDF tables, delimited text) are tried first.
   • Column layouts without a real table (PDF text, fixed-width TXT) are rebuilt from the header positions.
   • Last resort: lines shaped like "date … description … amount".
+  • Scans, photos and layouts none of the above can read go to the AI reader when one is configured
+    (services/ai_extraction.py); its result is validated and balance-checked before the preview.
 Bank export preamble rows (account holder, period, balances) and footer rows are skipped automatically.
 """
 from __future__ import annotations
@@ -26,6 +28,7 @@ from decimal import Decimal, InvalidOperation
 from statistics import median
 
 from app.models.transaction import Transaction
+from app.services import ai_extraction
 from app.services import statement_readers as readers
 from app.services.statement_readers import Word
 from app.services.transfer import parse_amount, parse_date
@@ -172,13 +175,6 @@ def is_transfer(description: str, details: str | None = None) -> bool:
 
 class StatementImportError(ValueError):
     """Raised with a user-facing (Italian) message when a statement cannot be read."""
-
-
-def read_document(filename: str, raw: bytes) -> readers.Document:
-    try:
-        return readers.read_document(filename, raw)
-    except readers.UnsupportedFile as exc:
-        raise StatementImportError(str(exc))
 
 
 # ── Layout detection ───────────────────────────────────────────────────────────
@@ -565,10 +561,29 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
 
 
 @dataclass
+class BalanceCheck:
+    """Opening balance + extracted movements must equal the closing balance printed on the statement."""
+    opening: Decimal
+    closing: Decimal
+    movements_total: Decimal
+
+    @property
+    def difference(self) -> Decimal:
+        return self.closing - (self.opening + self.movements_total)
+
+    @property
+    def ok(self) -> bool:
+        return abs(self.difference) <= Decimal("0.01")
+
+
+@dataclass
 class StatementPreview:
     bank: BankLayout
     rows: list[StatementRow]
     pending_skipped: int
+    ai_model: str | None = None              # set when the movements were read by an AI model
+    balance_check: BalanceCheck | None = None
+    discarded: int = 0                       # AI rows dropped because the date/amount was invalid
 
     @property
     def new_rows(self) -> list[StatementRow]:
@@ -594,11 +609,76 @@ class StatementPreview:
         return min(dates), max(dates)
 
 
+AI_HINT = (" Per leggere scansioni, foto e documenti non standard puoi attivare la lettura con "
+           "intelligenza artificiale (LLM_PROVIDER): vedi il README.")
+
+
 def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementPreview:
-    document = read_document(filename, raw)
-    rows, pending, layout_bank = _extract_rows(document, filename, bank)
+    """
+    Rule-based reading first; when it cannot read the file (scans, photos, unknown layouts) and an AI
+    provider is configured, the movements are read by the model instead.
+    """
+    try:
+        document = readers.read_document(filename, raw)
+    except readers.NeedsOCR as exc:
+        if not ai_extraction.is_enabled():
+            raise StatementImportError(str(exc) + AI_HINT)
+        return analyze_with_ai(filename, raw, bank)
+    except readers.UnsupportedFile as exc:
+        raise StatementImportError(str(exc))
+
+    try:
+        rows, pending, layout_bank = _extract_rows(document, filename, bank)
+    except StatementImportError as exc:
+        if not ai_extraction.is_enabled():
+            raise StatementImportError(str(exc) + AI_HINT)
+        text = "\n".join(document.text_lines) or None
+        return analyze_with_ai(filename, raw, bank, text)
     rows.sort(key=lambda r: r.date)
     return StatementPreview(bank=layout_bank, rows=enrich(rows, layout_bank.key), pending_skipped=pending)
+
+
+def _bank_from_name(name: str) -> str:
+    text = _search_text(name)
+    return next((k for k in DETECTION_ORDER if any(m in text for m in BANKS[k].markers)), "generic")
+
+
+def analyze_with_ai(filename: str, raw: bytes, bank: str = AUTO, text: str | None = None) -> StatementPreview:
+    """Read the movements with the configured AI model and validate what it returned."""
+    try:
+        result = ai_extraction.extract(filename, raw, text)
+    except ai_extraction.AIExtractionError as exc:
+        raise StatementImportError(f"Lettura AI non riuscita: {exc}")
+
+    rows: list[StatementRow] = []
+    discarded = 0
+    for item in result.movements:
+        tx_date = _to_date(item.get("date"))
+        amount = _to_decimal(item.get("amount"))
+        description = _text(item.get("description"))
+        if tx_date is None or not amount or not description:
+            discarded += 1
+            continue
+        rows.append(StatementRow(
+            date=tx_date, description=description[:255], amount=amount.quantize(Decimal("0.01")),
+            details=_text(item.get("details")),
+        ))
+    if not rows:
+        raise StatementImportError("Lettura AI: nessun movimento riconosciuto nel documento.")
+
+    bank_key = bank if bank != AUTO else _bank_from_name(f"{result.bank_name} {filename}")
+    rows.sort(key=lambda r: r.date)
+    check = None
+    if result.has_balances:
+        check = BalanceCheck(
+            opening=Decimal(str(result.opening_balance)).quantize(Decimal("0.01")),
+            closing=Decimal(str(result.closing_balance)).quantize(Decimal("0.01")),
+            movements_total=sum((r.amount for r in rows), Decimal(0)),
+        )
+    return StatementPreview(
+        bank=BANKS[bank_key], rows=enrich(rows, bank_key), pending_skipped=0,
+        ai_model=result.model, balance_check=check, discarded=discarded,
+    )
 
 
 def _extract_rows(document: readers.Document, filename: str, bank: str) -> tuple[list[StatementRow], int, BankLayout]:
@@ -628,8 +708,8 @@ def _extract_rows(document: readers.Document, filename: str, bank: str) -> tuple
     raise error or StatementImportError("Nessun movimento trovato nel file.")
 
 
-def build_transaction(data: dict, bank_key: str, category: str | None = None) -> Transaction:
-    """Create a Transaction from a (serialized) StatementRow."""
+def build_transaction(data: dict, bank_key: str, category: str | None = None, ai: bool = False) -> Transaction:
+    """Create a Transaction from a (serialized) StatementRow; `ai` tags rows read by an AI model."""
     amount = Decimal(data["amount"])
     return Transaction(
         date=date.fromisoformat(data["date"]),
@@ -639,7 +719,7 @@ def build_transaction(data: dict, bank_key: str, category: str | None = None) ->
         type=data["type"],
         category=(category or data.get("category") or "Altro").strip()[:100],
         counterparty=None,
-        tags=["importato", bank_key],
+        tags=["importato", bank_key] + (["ai"] if ai else []),
         is_recurring=False,
         notes=data.get("details"),
         import_ref=data["import_ref"],

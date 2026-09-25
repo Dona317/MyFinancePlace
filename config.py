@@ -9,6 +9,13 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # uploads (bank statements) up to 16 MB
+
+    # AI reading of scanned/photographed/non-standard statements (app/services/ai_extraction.py)
+    # LLM_PROVIDER: "ollama" (local, private) | "anthropic" (Claude API) | empty = disabled
+    LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "")
+    LLM_MODEL = os.environ.get("LLM_MODEL", "")          # empty = provider default
+    OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+    LLM_TIMEOUT = int(os.environ.get("LLM_TIMEOUT", "600"))  # seconds
     DEBUG = False
 
 
@@ -22,6 +29,7 @@ class ProductionConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+    LLM_PROVIDER = ""  # tests enable it explicitly
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test"
     WTF_CSRF_ENABLED = False
 

@@ -2,7 +2,8 @@
 Readers that turn any supported bank-statement file into data the importer can analyze.
 
 Supported: Excel (.xlsx, .xls, HTML saved as .xls), CSV, TXT (delimited or fixed-width), PDF (text-based),
-Word (.docx), RTF, OpenDocument (.ods, .odt).
+Word (.docx), RTF, OpenDocument (.ods, .odt). Images and scanned PDFs raise NeedsOCR, which the importer
+hands to the AI reader when one is configured (services/ai_extraction.py).
 
 Every reader returns a `Document` with up to three views of the file, from most to least structured:
   • tables — explicit tables (spreadsheet sheets, Word/ODF tables, ruled PDF tables, delimited text)
@@ -24,6 +25,10 @@ IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif", ".tiff", ".
 
 class UnsupportedFile(ValueError):
     """Raised with a user-facing (Italian) message when a file cannot be read."""
+
+
+class NeedsOCR(UnsupportedFile):
+    """The file is an image or a scanned PDF: only AI/OCR reading can extract its movements."""
 
 
 @dataclass
@@ -64,7 +69,7 @@ def read_document(filename: str, raw: bytes) -> Document:
             raise UnsupportedFile("I file Word 97-2003 (.doc) non sono supportati: aprilo in Word e salvalo come .docx o PDF.")
         return _read_xls(raw)
     if name.endswith(IMAGE_EXTENSIONS) or raw[:3] == b"\xff\xd8\xff" or raw[:8] == b"\x89PNG\r\n\x1a\n":
-        raise UnsupportedFile("Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti.")
+        raise NeedsOCR("Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti.")
 
     text = decode_text(raw)
     if raw[:5] == b"{\\rtf":
@@ -294,7 +299,7 @@ def _read_pdf(raw: bytes) -> Document:
         raise UnsupportedFile(f"Impossibile leggere il PDF: {exc}")
 
     if not any(line.strip() for line in document.text_lines):
-        raise UnsupportedFile(
+        raise NeedsOCR(
             "Il PDF non contiene testo (probabilmente è una scansione): scarica dall'home banking "
             "il PDF originale oppure l'Excel/CSV dei movimenti."
         )

@@ -11,6 +11,8 @@ Current status and roadmap. Update this file as items are completed.
 - **Export**: CSV, JSON, tax export by year, printable report, CSV import with column mapping
 - **Bank statement import**: Fineco, Intesa Sanpaolo and generic bank files — Excel, CSV, PDF, TXT, Word,
   OpenDocument, RTF — with auto-categorization, a review step and duplicate detection
+- **AI reading of scans, photos and non-standard statements** (optional): local model via Ollama
+  (`qwen2.5vl:7b`) or Claude, with schema-validated JSON and a balance check
 
 ## 🔜 To do
 
@@ -60,7 +62,8 @@ portfolio holding (investing) or to a debt (financing).
 - Learn from corrections: remember the category the user picked for a description
 - Extract the counterparty (merchant name) from the description
 - Test against real exported files (anonymized) from each bank, especially PDFs, whose layouts vary the most
-- OCR for scanned PDFs and photos of statements (e.g. Tesseract), currently rejected with a message
+- AI reading (done, optional): measure accuracy of `qwen2.5vl:7b` vs Claude on real anonymized scans, and
+  move long local-model runs to a background job with a progress bar (today the upload request waits)
 - Legacy Word `.doc` files (currently: "save as .docx or PDF")
 
 ### 6. Continuous integration

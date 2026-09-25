@@ -6,7 +6,7 @@ from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.services import analytics, transfer, bank_import
+from app.services import analytics, transfer, bank_import, ai_extraction
 
 export_bp = APIBlueprint(
     "export",
@@ -37,7 +37,12 @@ def _known_categories() -> list[str]:
 
 @export_bp.route("/")
 def index():
-    return render_template("export/index.html", years=analytics.available_years(), banks=bank_import.BANKS)
+    return render_template(
+        "export/index.html",
+        years=analytics.available_years(),
+        banks=bank_import.BANKS,
+        ai_reader=ai_extraction.describe(),
+    )
 
 
 @export_bp.route("/csv")
@@ -142,6 +147,7 @@ def bank_preview():
 
     payload = _preview_serializer().dumps({
         "bank": preview.bank.key,
+        "ai": bool(preview.ai_model),
         "rows": [row.to_dict() for row in preview.rows],
     })
     return render_template(
@@ -178,7 +184,9 @@ def bank_confirm():
         tx_type = request.form.get(f"type-{index}")
         if tx_type in ("income", "expense", "transfer"):
             row["type"] = tx_type
-        created.append(bank_import.build_transaction(row, data["bank"], request.form.get(f"category-{index}")))
+        created.append(bank_import.build_transaction(
+            row, data["bank"], request.form.get(f"category-{index}"), ai=data.get("ai", False)
+        ))
 
     db.session.add_all(created)
     try:

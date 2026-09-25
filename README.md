@@ -59,6 +59,26 @@ How each format is read: spreadsheets and document tables are used as-is; PDFs a
 table are rebuilt into columns from the header positions (wrapped descriptions are joined); as a last resort,
 lines shaped like `date … description … amount` are recognized. See `app/services/statement_readers.py`.
 
+### AI reading of scans, photos and non-standard documents (optional)
+
+When the rule-based reader cannot read a file — a scanned PDF, a phone photo of a statement, a document
+with an unknown layout — it can be handed to a vision-capable LLM. Configure it in `.env` (see `.env.example`):
+
+| `LLM_PROVIDER` | Model (`LLM_MODEL`) | Privacy | Setup |
+|---|---|---|---|
+| *(empty — default)* | — | nothing leaves the app | AI reading disabled; scans/photos are rejected with a message |
+| `ollama` | `qwen2.5vl:7b` (default, ~6 GB, runs on a laptop; 16 GB RAM recommended) | **local**: the document never leaves your computer | install [Ollama](https://ollama.com), then `ollama pull qwen2.5vl:7b` |
+| `anthropic` | `claude-opus-5` (default) or cheaper `claude-haiku-4-5` | the document is **sent to Anthropic** | set `ANTHROPIC_API_KEY` |
+
+How the result is kept honest:
+- the model must answer with JSON matching a fixed schema (date, description, signed amount, plus opening/closing balance);
+- rows with an invalid date, amount or description are discarded;
+- **balance check**: opening balance + extracted movements must equal the closing balance printed on the statement —
+  the preview shows a green "Quadratura verificata" or a red warning with the difference;
+- the preview is marked as AI-read, and imported rows get the `ai` tag.
+
+The local model reads PDFs one page at a time (max 12 pages per file); on a CPU-only machine expect about a minute per page.
+
 Fake statements to try it with, in every supported format, are in
 [`samples/bank_statements/`](samples/bank_statements/README.md).
 

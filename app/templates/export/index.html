@@ -122,9 +122,9 @@
     <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"
           style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end;">
       <div class="form-group" style="margin:0;">
-        <label class="form-label">File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF)</label>
+        <label class="form-label">File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF{% if ai_reader %}, foto{% endif %})</label>
         <input type="file" name="file" class="form-control"
-               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.ods,.odt,.rtf,.tsv" required />
+               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.ods,.odt,.rtf,.tsv{% if ai_reader %},.jpg,.jpeg,.png,.webp{% endif %}" required />
       </div>
       <div class="form-group" style="margin:0;">
         <label class="form-label">Banca</label>
@@ -143,8 +143,16 @@
       <strong>Fineco:</strong> Conto → Movimenti → Esporta in Excel.
       <strong>Intesa Sanpaolo:</strong> Conto corrente → Lista movimenti → Esporta Excel.
       <strong>Altre banche:</strong> qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite, Dare/Avere).
-      I PDF devono essere quelli originali dell'home banking (non scansioni).
+      {% if not ai_reader %}I PDF devono essere quelli originali dell'home banking (non scansioni).{% endif %}
       Prima dell'importazione potrai controllare e modificare ogni movimento.
+    </p>
+    <p style="font-size:var(--font-size-xs);margin-top:8px;display:flex;align-items:center;gap:6px;">
+      <i class="bi bi-stars" style="color:var(--clr-primary);"></i>
+      {% if ai_reader %}
+        <span><strong>Lettura AI attiva</strong> ({{ ai_reader }}): scansioni, foto e documenti non standard vengono letti dal modello.</span>
+      {% else %}
+        <span style="color:var(--clr-text-muted);"><strong>Lettura AI non attiva:</strong> scansioni e foto non sono leggibili. Per attivarla imposta <code>LLM_PROVIDER</code> (vedi README).</span>
+      {% endif %}
     </p>
   </div>
 </div>
