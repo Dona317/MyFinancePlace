@@ -1174,6 +1174,8 @@ tfoot td {
 .methods-table td form { display: inline; }
 .method-pick { background: none; border: 0; padding: 0; color: var(--clr-text-primary); font: inherit; font-weight: 500; cursor: pointer; }
 .method-pick:hover { color: var(--clr-primary); }
+.method-error { text-align: right; white-space: nowrap; color: var(--clr-text-muted); }
+.method-error.best { color: var(--clr-positive-text); font-weight: 600; }
 .method-pick i { color: var(--clr-primary); font-size: 12px; margin-right: 4px; }
 .forecast-hint { font-size: var(--font-size-sm); border-top: 1px solid var(--clr-border-light); }
 .forecast-hint i { color: var(--clr-warning); }
@@ -1190,5 +1192,6 @@ tfoot td {
 .table-compact, .table-compact .amount { font-size: 0.8125rem; }
 /* Two columns on a narrow screen: secondary columns (shown elsewhere on the page) give way */
 @media (min-width: 1101px) and (max-width: 1399px) { .dash-grid .col-optional { display: none; } }
+@media (min-width: 1101px) and (max-width: 1499px) { .methods-table .col-optional { display: none; } }
 .table-compact thead th:first-child, .table-compact tbody td:first-child { padding-left: 16px; }
 .candidate-form .form-select { width: auto; padding: 4px 8px; }

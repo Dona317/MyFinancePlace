@@ -27,6 +27,14 @@
       <span>mesi</span>
       <datalist id="window-presets">{% for n in [3, 6, 9, 12, 18, 24, 36] %}<option value="{{ n }}">{% endfor %}</datalist>
     </label>
+    <label title="Con quale importo proiettare le transazioni ricorrenti, in entrata e in uscita">
+      <span>Importo ricorrenti</span>
+      <select name="recurring" class="form-select">
+        {% for key, (label, description) in recurring_amounts.items() %}
+        <option value="{{ key }}" title="{{ description }}" {{ 'selected' if key == prefs.recurring else '' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
     <label>
       <span>Orizzonte</span>
       <select name="horizon" class="form-select">
@@ -105,12 +113,13 @@
     <div class="card-header">
       <div>
         <div class="card-header-title">Confronto dei metodi</div>
-        <div class="card-header-sub">Errore medio prevedendo gli ultimi {{ [fc.history_months - 1, 6]|min if fc.history_months > 1 else 0 }} mesi dai precedenti</div>
+        <div class="card-header-sub">Errore medio mensile prevedendo gli ultimi {{ [fc.history_months - 1, 6]|min if fc.history_months > 1 else 0 }} mesi dai precedenti, per le entrate e per le uscite</div>
       </div>
     </div>
     <div class="table-wrapper">
       <table class="methods-table table-compact">
-        <thead><tr><th>Metodo</th><th style="text-align:right;">Netto {{ nxt.label if nxt else cur.label }}</th><th style="text-align:right;">Errore</th></tr></thead>
+        <thead><tr><th>Metodo</th><th class="col-optional" style="text-align:right;">Netto {{ nxt.label if nxt else cur.label }}</th>
+          <th style="text-align:right;" title="Errore medio sulle entrate">Err. entrate</th><th style="text-align:right;" title="Errore medio sulle uscite">Err. uscite</th></tr></thead>
         <tbody>
           {% for m in fc.methods %}
           <tr class="{{ 'selected' if m.selected else '' }}">
@@ -124,8 +133,9 @@
               {% if m.best %}<span class="badge badge-positive">più preciso</span>{% endif %}
               {% if m.fallback %}<span class="badge badge-muted" title="Storico insufficiente: usa la media mobile">= media</span>{% endif %}
             </td>
-            <td class="amount {{ 'positive' if m.next_net >= 0 else 'negative' }}" style="text-align:right;white-space:nowrap;">{{ m.next_net|money }}</td>
-            <td style="text-align:right;white-space:nowrap;color:var(--clr-text-muted);">{{ m.error|money if m.error is not none else '—' }}</td>
+            <td class="amount col-optional {{ 'positive' if m.next_net >= 0 else 'negative' }}" style="text-align:right;white-space:nowrap;">{{ m.next_net|money }}</td>
+            <td class="method-error {{ 'best' if m.best_income else '' }}" title="{{ 'Il più preciso sulle entrate' if m.best_income else '' }}">{{ m.error_income|money if m.error_income is not none else '—' }}</td>
+            <td class="method-error {{ 'best' if m.best_expenses else '' }}" title="{{ 'Il più preciso sulle uscite' if m.best_expenses else '' }}">{{ m.error_expenses|money if m.error_expenses is not none else '—' }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -133,13 +143,30 @@
     </div>
     {% if best and not best.selected %}
     <div class="card-body forecast-hint">
-      <i class="bi bi-lightbulb"></i> Sui tuoi dati il metodo più preciso è <strong>{{ best.label }}</strong>: clicca sul nome per usarlo.
+      <i class="bi bi-lightbulb"></i> Sui tuoi dati il metodo più preciso nel complesso è <strong>{{ best.label }}</strong>: clicca sul nome per usarlo.
     </div>
     {% endif %}
   </div>
 </div>
 
-<!-- Riga 2: saldo previsto · tabella mensile ─────────────────────────── -->
+<!-- Riga 2: entrate · uscite ──────────────────────────────────────────── -->
+<div class="dash-grid mb-16">
+  {% for flow, title, icon in [('income', 'Entrate', 'arrow-down-circle'), ('expenses', 'Uscite', 'arrow-up-circle')] %}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title"><i class="bi bi-{{ icon }}"></i> {{ title }}: storico e previsione</div>
+        <div class="card-header-sub">Ricorrenti ({{ recurring_amounts[prefs.recurring][0]|lower }}) + variabili ({{ fc.method_label|lower }}, {{ fc.window }} mesi)</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:240px;"><canvas id="{{ flow }}Chart"></canvas></div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Riga 3: saldo previsto · tabella mensile ─────────────────────────── -->
 <div class="dash-grid mb-16">
   <div class="card">
     <div class="card-header">
@@ -179,7 +206,7 @@
   </div>
 </div>
 
-<!-- Riga 3: per categoria · prossime ricorrenti ──────────────────────── -->
+<!-- Riga 4: per categoria · prossime ricorrenti ──────────────────────── -->
 <div class="dash-grid mb-16">
   <div class="card">
     <div class="card-header">
@@ -231,7 +258,7 @@
             <td>{{ tx.description }}</td>
             <td class="col-optional"><span class="badge badge-muted">{{ frequencies[tx.recurrence][0] if tx.recurrence in frequencies else 'Mensile' }}</span></td>
             <td class="amount {{ 'negative' if tx.type == 'expense' else 'positive' }}" style="text-align:right;white-space:nowrap;">
-              {{ (-(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs)|money }}</td>
+              {{ (-item.amount if tx.type == 'expense' else item.amount)|money }}</td>
             <td><a href="{{ url_for('transactions.edit', tx_id=tx.id, next=url_for('forecast.index')) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica o interrompi"><i class="bi bi-pencil"></i></a></td>
           </tr>
           {% else %}
@@ -245,7 +272,7 @@
   </div>
 </div>
 
-<!-- Riga 4: ricorrenti rilevate · come funziona ──────────────────────── -->
+<!-- Riga 5: ricorrenti rilevate · come funziona ──────────────────────── -->
 <div class="dash-grid dash-grid-wide">
   <div class="card">
     <div class="card-header">
@@ -289,10 +316,11 @@
     <div class="card-body forecast-help">
       <p>Ogni mese previsto è la somma di due parti:</p>
       <ul>
-        <li><strong>Ricorrenti</strong>: le transazioni segnate come ricorrenti, proiettate nelle loro date con la loro frequenza, fino alla data di fine.</li>
+        <li><strong>Ricorrenti</strong>: le transazioni segnate come ricorrenti, proiettate nelle loro date con la loro frequenza, fino alla data di fine.
+          Importo: {{ recurring_amounts[prefs.recurring][1]|replace('N mesi', fc.window ~ ' mesi')|lower }}</li>
         <li><strong>Variabili</strong>: tutto il resto, categoria per categoria, stimato dagli ultimi <strong>{{ fc.window }}</strong> mesi completi (la finestra mobile) con il metodo scelto.</li>
       </ul>
-      <p>I giroconti non contano: spostano soldi tra i tuoi conti senza cambiarne il totale. Il mese in corso somma ciò che è già registrato e ciò che manca.</p>
+      <p>Tutto vale allo stesso modo per le <strong>entrate</strong> (stipendio, compensi, rimborsi) e per le <strong>uscite</strong>. I giroconti non contano: spostano soldi tra i tuoi conti senza cambiarne il totale. Il mese in corso somma ciò che è già registrato e ciò che manca.</p>
       <details>
         <summary>I metodi</summary>
         <dl>
@@ -324,6 +352,15 @@ makeLineChart('netChart', labels, [
   { label: 'Minimo tra i metodi', data: gap(h).concat(months.map(m => m.low)), color: 'neutral', fill: false, pointRadius: 0, borderWidth: 0, noLegend: true },
   { label: 'Intervallo tra i metodi', data: gap(h).concat(months.map(m => m.high)), color: 'neutral', fill: '-1', fillAlpha: 0.15, pointRadius: 0, borderWidth: 0 },
 ]);
+// Incoming and outgoing flows, each with its own band across the methods
+[['income', 'Entrate', 'positive'], ['expenses', 'Uscite', 'negative']].forEach(([flow, label, color]) => {
+  makeLineChart(flow + 'Chart', labels, [
+    { label: label + ' storiche', data: hist[flow].concat(gap(months.length)), color, fill: false },
+    { label: label + ' previste', data: gap(Math.max(h - 1, 0)).concat(h ? [hist[flow][h - 1]] : [], months.map(m => m[flow])), color, fill: false, dash: [6, 4] },
+    { label: 'min', data: gap(h).concat(months.map(m => m[flow + '_low'])), color: 'neutral', fill: false, pointRadius: 0, borderWidth: 0, noLegend: true },
+    { label: 'Intervallo tra i metodi', data: gap(h).concat(months.map(m => m[flow + '_high'])), color: 'neutral', fill: '-1', fillAlpha: 0.15, pointRadius: 0, borderWidth: 0 },
+  ]);
+});
 makeLineChart('balanceChart', months.map(m => m.current ? m.label + ' (in corso)' : m.label), [
   { label: 'Saldo previsto', data: months.map(m => m.balance), color: 'primary', fill: true },
 ]);

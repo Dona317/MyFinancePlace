@@ -18,23 +18,26 @@ forecast_bp = APIBlueprint(
 @forecast_bp.route("/")
 def index():
     # Values in the address (e.g. a shared link) win over the saved preferences, without replacing them
-    prefs = forecast.preferences(request.args.get("method"), request.args.get("window"), request.args.get("horizon"))
+    prefs = forecast.preferences(request.args.get("method"), request.args.get("window"), request.args.get("horizon"),
+                                 request.args.get("recurring"))
     result = forecast.load(**prefs, today=date.today())
     return render_template(
         "forecast/index.html",
         fc=result, prefs=prefs, methods=forecast.METHODS, frequencies=forecast.FREQUENCIES,
+        recurring_amounts=forecast.RECURRING_AMOUNTS,
         window_range=forecast.WINDOW_RANGE, horizon_range=forecast.HORIZON_RANGE,
     )
 
 
 @forecast_bp.route("/preferences", methods=["POST"])
 def save_preferences():
-    """Method, rolling window and horizon chosen in the page: remembered for the next visits."""
+    """Method, rolling window, horizon and recurring amounts chosen in the page: remembered for the next visits."""
     current = forecast.preferences()
     forecast.save_preferences(
         request.form.get("method", current["method"]),
         request.form.get("window", current["window"]),
         request.form.get("horizon", current["horizon"]),
+        request.form.get("recurring", current["recurring"]),
     )
     return redirect(url_for("forecast.index"))
 

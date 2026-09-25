@@ -129,6 +129,59 @@ def test_methods_are_compared_on_the_past():
         assert row["low"] <= row["net"] <= row["high"]
 
 
+def test_rolling_window_applies_to_incoming_flows():
+    """Variable income (freelance fees) is estimated from the window exactly like expenses."""
+    fees = [0, 0, 600, 900, 300]                        # May–Sep... last complete months: May–Aug
+    rows = [tx(date(2026, m, 20), f"Fattura cliente {m}", a, type="income", category="Freelance")
+            for m, a in zip(range(4, 9), fees) if a]
+    fc = forecast.build(rows, "media", 3, 2, TODAY)
+    assert fc.next_month["income"] == pytest.approx((600 + 900 + 300) / 3)
+    assert fc.next_month["expenses"] == 0
+    fc = forecast.build(rows, "mediana", 3, 2, TODAY)
+    assert fc.next_month["income"] == 600
+    by_name = {c["category"]: c for c in forecast.build(rows, "media", 2, 2, TODAY).categories}
+    assert by_name["Freelance"]["type"] == "income" and by_name["Freelance"]["variable"] == pytest.approx(600)
+
+
+def test_recurring_amounts_use_the_rolling_window_or_the_latest_amount():
+    """A salary with a raise in August: the window mean lags, the latest amount follows it."""
+    rows = [tx(date(2026, m, 27), "Stipendio ACME", a, type="income", category="Stipendio")
+            for m, a in zip(range(3, 9), [2000, 2000, 2000, 2000, 2000, 2600])]
+    rows[-1].is_recurring, rows[-1].recurrence = True, "monthly"
+    rows.append(tx(date(2025, 11, 5), "Assicurazione casa", 400, category="Casa", is_recurring=True, recurrence="yearly"))
+    rolling = forecast.build(rows, "media", 3, 3, TODAY, recurring="media")
+    assert rolling.next_month["income"] == pytest.approx((2000 + 2000 + 2600) / 3)
+    latest = forecast.build(rows, "media", 3, 3, TODAY, recurring="ultimo")
+    assert latest.next_month["income"] == 2600
+    # a yearly premium with no payment in the window keeps its latest amount
+    november = [r for r in rolling.months if r["label"] == "Nov 26"][0]
+    assert november["scheduled_expenses"] == 400
+    assert rolling.upcoming[0]["amount"] == pytest.approx(2200)
+    assert rolling.recurring_monthly == pytest.approx(2200 - 400 / 12, abs=0.01)
+    # earlier rows of the flagged series are not counted again as variable income
+    assert rolling.next_month["income"] == rolling.next_month["scheduled_income"]
+
+
+def test_methods_are_measured_on_each_flow():
+    """Income with a one-off month: the median wins; expenses rising steadily: the trend wins."""
+    income = [1000, 1000, 5000, 1000, 1000, 1000, 1000, 1000]
+    rows = [tx(date(2026, m, 27), "Compensi", a, type="income", category="Freelance") for m, a in zip(range(1, 9), income)]
+    rows += [tx(date(2026, m, 10), "Spesa", 100 * m, category="Alimentari") for m in range(1, 9)]
+    fc = forecast.build(rows, "media", 4, 3, TODAY)
+    by_key = {m["key"]: m for m in fc.methods}
+    assert [m["key"] for m in fc.methods if m["best_income"]] == ["mediana"]
+    # the one-off month itself can't be foreseen (4000 off); after it the median is exact, the mean is not
+    assert by_key["mediana"]["error_income"] == pytest.approx(4000 / 6, abs=0.01)
+    assert by_key["media"]["error_income"] > by_key["mediana"]["error_income"]
+    assert [m["key"] for m in fc.methods if m["best_expenses"]] == ["trend"]
+    assert by_key["trend"]["error_expenses"] == 0
+    for m in fc.methods:
+        assert m["error"] == pytest.approx(m["error_income"] + m["error_expenses"])
+    for row in fc.months:
+        assert row["income_low"] <= row["income"] <= row["income_high"]
+        assert row["expenses_low"] <= row["expenses"] <= row["expenses_high"]
+
+
 def test_no_history():
     fc = forecast.build([], "media", 6, 3, TODAY)
     assert fc.history_months == 0 and fc.months[0]["net"] == 0 and fc.final_balance == 0
@@ -178,11 +231,14 @@ def test_page_is_a_two_column_dashboard(client, db):
     db.session.commit()
     html = client.get("/forecast/").get_data(as_text=True)
     assert_divs_balanced(html)
-    assert html.count('class="dash-grid') == 4
+    assert html.count('class="dash-grid') == 5
     for title in ("Netto mensile: storico e previsione", "Confronto dei metodi", "Saldo di cassa previsto",
                   "Mese per mese", "per categoria", "Prossime ricorrenti", "Sembrano ricorrenti", "Come funziona"):
         assert title in html
-    assert 'id="netChart"' in html and 'id="balanceChart"' in html
+    for chart in ("netChart", "incomeChart", "expensesChart", "balanceChart"):
+        assert f'id="{chart}"' in html
+    assert "Entrate: storico e previsione" in html and "Uscite: storico e previsione" in html
+    assert '<select name="recurring"' in html and "Err. entrate" in html and "Err. uscite" in html
     assert "Netflix" in html.split("Sembrano ricorrenti")[1]      # suggested
     assert "Stipendio" in html.split("Prossime ricorrenti")[1]    # scheduled
     for label, _ in forecast.METHODS.values():
@@ -191,15 +247,15 @@ def test_page_is_a_two_column_dashboard(client, db):
 
 
 def test_preferences_are_remembered_and_validated(client, app):
-    assert forecast.preferences() == {"method": "media", "window": 6, "horizon": 12}
-    response = client.post("/forecast/preferences", data={"method": "trend", "window": "9", "horizon": "24"})
+    assert forecast.preferences() == {"method": "media", "recurring": "media", "window": 6, "horizon": 12}
+    response = client.post("/forecast/preferences", data={"method": "trend", "window": "9", "horizon": "24", "recurring": "ultimo"})
     assert response.status_code == 302
-    assert forecast.preferences() == {"method": "trend", "window": 9, "horizon": 24}
+    assert forecast.preferences() == {"method": "trend", "recurring": "ultimo", "window": 9, "horizon": 24}
     html = client.get("/forecast/").get_data(as_text=True)
     assert 'name="window" value="9"' in html and '<option value="trend" selected>' in html
     # out of range or invalid values are clamped or ignored
-    client.post("/forecast/preferences", data={"method": "magia", "window": "99", "horizon": "0"})
-    assert forecast.preferences() == {"method": "trend", "window": 36, "horizon": 1}
+    client.post("/forecast/preferences", data={"method": "magia", "window": "99", "horizon": "0", "recurring": "boh"})
+    assert forecast.preferences() == {"method": "trend", "recurring": "ultimo", "window": 36, "horizon": 1}
     client.post("/forecast/preferences", data={"window": "abc"})
     assert forecast.preferences()["window"] == 6
     # values in the address are used for that page only

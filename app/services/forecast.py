@@ -3,9 +3,11 @@ Cash-flow forecast.
 
 Each month's forecast adds up two parts:
 - scheduled: transactions flagged "Transazione ricorrente", projected on their own dates with their
-  frequency until their end date (the latest transaction of each series is the template);
+  frequency until their end date (the latest transaction of each series is the template), for the
+  amount either the mean over the rolling window or the latest one;
 - variable: everything else, per category, estimated from the last N complete months (the rolling
   window) with the method the user picks.
+Both apply to incoming and outgoing flows alike, and the methods are measured on each flow.
 Transfers between own accounts are left out: they don't change the balance.
 
 The methods are also tried on the past (rolling-origin backtest: predict each of the last months from
@@ -36,6 +38,12 @@ METHODS = {
     "stagionale":   ("Stagionale", "Lo stesso mese dell'anno prima, riscalato sul livello degli ultimi N mesi: coglie bollette "
                                    "invernali, vacanze estive, tredicesima. Serve almeno un anno di storico."),
 }
+# Amount of each recurring series in the forecast (salary with overtime, bills that change)
+RECURRING_AMOUNTS = {
+    "media":  ("Media della finestra", "Media degli importi della serie negli ultimi N mesi, come per le variabili."),
+    "ultimo": ("Ultimo importo", "L'importo dell'ultima transazione della serie: segue subito un aumento o un rinnovo."),
+}
+DEFAULT_RECURRING = "media"
 DEFAULT_METHOD = "media"
 DEFAULT_WINDOW = 6
 DEFAULT_HORIZON = 12
@@ -60,18 +68,20 @@ def _clamp(value, low, high, default):
         return default
 
 
-def preferences(method=None, window=None, horizon=None) -> dict:
+def preferences(method=None, window=None, horizon=None, recurring=None) -> dict:
     """The given values if valid, else the saved ones, else the defaults."""
     method = method if method in METHODS else settings_store.get("forecast.method", DEFAULT_METHOD)
+    recurring = recurring if recurring in RECURRING_AMOUNTS else settings_store.get("forecast.recurring", DEFAULT_RECURRING)
     return {
         "method": method if method in METHODS else DEFAULT_METHOD,
+        "recurring": recurring if recurring in RECURRING_AMOUNTS else DEFAULT_RECURRING,
         "window": _clamp(window if window not in (None, "") else settings_store.get("forecast.window"), *WINDOW_RANGE, DEFAULT_WINDOW),
         "horizon": _clamp(horizon if horizon not in (None, "") else settings_store.get("forecast.horizon"), *HORIZON_RANGE, DEFAULT_HORIZON),
     }
 
 
-def save_preferences(method=None, window=None, horizon=None) -> dict:
-    prefs = preferences(method, window, horizon)
+def save_preferences(method=None, window=None, horizon=None, recurring=None) -> dict:
+    prefs = preferences(method, window, horizon, recurring)
     for key, value in prefs.items():
         settings_store.set(f"forecast.{key}", str(value))
     return prefs
@@ -168,9 +178,28 @@ def scheduled_templates(transactions) -> list:
     return sorted(latest.values(), key=lambda t: (t.type, t.description.lower()))
 
 
-def monthly_equivalent(tx) -> float:
+def monthly_equivalent(tx, amount: float | None = None) -> float:
     frequency = tx.recurrence if tx.recurrence in FREQUENCIES else "monthly"
-    return abs(float(tx.amount)) * FREQUENCIES[frequency][3]
+    return (abs(float(tx.amount)) if amount is None else amount) * FREQUENCIES[frequency][3]
+
+
+def recurring_amounts(transactions, templates, window_months: range, mode: str) -> dict:
+    """
+    {series key: amount of each future occurrence}. With "media", the rolling window applies to the
+    recurring series too (incoming salary included): the mean of the series' amounts in the last N complete
+    months, or the latest amount if the series has no movement in the window (a yearly premium).
+    """
+    amounts = {series_key(t): abs(float(t.amount)) for t in templates}
+    if mode != "media":
+        return amounts
+    in_window = defaultdict(list)
+    for tx in transactions:
+        key = series_key(tx)
+        if key in amounts and month_index(tx.date) in window_months:
+            in_window[key].append(abs(float(tx.amount)))
+    for key, values in in_window.items():
+        amounts[key] = round(mean(values), 2)
+    return amounts
 
 
 # ── Detection of unflagged recurring series ────────────────────────────────────
@@ -237,6 +266,8 @@ class Forecast:
     window: int
     horizon: int
     today: date
+    recurring_mode: str = DEFAULT_RECURRING
+    recurring_amounts: dict = field(default_factory=dict)   # series key: projected amount
     history_months: int = 0
     cutoff: date | None = None               # movements are recorded up to this day
     balance_now: float = 0.0
@@ -261,6 +292,10 @@ class Forecast:
     def next_month(self) -> dict | None:
         return self.months[1] if len(self.months) > 1 else None
 
+    def amount_of(self, template) -> float:
+        """Projected amount of a recurring series (rolling mean or latest amount)."""
+        return self.recurring_amounts.get(series_key(template), abs(float(template.amount)))
+
     @property
     def final_balance(self) -> float:
         return self.months[-1]["balance"] if self.months else self.balance_now
@@ -278,13 +313,13 @@ def _variable_series(transactions, first: int, last: int, excluded_keys: set) ->
     return series
 
 
-def _scheduled_by_month(templates, start: date, end: date, after: date | None = None) -> dict:
+def _scheduled_by_month(templates, amounts: dict, start: date, end: date, after: date | None = None) -> dict:
     """{month index: {(type, category): amount}} of the scheduled occurrences in [start, end)."""
     out = defaultdict(lambda: defaultdict(float))
     for tpl in templates:
         for d in occurrences(tpl, start, end):
             if after is None or d > after:
-                out[month_index(d)][(tpl.type, tpl.category or UNCATEGORIZED)] += abs(float(tpl.amount))
+                out[month_index(d)][(tpl.type, tpl.category or UNCATEGORIZED)] += amounts[series_key(tpl)]
     return out
 
 
@@ -294,13 +329,16 @@ def _split(amounts: dict) -> tuple[float, float]:
     return income, expenses
 
 
-def backtest(series: dict, method: str, window: int, months: int = BACKTEST_MONTHS) -> float | None:
-    """Average monthly error (€, income + expenses) predicting each of the last `months` months from those before."""
+def backtest(series: dict, method: str, window: int, months: int = BACKTEST_MONTHS) -> dict | None:
+    """
+    Average monthly error (€) of incoming and outgoing flows, predicting each of the last `months` months
+    from the months before it: {"income", "expenses", "total"}.
+    """
     length = len(next(iter(series.values()), []))
     tests = range(max(1, length - months), length)
     if not series or len(tests) == 0:
         return None
-    errors = []
+    errors = []  # (income error, expenses error) per tested month
     for i in tests:
         income_err = expenses_err = 0.0
         for (tx_type, _), values in series.items():
@@ -309,19 +347,19 @@ def backtest(series: dict, method: str, window: int, months: int = BACKTEST_MONT
                 income_err += predicted - values[i]
             else:
                 expenses_err += predicted - values[i]
-        errors.append(abs(income_err) + abs(expenses_err))
-    return round(mean(errors), 2)
+        errors.append((abs(income_err), abs(expenses_err)))
+    income, expenses = round(mean(e[0] for e in errors), 2), round(mean(e[1] for e in errors), 2)
+    return {"income": income, "expenses": expenses, "total": round(income + expenses, 2)}  # adds up as shown
 
 
-def build(transactions, method: str, window: int, horizon: int, today: date) -> Forecast:
-    fc = Forecast(method=method, window=window, horizon=horizon, today=today)
+def build(transactions, method: str, window: int, horizon: int, today: date, recurring: str = DEFAULT_RECURRING) -> Forecast:
+    fc = Forecast(method=method, window=window, horizon=horizon, today=today, recurring_mode=recurring)
     real = [t for t in transactions if t.type in ("income", "expense")]
     fc.balance_now = round(sum(abs(float(t.amount)) * (1 if t.type == "income" else -1) for t in real if t.date <= today), 2)
 
     templates = scheduled_templates(real)
     template_keys = {series_key(t) for t in templates}
     fc.scheduled = templates
-    fc.recurring_monthly = round(sum(monthly_equivalent(t) * (1 if t.type == "income" else -1) for t in templates), 2)
     fc.candidates = detect_candidates(real, today)
 
     current = month_index(today)
@@ -329,6 +367,11 @@ def build(transactions, method: str, window: int, horizon: int, today: date) -> 
     # History: complete months from the first one with movements (none if everything is in this month)
     first = min((month_index(t.date) for t in real if month_index(t.date) < current), default=current)
     fc.history_months = last_complete - first + 1 if first < current else 0
+    window_months = range(max(first, last_complete - window + 1), last_complete + 1) if fc.history_months else range(0)
+
+    amounts = fc.recurring_amounts = recurring_amounts(real, templates, window_months, recurring)
+    fc.recurring_monthly = round(sum(
+        monthly_equivalent(t, amounts[series_key(t)]) * (1 if t.type == "income" else -1) for t in templates), 2)
 
     # Actual totals of the complete months (shown for the last 12)
     actual = defaultdict(lambda: [0.0, 0.0])
@@ -353,8 +396,8 @@ def build(transactions, method: str, window: int, horizon: int, today: date) -> 
     days_in_month = calendar.monthrange(today.year, today.month)[1]
     remaining = (days_in_month - fc.cutoff.day) / days_in_month if fc.cutoff >= this_month else 1.0
 
-    scheduled = _scheduled_by_month(templates, this_month, horizon_end)
-    scheduled_rest = _scheduled_by_month(templates, this_month, month_start(current + 1), after=fc.cutoff)
+    scheduled = _scheduled_by_month(templates, amounts, this_month, horizon_end)
+    scheduled_rest = _scheduled_by_month(templates, amounts, this_month, month_start(current + 1), after=fc.cutoff)
 
     def month_rows(method_key: str) -> list[dict]:
         predicted = {key: predict(method_key, values, steps, window) for key, values in variable.items()}
@@ -388,19 +431,32 @@ def build(transactions, method: str, window: int, horizon: int, today: date) -> 
 
     all_rows = {key: month_rows(key) for key in METHODS}
     fc.months = all_rows[method]
+    # Bands: the range of every method's forecast, for the net and for each flow
     for row_i, row in enumerate(fc.months):
-        nets = [all_rows[key][row_i]["net"] for key in METHODS]
-        row["low"], row["high"] = min(nets), max(nets)
+        for field_name, low, high in (("net", "low", "high"), ("income", "income_low", "income_high"),
+                                      ("expenses", "expenses_low", "expenses_high")):
+            values = [all_rows[key][row_i][field_name] for key in METHODS]
+            row[low], row[high] = min(values), max(values)
 
     errors = {key: backtest(variable, key, window) if fc.history_months >= 2 else None for key in METHODS}
-    measured = [e for e in errors.values() if e is not None]
-    best = min((k for k in METHODS if errors[k] is not None), key=lambda k: errors[k]) if measured else None
+    measured = {k: e for k, e in errors.items() if e is not None}
+
+    def best_for(flow):
+        return min(measured, key=lambda k: measured[k][flow]) if measured else None
+
+    best, best_income, best_expenses = best_for("total"), best_for("income"), best_for("expenses")
     fc.methods = [
         {
-            "key": key, "label": label, "description": description, "error": errors[key],
-            "best": key == best, "selected": key == method,
+            "key": key, "label": label, "description": description,
+            "error": errors[key]["total"] if errors[key] else None,
+            "error_income": errors[key]["income"] if errors[key] else None,
+            "error_expenses": errors[key]["expenses"] if errors[key] else None,
+            "best": key == best, "best_income": key == best_income, "best_expenses": key == best_expenses,
+            "selected": key == method,
             "fallback": method_needs_more_history(key, fc.history_months if key == "stagionale" else min(fc.history_months, window)),
             "next_net": all_rows[key][1]["net"] if steps > 1 else all_rows[key][0]["net"],
+            "next_income": all_rows[key][1]["income"] if steps > 1 else all_rows[key][0]["income"],
+            "next_expenses": all_rows[key][1]["expenses"] if steps > 1 else all_rows[key][0]["expenses"],
             "final_balance": all_rows[key][-1]["balance"],
         }
         for key, (label, description) in METHODS.items()
@@ -409,7 +465,6 @@ def build(transactions, method: str, window: int, horizon: int, today: date) -> 
     # Next full month by category
     if steps > 1:
         nxt = current + 1
-        window_months = range(max(first, last_complete - window + 1), last_complete + 1)
         averages = defaultdict(float)
         for tx in real:
             if month_index(tx.date) in window_months:
@@ -433,11 +488,12 @@ def build(transactions, method: str, window: int, horizon: int, today: date) -> 
     # Scheduled occurrences still to come, up to the end of next month
     soon_end = month_start(current + 2)
     upcoming = [(d, tpl) for tpl in templates for d in occurrences(tpl, fc.cutoff + timedelta(days=1), soon_end)]
-    fc.upcoming = [{"date": d, "tx": tpl} for d, tpl in sorted(upcoming, key=lambda x: (x[0], x[1].description))]
+    fc.upcoming = [{"date": d, "tx": tpl, "amount": amounts[series_key(tpl)]}
+                   for d, tpl in sorted(upcoming, key=lambda x: (x[0], x[1].description))]
     return fc
 
 
-def load(method: str, window: int, horizon: int, today: date | None = None) -> Forecast:
+def load(method: str, window: int, horizon: int, recurring: str = DEFAULT_RECURRING, today: date | None = None) -> Forecast:
     today = today or date.today()
     transactions = Transaction.query.filter(Transaction.type.in_(["income", "expense"])).all()
-    return build(transactions, method, window, horizon, today)
+    return build(transactions, method, window, horizon, today, recurring)
