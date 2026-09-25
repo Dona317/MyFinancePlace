@@ -14,28 +14,28 @@
 
 <!-- KPI ──────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(5,1fr);">
-  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+  <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
     <div class="kpi-label">Valore Totale</div>
     <div class="kpi-value">€ 0</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+  <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
     <div class="kpi-label">Guadagno/Perdita</div>
     <div class="kpi-value">€ 0</div>
     <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> 0%</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+  <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
     <div class="kpi-label">Capitale Investito</div>
     <div class="kpi-value">€ 0</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:#F3EFFF;">
-    <div class="kpi-icon" style="background:#F3EFFF;color:var(--chart-5);"><i class="bi bi-percent"></i></div>
+  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
+    <div class="kpi-icon" style="background:var(--clr-purple-bg);color:var(--chart-5);"><i class="bi bi-percent"></i></div>
     <div class="kpi-label">Rendimento YTD</div>
     <div class="kpi-value">0%</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
+  <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-building-check"></i></div>
     <div class="kpi-label">Dividendi YTD</div>
     <div class="kpi-value">€ 0</div>
@@ -85,13 +85,13 @@
         <tr>
           <th>Strumento</th>
           <th>Classe</th>
-          <th style="text-align:right;">Quantità</th>
-          <th style="text-align:right;">Prezzo Medio</th>
-          <th style="text-align:right;">Prezzo Attuale</th>
-          <th style="text-align:right;">Valore Attuale</th>
-          <th style="text-align:right;">G/P</th>
-          <th style="text-align:right;">G/P %</th>
-          <th style="text-align:center;">Azioni</th>
+          <th class="text-right">Quantità</th>
+          <th class="text-right">Prezzo Medio</th>
+          <th class="text-right">Prezzo Attuale</th>
+          <th class="text-right">Valore Attuale</th>
+          <th class="text-right">G/P</th>
+          <th class="text-right">G/P %</th>
+          <th class="text-center">Azioni</th>
         </tr>
       </thead>
       <tbody>
@@ -99,22 +99,22 @@
         <tr>
           <td>
             <div style="font-weight:600;color:var(--clr-text-primary);">{{ h.ticker }}</div>
-            <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ h.name }}</div>
+            <div class="text-xs text-muted">{{ h.name }}</div>
           </td>
           <td><span class="badge badge-primary">{{ h.asset_class }}</span></td>
-          <td class="amount" style="text-align:right;">{{ h.quantity }}</td>
-          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(h.avg_price) }}</td>
-          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(h.current_price) }}</td>
-          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(h.current_value) }}</td>
-          <td class="amount {{ 'positive' if h.gain >= 0 else 'negative' }}" style="text-align:right;">
+          <td class="amount text-right">{{ h.quantity }}</td>
+          <td class="amount text-right">€ {{ '%.2f'|format(h.avg_price) }}</td>
+          <td class="amount text-right">€ {{ '%.2f'|format(h.current_price) }}</td>
+          <td class="amount text-right">€ {{ '%.2f'|format(h.current_value) }}</td>
+          <td class="amount {{ 'positive' if h.gain >= 0 else 'negative' }} text-right">
             {{ '+' if h.gain >= 0 else '' }}€ {{ '%.2f'|format(h.gain) }}
           </td>
-          <td style="text-align:right;">
+          <td class="text-right">
             <span class="badge {{ 'badge-positive' if h.gain_pct >= 0 else 'badge-negative' }}">
               {{ '+' if h.gain_pct >= 0 else '' }}{{ '%.1f'|format(h.gain_pct) }}%
             </span>
           </td>
-          <td style="text-align:center;">
+          <td class="text-center">
             <form method="POST" action="{{ url_for('portfolio.delete', holding_id=h.id) }}"
                   data-confirm="Eliminare questa posizione?">
               <button type="submit" class="btn btn-ghost btn-icon btn-sm" style="color:var(--clr-negative);">
@@ -128,9 +128,9 @@
       <tfoot>
         <tr>
           <td colspan="5">Totale Portafoglio</td>
-          <td class="amount" style="text-align:right;">€ 0</td>
-          <td class="amount" style="text-align:right;">€ 0</td>
-          <td class="amount" style="text-align:right;">0%</td>
+          <td class="amount text-right">€ 0</td>
+          <td class="amount text-right">€ 0</td>
+          <td class="amount text-right">0%</td>
           <td></td>
         </tr>
       </tfoot>

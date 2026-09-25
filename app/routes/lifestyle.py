@@ -1,5 +1,7 @@
-from flask import render_template
+from datetime import date
+from flask import render_template, request
 from apiflask import APIBlueprint
+from app.services import analytics
 
 lifestyle_bp = APIBlueprint(
     "lifestyle",
@@ -11,8 +13,10 @@ lifestyle_bp = APIBlueprint(
 
 @lifestyle_bp.route("/")
 def index():
-    # TODO: pass category breakdown data
-    return render_template("lifestyle/index.html")
+    years = analytics.available_years()
+    year = request.args.get("year", type=int) or date.today().year
+    report = analytics.lifestyle_report(year)
+    return render_template("lifestyle/index.html", report=report, years=years, year=year)
 
 
 @lifestyle_bp.route("/goals")

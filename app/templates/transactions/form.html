@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="card-body">
-      <form method="POST" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
+      <form method="POST" id="edit-form" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
 
         <!-- Tipo e Data ───────────────────────────────────────────────── -->
         <div class="grid-2">
@@ -70,6 +70,12 @@
           <input type="text" name="description" class="form-control"
                  placeholder="es. Spesa al supermercato"
                  value="{{ transaction.description if is_edit else '' }}" required />
+          {% if is_edit and transaction.bank_description %}
+          <div style="margin-top:6px;font-size:var(--font-size-xs);color:var(--clr-text-muted);">
+            <i class="bi bi-bank"></i> <strong>Causale della banca</strong> (conservata così come importata, non modificabile):
+            <div style="font-family:monospace;background:var(--clr-bg-input);padding:6px 8px;border-radius:6px;margin-top:4px;">{{ transaction.bank_description }}</div>
+          </div>
+          {% endif %}
         </div>
 
         <!-- Categoria e Controparte ──────────────────────────────────── -->
@@ -78,7 +84,7 @@
             <label class="form-label">Categoria</label>
             <select name="category" class="form-select">
               <option value="">— Seleziona —</option>
-              {% for cat in ['Casa','Alimentari','Trasporto','Salute','Svago','Abbonamenti','Stipendio','Freelance','Investimenti','Rimborsi','Altro'] %}
+              {% for cat in categories %}
               <option value="{{ cat }}" {{ 'selected' if is_edit and transaction.category == cat else '' }}>{{ cat }}</option>
               {% endfor %}
             </select>
@@ -104,7 +110,7 @@
         <div class="card" style="background:var(--clr-bg-input);margin-bottom:18px;">
           <div class="card-body-sm">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-              <input type="checkbox" id="is_recurring" name="is_recurring" style="width:16px;height:16px;accent-color:var(--clr-primary);"
+              <input class="check" type="checkbox" id="is_recurring" name="is_recurring"
                      {{ 'checked' if is_edit and transaction.is_recurring else '' }}
                      onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
               <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">
@@ -116,15 +122,16 @@
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label">Frequenza</label>
                   <select name="recurrence" class="form-select">
-                    <option value="weekly">Settimanale</option>
-                    <option value="monthly" selected>Mensile</option>
-                    <option value="quarterly">Trimestrale</option>
-                    <option value="yearly">Annuale</option>
+                    {% set current = transaction.recurrence if is_edit and transaction.recurrence else 'monthly' %}
+                    {% for val, lbl in [('weekly','Settimanale'),('monthly','Mensile'),('quarterly','Trimestrale'),('yearly','Annuale')] %}
+                    <option value="{{ val }}" {{ 'selected' if current == val else '' }}>{{ lbl }}</option>
+                    {% endfor %}
                   </select>
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label">Fine Ricorrenza</label>
-                  <input type="date" name="recurrence_end" class="form-control" />
+                  <input type="date" name="recurrence_end" class="form-control"
+                         value="{{ transaction.recurrence_end.isoformat() if is_edit and transaction.recurrence_end else '' }}" />
                 </div>
               </div>
             </div>
@@ -139,8 +146,14 @@
         </div>
 
         <!-- Azioni ──────────────────────────────────────────────────── -->
+        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
         <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
-          <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost">
+          {% if is_edit %}
+          <button type="submit" form="delete-form" class="btn btn-ghost" style="margin-right:auto;color:var(--clr-negative);">
+            <i class="bi bi-trash3"></i> Elimina
+          </button>
+          {% endif %}
+          <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost">
             <i class="bi bi-x"></i> Annulla
           </a>
           <button type="submit" class="btn btn-primary">
@@ -149,6 +162,12 @@
         </div>
 
       </form>
+      {% if is_edit %}
+      <form method="POST" action="{{ url_for('transactions.delete', tx_id=transaction.id) }}" id="delete-form"
+            data-confirm="Eliminare definitivamente questa transazione?">
+        <input type="hidden" name="next" value="{{ next_url or url_for('transactions.index') }}" />
+      </form>
+      {% endif %}
     </div>
   </div>
 </div>

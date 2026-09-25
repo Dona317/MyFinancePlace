@@ -1,5 +1,4 @@
 from apiflask import APIFlask
-from apiflask import APIBlueprint
 from flask import session
 from config import config
 from .routes.settings import DEFAULT_SETTINGS
@@ -14,6 +13,14 @@ def create_app(config_name="default"):
         docs_path='/swagger'
     )
     app.config.from_object(config[config_name])
+
+    # No limits on request size: large statements and previews with thousands of rows must go through.
+    # (Newer Flask/Werkzeug versions default to 1000 form fields / 500 KB per form; switch those off.)
+    class UnlimitedRequest(app.request_class):
+        max_form_memory_size = None
+        max_form_parts = None
+
+    app.request_class = UnlimitedRequest
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -48,6 +55,7 @@ def create_app(config_name="default"):
     from .routes.export import export_bp
     from .routes.settings import settings_bp
     from .routes.insurance import insurance_bp
+    from .routes.forecast import forecast_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -61,6 +69,20 @@ def create_app(config_name="default"):
     app.register_blueprint(export_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(insurance_bp)
+    app.register_blueprint(forecast_bp)
+
+    # ── Template filters ───────────────────────────────────────────────────────
+    @app.template_filter("money")
+    def money(value, symbol="€"):
+        """Format a number Italian-style: 1234.5 → '€ 1.234,50'."""
+        formatted = f"{abs(float(value or 0)):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        sign = "-" if float(value or 0) < 0 else ""
+        return f"{sign}{symbol} {formatted}"
+
+    @app.template_filter("tone")
+    def tone(tx_type):
+        """CSS class for an amount: red for expenses, green for income, neutral for transfers."""
+        return {"expense": "negative", "income": "positive"}.get(tx_type, "")
 
     # ── Settings context processor ─────────────────────────────────────────────
     # Makes `settings` available in every template automatically.

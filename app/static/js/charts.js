@@ -3,10 +3,13 @@
  * Reads color values from CSS variables so charts always match the theme.
  */
 
-const Theme = (() => {
+// Colors of the current theme; re-read when the user switches between light and dark mode
+const Theme = {};
+
+function readTheme() {
   const style = getComputedStyle(document.documentElement);
   const get = (v) => style.getPropertyValue(v).trim();
-  return {
+  Object.assign(Theme, {
     primary:   get("--clr-primary"),
     positive:  get("--clr-positive"),
     negative:  get("--clr-negative"),
@@ -14,18 +17,25 @@ const Theme = (() => {
     warning:   get("--clr-warning"),
     textMuted: get("--clr-text-muted"),
     border:    get("--clr-border"),
+    card:      get("--clr-bg-card") || "#FFFFFF",
     chart: [
       get("--chart-1"), get("--chart-2"), get("--chart-3"),
       get("--chart-4"), get("--chart-5"), get("--chart-6"),
       get("--chart-7"), get("--chart-8"),
     ],
-  };
-})();
+  });
+  Chart.defaults.color = Theme.textMuted;
+}
+
+// A dataset color can be a token name ("positive", "negative", …) so it follows the theme
+function themeColor(color, fallback) {
+  return (typeof color === "string" && typeof Theme[color] === "string" && Theme[color]) || color || fallback;
+}
 
 // Global Chart.js defaults
+readTheme();
 Chart.defaults.font.family   = getComputedStyle(document.documentElement).getPropertyValue("--font-body").trim();
 Chart.defaults.font.size     = 12;
-Chart.defaults.color         = Theme.textMuted;
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.padding = 16;
 Chart.defaults.plugins.tooltip.backgroundColor = "#1A2540";
@@ -35,6 +45,22 @@ Chart.defaults.plugins.tooltip.borderColor = "#243570";
 Chart.defaults.plugins.tooltip.borderWidth = 1;
 Chart.defaults.plugins.tooltip.padding    = 10;
 Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+// Every chart built by the helpers below, so it can be redrawn in the new theme's colors
+const themedCharts = [];
+
+function registerChart(chart, rebuild) {
+  if (chart) themedCharts.push({ chart, rebuild });
+  return chart;
+}
+
+document.addEventListener("mfp:themechange", () => {
+  readTheme();
+  themedCharts.forEach(entry => {
+    entry.chart.destroy();
+    entry.chart = entry.rebuild();
+  });
+});
 
 /* ── Factory helpers ────────────────────────────────────────────────────── */
 
@@ -47,6 +73,10 @@ Chart.defaults.plugins.tooltip.cornerRadius = 8;
 function makeLineChart(canvasId, labels, datasets) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return null;
+  return registerChart(buildLineChart(ctx, labels, datasets), () => buildLineChart(ctx, labels, datasets));
+}
+
+function buildLineChart(ctx, labels, datasets) {
   return new Chart(ctx, {
     type: "line",
     data: {
@@ -54,19 +84,21 @@ function makeLineChart(canvasId, labels, datasets) {
       datasets: datasets.map((ds, i) => ({
         label: ds.label,
         data:  ds.data,
-        borderColor:     ds.color || Theme.chart[i % Theme.chart.length],
-        backgroundColor: hexAlpha(ds.color || Theme.chart[i % Theme.chart.length], 0.08),
+        borderColor:     themeColor(ds.color, Theme.chart[i % Theme.chart.length]),
+        backgroundColor: hexAlpha(themeColor(ds.color, Theme.chart[i % Theme.chart.length]), ds.fillAlpha ?? 0.08),
         tension: 0.4,
-        fill: ds.fill !== undefined ? ds.fill : true,
-        pointRadius: 4,
+        fill: ds.fill !== undefined ? ds.fill : true,   // also "-1": fill down to the previous dataset (a band)
+        pointRadius: ds.pointRadius ?? 4,
         pointHoverRadius: 6,
-        borderWidth: 2,
+        borderWidth: ds.borderWidth ?? 2,
+        borderDash: ds.dash || [],                       // e.g. [6, 4] for forecast values
       })),
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: "index", intersect: false },
+      plugins: { legend: { labels: { filter: item => !datasets[item.datasetIndex].noLegend } } },
       scales: {
         x: { grid: { color: Theme.border }, ticks: { color: Theme.textMuted } },
         y: { grid: { color: Theme.border }, ticks: { color: Theme.textMuted } },
@@ -81,6 +113,10 @@ function makeLineChart(canvasId, labels, datasets) {
 function makeBarChart(canvasId, labels, datasets, opts = {}) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return null;
+  return registerChart(buildBarChart(ctx, labels, datasets, opts), () => buildBarChart(ctx, labels, datasets, opts));
+}
+
+function buildBarChart(ctx, labels, datasets, opts) {
   return new Chart(ctx, {
     type: "bar",
     data: {
@@ -110,11 +146,15 @@ function makeBarChart(canvasId, labels, datasets, opts = {}) {
 function makeDoughnutChart(canvasId, labels, data, opts = {}) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return null;
+  return registerChart(buildDoughnutChart(ctx, labels, data, opts), () => buildDoughnutChart(ctx, labels, data, opts));
+}
+
+function buildDoughnutChart(ctx, labels, data, opts) {
   return new Chart(ctx, {
     type: opts.pie ? "pie" : "doughnut",
     data: {
       labels,
-      datasets: [{ data, backgroundColor: Theme.chart, borderWidth: 2, borderColor: "#fff", hoverOffset: 6 }],
+      datasets: [{ data, backgroundColor: Theme.chart, borderWidth: 2, borderColor: Theme.card, hoverOffset: 6 }],
     },
     options: {
       responsive: true,
@@ -127,6 +167,7 @@ function makeDoughnutChart(canvasId, labels, data, opts = {}) {
 
 /** Convert hex color to rgba with alpha */
 function hexAlpha(hex, alpha) {
+  if (!/^#?[0-9a-f]{3}([0-9a-f]{3})?$/i.test(hex || "")) return hex;  // not a hex color: use as is
   hex = hex.replace("#", "");
   if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
   const r = parseInt(hex.substring(0, 2), 16);

@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, redirect, url_for
 from apiflask import APIBlueprint
 
 insurance_bp = APIBlueprint(

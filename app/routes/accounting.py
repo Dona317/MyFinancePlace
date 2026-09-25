@@ -1,5 +1,7 @@
-from flask import render_template
+from datetime import date
+from flask import render_template, request
 from apiflask import APIBlueprint
+from app.services import analytics
 
 accounting_bp = APIBlueprint(
     "accounting",
@@ -21,11 +23,15 @@ def balance_sheet():
 
 @accounting_bp.route("/income-statement")
 def income_statement():
-    # TODO: pass revenue, expenses, net income data
-    return render_template("accounting/income_statement.html")
+    years = analytics.available_years()
+    year = request.args.get("year", type=int) or date.today().year
+    report = analytics.income_statement(year)
+    return render_template("accounting/income_statement.html", report=report, years=years, year=year)
 
 
 @accounting_bp.route("/cash-flow")
 def cash_flow():
-    # TODO: pass operating, investing, financing cash flow data
-    return render_template("accounting/cash_flow.html")
+    years = analytics.available_years()
+    year = request.args.get("year", type=int) or date.today().year
+    report = analytics.cash_flow(year)
+    return render_template("accounting/cash_flow.html", report=report, years=years, year=year)

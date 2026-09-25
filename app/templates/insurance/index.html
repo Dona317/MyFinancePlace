@@ -14,25 +14,25 @@
 
 <!-- KPI ──────────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+  <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-shield-check"></i></div>
     <div class="kpi-label">Polizze Attive</div>
     <div class="kpi-value">{{ policies|length if policies else 0 }}</div>
     <div class="kpi-sub">In corso</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+  <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
     <div class="kpi-label">Premio Annuo Totale</div>
     <div class="kpi-value">€ 0</div>
     <div class="kpi-sub">Tutte le polizze</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
+  <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-calendar-event"></i></div>
     <div class="kpi-label">Prossima Scadenza</div>
     <div class="kpi-value">—</div>
     <div class="kpi-sub">Nessuna in scadenza</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+  <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-umbrella"></i></div>
     <div class="kpi-label">Copertura Totale</div>
     <div class="kpi-value">€ 0</div>
@@ -81,7 +81,7 @@
             <th>Tipo</th>
             <th>Compagnia</th>
             <th>N° Polizza</th>
-            <th style="text-align:right;">Premio</th>
+            <th class="text-right">Premio</th>
             <th>Frequenza</th>
             <th>Scadenza</th>
             <th>Stato</th>
@@ -105,7 +105,7 @@
             <td>{{ p.frequency }}</td>
             <td>
               {% if p.expiry_date %}
-              <span style="color:var(--clr-text-muted);">{{ p.expiry_date }}</span>
+              <span class="text-muted">{{ p.expiry_date }}</span>
               {% else %}
               <span class="badge badge-neutral">—</span>
               {% endif %}
