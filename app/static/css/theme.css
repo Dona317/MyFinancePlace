@@ -45,6 +45,9 @@
   --clr-text-secondary: #4A5E80;   /* body text */
   --clr-text-muted:     #8A9DC0;   /* hints, placeholders */
   --clr-text-inverse:   #FFFFFF;   /* text on dark backgrounds */
+  --clr-on-primary:     #FFFFFF;   /* text on primary / danger buttons and badges */
+  --clr-sidebar-strong: #FFFFFF;   /* brand name and active item: the sidebar is dark in both themes */
+  --clr-purple-bg:      #F3EFFF;   /* tint for purple icons (investments) */
 
   /* ── Borders ──────────────────────────────────────────────────── */
   --clr-border:         #DDE3F0;
@@ -131,6 +134,9 @@
   --clr-text-secondary: #A0B4D0;
   --clr-text-muted:     #5A78A0;
   --clr-text-inverse:   #0E1623;
+  --clr-on-primary:     #0E1623;   /* light buttons in dark mode need dark text for contrast */
+  --clr-sidebar-strong: #FFFFFF;
+  --clr-purple-bg:      #241B42;
 
   /* ── Borders ──────────────────────────────────────────────────── */
   --clr-border:         #233050;

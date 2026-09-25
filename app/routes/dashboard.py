@@ -1,5 +1,8 @@
+from datetime import date
 from flask import render_template, redirect, url_for
 from apiflask import APIBlueprint
+from app.models.transaction import Transaction
+from app.services import analytics
 
 dashboard_bp = APIBlueprint(
     "dashboard",
@@ -15,13 +18,21 @@ def index():
 
 @dashboard_bp.route("/dashboard")
 def dashboard():
-    # TODO: pass real KPI data from your service/model layer
-    kpis = {
-        "net_worth": 0,
-        "monthly_income": 0,
-        "monthly_expenses": 0,
-        "savings_rate": 0,
-        "total_investments": 0,
-        "total_debt": 0,
-    }
-    return render_template("dashboard/index.html", kpis=kpis)
+    today = date.today()
+    kpis = analytics.dashboard_kpis(today)
+    cash_flow = analytics.last_12_months(today)
+    month_start, month_end = analytics.month_bounds(today.year, today.month)
+    expense_breakdown = analytics.category_breakdown(month_start, month_end)
+    recent = (
+        Transaction.query
+        .order_by(Transaction.date.desc(), Transaction.id.desc())
+        .limit(8)
+        .all()
+    )
+    return render_template(
+        "dashboard/index.html",
+        kpis=kpis,
+        cash_flow=cash_flow,
+        expense_breakdown=expense_breakdown,
+        recent_transactions=recent,
+    )
