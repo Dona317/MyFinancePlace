@@ -52,8 +52,8 @@
   {% endif %}
 
   {% if settings.dashboard_investments %}
-  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:#F3EFFF;">
-    <div class="kpi-icon" style="background:#F3EFFF;color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
+  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
+    <div class="kpi-icon" style="background:var(--clr-purple-bg);color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
     <div class="kpi-label">Investimenti</div>
     <div class="kpi-value" data-amount="{{ kpis.total_investments }}" data-currency="EUR">—</div>
     <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> Portafoglio</div>
@@ -223,8 +223,8 @@ const expenseBreakdown = {{ expense_breakdown|tojson }};
 
 {% if settings.dashboard_cashflow_chart %}
 makeLineChart('cashFlowChart', cashFlow.labels, [
-  { label: 'Entrate',  data: cashFlow.income,   color: Theme.positive, fill: false },
-  { label: 'Uscite',   data: cashFlow.expenses, color: Theme.negative, fill: false },
+  { label: 'Entrate',  data: cashFlow.income,   color: 'positive', fill: false },
+  { label: 'Uscite',   data: cashFlow.expenses, color: 'negative', fill: false },
 ]);
 {% endif %}
 

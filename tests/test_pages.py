@@ -84,3 +84,16 @@ def test_sidebar_sections_are_collapsible(client, app):
     assert 'class="btn btn-ghost btn-icon sidebar-toggle-btn"' in html and 'style="display:none;"' not in html.split("sidebar-toggle-btn")[1][:40]
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
     assert len(re.findall(r'class="nav-item', html)) == len(re.findall(r'<span class="nav-label">', html)) - len(sections) - 1
+
+
+def test_theme_switch_in_topbar(client, app):
+    html = client.get("/transactions/").get_data(as_text=True)
+    topbar = html.split('class="topbar-actions"')[1]
+    switch = re.search(r'<div class="theme-switch" role="group" aria-label="Tema">(.*?)</div>', topbar, re.S)
+    assert switch, "light/dark switch missing from the top right"
+    choices = re.findall(r'data-theme-choice="(\w+)" aria-pressed="false"', switch.group(1))
+    assert choices == ["light", "dark"] and "Chiara" in switch.group(1) and "Scura" in switch.group(1)
+    # the theme is applied before paint: the saved choice, else the system preference
+    head = html.split("</head>")[0]
+    assert "mfp-theme" in head and "prefers-color-scheme: dark" in head
+    assert 'id="theme-toggle"' not in html

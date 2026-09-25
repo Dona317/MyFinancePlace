@@ -20,23 +20,35 @@ function closeModal(id) {
   document.body.style.overflow = "";
 }
 
-/* ── Dark / Light mode toggle ──────────────────────────────────────────── */
-function applyTheme(dark) {
-  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  document.getElementById("theme-icon-dark").style.display  = dark ? "none"   : "";
-  document.getElementById("theme-icon-light").style.display = dark ? ""       : "none";
-  localStorage.setItem("mfp-theme", dark ? "dark" : "light");
+/* ── Light / dark mode ─────────────────────────────────────────────────── */
+// The user's choice is remembered; until they choose, the app follows the operating system.
+function currentTheme() {
+  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+}
+
+function applyTheme(theme, remember) {
+  document.documentElement.setAttribute("data-theme", theme);
+  document.querySelectorAll("[data-theme-choice]").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme));
+  });
+  if (remember) {
+    try { localStorage.setItem("mfp-theme", theme); } catch (e) { /* private mode */ }
+  }
+  document.dispatchEvent(new CustomEvent("mfp:themechange", { detail: { theme } }));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Sync toggle icon with the theme already applied in <head>
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  applyTheme(isDark);
-
-  document.getElementById("theme-toggle")?.addEventListener("click", () => {
-    const currentlyDark = document.documentElement.getAttribute("data-theme") === "dark";
-    applyTheme(!currentlyDark);
+  // Theme switch: show the theme applied in <head>, change it on click
+  applyTheme(currentTheme(), false);
+  document.querySelectorAll("[data-theme-choice]").forEach(button => {
+    button.addEventListener("click", () => applyTheme(button.dataset.themeChoice, true));
+  });
+  // Follow the operating system while the user has not chosen
+  window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change", e => {
+    let chosen = null;
+    try { chosen = localStorage.getItem("mfp-theme"); } catch (err) { /* private mode */ }
+    if (!chosen) applyTheme(e.matches ? "dark" : "light", false);
   });
 
   // Close modal when clicking the overlay background

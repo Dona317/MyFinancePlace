@@ -55,7 +55,7 @@
       <div class="card-header-title">Elenco Transazioni</div>
       <div class="card-header-sub">{{ transactions|length if transactions else 0 }} transazioni trovate</div>
     </div>
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
       {% if transactions and ai_classifier %}
       <button type="button" class="btn btn-outline btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
               data-unclassified="{{ unclassified }}" title="Suggerisce categoria e controparte dalla causale ({{ ai_classifier }})">
