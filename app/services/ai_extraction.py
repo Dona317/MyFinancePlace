@@ -241,26 +241,17 @@ def _supports_server_fallbacks(model: str) -> bool:
     return model.startswith(("claude-opus-5", "claude-fable-5"))
 
 
-def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:
+def anthropic_json(model: str, system: str, content: list[dict], schema: dict, max_tokens: int = 64000,
+                   too_long: str = "Il documento è troppo lungo per una sola lettura: dividilo in più file.") -> str:
+    """One Claude request whose reply is JSON constrained to `schema`; returns the JSON text."""
     import anthropic
-
-    if kind == "pdf":
-        source = {"type": "base64", "media_type": "application/pdf", "data": base64.standard_b64encode(raw).decode()}
-        content = [{"type": "document", "source": source}]
-    elif kind == "image":
-        data, media_type = _normalize_image(raw)
-        source = {"type": "base64", "media_type": media_type, "data": base64.standard_b64encode(data).decode()}
-        content = [{"type": "image", "source": source}]
-    else:
-        content = [{"type": "text", "text": f"<documento>\n{text}\n</documento>"}]
-    content.append({"type": "text", "text": USER_PROMPT})
 
     request = dict(
         model=model,
-        max_tokens=64000,
-        system=SYSTEM_PROMPT,
+        max_tokens=max_tokens,
+        system=system,
         messages=[{"role": "user", "content": content}],
-        output_config={"format": {"type": "json_schema", "schema": MOVEMENTS_SCHEMA}},
+        output_config={"format": {"type": "json_schema", "schema": schema}},
     )
     if _supports_server_fallbacks(model):
         # On a safety-classifier decline, the API retries on Anthropic's recommended fallback model
@@ -268,7 +259,7 @@ def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: st
 
     client = anthropic.Anthropic(timeout=float(current_app.config.get("LLM_TIMEOUT", 600)))
     try:
-        # Long statements can produce long JSON: stream to avoid HTTP timeouts
+        # Long documents can produce long JSON: stream to avoid HTTP timeouts
         with client.beta.messages.stream(**request) as stream:
             message = stream.get_final_message()
     except anthropic.AuthenticationError:
@@ -284,21 +275,37 @@ def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: st
     except anthropic.APIStatusError as exc:
         raise AIExtractionError(f"Errore del servizio Anthropic ({exc.status_code}): riprova più tardi.")
     except anthropic.APITimeoutError:
-        raise AIExtractionError("La lettura AI ha impiegato troppo tempo: riprova o dividi il file.")
+        raise AIExtractionError("Il modello ha impiegato troppo tempo: riprova o dividi il lavoro.")
     except anthropic.APIConnectionError:
         raise AIExtractionError("Impossibile contattare l'API Anthropic: controlla la connessione.")
 
     if message.stop_reason == "refusal":
-        raise AIExtractionError("Il modello ha rifiutato di leggere il documento.")
+        raise AIExtractionError("Il modello ha rifiutato la richiesta.")
     if message.stop_reason == "max_tokens":
-        raise AIExtractionError("L'estratto conto è troppo lungo per una sola lettura: dividilo in più file.")
-    payload = next((block.text for block in message.content if block.type == "text"), None)
-    return _parse_result(payload, message.model or model)
+        raise AIExtractionError(too_long)
+    return next((block.text for block in message.content if block.type == "text"), None)
+
+
+def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:
+    if kind == "pdf":
+        source = {"type": "base64", "media_type": "application/pdf", "data": base64.standard_b64encode(raw).decode()}
+        content = [{"type": "document", "source": source}]
+    elif kind == "image":
+        data, media_type = _normalize_image(raw)
+        source = {"type": "base64", "media_type": media_type, "data": base64.standard_b64encode(data).decode()}
+        content = [{"type": "image", "source": source}]
+    else:
+        content = [{"type": "text", "text": f"<documento>\n{text}\n</documento>"}]
+    content.append({"type": "text", "text": USER_PROMPT})
+    payload = anthropic_json(model, SYSTEM_PROMPT, content, MOVEMENTS_SCHEMA,
+                             too_long="L'estratto conto è troppo lungo per una sola lettura: dividilo in più file.")
+    return _parse_result(payload, model)
 
 
 # ── Ollama (local) ─────────────────────────────────────────────────────────────
 
-def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> str:
+def ollama_json(model: str, system: str, prompt: str, schema: dict, images: list[bytes] | None = None) -> str:
+    """One Ollama chat request whose reply is JSON constrained to `schema`; returns the JSON text."""
     url = base_url().rstrip("/") + "/api/chat"
     message = {"role": "user", "content": prompt}
     if images:
@@ -306,9 +313,9 @@ def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> 
     body = {
         "model": model,
         "stream": False,
-        "format": MOVEMENTS_SCHEMA,  # Ollama structured outputs: constrain the reply to the schema
+        "format": schema,  # Ollama structured outputs: constrain the reply to the schema
         "options": {"temperature": 0, "num_ctx": OLLAMA_CONTEXT_TOKENS},
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, message],
+        "messages": [{"role": "system", "content": system}, message],
     }
     request = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     try:
@@ -321,9 +328,13 @@ def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> 
     except (urllib.error.URLError, ConnectionError):
         raise AIExtractionError(f"Ollama non raggiungibile su {url}: avvialo con `ollama serve`.")
     except TimeoutError:
-        raise AIExtractionError("Il modello locale ha impiegato troppo tempo: riprova o dividi il file.")
+        raise AIExtractionError("Il modello locale ha impiegato troppo tempo: riprova o dividi il lavoro.")
     except (KeyError, json.JSONDecodeError):
         raise AIExtractionError("Risposta di Ollama non valida.")
+
+
+def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> str:
+    return ollama_json(model, SYSTEM_PROMPT, prompt, MOVEMENTS_SCHEMA, images)
 
 
 def _extract_ollama(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:

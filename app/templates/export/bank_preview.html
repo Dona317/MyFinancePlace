@@ -99,9 +99,20 @@
         <div class="card-header-title">Controlla e correggi i movimenti</div>
         <div class="card-header-sub">Ogni campo è modificabile. Deseleziona le righe da escludere, eliminale con <i class="bi bi-trash3"></i> o aggiungine di nuove.</div>
       </div>
-      <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);cursor:pointer;white-space:nowrap;">
-        <input type="checkbox" id="toggle-all" style="accent-color:var(--clr-primary);" /> Seleziona tutti
-      </label>
+      <div style="display:flex;align-items:center;gap:14px;">
+        {% if ai_classifier %}
+        <button type="button" class="btn btn-outline btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
+                title="Suggerisce categoria e controparte dalla causale ({{ ai_classifier }})">
+          <i class="bi bi-stars"></i> Classifica con AI
+        </button>
+        {% else %}
+        <a href="{{ url_for('settings.ai_models_page') }}" style="font-size:var(--font-size-xs);white-space:nowrap;">
+          <i class="bi bi-stars"></i> Attiva la classificazione AI</a>
+        {% endif %}
+        <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="toggle-all" style="accent-color:var(--clr-primary);" /> Seleziona tutti
+        </label>
+      </div>
     </div>
     <div class="table-wrapper">
       <table id="preview-table">
@@ -131,7 +142,8 @@
           </tr>
           {% else %}
           {% set checked = not row.similar_to %}
-          <tr class="preview-row statement-row {{ '' if checked else 'row-off' }}" data-sign="{{ -1 if row.amount < 0 else 1 }}">
+          <tr class="preview-row statement-row {{ '' if checked else 'row-off' }}" data-sign="{{ -1 if row.amount < 0 else 1 }}"
+              data-index="{{ i }}" data-causale="{{ row.causale or '' }}">
             <td>
               <input type="checkbox" name="include" value="{{ i }}" class="row-include" {{ 'checked' if checked else '' }}
                      style="width:16px;height:16px;accent-color:var(--clr-primary);" />
@@ -142,6 +154,8 @@
               <input type="text" name="description-{{ i }}" value="{{ row.description }}" class="form-control row-field"
                      style="padding:6px 8px;" maxlength="255" required {{ '' if checked else 'disabled' }} />
               {% if row.details %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:2px;">{{ row.details|truncate(90) }}</div>{% endif %}
+              <input type="text" name="counterparty-{{ i }}" class="form-control row-field row-counterparty" placeholder="Controparte"
+                     style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" maxlength="255" {{ '' if checked else 'disabled' }} />
               {% if row.similar_to %}
               <div class="badge badge-negative" style="margin-top:4px;white-space:normal;" title="Stesso importo, data vicina e descrizione simile a una transazione già salvata">
                 <i class="bi bi-exclamation-triangle"></i> Possibile duplicato di: {{ row.similar_to }}
@@ -149,7 +163,7 @@
               {% endif %}
             </td>
             <td><input type="text" name="category-{{ i }}" value="{{ row.category }}" list="category-options"
-                       class="form-control row-field" style="padding:6px 8px;" {{ '' if checked else 'disabled' }} /></td>
+                       class="form-control row-field row-category" style="padding:6px 8px;" {{ '' if checked else 'disabled' }} /></td>
             <td>{{ type_select('type-' ~ i, row.type, not checked) }}</td>
             <td><input type="number" name="amount-{{ i }}" value="{{ '%.2f'|format(row.amount|abs) }}" step="0.01" min="0.01"
                        class="form-control row-field row-amount" style="padding:6px 8px;text-align:right;" required {{ '' if checked else 'disabled' }} /></td>
@@ -161,6 +175,7 @@
         </tbody>
       </table>
     </div>
+    <div id="ai-classify-status" class="alert" style="display:none;margin:0 20px 12px;"></div>
     <div class="card-body" style="border-top:1px solid var(--clr-border);padding-top:12px;padding-bottom:12px;">
       <button type="button" class="btn btn-outline btn-sm" id="add-row"><i class="bi bi-plus-lg"></i> Aggiungi riga</button>
       <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-left:8px;">per un movimento mancante o letto male</span>
@@ -173,12 +188,14 @@
   </div>
 
   <template id="new-row-template">
-    <tr class="preview-row statement-row" data-sign="-1">
+    <tr class="preview-row statement-row" data-sign="-1" data-index="__i__" data-causale="">
       <td><input type="checkbox" name="include" value="__i__" class="row-include" checked style="width:16px;height:16px;accent-color:var(--clr-primary);" /></td>
       <td><input type="date" name="date-__i__" class="form-control row-field" style="padding:6px 8px;" required /></td>
       <td><input type="text" name="description-__i__" class="form-control row-field" style="padding:6px 8px;" maxlength="255" required placeholder="Descrizione" />
+          <input type="text" name="counterparty-__i__" class="form-control row-field row-counterparty" placeholder="Controparte"
+                 style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" maxlength="255" />
           <span class="badge badge-primary" style="margin-top:4px;">Aggiunta a mano</span></td>
-      <td><input type="text" name="category-__i__" list="category-options" class="form-control row-field" style="padding:6px 8px;" placeholder="Categoria" /></td>
+      <td><input type="text" name="category-__i__" list="category-options" class="form-control row-field row-category" style="padding:6px 8px;" placeholder="Categoria" /></td>
       <td>{{ type_select('type-__i__', 'expense') }}</td>
       <td><input type="number" name="amount-__i__" step="0.01" min="0.01" class="form-control row-field row-amount" style="padding:6px 8px;text-align:right;" required /></td>
       <td><button type="button" class="btn btn-ghost btn-icon btn-sm row-remove" title="Rimuovi riga" style="color:var(--clr-negative);"><i class="bi bi-trash3"></i></button></td>
@@ -203,6 +220,8 @@
 <style>
   .row-off td { opacity: .5; }
   .row-off td:first-child { opacity: 1; }
+  .ai-suggested { border-color: var(--chart-5) !important; box-shadow: 0 0 0 2px rgba(124, 92, 252, .15); }
+  .ai-low { border-color: var(--clr-warning) !important; box-shadow: 0 0 0 2px rgba(230, 145, 20, .18); }
 </style>
 <script>
 const table = document.querySelector('#preview-table tbody');
@@ -267,6 +286,95 @@ document.getElementById('add-row').addEventListener('click', () => {
   const row = table.lastElementChild;
   row.querySelector('input[type=date]').focus();
   refresh();
+});
+
+// ── AI classification: suggest category and counterparty from the bank's causale ──────────────
+const classifyButton = document.getElementById('ai-classify');
+const classifyStatus = document.getElementById('ai-classify-status');
+
+function showStatus(kind, text) {
+  classifyStatus.className = `alert alert-${kind}`;
+  classifyStatus.style.display = 'block';
+  classifyStatus.textContent = text;
+}
+
+classifyButton?.addEventListener('click', async () => {
+  if (classifyButton.dataset.cloud === 'true' &&
+      !confirm('Le causali dei movimenti verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')) return;
+  const rows = [...table.querySelectorAll('.preview-row')].map(row => {
+    const type = row.querySelector('.row-type').value;
+    const amount = Math.abs(parseFloat(row.querySelector('.row-amount').value.replace(',', '.')) || 0);
+    const sign = type === 'income' ? 1 : type === 'expense' ? -1 : Number(row.dataset.sign);
+    return {
+      index: Number(row.dataset.index),
+      text: row.dataset.causale || row.querySelector('input[name^=description]').value,
+      amount: sign * amount,
+    };
+  }).filter(r => r.text.trim());
+  if (!rows.length) return;
+
+  classifyButton.disabled = true;
+  showStatus('info', `Classificazione di ${rows.length} movimenti in corso…`);
+  try {
+    const response = await fetch("{{ url_for('export.bank_classify') }}", {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rows }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Classificazione non riuscita.');
+    let applied = 0, unsure = 0, kept = 0;
+    for (const [index, s] of Object.entries(data.suggestions)) {
+      const row = table.querySelector(`.preview-row[data-index="${index}"]`);
+      if (!row) continue;
+      const category = row.querySelector('.row-category'), counterparty = row.querySelector('.row-counterparty');
+      if (s.counterparty && !counterparty.value) {
+        counterparty.value = s.counterparty;
+        counterparty.classList.add('ai-suggested');
+      }
+      // A first classification never makes things worse: a specific category is not replaced by
+      // "Altro", and an unsure suggestion only fills rows that have no real category yet
+      const current = category.value.trim();
+      const hasCategory = current && current !== 'Altro';
+      if (hasCategory && current !== s.category && (s.category === 'Altro' || s.confidence === 'bassa')) {
+        kept++;
+        continue;
+      }
+      category.value = s.category;
+      category.dataset.aiValue = s.category;  // remembered: accepted unchanged → tagged "categoria-ai"
+      category.classList.add(s.confidence === 'bassa' ? 'ai-low' : 'ai-suggested');
+      category.title = `Suggerito dall'AI (${s.confidence === 'bassa' ? 'poco sicuro' : 'confidenza ' + s.confidence})`;
+      applied++;
+      if (s.confidence === 'bassa') unsure++;
+    }
+    showStatus(unsure ? 'warning' : 'success',
+      `${applied} movimenti classificati con ${data.model}: i suggerimenti sono evidenziati` +
+      (unsure ? `, ${unsure} poco sicuri in arancione` : '') +
+      (kept ? `; per ${kept} è rimasta la categoria già assegnata (il modello non era sicuro)` : '') +
+      '. Controllali prima di salvare.');
+  } catch (error) {
+    showStatus('error', error.message);
+  } finally {
+    classifyButton.disabled = false;
+  }
+});
+
+// A category edited by hand is no longer "AI-suggested"
+table.addEventListener('input', (e) => {
+  if (e.target.classList.contains('row-category') && e.target.value !== e.target.dataset.aiValue) {
+    e.target.classList.remove('ai-suggested', 'ai-low');
+  }
+});
+
+document.getElementById('preview-form').addEventListener('submit', () => {
+  table.querySelectorAll('.preview-row').forEach(row => {
+    const category = row.querySelector('.row-category');
+    if (category.dataset.aiValue && category.value === category.dataset.aiValue && !category.disabled) {
+      const marker = document.createElement('input');
+      marker.type = 'hidden';
+      marker.name = `aicat-${row.dataset.index}`;
+      marker.value = '1';
+      row.appendChild(marker);
+    }
+  });
 });
 
 refresh();

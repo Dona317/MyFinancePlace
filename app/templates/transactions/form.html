@@ -70,6 +70,12 @@
           <input type="text" name="description" class="form-control"
                  placeholder="es. Spesa al supermercato"
                  value="{{ transaction.description if is_edit else '' }}" required />
+          {% if is_edit and transaction.bank_description %}
+          <div style="margin-top:6px;font-size:var(--font-size-xs);color:var(--clr-text-muted);">
+            <i class="bi bi-bank"></i> <strong>Causale della banca</strong> (conservata così come importata, non modificabile):
+            <div style="font-family:monospace;background:var(--clr-bg-input);padding:6px 8px;border-radius:6px;margin-top:4px;">{{ transaction.bank_description }}</div>
+          </div>
+          {% endif %}
         </div>
 
         <!-- Categoria e Controparte ──────────────────────────────────── -->

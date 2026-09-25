@@ -94,6 +94,21 @@ python scripts/install_models.py --tier tiny --dry-run   # just print the `ollam
 How AI results are kept honest: JSON constrained to a schema; invalid rows discarded; **balance check**
 (opening balance + movements = closing balance, recalculated live while you edit); AI-read rows tagged `ai`.
 
+### The bank's causale and AI quick classification
+
+- Every imported transaction keeps the bank's **original causale** (`bank_description`: the description plus the
+  bank's detail column), exactly as read. You can rewrite the description; the causale stays on record and is
+  shown in the list, the edit page (read-only), the duplicates page, the CSV/JSON export and the API.
+- **Classifica con AI** gives a quick first classification from the causale: category (always one of your
+  categories) and counterparty (e.g. "Esselunga"), with a confidence. Available:
+  - in the import preview (suggestions highlighted, uncertain ones in orange, all editable before saving);
+  - in Transazioni, for the selected transactions or all those without a category (a review page lists current
+    vs suggested; only confident changes are preselected).
+- It never makes things worse: a specific category is not replaced by "Altro" or by an unsure suggestion.
+- Rows saved with an AI category accepted unchanged get the `categoria-ai` tag, to double-check later.
+- It is a text-only task: a small or tiny model is enough and much faster. Choose it in Modelli AI →
+  "Modello per classificare" (e.g. `qwen3:1.7b`, `llama3.2:3b`, `claude-haiku-4-5`); empty = the reading model.
+
 ### Editable import preview
 
 Every import (rule-based or AI) opens a preview where each row's date, description, amount, type and category

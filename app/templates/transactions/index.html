@@ -56,6 +56,12 @@
       <div class="card-header-sub">{{ transactions|length if transactions else 0 }} transazioni trovate</div>
     </div>
     <div style="display:flex;gap:8px;">
+      {% if transactions and ai_classifier %}
+      <button type="button" class="btn btn-outline btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
+              data-unclassified="{{ unclassified }}" title="Suggerisce categoria e controparte dalla causale ({{ ai_classifier }})">
+        <i class="bi bi-stars"></i> <span id="ai-classify-label">Classifica con AI{{ ' (%d senza categoria)'|format(unclassified) if unclassified else '' }}</span>
+      </button>
+      {% endif %}
       {% if transactions %}
       <button type="submit" form="bulk-form" class="btn btn-ghost btn-sm" id="bulk-delete" disabled
               style="color:var(--clr-negative);">
@@ -92,7 +98,13 @@
           <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">
             {{ tx.date.strftime('%d %b %Y') }}
           </td>
-          <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
+          <td>
+            <div style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</div>
+            {% if tx.bank_description and tx.bank_description != tx.description %}
+            <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);" title="Causale originale della banca">
+              <i class="bi bi-bank"></i> {{ tx.bank_description|truncate(90) }}</div>
+            {% endif %}
+          </td>
           <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
           <td style="color:var(--clr-text-muted);">{{ tx.counterparty or '—' }}</td>
           <td>
@@ -129,6 +141,9 @@
       </tbody>
     </table>
   </div>
+  <form method="POST" action="{{ url_for('transactions.classify') }}" id="classify-form">
+    <input type="hidden" name="next" value="{{ request.full_path }}" />
+  </form>
   <form method="POST" action="{{ url_for('transactions.delete_selected') }}" id="bulk-form"
         data-confirm="Eliminare definitivamente le transazioni selezionate?">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
@@ -261,14 +276,39 @@
 <script>
 const bulkBoxes = document.querySelectorAll('.bulk-select');
 const bulkButton = document.getElementById('bulk-delete');
+const classifyButton = document.getElementById('ai-classify');
 const refreshBulk = () => {
   const count = [...bulkBoxes].filter(b => b.checked).length;
   if (bulkButton) {
     bulkButton.disabled = count === 0;
     document.getElementById('bulk-count').textContent = count;
   }
+  if (classifyButton) {
+    const unclassified = Number(classifyButton.dataset.unclassified);
+    document.getElementById('ai-classify-label').textContent = count
+      ? `Classifica con AI (${count} selezionate)`
+      : `Classifica con AI${unclassified ? ` (${unclassified} senza categoria)` : ''}`;
+    classifyButton.disabled = !count && !unclassified;
+  }
 };
+
+// AI classification: the selected transactions, or (none selected) those without a category
+classifyButton?.addEventListener('click', () => {
+  const selected = [...bulkBoxes].filter(b => b.checked).map(b => b.value);
+  if (classifyButton.dataset.cloud === 'true' &&
+      !confirm('Le causali verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')) return;
+  const form = document.getElementById('classify-form');
+  selected.forEach(id => {
+    const input = document.createElement('input');
+    input.type = 'hidden'; input.name = 'ids'; input.value = id;
+    form.appendChild(input);
+  });
+  classifyButton.disabled = true;
+  document.getElementById('ai-classify-label').textContent = 'Classificazione in corso…';
+  form.submit();
+});
 bulkBoxes.forEach(b => b.addEventListener('change', refreshBulk));
+refreshBulk();
 document.getElementById('select-all')?.addEventListener('change', (e) => {
   bulkBoxes.forEach(b => { b.checked = e.target.checked; });
   refreshBulk();

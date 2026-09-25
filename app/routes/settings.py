@@ -3,7 +3,7 @@ import re
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from apiflask import APIBlueprint
 
-from app.services import ai_extraction, ai_models, settings_store
+from app.services import ai_classification, ai_extraction, ai_models, settings_store
 
 settings_bp = APIBlueprint(
     "settings",
@@ -96,6 +96,8 @@ def ai_models_page():
         provider=ai_extraction.provider(),
         model=ai_extraction.model_name(),
         models_by_provider={p: ai_extraction.model_for(p) for p in ai_extraction.DEFAULT_MODELS},
+        classify_by_provider={p: settings_store.get(ai_classification.classify_setting(p)) or ""
+                              for p in ai_extraction.DEFAULT_MODELS},
         ollama=ollama,
         ollama_url=ai_extraction.base_url(),
         catalog=catalog,
@@ -111,19 +113,24 @@ def ai_models_page():
 def ai_save():
     provider = request.form.get("provider", "none")
     model = (request.form.get("model") or "").strip()
+    classify_model = (request.form.get("classify_model") or "").strip()
     if provider not in ("none", "ollama", "anthropic"):
         flash("Provider non valido.", "error")
         return redirect(url_for("settings.ai_models_page"))
-    if model and not _valid_model_name(model):
-        flash("Nome del modello non valido.", "error")
-        return redirect(url_for("settings.ai_models_page"))
-    if provider != "none" and model and not ai_extraction.model_matches_provider(provider, model):
-        which = "un modello Claude (es. claude-haiku-4-5)" if provider == "anthropic" else "un modello Ollama (es. qwen2.5vl:7b)"
-        flash(f"{model} non è un modello per questo provider: scegli {which}.", "error")
-        return redirect(url_for("settings.ai_models_page"))
+    for name in (model, classify_model):
+        if name and not _valid_model_name(name):
+            flash("Nome del modello non valido.", "error")
+            return redirect(url_for("settings.ai_models_page"))
+        if provider != "none" and name and not ai_extraction.model_matches_provider(provider, name):
+            which = "un modello Claude (es. claude-haiku-4-5)" if provider == "anthropic" else "un modello Ollama (es. qwen2.5vl:7b)"
+            flash(f"{name} non è un modello per questo provider: scegli {which}.", "error")
+            return redirect(url_for("settings.ai_models_page"))
     settings_store.set(ai_extraction.PROVIDER_SETTING, provider)
     if provider != "none" and model:  # empty field: keep this provider's previous choice
         settings_store.set(ai_extraction.model_setting(provider), model)
+    if provider != "none" and "classify_model" in request.form:
+        # empty = classify with the same model that reads documents
+        settings_store.set(ai_classification.classify_setting(provider), classify_model or None)
     if provider == "none":
         flash("Lettura AI disattivata.", "success")
     else:

@@ -415,6 +415,10 @@ class StatementRow:
     duplicate: bool = False
     similar_to: str | None = None   # description of an existing transaction this row may duplicate
 
+    @property
+    def causale(self) -> str | None:
+        return bank_causale({"description": self.description, "details": self.details})
+
     def to_dict(self) -> dict:
         return {
             "date": self.date.isoformat(),
@@ -753,15 +757,26 @@ def build_transaction(data: dict, bank_key: str, category: str | None = None, ai
         is_recurring=False,
         notes=data.get("details"),
         import_ref=data["import_ref"],
+        bank_description=bank_causale(data),
     )
+
+
+def bank_causale(row: dict) -> str | None:
+    """The bank's full original text for a statement row: description plus its detail column."""
+    description, details = _text(row.get("description")), _text(row.get("details"))
+    if not description:
+        return details
+    if details and details.lower() not in description.lower():
+        return f"{description} ({details})"
+    return description
 
 
 def build_edited_transaction(base: dict, fields: dict, bank_key: str, ai: bool = False) -> Transaction:
     """
     Transaction from a preview row as edited by the user. `base` is the original statement row (empty
     for rows added by hand); `fields` holds the form values. Raises ValueError on invalid input.
-    The original import_ref is kept even when the user corrects the row, so re-importing the same
-    statement still recognizes it.
+    The original import_ref and the bank's causale are kept even when the user corrects the row:
+    re-importing the same statement still recognizes it, and the bank's text stays on record.
     """
     tx_date = _to_date(fields.get("date"))
     amount = _to_decimal(fields.get("amount"))
@@ -770,6 +785,8 @@ def build_edited_transaction(base: dict, fields: dict, bank_key: str, ai: bool =
     if tx_date is None or not valid_amount(amount) or not description or tx_type not in ("income", "expense", "transfer"):
         raise ValueError("incomplete row")
     tags = ["importato", bank_key] + (["ai"] if ai else []) + ([] if base else ["manuale"])
+    if fields.get("aicat"):
+        tags.append("categoria-ai")  # category suggested by the AI and accepted unchanged: worth a later review
     return Transaction(
         date=tx_date,
         description=description[:255],
@@ -777,9 +794,10 @@ def build_edited_transaction(base: dict, fields: dict, bank_key: str, ai: bool =
         currency=base.get("currency") or "EUR",
         type=tx_type,
         category=(_text(fields.get("category")) or "Altro")[:100],
-        counterparty=None,
+        counterparty=(_text(fields.get("counterparty")) or "")[:255] or None,
         tags=tags,
         is_recurring=False,
         notes=base.get("details"),
         import_ref=base.get("import_ref"),
+        bank_description=bank_causale(base) if base else None,
     )

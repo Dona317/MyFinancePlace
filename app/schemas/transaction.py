@@ -35,6 +35,7 @@ class TransactionOut(Schema):
     recurrence      = String()
     recurrence_end  = Date()
     notes           = String()
+    bank_description = String(metadata={"description": "Causale originale della banca (solo lettura)"})
 
 
 class TransactionListOut(Schema):

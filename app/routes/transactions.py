@@ -5,7 +5,7 @@ from apiflask import APIBlueprint
 from sqlalchemy import or_
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.services import duplicates
+from app.services import ai_classification, ai_extraction, duplicates
 from app.services.analytics import month_bounds
 from app.services.bank_import import valid_amount
 from app.services.categories import known_categories
@@ -86,6 +86,9 @@ def index():
         categories=categories,
         all_categories=known_categories(),
         duplicate_groups=len(duplicates.find_groups()),
+        unclassified=_unclassified_query().count(),
+        ai_classifier=ai_classification.describe(),
+        ai_cloud=ai_extraction.provider() == "anthropic",
     )
 
 
@@ -232,3 +235,68 @@ def api_delete(tx_id):
     db.session.delete(tx)
     db.session.commit()
     return {"success": True, "deleted_id": tx_id}
+
+
+
+# ── AI classification of saved transactions ──────────────────────────────────
+
+MAX_TO_CLASSIFY = 300
+
+
+def _unclassified_query():
+    return Transaction.query.filter(or_(Transaction.category.is_(None), Transaction.category.in_(["", "Altro"])))
+
+
+def _classification_text(tx: Transaction) -> str:
+    """The bank's causale when available (richest text), else description and notes."""
+    return tx.bank_description or " ".join(filter(None, [tx.description, tx.notes]))
+
+
+@transactions_bp.route("/classify", methods=["POST"])
+def classify():
+    """Ask the AI for category/counterparty suggestions and show them for review (nothing is saved)."""
+    ids = {int(i) for i in request.form.getlist("ids") if i.isdigit()}
+    query = Transaction.query.filter(Transaction.id.in_(ids)) if ids else _unclassified_query()
+    transactions = query.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(MAX_TO_CLASSIFY).all()
+    if not transactions:
+        flash("Nessuna transazione da classificare.", "warning")
+        return redirect(_safe_next() or url_for("transactions.index"))
+    items = [
+        {"id": tx.id, "text": _classification_text(tx), "amount": -float(tx.amount) if tx.type == "expense" else float(tx.amount)}
+        for tx in transactions
+    ]
+    try:
+        suggestions = ai_classification.classify(items, known_categories())
+    except ai_extraction.AIExtractionError as exc:
+        flash(f"Classificazione AI non riuscita: {exc}", "error")
+        return redirect(_safe_next() or url_for("transactions.index"))
+    return render_template(
+        "transactions/classify.html",
+        rows=[(tx, suggestions.get(tx.id)) for tx in transactions],
+        model=ai_classification.model_name(),
+        categories=known_categories(),
+        next_url=_safe_next(),
+    )
+
+
+@transactions_bp.route("/classify/apply", methods=["POST"])
+def classify_apply():
+    """Save the suggestions the user kept (possibly edited)."""
+    ids = {int(i) for i in request.form.getlist("apply") if i.isdigit()}
+    updated = 0
+    for tx in Transaction.query.filter(Transaction.id.in_(ids)).all() if ids else []:
+        category = (request.form.get(f"category-{tx.id}") or "").strip()[:100]
+        counterparty = (request.form.get(f"counterparty-{tx.id}") or "").strip()[:255]
+        if not category:
+            continue
+        tx.category = category
+        if counterparty:
+            tx.counterparty = counterparty
+        tags = [t for t in (tx.tags or []) if t != "categoria-ai"]
+        if category == request.form.get(f"suggested-{tx.id}"):
+            tags.append("categoria-ai")  # accepted as suggested: easy to find and double-check later
+        tx.tags = tags
+        updated += 1
+    db.session.commit()
+    flash(f"{updated} transazioni aggiornate." if updated else "Nessuna modifica applicata.", "success" if updated else "warning")
+    return redirect(_safe_next() or url_for("transactions.index"))

@@ -10,7 +10,7 @@ from app.models.transaction import Transaction
 
 EXPORT_FIELDS = [
     "id", "date", "description", "amount", "currency", "type", "category",
-    "counterparty", "tags", "is_recurring", "recurrence", "recurrence_end", "notes",
+    "counterparty", "tags", "is_recurring", "recurrence", "recurrence_end", "notes", "bank_description",
 ]
 
 TAX_TAGS = {"deducibile", "detraibile", "fiscale"}
@@ -58,6 +58,7 @@ def tx_to_dict(tx: Transaction) -> dict:
         "recurrence": tx.recurrence,
         "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else None,
         "notes": tx.notes,
+        "bank_description": tx.bank_description,
     }
 
 

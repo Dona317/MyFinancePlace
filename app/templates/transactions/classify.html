@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Classificazione AI — MyFinancePlace{% endblock %}
+{% block page_title %}Classificazione AI{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">Transazioni</a></li><li>Classificazione AI</li>{% endblock %}
+
+{% block content %}
+
+{% set suggested = rows|selectattr(1)|list %}
+<div class="alert alert-info mb-16" style="display:block;">
+  <i class="bi bi-stars"></i>
+  <strong>{{ suggested|length }} suggerimenti</strong> su {{ rows|length }} transazioni, dal modello <code>{{ model }}</code>,
+  basati sulla causale della banca. Sono preselezionati quelli che cambiano qualcosa e di cui il modello è abbastanza sicuro:
+  controlla, correggi e applica.
+</div>
+
+<form method="POST" action="{{ url_for('transactions.classify_apply') }}" id="classify-form">
+  {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:60px;">Applica</th>
+            <th>Data</th>
+            <th>Descrizione e causale</th>
+            <th style="text-align:right;">Importo</th>
+            <th>Categoria attuale</th>
+            <th style="width:180px;">Nuova categoria</th>
+            <th style="width:180px;">Controparte</th>
+            <th>Confidenza</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx, s in rows %}
+          {% set has_category = tx.category and tx.category != 'Altro' %}
+          {% set worse = s and has_category and s.category != tx.category and (s.category == 'Altro' or s.confidence == 'bassa') %}
+          {% set changes = s and (s.category != tx.category or (s.counterparty and s.counterparty != tx.counterparty)) %}
+          <tr>
+            <td>
+              {% if s %}
+              <input type="checkbox" name="apply" value="{{ tx.id }}" {{ 'checked' if changes and not worse and s.confidence != 'bassa' else '' }}
+                     style="width:16px;height:16px;accent-color:var(--clr-primary);" />
+              <input type="hidden" name="suggested-{{ tx.id }}" value="{{ s.category }}" />
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ tx.date.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <div style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</div>
+              {% if tx.bank_description and tx.bank_description != tx.description %}
+              <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);"><i class="bi bi-bank"></i> {{ tx.bank_description|truncate(90) }}</div>
+              {% endif %}
+            </td>
+            <td class="amount {{ 'negative' if tx.type == 'expense' else ('positive' if tx.type == 'income' else '') }}" style="text-align:right;white-space:nowrap;">
+              {{ (-(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs)|money }}
+            </td>
+            <td>{% if tx.category %}<span class="badge badge-muted">{{ tx.category }}</span>{% else %}—{% endif %}</td>
+            {% if s %}
+            <td><input type="text" name="category-{{ tx.id }}" value="{{ tx.category if worse else s.category }}" list="category-options"
+                       class="form-control" style="padding:6px 8px;{{ 'border-color:var(--clr-warning);' if s.confidence == 'bassa' else 'border-color:var(--chart-5);' }}" /></td>
+            <td><input type="text" name="counterparty-{{ tx.id }}" value="{{ s.counterparty or tx.counterparty or '' }}"
+                       class="form-control" style="padding:6px 8px;" maxlength="255" placeholder="Controparte" /></td>
+            <td>
+              <span class="badge {{ 'badge-positive' if s.confidence == 'alta' else ('badge-negative' if s.confidence == 'bassa' else 'badge-muted') }}">
+                {{ s.confidence }}</span>
+            </td>
+            {% else %}
+            <td colspan="3" style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">Nessun suggerimento</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <datalist id="category-options">
+    {% for cat in categories %}<option value="{{ cat }}">{% endfor %}
+  </datalist>
+
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+    <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> Applica i selezionati</button>
+  </div>
+</form>
+
+{% endblock %}

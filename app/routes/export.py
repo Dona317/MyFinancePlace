@@ -1,12 +1,13 @@
 import json
+import math
 from datetime import date, datetime
-from flask import render_template, request, redirect, url_for, flash, Response, current_app
+from flask import render_template, request, redirect, url_for, flash, Response, current_app, jsonify
 from apiflask import APIBlueprint
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.services import analytics, transfer, bank_import, ai_extraction, ai_models, upload_store
+from app.services import analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store
 from app.services.categories import known_categories
 
 export_bp = APIBlueprint(
@@ -141,6 +142,8 @@ def _render_preview(preview, filename: str):
         payload=payload,
         filename=filename,
         categories=known_categories(),
+        ai_classifier=ai_classification.describe(),
+        ai_cloud=ai_extraction.provider() == "anthropic",
     )
 
 
@@ -247,7 +250,7 @@ def bank_confirm():
             skipped += 1
             continue
         fields = {name: request.form.get(f"{name}-{index}", "") for name in
-                  ("date", "description", "amount", "type", "category")}
+                  ("date", "description", "amount", "type", "category", "counterparty", "aicat")}
         try:
             created.append(bank_import.build_edited_transaction(base, fields, data["bank"], ai=data.get("ai", False)))
         except ValueError:
@@ -268,3 +271,30 @@ def bank_confirm():
     if invalid:
         flash(f"Righe non salvate perché incomplete o non valide: {', '.join(map(str, invalid))}.", "warning")
     return redirect(url_for("transactions.index"))
+
+
+@export_bp.route("/bank/classify", methods=["POST"])
+def bank_classify():
+    """Suggest category and counterparty for preview rows (JSON in, JSON out); nothing is saved here."""
+    body = request.get_json(silent=True)
+    rows = body.get("rows") if isinstance(body, dict) else None
+    items = []
+    for row in rows[:1000] if isinstance(rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        try:
+            amount = float(row.get("amount") or 0)
+            items.append({"id": int(row["index"]), "text": str(row.get("text") or "")[:500],
+                          "amount": amount if math.isfinite(amount) else 0.0})
+        except (KeyError, TypeError, ValueError):
+            continue
+    if not items:
+        return jsonify({"error": "Nessun movimento da classificare."}), 400
+    try:
+        suggestions = ai_classification.classify(items, known_categories())
+    except ai_extraction.AIExtractionError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({
+        "model": ai_classification.model_name(),
+        "suggestions": {str(i): s.to_dict() for i, s in suggestions.items()},
+    })

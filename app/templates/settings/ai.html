@@ -18,7 +18,7 @@
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('settings.ai_save') }}"
-          style="display:grid;grid-template-columns:1fr 1.4fr auto;gap:16px;align-items:end;">
+          style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end;">
       <div class="form-group" style="margin:0;">
         <label class="form-label">Provider</label>
         <select name="provider" class="form-select" id="provider-select">
@@ -28,7 +28,7 @@
         </select>
       </div>
       <div class="form-group" style="margin:0;">
-        <label class="form-label">Modello</label>
+        <label class="form-label">Modello per leggere i documenti</label>
         <input type="text" name="model" class="form-control" value="{{ model }}" list="model-options"
                placeholder="es. qwen2.5vl:7b" autocomplete="off" />
         <datalist id="model-options">
@@ -36,8 +36,17 @@
           {% for name in anthropic_models %}<option value="{{ name }}">{% endfor %}
         </datalist>
       </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">Modello per classificare <span style="font-weight:400;color:var(--clr-text-muted);">(facoltativo)</span></label>
+        <input type="text" name="classify_model" class="form-control" value="{{ classify_by_provider.get(provider or '', '') }}"
+               list="model-options" placeholder="vuoto = lo stesso" autocomplete="off" />
+      </div>
       <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salva</button>
     </form>
+    <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:10px;">
+      La <strong>classificazione</strong> (categoria e controparte dalla causale) lavora solo sul testo: basta un modello piccolo o tiny,
+      molto più veloce (es. <code>qwen3:1.7b</code>, <code>llama3.2:3b</code>{% if provider == 'anthropic' %}, <code>claude-haiku-4-5</code>{% endif %}).
+    </p>
     {% if provider == 'ollama' and model and ollama.running and model not in ollama.installed %}
     <div class="alert alert-warning" style="margin-top:16px;">
       <i class="bi bi-exclamation-triangle"></i> Il modello {{ model }} non è ancora installato: installalo dal catalogo qui sotto.
@@ -190,8 +199,10 @@
 <script>
 // Switching provider shows that provider's own model (never an Ollama tag for Claude or vice versa)
 const modelsByProvider = {{ models_by_provider|tojson }};
+const classifyByProvider = {{ classify_by_provider|tojson }};
 document.getElementById('provider-select').addEventListener('change', (e) => {
   document.querySelector('input[name=model]').value = modelsByProvider[e.target.value] || '';
+  document.querySelector('input[name=classify_model]').value = classifyByProvider[e.target.value] || '';
 });
 
 // While downloads run, refresh their progress every 2 seconds; reload once they finish.

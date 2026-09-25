@@ -15,6 +15,7 @@ Current status and roadmap. Update this file as items are completed.
   local Llama/Qwen/Gemma models via Ollama (catalog, install/remove page, CLI script) or Claude,
   schema-validated JSON and a live balance check
 - **Editable import preview** (every field, add/remove rows) and **duplicate finder**
+- **Bank causale kept on record** and **AI quick classification** (category + counterparty, reviewed by the user)
 
 ## 🔜 To do
 
@@ -61,7 +62,8 @@ portfolio holding (investing) or to a debt (financing).
 
 - Add more banks (UniCredit, BPER, Poste, Revolut…) as dedicated layouts in `app/services/bank_import.py`
 - User-editable categorization rules (e.g. a "Rules" page in Settings) instead of the hardcoded `CATEGORY_RULES`
-- Learn from corrections: remember the category the user picked for a description
+- Learn from corrections: remember the category the user picked for a counterparty, and pass past examples
+  to the AI classifier as few-shot hints (the `categoria-ai` tag marks rows to learn from once reviewed)
 - Extract the counterparty (merchant name) from the description
 - Test against real exported files (anonymized) from each bank, especially PDFs, whose layouts vary the most
 - AI reading (done, optional): measure accuracy of `qwen2.5vl:7b` vs Claude on real anonymized scans, and
