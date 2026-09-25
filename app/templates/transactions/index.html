@@ -35,7 +35,6 @@
     <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> Filtra</button>
     <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Azzera</a>
   </form>
-  </div>
 </div>
 
 <!-- Tabella transazioni ─────────────────────────────────────────────── -->
@@ -81,10 +80,13 @@
             {% endfor %}
           </td>
           <td style="text-align:right;">
+            {% set symbol = tx.currency if tx.currency and tx.currency != 'EUR' else '€' %}
+            {% if tx.type == 'transfer' %}
+            <span class="amount" style="color:var(--clr-text-muted);white-space:nowrap;" title="Trasferimento tra conti">⇄ {{ tx.amount|abs|money(symbol) }}</span>
+            {% else %}
             {% set signed = -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs %}
-            <span class="amount {{ 'negative' if tx.type == 'expense' else ('positive' if tx.type == 'income' else '') }}">
-              {{ signed|money(tx.currency if tx.currency and tx.currency != 'EUR' else '€') }}
-            </span>
+            <span class="amount {{ 'negative' if tx.type == 'expense' else 'positive' }}">{{ signed|money(symbol) }}</span>
+            {% endif %}
           </td>
           <td style="text-align:center;">
             <div style="display:flex;gap:4px;justify-content:center;">

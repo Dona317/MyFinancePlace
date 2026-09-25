@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from app.models.transaction import Transaction
@@ -57,3 +59,13 @@ def test_api_rejects_invalid_type(client, db):
         "description": "X", "amount": 1, "date": "2026-06-15", "type": "gift",
     })
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize("url", [
+    "/dashboard", "/transactions/", "/transactions/?category=Nope",
+    "/accounting/income-statement", "/accounting/cash-flow", "/lifestyle/", "/export/",
+])
+def test_pages_have_balanced_divs(client, sample_data, url):
+    """A stray </div> closes the page container early and breaks the layout (browsers hide it)."""
+    html = client.get(url).get_data(as_text=True)
+    assert len(re.findall(r"<div\b", html)) == len(re.findall(r"</div>", html))

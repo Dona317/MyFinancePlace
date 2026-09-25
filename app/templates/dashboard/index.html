@@ -141,8 +141,12 @@
             <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ tx.date.strftime('%d/%m/%Y') }}</td>
             <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
             <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
+            {% if tx.type == 'transfer' %}
+            <td class="amount" style="text-align:right;color:var(--clr-text-muted);white-space:nowrap;" title="Trasferimento tra conti">⇄ {{ tx.amount|abs|money }}</td>
+            {% else %}
             <td class="amount" style="text-align:right;"
                 data-amount="{{ -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs }}" data-currency="{{ tx.currency or 'EUR' }}">—</td>
+            {% endif %}
           </tr>
           {% else %}
           <tr>

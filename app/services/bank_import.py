@@ -68,8 +68,10 @@ BANKS = {
         signature=("contabilizzazione", "conto o carta"),
         columns={
             "date":        ("data contabile", "data operazione", "data"),
-            "description": ("operazione", "descrizione"),
-            "details":     ("dettagli", "descrizione estesa"),
+            # "Dettagli" / "Descrizione estesa" name the merchant; "Operazione" is only the kind
+            # ("Pagamento tramite POS"), so it becomes the detail line
+            "description": ("dettagli", "descrizione estesa", "operazione", "descrizione"),
+            "details":     ("operazione", "descrizione"),
             "amount":      ("importo",),
             "credit":      ("accrediti",),
             "debit":       ("addebiti",),
@@ -527,13 +529,17 @@ def parse_rows(rows: list[list], layout: Layout) -> tuple[list[StatementRow], in
     return parsed, skipped
 
 
-def fingerprint(row: StatementRow, occurrence: int) -> str:
-    """Stable id of a statement row; `occurrence` distinguishes identical rows in the same file."""
-    key = f"{row.date.isoformat()}|{row.amount:.2f}|{normalize_header(row.description)}|{occurrence}"
+def fingerprint(row: StatementRow, occurrence: int, bank_key: str) -> str:
+    """
+    Stable id of a statement row; `occurrence` distinguishes identical rows in the same file.
+    The bank is part of the key: the same charge on two different banks' accounts (e.g. Netflix
+    on the same day) is two real movements, not a duplicate.
+    """
+    key = f"{bank_key}|{row.date.isoformat()}|{row.amount:.2f}|{normalize_header(row.description)}|{occurrence}"
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-def enrich(rows: list[StatementRow]) -> list[StatementRow]:
+def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
     """Assign type, category and import_ref, and flag rows that were already imported."""
     seen: dict[str, int] = {}
     for row in rows:
@@ -543,10 +549,10 @@ def enrich(rows: list[StatementRow]) -> list[StatementRow]:
             row.type = "expense" if row.amount < 0 else "income"
             row.category = categorize(row.description, row.details, row.bank_category)
 
-        base = fingerprint(row, 0)
+        base = fingerprint(row, 0, bank_key)
         occurrence = seen.get(base, 0)
         seen[base] = occurrence + 1
-        row.import_ref = fingerprint(row, occurrence)
+        row.import_ref = fingerprint(row, occurrence, bank_key)
 
     refs = [r.import_ref for r in rows]
     existing = {
@@ -592,7 +598,7 @@ def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementP
     document = read_document(filename, raw)
     rows, pending, layout_bank = _extract_rows(document, filename, bank)
     rows.sort(key=lambda r: r.date)
-    return StatementPreview(bank=layout_bank, rows=enrich(rows), pending_skipped=pending)
+    return StatementPreview(bank=layout_bank, rows=enrich(rows, layout_bank.key), pending_skipped=pending)
 
 
 def _extract_rows(document: readers.Document, filename: str, bank: str) -> tuple[list[StatementRow], int, BankLayout]:

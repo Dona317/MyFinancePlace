@@ -50,7 +50,8 @@ def test_intesa_statement(app):
     preview = bank_import.analyze_statement("ListaMovimenti.xlsx", intesa_xlsx())
     assert preview.bank.key == "intesa"
     assert preview.pending_skipped == 1  # "Non contabilizzato"
-    categories = {r.details: r.category for r in preview.rows}
+    categories = {r.description: r.category for r in preview.rows}
+    assert {r.details for r in preview.rows} == {"Accredito stipendio", "Pagamento POS", "Addebito diretto"}
     assert categories == {
         "ACME SPA emolumenti luglio": "Stipendio",
         "CONAD CITY ROMA": "Alimentari",
@@ -263,6 +264,28 @@ BLANK_PDF = (b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</T
 def test_unsupported_documents_explain_what_to_do(app, filename, content, message):
     with pytest.raises(bank_import.StatementImportError, match=message):
         bank_import.analyze_statement(filename, content)
+
+
+def test_same_movement_on_two_banks_is_not_a_duplicate(app, db):
+    fineco = bank_import.analyze_statement("f.xlsx", fineco_xlsx())
+    db.session.add_all([bank_import.build_transaction(r.to_dict(), "fineco") for r in fineco.rows])
+    db.session.commit()
+    # Same movements exported by another bank (generic CSV): nothing may be skipped
+    lines = ["Data;Descrizione;Importo"] + [
+        f"{r.date:%d/%m/%Y};{r.description};{str(r.amount).replace('.', ',')}" for r in fineco.rows
+    ]
+    other = bank_import.analyze_statement("altra_banca.csv", "\n".join(lines).encode())
+    assert other.bank.key == "generic"
+    assert other.duplicates == 0 and len(other.rows) == len(fineco.rows)
+
+
+def test_transfers_are_shown_without_sign(client, db):
+    db.session.add(Transaction(date=date(2026, 6, 20), description="Giroconto verso deposito", amount=200,
+                               currency="EUR", type="transfer", category="Giroconto", tags=[]))
+    db.session.commit()
+    for url in ("/transactions/", "/dashboard"):
+        html = client.get(url).get_data(as_text=True)
+        assert "⇄ € 200,00" in html
 
 
 def test_upload_pdf_through_web_flow(client, db):
