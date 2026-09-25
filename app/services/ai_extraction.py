@@ -26,6 +26,8 @@ from dataclasses import dataclass, field
 
 from flask import current_app
 
+from app.services import settings_store
+
 DEFAULT_MODELS = {"ollama": "qwen2.5vl:7b", "anthropic": "claude-opus-5"}
 PROVIDER_LABELS = {"ollama": "Ollama (locale)", "anthropic": "Anthropic Claude (cloud)"}
 
@@ -95,8 +97,18 @@ class AIExtraction:
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
+# The choice made on the "Modelli AI" settings page (table app_settings) wins over .env values.
+# Each provider keeps its own model, so switching provider never sends an Ollama tag to Claude.
+PROVIDER_SETTING = "ai.provider"
+
+
+def model_setting(provider_name: str) -> str:
+    return f"ai.model.{provider_name}"
+
+
 def provider() -> str | None:
-    value = (current_app.config.get("LLM_PROVIDER") or "").strip().lower()
+    value = settings_store.get(PROVIDER_SETTING) or current_app.config.get("LLM_PROVIDER") or ""
+    value = value.strip().lower()
     return value if value in DEFAULT_MODELS else None
 
 
@@ -104,8 +116,25 @@ def is_enabled() -> bool:
     return provider() is not None
 
 
+def model_for(provider_name: str) -> str:
+    """The model used with a provider: saved choice, else .env (if it is for this provider), else default."""
+    config_provider = (current_app.config.get("LLM_PROVIDER") or "").strip().lower()
+    config_model = current_app.config.get("LLM_MODEL") if config_provider == provider_name else None
+    return settings_store.get(model_setting(provider_name)) or config_model or DEFAULT_MODELS[provider_name]
+
+
 def model_name() -> str:
-    return current_app.config.get("LLM_MODEL") or DEFAULT_MODELS.get(provider() or "", "")
+    name = provider()
+    return model_for(name) if name else ""
+
+
+def model_matches_provider(provider_name: str, model: str) -> bool:
+    is_claude = model.startswith("claude-")
+    return is_claude if provider_name == "anthropic" else not is_claude
+
+
+def base_url() -> str:
+    return current_app.config.get("OLLAMA_URL") or "http://localhost:11434"
 
 
 def describe() -> str | None:
@@ -116,9 +145,9 @@ def describe() -> str | None:
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
-def extract(filename: str, raw: bytes, text: str | None = None) -> AIExtraction:
+def extract(filename: str, raw: bytes, text: str | None = None, model: str | None = None) -> AIExtraction:
     """
-    Read the movements of a statement with the configured model.
+    Read the movements of a statement with the configured model (or `model`, chosen by the user).
     `raw` is the uploaded file; `text` is its extracted text when the file is a text document
     (Word, TXT, RTF, OpenDocument, text PDF) — sent instead of images when there is no better input.
     """
@@ -133,8 +162,8 @@ def extract(filename: str, raw: bytes, text: str | None = None) -> AIExtraction:
         raise AIExtractionError("Il documento è troppo lungo per la lettura AI: dividilo in più file (es. un mese per file).")
 
     if name == "anthropic":
-        return _extract_anthropic(raw, kind, text)
-    return _extract_ollama(raw, kind, text)
+        return _extract_anthropic(raw, kind, text, model or model_name())
+    return _extract_ollama(raw, kind, text, model or model_name())
 
 
 def _file_kind(raw: bytes) -> str | None:
@@ -212,10 +241,9 @@ def _supports_server_fallbacks(model: str) -> bool:
     return model.startswith(("claude-opus-5", "claude-fable-5"))
 
 
-def _extract_anthropic(raw: bytes, kind: str | None, text: str | None) -> AIExtraction:
+def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:
     import anthropic
 
-    model = model_name()
     if kind == "pdf":
         source = {"type": "base64", "media_type": "application/pdf", "data": base64.standard_b64encode(raw).decode()}
         content = [{"type": "document", "source": source}]
@@ -271,7 +299,7 @@ def _extract_anthropic(raw: bytes, kind: str | None, text: str | None) -> AIExtr
 # ── Ollama (local) ─────────────────────────────────────────────────────────────
 
 def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> str:
-    url = (current_app.config.get("OLLAMA_URL") or "http://localhost:11434").rstrip("/") + "/api/chat"
+    url = base_url().rstrip("/") + "/api/chat"
     message = {"role": "user", "content": prompt}
     if images:
         message["images"] = [base64.standard_b64encode(i).decode() for i in images]
@@ -298,8 +326,7 @@ def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> 
         raise AIExtractionError("Risposta di Ollama non valida.")
 
 
-def _extract_ollama(raw: bytes, kind: str | None, text: str | None) -> AIExtraction:
-    model = model_name()
+def _extract_ollama(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:
     if kind is None:
         return _parse_result(_ollama_chat(model, f"{USER_PROMPT}\n\n<documento>\n{text}\n</documento>"), model)
 

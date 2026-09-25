@@ -11,8 +11,10 @@ Current status and roadmap. Update this file as items are completed.
 - **Export**: CSV, JSON, tax export by year, printable report, CSV import with column mapping
 - **Bank statement import**: Fineco, Intesa Sanpaolo and generic bank files — Excel, CSV, PDF, TXT, Word,
   OpenDocument, RTF — with auto-categorization, a review step and duplicate detection
-- **AI reading of scans, photos and non-standard statements** (optional): local model via Ollama
-  (`qwen2.5vl:7b`) or Claude, with schema-validated JSON and a balance check
+- **AI reading of scans, photos and non-standard statements** (optional, always after user confirmation):
+  local Llama/Qwen/Gemma models via Ollama (catalog, install/remove page, CLI script) or Claude,
+  schema-validated JSON and a live balance check
+- **Editable import preview** (every field, add/remove rows) and **duplicate finder**
 
 ## 🔜 To do
 

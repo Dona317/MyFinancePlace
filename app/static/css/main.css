@@ -1016,3 +1016,11 @@ tfoot td {
 @media (max-width: 768px) {
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
 }
+
+/* Disabled buttons look inactive (e.g. "Installa" while a model downloads, "Salva" with no rows) */
+.btn:disabled,
+.btn[disabled] {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}

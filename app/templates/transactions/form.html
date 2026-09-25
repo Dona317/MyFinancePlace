@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="card-body">
-      <form method="POST" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
+      <form method="POST" id="edit-form" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
 
         <!-- Tipo e Data ───────────────────────────────────────────────── -->
         <div class="grid-2">
@@ -78,7 +78,7 @@
             <label class="form-label">Categoria</label>
             <select name="category" class="form-select">
               <option value="">— Seleziona —</option>
-              {% for cat in ['Casa','Alimentari','Trasporto','Salute','Svago','Abbonamenti','Stipendio','Freelance','Investimenti','Rimborsi','Altro'] %}
+              {% for cat in categories %}
               <option value="{{ cat }}" {{ 'selected' if is_edit and transaction.category == cat else '' }}>{{ cat }}</option>
               {% endfor %}
             </select>
@@ -139,8 +139,14 @@
         </div>
 
         <!-- Azioni ──────────────────────────────────────────────────── -->
+        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
         <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
-          <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost">
+          {% if is_edit %}
+          <button type="submit" form="delete-form" class="btn btn-ghost" style="margin-right:auto;color:var(--clr-negative);">
+            <i class="bi bi-trash3"></i> Elimina
+          </button>
+          {% endif %}
+          <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost">
             <i class="bi bi-x"></i> Annulla
           </a>
           <button type="submit" class="btn btn-primary">
@@ -149,6 +155,12 @@
         </div>
 
       </form>
+      {% if is_edit %}
+      <form method="POST" action="{{ url_for('transactions.delete', tx_id=transaction.id) }}" id="delete-form"
+            data-confirm="Eliminare definitivamente questa transazione?">
+        <input type="hidden" name="next" value="{{ next_url or url_for('transactions.index') }}" />
+      </form>
+      {% endif %}
     </div>
   </div>
 </div>

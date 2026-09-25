@@ -14,8 +14,9 @@ Pipeline:  readers.read_document() → candidate tables → detect_layout() → 
   • Structured tables (spreadsheets, Word/ODF tables, ruled PDF tables, delimited text) are tried first.
   • Column layouts without a real table (PDF text, fixed-width TXT) are rebuilt from the header positions.
   • Last resort: lines shaped like "date … description … amount".
-  • Scans, photos and layouts none of the above can read go to the AI reader when one is configured
-    (services/ai_extraction.py); its result is validated and balance-checked before the preview.
+  • Scans, photos and layouts none of the above can read raise AIRequired: after the user confirms,
+    analyze_with_ai() reads them with a model (services/ai_extraction.py); the result is validated and
+    balance-checked before the preview.
 Bank export preamble rows (account holder, period, balances) and footer rows are skipped automatically.
 """
 from __future__ import annotations
@@ -28,7 +29,7 @@ from decimal import Decimal, InvalidOperation
 from statistics import median
 
 from app.models.transaction import Transaction
-from app.services import ai_extraction
+from app.services import ai_extraction, duplicates
 from app.services import statement_readers as readers
 from app.services.statement_readers import Word
 from app.services.transfer import parse_amount, parse_date
@@ -412,6 +413,7 @@ class StatementRow:
     category: str = "Altro"
     import_ref: str = ""
     duplicate: bool = False
+    similar_to: str | None = None   # description of an existing transaction this row may duplicate
 
     def to_dict(self) -> dict:
         return {
@@ -456,7 +458,8 @@ def _to_decimal(value) -> Decimal | None:
     if value is None:
         return None
     if isinstance(value, (int, float)):
-        return Decimal(str(value))
+        amount = Decimal(str(value))
+        return amount if amount.is_finite() else None
     text = str(value).replace("EUR", "").replace("€", "").strip()
     negative = text.endswith("-") or (text.startswith("(") and text.endswith(")"))
     text = text.strip("()+ ").rstrip("-")
@@ -466,7 +469,17 @@ def _to_decimal(value) -> Decimal | None:
         amount = parse_amount(text)
     except (ValueError, InvalidOperation):
         return None
+    if not amount.is_finite():  # "NaN", "sNaN", "Infinity" are not amounts
+        return None
     return -abs(amount) if negative else amount
+
+
+MAX_AMOUNT = Decimal("9999999999.99")  # transactions.amount is Numeric(12, 2)
+
+
+def valid_amount(amount: Decimal | None) -> bool:
+    """A usable movement amount: finite, not zero, and small enough for the database column."""
+    return amount is not None and amount.is_finite() and Decimal(0) < abs(amount) <= MAX_AMOUNT
 
 
 def _text(value) -> str | None:
@@ -496,7 +509,7 @@ def parse_rows(rows: list[list], layout: Layout) -> tuple[list[StatementRow], in
             credit = _to_decimal(_cell(row, columns, "credit")) or Decimal(0)
             debit = _to_decimal(_cell(row, columns, "debit")) or Decimal(0)
             amount = abs(credit) - abs(debit) if (credit or debit) else None
-        if not amount:
+        if not valid_amount(amount):
             continue
 
         status = (_text(_cell(row, columns, "status")) or "").lower()
@@ -557,6 +570,7 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
     } if refs else set()
     for row in rows:
         row.duplicate = row.import_ref in existing
+    duplicates.flag_similar_rows([r for r in rows if not r.duplicate])
     return rows
 
 
@@ -609,33 +623,49 @@ class StatementPreview:
         return min(dates), max(dates)
 
 
-AI_HINT = (" Per leggere scansioni, foto e documenti non standard puoi attivare la lettura con "
-           "intelligenza artificiale (LLM_PROVIDER): vedi il README.")
+class AIRequired(StatementImportError):
+    """
+    The rule-based reader could not read the file, but an AI model could try: the caller must ask the
+    user before sending the document to a model. `kind` is "scan", "photo" or "layout".
+    """
+
+    def __init__(self, reason: str, kind: str):
+        super().__init__(reason)
+        self.reason, self.kind = reason, kind
+
+    @property
+    def needs_vision(self) -> bool:
+        return self.kind in ("scan", "photo")
 
 
 def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementPreview:
     """
-    Rule-based reading first; when it cannot read the file (scans, photos, unknown layouts) and an AI
-    provider is configured, the movements are read by the model instead.
+    Read a statement with the rule-based readers. Files they cannot read raise AIRequired (never an
+    automatic AI call): the user decides whether to read them with an AI model (analyze_with_ai).
     """
     try:
         document = readers.read_document(filename, raw)
     except readers.NeedsOCR as exc:
-        if not ai_extraction.is_enabled():
-            raise StatementImportError(str(exc) + AI_HINT)
-        return analyze_with_ai(filename, raw, bank)
+        kind = "scan" if raw[:5] == b"%PDF-" else "photo"
+        raise AIRequired(str(exc), kind)
     except readers.UnsupportedFile as exc:
         raise StatementImportError(str(exc))
 
     try:
         rows, pending, layout_bank = _extract_rows(document, filename, bank)
     except StatementImportError as exc:
-        if not ai_extraction.is_enabled():
-            raise StatementImportError(str(exc) + AI_HINT)
-        text = "\n".join(document.text_lines) or None
-        return analyze_with_ai(filename, raw, bank, text)
+        raise AIRequired(str(exc), "layout")
     rows.sort(key=lambda r: r.date)
     return StatementPreview(bank=layout_bank, rows=enrich(rows, layout_bank.key), pending_skipped=pending)
+
+
+def text_for_ai(filename: str, raw: bytes) -> str | None:
+    """Plain text of a text-based document, sent to the model when there is no image/PDF to show it."""
+    try:
+        document = readers.read_document(filename, raw)
+    except readers.UnsupportedFile:
+        return None
+    return "\n".join(document.text_lines) or None
 
 
 def _bank_from_name(name: str) -> str:
@@ -643,10 +673,10 @@ def _bank_from_name(name: str) -> str:
     return next((k for k in DETECTION_ORDER if any(m in text for m in BANKS[k].markers)), "generic")
 
 
-def analyze_with_ai(filename: str, raw: bytes, bank: str = AUTO, text: str | None = None) -> StatementPreview:
-    """Read the movements with the configured AI model and validate what it returned."""
+def analyze_with_ai(filename: str, raw: bytes, bank: str = AUTO, model: str | None = None) -> StatementPreview:
+    """Read the movements with an AI model (the configured one, or `model`) and validate what it returned."""
     try:
-        result = ai_extraction.extract(filename, raw, text)
+        result = ai_extraction.extract(filename, raw, text_for_ai(filename, raw), model)
     except ai_extraction.AIExtractionError as exc:
         raise StatementImportError(f"Lettura AI non riuscita: {exc}")
 
@@ -656,7 +686,7 @@ def analyze_with_ai(filename: str, raw: bytes, bank: str = AUTO, text: str | Non
         tx_date = _to_date(item.get("date"))
         amount = _to_decimal(item.get("amount"))
         description = _text(item.get("description"))
-        if tx_date is None or not amount or not description:
+        if tx_date is None or not valid_amount(amount) or not description:
             discarded += 1
             continue
         rows.append(StatementRow(
@@ -723,4 +753,33 @@ def build_transaction(data: dict, bank_key: str, category: str | None = None, ai
         is_recurring=False,
         notes=data.get("details"),
         import_ref=data["import_ref"],
+    )
+
+
+def build_edited_transaction(base: dict, fields: dict, bank_key: str, ai: bool = False) -> Transaction:
+    """
+    Transaction from a preview row as edited by the user. `base` is the original statement row (empty
+    for rows added by hand); `fields` holds the form values. Raises ValueError on invalid input.
+    The original import_ref is kept even when the user corrects the row, so re-importing the same
+    statement still recognizes it.
+    """
+    tx_date = _to_date(fields.get("date"))
+    amount = _to_decimal(fields.get("amount"))
+    description = _text(fields.get("description"))
+    tx_type = fields.get("type")
+    if tx_date is None or not valid_amount(amount) or not description or tx_type not in ("income", "expense", "transfer"):
+        raise ValueError("incomplete row")
+    tags = ["importato", bank_key] + (["ai"] if ai else []) + ([] if base else ["manuale"])
+    return Transaction(
+        date=tx_date,
+        description=description[:255],
+        amount=abs(amount).quantize(Decimal("0.01")),
+        currency=base.get("currency") or "EUR",
+        type=tx_type,
+        category=(_text(fields.get("category")) or "Altro")[:100],
+        counterparty=None,
+        tags=tags,
+        is_recurring=False,
+        notes=base.get("details"),
+        import_ref=base.get("import_ref"),
     )

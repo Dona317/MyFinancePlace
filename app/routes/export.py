@@ -6,7 +6,8 @@ from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.services import analytics, transfer, bank_import, ai_extraction
+from app.services import analytics, transfer, bank_import, ai_extraction, ai_models, upload_store
+from app.services.categories import known_categories
 
 export_bp = APIBlueprint(
     "export",
@@ -26,13 +27,6 @@ def _download(content: str, filename: str, mimetype: str) -> Response:
 
 def _preview_serializer() -> URLSafeSerializer:
     return URLSafeSerializer(current_app.secret_key, salt="bank-import-preview")
-
-
-def _known_categories() -> list[str]:
-    defaults = ["Casa", "Alimentari", "Trasporto", "Salute", "Svago", "Abbonamenti", "Stipendio",
-                "Freelance", "Investimenti", "Rimborsi", "Commissioni", "Giroconto", "Altro"]
-    stored = [c for (c,) in db.session.query(Transaction.category).filter(Transaction.category.isnot(None)).distinct()]
-    return sorted(set(defaults) | set(stored))
 
 
 @export_bp.route("/")
@@ -129,22 +123,13 @@ def import_csv():
 
 
 # ── Bank statement import (Fineco, Intesa Sanpaolo, generic) ───────────────────
+#
+#  upload ──▶ rule-based reading ──ok──▶ editable preview ──▶ confirm (save)
+#                   │ fails
+#                   ▼
+#          "Read it with AI?" (user decides, picks the model) ──yes──▶ editable preview ──▶ confirm
 
-@export_bp.route("/bank", methods=["POST"])
-def bank_preview():
-    """Step 1: parse the uploaded statement and show a reviewable preview."""
-    upload = request.files.get("file")
-    if not upload or not upload.filename:
-        flash("Seleziona l'estratto conto da importare.", "error")
-        return redirect(url_for("export.index"))
-
-    bank = request.form.get("bank", bank_import.AUTO)
-    try:
-        preview = bank_import.analyze_statement(upload.filename, upload.read(), bank)
-    except bank_import.StatementImportError as exc:
-        flash(str(exc), "error")
-        return redirect(url_for("export.index"))
-
+def _render_preview(preview, filename: str):
     payload = _preview_serializer().dumps({
         "bank": preview.bank.key,
         "ai": bool(preview.ai_model),
@@ -154,14 +139,93 @@ def bank_preview():
         "export/bank_preview.html",
         preview=preview,
         payload=payload,
-        filename=upload.filename,
-        categories=_known_categories(),
+        filename=filename,
+        categories=known_categories(),
     )
+
+
+@export_bp.route("/bank", methods=["POST"])
+def bank_preview():
+    """Step 1: parse the uploaded statement and show an editable preview (or ask about AI reading)."""
+    upload = request.files.get("file")
+    if not upload or not upload.filename:
+        flash("Seleziona l'estratto conto da importare.", "error")
+        return redirect(url_for("export.index"))
+
+    bank = request.form.get("bank", bank_import.AUTO)
+    raw = upload.read()
+    try:
+        preview = bank_import.analyze_statement(upload.filename, raw, bank)
+    except bank_import.AIRequired as exc:
+        token = upload_store.save(upload.filename, raw, bank=bank, reason=exc.reason, kind=exc.kind)
+        return redirect(url_for("export.bank_ai", token=token))
+    except bank_import.StatementImportError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("export.index"))
+    return _render_preview(preview, upload.filename)
+
+
+def _ai_choices(needs_vision: bool) -> dict:
+    """Models the user can pick on the confirmation page, with why some are not usable."""
+    provider = ai_extraction.provider()
+    choices = {"provider": provider, "label": ai_extraction.describe(), "current": ai_extraction.model_name(),
+               "models": [], "ollama": None}
+    if provider == "ollama":
+        ollama = ai_models.status(ai_extraction.base_url())
+        choices["ollama"] = ollama
+        for name in sorted(ollama["installed"]):
+            vision = ai_models.is_vision(name)
+            choices["models"].append({"name": name, "usable": vision or not needs_vision, "vision": vision})
+    elif provider == "anthropic":
+        choices["models"] = [{"name": n, "usable": True, "vision": True}
+                             for n in dict.fromkeys([choices["current"], "claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"])]
+    return choices
+
+
+@export_bp.route("/bank/ai/<token>", methods=["GET", "POST"])
+def bank_ai(token):
+    """Ask before reading an unreadable file with AI; on POST, read it with the chosen model."""
+    try:
+        raw, meta = upload_store.load(token)
+    except KeyError:
+        flash("Il file non è più disponibile: caricalo di nuovo.", "error")
+        return redirect(url_for("export.index"))
+
+    needs_vision = meta.get("kind") in ("scan", "photo")
+    choices = _ai_choices(needs_vision)
+    error = None
+    if request.method == "POST":
+        model = (request.form.get("model") or "").strip() or None
+        usable = {m["name"] for m in choices["models"] if m["usable"]}
+        if choices["provider"] is None:
+            error = "La lettura AI non è configurata."
+        elif model and model not in usable:
+            error = f"Il modello {model} non può leggere questo file."
+        else:
+            try:
+                preview = bank_import.analyze_with_ai(meta["filename"], raw, meta.get("bank", bank_import.AUTO), model)
+            except bank_import.StatementImportError as exc:
+                error = str(exc)  # stay on this page: the user can try another model
+            else:
+                upload_store.delete(token)
+                return _render_preview(preview, meta["filename"])
+
+    return render_template(
+        "export/ai_confirm.html", token=token, meta=meta, needs_vision=needs_vision,
+        choices=choices, error=error, size_kb=len(raw) // 1024,
+    )
+
+
+@export_bp.route("/bank/ai/<token>/cancel", methods=["POST"])
+def bank_ai_cancel(token):
+    upload_store.delete(token)
+    flash("Importazione annullata.", "success")
+    return redirect(url_for("export.index"))
 
 
 @export_bp.route("/bank/confirm", methods=["POST"])
 def bank_confirm():
-    """Step 2: create transactions for the rows the user kept, with their edited category/type."""
+    """Step 2: save the rows the user kept, with every field as edited in the preview."""
     try:
         data = _preview_serializer().loads(request.form.get("payload", ""))
     except BadSignature:
@@ -169,24 +233,25 @@ def bank_confirm():
         return redirect(url_for("export.index"))
 
     rows = data["rows"]
-    selected = {int(i) for i in request.form.getlist("include") if i.isdigit() and int(i) < len(rows)}
-    refs = [rows[i]["import_ref"] for i in selected]
+    selected = sorted({int(i) for i in request.form.getlist("include") if i.isdigit() and int(i) < 5000})
+    refs = [rows[i]["import_ref"] for i in selected if i < len(rows)]
     existing = {
         ref for (ref,) in
         Transaction.query.with_entities(Transaction.import_ref).filter(Transaction.import_ref.in_(refs))
     } if refs else set()
 
-    created = []
-    for index in sorted(selected):
-        row = dict(rows[index])
-        if row["import_ref"] in existing:
+    created, invalid, skipped = [], [], 0
+    for index in selected:
+        base = rows[index] if index < len(rows) else {}  # indexes past the payload are rows added by hand
+        if base.get("import_ref") in existing:
+            skipped += 1
             continue
-        tx_type = request.form.get(f"type-{index}")
-        if tx_type in ("income", "expense", "transfer"):
-            row["type"] = tx_type
-        created.append(bank_import.build_transaction(
-            row, data["bank"], request.form.get(f"category-{index}"), ai=data.get("ai", False)
-        ))
+        fields = {name: request.form.get(f"{name}-{index}", "") for name in
+                  ("date", "description", "amount", "type", "category")}
+        try:
+            created.append(bank_import.build_edited_transaction(base, fields, data["bank"], ai=data.get("ai", False)))
+        except ValueError:
+            invalid.append(index + 1)
 
     db.session.add_all(created)
     try:
@@ -196,9 +261,10 @@ def bank_confirm():
         flash("Alcuni movimenti risultano già importati: ricarica il file e riprova.", "error")
         return redirect(url_for("export.index"))
 
-    skipped = len(selected) - len(created)
     message = f"{len(created)} movimenti importati da {bank_import.BANKS[data['bank']].name}."
     if skipped:
         message += f" {skipped} già presenti sono stati ignorati."
     flash(message, "success")
+    if invalid:
+        flash(f"Righe non salvate perché incomplete o non valide: {', '.join(map(str, invalid))}.", "warning")
     return redirect(url_for("transactions.index"))

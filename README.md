@@ -61,23 +61,53 @@ lines shaped like `date … description … amount` are recognized. See `app/ser
 
 ### AI reading of scans, photos and non-standard documents (optional)
 
-When the rule-based reader cannot read a file — a scanned PDF, a phone photo of a statement, a document
-with an unknown layout — it can be handed to a vision-capable LLM. Configure it in `.env` (see `.env.example`):
+When the rule-based reader cannot read a file — a scanned PDF, a phone photo, a document with an unknown layout —
+the app **stops and asks**: "Read it with AI?", with the model to use. Nothing is sent to a model without that
+confirmation. After reading, the movements open in the **editable preview** (below) before anything is saved.
 
-| `LLM_PROVIDER` | Model (`LLM_MODEL`) | Privacy | Setup |
-|---|---|---|---|
-| *(empty — default)* | — | nothing leaves the app | AI reading disabled; scans/photos are rejected with a message |
-| `ollama` | `qwen2.5vl:7b` (default, ~6 GB, runs on a laptop; 16 GB RAM recommended) | **local**: the document never leaves your computer | install [Ollama](https://ollama.com), then `ollama pull qwen2.5vl:7b` |
-| `anthropic` | `claude-opus-5` (default) or cheaper `claude-haiku-4-5` | the document is **sent to Anthropic** | set `ANTHROPIC_API_KEY` |
+Set it up in **Impostazioni → Modelli AI** (`/settings/ai`), or with `LLM_PROVIDER` / `LLM_MODEL` in `.env`
+(see `.env.example`; the settings page wins over `.env`):
 
-How the result is kept honest:
-- the model must answer with JSON matching a fixed schema (date, description, signed amount, plus opening/closing balance);
-- rows with an invalid date, amount or description are discarded;
-- **balance check**: opening balance + extracted movements must equal the closing balance printed on the statement —
-  the preview shows a green "Quadratura verificata" or a red warning with the difference;
-- the preview is marked as AI-read, and imported rows get the `ai` tag.
+| Provider | Models | Privacy |
+|---|---|---|
+| Disabled (default) | — | nothing leaves the app |
+| **Ollama** (local) | Llama, Qwen, Gemma under 10 GB — see the catalog below | **the document never leaves your computer** |
+| **Anthropic** (cloud) | `claude-opus-5` (default), `claude-sonnet-5`, `claude-haiku-4-5` | the document is sent to Anthropic (`ANTHROPIC_API_KEY`) |
 
-The local model reads PDFs one page at a time (max 12 pages per file); on a CPU-only machine expect about a minute per page.
+Local model catalog (install, remove and pick them from the settings page, or with `scripts/install_models.py`):
+
+| Size | Read scans and photos (vision) | Text documents only |
+|---|---|---|
+| **Medium** (5–10 GB, 12–16 GB RAM) | `qwen2.5vl:7b` *(recommended)*, `llama3.2-vision:11b`, `gemma3:12b` | `qwen3:8b`, `llama3.1:8b` |
+| **Small** (2–4 GB, 8 GB RAM) | `qwen2.5vl:3b`, `gemma3:4b` | `qwen3:4b`, `llama3.2:3b` |
+| **Tiny** (< 2 GB) | — (no vision model this small in these families) | `qwen3:1.7b`, `llama3.2:1b`, `gemma3:1b`, `qwen3:0.6b` |
+
+```bash
+# 1. Install Ollama: https://ollama.com/download   (Linux: curl -fsSL https://ollama.com/install.sh | sh)
+# 2. Download models ahead of time (or click "Installa" in Impostazioni → Modelli AI)
+python scripts/install_models.py --list                  # catalog + what is installed
+python scripts/install_models.py --recommended           # qwen2.5vl:7b
+python scripts/install_models.py --tier piccolo --vision # qwen2.5vl:3b, gemma3:4b
+python scripts/install_models.py --tier tiny --dry-run   # just print the `ollama pull` commands
+```
+
+How AI results are kept honest: JSON constrained to a schema; invalid rows discarded; **balance check**
+(opening balance + movements = closing balance, recalculated live while you edit); AI-read rows tagged `ai`.
+
+### Editable import preview
+
+Every import (rule-based or AI) opens a preview where each row's date, description, amount, type and category
+can be edited, rows can be deselected or removed, and missing rows added by hand. Rows already imported are
+shown greyed out; rows that **look like** an existing transaction (same amount, date within 3 days, similar
+description) are flagged "Possibile duplicato" and deselected until you check them.
+
+### Duplicates, editing and deleting
+
+- **Transazioni → Cerca duplicati** (`/transactions/duplicates`) groups similar transactions (e.g. the same
+  statement imported from Excel and from PDF). For each group: keep one and delete the others, mark them as
+  "not duplicates" (they won't be proposed again), or edit/delete each one. Sensitivity and date distance are adjustable.
+- Every transaction can always be edited or deleted: from the list (also several at once), from the edit page,
+  and from the duplicates page.
 
 Fake statements to try it with, in every supported format, are in
 [`samples/bank_statements/`](samples/bank_statements/README.md).
@@ -100,7 +130,7 @@ TEST_DATABASE_URL=postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test py
 
 | Module | Status |
 |---|---|
-| Transactions | ✅ CRUD, REST API, search & filters |
+| Transactions | ✅ CRUD, REST API, search & filters, bulk delete, duplicate finder |
 | Dashboard | ✅ KPIs, 12-month cash flow, expenses by category, recent transactions |
 | Accounting | ✅ Income Statement, Cash Flow · ⏳ Balance Sheet (needs Portfolio/Debt models) |
 | Lifestyle | ✅ Category breakdown, trends, month-over-month · ⏳ Goals |

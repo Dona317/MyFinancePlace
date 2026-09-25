@@ -18,6 +18,7 @@ import pytest
 
 from app.models.transaction import Transaction
 from app.services import ai_extraction, bank_import
+from tests.form_helper import form_data
 
 SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
 SCAN = "SCANSIONE_fineco_2026-07_2026-08.pdf"
@@ -57,13 +58,19 @@ def ollama(app, monkeypatch):
         def __exit__(self, *exc):
             return False
 
+    installed = ["qwen2.5vl:7b", "llama3.2:1b"]
+
     def fake_urlopen(request, timeout=None):
+        if request.full_url.endswith("/api/version"):
+            return Response(json.dumps({"version": "0.9.0"}).encode())
+        if request.full_url.endswith("/api/tags"):
+            return Response(json.dumps({"models": [{"name": n, "size": 3_000_000_000} for n in installed]}).encode())
         calls.append({"url": request.full_url, "body": json.loads(request.data)})
         reply = replies.pop(0) if len(replies) > 1 else replies[0]
         return Response(json.dumps({"message": {"content": json.dumps(reply)}}).encode())
 
     monkeypatch.setattr(ai_extraction.urllib.request, "urlopen", fake_urlopen)
-    return SimpleNamespace(calls=calls, replies=replies)
+    return SimpleNamespace(calls=calls, replies=replies, installed=installed)
 
 
 @pytest.fixture()
@@ -98,11 +105,21 @@ def claude(app, monkeypatch):
     return state
 
 
-# ── Disabled (default) ─────────────────────────────────────────────────────────
+def read_with_ai(filename, raw, model=None):
+    """What happens after the user confirms: the normal reader refuses, then the AI reads."""
+    with pytest.raises(bank_import.AIRequired):
+        bank_import.analyze_statement(filename, raw)
+    return bank_import.analyze_with_ai(filename, raw, model=model)
 
-def test_scan_without_ai_explains_how_to_enable_it(app):
-    with pytest.raises(bank_import.StatementImportError, match="LLM_PROVIDER"):
-        bank_import.analyze_statement(SCAN, (SAMPLES / SCAN).read_bytes())
+
+# ── Never automatic ────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("filename, kind", [(SCAN, "scan"), (PHOTO, "photo")])
+def test_unreadable_files_require_confirmation_even_with_ai_enabled(ollama, filename, kind):
+    with pytest.raises(bank_import.AIRequired) as error:
+        bank_import.analyze_statement(filename, (SAMPLES / filename).read_bytes())
+    assert error.value.kind == kind and error.value.needs_vision
+    assert ollama.calls == []  # nothing was sent to the model
 
 
 # ── Ollama (local) ─────────────────────────────────────────────────────────────
@@ -116,7 +133,7 @@ def test_scanned_pdf_read_page_by_page_with_ollama(ollama):
     page1["closing_balance"] = 0
     ollama.replies.extend([page1, page2])
 
-    preview = bank_import.analyze_statement(SCAN, (SAMPLES / SCAN).read_bytes())
+    preview = read_with_ai(SCAN, (SAMPLES / SCAN).read_bytes())
 
     assert len(ollama.calls) == 2  # one request per page
     body = ollama.calls[0]["body"]
@@ -138,7 +155,7 @@ def test_scanned_pdf_read_page_by_page_with_ollama(ollama):
 
 def test_photo_is_downscaled_and_sent_as_jpeg(ollama):
     ollama.replies.append(model_reply(truth_movements()[:3], has_balances=False, bank=""))
-    preview = bank_import.analyze_statement(PHOTO, (SAMPLES / PHOTO).read_bytes())
+    preview = read_with_ai(PHOTO, (SAMPLES / PHOTO).read_bytes())
     image = base64.b64decode(ollama.calls[0]["body"]["messages"][1]["images"][0])
     assert image[:3] == b"\xff\xd8\xff"
     from PIL import Image
@@ -153,7 +170,7 @@ def test_balance_mismatch_is_reported(ollama):
     reply["movements"].pop(3)  # the model skipped a row
     ollama.replies.append(reply)
     photo = (SAMPLES / PHOTO).read_bytes()
-    preview = bank_import.analyze_statement("foto.jpg", photo)
+    preview = read_with_ai("foto.jpg", photo)
     assert not preview.balance_check.ok
     assert preview.balance_check.difference == Decimal(f"{movements[3]['amount']:.2f}")
 
@@ -163,9 +180,11 @@ def test_invalid_rows_from_the_model_are_discarded(ollama):
     reply["movements"][0]["date"] = "31/02/2026"   # impossible date
     reply["movements"][1]["amount"] = 0            # no amount
     reply["movements"][2]["description"] = "  "    # no description
+    reply["movements"].append(dict(reply["movements"][3], amount=float("nan")))  # json.loads accepts NaN
+    reply["movements"].append(dict(reply["movements"][3], amount=1e20))            # too large for the column
     ollama.replies.append(reply)
-    preview = bank_import.analyze_statement("foto.jpg", (SAMPLES / PHOTO).read_bytes())
-    assert len(preview.rows) == 1 and preview.discarded == 3
+    preview = read_with_ai("foto.jpg", (SAMPLES / PHOTO).read_bytes())
+    assert len(preview.rows) == 1 and preview.discarded == 5
 
 
 def test_non_standard_text_document_goes_to_the_model_as_text(ollama):
@@ -181,7 +200,7 @@ def test_non_standard_text_document_goes_to_the_model_as_text(ollama):
             {"date": "2026-07-27", "description": "Stipendio ACME SPA", "details": "", "amount": 2450.00},
         ],
     })
-    preview = bank_import.analyze_statement("lettera.txt", text.encode())
+    preview = read_with_ai("lettera.txt", text.encode())
     message = ollama.calls[0]["body"]["messages"][1]
     assert "images" not in message and "CONAD" in message["content"]
     assert [(r.description, r.type, r.category) for r in preview.rows] == [
@@ -192,7 +211,7 @@ def test_non_standard_text_document_goes_to_the_model_as_text(ollama):
 def test_long_text_is_refused_not_truncated_for_the_local_model(ollama):
     text = "Movimento senza data riconoscibile\n" * 2000  # ~70k chars, over the local limit
     with pytest.raises(bank_import.StatementImportError, match="troppo lungo"):
-        bank_import.analyze_statement("lungo.txt", text.encode())
+        read_with_ai("lungo.txt", text.encode())
     assert ollama.calls == []
 
 
@@ -205,7 +224,7 @@ def test_ollama_not_running(app, monkeypatch):
 
     monkeypatch.setattr(ai_extraction.urllib.request, "urlopen", refuse)
     with pytest.raises(bank_import.StatementImportError, match="ollama serve"):
-        bank_import.analyze_statement(PHOTO, (SAMPLES / PHOTO).read_bytes())
+        read_with_ai(PHOTO, (SAMPLES / PHOTO).read_bytes())
 
 
 def test_model_not_pulled(app, monkeypatch):
@@ -217,7 +236,7 @@ def test_model_not_pulled(app, monkeypatch):
 
     monkeypatch.setattr(ai_extraction.urllib.request, "urlopen", not_found)
     with pytest.raises(bank_import.StatementImportError, match="ollama pull llama3.2-vision:11b"):
-        bank_import.analyze_statement(PHOTO, (SAMPLES / PHOTO).read_bytes())
+        read_with_ai(PHOTO, (SAMPLES / PHOTO).read_bytes())
 
 
 def test_well_formed_files_never_reach_the_model(ollama):
@@ -231,7 +250,7 @@ def test_well_formed_files_never_reach_the_model(ollama):
 
 def test_claude_receives_the_pdf_and_a_json_schema(claude):
     claude.reply = model_reply(truth_movements())
-    preview = bank_import.analyze_statement(SCAN, (SAMPLES / SCAN).read_bytes())
+    preview = read_with_ai(SCAN, (SAMPLES / SCAN).read_bytes())
 
     request = claude.requests[0]
     assert request["model"] == "claude-opus-5"
@@ -246,7 +265,7 @@ def test_claude_receives_the_pdf_and_a_json_schema(claude):
 def test_claude_photo_and_cheaper_model(claude, app):
     app.config["LLM_MODEL"] = "claude-haiku-4-5"
     claude.reply = model_reply(truth_movements()[:2], has_balances=False)
-    bank_import.analyze_statement(PHOTO, (SAMPLES / PHOTO).read_bytes())
+    read_with_ai(PHOTO, (SAMPLES / PHOTO).read_bytes())
     request = claude.requests[0]
     assert request["model"] == "claude-haiku-4-5"
     assert "fallbacks" not in request  # server-side fallbacks are only offered for Opus 5 / Fable 5
@@ -258,31 +277,79 @@ def test_claude_photo_and_cheaper_model(claude, app):
 def test_claude_stop_reasons(claude, stop_reason, message):
     claude.reply, claude.stop_reason = model_reply(truth_movements()[:1]), stop_reason
     with pytest.raises(bank_import.StatementImportError, match=message):
-        bank_import.analyze_statement(PHOTO, (SAMPLES / PHOTO).read_bytes())
+        read_with_ai(PHOTO, (SAMPLES / PHOTO).read_bytes())
 
 
 # ── Web flow ───────────────────────────────────────────────────────────────────
 
-def test_upload_scan_preview_and_confirm_tags_rows_as_ai(client, ollama, db):
+def _upload(client, filename):
+    return client.post("/export/bank", data={"file": (io.BytesIO((SAMPLES / filename).read_bytes()), filename), "bank": "auto"},
+                       content_type="multipart/form-data")
+
+
+def _balanced(html):
+    return len(re.findall(r"<div\b", html)) == len(re.findall(r"</div>", html))
+
+
+def test_scan_upload_asks_then_reads_then_saves_edited_rows(client, ollama, db):
     movements = truth_movements()[:5]
     closing = 3250.0 + sum(m["amount"] for m in movements)
     ollama.replies.extend([  # one reply per scanned page
         model_reply(movements[:3], has_balances=False),
         model_reply(movements[3:], opening=3250.0, closing=closing),
     ])
-    html = client.post("/export/bank", data={"file": (io.BytesIO((SAMPLES / SCAN).read_bytes()), SCAN), "bank": "auto"},
-                       content_type="multipart/form-data").get_data(as_text=True)
-    assert "Movimenti letti con intelligenza artificiale" in html
-    assert "Quadratura verificata" in html
-    assert len(re.findall(r"<div\b", html)) == len(re.findall(r"</div>", html))
-    payload = re.search(r'name="payload" value="([^"]+)"', html).group(1)
-    client.post("/export/bank/confirm", data={"payload": payload, "include": [str(i) for i in range(5)]})
-    assert Transaction.query.count() == 5
-    assert all("ai" in t.tags for t in Transaction.query.all())
+
+    # 1. Upload: nothing is sent to the model, the user is asked first
+    response = _upload(client, SCAN)
+    assert response.status_code == 302 and "/export/bank/ai/" in response.location
+    assert ollama.calls == []
+    page = client.get(response.location).get_data(as_text=True)
+    assert "PDF scansionato" in page and "Sì, leggi con l" in page and _balanced(page)
+    # only vision models can read a scan: the text-only one is listed but disabled
+    assert re.search(r'<option value="llama3.2:1b"\s+disabled', page)
+
+    # 2. Confirm with the chosen model → editable preview
+    html = client.post(response.location, data={"model": "qwen2.5vl:7b"}).get_data(as_text=True)
+    assert len(ollama.calls) == 2 and ollama.calls[0]["body"]["model"] == "qwen2.5vl:7b"
+    assert "Movimenti letti con intelligenza artificiale" in html and "Quadratura verificata" in html
+    assert _balanced(html)
+
+    # 3. Save, correcting one amount the model misread
+    client.post("/export/bank/confirm", data=form_data(html, "preview-form", **{"amount-0": "851,00"}))
+    txs = Transaction.query.order_by(Transaction.date, Transaction.id).all()
+    assert len(txs) == 5 and all("ai" in t.tags for t in txs)
+    assert float(txs[0].amount) == 851.0
+
+    # the pending upload was removed once read
+    assert client.get(response.location).status_code == 302
+
+
+def test_user_can_decline_ai(client, ollama, db):
+    location = _upload(client, PHOTO).location
+    client.post(location + "/cancel")
+    assert ollama.calls == [] and client.get(location).status_code == 302  # file discarded
+
+
+def test_ai_error_keeps_the_file_to_try_another_model(client, ollama, db):
+    ollama.replies.append({"bank_name": "", "has_balances": False, "opening_balance": 0, "closing_balance": 0, "movements": []})
+    location = _upload(client, PHOTO).location
+    page = client.post(location, data={"model": "qwen2.5vl:7b"}).get_data(as_text=True)
+    assert "nessun movimento riconosciuto" in page and "Sì, leggi con l" in page
+
+
+def test_text_only_model_is_rejected_for_a_photo(client, ollama, db):
+    location = _upload(client, PHOTO).location
+    page = client.post(location, data={"model": "llama3.2:1b"}).get_data(as_text=True)
+    assert "non può leggere questo file" in page and ollama.calls == []
+
+
+def test_confirm_page_without_ai_links_to_the_setup(client, db):
+    page = client.get(_upload(client, SCAN).location).get_data(as_text=True)
+    assert "non è ancora configurata" in page and "/settings/ai" in page
 
 
 def test_export_page_shows_ai_status(client, app):
     assert "Lettura AI non attiva" in client.get("/export/").get_data(as_text=True)
     app.config["LLM_PROVIDER"] = "ollama"
     html = client.get("/export/").get_data(as_text=True)
-    assert "Lettura AI attiva" in html and "qwen2.5vl:7b" in html and ".jpg" in html
+    assert "Lettura AI disponibile" in html and "qwen2.5vl:7b" in html and ".jpg" in html

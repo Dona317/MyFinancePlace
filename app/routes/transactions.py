@@ -1,10 +1,14 @@
 from datetime import date as date_type
-from flask import render_template, request, redirect, url_for
+from decimal import Decimal, InvalidOperation
+from flask import render_template, request, redirect, url_for, flash
 from apiflask import APIBlueprint
 from sqlalchemy import or_
 from app.extensions import db
 from app.models.transaction import Transaction
+from app.services import duplicates
 from app.services.analytics import month_bounds
+from app.services.bank_import import valid_amount
+from app.services.categories import known_categories
 from app.schemas.transaction import TransactionIn, TransactionOut, TransactionListOut
 from app.schemas.common import DeleteOut
 
@@ -22,7 +26,9 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     """Populate a Transaction object with values from request.form."""
     tx.date          = date_type.fromisoformat(request.form["date"])
     tx.description   = request.form["description"]
-    tx.amount        = float(request.form["amount"])
+    tx.amount        = abs(Decimal(request.form["amount"].replace(",", ".")))
+    if not valid_amount(tx.amount) or not tx.description.strip() or request.form["type"] not in ("income", "expense", "transfer"):
+        raise ValueError("invalid transaction")
     tx.currency      = request.form.get("currency", "EUR")
     tx.type          = request.form["type"]
     tx.category      = request.form.get("category") or None
@@ -78,27 +84,49 @@ def index():
         transactions=transactions,
         filters=filters,
         categories=categories,
+        all_categories=known_categories(),
+        duplicate_groups=len(duplicates.find_groups()),
     )
 
 
 @transactions_bp.route("/new", methods=["GET", "POST"])
 def new():
     if request.method == "POST":
-        tx = _tx_from_form(Transaction())
+        try:
+            tx = _tx_from_form(Transaction())
+        except (KeyError, ValueError, InvalidOperation):
+            flash("Controlla i dati: data, descrizione, importo e tipo sono obbligatori.", "error")
+            return render_template("transactions/form.html", transaction=None, action="new", categories=known_categories())
         db.session.add(tx)
         db.session.commit()
+        flash("Transazione aggiunta.", "success")
         return redirect(url_for("transactions.index"))
-    return render_template("transactions/form.html", transaction=None, action="new")
+    return render_template("transactions/form.html", transaction=None, action="new", categories=known_categories())
 
 
 @transactions_bp.route("/<int:tx_id>/edit", methods=["GET", "POST"])
 def edit(tx_id):
     tx = db.get_or_404(Transaction, tx_id)
     if request.method == "POST":
-        _tx_from_form(tx)
+        try:
+            _tx_from_form(tx)
+        except (KeyError, ValueError, InvalidOperation):
+            db.session.rollback()  # discard the half-applied changes
+            flash("Controlla i dati: data, descrizione, importo e tipo sono obbligatori.", "error")
+            return redirect(url_for("transactions.edit", tx_id=tx_id, next=_safe_next()))
         db.session.commit()
-        return redirect(url_for("transactions.index"))
-    return render_template("transactions/form.html", transaction=tx, action="edit")
+        flash("Transazione aggiornata.", "success")
+        return redirect(_safe_next() or url_for("transactions.index"))
+    return render_template(
+        "transactions/form.html", transaction=tx, action="edit",
+        categories=known_categories(tx.category), next_url=_safe_next(),
+    )
+
+
+def _safe_next() -> str | None:
+    """Local path to go back to after an action (never an external URL)."""
+    target = request.values.get("next") or ""
+    return target if target.startswith("/") and not target.startswith("//") and "\\" not in target else None
 
 
 @transactions_bp.route("/<int:tx_id>/delete", methods=["POST"])
@@ -106,7 +134,59 @@ def delete(tx_id):
     tx = db.get_or_404(Transaction, tx_id)
     db.session.delete(tx)
     db.session.commit()
-    return redirect(url_for("transactions.index"))
+    flash(f"Transazione «{tx.description}» eliminata.", "success")
+    return redirect(_safe_next() or url_for("transactions.index"))
+
+
+@transactions_bp.route("/delete-selected", methods=["POST"])
+def delete_selected():
+    ids = {int(i) for i in request.form.getlist("ids") if i.isdigit()}
+    deleted = Transaction.query.filter(Transaction.id.in_(ids)).delete(synchronize_session=False) if ids else 0
+    db.session.commit()
+    flash(f"{deleted} transazioni eliminate." if deleted else "Nessuna transazione selezionata.",
+          "success" if deleted else "warning")
+    return redirect(_safe_next() or url_for("transactions.index"))
+
+
+# ── Duplicate finder ───────────────────────────────────────────────────────────
+
+@transactions_bp.route("/duplicates")
+def duplicates_page():
+    sensitivity = request.args.get("sensitivity", "normale")
+    sensitivity = sensitivity if sensitivity in duplicates.SENSITIVITY else "normale"
+    window = request.args.get("window", type=int)
+    window = window if window in (0, 1, 3, 7) else duplicates.DEFAULT_WINDOW_DAYS
+    groups = duplicates.find_groups(window, duplicates.SENSITIVITY[sensitivity])
+    return render_template("transactions/duplicates.html", groups=groups, sensitivity=sensitivity, window=window)
+
+
+def _group_ids() -> list[int]:
+    ids = sorted({int(i) for i in request.form.getlist("ids") if i.isdigit()})
+    return [t.id for t in Transaction.query.filter(Transaction.id.in_(ids))] if ids else []
+
+
+@transactions_bp.route("/duplicates/dismiss", methods=["POST"])
+def duplicates_dismiss():
+    ids = _group_ids()
+    if len(ids) >= 2:
+        duplicates.dismiss(ids)
+        flash("Segnate come transazioni diverse: non verranno più proposte come duplicati.", "success")
+    return redirect(_safe_next() or url_for("transactions.duplicates_page"))
+
+
+@transactions_bp.route("/duplicates/keep", methods=["POST"])
+def duplicates_keep():
+    """Keep one transaction of a group and delete the others."""
+    ids = _group_ids()
+    keep = request.form.get("keep", type=int)
+    if keep not in ids:
+        flash("Scegli quale transazione tenere.", "error")
+    else:
+        others = [i for i in ids if i != keep]
+        Transaction.query.filter(Transaction.id.in_(others)).delete(synchronize_session=False)
+        db.session.commit()
+        flash(f"Tenuta 1 transazione, eliminati {len(others)} duplicati.", "success")
+    return redirect(_safe_next() or url_for("transactions.duplicates_page"))
 
 
 # ── REST API routes ────────────────────────────────────────────────────────────

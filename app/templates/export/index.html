@@ -122,9 +122,9 @@
     <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"
           style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end;">
       <div class="form-group" style="margin:0;">
-        <label class="form-label">File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF{% if ai_reader %}, foto{% endif %})</label>
+        <label class="form-label">File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF, foto)</label>
         <input type="file" name="file" class="form-control"
-               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.ods,.odt,.rtf,.tsv{% if ai_reader %},.jpg,.jpeg,.png,.webp{% endif %}" required />
+               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.ods,.odt,.rtf,.tsv,.jpg,.jpeg,.png,.webp" required />
       </div>
       <div class="form-group" style="margin:0;">
         <label class="form-label">Banca</label>
@@ -149,9 +149,11 @@
     <p style="font-size:var(--font-size-xs);margin-top:8px;display:flex;align-items:center;gap:6px;">
       <i class="bi bi-stars" style="color:var(--clr-primary);"></i>
       {% if ai_reader %}
-        <span><strong>Lettura AI attiva</strong> ({{ ai_reader }}): scansioni, foto e documenti non standard vengono letti dal modello.</span>
+        <span><strong>Lettura AI disponibile</strong> ({{ ai_reader }}): se un file non si riesce a leggere, ti verrà chiesto se usarla.
+          <a href="{{ url_for('settings.ai_models_page') }}">Cambia modello</a></span>
       {% else %}
-        <span style="color:var(--clr-text-muted);"><strong>Lettura AI non attiva:</strong> scansioni e foto non sono leggibili. Per attivarla imposta <code>LLM_PROVIDER</code> (vedi README).</span>
+        <span style="color:var(--clr-text-muted);"><strong>Lettura AI non attiva:</strong> scansioni e foto non sono leggibili.
+          <a href="{{ url_for('settings.ai_models_page') }}">Configura un modello AI</a></span>
       {% endif %}
     </p>
   </div>

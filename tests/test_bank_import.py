@@ -9,6 +9,7 @@ import pytest
 
 from app.models.transaction import Transaction
 from app.services import bank_import
+from tests.form_helper import form_data
 from tests.statements import fineco_xlsx, intesa_xlsx, intesa_legacy_html, generic_csv
 
 
@@ -111,15 +112,17 @@ def _payload(html: str) -> str:
     return re.search(r'name="payload" value="([^"]+)"', html).group(1)
 
 
+def _confirm(client, html: str, **overrides):
+    """Submit the preview form exactly as the browser would, with optional edits."""
+    return client.post("/export/bank/confirm", data=form_data(html, "preview-form", **overrides))
+
+
 def test_preview_then_confirm_imports_selected_rows(client, db):
     html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
     assert "Fineco" in html and "ESSELUNGA" in html
 
     # Keep rows 0 (Esselunga) and 1 (Netflix); override Esselunga's category
-    response = client.post("/export/bank/confirm", data={
-        "payload": _payload(html), "include": ["0", "1"],
-        "category-0": "Spesa casa", "type-0": "expense",
-    })
+    response = _confirm(client, html, include=["0", "1"], **{"category-0": "Spesa casa"})
     assert response.status_code == 302
     txs = Transaction.query.order_by(Transaction.id).all()
     assert [(t.description[:20], t.category, float(t.amount), t.type) for t in txs] == [
@@ -129,15 +132,47 @@ def test_preview_then_confirm_imports_selected_rows(client, db):
     assert txs[0].tags == ["importato", "fineco"] and txs[0].import_ref
 
 
+def test_every_field_of_the_preview_can_be_edited(client, db):
+    html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
+    _confirm(client, html, include=["0", "6"], **{
+        "date-0": "2026-06-04", "description-0": "Spesa Esselunga corretta", "amount-0": "88,40",
+        "type-0": "expense", "category-0": "Alimentari",
+        # row 6 does not exist in the statement: added by hand in the preview
+        "date-6": "2026-06-15", "description-6": "Contanti prelevati", "amount-6": "50",
+        "type-6": "expense", "category-6": "Altro",
+    })
+    first, added = Transaction.query.order_by(Transaction.id).all()
+    assert (first.date, first.description, float(first.amount)) == (date(2026, 6, 4), "Spesa Esselunga corretta", 88.4)
+    assert first.import_ref  # the correction keeps the statement fingerprint: re-importing still detects it
+    assert (added.description, float(added.amount), added.import_ref) == ("Contanti prelevati", 50.0, None)
+    assert "manuale" in added.tags
+
+
+def test_invalid_edited_rows_are_not_saved(client, db):
+    html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
+    _confirm(client, html, include=["0", "1"], **{"amount-1": "abc"})
+    assert Transaction.query.count() == 1
+    with client.session_transaction() as session:
+        assert any("Righe non salvate" in message for _, message in session["_flashes"])
+
+
+@pytest.mark.parametrize("amount", ["NaN", "sNaN", "Infinity", "1e20", "0"])
+def test_preview_rejects_unusable_amounts_without_crashing(client, db, amount):
+    html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
+    response = _confirm(client, html, include=["0", "1"], **{"amount-0": amount})
+    assert response.status_code == 302
+    assert Transaction.query.count() == 1  # only row 1 saved
+
+
 def test_reimport_flags_duplicates(client, db):
     html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
-    client.post("/export/bank/confirm", data={"payload": _payload(html), "include": [str(i) for i in range(6)]})
+    _confirm(client, html)  # every row is selected by default
     assert Transaction.query.count() == 6
 
-    html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
-    assert "6 movimenti erano già stati importati" in html
-    # Submitting the old payload again must not create duplicates either
-    client.post("/export/bank/confirm", data={"payload": _payload(html), "include": [str(i) for i in range(6)]})
+    html_again = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
+    assert "6 movimenti erano già stati importati" in html_again
+    # Submitting the first preview again must not create duplicates either
+    _confirm(client, html)
     assert Transaction.query.count() == 6
 
 
@@ -147,11 +182,19 @@ def test_confirm_rejects_tampered_payload(client, db):
     assert Transaction.query.count() == 0
 
 
-def test_upload_error_is_reported(client, db):
+def test_unreadable_file_asks_before_using_ai(client, db):
     response = _upload(client, b"not,a,statement\n1,2,3\n", "x.csv")
-    assert response.status_code == 302
+    assert response.status_code == 302 and "/export/bank/ai/" in response.location
+    page = client.get(response.location).get_data(as_text=True)
+    assert "Intestazione" in page  # why the file could not be read
+    assert "non è ancora configurata" in page  # AI is off in tests: the page explains how to set it up
+
+
+def test_unsupported_file_is_reported(client, db):
+    response = _upload(client, b"\xd0\xcf\x11\xe0" + b"\0" * 100, "vecchio.doc")
+    assert response.status_code == 302 and response.location.endswith("/export/")
     with client.session_transaction() as session:
-        assert "Intestazione" in session["_flashes"][0][1]
+        assert ".docx" in session["_flashes"][0][1]
 
 
 # ── Sample statements shipped in samples/bank_statements ──────────────────────
@@ -292,5 +335,5 @@ def test_upload_pdf_through_web_flow(client, db):
     filename = "intesa_sanpaolo_lista_movimenti_2026-09.pdf"
     html = _upload(client, (SAMPLES / filename).read_bytes(), filename).get_data(as_text=True)
     assert "Intesa Sanpaolo" in html and "TRENITALIA WEB" in html
-    client.post("/export/bank/confirm", data={"payload": _payload(html), "include": [str(i) for i in range(21)]})
+    _confirm(client, html)
     assert Transaction.query.count() == 21

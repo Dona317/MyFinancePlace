@@ -5,6 +5,9 @@
 {% block breadcrumb %}<li>Transazioni</li>{% endblock %}
 
 {% block topbar_actions %}
+  <a href="{{ url_for('transactions.duplicates_page') }}" class="btn btn-ghost btn-sm">
+    <i class="bi bi-intersect"></i> Cerca duplicati
+  </a>
   <a href="{{ url_for('export.index', _anchor='bank-import') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-bank2"></i> Importa estratto conto
   </a>
@@ -14,6 +17,14 @@
 {% endblock %}
 
 {% block content %}
+
+{% if duplicate_groups %}
+<div class="alert alert-warning mb-16" style="display:flex;align-items:center;gap:8px;">
+  <i class="bi bi-intersect"></i>
+  <span>{{ duplicate_groups }} {{ 'gruppo' if duplicate_groups == 1 else 'gruppi' }} di possibili duplicati da ricontrollare.</span>
+  <a href="{{ url_for('transactions.duplicates_page') }}" style="font-weight:600;">Controlla ora →</a>
+</div>
+{% endif %}
 
 <!-- Filtri ──────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
@@ -45,6 +56,12 @@
       <div class="card-header-sub">{{ transactions|length if transactions else 0 }} transazioni trovate</div>
     </div>
     <div style="display:flex;gap:8px;">
+      {% if transactions %}
+      <button type="submit" form="bulk-form" class="btn btn-ghost btn-sm" id="bulk-delete" disabled
+              style="color:var(--clr-negative);">
+        <i class="bi bi-trash3"></i> Elimina selezionate (<span id="bulk-count">0</span>)
+      </button>
+      {% endif %}
       <a href="{{ url_for('export.export_csv') }}" class="btn btn-ghost btn-sm">
         <i class="bi bi-filetype-csv"></i> CSV
       </a>
@@ -56,6 +73,8 @@
     <table>
       <thead>
         <tr>
+          <th style="width:32px;"><input type="checkbox" id="select-all" title="Seleziona tutte"
+                                         style="width:16px;height:16px;accent-color:var(--clr-primary);" /></th>
           <th>Data</th>
           <th>Descrizione</th>
           <th>Categoria</th>
@@ -68,11 +87,13 @@
       <tbody>
         {% for tx in transactions %}
         <tr>
+          <td><input type="checkbox" name="ids" value="{{ tx.id }}" form="bulk-form" class="bulk-select"
+                     style="width:16px;height:16px;accent-color:var(--clr-primary);" /></td>
           <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">
             {{ tx.date.strftime('%d %b %Y') }}
           </td>
           <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
-          <td><span class="badge badge-primary">{{ tx.category }}</span></td>
+          <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
           <td style="color:var(--clr-text-muted);">{{ tx.counterparty or '—' }}</td>
           <td>
             {% for tag in tx.tags %}
@@ -90,11 +111,12 @@
           </td>
           <td style="text-align:center;">
             <div style="display:flex;gap:4px;justify-content:center;">
-              <a href="{{ url_for('transactions.edit', tx_id=tx.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica">
+              <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica">
                 <i class="bi bi-pencil"></i>
               </a>
               <form method="POST" action="{{ url_for('transactions.delete', tx_id=tx.id) }}"
                     data-confirm="Eliminare questa transazione?">
+                <input type="hidden" name="next" value="{{ request.full_path }}" />
                 <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="Elimina"
                         style="color:var(--clr-negative);">
                   <i class="bi bi-trash3"></i>
@@ -107,6 +129,10 @@
       </tbody>
     </table>
   </div>
+  <form method="POST" action="{{ url_for('transactions.delete_selected') }}" id="bulk-form"
+        data-confirm="Eliminare definitivamente le transazioni selezionate?">
+    <input type="hidden" name="next" value="{{ request.full_path }}" />
+  </form>
   {% elif filters.values()|select|list %}
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-search"></i></div>
@@ -194,7 +220,7 @@
             <label class="form-label">Categoria</label>
             <select name="category" class="form-select">
               <option value="">— Seleziona —</option>
-              {% for cat in ['Casa','Alimentari','Trasporto','Salute','Svago','Abbonamenti','Stipendio','Freelance','Investimenti','Rimborsi','Altro'] %}
+              {% for cat in all_categories %}
               <option>{{ cat }}</option>
               {% endfor %}
             </select>
@@ -229,4 +255,23 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+const bulkBoxes = document.querySelectorAll('.bulk-select');
+const bulkButton = document.getElementById('bulk-delete');
+const refreshBulk = () => {
+  const count = [...bulkBoxes].filter(b => b.checked).length;
+  if (bulkButton) {
+    bulkButton.disabled = count === 0;
+    document.getElementById('bulk-count').textContent = count;
+  }
+};
+bulkBoxes.forEach(b => b.addEventListener('change', refreshBulk));
+document.getElementById('select-all')?.addEventListener('change', (e) => {
+  bulkBoxes.forEach(b => { b.checked = e.target.checked; });
+  refreshBulk();
+});
+</script>
 {% endblock %}

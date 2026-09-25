@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Possibili duplicati — MyFinancePlace{% endblock %}
+{% block page_title %}Possibili duplicati{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">Transazioni</a></li><li>Duplicati</li>{% endblock %}
+
+{% block content %}
+
+<!-- Criteri ──────────────────────────────────────────────────────────── -->
+<div class="card mb-16">
+  <form class="filter-bar" method="GET" action="{{ url_for('transactions.duplicates_page') }}">
+    <span style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
+      Stesso tipo e importo, date vicine e descrizione simile.
+    </span>
+    <label style="font-size:var(--font-size-sm);display:flex;align-items:center;gap:6px;margin-left:auto;">
+      Sensibilità
+      <select name="sensitivity" class="form-select" style="width:auto;" onchange="this.form.submit()">
+        {% for key, label in [('alta', 'Alta — descrizioni anche poco simili'), ('normale', 'Normale'), ('bassa', 'Bassa — quasi identiche')] %}
+        <option value="{{ key }}" {{ 'selected' if sensitivity == key else '' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label style="font-size:var(--font-size-sm);display:flex;align-items:center;gap:6px;">
+      Distanza date
+      <select name="window" class="form-select" style="width:auto;" onchange="this.form.submit()">
+        {% for days, label in [(0, 'stesso giorno'), (1, '± 1 giorno'), (3, '± 3 giorni'), (7, '± 7 giorni')] %}
+        <option value="{{ days }}" {{ 'selected' if window == days else '' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </form>
+</div>
+
+{% set here = request.full_path %}
+{% for group in groups %}
+{% set g = loop.index %}
+{% set first = group.transactions[0] %}
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">
+        {% if group.identical %}<span class="badge badge-negative">Identici</span>{% else %}<span class="badge badge-muted">Simili</span>{% endif %}
+        {{ group.transactions|length }} transazioni da
+        <span class="amount {{ 'negative' if first.type == 'expense' else ('positive' if first.type == 'income' else '') }}">{{ first.amount|abs|money }}</span>
+      </div>
+      <div class="card-header-sub">
+        {% if group.identical %}Stessa data e stessa descrizione (a parte diciture della banca come "Pagamento POS"): probabilmente lo stesso movimento importato due volte.
+        {% else %}Controlla se sono lo stesso movimento (es. importato da due file diversi) o movimenti distinti.{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:70px;">Tieni</th><th>Data</th><th>Descrizione</th><th>Categoria</th><th>Origine</th>
+          <th style="text-align:center;">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in group.transactions %}
+        <tr>
+          <td><input type="radio" name="keep" value="{{ tx.id }}" form="keep-{{ g }}" {{ 'checked' if loop.first else '' }}
+                     style="width:16px;height:16px;accent-color:var(--clr-primary);" /></td>
+          <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ tx.date.strftime('%d/%m/%Y') }}</td>
+          <td>
+            <div style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</div>
+            {% if tx.notes %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ tx.notes|truncate(80) }}</div>{% endif %}
+          </td>
+          <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
+          <td>
+            {% set tags = tx.tags or [] %}
+            {% if 'importato' in tags %}
+              {% for tag in tags if tag not in ('importato',) %}<span class="badge badge-muted">{{ tag }}</span> {% endfor %}
+            {% else %}<span class="badge badge-muted">inserita a mano</span>{% endif %}
+          </td>
+          <td style="text-align:center;">
+            <div style="display:flex;gap:4px;justify-content:center;">
+              <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=here) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica">
+                <i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{{ url_for('transactions.delete', tx_id=tx.id) }}" data-confirm="Eliminare questa transazione?">
+                <input type="hidden" name="next" value="{{ here }}" />
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="Elimina" style="color:var(--clr-negative);">
+                  <i class="bi bi-trash3"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-body" style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--clr-border);padding-top:12px;padding-bottom:12px;">
+    <form method="POST" action="{{ url_for('transactions.duplicates_dismiss') }}">
+      {% for tx in group.transactions %}<input type="hidden" name="ids" value="{{ tx.id }}" />{% endfor %}
+      <input type="hidden" name="next" value="{{ here }}" />
+      <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-check2-circle"></i> Non sono duplicati</button>
+    </form>
+    <form method="POST" action="{{ url_for('transactions.duplicates_keep') }}" id="keep-{{ g }}"
+          data-confirm="Tenere la transazione selezionata ed eliminare le altre {{ group.transactions|length - 1 }}?">
+      {% for tx in group.transactions %}<input type="hidden" name="ids" value="{{ tx.id }}" />{% endfor %}
+      <input type="hidden" name="next" value="{{ here }}" />
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-trash3"></i> Tieni la selezionata, elimina le altre</button>
+    </form>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-check2-circle"></i></div>
+    <div class="empty-state-title">Nessun possibile duplicato</div>
+    <div class="empty-state-text">Con questi criteri non ci sono transazioni simili da ricontrollare.</div>
+    <a href="{{ url_for('transactions.index') }}" class="btn btn-outline">Torna alle transazioni</a>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
