@@ -44,7 +44,9 @@ python run.py
 
 **Esporta → Importa Estratto Conto Bancario** turns a bank export into transactions:
 
-1. Upload the file downloaded from home banking (`.xlsx`, `.xls` or `.csv`).
+1. Upload the file downloaded from home banking: Excel (`.xlsx`, `.xls`), `.csv`, `.pdf`, `.txt`,
+   Word (`.docx`), LibreOffice (`.ods`, `.odt`) or `.rtf`.
+   PDFs must be the original text PDFs from home banking — scanned images would need OCR and are rejected with a message.
 2. The bank and the header row are detected automatically (or pick the bank by hand):
    Fineco, Intesa Sanpaolo, or any statement with Date / Description / Amount (or Credit/Debit) columns.
 3. Review the preview: each row is auto-categorized, already-imported rows are flagged, and pending movements are excluded.
@@ -53,7 +55,11 @@ python run.py
 Re-importing the same (or an overlapping) statement is safe: each row gets a fingerprint (`import_ref`) and duplicates are skipped.
 Categorization rules live in `app/services/bank_import.py` (`CATEGORY_RULES`).
 
-Fake statements to try it with (Fineco, Intesa Sanpaolo, UniCredit-style CSV, Revolut, legacy `.xls`) are in
+How each format is read: spreadsheets and document tables are used as-is; PDFs and fixed-width text without a real
+table are rebuilt into columns from the header positions (wrapped descriptions are joined); as a last resort,
+lines shaped like `date … description … amount` are recognized. See `app/services/statement_readers.py`.
+
+Fake statements to try it with, in every supported format, are in
 [`samples/bank_statements/`](samples/bank_statements/README.md).
 
 After pulling this change run `flask --app run db upgrade` to add the `import_ref` column.
@@ -79,7 +85,7 @@ TEST_DATABASE_URL=postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test py
 | Accounting | ✅ Income Statement, Cash Flow · ⏳ Balance Sheet (needs Portfolio/Debt models) |
 | Lifestyle | ✅ Category breakdown, trends, month-over-month · ⏳ Goals |
 | Export | ✅ CSV, JSON, tax export, printable report, CSV import |
-| Bank import | ✅ Fineco, Intesa Sanpaolo and generic bank statements (.xlsx / .xls / .csv) with auto-categorization and duplicate detection |
+| Bank import | ✅ Fineco, Intesa Sanpaolo and generic bank statements — Excel, CSV, PDF, TXT, Word, OpenDocument, RTF — with auto-categorization and duplicate detection |
 | Portfolio, Debt, Insurance, Documents, Snapshots, Auth | ⏳ UI only — models not implemented yet |
 
 ## Database

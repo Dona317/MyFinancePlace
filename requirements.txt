@@ -10,4 +10,6 @@ apiflask
 psycopg2-binary
 openpyxl==3.1.5   # bank statement import (.xlsx)
 xlrd==2.0.2       # bank statement import (legacy .xls)
+pdfplumber==0.11.10  # bank statement import (PDF)
+python-docx==1.2.0   # bank statement import (Word .docx)
 pytest

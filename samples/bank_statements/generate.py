@@ -6,11 +6,13 @@ Generate FAKE bank statements for trying out the bank import (Esporta → Import
 All names, IBANs and amounts are invented. The output is deterministic (fixed random seed),
 so re-running the script produces the same movements.
 
-Requires openpyxl (in requirements.txt). The legacy binary .xls sample also needs `xlwt`
-(pip install xlwt); it is skipped when xlwt is not installed.
+Requires openpyxl and python-docx (in requirements.txt). Two samples need generation-only
+libraries and are skipped when these are missing: the binary .xls needs `xlwt`, the PDFs need
+`fpdf2` (pip install xlwt fpdf2).
 """
 import csv
 import random
+import textwrap
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -258,6 +260,194 @@ def legacy_xls(path: Path, start: date, end: date, seed: int):
     return len(rows)
 
 
+def _it(amount: float) -> str:
+    """Italian number format without sign: 1234.5 → '1.234,50'."""
+    return f"{abs(amount):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+# ── PDF / TXT / Word ───────────────────────────────────────────────────────────
+
+def fineco_pdf(path: Path, start: date, end: date, seed: int):
+    """Text-layout PDF (no table borders) like Fineco's "Estratto conto": Entrate/Uscite columns,
+    long descriptions wrapping onto a second line, header repeated on every page."""
+    from fpdf import FPDF
+    rows = movements(start, end, seed, salary=2450.00, rent=850.00)
+    pdf = FPDF(format="A4")
+    pdf.set_auto_page_break(False)
+    columns = [("Data Operazione", 10, 26), ("Data Valuta", 37, 22), ("Descrizione", 62, 88),
+               ("Entrate", 152, 22), ("Uscite", 176, 22)]
+
+    def header():
+        pdf.add_page()
+        pdf.set_font("Helvetica", "B", 13)
+        pdf.set_xy(10, 12)
+        pdf.cell(0, 6, "FinecoBank S.p.A. - Estratto conto corrente")
+        pdf.set_font("Helvetica", "", 9)
+        pdf.set_xy(10, 19)
+        pdf.cell(0, 5, f"Intestatario: {HOLDER}   Conto: 0012345678   Periodo: {start:%d/%m/%Y} - {end:%d/%m/%Y}")
+        pdf.set_font("Helvetica", "B", 8)
+        for title, x, width in columns:
+            pdf.set_xy(x, 30)
+            pdf.cell(width, 5, title, align="R" if title in ("Entrate", "Uscite") else "L")
+        pdf.line(10, 36, 200, 36)
+        pdf.set_font("Helvetica", "", 8)
+        return 39
+
+    y = header()
+    for r in rows:
+        description = f"{r['short']} - {r['full']}"
+        lines = textwrap.wrap(description, 52)
+        if y + 5 * len(lines) > 280:
+            pdf.set_xy(10, 287)
+            pdf.cell(0, 4, f"Pagina {pdf.page_no()}", align="C")
+            y = header()
+        pdf.set_xy(10, y); pdf.cell(26, 4, f"{r['date']:%d/%m/%Y}")
+        pdf.set_xy(37, y); pdf.cell(22, 4, f"{r['date']:%d/%m/%Y}")
+        pdf.set_xy(62, y); pdf.cell(88, 4, lines[0])
+        amount_x = 152 if r["amount"] > 0 else 176
+        pdf.set_xy(amount_x, y); pdf.cell(22, 4, _it(r["amount"]), align="R")
+        for extra in lines[1:]:
+            y += 4
+            pdf.set_xy(62, y); pdf.cell(88, 4, extra)
+        y += 6
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_xy(62, y + 2)
+    pdf.cell(88, 4, "SALDO FINALE")
+    pdf.set_xy(152, y + 2)
+    pdf.cell(22, 4, _it(3250 + sum(r["amount"] for r in rows)), align="R")
+    pdf.output(str(path))
+    return len(rows)
+
+
+def intesa_pdf(path: Path, start: date, end: date, seed: int):
+    """Bordered-table PDF like Intesa Sanpaolo's "Lista movimenti" (signed Importo column)."""
+    from fpdf import FPDF
+    rows = movements(start, end, seed, salary=2180.00, rent=720.00)
+    pdf = FPDF(format="A4")
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.cell(0, 7, "Intesa Sanpaolo - Lista movimenti", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "", 9)
+    pdf.cell(0, 5, f"Conto corrente 1000/00098765 - Intestatario: {HOLDER}", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(3)
+    pdf.set_font("Helvetica", "", 8)
+    with pdf.table(col_widths=(20, 32, 88, 25), text_align=("LEFT", "LEFT", "LEFT", "RIGHT")) as table:
+        table.row(["Data", "Operazione", "Dettagli", "Importo"])
+        for r in rows:
+            sign = "-" if r["amount"] < 0 else ""
+            table.row([f"{r['date']:%d/%m/%Y}", INTESA_OPERATIONS[r["short"]],
+                       r["full"].replace("PAGAMENTO POS ", ""), f"{sign}{_it(r['amount'])}"])
+    pdf.output(str(path))
+    return len(rows)
+
+
+def generic_txt(path: Path, start: date, end: date, seed: int):
+    """Fixed-width plain-text statement (as printed by some home-banking "Stampa" functions)."""
+    rows = movements(start, end, seed, salary=1890.00, rent=590.00)
+    lines = [
+        "BANCA POPOLARE DEMO - ESTRATTO CONTO",
+        f"Intestatario: {HOLDER}",
+        f"Periodo: {start:%d/%m/%Y} - {end:%d/%m/%Y}",
+        "",
+        f"{'Data':<12}{'Valuta':<12}{'Descrizione':<52}{'Dare':>12}{'Avere':>12}",
+        "-" * 100,
+    ]
+    for r in rows:
+        debit = _it(r["amount"]) if r["amount"] < 0 else ""
+        credit = _it(r["amount"]) if r["amount"] > 0 else ""
+        lines.append(f"{r['date']:%d/%m/%Y}  {r['date']:%d/%m/%Y}  {r['full'][:50]:<52}{debit:>12}{credit:>12}")
+    lines += ["-" * 100, f"{'':<24}{'SALDO FINALE':<52}{'':>12}{_it(1000 + sum(r['amount'] for r in rows)):>12}"]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return len(rows)
+
+
+def generic_docx(path: Path, start: date, end: date, seed: int):
+    """Word document with a movements table (e.g. a statement pasted into Word by an accountant)."""
+    import docx
+    rows = movements(start, end, seed, salary=2300.00, rent=780.00)
+    document = docx.Document()
+    document.add_heading("Estratto conto - Banca Demo", level=1)
+    document.add_paragraph(f"Intestatario: {HOLDER}")
+    document.add_paragraph(f"Periodo: {start:%d/%m/%Y} - {end:%d/%m/%Y}")
+    table = document.add_table(rows=1, cols=4)
+    table.style = "Table Grid"
+    for cell, title in zip(table.rows[0].cells, ["Data", "Descrizione", "Categoria", "Importo"]):
+        cell.text = title
+    for r in rows:
+        cells = table.add_row().cells
+        cells[0].text = f"{r['date']:%d/%m/%Y}"
+        cells[1].text = r["full"]
+        cells[2].text = ""
+        cells[3].text = ("-" if r["amount"] < 0 else "") + _it(r["amount"])
+    document.add_paragraph("Documento generato per test - dati fittizi.")
+    document.save(str(path))
+    return len(rows)
+
+
+def generic_ods(path: Path, start: date, end: date, seed: int):
+    """LibreOffice Calc spreadsheet (.ods), written by hand: an .ods is a zip with an XML sheet."""
+    import zipfile
+    from xml.sax.saxutils import escape
+    rows = movements(start, end, seed, salary=2100.00, rent=700.00)
+
+    def text_cell(value: str) -> str:
+        return f'<table:table-cell office:value-type="string"><text:p>{escape(value)}</text:p></table:table-cell>'
+
+    xml_rows = [
+        f"<table:table-row>{text_cell('Estratto conto ' + HOLDER)}</table:table-row>",
+        "<table:table-row>" + "".join(text_cell(h) for h in ["Data", "Descrizione", "Entrate", "Uscite"]) + "</table:table-row>",
+    ]
+    for r in rows:
+        amount = f'<table:table-cell office:value-type="float" office:value="{abs(r["amount"]):.2f}"><text:p>{_it(r["amount"])}</text:p></table:table-cell>'
+        empty = "<table:table-cell/>"
+        xml_rows.append(
+            "<table:table-row>"
+            f'<table:table-cell office:value-type="date" office:date-value="{r["date"].isoformat()}"><text:p>{r["date"]:%d/%m/%Y}</text:p></table:table-cell>'
+            + text_cell(r["full"])
+            + (amount + empty if r["amount"] > 0 else empty + amount)
+            + "</table:table-row>"
+        )
+    content = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" '
+        'xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" '
+        'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" office:version="1.2">'
+        '<office:body><office:spreadsheet><table:table table:name="Movimenti">'
+        + "".join(xml_rows)
+        + "</table:table></office:spreadsheet></office:body></office:document-content>"
+    )
+    manifest = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">'
+        '<manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.spreadsheet"/>'
+        '<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>'
+        "</manifest:manifest>"
+    )
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr(zipfile.ZipInfo("mimetype"), "application/vnd.oasis.opendocument.spreadsheet")
+        archive.writestr("META-INF/manifest.xml", manifest, compress_type=zipfile.ZIP_DEFLATED)
+        archive.writestr("content.xml", content, compress_type=zipfile.ZIP_DEFLATED)
+    return len(rows)
+
+
+def generic_rtf(path: Path, start: date, end: date, seed: int):
+    """Rich Text Format document with tab-separated columns (e.g. saved from WordPad)."""
+    rows = movements(start, end, seed, salary=1950.00, rent=620.00)
+
+    def rtf(text: str) -> str:
+        return "".join(c if ord(c) < 128 else f"\\'{ord(c):02x}" for c in text)
+
+    body = [r"{\rtf1\ansi\deff0{\fonttbl{\f0 Arial;}}\f0\fs20",
+            rf"\b Estratto conto - Banca Demo\b0\par Intestatario: {HOLDER}\par\par",
+            r"Data\tab Descrizione\tab Importo\par"]
+    for r in rows:
+        sign = "-" if r["amount"] < 0 else ""
+        body.append(rf"{r['date']:%d/%m/%Y}\tab {rtf(r['full'])}\tab {sign}{_it(r['amount'])}\par")
+    body.append("}")
+    path.write_text("\n".join(body), encoding="ascii")
+    return len(rows)
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -270,6 +460,12 @@ def main():
         ("unicredit_2026-08_2026-09.csv", unicredit_csv, (date(2026, 8, 1), date(2026, 9, 24), 44)),
         ("revolut_2026-09.csv", revolut_csv, (date(2026, 9, 1), date(2026, 9, 24), 55)),
         ("banca_generica_2026-02.xls", legacy_xls, (date(2026, 2, 1), date(2026, 2, 28), 66)),
+        ("fineco_estratto_conto_2026-07_2026-08.pdf", fineco_pdf, (date(2026, 7, 1), date(2026, 8, 31), 77)),
+        ("intesa_sanpaolo_lista_movimenti_2026-09.pdf", intesa_pdf, (date(2026, 9, 1), date(2026, 9, 24), 88)),
+        ("banca_popolare_2026-05.txt", generic_txt, (date(2026, 5, 1), date(2026, 5, 31), 99)),
+        ("estratto_conto_word_2026-01.docx", generic_docx, (date(2026, 1, 1), date(2026, 1, 31), 111)),
+        ("estratto_conto_libreoffice_2025-12.ods", generic_ods, (date(2025, 12, 1), date(2025, 12, 31), 122)),
+        ("estratto_conto_2025-11.rtf", generic_rtf, (date(2025, 11, 1), date(2025, 11, 30), 133)),
     ]
     for name, builder, (start, end, seed) in files:
         # The Fineco files share a seed so the overlapping July movements are identical

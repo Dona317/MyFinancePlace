@@ -9,8 +9,8 @@ Current status and roadmap. Update this file as items are completed.
 - **Accounting**: Income Statement and Cash Flow computed from transactions
 - **Lifestyle**: category breakdown, trends, month-over-month comparison
 - **Export**: CSV, JSON, tax export by year, printable report, CSV import with column mapping
-- **Bank statement import**: Fineco, Intesa Sanpaolo and generic bank files (`.xlsx`, `.xls`, `.csv`) with
-  auto-categorization, a review step and duplicate detection
+- **Bank statement import**: Fineco, Intesa Sanpaolo and generic bank files — Excel, CSV, PDF, TXT, Word,
+  OpenDocument, RTF — with auto-categorization, a review step and duplicate detection
 
 ## 🔜 To do
 
@@ -46,7 +46,7 @@ Cash flow sorts `transfer` transactions by category name: anything like "Investi
 and "mutuo" or "prestito" counts as loans. Replace this with explicit links: a transfer tied to a
 portfolio holding (investing) or to a debt (financing).
 
-### 4. PDF and Excel
+### 4. PDF report and manual CSV mapping
 
 - "PDF" means printing the report page from the browser. For a real downloadable PDF, add a library such as
   WeasyPrint and render `export/report.html` server-side.
@@ -59,7 +59,9 @@ portfolio holding (investing) or to a debt (financing).
 - User-editable categorization rules (e.g. a "Rules" page in Settings) instead of the hardcoded `CATEGORY_RULES`
 - Learn from corrections: remember the category the user picked for a description
 - Extract the counterparty (merchant name) from the description
-- Test against real exported files (anonymized) from each bank
+- Test against real exported files (anonymized) from each bank, especially PDFs, whose layouts vary the most
+- OCR for scanned PDFs and photos of statements (e.g. Tesseract), currently rejected with a message
+- Legacy Word `.doc` files (currently: "save as .docx or PDF")
 
 ### 6. Continuous integration
 

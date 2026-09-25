@@ -115,15 +115,16 @@
   <div class="card-header">
     <div>
       <div class="card-header-title"><i class="bi bi-bank2"></i> Importa Estratto Conto Bancario</div>
-      <div class="card-header-sub">Excel o CSV scaricato dall'home banking: movimenti categorizzati automaticamente, duplicati ignorati</div>
+      <div class="card-header-sub">Excel, CSV, PDF, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati automaticamente, duplicati ignorati</div>
     </div>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"
           style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end;">
       <div class="form-group" style="margin:0;">
-        <label class="form-label">File dei movimenti (.xlsx, .xls, .csv)</label>
-        <input type="file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required />
+        <label class="form-label">File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF)</label>
+        <input type="file" name="file" class="form-control"
+               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.ods,.odt,.rtf,.tsv" required />
       </div>
       <div class="form-group" style="margin:0;">
         <label class="form-label">Banca</label>
@@ -141,7 +142,8 @@
     <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
       <strong>Fineco:</strong> Conto → Movimenti → Esporta in Excel.
       <strong>Intesa Sanpaolo:</strong> Conto corrente → Lista movimenti → Esporta Excel.
-      <strong>Altre banche:</strong> qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite).
+      <strong>Altre banche:</strong> qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite, Dare/Avere).
+      I PDF devono essere quelli originali dell'home banking (non scansioni).
       Prima dell'importazione potrai controllare e modificare ogni movimento.
     </p>
   </div>

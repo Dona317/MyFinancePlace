@@ -8,19 +8,26 @@ Supported layouts:
   • Generic        — any statement whose header has a date, a description and either a signed amount
                       or separate credit/debit columns (UniCredit, BPER, Revolut, N26, …)
 
-Pipeline:  read_table() → detect_layout() → parse_rows() → categorize() → fingerprint()
+Accepted files: Excel (.xlsx/.xls), CSV, TXT, PDF (text-based), Word (.docx), RTF, OpenDocument (.ods/.odt).
+
+Pipeline:  read_document() → candidate tables → detect_layout() → parse_rows() → enrich() (category, dedup)
+  • Structured tables (spreadsheets, Word/ODF tables, ruled PDF tables, delimited text) are tried first.
+  • Column layouts without a real table (PDF text, fixed-width TXT) are rebuilt from the header positions.
+  • Last resort: lines shaped like "date … description … amount".
 Bank export preamble rows (account holder, period, balances) and footer rows are skipped automatically.
 """
-import csv
+from __future__ import annotations
+
 import hashlib
-import io
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
-from html.parser import HTMLParser
+from statistics import median
 
 from app.models.transaction import Transaction
+from app.services import statement_readers as readers
+from app.services.statement_readers import Word
 from app.services.transfer import parse_amount, parse_date
 
 HEADER_SCAN_ROWS = 40
@@ -34,6 +41,7 @@ class BankLayout:
     key: str
     name: str
     markers: tuple[str, ...]              # text in the preamble / filename identifying the bank
+    signature: tuple[str, ...]            # header names only this bank uses
     columns: dict[str, tuple[str, ...]]   # field → accepted (normalized) header names, by priority
 
 
@@ -42,6 +50,7 @@ BANKS = {
         key="fineco",
         name="Fineco",
         markers=("fineco",),
+        signature=("moneymap", "descrizione completa"),
         columns={
             "date":        ("data operazione", "data"),
             "description": ("descrizione completa", "descrizione"),
@@ -56,6 +65,7 @@ BANKS = {
         key="intesa",
         name="Intesa Sanpaolo",
         markers=("intesa", "sanpaolo", "isybank"),
+        signature=("contabilizzazione", "conto o carta"),
         columns={
             "date":        ("data contabile", "data operazione", "data"),
             "description": ("operazione", "descrizione"),
@@ -72,6 +82,7 @@ BANKS = {
         key="generic",
         name="Altra banca (generico)",
         markers=(),
+        signature=(),
         columns={
             "date": (
                 "data operazione", "data contabile", "data registrazione", "data movimento", "data",
@@ -161,91 +172,11 @@ class StatementImportError(ValueError):
     """Raised with a user-facing (Italian) message when a statement cannot be read."""
 
 
-class _HTMLTableParser(HTMLParser):
-    """Some banks export HTML tables with an .xls extension."""
-
-    def __init__(self):
-        super().__init__()
-        self.rows: list[list[str]] = []
-        self._row: list[str] | None = None
-        self._cell: list[str] | None = None
-
-    def handle_starttag(self, tag, attrs):
-        if tag == "tr":
-            self._row = []
-        elif tag in ("td", "th") and self._row is not None:
-            self._cell = []
-
-    def handle_endtag(self, tag):
-        if tag in ("td", "th") and self._row is not None and self._cell is not None:
-            self._row.append(" ".join("".join(self._cell).split()))
-            self._cell = None
-        elif tag == "tr" and self._row is not None:
-            self.rows.append(self._row)
-            self._row = None
-
-    def handle_data(self, data):
-        if self._cell is not None:
-            self._cell.append(data)
-
-
-def _decode(raw: bytes) -> str:
-    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
-        try:
-            return raw.decode(encoding)
-        except UnicodeDecodeError:
-            continue
-    return raw.decode("latin-1", errors="replace")
-
-
-def read_table(filename: str, raw: bytes) -> list[list]:
-    """Return the first sheet of an .xlsx / .xls / .csv (or HTML-as-.xls) file as a list of rows."""
-    if not raw:
-        raise StatementImportError("Il file è vuoto.")
-
-    if raw[:2] == b"PK":  # .xlsx is a zip archive
-        import openpyxl
-        try:
-            workbook = openpyxl.load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
-        except Exception as exc:
-            raise StatementImportError(f"Impossibile leggere il file Excel: {exc}")
-        sheet = workbook.active
-        return [list(row) for row in sheet.iter_rows(values_only=True)]
-
-    if raw[:4] == b"\xd0\xcf\x11\xe0":  # legacy .xls (OLE2)
-        import xlrd
-        try:
-            book = xlrd.open_workbook(file_contents=raw)
-        except Exception as exc:
-            raise StatementImportError(f"Impossibile leggere il file Excel: {exc}")
-        sheet = book.sheet_by_index(0)
-        rows = []
-        for r in range(sheet.nrows):
-            row = []
-            for c in range(sheet.ncols):
-                cell = sheet.cell(r, c)
-                if cell.ctype == xlrd.XL_CELL_DATE:
-                    row.append(xlrd.xldate_as_datetime(cell.value, book.datemode))
-                else:
-                    row.append(cell.value)
-            rows.append(row)
-        return rows
-
-    text = _decode(raw)
-    if text.lstrip()[:1] == "<":
-        parser = _HTMLTableParser()
-        parser.feed(text)
-        if parser.rows:
-            return parser.rows
-        raise StatementImportError("Il file non contiene tabelle leggibili.")
-
-    if not filename.lower().endswith((".csv", ".txt")):
-        raise StatementImportError("Formato non riconosciuto: carica un file .xlsx, .xls o .csv.")
+def read_document(filename: str, raw: bytes) -> readers.Document:
     try:
-        dialect = csv.Sniffer().sniff(text[:4096], delimiters=";,\t")
-    except csv.Error:
-        dialect = csv.excel
-    return [row for row in csv.reader(io.StringIO(text), dialect)]
+        return readers.read_document(filename, raw)
+    except readers.UnsupportedFile as exc:
+        raise StatementImportError(str(exc))
 
 
 # ── Layout detection ───────────────────────────────────────────────────────────
@@ -288,27 +219,185 @@ def _identify_bank(rows: list[list], filename: str) -> str | None:
     return None
 
 
+def layout_for_headers(headers: list[str], bank: str = AUTO, identified: str | None = None) -> tuple[str, dict] | None:
+    """
+    Pick the layout matching a header row. With automatic detection a bank-specific layout is used only
+    when the bank was identified (name in the file) or its signature columns are present; otherwise the
+    generic layout, so a plain "Data | Descrizione | Importo" file is not mislabelled as a specific bank.
+    """
+    if bank != AUTO:
+        keys = [bank]
+    elif identified:
+        keys = [identified, "generic"]
+    else:
+        for key in DETECTION_ORDER:
+            columns = _match_columns(headers, BANKS[key])
+            if columns and any(sig in headers for sig in BANKS[key].signature):
+                return key, columns
+        keys = ["generic", *DETECTION_ORDER]
+    for key in keys:
+        columns = _match_columns(headers, BANKS[key])
+        if columns:
+            return key, columns
+    return None
+
+
 def detect_layout(rows: list[list], filename: str = "", bank: str = AUTO) -> Layout:
     if bank != AUTO and bank not in BANKS:
         raise StatementImportError(f"Banca non supportata: {bank}")
 
-    if bank == AUTO:
-        identified = _identify_bank(rows, filename)
-        candidates = [identified] if identified else []
-        candidates += [k for k in DETECTION_ORDER if k not in candidates]
-    else:
-        candidates = [bank]
-
-    for key in candidates:
-        layout = BANKS[key]
-        for index, row in enumerate(rows[:HEADER_SCAN_ROWS]):
-            headers = [normalize_header(c) for c in row]
-            columns = _match_columns(headers, layout)
-            if columns:
-                return Layout(bank=layout, header_row=index, columns=columns, headers=headers)
+    identified = _identify_bank(rows, filename) if bank == AUTO else None
+    for index, row in enumerate(rows[:HEADER_SCAN_ROWS]):
+        headers = [normalize_header(c) for c in row]
+        found = layout_for_headers(headers, bank, identified)
+        if found:
+            key, columns = found
+            return Layout(bank=BANKS[key], header_row=index, columns=columns, headers=headers)
 
     expected = "Data, Descrizione e Importo (oppure Entrate/Uscite)"
     raise StatementImportError(f"Intestazione dei movimenti non trovata: servono almeno le colonne {expected}.")
+
+
+# ── Column layouts without a table (PDF text, fixed-width TXT) ─────────────────
+
+AMOUNT_TOKEN = re.compile(r"^\(?[-+]?(?:€)?\d{1,3}(?:[.,' ]\d{3})*[.,]\d{2}[-+]?\)?$|^\(?[-+]?(?:€)?\d+[.,]\d{2}[-+]?\)?$")
+PAGE_FOOTER = re.compile(r"^(pag(ina)?|page)\.?\s*\d+", re.IGNORECASE)
+AMOUNT_FIELDS = ("amount", "credit", "debit")
+
+
+@dataclass
+class _HeaderCell:
+    text: str
+    x0: float
+    x1: float
+
+    @property
+    def center(self) -> float:
+        return (self.x0 + self.x1) / 2
+
+
+def _header_cells(line: list[Word], gap: float | None) -> list[_HeaderCell]:
+    """Merge words closer than `gap` into one header cell ("Data" + "Operazione"); None = one cell per word."""
+    cells: list[_HeaderCell] = []
+    for word in line:
+        if cells and gap is not None and word.x0 - cells[-1].x1 <= gap:
+            cells[-1] = _HeaderCell(f"{cells[-1].text} {word.text}", cells[-1].x0, word.x1)
+        else:
+            cells.append(_HeaderCell(word.text, word.x0, word.x1))
+    return cells
+
+
+def _find_header(lines: list[list[Word]], char_width: float, bank: str, filename: str):
+    scan = lines[:HEADER_SCAN_ROWS * 3]
+    identified = _identify_bank([[w.text for w in line] for line in scan], filename) if bank == AUTO else None
+    for index, line in enumerate(scan):
+        for gap in (char_width * 1.2, None):
+            cells = _header_cells(line, gap)
+            found = layout_for_headers([normalize_header(c.text) for c in cells], bank, identified)
+            if found:
+                return index, cells, found[1]
+    return None
+
+
+def rebuild_columns(lines: list[list[Word]], char_width: float, bank: str = AUTO, filename: str = "") -> list[list] | None:
+    """
+    Rebuild a table from positioned words, using the header line's cell positions as column guides:
+      • amounts go to the nearest amount column (Importo / Entrate / Uscite / Dare / Avere …)
+      • other words go to the last text column that starts before them
+      • a line without a date continues the previous movement's description (wrapped text)
+    Repeated page headers, page footers and total/balance lines are skipped.
+    """
+    found = _find_header(lines, char_width, bank, filename)
+    if not found:
+        return None
+    header_index, cells, columns = found
+    header_key = normalize_header(" ".join(c.text for c in cells))
+    amount_cols = sorted({columns[f] for f in AMOUNT_FIELDS if f in columns})
+    text_cols = [i for i in range(len(cells)) if i not in amount_cols]
+    amount_region = min(cells[i].x0 for i in amount_cols) - char_width * 10
+    date_col, description_col = columns["date"], columns["description"]
+
+    spacings = [
+        b[0].top - a[0].top
+        for a, b in zip(lines[header_index + 1:], lines[header_index + 2:])
+        if a and b and a[0].page == b[0].page and b[0].top > a[0].top
+    ]
+    max_gap = (median(spacings) * 2.2) if spacings else float("inf")
+
+    table: list[list] = [[" ".join(w.text for w in line)] for line in lines[:header_index]]
+    table.append([c.text for c in cells])
+    current: list | None = None
+    previous_top, previous_page = None, None
+
+    for line in lines[header_index + 1:]:
+        if not line:
+            current = None
+            continue
+        text = " ".join(w.text for w in line)
+        if normalize_header(text) == header_key or PAGE_FOOTER.match(text) or not re.search(r"[A-Za-z0-9]", text):
+            current = None
+            continue
+
+        row = [""] * len(cells)
+        for word in line:
+            if AMOUNT_TOKEN.match(word.text) and word.center >= amount_region:
+                col = min(amount_cols, key=lambda i: min(abs(word.x1 - cells[i].x1), abs(word.center - cells[i].center)))
+            else:
+                starts_before = [i for i in text_cols if cells[i].x0 <= word.center]
+                col = starts_before[-1] if starts_before else text_cols[0]
+            row[col] = f"{row[col]} {word.text}".strip()
+
+        page, top = line[0].page, line[0].top
+        if _to_date(row[date_col]) is not None:
+            table.append(row)
+            current = row
+        elif (
+            current is not None and not any(row[i] for i in amount_cols)
+            and page == previous_page and top - previous_top <= max_gap
+        ):
+            extra = " ".join(row[i] for i in text_cols if row[i])
+            current[description_col] = f"{current[description_col]} {extra}".strip()
+        else:
+            current = None  # totals, balances, notes
+        previous_top, previous_page = top, page
+    return table
+
+
+DATE_TOKEN = r"\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{4}-\d{2}-\d{2}"
+AMOUNT_PATTERN = r"[-+]?€?\s?\d{1,3}(?:[.,]\d{3})*[.,]\d{2}[-+]?|[-+]?€?\s?\d+[.,]\d{2}[-+]?"
+TEXT_LINE = re.compile(
+    rf"^\s*(?P<date>{DATE_TOKEN})\s+(?:(?:{DATE_TOKEN})\s+)?(?P<description>.+?)\s+"
+    rf"(?P<amount>{AMOUNT_PATTERN})(?:\s+(?P<balance>{AMOUNT_PATTERN}))?\s*$"
+)
+INCOME_HINTS = re.compile(r"\b(stipendio|accredito|a vostro favore|bonifico da|ricevuto|rimborso|interessi creditori|entrata)\b", re.I)
+
+
+def parse_text_lines(lines: list[str]) -> list[StatementRow]:
+    """
+    Last resort for statements without a recognizable header: lines like
+    "05/06/2026  NETFLIX.COM  -17,99  [balance]". Unsigned amounts count as expenses unless the
+    description suggests income; the user can still change the type in the preview.
+    """
+    rows: list[StatementRow] = []
+    for line in lines:
+        match = TEXT_LINE.match(line)
+        if not match:
+            if rows and line.strip() and not re.search(AMOUNT_PATTERN, line) and not PAGE_FOOTER.match(line.strip()):
+                last = rows[-1]
+                if len(last.description) < 200:
+                    last.description = f"{last.description} {line.strip()}"[:255]
+            continue
+        tx_date = _to_date(match.group("date"))
+        raw_amount = match.group("amount").replace(" ", "")
+        amount = _to_decimal(raw_amount)
+        if tx_date is None or not amount:
+            continue
+        description = " ".join(match.group("description").split())
+        explicit_sign = raw_amount.lstrip("€")[:1] in "+-" or raw_amount.endswith(("-", "+"))
+        if not explicit_sign and not INCOME_HINTS.search(description):
+            amount = -abs(amount)
+        rows.append(StatementRow(date=tx_date, description=description[:255], amount=amount))
+    return rows
 
 
 # ── Row parsing ────────────────────────────────────────────────────────────────
@@ -370,10 +459,16 @@ def _to_decimal(value) -> Decimal | None:
         return None
     if isinstance(value, (int, float)):
         return Decimal(str(value))
+    text = str(value).replace("EUR", "").replace("€", "").strip()
+    negative = text.endswith("-") or (text.startswith("(") and text.endswith(")"))
+    text = text.strip("()+ ").rstrip("-")
+    if not text:
+        return None
     try:
-        return parse_amount(str(value).replace("EUR", ""))
+        amount = parse_amount(text)
     except (ValueError, InvalidOperation):
         return None
+    return -abs(amount) if negative else amount
 
 
 def _text(value) -> str | None:
@@ -494,13 +589,37 @@ class StatementPreview:
 
 
 def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementPreview:
-    table = read_table(filename, raw)
-    layout = detect_layout(table, filename, bank)
-    rows, pending = parse_rows(table, layout)
-    if not rows:
-        raise StatementImportError("Nessun movimento trovato nel file.")
+    document = read_document(filename, raw)
+    rows, pending, layout_bank = _extract_rows(document, filename, bank)
     rows.sort(key=lambda r: r.date)
-    return StatementPreview(bank=layout.bank, rows=enrich(rows), pending_skipped=pending)
+    return StatementPreview(bank=layout_bank, rows=enrich(rows), pending_skipped=pending)
+
+
+def _extract_rows(document: readers.Document, filename: str, bank: str) -> tuple[list[StatementRow], int, BankLayout]:
+    """Try each view of the document, from the most to the least structured; first one with movements wins."""
+    candidates = list(document.tables)
+    if document.lines:
+        rebuilt = rebuild_columns(document.lines, document.char_width, bank, filename)
+        if rebuilt:
+            candidates.append(rebuilt)
+
+    error: StatementImportError | None = None
+    for table in candidates:
+        try:
+            layout = detect_layout(table, filename, bank)
+        except StatementImportError as exc:
+            error = error or exc
+            continue
+        rows, pending = parse_rows(table, layout)
+        if rows:
+            return rows, pending, layout.bank
+
+    if document.text_lines and bank in (AUTO, "generic"):
+        rows = parse_text_lines(document.text_lines)
+        if rows:
+            return rows, 0, BANKS["generic"]
+
+    raise error or StatementImportError("Nessun movimento trovato nel file.")
 
 
 def build_transaction(data: dict, bank_key: str, category: str | None = None) -> Transaction:

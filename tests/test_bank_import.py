@@ -1,4 +1,5 @@
 import io
+import sys
 import re
 from pathlib import Path
 from datetime import date
@@ -165,6 +166,12 @@ SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
     ("unicredit_2026-08_2026-09.csv", "generic"),
     ("revolut_2026-09.csv", "generic"),
     ("banca_generica_2026-02.xls", "generic"),  # binary Excel 97-2003, read with xlrd
+    ("fineco_estratto_conto_2026-07_2026-08.pdf", "fineco"),
+    ("intesa_sanpaolo_lista_movimenti_2026-09.pdf", "intesa"),
+    ("banca_popolare_2026-05.txt", "generic"),
+    ("estratto_conto_word_2026-01.docx", "generic"),
+    ("estratto_conto_libreoffice_2025-12.ods", "generic"),
+    ("estratto_conto_2025-11.rtf", "generic"),
 ])
 def test_sample_statements_parse(app, filename, bank):
     preview = bank_import.analyze_statement(filename, (SAMPLES / filename).read_bytes())
@@ -181,3 +188,86 @@ def test_overlapping_sample_statements_are_deduplicated(app, db):
     second = bank_import.analyze_statement("b.xlsx", (SAMPLES / "fineco_2026-07_2026-09.xlsx").read_bytes())
     july_in_both = [r for r in second.rows if r.date.month == 7 and r.import_ref in {x.import_ref for x in first.rows}]
     assert second.duplicates == len(july_in_both) > 0
+
+
+# ── PDF, TXT, Word, OpenDocument, RTF: compare with the generator's ground truth ──
+
+sys.path.insert(0, str(SAMPLES))
+import generate as sample_generator  # noqa: E402  (pure-Python part only; no fpdf/xlwt needed)
+
+
+@pytest.mark.parametrize("filename, period, seed, salary, rent", [
+    ("fineco_estratto_conto_2026-07_2026-08.pdf", (date(2026, 7, 1), date(2026, 8, 31)), 77, 2450.0, 850.0),
+    ("intesa_sanpaolo_lista_movimenti_2026-09.pdf", (date(2026, 9, 1), date(2026, 9, 24)), 88, 2180.0, 720.0),
+    ("banca_popolare_2026-05.txt", (date(2026, 5, 1), date(2026, 5, 31)), 99, 1890.0, 590.0),
+    ("estratto_conto_word_2026-01.docx", (date(2026, 1, 1), date(2026, 1, 31)), 111, 2300.0, 780.0),
+    ("estratto_conto_libreoffice_2025-12.ods", (date(2025, 12, 1), date(2025, 12, 31)), 122, 2100.0, 700.0),
+    ("estratto_conto_2025-11.rtf", (date(2025, 11, 1), date(2025, 11, 30)), 133, 1950.0, 620.0),
+])
+def test_document_formats_extract_every_movement_exactly(app, filename, period, seed, salary, rent):
+    expected = sample_generator.movements(*period, seed, salary=salary, rent=rent)
+    preview = bank_import.analyze_statement(filename, (SAMPLES / filename).read_bytes())
+    got = sorted((r.date, r.amount) for r in preview.rows)
+    assert got == sorted((m["date"], Decimal(f"{m['amount']:.2f}")) for m in expected)
+
+
+def test_pdf_wrapped_descriptions_are_joined(app):
+    filename = "fineco_estratto_conto_2026-07_2026-08.pdf"
+    preview = bank_import.analyze_statement(filename, (SAMPLES / filename).read_bytes())
+    rent = next(r for r in preview.rows if "AFFITTO" in r.description)
+    assert rent.description == "Bonifico SEPA - Bonifico a IMMOBILIARE CASA BELLA SRL per AFFITTO 07/2026"
+    assert rent.category == "Casa"
+    assert all("SALDO" not in r.description and "Pagina" not in r.description for r in preview.rows)
+
+
+def test_fixed_width_text_uses_dare_avere_columns(app):
+    text = (
+        "BANCA DEMO\n\n"
+        "Data        Descrizione                         Dare       Avere\n"
+        "02/03/2026  PAGAMENTO POS CONAD                 45,10\n"
+        "03/03/2026  BONIFICO DA CLIENTE XYZ                       1.200,00\n"
+        "            SALDO FINALE                                  9.999,99\n"
+    )
+    preview = bank_import.analyze_statement("estratto.txt", text.encode())
+    assert [(r.description, r.amount) for r in preview.rows] == [
+        ("PAGAMENTO POS CONAD", Decimal("-45.10")), ("BONIFICO DA CLIENTE XYZ", Decimal("1200.00")),
+    ]
+
+
+def test_text_lines_without_header_fallback(app):
+    text = (
+        "Movimenti del mese\n"
+        "05/06/2026 NETFLIX.COM AMSTERDAM 17,99\n"
+        "27/06/2026 07/06/2026 ACCREDITO STIPENDIO ACME 2.450,00 3.100,00\n"
+        "28/06/2026 COMMISSIONI 2,00-\n"
+    )
+    preview = bank_import.analyze_statement("note.txt", text.encode())
+    assert preview.bank.key == "generic"
+    assert [(r.description, r.amount, r.type) for r in preview.rows] == [
+        ("NETFLIX.COM AMSTERDAM", Decimal("-17.99"), "expense"),
+        ("ACCREDITO STIPENDIO ACME", Decimal("2450.00"), "income"),  # income hint; trailing balance ignored
+        ("COMMISSIONI", Decimal("-2.00"), "expense"),               # trailing minus sign
+    ]
+
+
+BLANK_PDF = (b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
+             b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF")
+
+
+@pytest.mark.parametrize("filename, content, message", [
+    ("scansione.pdf", BLANK_PDF, "scansione"),
+    ("vecchio.doc", b"\xd0\xcf\x11\xe0" + b"\0" * 100, ".docx"),
+    ("foto.jpg", b"\xff\xd8\xff\xe0" + b"\0" * 20, "immagini"),
+    ("archivio.zip", b"PK\x03\x04" + b"\0" * 30, "Formato non riconosciuto"),
+])
+def test_unsupported_documents_explain_what_to_do(app, filename, content, message):
+    with pytest.raises(bank_import.StatementImportError, match=message):
+        bank_import.analyze_statement(filename, content)
+
+
+def test_upload_pdf_through_web_flow(client, db):
+    filename = "intesa_sanpaolo_lista_movimenti_2026-09.pdf"
+    html = _upload(client, (SAMPLES / filename).read_bytes(), filename).get_data(as_text=True)
+    assert "Intesa Sanpaolo" in html and "TRENITALIA WEB" in html
+    client.post("/export/bank/confirm", data={"payload": _payload(html), "include": [str(i) for i in range(21)]})
+    assert Transaction.query.count() == 21
