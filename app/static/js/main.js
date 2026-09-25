@@ -52,23 +52,59 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".modal-overlay.open").forEach(m => closeModal(m.id));
     }
   });
+  /* ── Sidebar ─────────────────────────────────────────────────────────── */
   const toggleBtn = document.getElementById("sidebar-toggle");
   const sidebar   = document.getElementById("sidebar");
   const overlay   = document.getElementById("sidebar-overlay");
 
+  // Phones and tablets: the ☰ button slides the sidebar in; the dark overlay or ESC closes it
+  const closeSidebar = () => {
+    sidebar && sidebar.classList.remove("open");
+    overlay && overlay.classList.remove("active");
+  };
   if (toggleBtn && sidebar) {
     toggleBtn.addEventListener("click", () => {
       sidebar.classList.toggle("open");
-      overlay && overlay.classList.toggle("active");
+      overlay && overlay.classList.toggle("active", sidebar.classList.contains("open"));
     });
   }
+  overlay && overlay.addEventListener("click", closeSidebar);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeSidebar(); });
 
-  if (overlay) {
-    overlay.addEventListener("click", () => {
-      sidebar && sidebar.classList.remove("open");
-      overlay.classList.remove("active");
+  // Collapsible sections, remembered in this browser
+  const saveCollapsed = () => {
+    const closed = [...document.querySelectorAll(".nav-section.collapsed")].map(s => s.dataset.section);
+    try { localStorage.setItem("mfp-nav-collapsed", JSON.stringify(closed)); } catch (e) { /* private mode */ }
+  };
+  document.querySelectorAll(".nav-section-title").forEach(title => {
+    title.addEventListener("click", () => {
+      const section = title.closest(".nav-section");
+      const collapsed = section.classList.toggle("collapsed");
+      title.setAttribute("aria-expanded", String(!collapsed));
+      saveCollapsed();
     });
-  }
+  });
+
+  // Icons-only sidebar (desktop): more room for tables; each icon gets its name as a tooltip
+  const miniToggle = document.getElementById("sidebar-mini-toggle");
+  const applyMini = (mini) => {
+    document.documentElement.classList.toggle("sidebar-mini", mini);
+    document.querySelectorAll(".sidebar .nav-item").forEach(item => {
+      const label = item.querySelector(".nav-label");
+      if (mini && label) item.title = label.textContent.trim();
+      else item.removeAttribute("title");
+    });
+    if (miniToggle) {
+      miniToggle.setAttribute("aria-label", mini ? "Espandi il menu" : "Riduci il menu");
+      miniToggle.title = mini ? "Espandi il menu" : "";
+    }
+  };
+  applyMini(document.documentElement.classList.contains("sidebar-mini"));
+  miniToggle && miniToggle.addEventListener("click", () => {
+    const mini = !document.documentElement.classList.contains("sidebar-mini");
+    applyMini(mini);
+    try { localStorage.setItem("mfp-sidebar-mini", mini ? "1" : "0"); } catch (e) { /* private mode */ }
+  });
 
   /* ── Auto-dismiss flash alerts ──────────────────────────────────────── */
   document.querySelectorAll(".alert[data-autohide]").forEach(el => {

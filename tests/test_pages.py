@@ -70,3 +70,16 @@ def test_pages_have_balanced_divs(client, sample_data, url):
     """A stray </div> closes the page container early and breaks the layout (browsers hide it)."""
     html = client.get(url).get_data(as_text=True)
     assert len(re.findall(r"<div\b", html)) == len(re.findall(r"</div>", html))
+
+
+def test_sidebar_sections_are_collapsible(client, app):
+    html = client.get("/transactions/").get_data(as_text=True)
+    sections = re.findall(r'<div class="nav-section" data-section="(\w+)">', html)
+    assert sections == ["panoramica", "contabilita", "stiledivita", "gestione", "strumenti"]
+    for key in sections:
+        # each title is a button controlling its own group of links
+        assert f'aria-controls="nav-{key}"' in html and f'<div class="nav-section-items" id="nav-{key}">' in html
+    assert 'id="sidebar-mini-toggle"' in html  # icons-only mode
+    assert 'class="btn btn-ghost btn-icon sidebar-toggle-btn"' in html and 'style="display:none;"' not in html.split("sidebar-toggle-btn")[1][:40]
+    # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
+    assert len(re.findall(r'class="nav-item', html)) == len(re.findall(r'<span class="nav-label">', html)) - len(sections) - 1
