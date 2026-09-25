@@ -1,9 +1,12 @@
 import json
 from datetime import date, datetime
-from flask import render_template, request, redirect, url_for, flash, Response
+from flask import render_template, request, redirect, url_for, flash, Response, current_app
 from apiflask import APIBlueprint
+from itsdangerous import BadSignature, URLSafeSerializer
+from sqlalchemy.exc import IntegrityError
 from app.extensions import db
-from app.services import analytics, transfer
+from app.models.transaction import Transaction
+from app.services import analytics, transfer, bank_import
 
 export_bp = APIBlueprint(
     "export",
@@ -21,9 +24,20 @@ def _download(content: str, filename: str, mimetype: str) -> Response:
     )
 
 
+def _preview_serializer() -> URLSafeSerializer:
+    return URLSafeSerializer(current_app.secret_key, salt="bank-import-preview")
+
+
+def _known_categories() -> list[str]:
+    defaults = ["Casa", "Alimentari", "Trasporto", "Salute", "Svago", "Abbonamenti", "Stipendio",
+                "Freelance", "Investimenti", "Rimborsi", "Commissioni", "Giroconto", "Altro"]
+    stored = [c for (c,) in db.session.query(Transaction.category).filter(Transaction.category.isnot(None)).distinct()]
+    return sorted(set(defaults) | set(stored))
+
+
 @export_bp.route("/")
 def index():
-    return render_template("export/index.html", years=analytics.available_years())
+    return render_template("export/index.html", years=analytics.available_years(), banks=bank_import.BANKS)
 
 
 @export_bp.route("/csv")
@@ -106,4 +120,77 @@ def import_csv():
     db.session.add_all(transactions)
     db.session.commit()
     flash(f"{len(transactions)} transazioni importate con successo.", "success")
+    return redirect(url_for("transactions.index"))
+
+
+# ── Bank statement import (Fineco, Intesa Sanpaolo, generic) ───────────────────
+
+@export_bp.route("/bank", methods=["POST"])
+def bank_preview():
+    """Step 1: parse the uploaded statement and show a reviewable preview."""
+    upload = request.files.get("file")
+    if not upload or not upload.filename:
+        flash("Seleziona l'estratto conto da importare.", "error")
+        return redirect(url_for("export.index"))
+
+    bank = request.form.get("bank", bank_import.AUTO)
+    try:
+        preview = bank_import.analyze_statement(upload.filename, upload.read(), bank)
+    except bank_import.StatementImportError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("export.index"))
+
+    payload = _preview_serializer().dumps({
+        "bank": preview.bank.key,
+        "rows": [row.to_dict() for row in preview.rows],
+    })
+    return render_template(
+        "export/bank_preview.html",
+        preview=preview,
+        payload=payload,
+        filename=upload.filename,
+        categories=_known_categories(),
+    )
+
+
+@export_bp.route("/bank/confirm", methods=["POST"])
+def bank_confirm():
+    """Step 2: create transactions for the rows the user kept, with their edited category/type."""
+    try:
+        data = _preview_serializer().loads(request.form.get("payload", ""))
+    except BadSignature:
+        flash("Anteprima non valida o scaduta: carica di nuovo il file.", "error")
+        return redirect(url_for("export.index"))
+
+    rows = data["rows"]
+    selected = {int(i) for i in request.form.getlist("include") if i.isdigit() and int(i) < len(rows)}
+    refs = [rows[i]["import_ref"] for i in selected]
+    existing = {
+        ref for (ref,) in
+        Transaction.query.with_entities(Transaction.import_ref).filter(Transaction.import_ref.in_(refs))
+    } if refs else set()
+
+    created = []
+    for index in sorted(selected):
+        row = dict(rows[index])
+        if row["import_ref"] in existing:
+            continue
+        tx_type = request.form.get(f"type-{index}")
+        if tx_type in ("income", "expense", "transfer"):
+            row["type"] = tx_type
+        created.append(bank_import.build_transaction(row, data["bank"], request.form.get(f"category-{index}")))
+
+    db.session.add_all(created)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flash("Alcuni movimenti risultano già importati: ricarica il file e riprova.", "error")
+        return redirect(url_for("export.index"))
+
+    skipped = len(selected) - len(created)
+    message = f"{len(created)} movimenti importati da {bank_import.BANKS[data['bank']].name}."
+    if skipped:
+        message += f" {skipped} già presenti sono stati ignorati."
+    flash(message, "success")
     return redirect(url_for("transactions.index"))

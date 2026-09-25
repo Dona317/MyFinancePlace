@@ -8,4 +8,6 @@ python-dotenv==1.0.1
 Werkzeug==3.0.3
 apiflask
 psycopg2-binary
+openpyxl==3.1.5   # bank statement import (.xlsx)
+xlrd==2.0.2       # bank statement import (legacy .xls)
 pytest

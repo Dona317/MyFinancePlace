@@ -110,12 +110,49 @@
   </div>
 </div>
 
+<!-- Import estratto conto bancario ──────────────────────────────────── -->
+<div class="card mb-16" id="bank-import">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-bank2"></i> Importa Estratto Conto Bancario</div>
+      <div class="card-header-sub">Excel o CSV scaricato dall'home banking: movimenti categorizzati automaticamente, duplicati ignorati</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"
+          style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end;">
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">File dei movimenti (.xlsx, .xls, .csv)</label>
+        <input type="file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">Banca</label>
+        <select name="bank" class="form-select">
+          <option value="auto">Rilevamento automatico</option>
+          {% for key, bank in banks.items() %}
+          <option value="{{ key }}">{{ bank.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-search"></i> Analizza file
+      </button>
+    </form>
+    <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
+      <strong>Fineco:</strong> Conto → Movimenti → Esporta in Excel.
+      <strong>Intesa Sanpaolo:</strong> Conto corrente → Lista movimenti → Esporta Excel.
+      <strong>Altre banche:</strong> qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite).
+      Prima dell'importazione potrai controllare e modificare ogni movimento.
+    </p>
+  </div>
+</div>
+
 <!-- Import da Excel ─────────────────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> Importa da Excel / CSV</div>
-      <div class="card-header-sub">Mappa le colonne e applica regole di categorizzazione automatica</div>
+      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> Importa CSV con mappatura manuale</div>
+      <div class="card-header-sub">Per file con un formato non riconosciuto: scegli tu quali colonne usare</div>
     </div>
   </div>
   <div class="card-body">

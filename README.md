@@ -40,6 +40,23 @@ python run.py
 - Open `http://localhost:5000` in your browser.
 - The API swagger documentation: `http://localhost:5000/swagger`
 
+## Bank Statement Import
+
+**Esporta → Importa Estratto Conto Bancario** turns a bank export into transactions:
+
+1. Upload the file downloaded from home banking (`.xlsx`, `.xls` or `.csv`).
+2. The bank and the header row are detected automatically (or pick the bank by hand):
+   Fineco, Intesa Sanpaolo, or any statement with Date / Description / Amount (or Credit/Debit) columns.
+3. Review the preview: each row is auto-categorized, already-imported rows are flagged, and pending movements are excluded.
+   Untick rows or change category/type, then confirm.
+
+Re-importing the same (or an overlapping) statement is safe: each row gets a fingerprint (`import_ref`) and duplicates are skipped.
+Categorization rules live in `app/services/bank_import.py` (`CATEGORY_RULES`).
+
+After pulling this change run `flask --app run db upgrade` to add the `import_ref` column.
+
+See [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md) for the roadmap.
+
 ## Tests
 
 The test suite runs against a real PostgreSQL database (the models use `ARRAY` columns).
@@ -59,6 +76,7 @@ TEST_DATABASE_URL=postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test py
 | Accounting | ✅ Income Statement, Cash Flow · ⏳ Balance Sheet (needs Portfolio/Debt models) |
 | Lifestyle | ✅ Category breakdown, trends, month-over-month · ⏳ Goals |
 | Export | ✅ CSV, JSON, tax export, printable report, CSV import |
+| Bank import | ✅ Fineco, Intesa Sanpaolo and generic bank statements (.xlsx / .xls / .csv) with auto-categorization and duplicate detection |
 | Portfolio, Debt, Insurance, Documents, Snapshots, Auth | ⏳ UI only — models not implemented yet |
 
 ## Database

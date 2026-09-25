@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Anteprima Importazione — MyFinancePlace{% endblock %}
+{% block page_title %}Anteprima Importazione{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('export.index') }}">Esporta</a></li><li>Estratto conto</li>{% endblock %}
+
+{% block content %}
+
+<!-- Riepilogo ───────────────────────────────────────────────────────── -->
+<div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
+  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+    <div class="kpi-icon"><i class="bi bi-bank2"></i></div>
+    <div class="kpi-label">Banca</div>
+    <div class="kpi-value" style="font-size:var(--font-size-xl);">{{ preview.bank.name }}</div>
+    <div class="kpi-sub" title="{{ filename }}">{{ filename|truncate(32, true) }}</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+    <div class="kpi-icon"><i class="bi bi-list-check"></i></div>
+    <div class="kpi-label">Movimenti nuovi</div>
+    <div class="kpi-value">{{ preview.new_rows|length }}</div>
+    <div class="kpi-sub">
+      {% if preview.period %}{{ preview.period[0].strftime('%d/%m/%Y') }} → {{ preview.period[1].strftime('%d/%m/%Y') }}{% endif %}
+    </div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
+    <div class="kpi-label">Entrate</div>
+    <div class="kpi-value text-positive">{{ preview.total_income|money }}</div>
+  </div>
+  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+    <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
+    <div class="kpi-label">Uscite</div>
+    <div class="kpi-value text-negative">{{ preview.total_expenses|money }}</div>
+  </div>
+</div>
+
+{% if preview.duplicates or preview.pending_skipped %}
+<div class="alert alert-info mb-16">
+  <i class="bi bi-info-circle"></i>
+  {% set d, p = preview.duplicates, preview.pending_skipped %}
+  {% if d == 1 %}1 movimento era già stato importato e verrà ignorato.
+  {% elif d %}{{ d }} movimenti erano già stati importati e verranno ignorati.{% endif %}
+  {% if p == 1 %}1 movimento non ancora contabilizzato è stato escluso: importalo quando la banca lo avrà registrato.
+  {% elif p %}{{ p }} movimenti non ancora contabilizzati sono stati esclusi: importali quando la banca li avrà registrati.{% endif %}
+</div>
+{% endif %}
+
+<form method="POST" action="{{ url_for('export.bank_confirm') }}">
+  <input type="hidden" name="payload" value="{{ payload }}" />
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Controlla i movimenti</div>
+        <div class="card-header-sub">Deseleziona quelli da escludere e correggi categoria o tipo se necessario</div>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);cursor:pointer;">
+        <input type="checkbox" id="toggle-all" checked style="accent-color:var(--clr-primary);" /> Seleziona tutti
+      </label>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px;"></th>
+            <th>Data</th>
+            <th>Descrizione</th>
+            <th style="min-width:170px;">Categoria</th>
+            <th style="min-width:130px;">Tipo</th>
+            <th style="text-align:right;">Importo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in preview.rows %}
+          {% set i = loop.index0 %}
+          <tr style="{{ 'opacity:.45;' if row.duplicate else '' }}">
+            <td>
+              {% if row.duplicate %}
+                <i class="bi bi-check2-all" title="Già importato" style="color:var(--clr-text-muted);"></i>
+              {% else %}
+                <input type="checkbox" name="include" value="{{ i }}" class="row-include" checked
+                       style="width:16px;height:16px;accent-color:var(--clr-primary);" />
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ row.date.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <div style="font-weight:500;color:var(--clr-text-primary);">{{ row.description }}</div>
+              {% if row.details %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ row.details|truncate(90) }}</div>{% endif %}
+              {% if row.duplicate %}<span class="badge badge-muted">Già importato</span>{% endif %}
+            </td>
+            <td>
+              {% if row.duplicate %}{{ row.category }}{% else %}
+              <input type="text" name="category-{{ i }}" value="{{ row.category }}" list="category-options"
+                     class="form-control" style="padding:6px 10px;" />
+              {% endif %}
+            </td>
+            <td>
+              {% if row.duplicate %}—{% else %}
+              <select name="type-{{ i }}" class="form-select" style="padding:6px 10px;">
+                {% for val, lbl in [('expense','Uscita'),('income','Entrata'),('transfer','Trasferimento')] %}
+                <option value="{{ val }}" {{ 'selected' if row.type == val else '' }}>{{ lbl }}</option>
+                {% endfor %}
+              </select>
+              {% endif %}
+            </td>
+            <td class="amount {{ 'negative' if row.amount < 0 else 'positive' }}" style="text-align:right;white-space:nowrap;">
+              {{ row.amount|money(row.currency if row.currency != 'EUR' else '€') }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <datalist id="category-options">
+    {% for cat in categories %}<option value="{{ cat }}">{% endfor %}
+  </datalist>
+
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+    <a href="{{ url_for('export.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
+    <button type="submit" class="btn btn-primary" {{ 'disabled' if not preview.new_rows else '' }}>
+      <i class="bi bi-check2-all"></i> Importa <span id="selected-count">{{ preview.new_rows|length }}</span> movimenti
+    </button>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const boxes = document.querySelectorAll('.row-include');
+const counter = document.getElementById('selected-count');
+const refresh = () => { counter.textContent = [...boxes].filter(b => b.checked).length; };
+boxes.forEach(b => b.addEventListener('change', refresh));
+document.getElementById('toggle-all').addEventListener('change', (e) => {
+  boxes.forEach(b => { b.checked = e.target.checked; });
+  refresh();
+});
+</script>
+{% endblock %}
