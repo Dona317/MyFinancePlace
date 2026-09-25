@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request
 from apiflask import APIBlueprint
 
 auth_bp = APIBlueprint(

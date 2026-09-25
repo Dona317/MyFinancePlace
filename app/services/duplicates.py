@@ -30,14 +30,15 @@ NOISE_WORDS = {
 }
 
 
-def _tokens(text: str | None) -> set[str]:
+def meaningful_words(text: str | None) -> set[str]:
+    """Words of a description without the bank's boilerplate (\"Pagamento POS\", \"carta\", numbers)."""
     words = re.findall(r"[a-z]+|\d+", (text or "").lower())
     return {w for w in words if w not in NOISE_WORDS and not w.isdigit() and len(w) > 1}
 
 
 def similarity(first: str | None, second: str | None) -> float:
     """0..1: shared meaningful words (merchant names), falling back to character similarity."""
-    a, b = _tokens(first), _tokens(second)
+    a, b = meaningful_words(first), meaningful_words(second)
     if a and b:
         shared = len(a & b)
         return max(shared / len(a | b), 0.9 * shared / min(len(a), len(b)))
@@ -100,7 +101,7 @@ def find_groups(window_days: int = DEFAULT_WINDOW_DAYS, threshold: float = SENSI
     groups = []
     for txs in members.values():
         txs.sort(key=lambda t: (t.date, t.id))
-        identical = len({t.date for t in txs}) == 1 and len({frozenset(_tokens(t.description)) for t in txs}) == 1
+        identical = len({t.date for t in txs}) == 1 and len({frozenset(meaningful_words(t.description)) for t in txs}) == 1
         groups.append(DuplicateGroup(txs, identical))
     return sorted(groups, key=lambda g: (not g.identical, -g.latest.toordinal()))
 

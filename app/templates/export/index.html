@@ -19,7 +19,7 @@
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">CSV</div>
-          <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">Compatibile con Excel, Google Sheets</div>
+          <div class="text-xs text-muted">Compatibile con Excel, Google Sheets</div>
         </div>
       </div>
       <form method="GET" action="{{ url_for('export.export_csv') }}">
@@ -49,7 +49,7 @@
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">JSON</div>
-          <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">Backup completo, portabilità totale</div>
+          <div class="text-xs text-muted">Backup completo, portabilità totale</div>
         </div>
       </div>
       <p style="font-size:var(--font-size-sm);color:var(--clr-text-muted);margin-bottom:16px;">
@@ -71,7 +71,7 @@
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">Report PDF</div>
-          <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">Stampa o salva come PDF dal browser</div>
+          <div class="text-xs text-muted">Stampa o salva come PDF dal browser</div>
         </div>
       </div>
       <form method="GET" action="{{ url_for('export.export_pdf') }}">
@@ -152,7 +152,7 @@
         <span><strong>Lettura AI disponibile</strong> ({{ ai_reader }}): se un file non si riesce a leggere, ti verrà chiesto se usarla.
           <a href="{{ url_for('settings.ai_models_page') }}">Cambia modello</a></span>
       {% else %}
-        <span style="color:var(--clr-text-muted);"><strong>Lettura AI non attiva:</strong> scansioni e foto non sono leggibili.
+        <span class="text-muted"><strong>Lettura AI non attiva:</strong> scansioni e foto non sono leggibili.
           <a href="{{ url_for('settings.ai_models_page') }}">Configura un modello AI</a></span>
       {% endif %}
     </p>
@@ -210,7 +210,7 @@
           ('counterparty', 'Colonna Controparte', false),
         ] %}
         <div class="form-group">
-          <label class="form-label">{{ label }}{% if not required %} <span style="color:var(--clr-text-muted);">(opzionale)</span>{% endif %}</label>
+          <label class="form-label">{{ label }}{% if not required %} <span class="text-muted">(opzionale)</span>{% endif %}</label>
           <select name="col_{{ field }}" class="form-select import-col" data-field="{{ field }}" data-required="{{ required|lower }}" disabled>
             <option value="">— Carica prima un file —</option>
           </select>

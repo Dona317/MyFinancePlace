@@ -90,27 +90,27 @@
   </div>
   {% if w.id == 'kpi' %}
   <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));">
-    <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+    <div class="kpi-card kpi-primary">
       <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
       <div class="kpi-label">Chiusura {{ cur.label }}</div>
       <div class="kpi-value {{ 'positive' if cur.net >= 0 else 'negative' }}" data-amount="{{ cur.net }}" data-currency="EUR">—</div>
       <div class="kpi-sub">Registrato fino al {{ fc.cutoff.strftime('%d/%m') }} + previsto</div>
     </div>
     {% if nxt %}
-    <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+    <div class="kpi-card kpi-positive">
       <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
       <div class="kpi-label">Entrate {{ nxt.label }}</div>
       <div class="kpi-value" data-amount="{{ nxt.income }}" data-currency="EUR">—</div>
       <div class="kpi-sub">di cui ricorrenti {{ nxt.scheduled_income|money }}</div>
     </div>
-    <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+    <div class="kpi-card kpi-negative">
       <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
       <div class="kpi-label">Uscite {{ nxt.label }}</div>
       <div class="kpi-value" data-amount="{{ nxt.expenses }}" data-currency="EUR">—</div>
       <div class="kpi-sub">di cui ricorrenti {{ nxt.scheduled_expenses|money }}</div>
     </div>
     {% endif %}
-    <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+    <div class="kpi-card kpi-neutral">
       <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
       <div class="kpi-label">Saldo tra {{ fc.horizon }} mesi</div>
       <div class="kpi-value" data-amount="{{ fc.final_balance }}" data-currency="EUR">—</div>
@@ -145,8 +145,8 @@
       </div>
       <div class="table-wrapper">
         <table class="methods-table table-compact table-wide">
-          <thead><tr><th>Metodo</th><th class="col-optional" style="text-align:right;">Netto {{ nxt.label if nxt else cur.label }}</th>
-            <th style="text-align:right;" title="Errore medio sulle entrate">Err. entrate</th><th style="text-align:right;" title="Errore medio sulle uscite">Err. uscite</th></tr></thead>
+          <thead><tr><th>Metodo</th><th class="col-optional text-right">Netto {{ nxt.label if nxt else cur.label }}</th>
+            <th class="text-right" title="Errore medio sulle entrate">Err. entrate</th><th class="text-right" title="Errore medio sulle uscite">Err. uscite</th></tr></thead>
           <tbody>
             {% for m in fc.methods %}
             <tr class="{{ 'selected' if m.selected else '' }}">
@@ -160,7 +160,7 @@
                 {% if m.best %}<span class="badge badge-positive">più preciso</span>{% endif %}
                 {% if m.fallback %}<span class="badge badge-muted" title="Storico insufficiente: usa la media mobile">= media</span>{% endif %}
               </td>
-              <td class="amount col-optional {{ 'positive' if m.next_net >= 0 else 'negative' }}" style="text-align:right;white-space:nowrap;">{{ m.next_net|money }}</td>
+              <td class="amount col-optional {{ 'positive' if m.next_net >= 0 else 'negative' }} text-right nowrap">{{ m.next_net|money }}</td>
               <td class="method-error {{ 'best' if m.best_income else '' }}" title="{{ 'Il più preciso sulle entrate' if m.best_income else '' }}">{{ m.error_income|money if m.error_income is not none else '—' }}</td>
               <td class="method-error {{ 'best' if m.best_expenses else '' }}" title="{{ 'Il più preciso sulle uscite' if m.best_expenses else '' }}">{{ m.error_expenses|money if m.error_expenses is not none else '—' }}</td>
             </tr>
@@ -220,15 +220,15 @@
       </div>
       <div class="table-wrapper" style="max-height:340px;overflow-y:auto;">
         <table class="table-compact">
-          <thead><tr><th>Mese</th><th style="text-align:right;">Entrate</th><th style="text-align:right;">Uscite</th><th style="text-align:right;">Netto</th><th class="col-optional" style="text-align:right;">Saldo</th></tr></thead>
+          <thead><tr><th>Mese</th><th class="text-right">Entrate</th><th class="text-right">Uscite</th><th class="text-right">Netto</th><th class="col-optional text-right">Saldo</th></tr></thead>
           <tbody>
             {% for row in fc.months %}
             <tr>
-              <td style="white-space:nowrap;">{{ row.label }}{% if row.current %} <span class="badge badge-muted">in corso</span>{% endif %}</td>
-              <td class="amount positive" style="text-align:right;white-space:nowrap;">{{ row.income|money }}</td>
-              <td class="amount negative" style="text-align:right;white-space:nowrap;">{{ (-row.expenses)|money }}</td>
+              <td class="nowrap">{{ row.label }}{% if row.current %} <span class="badge badge-muted">in corso</span>{% endif %}</td>
+              <td class="amount positive text-right nowrap">{{ row.income|money }}</td>
+              <td class="amount negative text-right nowrap">{{ (-row.expenses)|money }}</td>
               <td class="amount {{ 'positive' if row.net >= 0 else 'negative' }}" style="text-align:right;white-space:nowrap;font-weight:600;">{{ row.net|money }}</td>
-              <td class="col-optional" style="text-align:right;white-space:nowrap;">{{ row.balance|money }}</td>
+              <td class="col-optional text-right nowrap">{{ row.balance|money }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -245,22 +245,22 @@
       </div>
       <div class="table-wrapper">
         <table class="table-compact">
-          <thead><tr><th>Categoria</th><th style="text-align:right;">Media</th><th class="col-optional" style="text-align:right;">Ricorrenti</th><th class="col-optional" style="text-align:right;">Variabili</th><th style="text-align:right;">Previsto</th></tr></thead>
+          <thead><tr><th>Categoria</th><th class="text-right">Media</th><th class="col-optional text-right">Ricorrenti</th><th class="col-optional text-right">Variabili</th><th class="text-right">Previsto</th></tr></thead>
           <tbody>
             {% for c in fc.categories %}
             {% set sign = -1 if c.type == 'expense' else 1 %}
             <tr>
               <td><span class="badge {{ 'badge-positive' if c.type == 'income' else 'badge-primary' }}">{{ c.category }}</span></td>
               <td style="text-align:right;white-space:nowrap;color:var(--clr-text-muted);">{{ (sign * c.average)|money }}</td>
-              <td class="col-optional" style="text-align:right;white-space:nowrap;">{{ (sign * c.scheduled)|money if c.scheduled else '—' }}</td>
-              <td class="col-optional" style="text-align:right;white-space:nowrap;">{{ (sign * c.variable)|money if c.variable else '—' }}</td>
-              <td class="amount {{ 'negative' if c.type == 'expense' else 'positive' }}" style="text-align:right;white-space:nowrap;font-weight:600;">
+              <td class="col-optional text-right nowrap">{{ (sign * c.scheduled)|money if c.scheduled else '—' }}</td>
+              <td class="col-optional text-right nowrap">{{ (sign * c.variable)|money if c.variable else '—' }}</td>
+              <td class="amount {{ c.type|tone }}" style="text-align:right;white-space:nowrap;font-weight:600;">
                 {{ (sign * c.total)|money }}
                 {% if c.average and c.total > c.average * 1.2 %}<i class="bi bi-arrow-up-short" title="Oltre il 20% sopra la media"></i>{% endif %}
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="5" style="color:var(--clr-text-muted);">Nessuna categoria prevista.</td></tr>
+            <tr><td class="text-muted" colspan="5">Nessuna categoria prevista.</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -277,7 +277,7 @@
       </div>
       <div class="table-wrapper">
         <table class="table-compact">
-          <thead><tr><th>Data</th><th>Descrizione</th><th class="col-optional">Frequenza</th><th style="text-align:right;">Importo</th><th></th></tr></thead>
+          <thead><tr><th>Data</th><th>Descrizione</th><th class="col-optional">Frequenza</th><th class="text-right">Importo</th><th></th></tr></thead>
           <tbody>
             {% for item in fc.upcoming[:15] %}
             {% set tx = item.tx %}
@@ -285,12 +285,12 @@
               <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ item.date.strftime('%d/%m/%Y') }}</td>
               <td>{{ tx.description }}</td>
               <td class="col-optional"><span class="badge badge-muted">{{ frequencies[tx.recurrence][0] if tx.recurrence in frequencies else 'Mensile' }}</span></td>
-              <td class="amount {{ 'negative' if tx.type == 'expense' else 'positive' }}" style="text-align:right;white-space:nowrap;">
+              <td class="amount {{ tx.type|tone }} text-right nowrap">
                 {{ (-item.amount if tx.type == 'expense' else item.amount)|money }}</td>
               <td><a href="{{ url_for('transactions.edit', tx_id=tx.id, next=url_for('forecast.index')) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica o interrompi"><i class="bi bi-pencil"></i></a></td>
             </tr>
             {% else %}
-            <tr><td colspan="5" style="color:var(--clr-text-muted);">
+            <tr><td class="text-muted" colspan="5">
               Nessuna transazione ricorrente programmata. Segna come ricorrenti affitto, stipendio, abbonamenti{% if fc.candidates %} (trovi quelle rilevate nel pannello «Sembrano ricorrenti»){% endif %}.
             </td></tr>
             {% endfor %}
@@ -308,15 +308,15 @@
       </div>
       <div class="table-wrapper">
         <table class="table-compact table-wide">
-          <thead><tr><th>Descrizione</th><th class="col-optional">Categoria</th><th style="text-align:right;">Importo tipico</th><th>Frequenza</th></tr></thead>
+          <thead><tr><th>Descrizione</th><th class="col-optional">Categoria</th><th class="text-right">Importo tipico</th><th>Frequenza</th></tr></thead>
           <tbody>
             {% for c in fc.candidates %}
             {% set tx = c.template %}
             <tr>
               <td><div style="font-weight:500;">{{ tx.description }}</div>
-                  <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ c.count }} volte, ultima il {{ tx.date.strftime('%d/%m/%Y') }} · prossima il {{ c.next_date.strftime('%d/%m/%Y') }}</div></td>
+                  <div class="text-xs text-muted">{{ c.count }} volte, ultima il {{ tx.date.strftime('%d/%m/%Y') }} · prossima il {{ c.next_date.strftime('%d/%m/%Y') }}</div></td>
               <td class="col-optional">{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
-              <td class="amount {{ 'negative' if tx.type == 'expense' else 'positive' }}" style="text-align:right;white-space:nowrap;">
+              <td class="amount {{ tx.type|tone }} text-right nowrap">
                 {{ (-c.typical_amount if tx.type == 'expense' else c.typical_amount)|money }}</td>
               <td>
                 <form method="POST" action="{{ url_for('forecast.mark_recurring', tx_id=tx.id) }}" class="candidate-form">
@@ -328,7 +328,7 @@
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="4" style="color:var(--clr-text-muted);">Nessuna serie ricorrente da confermare.</td></tr>
+            <tr><td class="text-muted" colspan="4">Nessuna serie ricorrente da confermare.</td></tr>
             {% endfor %}
           </tbody>
         </table>

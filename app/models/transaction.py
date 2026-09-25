@@ -21,5 +21,15 @@ class Transaction(db.Model):
     bank_description = db.Column(db.Text)       # the bank's original causale, kept as imported (never edited)
     import_ref     = db.Column(db.String(64), unique=True, index=True)  # fingerprint of a bank-statement row
 
+    @property
+    def magnitude(self) -> float:
+        """Amount as a positive number (the direction comes from `type`)."""
+        return abs(float(self.amount or 0))
+
+    @property
+    def signed_amount(self) -> float:
+        """Negative for expenses, positive otherwise: how the amount is shown and summed in a balance."""
+        return -self.magnitude if self.type == "expense" else self.magnitude
+
     def __repr__(self):
         return f"<Transaction {self.id} {self.description}>"

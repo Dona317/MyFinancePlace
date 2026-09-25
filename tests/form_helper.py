@@ -1,4 +1,5 @@
 """Submit an HTML form from a rendered page the way a browser would (for end-to-end tests)."""
+import re
 from html.parser import HTMLParser
 
 
@@ -65,3 +66,8 @@ def form_data(html: str, form_id: str, **overrides) -> dict:
     for name, value in overrides.items():
         data[name] = value if isinstance(value, list) else [value]
     return data
+
+
+def assert_divs_balanced(html: str) -> None:
+    """A stray </div> closes the page container early and breaks the layout (browsers hide it)."""
+    assert len(re.findall(r"<div\b", html)) == len(re.findall(r"</div>", html))

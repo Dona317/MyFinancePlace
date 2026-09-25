@@ -105,7 +105,7 @@ def ai_models_page():
         extra_installed=extra_installed,
         pulls=ai_models.pull_progress(),
         is_vision=ai_models.is_vision,
-        anthropic_models=["claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"],
+        anthropic_models=ai_extraction.ANTHROPIC_MODELS,
     )
 
 
@@ -114,7 +114,7 @@ def ai_save():
     provider = request.form.get("provider", "none")
     model = (request.form.get("model") or "").strip()
     classify_model = (request.form.get("classify_model") or "").strip()
-    if provider not in ("none", "ollama", "anthropic"):
+    if provider != "none" and provider not in ai_extraction.DEFAULT_MODELS:
         flash("Provider non valido.", "error")
         return redirect(url_for("settings.ai_models_page"))
     for name in (model, classify_model):

@@ -6,7 +6,7 @@ from apiflask import APIBlueprint
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
-from app.models.transaction import Transaction
+from app.routes.helpers import form_ids
 from app.services import analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store
 from app.services.categories import known_categories
 
@@ -142,8 +142,7 @@ def _render_preview(preview, filename: str):
         payload=payload,
         filename=filename,
         categories=known_categories(),
-        ai_classifier=ai_classification.describe(),
-        ai_cloud=ai_extraction.provider() == "anthropic",
+        **ai_classification.template_context(),
     )
 
 
@@ -181,7 +180,7 @@ def _ai_choices(needs_vision: bool) -> dict:
             choices["models"].append({"name": name, "usable": vision or not needs_vision, "vision": vision})
     elif provider == "anthropic":
         choices["models"] = [{"name": n, "usable": True, "vision": True}
-                             for n in dict.fromkeys([choices["current"], "claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"])]
+                             for n in dict.fromkeys([choices["current"], *ai_extraction.ANTHROPIC_MODELS])]
     return choices
 
 
@@ -236,12 +235,8 @@ def bank_confirm():
         return redirect(url_for("export.index"))
 
     rows = data["rows"]
-    selected = sorted({int(i) for i in request.form.getlist("include") if i.isdigit()})
-    refs = [rows[i]["import_ref"] for i in selected if i < len(rows)]
-    existing = {
-        ref for (ref,) in
-        Transaction.query.with_entities(Transaction.import_ref).filter(Transaction.import_ref.in_(refs))
-    } if refs else set()
+    selected = sorted(form_ids("include"))
+    existing = bank_import.already_imported([rows[i]["import_ref"] for i in selected if i < len(rows)])
 
     created, invalid, skipped = [], [], 0
     for index in selected:
@@ -252,7 +247,7 @@ def bank_confirm():
         fields = {name: request.form.get(f"{name}-{index}", "") for name in
                   ("date", "description", "amount", "type", "category", "counterparty", "aicat")}
         try:
-            created.append(bank_import.build_edited_transaction(base, fields, data["bank"], ai=data.get("ai", False)))
+            created.append(bank_import.build_transaction(base, data["bank"], fields, ai=data.get("ai", False)))
         except ValueError:
             invalid.append(index + 1)
 

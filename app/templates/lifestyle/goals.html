@@ -14,22 +14,22 @@
 
 <!-- Riepilogo obiettivi ─────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+  <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-trophy"></i></div>
     <div class="kpi-label">Obiettivi Attivi</div>
     <div class="kpi-value">0</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+  <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
     <div class="kpi-label">Completati</div>
     <div class="kpi-value text-positive">0</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+  <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
     <div class="kpi-label">Totale Risparmiato</div>
     <div class="kpi-value">€ 0</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
+  <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-flag"></i></div>
     <div class="kpi-label">Obiettivo Totale</div>
     <div class="kpi-value">€ 0</div>
@@ -45,7 +45,7 @@
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
           <div>
             <div style="font-weight:700;color:var(--clr-text-primary);">{{ goal.name }}</div>
-            <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">
+            <div class="text-xs text-muted">
               Scadenza: {{ goal.deadline }}
             </div>
           </div>
@@ -55,7 +55,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;font-size:var(--font-size-sm);margin-bottom:8px;">
           <span class="amount positive">€ {{ goal.current }}</span>
-          <span class="amount" style="color:var(--clr-text-muted);">/ € {{ goal.target }}</span>
+          <span class="amount text-muted">/ € {{ goal.target }}</span>
         </div>
         <div class="progress-bar-wrap">
           <div class="progress-bar-fill {{ 'positive' if goal.progress >= 100 else '' }}"
@@ -96,7 +96,7 @@
            onmouseout="this.style.borderColor='var(--clr-border)';this.style.background=''">
         <div style="font-size:20px;margin-bottom:6px;color:var(--clr-primary);"><i class="bi {{ icon }}"></i></div>
         <div style="font-weight:600;font-size:var(--font-size-sm);color:var(--clr-text-primary);">{{ label }}</div>
-        <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ desc }}</div>
+        <div class="text-xs text-muted">{{ desc }}</div>
       </div>
       {% endfor %}
     </div>

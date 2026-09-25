@@ -11,8 +11,7 @@ from sqlalchemy import extract, func
 
 from app.extensions import db
 from app.models.transaction import Transaction
-
-MONTH_LABELS = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
+from app.services.periods import MONTH_LABELS, month_bounds, month_index, month_label, shift_month, year_bounds
 
 UNCATEGORIZED = "Senza categoria"
 
@@ -25,18 +24,6 @@ FINANCING_KEYWORDS  = ("prestit", "mutuo", "debit", "finanziament", "loan", "rat
 
 
 # ── Date helpers ───────────────────────────────────────────────────────────────
-
-def month_bounds(year: int, month: int) -> tuple[date, date]:
-    """Return [first day of month, first day of next month)."""
-    start = date(year, month, 1)
-    end = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
-    return start, end
-
-
-def shift_month(year: int, month: int, delta: int) -> tuple[int, int]:
-    index = year * 12 + (month - 1) + delta
-    return index // 12, index % 12 + 1
-
 
 def available_years() -> list[int]:
     """Years that contain at least one transaction (newest first); current year if none."""
@@ -122,7 +109,7 @@ def last_12_months(today: date | None = None) -> dict:
     for delta in range(-11, 1):
         y, m = shift_month(today.year, today.month, delta)
         start, end = month_bounds(y, m)
-        labels.append(f"{MONTH_LABELS[m - 1]} {str(y)[2:]}")
+        labels.append(month_label(month_index(start)))
         income.append(_sum("income", start, end))
         expenses.append(_sum("expense", start, end))
     return {"labels": labels, "income": income, "expenses": expenses}
@@ -130,7 +117,7 @@ def last_12_months(today: date | None = None) -> dict:
 
 def monthly_category_trend(year: int, top_n: int = 5) -> dict:
     """Monthly expense series for the top `top_n` expense categories of `year`."""
-    top = category_breakdown(date(year, 1, 1), date(year + 1, 1, 1))[:top_n]
+    top = category_breakdown(*year_bounds(year))[:top_n]
     names = [item["category"] for item in top]
     series = {name: [0.0] * 12 for name in names}
     rows = (
@@ -177,7 +164,7 @@ def dashboard_kpis(today: date | None = None) -> dict:
 
 
 def income_statement(year: int) -> dict:
-    start, end = date(year, 1, 1), date(year + 1, 1, 1)
+    start, end = year_bounds(year)
     summary = totals(start, end)
     income_lines = category_breakdown(start, end, "income")
     expense_lines = category_breakdown(start, end, "expense")
@@ -210,7 +197,7 @@ def cash_flow(year: int) -> dict:
       B. Investing  = transfers into investment categories (outflows)
       C. Financing  = transfers into loan/mortgage categories (outflows)
     """
-    start, end = date(year, 1, 1), date(year + 1, 1, 1)
+    start, end = year_bounds(year)
     operating = totals(start, end)["net"]
 
     investing = financing = 0.0
@@ -251,7 +238,7 @@ def cash_flow(year: int) -> dict:
 
 def lifestyle_report(year: int, today: date | None = None) -> dict:
     today = today or date.today()
-    start, end = date(year, 1, 1), date(year + 1, 1, 1)
+    start, end = year_bounds(year)
     breakdown = category_breakdown(start, end)
     total_expenses = sum(item["amount"] for item in breakdown)
 

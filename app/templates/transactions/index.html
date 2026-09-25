@@ -44,8 +44,7 @@
     </select>
     <input type="month" name="month" value="{{ filters.month }}" class="form-control" style="width:160px;" onchange="this.form.submit()" />
     <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);white-space:nowrap;">
-      <input type="checkbox" name="recurring" value="1" {{ 'checked' if filters.recurring else '' }} onchange="this.form.submit()"
-             style="width:16px;height:16px;accent-color:var(--clr-primary);" /> Solo ricorrenti
+      <input class="check" type="checkbox" name="recurring" value="1" {{ 'checked' if filters.recurring else '' }} onchange="this.form.submit()" /> Solo ricorrenti
     </label>
     <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> Filtra</button>
     <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Azzera</a>
@@ -83,49 +82,47 @@
     <table>
       <thead>
         <tr>
-          <th style="width:32px;"><input type="checkbox" id="select-all" title="Seleziona tutte"
-                                         style="width:16px;height:16px;accent-color:var(--clr-primary);" /></th>
+          <th style="width:32px;"><input class="check" type="checkbox" id="select-all" title="Seleziona tutte" /></th>
           <th>Data</th>
           <th>Descrizione</th>
           <th>Categoria</th>
           <th>Controparte</th>
           <th>Tag</th>
-          <th style="text-align:right;">Importo</th>
-          <th style="text-align:center;">Azioni</th>
+          <th class="text-right">Importo</th>
+          <th class="text-center">Azioni</th>
         </tr>
       </thead>
       <tbody>
         {% for tx in transactions %}
         <tr>
-          <td><input type="checkbox" name="ids" value="{{ tx.id }}" form="bulk-form" class="bulk-select"
-                     style="width:16px;height:16px;accent-color:var(--clr-primary);" /></td>
+          <td><input type="checkbox" name="ids" value="{{ tx.id }}" form="bulk-form" class="bulk-select check" /></td>
           <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">
             {{ tx.date.strftime('%d %b %Y') }}
           </td>
           <td>
             <div style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</div>
             {% if tx.bank_description and tx.bank_description != tx.description %}
-            <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);" title="Causale originale della banca">
+            <div class="text-xs text-muted" title="Causale originale della banca">
               <i class="bi bi-bank"></i> {{ tx.bank_description|truncate(90) }}</div>
             {% endif %}
           </td>
           <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
-          <td style="color:var(--clr-text-muted);">{{ tx.counterparty or '—' }}</td>
+          <td class="text-muted">{{ tx.counterparty or '—' }}</td>
           <td>
             {% for tag in tx.tags %}
             <span class="badge badge-muted">{{ tag }}</span>
             {% endfor %}
           </td>
-          <td style="text-align:right;">
+          <td class="text-right">
             {% set symbol = tx.currency if tx.currency and tx.currency != 'EUR' else '€' %}
             {% if tx.type == 'transfer' %}
             <span class="amount" style="color:var(--clr-text-muted);white-space:nowrap;" title="Trasferimento tra conti">⇄ {{ tx.amount|abs|money(symbol) }}</span>
             {% else %}
-            {% set signed = -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs %}
-            <span class="amount {{ 'negative' if tx.type == 'expense' else 'positive' }}">{{ signed|money(symbol) }}</span>
+            {% set signed = tx.signed_amount %}
+            <span class="amount {{ tx.type|tone }}">{{ signed|money(symbol) }}</span>
             {% endif %}
           </td>
-          <td style="text-align:center;">
+          <td class="text-center">
             <div style="display:flex;gap:4px;justify-content:center;">
               <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica">
                 <i class="bi bi-pencil"></i>

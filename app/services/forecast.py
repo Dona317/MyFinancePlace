@@ -25,8 +25,9 @@ from statistics import mean, median
 
 from app.models.transaction import Transaction
 from app.services import settings_store
-from app.services.analytics import MONTH_LABELS, UNCATEGORIZED, shift_month
-from app.services.duplicates import _tokens
+from app.services.analytics import UNCATEGORIZED
+from app.services.duplicates import meaningful_words
+from app.services.periods import add_months, month_index, month_label, month_start, shift_month  # noqa: F401 (shift_month re-exported)
 
 # ── Methods and preferences ────────────────────────────────────────────────────
 
@@ -182,25 +183,8 @@ def method_needs_more_history(method: str, months: int) -> bool:
 
 def series_key(tx) -> tuple:
     """Transactions of the same series (Netflix every month) share type and meaningful description words."""
-    words = _tokens(tx.description)
+    words = meaningful_words(tx.description)
     return (tx.type, tuple(sorted(words)) if words else ((tx.description or "").strip().lower(),))
-
-
-def month_index(d: date) -> int:
-    return d.year * 12 + d.month - 1
-
-
-def month_label(index: int) -> str:
-    return f"{MONTH_LABELS[index % 12]} {str(index // 12)[2:]}"
-
-
-def month_start(index: int) -> date:
-    return date(index // 12, index % 12 + 1, 1)
-
-
-def add_months(d: date, months: int) -> date:
-    y, m = shift_month(d.year, d.month, months)
-    return date(y, m, min(d.day, calendar.monthrange(y, m)[1]))
 
 
 def occurrences(template, start: date, end: date) -> list[date]:
@@ -232,7 +216,7 @@ def scheduled_templates(transactions) -> list:
 
 def monthly_equivalent(tx, amount: float | None = None) -> float:
     frequency = tx.recurrence if tx.recurrence in FREQUENCIES else "monthly"
-    return (abs(float(tx.amount)) if amount is None else amount) * FREQUENCIES[frequency][3]
+    return (tx.magnitude if amount is None else amount) * FREQUENCIES[frequency][3]
 
 
 def recurring_amounts(transactions, templates, window_months: range, mode: str) -> dict:
@@ -241,14 +225,14 @@ def recurring_amounts(transactions, templates, window_months: range, mode: str) 
     recurring series too (incoming salary included): the mean of the series' amounts in the last N complete
     months, or the latest amount if the series has no movement in the window (a yearly premium).
     """
-    amounts = {series_key(t): abs(float(t.amount)) for t in templates}
+    amounts = {series_key(t): t.magnitude for t in templates}
     if mode != "media":
         return amounts
     in_window = defaultdict(list)
     for tx in transactions:
         key = series_key(tx)
         if key in amounts and month_index(tx.date) in window_months:
-            in_window[key].append(abs(float(tx.amount)))
+            in_window[key].append(tx.magnitude)
     for key, values in in_window.items():
         amounts[key] = round(mean(values), 2)
     return amounts
@@ -263,10 +247,6 @@ class Candidate:
     count: int
     typical_amount: float
     next_date: date
-
-    @property
-    def frequency_label(self) -> str:
-        return FREQUENCIES[self.frequency][0]
 
     @property
     def monthly(self) -> float:
@@ -297,7 +277,7 @@ def detect_candidates(transactions, today: date) -> list[Candidate]:
         _, days, tol, _ = FREQUENCIES[frequency]
         if sum(abs(i - days) <= tol for i in intervals) < 0.75 * len(intervals):
             continue
-        amounts = [abs(float(t.amount)) for t in txs]
+        amounts = [t.magnitude for t in txs]
         amount = median(amounts)
         if amount <= 0 or sum(abs(a - amount) <= AMOUNT_TOLERANCE * amount for a in amounts) < 0.75 * len(amounts):
             continue
@@ -344,10 +324,6 @@ class Forecast:
     def next_month(self) -> dict | None:
         return self.months[1] if len(self.months) > 1 else None
 
-    def amount_of(self, template) -> float:
-        """Projected amount of a recurring series (rolling mean or latest amount)."""
-        return self.recurring_amounts.get(series_key(template), abs(float(template.amount)))
-
     @property
     def final_balance(self) -> float:
         return self.months[-1]["balance"] if self.months else self.balance_now
@@ -361,7 +337,7 @@ def _variable_series(transactions, first: int, last: int, excluded_keys: set) ->
             continue
         i = month_index(tx.date)
         if first <= i <= last:
-            series[(tx.type, tx.category or UNCATEGORIZED)][i - first] += abs(float(tx.amount))
+            series[(tx.type, tx.category or UNCATEGORIZED)][i - first] += tx.magnitude
     return series
 
 
@@ -407,7 +383,7 @@ def backtest(series: dict, method: str, window: int, months: int = BACKTEST_MONT
 def build(transactions, method: str, window: int, horizon: int, today: date, recurring: str = DEFAULT_RECURRING) -> Forecast:
     fc = Forecast(method=method, window=window, horizon=horizon, today=today, recurring_mode=recurring)
     real = [t for t in transactions if t.type in ("income", "expense")]
-    fc.balance_now = round(sum(abs(float(t.amount)) * (1 if t.type == "income" else -1) for t in real if t.date <= today), 2)
+    fc.balance_now = round(sum(t.signed_amount for t in real if t.date <= today), 2)
 
     templates = scheduled_templates(real)
     template_keys = {series_key(t) for t in templates}
@@ -428,7 +404,7 @@ def build(transactions, method: str, window: int, horizon: int, today: date, rec
     # Actual totals of the complete months (shown for the last 12)
     actual = defaultdict(lambda: [0.0, 0.0])
     for tx in real:
-        actual[month_index(tx.date)][0 if tx.type == "income" else 1] += abs(float(tx.amount))
+        actual[month_index(tx.date)][0 if tx.type == "income" else 1] += tx.magnitude
     shown = range(max(first, last_complete - 11), last_complete + 1)
     fc.history = {
         "labels": [month_label(i) for i in shown],
@@ -520,7 +496,7 @@ def build(transactions, method: str, window: int, horizon: int, today: date, rec
         averages = defaultdict(float)
         for tx in real:
             if month_index(tx.date) in window_months:
-                averages[(tx.type, tx.category or UNCATEGORIZED)] += abs(float(tx.amount))
+                averages[(tx.type, tx.category or UNCATEGORIZED)] += tx.magnitude
         n_months = max(len(window_months), 1)
         var_next = {key: predict(method, values, 2, window)[1] for key, values in variable.items()}
         keys = set(averages) | set(var_next) | set(scheduled.get(nxt, {}))

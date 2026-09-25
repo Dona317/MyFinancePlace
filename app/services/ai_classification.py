@@ -72,8 +72,12 @@ def model_name() -> str:
 
 
 def describe() -> str | None:
-    name = ai_extraction.provider()
-    return f"{ai_extraction.PROVIDER_LABELS[name]} · {model_name()}" if name else None
+    return ai_extraction.describe(model_name())
+
+
+def template_context() -> dict:
+    """What the pages offering "Classifica con AI" show: the model, and whether data leaves the computer."""
+    return {"ai_classifier": describe(), "ai_cloud": ai_extraction.provider() == "anthropic"}
 
 
 # ── Classification ─────────────────────────────────────────────────────────────

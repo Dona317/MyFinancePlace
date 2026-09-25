@@ -3,6 +3,7 @@ import re
 import pytest
 
 from app.models.transaction import Transaction
+from tests.form_helper import assert_divs_balanced
 
 
 @pytest.mark.parametrize("url", [
@@ -68,9 +69,7 @@ def test_api_rejects_invalid_type(client, db):
     "/transactions/duplicates", "/settings/ai", "/settings/", "/transactions/new", "/forecast/",
 ])
 def test_pages_have_balanced_divs(client, sample_data, url):
-    """A stray </div> closes the page container early and breaks the layout (browsers hide it)."""
-    html = client.get(url).get_data(as_text=True)
-    assert len(re.findall(r"<div\b", html)) == len(re.findall(r"</div>", html))
+    assert_divs_balanced(client.get(url).get_data(as_text=True))
 
 
 def test_sidebar_sections_are_collapsible(client, app):

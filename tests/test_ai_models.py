@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from app.services import ai_extraction, ai_models, settings_store, upload_store
+from app.services import ai_extraction, ai_models, upload_store
 
 ROOT = Path(__file__).resolve().parent.parent
 

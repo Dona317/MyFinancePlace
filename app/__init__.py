@@ -1,5 +1,4 @@
 from apiflask import APIFlask
-from apiflask import APIBlueprint
 from flask import session
 from config import config
 from .routes.settings import DEFAULT_SETTINGS
@@ -79,6 +78,11 @@ def create_app(config_name="default"):
         formatted = f"{abs(float(value or 0)):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         sign = "-" if float(value or 0) < 0 else ""
         return f"{sign}{symbol} {formatted}"
+
+    @app.template_filter("tone")
+    def tone(tx_type):
+        """CSS class for an amount: red for expenses, green for income, neutral for transfers."""
+        return {"expense": "negative", "income": "positive"}.get(tx_type, "")
 
     # ── Settings context processor ─────────────────────────────────────────────
     # Makes `settings` available in every template automatically.

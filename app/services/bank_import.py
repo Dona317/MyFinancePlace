@@ -24,15 +24,15 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
-from datetime import date, datetime
-from decimal import Decimal, InvalidOperation
+from datetime import date
+from decimal import Decimal
 from statistics import median
 
 from app.models.transaction import Transaction
 from app.services import ai_extraction, duplicates
 from app.services import statement_readers as readers
+from app.services.parsing import TRANSACTION_TYPES, clean_text, normalize, to_date, to_decimal, valid_amount
 from app.services.statement_readers import Word
-from app.services.transfer import parse_amount, parse_date
 
 HEADER_SCAN_ROWS = 40
 PENDING_STATUSES = ("non contabilizzat", "autorizzat", "in attesa", "pending", "da contabilizzare")
@@ -150,7 +150,8 @@ _TRANSFER_PATTERN = re.compile(r"\b(" + "|".join(re.escape(k) for k in TRANSFER_
 
 
 def _search_text(*parts: str | None) -> str:
-    return " " + re.sub(r"[^a-z0-9]+", " ", " ".join(p for p in parts if p).lower()) + " "
+    """Normalized text padded with spaces, so keywords can be matched as whole words."""
+    return f" {normalize(' '.join(p for p in parts if p))} "
 
 
 def categorize(description: str, details: str | None = None, bank_category: str | None = None) -> str:
@@ -179,10 +180,6 @@ class StatementImportError(ValueError):
 
 
 # ── Layout detection ───────────────────────────────────────────────────────────
-
-def normalize_header(value) -> str:
-    return " ".join(re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).split())
-
 
 def _match_columns(headers: list[str], layout: BankLayout) -> dict[str, int] | None:
     """Map layout fields to column indexes; None if the header lacks the required columns."""
@@ -247,7 +244,7 @@ def detect_layout(rows: list[list], filename: str = "", bank: str = AUTO) -> Lay
 
     identified = _identify_bank(rows, filename) if bank == AUTO else None
     for index, row in enumerate(rows[:HEADER_SCAN_ROWS]):
-        headers = [normalize_header(c) for c in row]
+        headers = [normalize(c) for c in row]
         found = layout_for_headers(headers, bank, identified)
         if found:
             key, columns = found
@@ -292,7 +289,7 @@ def _find_header(lines: list[list[Word]], char_width: float, bank: str, filename
     for index, line in enumerate(scan):
         for gap in (char_width * 1.2, None):
             cells = _header_cells(line, gap)
-            found = layout_for_headers([normalize_header(c.text) for c in cells], bank, identified)
+            found = layout_for_headers([normalize(c.text) for c in cells], bank, identified)
             if found:
                 return index, cells, found[1]
     return None
@@ -310,7 +307,7 @@ def rebuild_columns(lines: list[list[Word]], char_width: float, bank: str = AUTO
     if not found:
         return None
     header_index, cells, columns = found
-    header_key = normalize_header(" ".join(c.text for c in cells))
+    header_key = normalize(" ".join(c.text for c in cells))
     amount_cols = sorted({columns[f] for f in AMOUNT_FIELDS if f in columns})
     text_cols = [i for i in range(len(cells)) if i not in amount_cols]
     amount_region = min(cells[i].x0 for i in amount_cols) - char_width * 10
@@ -333,7 +330,7 @@ def rebuild_columns(lines: list[list[Word]], char_width: float, bank: str = AUTO
             current = None
             continue
         text = " ".join(w.text for w in line)
-        if normalize_header(text) == header_key or PAGE_FOOTER.match(text) or not re.search(r"[A-Za-z0-9]", text):
+        if normalize(text) == header_key or PAGE_FOOTER.match(text) or not re.search(r"[A-Za-z0-9]", text):
             current = None
             continue
 
@@ -347,7 +344,7 @@ def rebuild_columns(lines: list[list[Word]], char_width: float, bank: str = AUTO
             row[col] = f"{row[col]} {word.text}".strip()
 
         page, top = line[0].page, line[0].top
-        if _to_date(row[date_col]) is not None:
+        if to_date(row[date_col]) is not None:
             table.append(row)
             current = row
         elif (
@@ -385,9 +382,9 @@ def parse_text_lines(lines: list[str]) -> list[StatementRow]:
                 last = rows[-1]
                 last.description = f"{last.description} {line.strip()}"
             continue
-        tx_date = _to_date(match.group("date"))
+        tx_date = to_date(match.group("date"))
         raw_amount = match.group("amount").replace(" ", "")
-        amount = _to_decimal(raw_amount)
+        amount = to_decimal(raw_amount)
         if tx_date is None or not amount:
             continue
         description = " ".join(match.group("description").split())
@@ -444,54 +441,6 @@ def _cell(row: list, columns: dict[str, int], name: str):
     return value
 
 
-def _to_date(value) -> date | None:
-    if value is None:
-        return None
-    if isinstance(value, datetime):
-        return value.date()
-    if isinstance(value, date):
-        return value
-    try:
-        return parse_date(str(value).split(" ")[0])
-    except ValueError:
-        return None
-
-
-def _to_decimal(value) -> Decimal | None:
-    if value is None:
-        return None
-    if isinstance(value, (int, float)):
-        amount = Decimal(str(value))
-        return amount if amount.is_finite() else None
-    text = str(value).replace("EUR", "").replace("€", "").strip()
-    negative = text.endswith("-") or (text.startswith("(") and text.endswith(")"))
-    text = text.strip("()+ ").rstrip("-")
-    if not text:
-        return None
-    try:
-        amount = parse_amount(text)
-    except (ValueError, InvalidOperation):
-        return None
-    if not amount.is_finite():  # "NaN", "sNaN", "Infinity" are not amounts
-        return None
-    return -abs(amount) if negative else amount
-
-
-MAX_AMOUNT = Decimal("9" * 36 + ".99")  # transactions.amount is Numeric(38, 2): no practical limit
-
-
-def valid_amount(amount: Decimal | None) -> bool:
-    """A usable movement amount: finite, not zero, and small enough for the database column."""
-    return amount is not None and amount.is_finite() and Decimal(0) < abs(amount) <= MAX_AMOUNT
-
-
-def _text(value) -> str | None:
-    if value is None:
-        return None
-    text = " ".join(str(value).split())
-    return text or None
-
-
 def parse_rows(rows: list[list], layout: Layout) -> tuple[list[StatementRow], int]:
     """
     Convert the rows below the header into StatementRows.
@@ -502,26 +451,26 @@ def parse_rows(rows: list[list], layout: Layout) -> tuple[list[StatementRow], in
     parsed: list[StatementRow] = []
     skipped = 0
     for row in rows[layout.header_row + 1:]:
-        tx_date = _to_date(_cell(row, columns, "date"))
+        tx_date = to_date(_cell(row, columns, "date"))
         if tx_date is None:
             continue
 
         if "amount" in columns:
-            amount = _to_decimal(_cell(row, columns, "amount"))
+            amount = to_decimal(_cell(row, columns, "amount"))
         else:
-            credit = _to_decimal(_cell(row, columns, "credit")) or Decimal(0)
-            debit = _to_decimal(_cell(row, columns, "debit")) or Decimal(0)
+            credit = to_decimal(_cell(row, columns, "credit")) or Decimal(0)
+            debit = to_decimal(_cell(row, columns, "debit")) or Decimal(0)
             amount = abs(credit) - abs(debit) if (credit or debit) else None
         if not valid_amount(amount):
             continue
 
-        status = (_text(_cell(row, columns, "status")) or "").lower()
+        status = (clean_text(_cell(row, columns, "status")) or "").lower()
         if any(p in status for p in PENDING_STATUSES):
             skipped += 1
             continue
 
-        description = _text(_cell(row, columns, "description"))
-        details = _text(_cell(row, columns, "details"))
+        description = clean_text(_cell(row, columns, "description"))
+        details = clean_text(_cell(row, columns, "details"))
         if details == description:
             details = None
         if not description:
@@ -529,13 +478,13 @@ def parse_rows(rows: list[list], layout: Layout) -> tuple[list[StatementRow], in
         if not description:
             continue
 
-        currency = (_text(_cell(row, columns, "currency")) or "EUR").upper()
+        currency = (clean_text(_cell(row, columns, "currency")) or "EUR").upper()
         parsed.append(StatementRow(
             date=tx_date,
             description=description,
             amount=amount,
             details=details,
-            bank_category=_text(_cell(row, columns, "category")),
+            bank_category=clean_text(_cell(row, columns, "category")),
             currency=currency if re.fullmatch(r"[A-Z]{3}", currency) else "EUR",
         ))
     return parsed, skipped
@@ -547,8 +496,16 @@ def fingerprint(row: StatementRow, occurrence: int, bank_key: str) -> str:
     The bank is part of the key: the same charge on two different banks' accounts (e.g. Netflix
     on the same day) is two real movements, not a duplicate.
     """
-    key = f"{bank_key}|{row.date.isoformat()}|{row.amount:.2f}|{normalize_header(row.description)}|{occurrence}"
+    key = f"{bank_key}|{row.date.isoformat()}|{row.amount:.2f}|{normalize(row.description)}|{occurrence}"
     return hashlib.sha256(key.encode()).hexdigest()
+
+
+def already_imported(refs: list[str]) -> set[str]:
+    """The statement-row fingerprints among `refs` that are already saved as transactions."""
+    if not refs:
+        return set()
+    query = Transaction.query.with_entities(Transaction.import_ref).filter(Transaction.import_ref.in_(refs))
+    return {ref for (ref,) in query}
 
 
 def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
@@ -566,11 +523,7 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
         seen[base] = occurrence + 1
         row.import_ref = fingerprint(row, occurrence, bank_key)
 
-    refs = [r.import_ref for r in rows]
-    existing = {
-        ref for (ref,) in
-        Transaction.query.with_entities(Transaction.import_ref).filter(Transaction.import_ref.in_(refs)).all()
-    } if refs else set()
+    existing = already_imported([r.import_ref for r in rows])
     for row in rows:
         row.duplicate = row.import_ref in existing
     duplicates.flag_similar_rows([r for r in rows if not r.duplicate])
@@ -649,8 +602,7 @@ def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementP
     try:
         document = readers.read_document(filename, raw)
     except readers.NeedsOCR as exc:
-        kind = "scan" if raw[:5] == b"%PDF-" else "photo"
-        raise AIRequired(str(exc), kind)
+        raise AIRequired(str(exc), "scan" if readers.is_pdf(raw) else "photo") from exc
     except readers.UnsupportedFile as exc:
         raise StatementImportError(str(exc))
 
@@ -686,15 +638,15 @@ def analyze_with_ai(filename: str, raw: bytes, bank: str = AUTO, model: str | No
     rows: list[StatementRow] = []
     discarded = 0
     for item in result.movements:
-        tx_date = _to_date(item.get("date"))
-        amount = _to_decimal(item.get("amount"))
-        description = _text(item.get("description"))
+        tx_date = to_date(item.get("date"))
+        amount = to_decimal(item.get("amount"))
+        description = clean_text(item.get("description"))
         if tx_date is None or not valid_amount(amount) or not description:
             discarded += 1
             continue
         rows.append(StatementRow(
             date=tx_date, description=description, amount=amount.quantize(Decimal("0.01")),
-            details=_text(item.get("details")),
+            details=clean_text(item.get("details")),
         ))
     if not rows:
         raise StatementImportError("Lettura AI: nessun movimento riconosciuto nel documento.")
@@ -741,28 +693,9 @@ def _extract_rows(document: readers.Document, filename: str, bank: str) -> tuple
     raise error or StatementImportError("Nessun movimento trovato nel file.")
 
 
-def build_transaction(data: dict, bank_key: str, category: str | None = None, ai: bool = False) -> Transaction:
-    """Create a Transaction from a (serialized) StatementRow; `ai` tags rows read by an AI model."""
-    amount = Decimal(data["amount"])
-    return Transaction(
-        date=date.fromisoformat(data["date"]),
-        description=data["description"],
-        amount=abs(amount),
-        currency=data.get("currency") or "EUR",
-        type=data["type"],
-        category=(category or data.get("category") or "Altro").strip(),
-        counterparty=None,
-        tags=["importato", bank_key] + (["ai"] if ai else []),
-        is_recurring=False,
-        notes=data.get("details"),
-        import_ref=data["import_ref"],
-        bank_description=bank_causale(data),
-    )
-
-
 def bank_causale(row: dict) -> str | None:
     """The bank's full original text for a statement row: description plus its detail column."""
-    description, details = _text(row.get("description")), _text(row.get("details"))
+    description, details = clean_text(row.get("description")), clean_text(row.get("details"))
     if not description:
         return details
     if details and details.lower() not in description.lower():
@@ -770,18 +703,20 @@ def bank_causale(row: dict) -> str | None:
     return description
 
 
-def build_edited_transaction(base: dict, fields: dict, bank_key: str, ai: bool = False) -> Transaction:
+def build_transaction(base: dict, bank_key: str, fields: dict | None = None, ai: bool = False) -> Transaction:
     """
-    Transaction from a preview row as edited by the user. `base` is the original statement row (empty
-    for rows added by hand); `fields` holds the form values. Raises ValueError on invalid input.
+    Transaction from a statement row (a StatementRow.to_dict()). `fields` are the values as edited in the
+    preview (default: the row as read); `base` is empty for rows added by hand. `ai` tags rows read by an
+    AI model. Raises ValueError on invalid input.
     The original import_ref and the bank's causale are kept even when the user corrects the row:
     re-importing the same statement still recognizes it, and the bank's text stays on record.
     """
-    tx_date = _to_date(fields.get("date"))
-    amount = _to_decimal(fields.get("amount"))
-    description = _text(fields.get("description"))
+    fields = base if fields is None else fields
+    tx_date = to_date(fields.get("date"))
+    amount = to_decimal(fields.get("amount"))
+    description = clean_text(fields.get("description"))
     tx_type = fields.get("type")
-    if tx_date is None or not valid_amount(amount) or not description or tx_type not in ("income", "expense", "transfer"):
+    if tx_date is None or not valid_amount(amount) or not description or tx_type not in TRANSACTION_TYPES:
         raise ValueError("incomplete row")
     tags = ["importato", bank_key] + (["ai"] if ai else []) + ([] if base else ["manuale"])
     if fields.get("aicat"):
@@ -792,8 +727,8 @@ def build_edited_transaction(base: dict, fields: dict, bank_key: str, ai: bool =
         amount=abs(amount).quantize(Decimal("0.01")),
         currency=base.get("currency") or "EUR",
         type=tx_type,
-        category=_text(fields.get("category")) or "Altro",
-        counterparty=_text(fields.get("counterparty")),
+        category=clean_text(fields.get("category")) or "Altro",
+        counterparty=clean_text(fields.get("counterparty")),
         tags=tags,
         is_recurring=False,
         notes=base.get("details"),

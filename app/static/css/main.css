@@ -334,6 +334,13 @@ a:hover { color: var(--clr-primary-hover); }
   gap: 16px;
 }
 
+/* KPI accent colors */
+.kpi-primary  { --kpi-accent: var(--clr-primary);  --kpi-accent-bg: var(--clr-primary-light); }
+.kpi-positive { --kpi-accent: var(--clr-positive); --kpi-accent-bg: var(--clr-positive-bg); }
+.kpi-negative { --kpi-accent: var(--clr-negative); --kpi-accent-bg: var(--clr-negative-bg); }
+.kpi-neutral  { --kpi-accent: var(--clr-neutral);  --kpi-accent-bg: var(--clr-neutral-bg); }
+.kpi-warning  { --kpi-accent: var(--clr-warning);  --kpi-accent-bg: var(--clr-warning-bg); }
+
 .kpi-card {
   background: var(--clr-bg-card);
   border: 1px solid var(--clr-border-light);
@@ -1014,6 +1021,10 @@ tfoot td {
 /* ── Utilities ───────────────────────────────────────────────────────────── */
 .text-primary   { color: var(--clr-text-primary) !important; }
 .text-muted     { color: var(--clr-text-muted) !important; }
+.text-right     { text-align: right !important; }
+.text-center    { text-align: center !important; }
+.nowrap         { white-space: nowrap !important; }
+.check          { width: 16px; height: 16px; accent-color: var(--clr-primary); }
 .text-positive  { color: var(--clr-positive-text) !important; }
 .text-negative  { color: var(--clr-negative-text) !important; }
 .text-neutral   { color: var(--clr-neutral) !important; }

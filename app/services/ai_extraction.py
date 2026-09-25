@@ -27,8 +27,10 @@ from dataclasses import dataclass, field
 from flask import current_app
 
 from app.services import settings_store
+from app.services.statement_readers import is_image, is_pdf
 
 DEFAULT_MODELS = {"ollama": "qwen2.5vl:7b", "anthropic": "claude-opus-5"}
+ANTHROPIC_MODELS = ("claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5")  # offered in the UI, most capable first
 PROVIDER_LABELS = {"ollama": "Ollama (locale)", "anthropic": "Anthropic Claude (cloud)"}
 
 # No document is too long: long ones are read in parts and the results merged (movements in order,
@@ -113,10 +115,6 @@ def provider() -> str | None:
     return value if value in DEFAULT_MODELS else None
 
 
-def is_enabled() -> bool:
-    return provider() is not None
-
-
 def model_for(provider_name: str) -> str:
     """The model used with a provider: saved choice, else .env (if it is for this provider), else default."""
     config_provider = (current_app.config.get("LLM_PROVIDER") or "").strip().lower()
@@ -138,10 +136,15 @@ def base_url() -> str:
     return current_app.config.get("OLLAMA_URL") or "http://localhost:11434"
 
 
-def describe() -> str | None:
-    """Short label for the UI, e.g. "Ollama (locale) · qwen2.5vl:7b"."""
+def describe(model: str | None = None) -> str | None:
+    """Short label for the UI, e.g. "Ollama (locale) · qwen2.5vl:7b" (default: the document-reading model)."""
     name = provider()
-    return f"{PROVIDER_LABELS[name]} · {model_name()}" if name else None
+    return f"{PROVIDER_LABELS[name]} · {model or model_name()}" if name else None
+
+
+def timeout() -> float:
+    """Seconds to wait for a model's reply (LLM_TIMEOUT): local models on a CPU can be slow."""
+    return float(current_app.config.get("LLM_TIMEOUT", 600))
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
@@ -165,12 +168,7 @@ def extract(filename: str, raw: bytes, text: str | None = None, model: str | Non
 
 
 def _file_kind(raw: bytes) -> str | None:
-    if raw[:5] == b"%PDF-":
-        return "pdf"
-    if raw[:3] == b"\xff\xd8\xff" or raw[:8] == b"\x89PNG\r\n\x1a\n" or raw[:4] == b"GIF8" \
-            or (raw[:4] == b"RIFF" and raw[8:12] == b"WEBP"):
-        return "image"
-    return None
+    return "pdf" if is_pdf(raw) else "image" if is_image(raw) else None
 
 
 def split_text(text: str, size: int) -> list[str]:
@@ -304,7 +302,7 @@ def anthropic_json(model: str, system: str, content: list[dict], schema: dict, m
         # On a safety-classifier decline, the API retries on Anthropic's recommended fallback model
         request.update(betas=["server-side-fallback-2026-07-01"], fallbacks="default")
 
-    client = anthropic.Anthropic(timeout=float(current_app.config.get("LLM_TIMEOUT", 600)))
+    client = anthropic.Anthropic(timeout=timeout())
     try:
         # Long documents can produce long JSON: stream to avoid HTTP timeouts
         with client.beta.messages.stream(**request) as stream:
@@ -374,7 +372,7 @@ def ollama_json(model: str, system: str, prompt: str, schema: dict, images: list
     }
     request = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     try:
-        with urllib.request.urlopen(request, timeout=float(current_app.config.get("LLM_TIMEOUT", 600))) as response:
+        with urllib.request.urlopen(request, timeout=timeout()) as response:
             return json.loads(response.read())["message"]["content"]
     except urllib.error.HTTPError as exc:
         if exc.code == 404:

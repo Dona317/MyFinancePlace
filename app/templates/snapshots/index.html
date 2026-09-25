@@ -70,12 +70,12 @@
         <tr>
           <th>Data</th>
           <th>Etichetta</th>
-          <th style="text-align:right;">Patrimonio Netto</th>
-          <th style="text-align:right;">Attività</th>
-          <th style="text-align:right;">Passività</th>
-          <th style="text-align:right;">Portafoglio</th>
-          <th style="text-align:right;">Variazione</th>
-          <th style="text-align:center;">Azioni</th>
+          <th class="text-right">Patrimonio Netto</th>
+          <th class="text-right">Attività</th>
+          <th class="text-right">Passività</th>
+          <th class="text-right">Portafoglio</th>
+          <th class="text-right">Variazione</th>
+          <th class="text-center">Azioni</th>
         </tr>
       </thead>
       <tbody>
@@ -83,11 +83,11 @@
         <tr>
           <td style="font-size:var(--font-size-xs);color:var(--clr-text-muted);white-space:nowrap;">{{ s.date }}</td>
           <td style="font-weight:500;color:var(--clr-text-primary);">{{ s.label }}</td>
-          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(s.net_worth) }}</td>
-          <td class="amount positive" style="text-align:right;">€ {{ '%.2f'|format(s.total_assets) }}</td>
-          <td class="amount negative" style="text-align:right;">€ {{ '%.2f'|format(s.total_liabilities) }}</td>
-          <td class="amount" style="text-align:right;">€ {{ '%.2f'|format(s.portfolio_value) }}</td>
-          <td style="text-align:right;">
+          <td class="amount text-right">€ {{ '%.2f'|format(s.net_worth) }}</td>
+          <td class="amount positive text-right">€ {{ '%.2f'|format(s.total_assets) }}</td>
+          <td class="amount negative text-right">€ {{ '%.2f'|format(s.total_liabilities) }}</td>
+          <td class="amount text-right">€ {{ '%.2f'|format(s.portfolio_value) }}</td>
+          <td class="text-right">
             {% if s.delta is defined %}
             <span class="badge {{ 'badge-positive' if s.delta >= 0 else 'badge-negative' }}">
               {{ '+' if s.delta >= 0 else '' }}€ {{ '%.0f'|format(s.delta) }}
@@ -96,7 +96,7 @@
             <span class="badge badge-muted">—</span>
             {% endif %}
           </td>
-          <td style="text-align:center;">
+          <td class="text-center">
             <a href="#" class="btn btn-ghost btn-icon btn-sm" title="Dettaglio">
               <i class="bi bi-eye"></i>
             </a>

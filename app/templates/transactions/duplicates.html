@@ -41,7 +41,7 @@
       <div class="card-header-title">
         {% if group.identical %}<span class="badge badge-negative">Identici</span>{% else %}<span class="badge badge-muted">Simili</span>{% endif %}
         {{ group.transactions|length }} transazioni da
-        <span class="amount {{ 'negative' if first.type == 'expense' else ('positive' if first.type == 'income' else '') }}">{{ first.amount|abs|money }}</span>
+        <span class="amount {{ first.type|tone }}">{{ first.amount|abs|money }}</span>
       </div>
       <div class="card-header-sub">
         {% if group.identical %}Stessa data e stessa descrizione (a parte diciture della banca come "Pagamento POS"): probabilmente lo stesso movimento importato due volte.
@@ -54,20 +54,19 @@
       <thead>
         <tr>
           <th style="width:70px;">Tieni</th><th>Data</th><th>Descrizione</th><th>Categoria</th><th>Origine</th>
-          <th style="text-align:center;">Azioni</th>
+          <th class="text-center">Azioni</th>
         </tr>
       </thead>
       <tbody>
         {% for tx in group.transactions %}
         <tr>
-          <td><input type="radio" name="keep" value="{{ tx.id }}" form="keep-{{ g }}" {{ 'checked' if loop.first else '' }}
-                     style="width:16px;height:16px;accent-color:var(--clr-primary);" /></td>
+          <td><input class="check" type="radio" name="keep" value="{{ tx.id }}" form="keep-{{ g }}" {{ 'checked' if loop.first else '' }} /></td>
           <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ tx.date.strftime('%d/%m/%Y') }}</td>
           <td>
             <div style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</div>
             {% if tx.bank_description and tx.bank_description != tx.description %}
-            <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);" title="Causale originale della banca"><i class="bi bi-bank"></i> {{ tx.bank_description|truncate(80) }}</div>
-            {% elif tx.notes %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ tx.notes|truncate(80) }}</div>{% endif %}
+            <div class="text-xs text-muted" title="Causale originale della banca"><i class="bi bi-bank"></i> {{ tx.bank_description|truncate(80) }}</div>
+            {% elif tx.notes %}<div class="text-xs text-muted">{{ tx.notes|truncate(80) }}</div>{% endif %}
           </td>
           <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
           <td>
@@ -76,7 +75,7 @@
               {% for tag in tags if tag not in ('importato',) %}<span class="badge badge-muted">{{ tag }}</span> {% endfor %}
             {% else %}<span class="badge badge-muted">inserita a mano</span>{% endif %}
           </td>
-          <td style="text-align:center;">
+          <td class="text-center">
             <div style="display:flex;gap:4px;justify-content:center;">
               <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=here) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica">
                 <i class="bi bi-pencil"></i></a>

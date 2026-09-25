@@ -5,10 +5,11 @@ from apiflask import APIBlueprint
 from sqlalchemy import or_
 from app.extensions import db
 from app.models.transaction import Transaction
+from app.routes.helpers import form_ids, safe_next
 from app.services import ai_classification, ai_extraction, duplicates
-from app.services.analytics import month_bounds
-from app.services.bank_import import valid_amount
 from app.services.categories import known_categories
+from app.services.parsing import TRANSACTION_TYPES, valid_amount
+from app.services.periods import month_bounds
 from app.schemas.transaction import TransactionIn, TransactionOut, TransactionListOut
 from app.schemas.common import DeleteOut
 
@@ -27,7 +28,7 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     tx.date          = date_type.fromisoformat(request.form["date"])
     tx.description   = request.form["description"]
     tx.amount        = abs(Decimal(request.form["amount"].replace(",", ".")))
-    if not valid_amount(tx.amount) or not tx.description.strip() or request.form["type"] not in ("income", "expense", "transfer"):
+    if not valid_amount(tx.amount) or not tx.description.strip() or request.form["type"] not in TRANSACTION_TYPES:
         raise ValueError("invalid transaction")
     tx.currency      = request.form.get("currency", "EUR")
     tx.type          = request.form["type"]
@@ -90,8 +91,7 @@ def index():
         all_categories=known_categories(),
         duplicate_groups=len(duplicates.find_groups()),
         unclassified=_unclassified_query().count(),
-        ai_classifier=ai_classification.describe(),
-        ai_cloud=ai_extraction.provider() == "anthropic",
+        **ai_classification.template_context(),
     )
 
 
@@ -119,20 +119,14 @@ def edit(tx_id):
         except (KeyError, ValueError, InvalidOperation):
             db.session.rollback()  # discard the half-applied changes
             flash("Controlla i dati: data, descrizione, importo e tipo sono obbligatori.", "error")
-            return redirect(url_for("transactions.edit", tx_id=tx_id, next=_safe_next()))
+            return redirect(url_for("transactions.edit", tx_id=tx_id, next=safe_next()))
         db.session.commit()
         flash("Transazione aggiornata.", "success")
-        return redirect(_safe_next() or url_for("transactions.index"))
+        return redirect(safe_next() or url_for("transactions.index"))
     return render_template(
         "transactions/form.html", transaction=tx, action="edit",
-        categories=known_categories(tx.category), next_url=_safe_next(),
+        categories=known_categories(tx.category), next_url=safe_next(),
     )
-
-
-def _safe_next() -> str | None:
-    """Local path to go back to after an action (never an external URL)."""
-    target = request.values.get("next") or ""
-    return target if target.startswith("/") and not target.startswith("//") and "\\" not in target else None
 
 
 @transactions_bp.route("/<int:tx_id>/delete", methods=["POST"])
@@ -141,17 +135,17 @@ def delete(tx_id):
     db.session.delete(tx)
     db.session.commit()
     flash(f"Transazione «{tx.description}» eliminata.", "success")
-    return redirect(_safe_next() or url_for("transactions.index"))
+    return redirect(safe_next() or url_for("transactions.index"))
 
 
 @transactions_bp.route("/delete-selected", methods=["POST"])
 def delete_selected():
-    ids = {int(i) for i in request.form.getlist("ids") if i.isdigit()}
+    ids = form_ids()
     deleted = Transaction.query.filter(Transaction.id.in_(ids)).delete(synchronize_session=False) if ids else 0
     db.session.commit()
     flash(f"{deleted} transazioni eliminate." if deleted else "Nessuna transazione selezionata.",
           "success" if deleted else "warning")
-    return redirect(_safe_next() or url_for("transactions.index"))
+    return redirect(safe_next() or url_for("transactions.index"))
 
 
 # ── Duplicate finder ───────────────────────────────────────────────────────────
@@ -167,8 +161,8 @@ def duplicates_page():
 
 
 def _group_ids() -> list[int]:
-    ids = sorted({int(i) for i in request.form.getlist("ids") if i.isdigit()})
-    return [t.id for t in Transaction.query.filter(Transaction.id.in_(ids))] if ids else []
+    ids = form_ids()
+    return sorted(t.id for t in Transaction.query.filter(Transaction.id.in_(ids))) if ids else []
 
 
 @transactions_bp.route("/duplicates/dismiss", methods=["POST"])
@@ -177,7 +171,7 @@ def duplicates_dismiss():
     if len(ids) >= 2:
         duplicates.dismiss(ids)
         flash("Segnate come transazioni diverse: non verranno più proposte come duplicati.", "success")
-    return redirect(_safe_next() or url_for("transactions.duplicates_page"))
+    return redirect(safe_next() or url_for("transactions.duplicates_page"))
 
 
 @transactions_bp.route("/duplicates/keep", methods=["POST"])
@@ -192,7 +186,7 @@ def duplicates_keep():
         Transaction.query.filter(Transaction.id.in_(others)).delete(synchronize_session=False)
         db.session.commit()
         flash(f"Tenuta 1 transazione, eliminati {len(others)} duplicati.", "success")
-    return redirect(_safe_next() or url_for("transactions.duplicates_page"))
+    return redirect(safe_next() or url_for("transactions.duplicates_page"))
 
 
 # ── REST API routes ────────────────────────────────────────────────────────────
@@ -255,34 +249,33 @@ def _classification_text(tx: Transaction) -> str:
 @transactions_bp.route("/classify", methods=["POST"])
 def classify():
     """Ask the AI for category/counterparty suggestions and show them for review (nothing is saved)."""
-    ids = {int(i) for i in request.form.getlist("ids") if i.isdigit()}
+    ids = form_ids()
     query = Transaction.query.filter(Transaction.id.in_(ids)) if ids else _unclassified_query()
     transactions = query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
     if not transactions:
         flash("Nessuna transazione da classificare.", "warning")
-        return redirect(_safe_next() or url_for("transactions.index"))
+        return redirect(safe_next() or url_for("transactions.index"))
     items = [
-        {"id": tx.id, "text": _classification_text(tx), "amount": -float(tx.amount) if tx.type == "expense" else float(tx.amount)}
-        for tx in transactions
+        {"id": tx.id, "text": _classification_text(tx), "amount": tx.signed_amount} for tx in transactions
     ]
     try:
         suggestions = ai_classification.classify(items, known_categories())
     except ai_extraction.AIExtractionError as exc:
         flash(f"Classificazione AI non riuscita: {exc}", "error")
-        return redirect(_safe_next() or url_for("transactions.index"))
+        return redirect(safe_next() or url_for("transactions.index"))
     return render_template(
         "transactions/classify.html",
         rows=[(tx, suggestions.get(tx.id)) for tx in transactions],
         model=ai_classification.model_name(),
         categories=known_categories(),
-        next_url=_safe_next(),
+        next_url=safe_next(),
     )
 
 
 @transactions_bp.route("/classify/apply", methods=["POST"])
 def classify_apply():
     """Save the suggestions the user kept (possibly edited)."""
-    ids = {int(i) for i in request.form.getlist("apply") if i.isdigit()}
+    ids = form_ids("apply")
     updated = 0
     for tx in Transaction.query.filter(Transaction.id.in_(ids)).all() if ids else []:
         category = (request.form.get(f"category-{tx.id}") or "").strip()
@@ -299,4 +292,4 @@ def classify_apply():
         updated += 1
     db.session.commit()
     flash(f"{updated} transazioni aggiornate." if updated else "Nessuna modifica applicata.", "success" if updated else "warning")
-    return redirect(_safe_next() or url_for("transactions.index"))
+    return redirect(safe_next() or url_for("transactions.index"))

@@ -3,10 +3,11 @@ Import / export of transactions (CSV, JSON).
 """
 import csv
 import io
-from datetime import date, datetime
-from decimal import Decimal, InvalidOperation
+from datetime import date
 
 from app.models.transaction import Transaction
+from app.services.parsing import TRANSACTION_TYPES, parse_amount, parse_date
+from app.services.periods import month_bounds, year_bounds
 
 EXPORT_FIELDS = [
     "id", "date", "description", "amount", "currency", "type", "category",
@@ -15,22 +16,17 @@ EXPORT_FIELDS = [
 
 TAX_TAGS = {"deducibile", "detraibile", "fiscale"}
 
-DATE_FORMATS = ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y", "%m/%d/%Y")
-
-
 # ── Export ─────────────────────────────────────────────────────────────────────
 
 def period_bounds(period: str, today: date | None = None) -> tuple[date | None, date | None]:
     """Translate an export period keyword into [start, end) dates (None = unbounded)."""
     today = today or date.today()
     if period == "year":
-        return date(today.year, 1, 1), date(today.year + 1, 1, 1)
+        return year_bounds(today.year)
     if period == "last_year":
-        return date(today.year - 1, 1, 1), date(today.year, 1, 1)
+        return year_bounds(today.year - 1)
     if period == "month":
-        start = date(today.year, today.month, 1)
-        end = date(today.year + 1, 1, 1) if today.month == 12 else date(today.year, today.month + 1, 1)
-        return start, end
+        return month_bounds(today.year, today.month)
     return None, None
 
 
@@ -81,32 +77,6 @@ def is_tax_relevant(tx: Transaction) -> bool:
 
 # ── Import ─────────────────────────────────────────────────────────────────────
 
-def parse_date(value: str) -> date:
-    value = value.strip()
-    for fmt in DATE_FORMATS:
-        try:
-            return datetime.strptime(value, fmt).date()
-        except ValueError:
-            continue
-    raise ValueError(f"data non riconosciuta: '{value}'")
-
-
-def parse_amount(value: str) -> Decimal:
-    """Accept both '1.234,56' (Italian) and '1,234.56' / '1234.56' formats."""
-    raw = value.strip().replace("€", "").replace(" ", "")
-    if "," in raw and "." in raw:
-        if raw.rfind(",") > raw.rfind("."):
-            raw = raw.replace(".", "").replace(",", ".")
-        else:
-            raw = raw.replace(",", "")
-    elif "," in raw:
-        raw = raw.replace(",", ".")
-    try:
-        return Decimal(raw)
-    except InvalidOperation:
-        raise ValueError(f"importo non valido: '{value}'")
-
-
 def read_csv(content: str) -> tuple[list[str], list[dict]]:
     """Parse CSV text, sniffing the delimiter. Returns (headers, rows)."""
     content = content.lstrip("\ufeff")
@@ -135,7 +105,7 @@ def rows_to_transactions(rows: list[dict], mapping: dict) -> tuple[list[Transact
                 raise ValueError("descrizione mancante")
 
             tx_type = (row.get(mapping.get("type") or "") or "").strip().lower()
-            if tx_type not in ("income", "expense", "transfer"):
+            if tx_type not in TRANSACTION_TYPES:
                 tx_type = "expense" if amount < 0 else "income"
 
             transactions.append(Transaction(

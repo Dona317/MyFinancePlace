@@ -97,10 +97,10 @@
     <div style="font-weight:600;color:var(--clr-text-primary);">{{ m.name }}
       {% if provider == 'ollama' and model == m.name %}<span class="badge badge-primary">In uso</span>{% endif %}
     </div>
-    {% if m.note %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ m.note }}</div>{% endif %}
+    {% if m.note %}<div class="text-xs text-muted">{{ m.note }}</div>{% endif %}
   </td>
   <td>{{ m.family }}</td>
-  <td class="amount" style="text-align:right;">~{{ "%.1f"|format(m.size_gb) }} GB</td>
+  <td class="amount text-right">~{{ "%.1f"|format(m.size_gb) }} GB</td>
   <td style="text-align:right;color:var(--clr-text-muted);">{{ m.ram_gb }} GB</td>
   <td>
     {% if m.vision %}<span class="badge badge-positive"><i class="bi bi-image"></i> Scansioni e foto</span>
@@ -109,7 +109,7 @@
   <td class="model-status">
     {% if pull and not pull.done %}
       <div class="progress-bar-wrap" style="height:6px;"><div class="progress-bar-fill" style="width:{{ pull.percent }}%;"></div></div>
-      <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ pull.status }} {{ pull.percent }}%</span>
+      <span class="text-xs text-muted">{{ pull.status }} {{ pull.percent }}%</span>
     {% elif pull and pull.error %}
       <span class="badge badge-negative" title="{{ pull.error }}">Errore download</span>
     {% elif installed %}
@@ -118,7 +118,7 @@
       <span class="badge badge-muted">Non installato</span>
     {% endif %}
   </td>
-  <td style="text-align:right;white-space:nowrap;">
+  <td class="text-right nowrap">
     {% if installed %}
       {% if not (provider == 'ollama' and model == m.name) %}
       <form method="POST" action="{{ url_for('settings.ai_save') }}" style="display:inline;">
@@ -159,8 +159,8 @@
     <table>
       <thead>
         <tr>
-          <th>Modello</th><th>Famiglia</th><th style="text-align:right;">Download</th>
-          <th style="text-align:right;">RAM</th><th>Legge</th><th style="min-width:140px;">Stato</th><th></th>
+          <th>Modello</th><th>Famiglia</th><th class="text-right">Download</th>
+          <th class="text-right">RAM</th><th>Legge</th><th style="min-width:140px;">Stato</th><th></th>
         </tr>
       </thead>
       <tbody>

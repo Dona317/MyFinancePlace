@@ -23,6 +23,16 @@ OLE2_MAGIC = b"\xd0\xcf\x11\xe0"
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif", ".tiff", ".heic", ".webp")
 
 
+def is_pdf(raw: bytes) -> bool:
+    return raw[:5] == b"%PDF-"
+
+
+def is_image(raw: bytes) -> bool:
+    """JPEG, PNG, GIF or WebP, recognized from the first bytes (the extension can be wrong)."""
+    return (raw[:3] == b"\xff\xd8\xff" or raw[:8] == b"\x89PNG\r\n\x1a\n" or raw[:4] == b"GIF8"
+            or (raw[:4] == b"RIFF" and raw[8:12] == b"WEBP"))
+
+
 class UnsupportedFile(ValueError):
     """Raised with a user-facing (Italian) message when a file cannot be read."""
 
@@ -60,7 +70,7 @@ def read_document(filename: str, raw: bytes) -> Document:
         raise UnsupportedFile("Il file è vuoto.")
     name = filename.lower()
 
-    if raw[:5] == b"%PDF-":
+    if is_pdf(raw):
         return _read_pdf(raw)
     if raw[:2] == b"PK":
         return _read_zip_document(raw)
@@ -68,7 +78,7 @@ def read_document(filename: str, raw: bytes) -> Document:
         if name.endswith((".doc", ".dot")):
             raise UnsupportedFile("I file Word 97-2003 (.doc) non sono supportati: aprilo in Word e salvalo come .docx o PDF.")
         return _read_xls(raw)
-    if name.endswith(IMAGE_EXTENSIONS) or raw[:3] == b"\xff\xd8\xff" or raw[:8] == b"\x89PNG\r\n\x1a\n":
+    if name.endswith(IMAGE_EXTENSIONS) or is_image(raw):
         raise NeedsOCR("Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti.")
 
     text = decode_text(raw)

@@ -8,13 +8,13 @@
 
 <!-- Riepilogo ───────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+  <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-bank2"></i></div>
     <div class="kpi-label">Banca</div>
     <div class="kpi-value" style="font-size:var(--font-size-xl);">{{ preview.bank.name }}</div>
     <div class="kpi-sub" title="{{ filename }}">{{ filename|truncate(32, true) }}</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+  <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-list-check"></i></div>
     <div class="kpi-label">Movimenti nuovi</div>
     <div class="kpi-value">{{ preview.new_rows|length }}</div>
@@ -22,12 +22,12 @@
       {% if preview.period %}{{ preview.period[0].strftime('%d/%m/%Y') }} → {{ preview.period[1].strftime('%d/%m/%Y') }}{% endif %}
     </div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+  <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
     <div class="kpi-label">Entrate</div>
     <div class="kpi-value text-positive">{{ preview.total_income|money }}</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+  <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
     <div class="kpi-label">Uscite</div>
     <div class="kpi-value text-negative">{{ preview.total_expenses|money }}</div>
@@ -132,12 +132,12 @@
           {% set i = loop.index0 %}
           {% if row.duplicate %}
           <tr class="statement-row" style="opacity:.45;" data-signed="{{ row.amount }}">
-            <td><i class="bi bi-check2-all" title="Già importato" style="color:var(--clr-text-muted);"></i></td>
+            <td><i class="bi bi-check2-all text-muted" title="Già importato"></i></td>
             <td style="white-space:nowrap;font-size:var(--font-size-xs);">{{ row.date.strftime('%d/%m/%Y') }}</td>
             <td>{{ row.description }} <span class="badge badge-muted">Già importato</span></td>
             <td>{{ row.category }}</td>
             <td>—</td>
-            <td class="amount" style="text-align:right;white-space:nowrap;">{{ row.amount|money }}</td>
+            <td class="amount text-right nowrap">{{ row.amount|money }}</td>
             <td></td>
           </tr>
           {% else %}
@@ -145,8 +145,7 @@
           <tr class="preview-row statement-row {{ '' if checked else 'row-off' }}" data-sign="{{ -1 if row.amount < 0 else 1 }}"
               data-index="{{ i }}" data-causale="{{ row.causale or '' }}">
             <td>
-              <input type="checkbox" name="include" value="{{ i }}" class="row-include" {{ 'checked' if checked else '' }}
-                     style="width:16px;height:16px;accent-color:var(--clr-primary);" />
+              <input type="checkbox" name="include" value="{{ i }}" class="row-include check" {{ 'checked' if checked else '' }} />
             </td>
             <td><input type="date" name="date-{{ i }}" value="{{ row.date.isoformat() }}" class="form-control row-field"
                        style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} /></td>
@@ -189,7 +188,7 @@
 
   <template id="new-row-template">
     <tr class="preview-row statement-row" data-sign="-1" data-index="__i__" data-causale="">
-      <td><input type="checkbox" name="include" value="__i__" class="row-include" checked style="width:16px;height:16px;accent-color:var(--clr-primary);" /></td>
+      <td><input type="checkbox" name="include" value="__i__" class="row-include check" checked /></td>
       <td><input type="date" name="date-__i__" class="form-control row-field" style="padding:6px 8px;" required /></td>
       <td><input type="text" name="description-__i__" class="form-control row-field" style="padding:6px 8px;" required placeholder="Descrizione" />
           <input type="text" name="counterparty-__i__" class="form-control row-field row-counterparty" placeholder="Controparte"

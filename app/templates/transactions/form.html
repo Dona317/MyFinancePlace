@@ -110,7 +110,7 @@
         <div class="card" style="background:var(--clr-bg-input);margin-bottom:18px;">
           <div class="card-body-sm">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-              <input type="checkbox" id="is_recurring" name="is_recurring" style="width:16px;height:16px;accent-color:var(--clr-primary);"
+              <input class="check" type="checkbox" id="is_recurring" name="is_recurring"
                      {{ 'checked' if is_edit and transaction.is_recurring else '' }}
                      onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
               <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">

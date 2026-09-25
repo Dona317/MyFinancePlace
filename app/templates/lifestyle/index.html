@@ -12,25 +12,25 @@
 
 <!-- KPI Spese ────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
+  <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-cart3"></i></div>
     <div class="kpi-label">Spese Totali</div>
     <div class="kpi-value text-negative" data-amount="{{ report.total_expenses }}" data-currency="EUR">—</div>
     <div class="kpi-sub">Anno {{ year }}</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
+  <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-calendar3"></i></div>
     <div class="kpi-label">Media Mensile</div>
     <div class="kpi-value" data-amount="{{ report.monthly_average }}" data-currency="EUR">—</div>
     <div class="kpi-sub">Gen → {{ report.reference_month }} {{ year }}</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
+  <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-graph-up"></i></div>
     <div class="kpi-label">Categoria Top</div>
     <div class="kpi-value" style="font-size:var(--font-size-xl);">{{ report.top_category or '—' }}</div>
     <div class="kpi-sub">Spesa maggiore</div>
   </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
+  <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
     <div class="kpi-label">Spese Discrezionali</div>
     <div class="kpi-value">{{ "%.1f"|format(report.discretionary_share) }}%</div>
@@ -73,9 +73,9 @@
       <thead>
         <tr>
           <th>Categoria</th>
-          <th style="text-align:right;">Questo Mese</th>
-          <th style="text-align:right;">Mese Scorso</th>
-          <th style="text-align:right;">Variazione</th>
+          <th class="text-right">Questo Mese</th>
+          <th class="text-right">Mese Scorso</th>
+          <th class="text-right">Variazione</th>
           <th style="min-width:140px;">% sul Totale</th>
         </tr>
       </thead>
@@ -90,9 +90,9 @@
               {{ row.category }}
             </div>
           </td>
-          <td class="amount" style="text-align:right;">{{ row.this_month|money }}</td>
+          <td class="amount text-right">{{ row.this_month|money }}</td>
           <td class="amount" style="text-align:right;color:var(--clr-text-muted);">{{ row.last_month|money }}</td>
-          <td style="text-align:right;">
+          <td class="text-right">
             {% if row.change is none %}
               <span class="badge badge-muted">—</span>
             {% elif row.change > 0 %}
@@ -122,8 +122,8 @@
       <tfoot>
         <tr>
           <td>Totale</td>
-          <td class="amount" style="text-align:right;">{{ report.this_month_total|money }}</td>
-          <td class="amount" style="text-align:right;">{{ report.last_month_total|money }}</td>
+          <td class="amount text-right">{{ report.this_month_total|money }}</td>
+          <td class="amount text-right">{{ report.last_month_total|money }}</td>
           <td></td>
           <td></td>
         </tr>

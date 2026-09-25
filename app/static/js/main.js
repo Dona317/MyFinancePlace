@@ -2,7 +2,12 @@
  * main.js — UI interactions for MyFinancePlace
  */
 
-/* ── Mobile sidebar toggle ────────────────────────────────────────────── */
+/* ── Preferences kept in this browser (private mode may refuse them) ──── */
+const store = {
+  get(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
+  set(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* private mode */ } },
+};
+
 /* ── Modal helpers ─────────────────────────────────────────────────────── */
 function openModal(id) {
   const el = document.getElementById(id);
@@ -31,9 +36,7 @@ function applyTheme(theme, remember) {
   document.querySelectorAll("[data-theme-choice]").forEach(button => {
     button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme));
   });
-  if (remember) {
-    try { localStorage.setItem("mfp-theme", theme); } catch (e) { /* private mode */ }
-  }
+  if (remember) store.set("mfp-theme", theme);
   document.dispatchEvent(new CustomEvent("mfp:themechange", { detail: { theme } }));
 }
 
@@ -46,9 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   // Follow the operating system while the user has not chosen
   window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change", e => {
-    let chosen = null;
-    try { chosen = localStorage.getItem("mfp-theme"); } catch (err) { /* private mode */ }
-    if (!chosen) applyTheme(e.matches ? "dark" : "light", false);
+    if (!store.get("mfp-theme")) applyTheme(e.matches ? "dark" : "light", false);
   });
 
   // Close modal when clicking the overlay background
@@ -58,12 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Close modal on ESC key
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape") {
-      document.querySelectorAll(".modal-overlay.open").forEach(m => closeModal(m.id));
-    }
-  });
   /* ── Sidebar ─────────────────────────────────────────────────────────── */
   const toggleBtn = document.getElementById("sidebar-toggle");
   const sidebar   = document.getElementById("sidebar");
@@ -94,16 +89,22 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const hidden = !document.documentElement.classList.contains("sidebar-hidden");
       applyHidden(hidden);
-      try { localStorage.setItem("mfp-sidebar-hidden", hidden ? "1" : "0"); } catch (e) { /* private mode */ }
+      store.set("mfp-sidebar-hidden", hidden ? "1" : "0");
     });
   }
   overlay && overlay.addEventListener("click", closeSidebar);
-  document.addEventListener("keydown", e => { if (e.key === "Escape") closeSidebar(); });
+
+  // ESC closes the open modal and the phone sidebar
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    document.querySelectorAll(".modal-overlay.open").forEach(m => closeModal(m.id));
+    closeSidebar();
+  });
 
   // Collapsible sections, remembered in this browser
   const saveCollapsed = () => {
     const closed = [...document.querySelectorAll(".nav-section.collapsed")].map(s => s.dataset.section);
-    try { localStorage.setItem("mfp-nav-collapsed", JSON.stringify(closed)); } catch (e) { /* private mode */ }
+    store.set("mfp-nav-collapsed", JSON.stringify(closed));
   };
   document.querySelectorAll(".nav-section-title").forEach(title => {
     title.addEventListener("click", () => {
@@ -132,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
   miniToggle && miniToggle.addEventListener("click", () => {
     const mini = !document.documentElement.classList.contains("sidebar-mini");
     applyMini(mini);
-    try { localStorage.setItem("mfp-sidebar-mini", mini ? "1" : "0"); } catch (e) { /* private mode */ }
+    store.set("mfp-sidebar-mini", mini ? "1" : "0");
   });
 
   /* ── Auto-dismiss flash alerts ──────────────────────────────────────── */
@@ -162,25 +163,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* ── Nav active state from URL ───────────────────────────────────────── */
-  const path = window.location.pathname;
-  document.querySelectorAll(".nav-item[href]").forEach(link => {
-    if (path.startsWith(link.getAttribute("href")) && link.getAttribute("href") !== "/") {
-      link.classList.add("active");
-    } else if (link.getAttribute("href") === "/dashboard" && path === "/") {
-      link.classList.add("active");
-    }
-  });
+  /* ── Active menu item for pages the server does not mark (e.g. /transactions/duplicates) ── */
+  if (!document.querySelector(".sidebar .nav-item.active")) {
+    const path = window.location.pathname === "/" ? "/dashboard" : window.location.pathname;
+    const best = [...document.querySelectorAll(".sidebar .nav-item[href]")]
+      .filter(link => path.startsWith(link.getAttribute("href")))
+      .sort((a, b) => b.getAttribute("href").length - a.getAttribute("href").length)[0];
+    best?.classList.add("active");
+  }
 });
-
-/* ── Number formatting helper ──────────────────────────────────────────── */
-function formatCurrency(value, currency = "EUR", locale = "it-IT") {
-  return new Intl.NumberFormat(locale, {
-    style: "currency", currency,
-    minimumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatPercent(value, decimals = 1) {
-  return (value >= 0 ? "+" : "") + value.toFixed(decimals) + "%";
-}

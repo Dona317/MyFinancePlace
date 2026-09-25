@@ -7,12 +7,9 @@ import pytest
 from app.models.transaction import Transaction
 from app.services import forecast
 from tests.conftest import make_tx
+from tests.form_helper import assert_divs_balanced
 
 TODAY = date(2026, 9, 15)
-
-
-def assert_divs_balanced(html):
-    assert len(re.findall(r"<div\b", html)) == len(re.findall(r"</div>", html))
 
 
 def tx(d, description, amount, type="expense", category="Altro", **kw):
