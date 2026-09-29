@@ -47,6 +47,27 @@ DEFAULT_SETTINGS = {
 }
 
 
+# Which setting switches off which pages: a whole blueprint, or single endpoints inside one
+MODULE_BLUEPRINTS = {
+    "portfolio": "module_portfolio", "debt": "module_debt", "insurance": "module_insurance",
+    "documents": "module_documents", "snapshots": "module_snapshots", "export": "module_export",
+}
+MODULE_ENDPOINTS = {
+    "accounting.balance_sheet": "accounting_balance_sheet", "accounting.opening_cash": "accounting_balance_sheet",
+    "accounting.income_statement": "accounting_income_statement", "accounting.cash_flow": "accounting_cash_flow",
+}
+MODULE_ENDPOINT_PREFIXES = {"lifestyle.goal": "lifestyle_goals"}  # lifestyle.goals, lifestyle.goal_new, ...
+
+
+def module_setting(blueprint: str | None, endpoint: str | None) -> str | None:
+    """The setting that must be on for this page to be reachable (None: always reachable)."""
+    if blueprint in MODULE_BLUEPRINTS:
+        return MODULE_BLUEPRINTS[blueprint]
+    if endpoint in MODULE_ENDPOINTS:
+        return MODULE_ENDPOINTS[endpoint]
+    return next((key for prefix, key in MODULE_ENDPOINT_PREFIXES.items() if (endpoint or "").startswith(prefix)), None)
+
+
 SETTINGS_KEY = "ui.settings"  # the saved choices, as JSON in app_settings (so they survive cookies and browsers)
 
 

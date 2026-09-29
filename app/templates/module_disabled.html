@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Sezione disattivata — MyFinancePlace{% endblock %}
+{% block page_title %}Sezione disattivata{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-eye-slash"></i></div>
+    <div class="empty-state-title">Questa sezione è disattivata</div>
+    <div class="empty-state-text">L'hai nascosta nelle Impostazioni: riattivala per usarla di nuovo. I dati non sono stati toccati.</div>
+    <a href="{{ url_for('settings.index') }}" class="btn btn-primary"><i class="bi bi-gear"></i> Vai alle Impostazioni</a>
+  </div>
+</div>
+{% endblock %}

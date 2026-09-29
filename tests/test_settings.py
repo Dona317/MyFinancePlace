@@ -54,3 +54,23 @@ def test_old_session_choices_still_apply_until_saved(client, db):
     with client.session_transaction() as session:
         session["settings"] = {**DEFAULT_SETTINGS, "dashboard_debt": False}
     assert "Debito Totale" not in client.get("/dashboard").get_data(as_text=True)
+
+
+def save_all_but(client, *off):
+    form = {key: "on" for key, value in DEFAULT_SETTINGS.items() if value is True and key not in off}
+    client.post("/settings/save", data=form)
+
+
+def test_disabled_modules_are_not_reachable(client, db):
+    save_all_but(client, "module_portfolio", "accounting_cash_flow", "lifestyle_goals", "module_export")
+    for url in ("/portfolio/", "/portfolio/new", "/accounting/cash-flow", "/lifestyle/goals", "/lifestyle/goals/new",
+                "/export/backup"):
+        response = client.get(url)
+        assert response.status_code == 404, url
+        assert "Questa sezione è disattivata" in response.get_data(as_text=True)
+    assert client.post("/portfolio/new", data={"name": "X"}).status_code == 404
+    # everything else still works, and so does Settings to switch them back on
+    for url in ("/debt/", "/accounting/income-statement", "/lifestyle/", "/settings/", "/transactions/"):
+        assert client.get(url).status_code == 200, url
+    save_all_but(client)
+    assert client.get("/portfolio/").status_code == 200

@@ -1,7 +1,8 @@
 from apiflask import APIFlask
+from flask import render_template, request
 from jinja2 import Undefined
 from config import config
-from .routes.settings import current_settings
+from .routes.settings import current_settings, module_setting
 from .extensions import db, migrate
 
 
@@ -116,6 +117,14 @@ def create_app(config_name="default"):
     @app.context_processor
     def inject_settings():
         return {"settings": current_settings()}
+
+    # A module switched off in Settings disappears from the menu and its pages answer "not found"
+    @app.before_request
+    def block_disabled_modules():
+        key = module_setting(request.blueprint, request.endpoint)
+        if key and not current_settings().get(key, True):
+            return render_template("module_disabled.html", setting=key), 404
+        return None
 
     return app
 
