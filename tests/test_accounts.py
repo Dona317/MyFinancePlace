@@ -96,3 +96,25 @@ def test_transaction_form_accounts(client, db, two_accounts):
     client.post(f"/transactions/{tx.id}/edit", data=base | {"type": "expense", "account_id": str(fineco.id),
                                                           "counter_account_id": str(card.id)})
     assert db.session.get(Transaction, tx.id).counter_account_id is None
+
+
+def test_bank_import_on_an_account(client, db):
+    import io
+    import re
+
+    from tests.form_helper import form_data
+    from tests.statements import fineco_xlsx
+
+    fineco = Account(name="Fineco", kind="current")
+    db.session.add(fineco)
+    db.session.commit()
+    html = client.post("/export/bank", data={"file": (io.BytesIO(fineco_xlsx()), "movimenti.xlsx"), "bank": "auto"},
+                       content_type="multipart/form-data").get_data(as_text=True)
+    assert re.search(rf'<option value="{fineco.id}" selected', html)  # suggested from the bank's name
+    rows = sorted(set(re.findall(r'name="include" value="(\d+)"', html)), key=int)
+    client.post("/export/bank/confirm", data=form_data(html, "preview-form", include=rows))
+    imported = Transaction.query.all()
+    assert imported and all(t.account_id == fineco.id or t.counter_account_id == fineco.id for t in imported)
+    giroconto = Transaction.query.filter(Transaction.description.ilike("%giroconto%")).first()
+    # money leaving towards the savings account: it leaves Fineco
+    assert giroconto.type == "transfer" and giroconto.account_id == fineco.id and giroconto.counter_account_id is None

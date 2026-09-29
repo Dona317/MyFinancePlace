@@ -318,8 +318,9 @@ def bank_confirm():
             invalid.append(index + 1)
             continue
         if account is not None:
-            # money coming in through a transfer arrives on this account; everything else moves from it
-            incoming = tx.type == "transfer" and (to_decimal(fields.get("amount")) or 0) > 0
+            # money coming in through a transfer arrives on this account; everything else moves from it.
+            # The preview shows amounts without sign: the direction comes from the statement row as read.
+            incoming = tx.type == "transfer" and (to_decimal(base.get("amount")) or 0) > 0
             if incoming:
                 tx.counter_account_id = account.id
             else:
