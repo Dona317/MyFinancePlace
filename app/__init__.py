@@ -14,6 +14,7 @@ def create_app(config_name="default"):
         docs_path='/swagger'
     )
     app.config.from_object(config[config_name])
+    config[config_name].init_app(app)  # production: SECRET_KEY check, ProxyFix, logging to stdout
 
     # No limits on request size: large statements and previews with thousands of rows must go through.
     # (Newer Flask/Werkzeug versions default to 1000 form fields / 500 KB per form; switch those off.)

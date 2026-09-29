@@ -20,8 +20,8 @@ Personal finance management app — from household budgeting to investment portf
 ## Quick Start
 
 ```bash
-# 1. Start the PostgreSQL database
-docker compose up -d
+# 1. Start the PostgreSQL database (only the db service; `docker compose up` alone also starts the app, see Deploy)
+docker compose up -d db
 
 # 2. Create and activate a virtual environment
 python -m venv .venv
@@ -150,6 +150,22 @@ docker compose exec db createdb -U sa myfinanceplace_test   # once
 TEST_DATABASE_URL=postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test pytest
 ```
 
+GitHub Actions (`.github/workflows/tests.yml`) runs on every push and pull request: `ruff check app tests migrations`,
+`flask db upgrade` on a fresh PostgreSQL 16 database followed by `flask db check`, then the whole suite.
+
+## Deploy
+
+One command runs everything — PostgreSQL, migrations and the app under gunicorn — on `http://localhost:8000`:
+
+```bash
+cp .env.example .env    # optional
+docker compose up -d
+```
+
+**There is no login yet**: keep it on your machine/LAN or behind a VPN, or add a password at the reverse proxy.
+HTTPS with Caddy or nginx, production settings, backups (`pg_dump` and Esporta → Backup Completo) and updates
+are described in [docs/DEPLOY.md](docs/DEPLOY.md).
+
 ## Implementation Status
 
 | Module | Status |
@@ -188,7 +204,7 @@ PostgreSQL runs in Docker. The `docker-compose.yml` at the project root defines 
 
 ```powershell
 # Start the DB
-docker compose up -d
+docker compose up -d db
 
 # Open a psql shell inside the container
 .\connect_to_postgres_db.ps1
