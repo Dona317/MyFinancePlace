@@ -2,7 +2,7 @@ from datetime import date
 from flask import render_template, redirect, url_for
 from apiflask import APIBlueprint
 from app.models.transaction import Transaction
-from app.services import analytics
+from app.services import analytics, budgets
 
 dashboard_bp = APIBlueprint(
     "dashboard",
@@ -35,4 +35,5 @@ def dashboard():
         cash_flow=cash_flow,
         expense_breakdown=expense_breakdown,
         recent_transactions=recent,
+        budget_alerts=budgets.alerts(today),
     )

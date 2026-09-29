@@ -12,6 +12,15 @@
 
 {% block content %}
 
+{% if budget_alerts %}
+<div class="alert {{ 'alert-error' if budget_alerts|selectattr('state', 'equalto', 'over')|list else 'alert-warning' }} mb-16">
+  <i class="bi bi-clipboard-x"></i>
+  <span>Budget del mese:
+  {% for a in budget_alerts %}<strong>{{ a.category }}</strong> {{ a.share|number(0) }}%{{ ' (superato)' if a.state == 'over' }}{{ ', ' if not loop.last }}{% endfor %}.
+  <a href="{{ url_for('lifestyle.budget') }}">Vedi i budget</a></span>
+</div>
+{% endif %}
+
 <!-- KPI Row ─────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24">
 

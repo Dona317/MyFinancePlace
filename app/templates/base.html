@@ -108,6 +108,10 @@
            class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
           <i class="bi bi-pie-chart"></i> <span class="nav-label">Spese e Tendenze</span>
         </a>
+        <a href="{{ url_for('lifestyle.budget') }}"
+           class="nav-item {% if request.endpoint in ('lifestyle.budget', 'lifestyle.budget_save') %}active{% endif %}">
+          <i class="bi bi-clipboard-check"></i> <span class="nav-label">Budget</span>
+        </a>
         {% if settings.lifestyle_goals %}
         <a href="{{ url_for('lifestyle.goals') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">

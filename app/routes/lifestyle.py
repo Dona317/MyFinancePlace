@@ -5,9 +5,11 @@ from flask import flash, redirect, render_template, request, url_for
 from apiflask import APIBlueprint
 
 from app.extensions import db
+from app.models.budget import Budget
 from app.models.wealth import Goal
 from app.routes.helpers import form_date, form_decimal, form_text
-from app.services import analytics
+from app.services import analytics, budgets, categories
+from app.services.periods import add_months
 
 lifestyle_bp = APIBlueprint(
     "lifestyle",
@@ -23,6 +25,52 @@ def index():
     year = request.args.get("year", type=int) or date.today().year
     report = analytics.lifestyle_report(year)
     return render_template("lifestyle/index.html", report=report, years=years, year=year)
+
+
+# ── Monthly budgets ────────────────────────────────────────────────────────────
+
+def _month_arg() -> date:
+    raw = request.values.get("month", "")
+    try:
+        year, month = (int(part) for part in raw.split("-"))
+        return date(year, month, 1)
+    except ValueError:
+        return date.today().replace(day=1)
+
+
+@lifestyle_bp.route("/budget")
+def budget():
+    month = _month_arg()
+    lines = {line["category"]: line for line in budgets.status(month)}
+    spent = budgets.spent_by_category(month)
+    names = sorted(set(categories.expense_categories()) | set(lines) | set(spent), key=str.casefold)
+    every_month = {b.category: b.amount for b in Budget.query.filter(Budget.month.is_(None))}
+    this_month = {b.category: b.amount for b in Budget.query.filter(Budget.month == month)}
+    rows = [{"category": n, "line": lines.get(n), "spent": spent.get(n, 0.0),
+             "every_month": every_month.get(n), "this_month": this_month.get(n)} for n in names]
+    planned = sum(line["planned"] for line in lines.values())
+    return render_template(
+        "lifestyle/budget.html", month=month, rows=rows, planned=planned,
+        spent_total=sum(line["spent"] for line in lines.values()),
+        unbudgeted=sum(v for k, v in spent.items() if k not in lines),
+        prev=add_months(month, -1), next=add_months(month, 1), warning=budgets.WARNING_SHARE,
+    )
+
+
+@lifestyle_bp.route("/budget", methods=["POST"])
+def budget_save():
+    month = _month_arg()
+    try:
+        for name in request.form.getlist("category"):
+            budgets.save(name, form_decimal(f"every-{name}", f"Budget mensile di {name}"), None)
+            budgets.save(name, form_decimal(f"month-{name}", f"Budget di questo mese per {name}"), month)
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return redirect(url_for("lifestyle.budget", month=f"{month:%Y-%m}"))
+    db.session.commit()
+    flash("Budget salvati.", "success")
+    return redirect(url_for("lifestyle.budget", month=f"{month:%Y-%m}"))
 
 
 # ── Savings goals ──────────────────────────────────────────────────────────────

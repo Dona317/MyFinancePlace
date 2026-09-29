@@ -6,6 +6,7 @@ updates everything that refers to it.
 from sqlalchemy import func
 
 from app.extensions import db
+from app.models.budget import Budget
 from app.models.category import Category, CategoryRule
 from app.models.transaction import Transaction
 from app.models.wealth import Document
@@ -85,6 +86,7 @@ def rename(old: str, new: str) -> bool:
     Transaction.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
     Document.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
     CategoryRule.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
+    _move_budgets(old, new)
     if source is not None:
         if merged:
             db.session.delete(source)
@@ -96,12 +98,29 @@ def rename(old: str, new: str) -> bool:
     return merged
 
 
+def _move_budgets(old: str, new: str) -> None:
+    """Budgets follow a renamed category; when merging, the target's own budget for the same month wins."""
+    for budget in Budget.query.filter_by(category=old).all():
+        clash = Budget.query.filter(Budget.category == new, Budget.month.is_(None) if budget.month is None
+                                    else Budget.month == budget.month).first()
+        if clash is not None:
+            db.session.delete(budget)
+        else:
+            budget.category = new
+
+
 def delete(name: str, replacement: str | None) -> int:
     """Remove a category; its transactions move to `replacement` (or become uncategorized). Returns how many."""
     ensure_defaults()
     moved = Transaction.query.filter_by(category=name).update({"category": replacement or None}, synchronize_session=False)
     Document.query.filter_by(category=name).update({"category": replacement or None}, synchronize_session=False)
     CategoryRule.query.filter_by(category=name).delete(synchronize_session=False)
+    Budget.query.filter_by(category=name).delete(synchronize_session=False)
     Category.query.filter_by(name=name).delete(synchronize_session=False)
     db.session.commit()
     return moved
+
+
+def expense_categories() -> list[str]:
+    """Categories that can have a spending budget."""
+    return [c.name for c in all_categories() if c.kind in ("expense", "both")]
