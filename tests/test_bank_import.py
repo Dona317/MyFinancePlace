@@ -69,9 +69,9 @@ def test_intesa_legacy_html_xls(app):
     assert amounts == [(Decimal("-32.40"), "expense", "Salute"), (Decimal("1250.00"), "income", "Rimborsi")]
 
 
-def test_generic_csv(app):
+def test_revolut_csv_is_recognized_by_its_columns(app):
     preview = bank_import.analyze_statement("account-statement.csv", generic_csv())
-    assert preview.bank.key == "generic"
+    assert preview.bank.key == "revolut"
     assert [(r.date, r.description, r.amount, r.category) for r in preview.rows] == [
         (date(2026, 8, 1), "Uber", Decimal("-14.20"), "Trasporto"),
         (date(2026, 8, 3), "Payment from Mario Rossi", Decimal("200.00"), "Altro"),
@@ -233,8 +233,13 @@ SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
     ("fineco_2026-07_2026-09.xlsx", "fineco"),
     ("intesa_sanpaolo_2026-04_2026-09.xlsx", "intesa"),
     ("intesa_sanpaolo_legacy_2026-03.xls", "intesa"),
-    ("unicredit_2026-08_2026-09.csv", "generic"),
-    ("revolut_2026-09.csv", "generic"),
+    ("unicredit_2026-08_2026-09.csv", "unicredit"),
+    ("revolut_2026-09.csv", "revolut"),
+    ("n26_2026-08.csv", "n26"),
+    ("bper_2026-07.xlsx", "bper"),
+    ("bancoposta_2026-06.xlsx", "poste"),
+    ("ing_2026-05.xlsx", "ing"),
+    ("estratto_conto_word97_2025-10.doc", "generic"),
     ("banca_generica_2026-02.xls", "generic"),  # binary Excel 97-2003, read with xlrd
     ("fineco_estratto_conto_2026-07_2026-08.pdf", "fineco"),
     ("intesa_sanpaolo_lista_movimenti_2026-09.pdf", "intesa"),
@@ -260,7 +265,7 @@ def test_overlapping_sample_statements_are_deduplicated(app, db):
     assert second.duplicates == len(july_in_both) > 0
 
 
-# ── PDF, TXT, Word, OpenDocument, RTF: compare with the generator's ground truth ──
+# ── Every format and bank layout: compare with the generator's ground truth ──
 
 sys.path.insert(0, str(SAMPLES))
 import generate as sample_generator  # noqa: E402  (pure-Python part only; no fpdf/xlwt needed)
@@ -273,6 +278,12 @@ import generate as sample_generator  # noqa: E402  (pure-Python part only; no fp
     ("estratto_conto_word_2026-01.docx", (date(2026, 1, 1), date(2026, 1, 31)), 111, 2300.0, 780.0),
     ("estratto_conto_libreoffice_2025-12.ods", (date(2025, 12, 1), date(2025, 12, 31)), 122, 2100.0, 700.0),
     ("estratto_conto_2025-11.rtf", (date(2025, 11, 1), date(2025, 11, 30)), 133, 1950.0, 620.0),
+    ("estratto_conto_word97_2025-10.doc", (date(2025, 10, 1), date(2025, 10, 31)), 188, 2150.0, 670.0),
+    ("unicredit_2026-08_2026-09.csv", (date(2026, 8, 1), date(2026, 9, 24)), 44, 1980.0, 650.0),
+    ("n26_2026-08.csv", (date(2026, 8, 1), date(2026, 8, 31)), 144, 2200.0, 750.0),
+    ("bper_2026-07.xlsx", (date(2026, 7, 1), date(2026, 7, 31)), 155, 2010.0, 630.0),
+    ("bancoposta_2026-06.xlsx", (date(2026, 6, 1), date(2026, 6, 30)), 166, 1820.0, 560.0),
+    ("ing_2026-05.xlsx", (date(2026, 5, 1), date(2026, 5, 31)), 177, 2280.0, 690.0),
 ])
 def test_document_formats_extract_every_movement_exactly(app, filename, period, seed, salary, rent):
     expected = sample_generator.movements(*period, seed, salary=salary, rent=rent)

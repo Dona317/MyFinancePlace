@@ -71,19 +71,25 @@
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">Report PDF</div>
-          <div class="text-xs text-muted">Stampa o salva come PDF dal browser</div>
+          <div class="text-xs text-muted">Conto economico, mesi e rendiconto dell'anno</div>
         </div>
       </div>
-      <form method="GET" action="{{ url_for('export.export_pdf') }}">
+      <form method="GET" action="{{ url_for('export.export_pdf_download') }}">
         <div class="form-group">
           <label class="form-label">Anno</label>
           <select name="year" class="form-select">
             {% for y in years %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
           </select>
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-          <i class="bi bi-printer"></i> Genera Report
-        </button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+            <i class="bi bi-download"></i> Scarica PDF
+          </button>
+          <button type="submit" class="btn btn-outline" style="flex:1;justify-content:center;"
+                  formaction="{{ url_for('export.export_pdf') }}">
+            <i class="bi bi-printer"></i> Stampa dal browser
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -175,7 +181,7 @@
       <div class="form-group" style="margin:0;">
         <label class="form-label">File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF, foto)</label>
         <input type="file" name="file" class="form-control"
-               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.ods,.odt,.rtf,.tsv,.jpg,.jpeg,.png,.webp" required />
+               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.doc,.ods,.odt,.rtf,.tsv,.jpg,.jpeg,.png,.webp" required />
       </div>
       <div class="form-group" style="margin:0;">
         <label class="form-label">Banca</label>
@@ -193,6 +199,9 @@
     <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
       <strong>Fineco:</strong> Conto → Movimenti → Esporta in Excel.
       <strong>Intesa Sanpaolo:</strong> Conto corrente → Lista movimenti → Esporta Excel.
+      <strong>Revolut:</strong> Conto → Estratto conto → Excel/CSV.
+      <strong>N26:</strong> Transazioni → Scarica CSV.
+      Riconosciuti anche UniCredit, BPER, BancoPosta e ING.
       <strong>Altre banche:</strong> qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite, Dare/Avere).
       {% if not ai_reader %}I PDF devono essere quelli originali dell'home banking (non scansioni).{% endif %}
       Prima dell'importazione potrai controllare e modificare ogni movimento.
@@ -214,7 +223,7 @@
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> Importa CSV con mappatura manuale</div>
+      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> Importa CSV o Excel con mappatura manuale</div>
       <div class="card-header-sub">Per file con un formato non riconosciuto: scegli tu quali colonne usare</div>
     </div>
   </div>
@@ -235,14 +244,16 @@
                onmouseout="this.style.borderColor='var(--clr-border)'">
           <i class="bi bi-cloud-upload" style="font-size:28px;color:var(--clr-text-muted);display:block;margin-bottom:8px;"></i>
           <span id="import-file-label" style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
-            Clicca per scegliere un file CSV (da Excel: Salva come → CSV)
+            Clicca per scegliere un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)
           </span>
-          <input type="file" name="file" id="import-file" accept=".csv" style="display:none;" />
+          <input type="file" name="file" id="import-file" accept=".csv,.txt,.tsv,.xlsx,.xlsm,.xls,.ods" style="display:none;" />
         </label>
         <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
+          Dei fogli Excel si legge il primo; le righe di intestazione della banca sopra i titoli delle colonne vengono saltate.
           Senza colonna Tipo, gli importi negativi diventano uscite e quelli positivi entrate.
-          Date accettate: AAAA-MM-GG o GG/MM/AAAA.
+          Date accettate: AAAA-MM-GG o GG/MM/AAAA (nei file Excel anche le celle di tipo data).
         </p>
+        <p id="import-status" class="text-xs" role="status" style="margin-top:8px;"></p>
       </div>
 
       <!-- Step 2 -->
@@ -281,38 +292,49 @@
 
 {% block scripts %}
 <script>
-// Read the CSV header client-side and offer its columns in the mapping selects.
+// Ask the server for the column names of the chosen file (CSV, Excel or .ods) and offer them in the mapping selects.
 const GUESSES = {
-  date:         ['date', 'data', 'data operazione', 'data valuta'],
-  amount:       ['amount', 'importo', 'valore', 'ammontare'],
+  date:         ['date', 'data', 'data operazione', 'data valuta', 'data contabile', 'data registrazione'],
+  amount:       ['amount', 'importo', 'valore', 'ammontare', 'importo (eur)'],
   description:  ['description', 'descrizione', 'causale', 'dettagli'],
   category:     ['category', 'categoria'],
   type:         ['type', 'tipo'],
   counterparty: ['counterparty', 'controparte', 'beneficiario'],
 };
+const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
-function splitHeader(line) {
-  const delimiter = [';', '\t', ','].reduce((best, d) =>
-    line.split(d).length > line.split(best).length ? d : best, ',');
-  return line.split(delimiter).map(h => h.trim().replace(/^"|"$/g, '')).filter(Boolean);
+function fillSelects(headers) {
+  document.querySelectorAll('.import-col').forEach(select => {
+    const required = select.dataset.required === 'true';
+    select.innerHTML = (required ? '' : '<option value="">— Nessuna —</option>') +
+      headers.map(h => `<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('');
+    const guess = headers.find(h => GUESSES[select.dataset.field].includes(h.toLowerCase().trim()));
+    select.value = guess || (required ? headers[0] : '');
+    select.disabled = headers.length === 0;
+  });
+  document.getElementById('import-submit').disabled = headers.length === 0;
 }
 
-document.getElementById('import-file').addEventListener('change', (e) => {
+document.getElementById('import-file').addEventListener('change', async (e) => {
   const file = e.target.files[0];
+  const status = document.getElementById('import-status');
   if (!file) return;
   document.getElementById('import-file-label').textContent = file.name;
-  file.slice(0, 4096).text().then(text => {
-    const headers = splitHeader(text.replace(/^\ufeff/, '').split(/\r?\n/)[0] || '');
-    document.querySelectorAll('.import-col').forEach(select => {
-      const required = select.dataset.required === 'true';
-      select.innerHTML = (required ? '' : '<option value="">— Nessuna —</option>') +
-        headers.map(h => `<option value="${h.replace(/"/g, '&quot;')}">${h.replace(/</g, '&lt;')}</option>`).join('');
-      const guess = headers.find(h => GUESSES[select.dataset.field].includes(h.toLowerCase()));
-      select.value = guess || (required ? headers[0] : '');
-      select.disabled = false;
-    });
-    document.getElementById('import-submit').disabled = headers.length === 0;
-  });
+  status.textContent = 'Lettura delle colonne…';
+  status.style.color = 'var(--clr-text-muted)';
+  const body = new FormData();
+  body.append('file', file);
+  try {
+    const response = await fetch("{{ url_for('export.import_columns') }}", { method: 'POST', body });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'File non leggibile.');
+    fillSelects(data.headers);
+    status.textContent = `${data.headers.length} colonne trovate (intestazione alla riga ${data.header_line}), ${data.rows} righe.`;
+  } catch (error) {
+    fillSelects([]);
+    status.textContent = error.message;
+    status.style.color = 'var(--clr-negative-text)';
+  }
 });
 </script>
 {% endblock %}

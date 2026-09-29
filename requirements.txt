@@ -12,5 +12,7 @@ openpyxl==3.1.5   # bank statement import (.xlsx)
 xlrd==2.0.2       # bank statement import (legacy .xls)
 pdfplumber==0.11.10  # bank statement import (PDF)
 python-docx==1.2.0   # bank statement import (Word .docx)
+olefile==0.47        # bank statement import (Word 97-2003 .doc, read in pure Python)
+fpdf2==2.8.8         # downloadable PDF report (pure Python)
 anthropic==1.8.0     # optional AI reading of scans/photos (LLM_PROVIDER=anthropic)
 pytest

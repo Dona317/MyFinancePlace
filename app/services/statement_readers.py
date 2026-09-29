@@ -2,7 +2,7 @@
 Readers that turn any supported bank-statement file into data the importer can analyze.
 
 Supported: Excel (.xlsx, .xls, HTML saved as .xls), CSV, TXT (delimited or fixed-width), PDF (text-based),
-Word (.docx), RTF, OpenDocument (.ods, .odt). Images and scanned PDFs raise NeedsOCR, which the importer
+Word (.docx, 97-2003 .doc), RTF, OpenDocument (.ods, .odt). Images and scanned PDFs raise NeedsOCR, which the importer
 hands to the AI reader when one is configured (services/ai_extraction.py).
 
 Every reader returns a `Document` with up to three views of the file, from most to least structured:
@@ -75,8 +75,8 @@ def read_document(filename: str, raw: bytes) -> Document:
     if raw[:2] == b"PK":
         return _read_zip_document(raw)
     if raw[:4] == OLE2_MAGIC:
-        if name.endswith((".doc", ".dot")):
-            raise UnsupportedFile("I file Word 97-2003 (.doc) non sono supportati: aprilo in Word e salvalo come .docx o PDF.")
+        if name.endswith((".doc", ".dot")) or _is_word_binary(raw):
+            return _read_doc(raw)
         return _read_xls(raw)
     if name.endswith(IMAGE_EXTENSIONS) or is_image(raw):
         raise NeedsOCR("Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti.")
@@ -191,10 +191,12 @@ def text_document(kind: str, text: str) -> Document:
     try:
         dialect = csv.Sniffer().sniff(sample, delimiters=";,\t|")
         rows = [row for row in csv.reader(io.StringIO(text), dialect)]
-        if sum(1 for row in rows if len(row) >= 3) >= 2:
-            document.tables.append(rows)
     except csv.Error:
-        pass
+        # The sniffer gives up on short files with a preamble ("BPER Banca" above the header)
+        delimiter = _common_delimiter(sample)
+        rows = list(csv.reader(io.StringIO(text), delimiter=delimiter)) if delimiter else []
+    if sum(1 for row in rows if len(row) >= 3) >= 2:
+        document.tables.append(rows)
     if "\t" in text:
         document.tables.append([line.split("\t") for line in document.text_lines])
 
@@ -203,6 +205,19 @@ def text_document(kind: str, text: str) -> Document:
         words = [Word(m.group(), m.start(), m.end(), number) for m in re.finditer(r"\S+", line.expandtabs(8))]
         document.lines.append(words)
     return document
+
+
+def _common_delimiter(sample: str) -> str | None:
+    """The delimiter that splits the most lines into the same number (≥ 2) of separators."""
+    lines = [line for line in sample.split("\n")[:50] if line.strip()]
+    best, best_score = None, 1
+    for delimiter in ";,\t|":
+        counts = [line.count(delimiter) for line in lines]
+        common = max(set(counts), key=counts.count) if counts else 0
+        score = counts.count(common) if common >= 2 else 0
+        if score > best_score:
+            best, best_score = delimiter, score
+    return best
 
 
 def _rtf_to_text(rtf: str) -> str:
@@ -246,6 +261,136 @@ def _read_docx(raw: bytes) -> Document:
         merged = preamble + [row for table in tables for row in table]
         result.tables = [merged] + [preamble + t for t in tables] + result.tables
     return result
+
+
+# ── Word 97-2003 (.doc) ────────────────────────────────────────────────────────
+#
+# A .doc is an OLE2 container. Its "WordDocument" stream starts with the FIB (file information block),
+# which points to the piece table (CLX) in the "0Table"/"1Table" stream; the piece table says where each
+# run of characters of the main text is stored (8-bit cp1252 or UTF-16). Table cells end with \x07, and
+# every row ends with one more \x07. Pure Python (olefile), so no antiword/LibreOffice is needed.
+
+DOC_UNREADABLE = "Impossibile leggere il documento Word 97-2003 (.doc): aprilo in Word e salvalo come .docx o PDF."
+
+
+def _is_word_binary(raw: bytes) -> bool:
+    import olefile
+    try:
+        with olefile.OleFileIO(raw) as ole:
+            return ole.exists("WordDocument")
+    except Exception:
+        return False
+
+
+def _read_doc(raw: bytes) -> Document:
+    return text_document("doc", "\n".join(doc_text_lines(raw)))
+
+
+def doc_text_lines(raw: bytes) -> list[str]:
+    """The main text of a Word 97-2003 document, one line per paragraph and one tab-separated line per table row."""
+    import struct
+
+    import olefile
+    try:
+        ole = olefile.OleFileIO(raw)
+    except Exception:
+        raise UnsupportedFile(DOC_UNREADABLE)
+    with ole:
+        if not ole.exists("WordDocument"):
+            raise UnsupportedFile(DOC_UNREADABLE)
+        word = ole.openstream("WordDocument").read()
+        if len(word) < 0x200 or struct.unpack_from("<H", word, 0)[0] != 0xA5EC:
+            raise UnsupportedFile(DOC_UNREADABLE)
+        flags = struct.unpack_from("<H", word, 0x0A)[0]
+        if flags & 0x0100:
+            raise UnsupportedFile("Il documento Word è protetto da password: salvalo senza password e riprova.")
+        if struct.unpack_from("<H", word, 0x02)[0] < 101:  # Word 6/95: different structures
+            raise UnsupportedFile(DOC_UNREADABLE)
+        table_name = "1Table" if flags & 0x0200 else "0Table"
+        if not ole.exists(table_name):
+            raise UnsupportedFile(DOC_UNREADABLE)
+        table = ole.openstream(table_name).read()
+
+    try:
+        csw = struct.unpack_from("<H", word, 0x20)[0]
+        lw_start = 0x22 + csw * 2 + 2
+        cslw = struct.unpack_from("<H", word, lw_start - 2)[0]
+        ccp_text = struct.unpack_from("<i", word, lw_start + 12)[0]         # FibRgLw97.ccpText
+        blob = lw_start + cslw * 4 + 2                                     # FibRgFcLcb97
+        fc_clx, lcb_clx = struct.unpack_from("<II", word, blob + 33 * 8)  # fcClx / lcbClx
+        text = _doc_pieces(word, table[fc_clx:fc_clx + lcb_clx], ccp_text)
+    except (struct.error, ValueError):
+        raise UnsupportedFile(DOC_UNREADABLE)
+    return _doc_lines(text)
+
+
+def _doc_pieces(word: bytes, clx: bytes, ccp_text: int) -> str:
+    """Concatenate the pieces of the main text described by the CLX (skipping its Prc formatting blocks)."""
+    import struct
+    pos = 0
+    while pos < len(clx) and clx[pos] == 0x01:              # Prc: 0x01, cbGrpprl, grpprl
+        pos += 3 + struct.unpack_from("<h", clx, pos + 1)[0]
+    if pos >= len(clx) or clx[pos] != 0x02:
+        raise ValueError("no piece table")
+    lcb = struct.unpack_from("<I", clx, pos + 1)[0]
+    plc = clx[pos + 5:pos + 5 + lcb]
+    count = (lcb - 4) // 12
+    cps = struct.unpack_from(f"<{count + 1}I", plc, 0)
+    parts, total = [], 0
+    for i in range(count):
+        start, end = cps[i], min(cps[i + 1], ccp_text)
+        if end <= start:
+            break
+        fc = struct.unpack_from("<I", plc, (count + 1) * 4 + i * 8 + 2)[0]
+        length = end - start
+        if fc & 0x40000000:                                  # compressed: 8-bit cp1252 at fc / 2
+            offset = (fc & 0x3FFFFFFF) // 2
+            parts.append(word[offset:offset + length].decode("cp1252", errors="replace"))
+        else:
+            parts.append(word[fc:fc + 2 * length].decode("utf-16-le", errors="replace"))
+        total += length
+        if total >= ccp_text:
+            break
+    return "".join(parts)
+
+
+def _strip_fields(text: str) -> str:
+    """Fields are \\x13 code \\x14 result \\x15 (or \\x13 code \\x15): keep only the results."""
+    out, stack = [], []   # stack: True while inside the code part of a field
+    for char in text:
+        if char == "\x13":
+            stack.append(True)
+        elif char == "\x14" and stack:
+            stack[-1] = False
+        elif char == "\x15" and stack:
+            stack.pop()
+        elif not any(stack):
+            out.append(char)
+    return "".join(out)
+
+
+def _doc_lines(text: str) -> list[str]:
+    text = _strip_fields(text).replace("\x0b", " ").replace("\x0c", "\r").replace("\x1e", "-").replace("\xa0", " ")
+    text = re.sub(r"[\x00-\x06\x08\x0e-\x1f]", "", text)
+    lines: list[str] = []
+    for paragraph in text.split("\r"):
+        if "\x07" not in paragraph:
+            lines.append(paragraph)
+            continue
+        # Table rows: n cell marks followed by the row mark (an empty "cell"); find the smallest n that fits
+        *cells, trailing = paragraph.split("\x07")
+        width = next(
+            (n for n in range(1, min(len(cells), 64) + 1)
+             if len(cells) % (n + 1) == 0 and all(cells[k] == "" for k in range(n, len(cells), n + 1))),
+            None,
+        )
+        if width is None:
+            lines.append("\t".join(cells))
+        else:
+            lines.extend("\t".join(cells[k:k + width]) for k in range(0, len(cells), width + 1))
+        if trailing:
+            lines.append(trailing)
+    return lines
 
 
 # ── OpenDocument (.ods / .odt) ─────────────────────────────────────────────────

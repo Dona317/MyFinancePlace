@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.routes.helpers import form_ids
 from app.services import (
-    analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store, backup,
+    analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store, backup, pdf_report,
 )
 from app.services.categories import known_categories
 
@@ -119,7 +119,7 @@ def export_json():
 
 @export_bp.route("/pdf")
 def export_pdf():
-    """Print-ready report; the browser's "Save as PDF" produces the final file."""
+    """Print-ready report page ("Stampa dal browser"); /pdf/download gives the same report as a real PDF."""
     year = request.args.get("year", type=int) or date.today().year
     return render_template(
         "export/report.html",
@@ -128,6 +128,16 @@ def export_pdf():
         cash_flow=analytics.cash_flow(year),
         generated_at=datetime.now(),
     )
+
+
+@export_bp.route("/pdf/download")
+def export_pdf_download():
+    """The yearly report as a PDF file generated on the server."""
+    year = request.args.get("year", type=int) or date.today().year
+    content = pdf_report.build_report(year, analytics.income_statement(year), analytics.cash_flow(year))
+    return Response(content, mimetype="application/pdf", headers={
+        "Content-Disposition": f'attachment; filename="report_finanziario_{year}.pdf"',
+    })
 
 
 @export_bp.route("/tax/<int:year>")
@@ -140,23 +150,32 @@ def export_tax(year):
     return _download(content, f"fiscale_{year}.csv", "text/csv; charset=utf-8")
 
 
-@export_bp.route("/import", methods=["POST"])
-def import_csv():
+@export_bp.route("/import/columns", methods=["POST"])
+def import_columns():
+    """Column names of an uploaded CSV / Excel / .ods file, for the mapping selects (JSON); nothing is saved."""
     upload = request.files.get("file")
     if not upload or not upload.filename:
-        flash("Seleziona un file CSV da importare.", "error")
-        return redirect(url_for("export.index"))
-    if not upload.filename.lower().endswith(".csv"):
-        flash("Formato non supportato: carica un file .csv (da Excel: File → Salva come → CSV).", "error")
-        return redirect(url_for("export.index"))
-
-    raw = upload.read()
+        return jsonify({"error": "Seleziona un file."}), 400
     try:
-        content = raw.decode("utf-8")
-    except UnicodeDecodeError:
-        content = raw.decode("latin-1")
+        headers, rows, first_line = transfer.read_table(upload.filename, upload.read())
+    except transfer.TableError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({"headers": headers, "rows": len(rows), "header_line": first_line - 1})
 
-    headers, rows = transfer.read_csv(content)
+
+@export_bp.route("/import", methods=["POST"])
+def import_csv():
+    """Manual column-mapping import of a CSV or spreadsheet (.xlsx, .xls, .ods)."""
+    upload = request.files.get("file")
+    if not upload or not upload.filename:
+        flash("Seleziona un file CSV o Excel da importare.", "error")
+        return redirect(url_for("export.index"))
+    try:
+        headers, rows, first_line = transfer.read_table(upload.filename, upload.read())
+    except transfer.TableError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("export.index"))
+
     mapping = {
         field: request.form.get(f"col_{field}") or None
         for field in ("date", "amount", "description", "category", "type", "counterparty")
@@ -166,7 +185,7 @@ def import_csv():
         flash(f"Colonne obbligatorie non mappate: {', '.join(missing)}.", "error")
         return redirect(url_for("export.index"))
 
-    transactions, errors = transfer.rows_to_transactions(rows, mapping)
+    transactions, errors = transfer.rows_to_transactions(rows, mapping, first_line)
     if errors:
         preview = "; ".join(errors[:5]) + (" …" if len(errors) > 5 else "")
         flash(f"Importazione annullata, {len(errors)} righe non valide — {preview}", "error")
