@@ -6,7 +6,7 @@ from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Document
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
-from app.services import accounts, ai_classification, ai_extraction, category_rules, duplicates
+from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates
 from app.services.categories import known_categories
 from app.services.parsing import TRANSACTION_TYPES, valid_amount
 from app.services.periods import month_bounds
@@ -24,7 +24,6 @@ transactions_bp = APIBlueprint(
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 RECURRENCES = ("weekly", "monthly", "quarterly", "yearly")
-CURRENCIES = ("EUR", "USD", "GBP")
 
 
 def _tx_from_form(tx: Transaction) -> Transaction:
@@ -37,7 +36,7 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     tx.amount = abs(amount)
     tx.description = form_text("description", "Descrizione", required=True)
     currency = request.form.get("currency") or "EUR"
-    tx.currency = currency if currency in CURRENCIES else "EUR"
+    tx.currency = currency if currency in money.CURRENCIES else "EUR"
     tx.category = form_text("category", "Categoria")
     tx.counterparty = form_text("counterparty", "Controparte")
     tx.tags = [t.strip() for t in request.form.get("tags", "").split(",") if t.strip()]
@@ -171,6 +170,7 @@ def _render_form(tx: Transaction | None):
     return render_template(
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=_form_values(tx),
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
+        currencies=money.CURRENCIES,
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )
 

@@ -10,6 +10,7 @@ class Transaction(db.Model):
     description    = db.Column(db.Text,           nullable=False)
     amount         = db.Column(db.Numeric(38, 2), nullable=False)  # 36 integer digits: no practical limit
     currency       = db.Column(db.String(3),      default="EUR")
+    amount_base    = db.Column(db.Numeric(38, 2))  # value in euro on its date (services.currency fills it)
     type           = db.Column(db.String(20))     # "income" | "expense" | "transfer"
     category       = db.Column(db.Text)
     counterparty   = db.Column(db.Text)
@@ -30,8 +31,12 @@ class Transaction(db.Model):
 
     @property
     def magnitude(self) -> float:
-        """Amount as a positive number (the direction comes from `type`)."""
-        return abs(float(self.amount or 0))
+        """Value in euro as a positive number (the direction comes from `type`): what totals add up."""
+        return abs(float(self.amount_base if self.amount_base is not None else self.amount or 0))
+
+    @property
+    def is_foreign(self) -> bool:
+        return bool(self.currency) and self.currency != "EUR"
 
     @property
     def signed_amount(self) -> float:

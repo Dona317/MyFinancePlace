@@ -56,8 +56,8 @@ def cash_balance(on: date | None = None) -> float:
     Opening balance (general + each account's) + income − expenses up to and including `on`
     (transfers move money between own accounts).
     """
-    signed = func.sum(case((Transaction.type == "expense", -func.abs(Transaction.amount)),
-                           else_=func.abs(Transaction.amount)))
+    signed = func.sum(case((Transaction.type == "expense", -func.abs(Transaction.amount_base)),
+                           else_=func.abs(Transaction.amount_base)))
     query = db.session.query(func.coalesce(signed, 0)).filter(Transaction.type.in_(["income", "expense"]))
     if on is not None:
         query = query.filter(Transaction.date <= on)
@@ -179,7 +179,7 @@ def monthly_average_income(today: date | None = None, months: int = 12) -> float
     today = today or date.today()
     start = add_months(date(today.year, today.month, 1), -months)
     total = (
-        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount)), 0))
+        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount_base)), 0))
         .filter(Transaction.type == "income", Transaction.date >= start, Transaction.date < date(today.year, today.month, 1))
         .scalar()
     )
@@ -216,7 +216,7 @@ def portfolio_summary(holdings: list[Holding]) -> dict:
 def dividends(start: date, end: date) -> float:
     """Income recorded under a dividend or coupon category."""
     total = (
-        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount)), 0))
+        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount_base)), 0))
         .filter(Transaction.type == "income", Transaction.date >= start, Transaction.date < end,
                 func.lower(Transaction.category).op("~")("dividend|cedol"))
         .scalar()

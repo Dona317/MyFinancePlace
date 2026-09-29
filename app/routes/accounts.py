@@ -7,7 +7,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
-from app.services import accounts
+from app.services import accounts, currency as currency_service
 
 accounts_bp = APIBlueprint(
     "accounts",
@@ -16,7 +16,7 @@ accounts_bp = APIBlueprint(
     tag="Accounts"
 )
 
-CURRENCIES = ["EUR", "USD", "GBP", "CHF"]
+CURRENCIES = list(currency_service.CURRENCIES)
 
 
 def _account_from_form(account: Account) -> Account:

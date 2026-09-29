@@ -28,6 +28,7 @@ def create_app(config_name="default"):
     migrate.init_app(app, db)
 
     from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
+    from .services import currency  # noqa: F401 — fills transactions.amount_base on save
 
 
     app.config["DESCRIPTION"] = """

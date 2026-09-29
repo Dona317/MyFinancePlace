@@ -18,7 +18,7 @@
         </div>
         <div class="grid-2">
           {{ f.select(values, 'currency', 'Valuta', currencies, a.currency or 'EUR') }}
-          {{ f.number(values, 'opening_balance', 'Saldo iniziale (€)', a.opening_balance, placeholder='0,00',
+          {{ f.number(values, 'opening_balance', 'Saldo iniziale (nella valuta del conto)', a.opening_balance, placeholder='0,00',
                       hint='Il saldo prima della prima transazione registrata su questo conto.') }}
         </div>
         {{ f.text(values, 'iban_tail', 'Ultime cifre IBAN o carta', a.iban_tail, placeholder='es. 4821') }}

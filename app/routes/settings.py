@@ -1,13 +1,15 @@
 import json
 import re
+from datetime import date
 
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, has_request_context
 from apiflask import APIBlueprint
 
 from app.extensions import db
 from app.models.category import Category, CategoryRule
-from app.routes.helpers import form_choice, form_text
-from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, settings_store
+from app.models.currency import ExchangeRate
+from app.routes.helpers import form_choice, form_date, form_decimal, form_text
+from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, settings_store
 from app.services.bank_import import CATEGORY_RULES
 
 settings_bp = APIBlueprint(
@@ -207,6 +209,53 @@ def rules_apply():
     changed = category_rules.apply(only_uncategorized=not request.form.get("all"))
     flash(f"Regole applicate: {changed} transazioni ricategorizzate.", "success")
     return redirect(url_for("settings.rules_page"))
+
+
+# ── Currencies and exchange rates ──────────────────────────────────────────────
+
+@settings_bp.route("/currencies")
+def currencies_page():
+    rates = ExchangeRate.query.order_by(ExchangeRate.on.desc(), ExchangeRate.currency).limit(300).all()
+    return render_template("settings/currencies.html", rates=rates, usage=currency.foreign_usage(),
+                           currencies={k: v for k, v in currency.CURRENCIES.items() if k != currency.BASE},
+                           today=date.today())
+
+
+@settings_bp.route("/currencies/rate", methods=["POST"])
+def currency_rate_save():
+    try:
+        code = form_choice("currency", "Valuta", currency.CURRENCIES)
+        on = form_date("on", "Data", required=True)
+        rate = form_decimal("rate", "Cambio", required=True)
+        currency.save_rate(code, on, rate)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("settings.currencies_page"))
+    updated = currency.recompute(code)
+    flash(f"Cambio salvato: 1 {code} = € {rate} al {on:%d/%m/%Y}. Ricalcolate {updated} transazioni.", "success")
+    return redirect(url_for("settings.currencies_page"))
+
+
+@settings_bp.route("/currencies/rate/<int:rate_id>/delete", methods=["POST"])
+def currency_rate_delete(rate_id):
+    rate = db.get_or_404(ExchangeRate, rate_id)
+    code = rate.currency
+    db.session.delete(rate)
+    db.session.commit()
+    currency.recompute(code)
+    flash("Cambio eliminato.", "success")
+    return redirect(url_for("settings.currencies_page"))
+
+
+@settings_bp.route("/currencies/ecb", methods=["POST"])
+def currency_ecb():
+    try:
+        count = currency.download_ecb()
+    except (OSError, ValueError) as exc:
+        flash(f"Non riesco a scaricare i cambi della BCE ({exc}). Controlla la connessione o inseriscili a mano.", "error")
+        return redirect(url_for("settings.currencies_page"))
+    flash(f"Scaricati {count} cambi di riferimento BCE degli ultimi 90 giorni; transazioni ricalcolate.", "success")
+    return redirect(url_for("settings.currencies_page"))
 
 
 # ── AI models (Ollama / Anthropic) ─────────────────────────────────────────────

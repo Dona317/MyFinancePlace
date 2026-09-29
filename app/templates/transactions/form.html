@@ -57,9 +57,9 @@
           <div class="form-group">
             <label class="form-label">Valuta</label>
             <select name="currency" class="form-select">
-              <option value="EUR" {{ 'selected' if v.currency == 'EUR' }}>EUR — Euro</option>
-              <option value="USD" {{ 'selected' if v.currency == 'USD' }}>USD — Dollaro</option>
-              <option value="GBP" {{ 'selected' if v.currency == 'GBP' }}>GBP — Sterlina</option>
+              {% for code, (sym, name) in currencies.items() %}
+              <option value="{{ code }}" {{ 'selected' if v.currency == code }}>{{ code }} — {{ name }}</option>
+              {% endfor %}
             </select>
           </div>
         </div>

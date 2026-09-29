@@ -20,10 +20,10 @@ from sqlalchemy.types import ARRAY, JSON, Boolean, Date, DateTime, Integer, Nume
 
 from app.extensions import db
 from app.models import (
-    Account, AppSetting, Category, CategoryRule, Debt, Document, DuplicateDismissal, Goal, Holding, InsurancePolicy, Snapshot,
+    Account, AppSetting, Category, CategoryRule, Debt, ExchangeRate, Document, DuplicateDismissal, Goal, Holding, InsurancePolicy, Snapshot,
     Transaction,
 )
-from app.services import document_store
+from app.services import currency, document_store
 
 FORMAT = "myfinanceplace-backup"
 VERSION = 2
@@ -33,7 +33,7 @@ KEEP_SAFETY_COPIES = 10
 SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 
 # Insertion order: a table comes after the tables it points to (documents and dismissals → transactions)
-MODELS = [AppSetting, Account, Category, CategoryRule, Transaction, DuplicateDismissal, Holding, Debt, InsurancePolicy, Goal, Document, Snapshot]
+MODELS = [AppSetting, Account, Category, CategoryRule, ExchangeRate, Transaction, DuplicateDismissal, Holding, Debt, InsurancePolicy, Goal, Document, Snapshot]
 
 
 class BackupError(Exception):
@@ -161,7 +161,10 @@ def restore(data: dict, files: dict[str, bytes]) -> dict:
             if rows:
                 db.session.execute(insert(model.__table__), rows)
         _reset_sequences()
+        # backups made before multi-currency have no value in euro: compute it
+        db.session.execute(text("UPDATE transactions SET amount_base = amount WHERE amount_base IS NULL"))
         db.session.commit()
+        currency.recompute()
     except BackupError:
         db.session.rollback()
         raise

@@ -35,7 +35,7 @@ def available_years() -> list[int]:
 
 def _sum(tx_type: str, start: date, end: date) -> float:
     total = (
-        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount)), 0))
+        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount_base)), 0))
         .filter(Transaction.type == tx_type, Transaction.date >= start, Transaction.date < end)
         .scalar()
     )
@@ -63,7 +63,7 @@ def savings_rate(income: float, expenses: float) -> float:
 def category_breakdown(start: date, end: date, tx_type: str = "expense") -> list[dict]:
     """Totals per category, sorted by amount descending, with share of total (%)."""
     rows = (
-        db.session.query(Transaction.category, func.sum(func.abs(Transaction.amount)))
+        db.session.query(Transaction.category, func.sum(func.abs(Transaction.amount_base)))
         .filter(Transaction.type == tx_type, Transaction.date >= start, Transaction.date < end)
         .group_by(Transaction.category)
         .all()
@@ -86,7 +86,7 @@ def monthly_series(year: int) -> dict:
         db.session.query(
             extract("month", Transaction.date),
             Transaction.type,
-            func.sum(func.abs(Transaction.amount)),
+            func.sum(func.abs(Transaction.amount_base)),
         )
         .filter(extract("year", Transaction.date) == year, Transaction.type.in_(["income", "expense"]))
         .group_by(extract("month", Transaction.date), Transaction.type)
@@ -123,7 +123,7 @@ def monthly_category_trend(year: int, top_n: int = 5) -> dict:
         db.session.query(
             extract("month", Transaction.date),
             Transaction.category,
-            func.sum(func.abs(Transaction.amount)),
+            func.sum(func.abs(Transaction.amount_base)),
         )
         .filter(extract("year", Transaction.date) == year, Transaction.type == "expense")
         .group_by(extract("month", Transaction.date), Transaction.category)
@@ -204,7 +204,7 @@ def cash_flow(year: int) -> dict:
     investing = financing = 0.0
     transfers = defaultdict(float)
     rows = (
-        db.session.query(extract("month", Transaction.date), Transaction.category, func.abs(Transaction.amount))
+        db.session.query(extract("month", Transaction.date), Transaction.category, func.abs(Transaction.amount_base))
         .filter(Transaction.type == "transfer", Transaction.date >= start, Transaction.date < end)
         .all()
     )

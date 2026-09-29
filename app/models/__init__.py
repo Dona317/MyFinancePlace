@@ -5,8 +5,9 @@ from .setting import AppSetting
 from .duplicate import DuplicateDismissal
 from .wealth import Debt, Document, Goal, Holding, InsurancePolicy, Snapshot
 from .category import Category, CategoryRule
+from .currency import ExchangeRate
 
 __all__ = [
     "Account", "Transaction", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule",
-    "Holding", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
+    "ExchangeRate", "Holding", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
 ]

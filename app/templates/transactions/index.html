@@ -135,8 +135,9 @@
             {% if tx.type == 'transfer' %}
             <span class="amount" style="color:var(--clr-text-muted);white-space:nowrap;" title="Trasferimento tra conti">⇄ {{ tx.amount|abs|money(symbol) }}</span>
             {% else %}
-            {% set signed = tx.signed_amount %}
-            <span class="amount {{ tx.type|tone }}">{{ signed|money(symbol) }}</span>
+            {% set original = -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs %}
+            <span class="amount {{ tx.type|tone }}">{{ original|money(symbol) }}</span>
+            {% if tx.is_foreign %}<div class="text-xs text-muted nowrap" title="Controvalore in euro al cambio del giorno">≈ {{ tx.signed_amount|money }}</div>{% endif %}
             {% endif %}
           </td>
           <td class="text-center">
