@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% set is_edit = transaction is not none %}
+{# `v`: what the fields show — the stored transaction, or what was typed when saving failed #}
 {% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione — MyFinancePlace{% endblock %}
 {% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione{% endblock %}
 {% block breadcrumb %}
@@ -29,7 +30,7 @@
               {% for val, label, color in [('expense','Uscita','negative'), ('income','Entrata','positive'), ('transfer','Trasferimento','neutral')] %}
               <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;transition:background .2s,border-color .2s;font-size:var(--font-size-sm);font-weight:500;">
                 <input type="radio" name="type" value="{{ val }}" style="display:none;"
-                       {{ 'checked' if (transaction and transaction.type == val) or (not is_edit and val == 'expense') else '' }}
+                       {{ 'checked' if v.type == val else '' }}
                        onchange="this.closest('form').querySelectorAll('[data-type-label]').forEach(el => el.style.outline='');" />
                 <span style="color:var(--clr-{{ color }}-text if color != 'neutral' else 'var(--clr-neutral)');">{{ label }}</span>
               </label>
@@ -39,7 +40,7 @@
           <div class="form-group">
             <label class="form-label">Data</label>
             <input type="date" name="date" class="form-control"
-                   value="{{ transaction.date if is_edit else '' }}" required />
+                   value="{{ v.date }}" required />
           </div>
         </div>
 
@@ -49,17 +50,16 @@
             <label class="form-label">Importo</label>
             <div style="position:relative;">
               <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
-              <input type="number" name="amount" class="form-control" style="padding-left:28px;"
-                     placeholder="0,00" step="0.01" min="0"
-                     value="{{ '%.2f'|format(transaction.amount|abs) if is_edit else '' }}" required />
+              <input type="text" inputmode="decimal" name="amount" class="form-control" style="padding-left:28px;"
+                     placeholder="0,00" autocomplete="off" value="{{ v.amount }}" required />
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Valuta</label>
             <select name="currency" class="form-select">
-              <option value="EUR" {{ 'selected' if not is_edit or transaction.currency == 'EUR' }}>EUR — Euro</option>
-              <option value="USD" {{ 'selected' if is_edit and transaction.currency == 'USD' }}>USD — Dollaro</option>
-              <option value="GBP" {{ 'selected' if is_edit and transaction.currency == 'GBP' }}>GBP — Sterlina</option>
+              <option value="EUR" {{ 'selected' if v.currency == 'EUR' }}>EUR — Euro</option>
+              <option value="USD" {{ 'selected' if v.currency == 'USD' }}>USD — Dollaro</option>
+              <option value="GBP" {{ 'selected' if v.currency == 'GBP' }}>GBP — Sterlina</option>
             </select>
           </div>
         </div>
@@ -69,7 +69,7 @@
           <label class="form-label">Descrizione</label>
           <input type="text" name="description" class="form-control"
                  placeholder="es. Spesa al supermercato"
-                 value="{{ transaction.description if is_edit else '' }}" required />
+                 value="{{ v.description }}" required />
           {% if is_edit and transaction.bank_description %}
           <div style="margin-top:6px;font-size:var(--font-size-xs);color:var(--clr-text-muted);">
             <i class="bi bi-bank"></i> <strong>Causale della banca</strong> (conservata così come importata, non modificabile):
@@ -85,7 +85,7 @@
             <select name="category" class="form-select">
               <option value="">— Seleziona —</option>
               {% for cat in categories %}
-              <option value="{{ cat }}" {{ 'selected' if is_edit and transaction.category == cat else '' }}>{{ cat }}</option>
+              <option value="{{ cat }}" {{ 'selected' if v.category == cat else '' }}>{{ cat }}</option>
               {% endfor %}
             </select>
           </div>
@@ -93,7 +93,7 @@
             <label class="form-label">Controparte</label>
             <input type="text" name="counterparty" class="form-control"
                    placeholder="es. Esselunga, Datore di lavoro..."
-                   value="{{ transaction.counterparty if is_edit else '' }}" />
+                   value="{{ v.counterparty }}" />
           </div>
         </div>
 
@@ -102,7 +102,7 @@
           <label class="form-label">Tag <span style="font-weight:400;color:var(--clr-text-muted);">(separati da virgola)</span></label>
           <input type="text" name="tags" class="form-control"
                  placeholder="es. deducibile, lavoro, vacanza"
-                 value="{{ transaction.tags|join(', ') if is_edit and transaction.tags else '' }}" />
+                 value="{{ v.tags }}" />
           <div class="form-hint">I tag facilitano la ricerca e il raggruppamento delle transazioni.</div>
         </div>
 
@@ -111,18 +111,18 @@
           <div class="card-body-sm">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
               <input class="check" type="checkbox" id="is_recurring" name="is_recurring"
-                     {{ 'checked' if is_edit and transaction.is_recurring else '' }}
+                     {{ 'checked' if v.is_recurring else '' }}
                      onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
               <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">
                 Transazione Ricorrente
               </label>
             </div>
-            <div id="recurring-opts" style="display:{{ 'block' if is_edit and transaction.is_recurring else 'none' }};">
+            <div id="recurring-opts" style="display:{{ 'block' if v.is_recurring else 'none' }};">
               <div class="grid-2">
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label">Frequenza</label>
                   <select name="recurrence" class="form-select">
-                    {% set current = transaction.recurrence if is_edit and transaction.recurrence else 'monthly' %}
+                    {% set current = v.recurrence or 'monthly' %}
                     {% for val, lbl in [('weekly','Settimanale'),('monthly','Mensile'),('quarterly','Trimestrale'),('yearly','Annuale')] %}
                     <option value="{{ val }}" {{ 'selected' if current == val else '' }}>{{ lbl }}</option>
                     {% endfor %}
@@ -131,7 +131,7 @@
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label">Fine Ricorrenza</label>
                   <input type="date" name="recurrence_end" class="form-control"
-                         value="{{ transaction.recurrence_end.isoformat() if is_edit and transaction.recurrence_end else '' }}" />
+                         value="{{ v.recurrence_end }}" />
                 </div>
               </div>
             </div>
@@ -142,7 +142,7 @@
         <div class="form-group">
           <label class="form-label">Note</label>
           <textarea name="notes" class="form-control" rows="2"
-                    placeholder="Note facoltative...">{{ transaction.notes if is_edit else '' }}</textarea>
+                    placeholder="Note facoltative...">{{ v.notes }}</textarea>
         </div>
 
         <!-- Azioni ──────────────────────────────────────────────────── -->

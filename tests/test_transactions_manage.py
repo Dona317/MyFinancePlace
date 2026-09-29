@@ -33,7 +33,7 @@ def test_invalid_edit_shows_an_error_instead_of_crashing(client, db):
     tx = add(db, description="Cena", amount=30)
     page = client.get(f"/transactions/{tx.id}/edit").get_data(as_text=True)
     response = client.post(f"/transactions/{tx.id}/edit", data=form_data(page, "edit-form", amount="abc"))
-    assert response.status_code == 302
+    assert response.status_code == 200 and "Importo: «abc» non è un numero valido." in response.get_data(as_text=True)
     db.session.refresh(tx)
     assert float(tx.amount) == 30  # nothing half-saved
 
@@ -43,7 +43,7 @@ def test_form_rejects_unusable_amounts(client, db, amount):
     page = client.get("/transactions/new").get_data(as_text=True)
     data = form_data(page, "edit-form", date="2026-06-01", description="Test", amount=amount, type="expense")
     response = client.post("/transactions/new", data=data)
-    assert response.status_code == 200 and "Controlla i dati" in response.get_data(as_text=True)
+    assert response.status_code == 200 and "Importo:" in response.get_data(as_text=True)
     assert Transaction.query.count() == 0
 
 
@@ -55,7 +55,7 @@ def test_no_limits_on_text_length_or_amount_size(client, db):
                                                     amount="12345678901.50", type="income",
                                                     category="C" * 300, counterparty="P" * 400))
     tx = Transaction.query.one()
-    assert (tx.description, float(tx.amount)) == (long_text, 12345678901.50)
+    assert (tx.description, float(tx.amount)) == (long_text.strip(), 12345678901.50)
     assert len(tx.category) == 300 and len(tx.counterparty) == 400
 
 
@@ -201,3 +201,44 @@ def test_non_recurring_transactions_store_no_frequency(client, db):
                                                     amount="10", type="expense"))
     tx = Transaction.query.one()
     assert (tx.is_recurring, tx.recurrence, tx.recurrence_end) == (False, None, None)
+
+
+# ── Server-side validation of the HTML form: a clear message, never a 500, nothing typed is lost ──
+
+@pytest.mark.parametrize("changes, message", [
+    ({"date": ""}, "Data: campo obbligatorio."),
+    ({"date": "31/02/2026"}, "non è una data valida"),
+    ({"amount": "dieci"}, "Importo: «dieci» non è un numero valido."),
+    ({"amount": "0"}, "Importo: deve essere diverso da zero."),
+    ({"description": "  "}, "Descrizione: campo obbligatorio."),
+    ({"type": "regalo"}, "Tipo: scelta non valida."),
+    ({"is_recurring": "on", "recurrence": "daily"}, "Frequenza: scelta non valida."),
+    ({"is_recurring": "on", "recurrence": "monthly", "recurrence_end": "2020-01-01"}, "Fine ricorrenza"),
+])
+def test_new_transaction_form_rejects_bad_input(client, db, changes, message):
+    form = {"type": "expense", "date": "2026-06-15", "amount": "12,50", "description": "Pranzo di lavoro"} | changes
+    response = client.post("/transactions/new", data=form)
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert message in html
+    assert 'value="Pranzo di lavoro"' in html or changes.get("description")  # what was typed is still there
+    assert Transaction.query.count() == 0
+
+
+def test_edit_form_error_keeps_stored_values(client, db):
+    tx = make_tx(description="Affitto", amount=600)
+    db.session.add(tx)
+    db.session.commit()
+    response = client.post(f"/transactions/{tx.id}/edit", data={"type": "expense", "date": "2026-06-01",
+                                                                "amount": "boh", "description": "Affitto giugno"})
+    assert "Importo: «boh» non è un numero valido." in response.get_data(as_text=True)
+    db.session.expire_all()
+    assert db.session.get(Transaction, tx.id).description == "Affitto"
+
+
+def test_italian_amounts_in_the_form(client, db):
+    client.post("/transactions/new", data={"type": "income", "date": "2026-06-27", "amount": "2.450,00",
+                                           "description": "Stipendio"})
+    assert Transaction.query.one().amount == 2450
+    html = client.get(f"/transactions/{Transaction.query.one().id}/edit").get_data(as_text=True)
+    assert 'value="2450,00"' in html

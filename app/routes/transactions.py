@@ -1,12 +1,10 @@
-from datetime import date as date_type
-from decimal import Decimal, InvalidOperation
 from flask import render_template, request, redirect, url_for, flash
 from apiflask import APIBlueprint
 from sqlalchemy import or_
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.wealth import Document
-from app.routes.helpers import form_ids, safe_next
+from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
 from app.services import ai_classification, ai_extraction, duplicates
 from app.services.categories import known_categories
 from app.services.parsing import TRANSACTION_TYPES, valid_amount
@@ -24,27 +22,53 @@ transactions_bp = APIBlueprint(
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+RECURRENCES = ("weekly", "monthly", "quarterly", "yearly")
+CURRENCIES = ("EUR", "USD", "GBP")
+
+
 def _tx_from_form(tx: Transaction) -> Transaction:
-    """Populate a Transaction object with values from request.form."""
-    tx.date          = date_type.fromisoformat(request.form["date"])
-    tx.description   = request.form["description"]
-    tx.amount        = abs(Decimal(request.form["amount"].replace(",", ".")))
-    if not valid_amount(tx.amount) or not tx.description.strip() or request.form["type"] not in TRANSACTION_TYPES:
-        raise ValueError("invalid transaction")
-    tx.currency      = request.form.get("currency", "EUR")
-    tx.type          = request.form["type"]
-    tx.category      = request.form.get("category") or None
-    tx.counterparty  = request.form.get("counterparty") or None
-    tx.tags          = [t.strip() for t in request.form.get("tags", "").split(",") if t.strip()]
-    tx.is_recurring  = "is_recurring" in request.form
+    """Fill the transaction from the form; a ValueError says which field is wrong (nothing crashes)."""
+    tx.type = form_choice("type", "Tipo", TRANSACTION_TYPES)
+    tx.date = form_date("date", "Data", required=True)
+    amount = form_decimal("amount", "Importo", required=True, allow_negative=True)
+    if not valid_amount(amount):
+        raise ValueError("Importo: deve essere diverso da zero.")
+    tx.amount = abs(amount)
+    tx.description = form_text("description", "Descrizione", required=True)
+    currency = request.form.get("currency") or "EUR"
+    tx.currency = currency if currency in CURRENCIES else "EUR"
+    tx.category = form_text("category", "Categoria")
+    tx.counterparty = form_text("counterparty", "Controparte")
+    tx.tags = [t.strip() for t in request.form.get("tags", "").split(",") if t.strip()]
+    tx.is_recurring = "is_recurring" in request.form
     # frequency and end date only mean something for a recurring transaction
-    tx.recurrence    = (request.form.get("recurrence") or None) if tx.is_recurring else None
-    tx.recurrence_end = (
-        date_type.fromisoformat(request.form["recurrence_end"])
-        if tx.is_recurring and request.form.get("recurrence_end") else None
-    )
-    tx.notes = request.form.get("notes") or None
+    if tx.is_recurring:
+        tx.recurrence = form_choice("recurrence", "Frequenza", RECURRENCES)
+        tx.recurrence_end = form_date("recurrence_end", "Fine ricorrenza")
+        if tx.recurrence_end and tx.recurrence_end < tx.date:
+            raise ValueError("Fine ricorrenza: non può essere prima della data.")
+    else:
+        tx.recurrence = tx.recurrence_end = None
+    tx.notes = form_text("notes", "Note")
     return tx
+
+
+def _form_values(tx: Transaction | None = None) -> dict:
+    """What the form fields show: the stored transaction, what was typed (after an error), or a blank form."""
+    if request.method == "POST":
+        form = request.form
+        return {key: form.get(key, "") for key in (
+            "type", "date", "amount", "currency", "description", "category", "counterparty", "tags",
+            "recurrence", "recurrence_end", "notes")} | {"is_recurring": "is_recurring" in form}
+    if tx is None:
+        return {"type": "expense", "currency": "EUR", "is_recurring": False}
+    return {
+        "type": tx.type, "date": tx.date.isoformat() if tx.date else "",
+        "amount": f"{abs(tx.amount):.2f}".replace(".", ","), "currency": tx.currency or "EUR",
+        "description": tx.description, "category": tx.category or "", "counterparty": tx.counterparty or "",
+        "tags": ", ".join(tx.tags or []), "is_recurring": bool(tx.is_recurring), "recurrence": tx.recurrence or "",
+        "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else "", "notes": tx.notes or "",
+    }
 
 
 # ── HTML routes ────────────────────────────────────────────────────────────────
@@ -101,14 +125,23 @@ def new():
     if request.method == "POST":
         try:
             tx = _tx_from_form(Transaction())
-        except (KeyError, ValueError, InvalidOperation):
-            flash("Controlla i dati: data, descrizione, importo e tipo sono obbligatori.", "error")
-            return render_template("transactions/form.html", transaction=None, action="new", categories=known_categories())
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return _render_form(None)
         db.session.add(tx)
         db.session.commit()
         flash("Transazione aggiunta.", "success")
         return redirect(url_for("transactions.index"))
-    return render_template("transactions/form.html", transaction=None, action="new", categories=known_categories())
+    return _render_form(None)
+
+
+def _render_form(tx: Transaction | None):
+    category = request.form.get("category") if request.method == "POST" else (tx.category if tx else None)
+    return render_template(
+        "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=_form_values(tx),
+        categories=known_categories(category), next_url=safe_next(),
+        documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
+    )
 
 
 @transactions_bp.route("/<int:tx_id>/edit", methods=["GET", "POST"])
@@ -117,18 +150,14 @@ def edit(tx_id):
     if request.method == "POST":
         try:
             _tx_from_form(tx)
-        except (KeyError, ValueError, InvalidOperation):
+        except ValueError as exc:
             db.session.rollback()  # discard the half-applied changes
-            flash("Controlla i dati: data, descrizione, importo e tipo sono obbligatori.", "error")
-            return redirect(url_for("transactions.edit", tx_id=tx_id, next=safe_next()))
+            flash(str(exc), "error")
+            return _render_form(db.session.get(Transaction, tx_id))
         db.session.commit()
         flash("Transazione aggiornata.", "success")
         return redirect(safe_next() or url_for("transactions.index"))
-    return render_template(
-        "transactions/form.html", transaction=tx, action="edit",
-        categories=known_categories(tx.category), next_url=safe_next(),
-        documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all(),
-    )
+    return _render_form(tx)
 
 
 @transactions_bp.route("/<int:tx_id>/delete", methods=["POST"])
