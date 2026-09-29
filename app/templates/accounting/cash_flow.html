@@ -57,7 +57,7 @@
               A — Attività Operative
             </td>
           </tr>
-          <tr><td>Risultato netto (da Conto Economico)</td><td class="amount text-right">{{ report.operating|money }}</td></tr>
+          <tr><td>Entrate − uscite (esclusi i movimenti collegati a investimenti o debiti)</td><td class="amount text-right">{{ report.operating|money }}</td></tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
             <td>Flusso Operativo Netto</td><td class="amount {{ 'negative' if report.operating < 0 else 'positive' }} text-right">{{ report.operating|money }}</td>
           </tr>
@@ -69,7 +69,7 @@
               B — Attività di Investimento
             </td>
           </tr>
-          <tr><td>Trasferimenti verso investimenti</td><td class="amount text-right">{{ report.investing|money }}</td></tr>
+          <tr><td>Acquisti (−) e vendite (+) di investimenti</td><td class="amount text-right">{{ report.investing|money }}</td></tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
             <td>Flusso di Investimento Netto</td><td class="amount text-right">{{ report.investing|money }}</td>
           </tr>
@@ -81,7 +81,7 @@
               C — Attività Finanziarie
             </td>
           </tr>
-          <tr><td>Rimborsi prestiti e mutui</td><td class="amount text-right">{{ report.financing|money }}</td></tr>
+          <tr><td>Prestiti ricevuti (+) e rate rimborsate (−)</td><td class="amount text-right">{{ report.financing|money }}</td></tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
             <td>Flusso Finanziario Netto</td><td class="amount text-right">{{ report.financing|money }}</td>
           </tr>
@@ -93,6 +93,10 @@
           </tr>
         </tfoot>
       </table>
+      <p class="text-xs text-muted" style="padding:12px 20px 0;">
+        {{ report.linked }} movimenti collegati esplicitamente a un investimento o a un debito. Collega una transazione
+        dalla sua pagina di modifica («Investimento» / «Debito»); i trasferimenti non collegati sono classificati dal nome della categoria.
+      </p>
     </div>
   </div>
 

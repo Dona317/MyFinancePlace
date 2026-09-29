@@ -4,7 +4,6 @@ Financial analytics computed from transactions.
 Amounts are stored as positive numbers; the direction comes from `type`
 ("income" | "expense" | "transfer").
 """
-from collections import defaultdict
 from datetime import date
 
 from sqlalchemy import extract, func
@@ -191,35 +190,49 @@ def _classify_transfer(category: str | None) -> str | None:
     return None
 
 
+def cash_flow_bucket(tx_type: str, category: str | None, holding_id: int | None, debt_id: int | None) -> str:
+    """
+    Where a transaction goes in the cash-flow statement: linked to an investment → investing, to a debt →
+    financing; otherwise income/expenses are operating and transfers are classified by category name
+    (kept as a fallback for transactions not linked yet), or left out (money between own accounts).
+    """
+    if holding_id:
+        return "investing"
+    if debt_id:
+        return "financing"
+    if tx_type == "transfer":
+        return _classify_transfer(category) or "internal"
+    return "operating"
+
+
 def cash_flow(year: int) -> dict:
     """
-    Simplified cash-flow statement:
-      A. Operating  = income − expenses
-      B. Investing  = transfers into investment categories (outflows)
-      C. Financing  = transfers into loan/mortgage categories (outflows)
+    Cash-flow statement:
+      A. Operating  = income − expenses not linked to an investment or a debt
+      B. Investing  = money into (−) and out of (+) investments: linked transactions, or transfers
+                      to investment categories
+      C. Financing  = loans received (+) and repaid (−): linked transactions, or transfers to loan categories
     """
     start, end = year_bounds(year)
-    operating = totals(start, end)["net"]
-
-    investing = financing = 0.0
-    transfers = defaultdict(float)
+    buckets = {"operating": 0.0, "investing": 0.0, "financing": 0.0}
+    monthly_net = [0.0] * 12
+    linked = 0
     rows = (
-        db.session.query(extract("month", Transaction.date), Transaction.category, func.abs(Transaction.amount_base))
-        .filter(Transaction.type == "transfer", Transaction.date >= start, Transaction.date < end)
+        db.session.query(extract("month", Transaction.date), Transaction.type, Transaction.category,
+                         Transaction.holding_id, Transaction.debt_id, func.abs(Transaction.amount_base))
+        .filter(Transaction.date >= start, Transaction.date < end)
         .all()
     )
-    for month, category, amount in rows:
-        bucket = _classify_transfer(category)
-        if bucket == "investing":
-            investing -= float(amount)
-        elif bucket == "financing":
-            financing -= float(amount)
-        else:
+    for month, tx_type, category, holding_id, debt_id, amount in rows:
+        bucket = cash_flow_bucket(tx_type, category, holding_id, debt_id)
+        if bucket == "internal":
             continue
-        transfers[int(month)] += float(amount)
+        signed = float(amount or 0) * (1 if tx_type == "income" else -1)
+        buckets[bucket] += signed
+        monthly_net[int(month) - 1] += signed
+        linked += bool(holding_id or debt_id)
 
-    monthly = monthly_series(year)
-    net_monthly = [round(n - transfers[i + 1], 2) for i, n in enumerate(monthly["net"])]
+    net_monthly = [round(v, 2) for v in monthly_net]
     cumulative, running = [], 0.0
     for value in net_monthly:
         running += value
@@ -227,10 +240,11 @@ def cash_flow(year: int) -> dict:
 
     return {
         "year": year,
-        "operating": operating,
-        "investing": investing,
-        "financing": financing,
-        "net_change": operating + investing + financing,
+        "operating": round(buckets["operating"], 2),
+        "investing": round(buckets["investing"], 2),
+        "financing": round(buckets["financing"], 2),
+        "net_change": round(sum(buckets.values()), 2),
+        "linked": linked,
         "labels": MONTH_LABELS,
         "net_monthly": net_monthly,
         "cumulative": cumulative,

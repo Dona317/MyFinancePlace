@@ -116,6 +116,29 @@
         </div>
         {% endif %}
 
+        {% if holdings or debts %}
+        <div class="grid-2">
+          {% if holdings %}
+          <div class="form-group">
+            <label class="form-label" for="f-holding">Investimento <span class="text-muted" style="font-weight:400;">(acquisto, vendita, dividendo)</span></label>
+            <select id="f-holding" name="holding_id" class="form-select">
+              <option value="">— Nessuno —</option>
+              {% for h in holdings %}<option value="{{ h.id }}" {{ 'selected' if v.holding_id == h.id|string }}>{{ h.name }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          {% if debts %}
+          <div class="form-group">
+            <label class="form-label" for="f-debt">Debito <span class="text-muted" style="font-weight:400;">(rata, erogazione)</span></label>
+            <select id="f-debt" name="debt_id" class="form-select">
+              <option value="">— Nessuno —</option>
+              {% for d in debts %}<option value="{{ d.id }}" {{ 'selected' if v.debt_id == d.id|string }}>{{ d.name }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
         <label class="d-flex align-center gap-8 text-sm mb-16" style="margin-top:-8px;">
           <input type="checkbox" name="learn_rule" value="1" class="check" />
           <span>Ricorda: usa questa categoria anche per le prossime transazioni di questa controparte

@@ -26,6 +26,11 @@ class Transaction(db.Model):
     account_id         = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)
     counter_account_id = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)
 
+    # What the money is for, when it matters to the cash-flow statement: buying/selling an investment
+    # (investing) or receiving/repaying a loan (financing)
+    holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="SET NULL"), index=True)
+    debt_id    = db.Column(db.Integer, db.ForeignKey("debts.id", ondelete="SET NULL"), index=True)
+
     account         = db.relationship("Account", foreign_keys=[account_id], lazy="joined")
     counter_account = db.relationship("Account", foreign_keys=[counter_account_id], lazy="joined")
 

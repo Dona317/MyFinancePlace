@@ -1,6 +1,8 @@
 from datetime import date
 
+from app.models.transaction import Transaction
 from app.services import analytics
+from tests.conftest import make_tx
 
 
 def test_totals_and_savings_rate(sample_data):
@@ -77,3 +79,47 @@ def test_available_years(sample_data):
 
 def test_available_years_empty_db(app):
     assert analytics.available_years() == [date.today().year]
+
+
+# ── Cash flow from explicit links (holding / debt), keywords as a fallback ─────
+
+def test_cash_flow_uses_links(db):
+    from decimal import Decimal
+
+    from app.models.wealth import Debt, Holding
+    etf = Holding(name="VWCE", asset_class="ETF", quantity=1, avg_price=Decimal("100"))
+    mortgage = Debt(name="Mutuo", type="Mutuo", principal=Decimal("100000"), annual_rate=0)
+    db.session.add_all([etf, mortgage])
+    db.session.commit()
+    db.session.add_all([
+        make_tx(date=date(2026, 3, 1), description="Stipendio", amount=3000, type="income"),
+        make_tx(date=date(2026, 3, 2), description="Spesa", amount=500),
+        make_tx(date=date(2026, 3, 3), description="Rata mutuo", amount=700, debt_id=mortgage.id),       # an expense
+        make_tx(date=date(2026, 3, 4), description="Acquisto ETF", amount=1000, type="transfer", holding_id=etf.id),
+        make_tx(date=date(2026, 3, 5), description="Dividendo", amount=20, type="income", holding_id=etf.id),
+        make_tx(date=date(2026, 3, 6), description="PAC", amount=200, type="transfer", category="Investimenti"),  # fallback
+        make_tx(date=date(2026, 3, 7), description="Giroconto", amount=300, type="transfer", category="Giroconto"),  # internal
+    ])
+    db.session.commit()
+    report = analytics.cash_flow(2026)
+    assert report["operating"] == 3000 - 500
+    assert report["investing"] == -1000 + 20 - 200
+    assert report["financing"] == -700
+    assert report["net_change"] == 2500 - 1180 - 700
+    assert report["net_monthly"][2] == report["net_change"] and report["linked"] == 3
+
+
+def test_transaction_form_links(client, db):
+    from decimal import Decimal
+
+    from app.models.wealth import Debt, Holding
+    etf = Holding(name="VWCE", asset_class="ETF", quantity=1, avg_price=Decimal("100"))
+    loan = Debt(name="Prestito", type="Prestito Auto", principal=Decimal("5000"), annual_rate=0)
+    db.session.add_all([etf, loan])
+    db.session.commit()
+    html = client.get("/transactions/new").get_data(as_text=True)
+    assert "Investimento" in html and "VWCE" in html and "Prestito" in html
+    client.post("/transactions/new", data={"type": "expense", "date": "2026-06-01", "amount": "250",
+                                           "description": "Rata auto", "debt_id": str(loan.id)})
+    tx = Transaction.query.one()
+    assert tx.debt_id == loan.id and tx.holding_id is None

@@ -4,7 +4,7 @@ from sqlalchemy import or_
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.models.wealth import Document
+from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
 from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates
 from app.services.categories import known_categories
@@ -55,7 +55,15 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     tx.counter_account_id = _account_id("counter_account_id") if tx.type == "transfer" else None
     if tx.counter_account_id and tx.counter_account_id == tx.account_id:
         raise ValueError("Verso il conto: deve essere diverso dal conto di partenza.")
+    # what the money is for, in the cash-flow statement: an investment or a debt (one of the two)
+    tx.holding_id = _linked_id("holding_id", Holding)
+    tx.debt_id = _linked_id("debt_id", Debt) if not tx.holding_id else None
     return tx
+
+
+def _linked_id(field: str, model) -> int | None:
+    value = request.form.get(field, type=int)
+    return value if value and db.session.get(model, value) else None
 
 
 def _account_id(field: str) -> int | None:
@@ -69,7 +77,7 @@ def _form_values(tx: Transaction | None = None) -> dict:
         form = request.form
         return {key: form.get(key, "") for key in (
             "type", "date", "amount", "currency", "description", "category", "counterparty", "tags",
-            "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id")} | {"is_recurring": "is_recurring" in form}
+            "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id")} | {"is_recurring": "is_recurring" in form}
     if tx is None:
         return {"type": "expense", "currency": "EUR", "is_recurring": False,
                 "account_id": request.args.get("account", "")}
@@ -80,6 +88,7 @@ def _form_values(tx: Transaction | None = None) -> dict:
         "tags": ", ".join(tx.tags or []), "is_recurring": bool(tx.is_recurring), "recurrence": tx.recurrence or "",
         "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else "", "notes": tx.notes or "",
         "account_id": str(tx.account_id or ""), "counter_account_id": str(tx.counter_account_id or ""),
+        "holding_id": str(tx.holding_id or ""), "debt_id": str(tx.debt_id or ""),
     }
 
 
@@ -171,6 +180,7 @@ def _render_form(tx: Transaction | None):
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=_form_values(tx),
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
         currencies=money.CURRENCIES,
+        holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )
 
