@@ -1,9 +1,9 @@
 """
-Import / export of transactions (CSV, JSON).
+Import / export of transactions (CSV, JSON; the manual column-mapping import also reads Excel and .ods).
 """
 import csv
 import io
-from datetime import date
+from datetime import date, datetime
 
 from app.models.transaction import Transaction
 from app.services.parsing import TRANSACTION_TYPES, parse_amount, parse_date
@@ -88,16 +88,88 @@ def read_csv(content: str) -> tuple[list[str], list[dict]]:
     return list(reader.fieldnames or []), list(reader)
 
 
-def rows_to_transactions(rows: list[dict], mapping: dict) -> tuple[list[Transaction], list[str]]:
+MAPPING_EXTENSIONS = (".csv", ".txt", ".tsv", ".xlsx", ".xlsm", ".xls", ".ods")
+HEADER_SCAN_ROWS = 40
+
+
+class TableError(ValueError):
+    """Raised with a user-facing (Italian) message when a file for the manual mapping cannot be read."""
+
+
+def _cell_text(value) -> str:
+    """A spreadsheet cell as the text the mapping import parses: dates as YYYY-MM-DD, 12.0 as 12."""
+    if value is None:
+        return ""
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, float):
+        return str(int(value)) if value.is_integer() else repr(value)
+    return " ".join(str(value).split())
+
+
+def _header_index(rows: list[list[str]]) -> int:
+    """The header row: the first one filled almost as much as the widest row (skips titles and preambles)."""
+    scan = rows[:HEADER_SCAN_ROWS]
+    widest = max((sum(1 for c in row if c) for row in scan), default=0)
+    for index, row in enumerate(scan):
+        if sum(1 for c in row if c) >= max(2, widest * 0.8):
+            return index
+    return 0
+
+
+def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
     """
-    Build Transaction objects from CSV rows.
+    Read a CSV or spreadsheet (.xlsx, .xls, .ods) for the manual column mapping.
+    Returns (headers, rows as {header: text}, line number of the first data row). Rows above the header
+    (bank name, account holder, period) are skipped.
+    """
+    from app.services import statement_readers as readers
+
+    name = filename.lower()
+    if not name.endswith(MAPPING_EXTENSIONS):
+        raise TableError("Formato non supportato: carica un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods).")
+    if name.endswith((".csv", ".txt", ".tsv")):
+        headers, rows = read_csv(readers.decode_text(raw))
+        return headers, rows, 2
+    try:
+        document = readers.read_document(filename, raw)
+    except readers.UnsupportedFile as exc:
+        raise TableError(str(exc))
+    if document.kind not in ("xlsx", "xls", "odf", "html") or not document.tables:
+        raise TableError("Il file non contiene un foglio di calcolo: caricalo in formato CSV, .xlsx, .xls o .ods.")
+    # .ods: the first "table" is the text preamble plus every sheet merged; the real first sheet follows
+    table = document.tables[1] if document.kind == "odf" and len(document.tables) > 1 else document.tables[0]
+    cells = [[_cell_text(c) for c in row] for row in table]
+    if not any(any(row) for row in cells):
+        raise TableError("Il foglio è vuoto.")
+    header_at = _header_index(cells)
+    headers, seen = [], set()
+    for position, title in enumerate(cells[header_at], start=1):
+        title = title or f"Colonna {position}"
+        while title in seen:
+            title = f"{title} ({position})"
+        seen.add(title)
+        headers.append(title)
+    rows = [dict(zip(headers, row + [""] * (len(headers) - len(row)))) for row in cells[header_at + 1:]]
+    while rows and not any(rows[-1].values()):
+        rows.pop()
+    return headers, rows, header_at + 2
+
+
+def rows_to_transactions(rows: list[dict], mapping: dict, first_line: int = 2) -> tuple[list[Transaction], list[str]]:
+    """
+    Build Transaction objects from CSV / spreadsheet rows (`first_line` is the file line of the first row).
 
     `mapping` maps model fields ("date", "amount", "description", optional "category",
     "type", "counterparty") to CSV column names. When no type column is mapped, the sign
     of the amount decides: negative → expense, positive → income.
     """
     transactions, errors = [], []
-    for line_no, row in enumerate(rows, start=2):  # line 1 is the header
+    for line_no, row in enumerate(rows, start=first_line):
+        if not any((value or "").strip() for value in row.values() if isinstance(value, str)):
+            continue  # blank line
         try:
             amount = parse_amount(row.get(mapping["amount"]) or "")
             description = (row.get(mapping["description"]) or "").strip()

@@ -12,6 +12,7 @@ libraries and are skipped when these are missing: the binary .xls needs `xlwt`, 
 """
 import csv
 import random
+import sys
 import textwrap
 from datetime import date, timedelta
 from pathlib import Path
@@ -213,29 +214,136 @@ def unicredit_csv(path: Path, start: date, end: date, seed: int):
     return len(rows)
 
 
-def revolut_csv(path: Path, start: date, end: date, seed: int):
-    """Revolut-style English CSV with signed Amount."""
+REVOLUT_MERCHANTS = [("Uber", 8, 25), ("Starbucks", 3, 8), ("Ryanair", 30, 150), ("Booking.com", 60, 300),
+                     ("Just Eat", 12, 30), ("Amazon", 10, 80), ("Netflix", 17.99, 17.99)]
+
+
+def revolut_movements(start: date, end: date, seed: int) -> list[dict]:
+    """Revolut account activity: card payments, monthly top-ups, an ATM withdrawal with a fee, a payment
+    in USD, one PENDING and one REVERTED card payment (both excluded from the import)."""
     rng = random.Random(seed)
-    merchants = [("Uber", 8, 25), ("Starbucks", 3, 8), ("Ryanair", 30, 150), ("Booking.com", 60, 300),
-                 ("Just Eat", 12, 30), ("Amazon", 10, 80), ("Netflix", 17.99, 17.99)]
-    rows, day, balance = [], start, 500.0
+    rows, day = [], start
     while day <= end:
         if rng.random() < 0.35:
-            name, low, high = rng.choice(merchants)
-            amount = -money(rng, low, high)
-            rows.append(("CARD_PAYMENT", day, name, amount))
+            name, low, high = rng.choice(REVOLUT_MERCHANTS)
+            rows.append({"type": "CARD_PAYMENT", "date": day, "description": name, "amount": -money(rng, low, high),
+                         "fee": 0.0, "currency": "EUR", "state": "COMPLETED"})
         if day.day == 1:
-            rows.append(("TOPUP", day, f"Payment from {HOLDER.title()}", 300.0))
+            rows.append({"type": "TOPUP", "date": day, "description": f"Payment from {HOLDER.title()}", "amount": 300.0,
+                         "fee": 0.0, "currency": "EUR", "state": "COMPLETED"})
+        if day.day == 10:
+            rows.append({"type": "ATM", "date": day, "description": "Cash withdrawal at BANCOMAT ROMA", "amount": -100.0,
+                         "fee": 1.99, "currency": "EUR", "state": "COMPLETED"})
+        if day.day == 12:
+            rows.append({"type": "CARD_PAYMENT", "date": day, "description": "Github", "amount": -4.0,
+                         "fee": 0.0, "currency": "USD", "state": "COMPLETED"})
         day += timedelta(days=1)
+    rows.append({"type": "CARD_PAYMENT", "date": end, "description": "Amazon", "amount": -24.99,
+                 "fee": 0.0, "currency": "EUR", "state": "PENDING"})
+    rows.append({"type": "CARD_PAYMENT", "date": end - timedelta(days=3), "description": "Zara", "amount": -59.9,
+                 "fee": 0.0, "currency": "EUR", "state": "REVERTED"})
+    rows.sort(key=lambda r: r["date"])
+    return rows
+
+
+def revolut_csv(path: Path, start: date, end: date, seed: int):
+    """Revolut "Account statement" CSV export (English headers, signed Amount, separate Fee, State)."""
+    rows = revolut_movements(start, end, seed)
+    rng = random.Random(seed)
+    balance = 500.0
     with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["Type", "Product", "Started Date", "Completed Date", "Description", "Amount", "Fee",
                          "Currency", "State", "Balance"])
-        for kind, day, description, amount in rows:
-            balance += amount
-            stamp = f"{day:%Y-%m-%d} 12:{rng.randint(10, 59)}:00"
-            writer.writerow([kind, "Current", stamp, stamp, description, f"{amount:.2f}", "0.00", "EUR",
-                             "COMPLETED", f"{balance:.2f}"])
+        for r in rows:
+            started = f"{r['date']:%Y-%m-%d} 12:{rng.randint(10, 59)}:00"
+            completed = started if r["state"] == "COMPLETED" else ""
+            if r["state"] == "COMPLETED" and r["currency"] == "EUR":
+                balance += r["amount"] - r["fee"]
+            writer.writerow([r["type"], "Current", started, completed, r["description"], f"{r['amount']:.2f}",
+                             f"{r['fee']:.2f}", r["currency"], r["state"],
+                             f"{balance:.2f}" if r["state"] == "COMPLETED" else ""])
+    return len(rows)
+
+
+def n26_csv(path: Path, start: date, end: date, seed: int):
+    """N26 CSV export (2023+ layout): Booking Date, Partner Name, Payment Reference, signed Amount (EUR)."""
+    rows = movements(start, end, seed, salary=2200.00, rent=750.00)
+    types = {"Pagamento carta": "Presentment", "Bonifico SEPA": "Outgoing Transfer", "Addebito SDD": "Direct Debit",
+             "Giroconto": "Outgoing Transfer", "Commissioni": "Fee"}
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, quoting=csv.QUOTE_ALL)
+        writer.writerow(["Booking Date", "Value Date", "Partner Name", "Partner Iban", "Type", "Payment Reference",
+                         "Account Name", "Amount (EUR)", "Original Amount", "Original Currency", "Exchange Rate"])
+        for r in rows:
+            kind = "Income" if r["amount"] > 0 else types[r["short"]]
+            partner = r["full"].replace("PAGAMENTO POS ", "")
+            iban = "IT60X0542811101000000123456" if r["short"] != "Pagamento carta" else ""
+            writer.writerow([f"{r['date']:%Y-%m-%d}", f"{r['date']:%Y-%m-%d}", partner, iban, kind,
+                             r["short"] if r["short"] != "Pagamento carta" else "", "Main Account",
+                             f"{r['amount']:.2f}", "", "", ""])
+    return len(rows)
+
+
+def bper_xlsx(path: Path, start: date, end: date, seed: int):
+    """BPER Banca movements export: signed Importo with the ABI transaction code ("Causale ABI")."""
+    rows = movements(start, end, seed, salary=2010.00, rent=630.00)
+    abi = {"Pagamento carta": "43 - PAGAMENTO POS", "Bonifico SEPA": "48 - BONIFICO", "Addebito SDD": "50 - ADDEBITO SDD",
+           "Giroconto": "34 - GIROCONTO", "Commissioni": "66 - COMMISSIONI"}
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Movimenti"
+    ws.append(["BPER Banca - Movimenti conto corrente"])
+    ws.append([f"Intestatario: {HOLDER}", "", "Conto: 000012345678"])
+    ws.append([f"Periodo dal {start:%d/%m/%Y} al {end:%d/%m/%Y}"])
+    ws.append([])
+    ws.append(["Data contabile", "Data valuta", "Causale ABI", "Descrizione", "Importo", "Divisa"])
+    for r in rows:
+        ws.append([r["date"], r["date"], abi[r["short"]], r["full"], r["amount"], "EUR"])
+        for col in (1, 2):
+            ws.cell(row=ws.max_row, column=col).number_format = "DD/MM/YYYY"
+    autosize(ws)
+    wb.save(path)
+    return len(rows)
+
+
+def bancoposta_xlsx(path: Path, start: date, end: date, seed: int):
+    """Poste Italiane BancoPosta "Lista movimenti": separate Addebiti/Accrediti (euro), "Descrizione operazioni"."""
+    rows = movements(start, end, seed, salary=1820.00, rent=560.00)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Lista movimenti"
+    ws.append(["Poste Italiane - BancoPosta"])
+    ws.append([f"Conto BancoPosta n. 001234567890 intestato a {HOLDER}"])
+    ws.append([f"Movimenti dal {start:%d/%m/%Y} al {end:%d/%m/%Y}"])
+    ws.append([])
+    ws.append(["Data Contabile", "Data Valuta", "Addebiti (euro)", "Accrediti (euro)", "Descrizione operazioni"])
+    for r in rows:
+        day = f"{r['date']:%d/%m/%Y}"
+        debit = _it(r["amount"]) if r["amount"] < 0 else ""
+        credit = _it(r["amount"]) if r["amount"] > 0 else ""
+        ws.append([day, day, debit, credit, f"{r['short'].upper()} {r['full']}"])
+    autosize(ws)
+    wb.save(path)
+    return len(rows)
+
+
+def ing_xlsx(path: Path, start: date, end: date, seed: int):
+    """ING (Conto Corrente Arancio) movements: unsigned Uscite/Entrate columns, Causale + Descrizione operazione."""
+    rows = movements(start, end, seed, salary=2280.00, rent=690.00)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Movimenti"
+    ws.append(["ING - Conto Corrente Arancio"])
+    ws.append([f"Intestatario: {HOLDER}"])
+    ws.append([])
+    ws.append(["Data contabile", "Data valuta", "Uscite", "Entrate", "Causale", "Descrizione operazione"])
+    for r in rows:
+        day = f"{r['date']:%d/%m/%Y}"
+        ws.append([day, day, -r["amount"] if r["amount"] < 0 else None, r["amount"] if r["amount"] > 0 else None,
+                   r["short"].upper(), r["full"]])
+    autosize(ws)
+    wb.save(path)
     return len(rows)
 
 
@@ -384,6 +492,85 @@ def generic_docx(path: Path, start: date, end: date, seed: int):
     return len(rows)
 
 
+def _cfb(streams: dict[str, bytes]) -> bytes:
+    """Minimal OLE2 compound file (version 3, 512-byte sectors, one FAT sector) holding a few streams.
+    Streams are padded to 4096 bytes so they live in regular sectors (no mini stream needed)."""
+    import struct
+    free, end, fat_sector = 0xFFFFFFFF, 0xFFFFFFFE, 0xFFFFFFFD
+    names = list(streams)
+    data = {n: streams[n].ljust(max(4096, -(-len(streams[n]) // 512) * 512), b"\0") for n in names}
+    fat = [fat_sector, end]                      # sector 0: FAT, sector 1: directory
+    starts = {}
+    for name in names:
+        starts[name] = len(fat)
+        count = len(data[name]) // 512
+        fat += [len(fat) + i + 1 for i in range(count - 1)] + [end]
+    assert len(fat) <= 128
+    fat += [free] * (128 - len(fat))
+
+    def entry(name: str, kind: int, left: int, right: int, child: int, start: int, size: int) -> bytes:
+        encoded = (name + "\0").encode("utf-16-le")
+        return (encoded.ljust(64, b"\0") + struct.pack("<HBB3I", len(encoded), kind, 1, left, right, child)
+                + b"\0" * 36 + struct.pack("<IQ", start, size))
+
+    # Directory tree ordered by (name length, name): the root points to the largest name, each entry's
+    # left sibling is the next smaller one (a valid, if unbalanced, binary search tree)
+    ordered = sorted(names, key=lambda n: (len(n), n.upper()))
+    ids = {name: index + 1 for index, name in enumerate(names)}
+    directory = entry("Root Entry", 5, free, free, ids[ordered[-1]], end, 0)
+    for name in names:
+        position = ordered.index(name)
+        left = ids[ordered[position - 1]] if position > 0 else free
+        directory += entry(name, 2, left, free, free, starts[name], len(data[name]))
+    assert len(directory) <= 512
+    directory = directory.ljust(512, b"\0")
+
+    header = (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\0" * 16
+              + struct.pack("<HHHHH", 0x3E, 3, 0xFFFE, 9, 6) + b"\0" * 6
+              + struct.pack("<IIIIIIIII", 0, 1, 1, 0, 4096, end, 0, end, 0)
+              + struct.pack("<I", 0) + struct.pack("<I", free) * 108)
+    return header + struct.pack("<128I", *fat) + directory + b"".join(data[n] for n in names)
+
+
+def generic_doc(path: Path, start: date, end: date, seed: int):
+    """Word 97-2003 binary (.doc) with a movements table, written by hand: an OLE2 container with the
+    "WordDocument" stream (FIB + text) and the "1Table" stream (piece table). The preamble is stored as
+    8-bit text and the table as UTF-16, the two encodings Word uses."""
+    import struct
+    rows = movements(start, end, seed, salary=2150.00, rent=670.00)
+    preamble = f"Estratto conto - Banca Demo\rIntestatario: {HOLDER}\rPeriodo: {start:%d/%m/%Y} - {end:%d/%m/%Y}\r"
+    cells = ["Data", "Descrizione", "Importo"]
+    table = "".join(c + "\x07" for c in cells) + "\x07"
+    for r in rows:
+        cells = [f"{r['date']:%d/%m/%Y}", r["full"], ("-" if r["amount"] < 0 else "") + _it(r["amount"])]
+        table += "".join(c + "\x07" for c in cells) + "\x07"
+    table += "Documento generato per test - dati fittizi.\r"
+
+    first = preamble.encode("cp1252")
+    second = table.encode("utf-16-le")
+    ccp = len(preamble) + len(table)
+    text_at = 0x800
+    fib = bytearray(text_at)
+    struct.pack_into("<HHH", fib, 0, 0xA5EC, 0x00C1, 0x0409)       # wIdent, nFib (Word 97), lid
+    struct.pack_into("<H", fib, 0x0A, 0x0200)                       # fWhichTblStm: the table stream is "1Table"
+    struct.pack_into("<H", fib, 0x20, 14)                           # csw
+    struct.pack_into("<H", fib, 0x3E, 22)                           # cslw
+    struct.pack_into("<i", fib, 0x4C, ccp)                          # ccpText
+    struct.pack_into("<H", fib, 0x98, 0x5D)                         # cbRgFcLcb (Word 97)
+    second_at = text_at + len(first)
+    second_at += second_at % 2
+    word = bytearray(fib) + first + b"\0" * (second_at - text_at - len(first)) + second
+
+    cps = struct.pack("<3I", 0, len(preamble), ccp)
+    pieces = (struct.pack("<HIH", 0, (text_at * 2) | 0x40000000, 0)  # compressed: fc is doubled
+              + struct.pack("<HIH", 0, second_at, 0))
+    plc = cps + pieces
+    clx = b"\x02" + struct.pack("<I", len(plc)) + plc
+    struct.pack_into("<II", word, 0x9A + 33 * 8, 0, len(clx))      # fcClx, lcbClx
+    path.write_bytes(_cfb({"WordDocument": bytes(word), "1Table": clx}))
+    return len(rows)
+
+
 def generic_ods(path: Path, start: date, end: date, seed: int):
     """LibreOffice Calc spreadsheet (.ods), written by hand: an .ods is a zip with an XML sheet."""
     import zipfile
@@ -485,11 +672,16 @@ def main():
         ("intesa_sanpaolo_legacy_2026-03.xls", intesa_legacy_html, (date(2026, 3, 1), date(2026, 3, 31), 33)),
         ("unicredit_2026-08_2026-09.csv", unicredit_csv, (date(2026, 8, 1), date(2026, 9, 24), 44)),
         ("revolut_2026-09.csv", revolut_csv, (date(2026, 9, 1), date(2026, 9, 24), 55)),
+        ("n26_2026-08.csv", n26_csv, (date(2026, 8, 1), date(2026, 8, 31), 144)),
+        ("bper_2026-07.xlsx", bper_xlsx, (date(2026, 7, 1), date(2026, 7, 31), 155)),
+        ("bancoposta_2026-06.xlsx", bancoposta_xlsx, (date(2026, 6, 1), date(2026, 6, 30), 166)),
+        ("ing_2026-05.xlsx", ing_xlsx, (date(2026, 5, 1), date(2026, 5, 31), 177)),
         ("banca_generica_2026-02.xls", legacy_xls, (date(2026, 2, 1), date(2026, 2, 28), 66)),
         ("fineco_estratto_conto_2026-07_2026-08.pdf", fineco_pdf, (date(2026, 7, 1), date(2026, 8, 31), 77)),
         ("intesa_sanpaolo_lista_movimenti_2026-09.pdf", intesa_pdf, (date(2026, 9, 1), date(2026, 9, 24), 88)),
         ("banca_popolare_2026-05.txt", generic_txt, (date(2026, 5, 1), date(2026, 5, 31), 99)),
         ("estratto_conto_word_2026-01.docx", generic_docx, (date(2026, 1, 1), date(2026, 1, 31), 111)),
+        ("estratto_conto_word97_2025-10.doc", generic_doc, (date(2025, 10, 1), date(2025, 10, 31), 188)),
         ("estratto_conto_libreoffice_2025-12.ods", generic_ods, (date(2025, 12, 1), date(2025, 12, 31), 122)),
         ("estratto_conto_2025-11.rtf", generic_rtf, (date(2025, 11, 1), date(2025, 11, 30), 133)),
     ]
@@ -498,7 +690,10 @@ def main():
         ("SCANSIONE_fineco_2026-07_2026-08.pdf", lambda p, *_: scanned_pdf(p, OUT / "fineco_estratto_conto_2026-07_2026-08.pdf"), (None, None, None)),
         ("FOTO_estratto_conto_intesa_2026-09.jpg", lambda p, *_: statement_photo(p, OUT / "intesa_sanpaolo_lista_movimenti_2026-09.pdf"), (None, None, None)),
     ]
+    only = sys.argv[1:]  # optional filenames: regenerate just these
     for name, builder, (start, end, seed) in files:
+        if only and name not in only:
+            continue
         # The Fineco files share a seed so the overlapping July movements are identical
         try:
             count = builder(OUT / name, start, end, seed)

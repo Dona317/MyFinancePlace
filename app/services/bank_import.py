@@ -1,14 +1,25 @@
 """
 Bank statement import (Excel / CSV) → transactions.
 
-Supported layouts:
+Supported layouts (auto-detected from the header columns, or from the bank's name above the header / in the filename):
   • Fineco         — "Data_Operazione | Data_Valuta | Entrate | Uscite | Descrizione | Descrizione_Completa | Stato | Moneymap"
   • Intesa Sanpaolo — "Data | Operazione | Dettagli | Conto o carta | Contabilizzazione | Categoria | Valuta | Importo"
                       (older exports: "Data contabile | Data valuta | Descrizione | Accrediti | Addebiti | Descrizione estesa")
+  • UniCredit      — "Data Registrazione | Data Valuta | Descrizione | Importo (EUR)"
+  • BPER Banca     — "Data contabile | Data valuta | Causale ABI | Descrizione | Importo | Divisa"
+  • Poste Italiane — BancoPosta "Data Contabile | Data Valuta | Addebiti (euro) | Accrediti (euro) | Descrizione operazioni"
+  • ING            — "Data contabile | Data valuta | Uscite | Entrate | Causale | Descrizione operazione"
+  • Revolut        — "Type | Product | Started Date | Completed Date | Description | Amount | Fee | Currency | State | Balance"
+                      rows whose State is not COMPLETED (pending, reverted, declined) are excluded; a non-zero Fee
+                      becomes a separate "Commissione Revolut" expense, so the category of the payment stays clean
+                      and the fees add up under "Commissioni"
+  • N26            — "Booking Date | Value Date | Partner Name | Partner Iban | Type | Payment Reference | Account Name |
+                      Amount (EUR) | Original Amount | Original Currency | Exchange Rate"
+                      (older exports: "Date | Payee | Account number | Transaction type | Payment reference | Amount (EUR) | …")
   • Generic        — any statement whose header has a date, a description and either a signed amount
-                      or separate credit/debit columns (UniCredit, BPER, Revolut, N26, …)
+                      or separate credit/debit columns (Banca Sella, Mediolanum, BCC, …)
 
-Accepted files: Excel (.xlsx/.xls), CSV, TXT, PDF (text-based), Word (.docx), RTF, OpenDocument (.ods/.odt).
+Accepted files: Excel (.xlsx/.xls), CSV, TXT, PDF (text-based), Word (.docx and 97-2003 .doc), RTF, OpenDocument (.ods/.odt).
 
 Pipeline:  readers.read_document() → candidate tables → detect_layout() → parse_rows() → enrich() (category, dedup)
   • Structured tables (spreadsheets, Word/ODF tables, ruled PDF tables, delimited text) are tried first.
@@ -23,6 +34,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
@@ -46,8 +58,16 @@ class BankLayout:
     key: str
     name: str
     markers: tuple[str, ...]              # text in the preamble / filename identifying the bank
-    signature: tuple[str, ...]            # header names only this bank uses
+    # Header names only this bank uses; a tuple entry needs all of its names ("started date" + "completed date")
+    signature: tuple[str | tuple[str, ...], ...]
     columns: dict[str, tuple[str, ...]]   # field → accepted (normalized) header names, by priority
+    # When set, only rows whose status is one of these are booked (Revolut: "completed"); the others
+    # (pending, reverted, declined) are skipped like the "non contabilizzato" rows of the Italian banks
+    booked_statuses: tuple[str, ...] = ()
+
+    def signature_in(self, headers: list[str]) -> bool:
+        present = set(headers)
+        return any(set(sig) <= present if isinstance(sig, tuple) else sig in present for sig in self.signature)
 
 
 BANKS = {
@@ -85,6 +105,93 @@ BANKS = {
             "status":      ("contabilizzazione",),
         },
     ),
+    "unicredit": BankLayout(
+        key="unicredit",
+        name="UniCredit",
+        markers=("unicredit",),
+        signature=(("data registrazione", "importo eur"),),
+        columns={
+            "date":        ("data registrazione", "data operazione", "data contabile", "data"),
+            "description": ("descrizione", "descrizione operazione"),
+            "details":     ("causale",),
+            "amount":      ("importo eur", "importo euro", "importo"),
+            "credit":      ("entrate", "accrediti", "avere"),
+            "debit":       ("uscite", "addebiti", "dare"),
+            "currency":    ("divisa",),
+        },
+    ),
+    "bper": BankLayout(
+        key="bper",
+        name="BPER Banca",
+        markers=("bper", "banca popolare dell emilia romagna", "banco di sardegna"),
+        signature=("causale abi",),
+        columns={
+            "date":        ("data contabile", "data operazione", "data"),
+            "description": ("descrizione", "descrizione operazione"),
+            "details":     ("causale abi", "causale"),
+            "amount":      ("importo", "importo eur"),
+            "credit":      ("avere", "accrediti", "entrate"),
+            "debit":       ("dare", "addebiti", "uscite"),
+            "currency":    ("divisa",),
+        },
+    ),
+    "poste": BankLayout(
+        key="poste",
+        name="Poste Italiane (BancoPosta)",
+        markers=("bancoposta", "poste italiane", "postepay"),
+        signature=("descrizione operazioni",),
+        columns={
+            "date":        ("data contabile", "data operazione", "data"),
+            "description": ("descrizione operazioni", "descrizione"),
+            "amount":      ("importo", "importo euro"),
+            "credit":      ("accrediti euro", "accrediti"),
+            "debit":       ("addebiti euro", "addebiti"),
+        },
+    ),
+    "ing": BankLayout(
+        key="ing",
+        name="ING",
+        markers=(" ing ", "conto arancio"),  # padded: "ing" alone, not inside "booking"
+        signature=(("descrizione operazione", "causale", "entrate", "uscite"),),
+        columns={
+            "date":        ("data contabile", "data operazione", "data"),
+            "description": ("descrizione operazione", "descrizione"),
+            "details":     ("causale",),
+            "amount":      ("importo",),
+            "credit":      ("entrate",),
+            "debit":       ("uscite",),
+        },
+    ),
+    "revolut": BankLayout(
+        key="revolut",
+        name="Revolut",
+        markers=("revolut",),
+        signature=(("started date", "completed date"), ("product", "state", "fee")),
+        columns={
+            # Started Date is always filled; Completed Date is empty on pending and reverted rows
+            "date":        ("started date", "completed date", "date"),
+            "description": ("description",),
+            # "Type" (CARD_PAYMENT, ATM, TOPUP…) is left out: as a detail it would mislead the keyword
+            # categorization (the "ATM" of a cash withdrawal is not the Milan transit company)
+            "amount":      ("amount",),
+            "fee":         ("fee",),
+            "currency":    ("currency",),
+            "status":      ("state",),
+        },
+        booked_statuses=("completed",),
+    ),
+    "n26": BankLayout(
+        key="n26",
+        name="N26",
+        markers=("n26",),
+        signature=("partner name", "partner iban", "payment reference", ("payee", "transaction type")),
+        columns={
+            "date":        ("booking date", "date", "value date"),
+            "description": ("partner name", "payee"),
+            "details":     ("payment reference", "type", "transaction type"),
+            "amount":      ("amount eur", "amount"),
+        },
+    ),
     "generic": BankLayout(
         key="generic",
         name="Altra banca (generico)",
@@ -111,7 +218,7 @@ BANKS = {
 }
 
 AUTO = "auto"
-DETECTION_ORDER = ("fineco", "intesa", "generic")
+DETECTION_ORDER = ("fineco", "intesa", "unicredit", "bper", "poste", "ing", "revolut", "n26", "generic")
 
 
 # ── Auto-categorization ────────────────────────────────────────────────────────
@@ -185,12 +292,18 @@ class StatementImportError(ValueError):
 
 # ── Layout detection ───────────────────────────────────────────────────────────
 
+def header_key(value) -> str:
+    """A header cell as compared with the layouts: lowercase, no accents, words and numbers only."""
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    return normalize("".join(c for c in text if not unicodedata.combining(c)))
+
+
 def _match_columns(headers: list[str], layout: BankLayout) -> dict[str, int] | None:
     """Map layout fields to column indexes; None if the header lacks the required columns."""
     mapping: dict[str, int] = {}
     used: set[int] = set()
     for field_name in ("date", "description", "amount", "credit", "debit", "details",
-                       "category", "currency", "status"):
+                       "category", "currency", "status", "fee"):
         for alias in layout.columns.get(field_name, ()):
             index = next((i for i, h in enumerate(headers) if h == alias and i not in used), None)
             if index is not None:
@@ -212,6 +325,8 @@ class Layout:
 
 
 def _identify_bank(rows: list[list], filename: str) -> str | None:
+    """The bank named in the filename or in `rows` (the callers pass only the rows above the header:
+    a "Ricarica Revolut" movement in a Fineco statement must not make it a Revolut file)."""
     preamble = _search_text(filename, *(str(c) for row in rows[:HEADER_SCAN_ROWS] for c in row if c))
     for key in DETECTION_ORDER:
         if any(marker in preamble for marker in BANKS[key].markers):
@@ -221,18 +336,21 @@ def _identify_bank(rows: list[list], filename: str) -> str | None:
 
 def layout_for_headers(headers: list[str], bank: str = AUTO, identified: str | None = None) -> tuple[str, dict] | None:
     """
-    Pick the layout matching a header row. With automatic detection a bank-specific layout is used only
-    when the bank was identified (name in the file) or its signature columns are present; otherwise the
-    generic layout, so a plain "Data | Descrizione | Importo" file is not mislabelled as a specific bank.
+    Pick the layout matching a header row. With automatic detection:
+      1. the bank named above the header or in the filename, if its columns match;
+      2. a bank whose signature columns are present (e.g. Revolut's "Started Date" + "Completed Date");
+      3. the generic layout, so a plain "Data | Descrizione | Importo" file is not mislabelled as a specific bank.
     """
     if bank != AUTO:
         keys = [bank]
-    elif identified:
-        keys = [identified, "generic"]
     else:
+        if identified:
+            columns = _match_columns(headers, BANKS[identified])
+            if columns:
+                return identified, columns
         for key in DETECTION_ORDER:
             columns = _match_columns(headers, BANKS[key])
-            if columns and any(sig in headers for sig in BANKS[key].signature):
+            if columns and BANKS[key].signature_in(headers):
                 return key, columns
         keys = ["generic", *DETECTION_ORDER]
     for key in keys:
@@ -246,9 +364,9 @@ def detect_layout(rows: list[list], filename: str = "", bank: str = AUTO) -> Lay
     if bank != AUTO and bank not in BANKS:
         raise StatementImportError(f"Banca non supportata: {bank}")
 
-    identified = _identify_bank(rows, filename) if bank == AUTO else None
     for index, row in enumerate(rows[:HEADER_SCAN_ROWS]):
-        headers = [normalize(c) for c in row]
+        headers = [header_key(c) for c in row]
+        identified = _identify_bank(rows[:index], filename) if bank == AUTO else None
         found = layout_for_headers(headers, bank, identified)
         if found:
             key, columns = found
@@ -289,11 +407,12 @@ def _header_cells(line: list[Word], gap: float | None) -> list[_HeaderCell]:
 
 def _find_header(lines: list[list[Word]], char_width: float, bank: str, filename: str):
     scan = lines[:HEADER_SCAN_ROWS * 3]
-    identified = _identify_bank([[w.text for w in line] for line in scan], filename) if bank == AUTO else None
+    texts = [[w.text for w in line] for line in scan]
     for index, line in enumerate(scan):
+        identified = _identify_bank(texts[:index], filename) if bank == AUTO else None
         for gap in (char_width * 1.2, None):
             cells = _header_cells(line, gap)
-            found = layout_for_headers([normalize(c.text) for c in cells], bank, identified)
+            found = layout_for_headers([header_key(c.text) for c in cells], bank, identified)
             if found:
                 return index, cells, found[1]
     return None
@@ -311,7 +430,7 @@ def rebuild_columns(lines: list[list[Word]], char_width: float, bank: str = AUTO
     if not found:
         return None
     header_index, cells, columns = found
-    header_key = normalize(" ".join(c.text for c in cells))
+    header_line = normalize(" ".join(c.text for c in cells))
     amount_cols = sorted({columns[f] for f in AMOUNT_FIELDS if f in columns})
     text_cols = [i for i in range(len(cells)) if i not in amount_cols]
     amount_region = min(cells[i].x0 for i in amount_cols) - char_width * 10
@@ -334,7 +453,7 @@ def rebuild_columns(lines: list[list[Word]], char_width: float, bank: str = AUTO
             current = None
             continue
         text = " ".join(w.text for w in line)
-        if normalize(text) == header_key or PAGE_FOOTER.match(text) or not re.search(r"[A-Za-z0-9]", text):
+        if normalize(text) == header_line or PAGE_FOOTER.match(text) or not re.search(r"[A-Za-z0-9]", text):
             current = None
             continue
 
@@ -469,7 +588,8 @@ def parse_rows(rows: list[list], layout: Layout) -> tuple[list[StatementRow], in
             continue
 
         status = (clean_text(_cell(row, columns, "status")) or "").lower()
-        if any(p in status for p in PENDING_STATUSES):
+        booked = layout.bank.booked_statuses
+        if any(p in status for p in PENDING_STATUSES) or (booked and status not in booked):
             skipped += 1
             continue
 
@@ -483,14 +603,21 @@ def parse_rows(rows: list[list], layout: Layout) -> tuple[list[StatementRow], in
             continue
 
         currency = (clean_text(_cell(row, columns, "currency")) or "EUR").upper()
+        currency = currency if re.fullmatch(r"[A-Z]{3}", currency) else "EUR"
         parsed.append(StatementRow(
             date=tx_date,
             description=description,
             amount=amount,
             details=details,
             bank_category=clean_text(_cell(row, columns, "category")),
-            currency=currency if re.fullmatch(r"[A-Z]{3}", currency) else "EUR",
+            currency=currency,
         ))
+        fee = to_decimal(_cell(row, columns, "fee"))
+        if valid_amount(fee):  # charged on top of the amount: a separate expense (see the module docstring)
+            parsed.append(StatementRow(
+                date=tx_date, description=f"Commissione {layout.bank.name}: {description}",
+                amount=-abs(fee), details=details, currency=currency,
+            ))
     return parsed, skipped
 
 

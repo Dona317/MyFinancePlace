@@ -8,9 +8,11 @@ Current status and roadmap. Update this file as items are completed.
 - **Dashboard**: real KPIs, 12-month cash flow, expenses by category, recent transactions
 - **Accounting**: Income Statement and Cash Flow computed from transactions
 - **Lifestyle**: category breakdown, trends, month-over-month comparison
-- **Export**: CSV, JSON, tax export by year, printable report, CSV import with column mapping
-- **Bank statement import**: Fineco, Intesa Sanpaolo and generic bank files — Excel, CSV, PDF, TXT, Word,
-  OpenDocument, RTF — with auto-categorization, a review step and duplicate detection
+- **Export**: CSV, JSON, tax export by year, downloadable PDF report (fpdf2) and printable page,
+  CSV/Excel/.ods import with column mapping
+- **Bank statement import**: Fineco, Intesa Sanpaolo, UniCredit, BPER, Poste Italiane (BancoPosta), ING, Revolut,
+  N26 and generic bank files — Excel, CSV, PDF, TXT, Word (.docx and 97-2003 .doc), OpenDocument, RTF — with
+  auto-categorization, a review step and duplicate detection
 - **AI reading of scans, photos and non-standard statements** (optional, always after user confirmation):
   local Llama/Qwen/Gemma models via Ollama (catalog, install/remove page, CLI script) or Claude,
   schema-validated JSON and a live balance check
@@ -47,16 +49,15 @@ Cash flow sorts `transfer` transactions by category name: anything like "Investi
 and "mutuo" or "prestito" counts as loans. Replace this with explicit links: a transfer tied to a
 portfolio holding (investing) or to a debt (financing).
 
-### 4. PDF report and manual CSV mapping
-
-- "PDF" means printing the report page from the browser. For a real downloadable PDF, add a library such as
-  WeasyPrint and render `export/report.html` server-side.
-- The manual column-mapping import still accepts CSV only. Bank statements in Excel are already supported by
-  the bank import; extending manual mapping to `.xlsx` would reuse `bank_import.read_table()`.
-
 ### 5. Bank import improvements
 
-- Add more banks (UniCredit, BPER, Poste, Revolut…) as dedicated layouts in `app/services/bank_import.py`
+- Check the new layouts (UniCredit, BPER, BancoPosta, ING, Revolut, N26) against real anonymized exports: they
+  follow the published column names, but the samples in `samples/bank_statements` are generated. Banca Sella,
+  Mediolanum and BCC are read by the generic layout until a real export shows distinctive columns
+- Files imported as "generic" before a bank got its own layout (e.g. a Revolut CSV) get a different fingerprint
+  when imported again, so they are shown as *possible* duplicates (similar amount/date) rather than skipped
+- Non-EUR rows (Revolut) keep their currency, but the preview totals and reports add them as if they were EUR
+  until multi-currency (track C, step 6)
 - User-editable categorization rules (e.g. a "Rules" page in Settings) instead of the hardcoded `CATEGORY_RULES`
 - Learn from corrections: remember the category the user picked for a counterparty, and pass past examples
   to the AI classifier as few-shot hints (the `categoria-ai` tag marks rows to learn from once reviewed)
@@ -64,7 +65,6 @@ portfolio holding (investing) or to a debt (financing).
 - Test against real exported files (anonymized) from each bank, especially PDFs, whose layouts vary the most
 - AI reading (done, optional): measure accuracy of `qwen2.5vl:7b` vs Claude on real anonymized scans, and
   move long local-model runs to a background job with a progress bar (today the upload request waits)
-- Legacy Word `.doc` files (currently: "save as .docx or PDF")
 
 ### 6. Continuous integration
 

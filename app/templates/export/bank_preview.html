@@ -77,8 +77,8 @@
   {% set d, p = preview.duplicates, preview.pending_skipped %}
   {% if d == 1 %}1 movimento era già stato importato e verrà ignorato.
   {% elif d %}{{ d }} movimenti erano già stati importati e verranno ignorati.{% endif %}
-  {% if p == 1 %}1 movimento non ancora contabilizzato è stato escluso: importalo quando la banca lo avrà registrato.
-  {% elif p %}{{ p }} movimenti non ancora contabilizzati sono stati esclusi: importali quando la banca li avrà registrati.{% endif %}
+  {% if p == 1 %}1 movimento non contabilizzato (in attesa o annullato) è stato escluso: se è in attesa, importalo quando la banca lo avrà registrato.
+  {% elif p %}{{ p }} movimenti non contabilizzati (in attesa o annullati) sono stati esclusi: quelli in attesa importali quando la banca li avrà registrati.{% endif %}
 </div>
 {% endif %}
 
@@ -177,7 +177,8 @@
                        class="form-control row-field row-category" style="padding:6px 8px;" {{ '' if checked else 'disabled' }} /></td>
             <td>{{ type_select('type-' ~ i, row.type, not checked) }}</td>
             <td><input type="number" name="amount-{{ i }}" value="{{ '%.2f'|format(row.amount|abs) }}" step="0.01" min="0.01"
-                       class="form-control row-field row-amount" style="padding:6px 8px;text-align:right;" required {{ '' if checked else 'disabled' }} /></td>
+                       class="form-control row-field row-amount" style="padding:6px 8px;text-align:right;" required {{ '' if checked else 'disabled' }} />
+              {% if row.currency and row.currency != 'EUR' %}<div class="text-xs text-muted" style="text-align:right;">in {{ row.currency }}</div>{% endif %}</td>
             <td><button type="button" class="btn btn-ghost btn-icon btn-sm row-remove" title="Rimuovi riga" style="color:var(--clr-negative);">
               <i class="bi bi-trash3"></i></button></td>
           </tr>

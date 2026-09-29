@@ -15,7 +15,7 @@ Personal finance management app — from household budgeting to investment portf
 | **Debt** | Mortgages and loans with amortization schedules |
 | **Documents** | Archive linked to transactions, with fiscal-year tagging |
 | **Snapshots** | Point-in-time financial snapshots for historical comparison |
-| **Export** | CSV, JSON, PDF, tax export by year, Excel import |
+| **Export** | CSV, JSON, downloadable PDF report, tax export by year, CSV/Excel import with column mapping |
 
 ## Quick Start
 
@@ -46,12 +46,29 @@ python run.py
 **Esporta → Importa Estratto Conto Bancario** turns a bank export into transactions:
 
 1. Upload the file downloaded from home banking: Excel (`.xlsx`, `.xls`), `.csv`, `.pdf`, `.txt`,
-   Word (`.docx`), LibreOffice (`.ods`, `.odt`) or `.rtf`.
+   Word (`.docx` and 97-2003 `.doc`), LibreOffice (`.ods`, `.odt`) or `.rtf`.
    PDFs must be the original text PDFs from home banking — scanned images would need OCR and are rejected with a message.
 2. The bank and the header row are detected automatically (or pick the bank by hand):
-   Fineco, Intesa Sanpaolo, or any statement with Date / Description / Amount (or Credit/Debit) columns.
+   Fineco, Intesa Sanpaolo, UniCredit, BPER Banca, Poste Italiane (BancoPosta), ING, Revolut, N26, or any
+   statement with Date / Description / Amount (or Credit/Debit) columns (Banca Sella, Mediolanum, BCC…).
+   A bank is recognized by its own column names (case and accents do not matter) or by its name above the header
+   or in the filename; the movements themselves are never used for this (a "Ricarica Revolut" line in a Fineco
+   statement stays Fineco).
 3. Review the preview: each row is auto-categorized, already-imported rows are flagged, and pending movements are excluded.
    Untick rows or change category/type, then confirm.
+
+Bank specifics:
+
+| Bank | Export | Notes |
+|---|---|---|
+| Fineco | Conto → Movimenti → Excel | `Autorizzato` rows skipped (pending) |
+| Intesa Sanpaolo | Lista movimenti → Excel (also the old HTML `.xls` and the PDF) | `Non contabilizzato` rows skipped |
+| UniCredit | Elenco movimenti → CSV/Excel (`Data Registrazione`, `Importo (EUR)`) | |
+| BPER Banca | Movimenti conto → Excel (`Causale ABI`, signed `Importo`) | the ABI code becomes the detail line |
+| Poste Italiane | BancoPosta Lista movimenti (`Addebiti`/`Accrediti (euro)`, `Descrizione operazioni`) | |
+| ING | Movimenti conto (`Uscite`/`Entrate`, `Causale`, `Descrizione operazione`) | |
+| Revolut | Estratto conto → Excel/CSV | only `COMPLETED` rows (pending, reverted, declined are skipped); a non-zero `Fee` becomes a separate "Commissione Revolut" expense; the row currency is kept |
+| N26 | CSV (new `Booking Date`/`Partner Name` and old `Date`/`Payee` layouts) | `Amount (EUR)` is used; `Payment Reference` becomes the detail |
 
 Re-importing the same (or an overlapping) statement is safe: each row gets a fingerprint (`import_ref`) and duplicates are skipped.
 Categorization rules live in `app/services/bank_import.py` (`CATEGORY_RULES`).
@@ -59,6 +76,15 @@ Categorization rules live in `app/services/bank_import.py` (`CATEGORY_RULES`).
 How each format is read: spreadsheets and document tables are used as-is; PDFs and fixed-width text without a real
 table are rebuilt into columns from the header positions (wrapped descriptions are joined); as a last resort,
 lines shaped like `date … description … amount` are recognized. See `app/services/statement_readers.py`.
+Word 97-2003 `.doc` files are read in pure Python (`olefile`: the text and its tables come from the piece table of the
+`WordDocument` stream), so no antiword or LibreOffice is needed; password-protected `.doc` files are refused with a message.
+
+**Importa CSV o Excel con mappatura manuale** (same page) is for files no layout recognizes: pick the file
+(`.csv`, `.xlsx`, `.xls`, `.ods`), the app finds the header row (skipping the bank's preamble) and you choose
+which columns are date, amount, description, category, type and counterparty.
+
+**Report PDF**: *Scarica PDF* downloads the yearly report (key figures, income statement by category, monthly table,
+cash flow) generated on the server with `fpdf2` (pure Python); *Stampa dal browser* opens the same report as a page to print.
 
 ### AI reading of scans, photos and non-standard documents (optional)
 
@@ -174,8 +200,8 @@ are described in [docs/DEPLOY.md](docs/DEPLOY.md).
 | Dashboard | ✅ KPIs (net worth = assets − liabilities, investments, debt, debt/income), 12-month cash flow, expenses by category, recent transactions |
 | Accounting | ✅ Balance Sheet (any month end, opening cash balance), Income Statement, Cash Flow, net-worth trend |
 | Lifestyle | ✅ Category breakdown, trends, month-over-month, savings Goals (contributions, monthly amount needed) |
-| Export | ✅ CSV, JSON, tax export, printable report, CSV import, **full backup (.zip) and restore** |
-| Bank import | ✅ Fineco, Intesa Sanpaolo and generic bank statements — Excel, CSV, PDF, TXT, Word, OpenDocument, RTF — with auto-categorization and duplicate detection |
+| Export | ✅ CSV, JSON, tax export, downloadable PDF report (and printable page), CSV/Excel import with column mapping, **full backup (.zip) and restore** |
+| Bank import | ✅ Fineco, Intesa Sanpaolo, UniCredit, BPER, BancoPosta, ING, Revolut, N26 and generic bank statements — Excel, CSV, PDF, TXT, Word (.docx/.doc), OpenDocument, RTF — with auto-categorization and duplicate detection |
 | Portfolio | ✅ Holdings of any class (also savings accounts, pension funds, property), gain/loss, allocation, bulk price update |
 | Debt | ✅ Mortgages, loans, credit cards: French amortization plan, outstanding balance, interest |
 | Insurance | ✅ Policies, annual premium, expiry reminders (60 days) |

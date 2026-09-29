@@ -20,14 +20,15 @@
     .num { text-align: right; font-variant-numeric: tabular-nums; }
     .section td { background: #F4F6FA; font-weight: 700; font-size: 11px; text-transform: uppercase; }
     .total td { font-weight: 700; border-top: 2px solid #1A2540; }
-    .toolbar { margin-bottom: 20px; display: flex; gap: 8px; }
+    .toolbar { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; }
     .toolbar button, .toolbar a { font: inherit; padding: 6px 12px; border: 1px solid #1A2540; border-radius: 6px; background: #fff; color: #1A2540; cursor: pointer; text-decoration: none; }
     @media print { .toolbar { display: none; } body { margin: 0; } }
   </style>
 </head>
 <body>
   <div class="toolbar">
-    <button onclick="window.print()">Stampa / Salva come PDF</button>
+    <a href="{{ url_for('export.export_pdf_download', year=year) }}">Scarica PDF</a>
+    <button onclick="window.print()">Stampa dal browser</button>
     <a href="{{ url_for('export.index') }}">← Torna a Esporta</a>
   </div>
 
