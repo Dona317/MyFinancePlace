@@ -29,6 +29,7 @@ class Config:
     LLM_MODEL = os.environ.get("LLM_MODEL", "")          # empty = provider default
     OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
     LLM_TIMEOUT = int(os.environ.get("LLM_TIMEOUT") or 600)  # seconds
+    AI_JOBS_SYNC = False  # True: the AI reading of a statement runs inside the request (no background thread)
     DEBUG = False
 
     @classmethod
@@ -89,6 +90,7 @@ def configure_logging(app):
 class TestingConfig(Config):
     TESTING = True
     LLM_PROVIDER = ""  # tests enable it explicitly
+    AI_JOBS_SYNC = True  # tests of the background thread turn it off explicitly
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test"
     WTF_CSRF_ENABLED = False
 

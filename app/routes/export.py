@@ -10,7 +10,7 @@ from app.models.account import Account
 from app.services.parsing import to_decimal
 from app.routes.helpers import form_ids
 from app.services import (
-    accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store, backup,
+    accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_jobs, ai_models, upload_store, backup,
     pdf_report,
 )
 from app.services.categories import known_categories
@@ -205,7 +205,8 @@ def import_csv():
 #  upload ──▶ rule-based reading ──ok──▶ editable preview ──▶ confirm (save)
 #                   │ fails
 #                   ▼
-#          "Read it with AI?" (user decides, picks the model) ──yes──▶ editable preview ──▶ confirm
+#          "Read it with AI?" (user decides, picks the model) ──yes──▶ waiting page ──▶ editable preview ──▶ confirm
+#                                                                     (background job, see ai_jobs)
 
 def _render_preview(preview, filename: str):
     payload = _preview_serializer().dumps({
@@ -269,14 +270,26 @@ def _ai_choices(needs_vision: bool) -> dict:
     return choices
 
 
-@export_bp.route("/bank/ai/<token>", methods=["GET", "POST"])
-def bank_ai(token):
-    """Ask before reading an unreadable file with AI; on POST, read it with the chosen model."""
+def _load_upload(token: str):
+    """(raw, meta) of a pending upload, or None after flashing why it is gone."""
     try:
-        raw, meta = upload_store.load(token)
+        return upload_store.load(token)
     except KeyError:
         flash("Il file non è più disponibile: caricalo di nuovo.", "error")
+        return None
+
+
+@export_bp.route("/bank/ai/<token>", methods=["GET", "POST"])
+def bank_ai(token):
+    """Ask before reading an unreadable file with AI; on POST, start reading it with the chosen model."""
+    upload = _load_upload(token)
+    if upload is None:
         return redirect(url_for("export.index"))
+    raw, meta = upload
+
+    job = ai_jobs.get(token)
+    if request.method == "GET" and job and (ai_jobs.is_active(job) or job["state"] == "done"):
+        return redirect(url_for("export.bank_ai_wait", token=token))
 
     needs_vision = meta.get("kind") in ("scan", "photo")
     choices = _ai_choices(needs_vision)
@@ -289,13 +302,13 @@ def bank_ai(token):
         elif model and model not in usable:
             error = f"Il modello {model} non può leggere questo file."
         else:
-            try:
-                preview = bank_import.analyze_with_ai(meta["filename"], raw, meta.get("bank", bank_import.AUTO), model)
-            except bank_import.StatementImportError as exc:
-                error = str(exc)  # stay on this page: the user can try another model
+            job = ai_jobs.start(token, meta["filename"], raw, meta.get("bank", bank_import.AUTO), model)
+            if job["state"] == "done":  # AI_JOBS_SYNC: already read
+                return _render_ai_result(token, meta)
+            if job["state"] == "error":
+                error = job["error"]  # stay on this page: the user can try another model
             else:
-                upload_store.delete(token)
-                return _render_preview(preview, meta["filename"])
+                return redirect(url_for("export.bank_ai_wait", token=token))
 
     return render_template(
         "export/ai_confirm.html", token=token, meta=meta, needs_vision=needs_vision,
@@ -303,9 +316,62 @@ def bank_ai(token):
     )
 
 
+@export_bp.route("/bank/ai/<token>/wait")
+def bank_ai_wait(token):
+    """Waiting page of a reading in progress; it polls bank_ai_status (or reloads itself without JavaScript)."""
+    upload = _load_upload(token)
+    if upload is None:
+        return redirect(url_for("export.index"))
+    job = ai_jobs.get(token)
+    if job is None:
+        return redirect(url_for("export.bank_ai", token=token))
+    if job["state"] == "done":
+        return redirect(url_for("export.bank_ai_result", token=token))
+    return render_template("export/bank_ai_wait.html", token=token, meta=upload[1], job=job,
+                           active=ai_jobs.is_active(job))
+
+
+@export_bp.route("/bank/ai/<token>/status")
+def bank_ai_status(token):
+    """State of the AI reading, polled by the waiting page."""
+    job = ai_jobs.get(token)
+    if job is None:
+        return jsonify({"state": "missing", "url": url_for("export.bank_ai", token=token)}), 404
+    data = {key: job[key] for key in ("state", "model", "label", "done", "total", "unit", "elapsed", "error",
+                                      "cancel_requested", "rows", "progress")}
+    if job["state"] == "done":
+        data["url"] = url_for("export.bank_ai_result", token=token)
+    return jsonify(data)
+
+
+@export_bp.route("/bank/ai/<token>/result")
+def bank_ai_result(token):
+    """The editable preview of a finished reading."""
+    upload = _load_upload(token)
+    if upload is None:
+        return redirect(url_for("export.index"))
+    if ai_jobs.result(token) is None:
+        return redirect(url_for("export.bank_ai_wait", token=token))
+    return _render_ai_result(token, upload[1])
+
+
+def _render_ai_result(token: str, meta: dict):
+    try:
+        preview = bank_import.preview_from_ai(meta["filename"], ai_jobs.result(token), meta.get("bank", bank_import.AUTO))
+    except bank_import.StatementImportError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("export.bank_ai", token=token))
+    ai_jobs.discard(token)  # the rows now travel in the signed preview payload
+    return _render_preview(preview, meta["filename"])
+
+
 @export_bp.route("/bank/ai/<token>/cancel", methods=["POST"])
 def bank_ai_cancel(token):
-    upload_store.delete(token)
+    """Stop the reading ("Annulla" on the waiting page, the file is kept) or drop the whole import."""
+    if request.form.get("scope") == "job":
+        ai_jobs.cancel(token)
+        return redirect(url_for("export.bank_ai_wait", token=token))
+    ai_jobs.discard(token)
     flash("Importazione annullata.", "success")
     return redirect(url_for("export.index"))
 

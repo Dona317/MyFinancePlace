@@ -63,8 +63,9 @@ portfolio holding (investing) or to a debt (financing).
   to the AI classifier as few-shot hints (the `categoria-ai` tag marks rows to learn from once reviewed)
 - Extract the counterparty (merchant name) from the description
 - Test against real exported files (anonymized) from each bank, especially PDFs, whose layouts vary the most
-- AI reading (done, optional): measure accuracy of `qwen2.5vl:7b` vs Claude on real anonymized scans, and
-  move long local-model runs to a background job with a progress bar (today the upload request waits)
+- AI reading (done, optional): measure accuracy of `qwen2.5vl:7b` vs Claude on real anonymized scans.
+  It runs in a background thread (`app/services/ai_jobs.py`) with a waiting page showing progress per page;
+  job state is in memory plus a JSON next to the upload, so it assumes one gunicorn process (the default)
 
 ### 6. Continuous integration
 

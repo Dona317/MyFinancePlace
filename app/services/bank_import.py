@@ -761,11 +761,20 @@ def _bank_from_name(name: str) -> str:
 
 def analyze_with_ai(filename: str, raw: bytes, bank: str = AUTO, model: str | None = None) -> StatementPreview:
     """Read the movements with an AI model (the configured one, or `model`) and validate what it returned."""
+    return preview_from_ai(filename, read_with_ai(filename, raw, model), bank)
+
+
+def read_with_ai(filename: str, raw: bytes, model: str | None = None,
+                 progress: ai_extraction.Progress | None = None) -> ai_extraction.AIExtraction:
+    """The slow part of analyze_with_ai: the model reading the document (see ai_jobs for the background run)."""
     try:
-        result = ai_extraction.extract(filename, raw, text_for_ai(filename, raw), model)
+        return ai_extraction.extract(filename, raw, text_for_ai(filename, raw), model, progress)
     except ai_extraction.AIExtractionError as exc:
         raise StatementImportError(f"Lettura AI non riuscita: {exc}")
 
+
+def preview_from_ai(filename: str, result: ai_extraction.AIExtraction, bank: str = AUTO) -> StatementPreview:
+    """Validate what the model returned and build the editable preview."""
     rows: list[StatementRow] = []
     discarded = 0
     for item in result.movements:
