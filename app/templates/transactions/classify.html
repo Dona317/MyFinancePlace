@@ -43,7 +43,7 @@
               <input type="hidden" name="suggested-{{ tx.id }}" value="{{ s.category }}" />
               {% endif %}
             </td>
-            <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ tx.date.strftime('%d/%m/%Y') }}</td>
+            <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ (tx.date|it_date) }}</td>
             <td>
               <div style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</div>
               {% if tx.bank_description and tx.bank_description != tx.description %}

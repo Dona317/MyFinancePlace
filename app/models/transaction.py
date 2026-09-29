@@ -35,10 +35,6 @@ class Transaction(db.Model):
         return abs(float(self.amount_base if self.amount_base is not None else self.amount or 0))
 
     @property
-    def is_foreign(self) -> bool:
-        return bool(self.currency) and self.currency != "EUR"
-
-    @property
     def signed_amount(self) -> float:
         """Negative for expenses, positive otherwise: how the amount is shown and summed in a balance."""
         return -self.magnitude if self.type == "expense" else self.magnitude

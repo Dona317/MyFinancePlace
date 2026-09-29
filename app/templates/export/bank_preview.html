@@ -19,7 +19,7 @@
     <div class="kpi-label">Movimenti nuovi</div>
     <div class="kpi-value">{{ preview.new_rows|length }}</div>
     <div class="kpi-sub">
-      {% if preview.period %}{{ preview.period[0].strftime('%d/%m/%Y') }} → {{ preview.period[1].strftime('%d/%m/%Y') }}{% endif %}
+      {% if preview.period %}{{ (preview.period[0]|it_date) }} → {{ (preview.period[1]|it_date) }}{% endif %}
     </div>
   </div>
   <div class="kpi-card kpi-positive">
@@ -145,7 +145,7 @@
           {% if row.duplicate %}
           <tr class="statement-row" style="opacity:.45;" data-signed="{{ row.amount }}">
             <td><i class="bi bi-check2-all text-muted" title="Già importato"></i></td>
-            <td style="white-space:nowrap;font-size:var(--font-size-xs);">{{ row.date.strftime('%d/%m/%Y') }}</td>
+            <td style="white-space:nowrap;font-size:var(--font-size-xs);">{{ (row.date|it_date) }}</td>
             <td>{{ row.description }} <span class="badge badge-muted">Già importato</span></td>
             <td>{{ row.category }}</td>
             <td>—</td>

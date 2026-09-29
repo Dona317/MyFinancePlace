@@ -29,7 +29,7 @@ def create_app(config_name="default"):
 
     from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
     from .services import currency  # noqa: F401 — fills transactions.amount_base on save
-    from .services import notifications
+    from .services import display, notifications
 
 
     app.config["DESCRIPTION"] = """
@@ -80,18 +80,16 @@ def create_app(config_name="default"):
     app.register_blueprint(notifications_bp)
 
     # ── Template filters ───────────────────────────────────────────────────────
+    # Amounts, numbers and dates follow Settings → Visualizzazione (services.display)
     @app.template_filter("money")
-    def money(value, symbol="€"):
-        """Format a number Italian-style: 1234.5 → '€ 1.234,50'."""
-        formatted = f"{abs(float(value or 0)):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        sign = "-" if float(value or 0) < 0 else ""
-        return f"{sign}{symbol} {formatted}"
+    def money(value, symbol=None):
+        """1234.5 → '€ 1.234,50' (base currency symbol unless one is given, number format from Settings)."""
+        return display.money(value, symbol)
 
     @app.template_filter("number")
     def number(value, decimals=2):
-        """Italian-style number with up to `decimals` decimals, trailing zeros dropped: 1234.5 → '1.234,5'."""
-        text = f"{float(value or 0):,.{decimals}f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        return text.rstrip("0").rstrip(",") if "," in text else text
+        """Number with up to `decimals` decimals, trailing zeros dropped: 1234.5 → '1.234,5'."""
+        return display.number(value, decimals, trim=True)
 
     @app.template_filter("plain")
     def plain(value):
@@ -111,7 +109,7 @@ def create_app(config_name="default"):
 
     @app.template_filter("it_date")
     def it_date(value):
-        return value.strftime("%d/%m/%Y") if value else "—"
+        return display.day(value)
 
     @app.template_filter("tone")
     def tone(tx_type):
@@ -123,7 +121,7 @@ def create_app(config_name="default"):
     # The choices saved in the database (Settings page), over the defaults (all on).
     @app.context_processor
     def inject_settings():
-        return {"settings": current_settings(), "notification_count": notification_count}
+        return {"settings": current_settings(), "notification_count": notification_count, "display": display.prefs()}
 
     def notification_count() -> int:
         """Reminders not yet seen, for the bell (never breaks a page)."""

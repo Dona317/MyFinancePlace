@@ -151,19 +151,27 @@
       </div>
       <div class="settings-section-body" style="padding-top:12px;padding-bottom:12px;">
 
-        <div class="grid-2" style="gap:16px;">
+        <div class="grid-3" style="gap:16px;">
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Valuta Predefinita</label>
-            <select name="currency" class="form-select" onchange="this.form.submit()">
-              <option value="EUR" {{ 'selected' if settings.currency == 'EUR' }}>€ EUR — Euro</option>
-              <option value="USD" {{ 'selected' if settings.currency == 'USD' }}>$ USD — Dollaro</option>
-              <option value="GBP" {{ 'selected' if settings.currency == 'GBP' }}>£ GBP — Sterlina</option>
-              <option value="CHF" {{ 'selected' if settings.currency == 'CHF' }}>₣ CHF — Franco Svizzero</option>
+            <label class="form-label" for="s-currency">Valuta dei totali</label>
+            <select id="s-currency" name="currency" class="form-select" onchange="this.form.submit()">
+              {% for code, (sym, name) in currencies.items() %}
+              <option value="{{ code }}" {{ 'selected' if settings.currency == code }}>{{ sym }} {{ code }} — {{ name }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-hint">Le transazioni in altre valute vengono convertite con i <a href="{{ url_for('settings.currencies_page') }}">cambi</a>.</div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="s-locale">Formato numeri</label>
+            <select id="s-locale" name="locale" class="form-select" onchange="this.form.submit()">
+              {% for code, (label, _, _) in locales.items() %}
+              <option value="{{ code }}" {{ 'selected' if settings.locale == code }}>{{ label }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Formato Data</label>
-            <select name="date_format" class="form-select" onchange="this.form.submit()">
+            <label class="form-label" for="s-date">Formato data</label>
+            <select id="s-date" name="date_format" class="form-select" onchange="this.form.submit()">
               <option value="DD/MM/YYYY" {{ 'selected' if settings.date_format == 'DD/MM/YYYY' }}>DD/MM/YYYY (italiano)</option>
               <option value="YYYY-MM-DD" {{ 'selected' if settings.date_format == 'YYYY-MM-DD' }}>YYYY-MM-DD (ISO)</option>
               <option value="MM/DD/YYYY" {{ 'selected' if settings.date_format == 'MM/DD/YYYY' }}>MM/DD/YYYY (US)</option>
@@ -176,10 +184,7 @@
             Anteprima
           </div>
           <span style="font-family:var(--font-mono);font-size:var(--font-size-sm);">
-            {{ settings.currency }} 1.234,56 &nbsp;·&nbsp;
-            {% if settings.date_format == 'DD/MM/YYYY' %}25/05/2026
-            {% elif settings.date_format == 'YYYY-MM-DD' %}2026-05-25
-            {% else %}05/25/2026{% endif %}
+            {{ 1234.56|money }} &nbsp;·&nbsp; {{ preview_date|it_date }}
           </span>
         </div>
 

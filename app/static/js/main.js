@@ -144,8 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ── Amount formatter (tabular display) ─────────────────────────────── */
   document.querySelectorAll("[data-amount]").forEach(el => {
     const raw    = parseFloat(el.dataset.amount);
-    const locale = el.dataset.locale  || "it-IT";
-    const currency = el.dataset.currency || "EUR";
+    // number format and currency chosen in Settings (on <html>), unless the element says otherwise
+    const locale = el.dataset.locale || document.documentElement.dataset.locale || "it-IT";
+    const currency = el.dataset.currency || document.documentElement.dataset.currency || "EUR";
     el.textContent = new Intl.NumberFormat(locale, {
       style: "currency", currency,
       minimumFractionDigits: 2, maximumFractionDigits: 2,

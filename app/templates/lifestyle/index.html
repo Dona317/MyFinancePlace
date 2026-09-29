@@ -15,13 +15,13 @@
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-cart3"></i></div>
     <div class="kpi-label">Spese Totali</div>
-    <div class="kpi-value text-negative" data-amount="{{ report.total_expenses }}" data-currency="EUR">—</div>
+    <div class="kpi-value text-negative" data-amount="{{ report.total_expenses }}">—</div>
     <div class="kpi-sub">Anno {{ year }}</div>
   </div>
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-calendar3"></i></div>
     <div class="kpi-label">Media Mensile</div>
-    <div class="kpi-value" data-amount="{{ report.monthly_average }}" data-currency="EUR">—</div>
+    <div class="kpi-value" data-amount="{{ report.monthly_average }}">—</div>
     <div class="kpi-sub">Gen → {{ report.reference_month }} {{ year }}</div>
   </div>
   <div class="kpi-card kpi-warning">

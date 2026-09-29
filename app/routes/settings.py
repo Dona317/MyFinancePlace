@@ -9,7 +9,7 @@ from app.extensions import db
 from app.models.category import Category, CategoryRule
 from app.models.currency import ExchangeRate
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
-from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, settings_store
+from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, display, settings_store
 from app.services.bank_import import CATEGORY_RULES
 
 settings_bp = APIBlueprint(
@@ -96,7 +96,8 @@ def current_settings() -> dict:
 
 @settings_bp.route("/")
 def index():
-    return render_template("settings/index.html", settings=current_settings(), defaults=DEFAULT_SETTINGS)
+    return render_template("settings/index.html", settings=current_settings(), defaults=DEFAULT_SETTINGS,
+                           currencies=currency.CURRENCIES, locales=display.LOCALES, preview_date=date(2026, 5, 25))
 
 
 @settings_bp.route("/save", methods=["POST"])
@@ -108,9 +109,13 @@ def save():
             new_settings[key] = key in form  # checkbox is present only when checked
         else:
             new_settings[key] = (form.get(key) or default).strip()
+    old_base = currency.base()
     settings_store.set(SETTINGS_KEY, json.dumps(new_settings))
     session.pop("settings", None)  # older versions kept them in the browser session
     flash("Impostazioni salvate con successo.", "success")
+    if currency.base() != old_base:
+        currency.recompute()
+        flash(f"Totali ora in {currency.base()}: controvalori ricalcolati con i cambi salvati.", "success")
     return redirect(url_for("settings.index"))
 
 

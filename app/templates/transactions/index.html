@@ -114,7 +114,7 @@
         <tr>
           <td><input type="checkbox" name="ids" value="{{ tx.id }}" form="bulk-form" class="bulk-select check" /></td>
           <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">
-            {{ tx.date.strftime('%d %b %Y') }}
+            {{ tx.date|it_date }}
           </td>
           <td>
             <div style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</div>
@@ -137,7 +137,7 @@
             {% else %}
             {% set original = -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs %}
             <span class="amount {{ tx.type|tone }}">{{ original|money(symbol) }}</span>
-            {% if tx.is_foreign %}<div class="text-xs text-muted nowrap" title="Controvalore in euro al cambio del giorno">≈ {{ tx.signed_amount|money }}</div>{% endif %}
+            {% if (tx.currency or 'EUR') != display.currency %}<div class="text-xs text-muted nowrap" title="Controvalore nella valuta dei totali al cambio del giorno">≈ {{ tx.signed_amount|money }}</div>{% endif %}
             {% endif %}
           </td>
           <td class="text-center">

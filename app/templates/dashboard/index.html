@@ -28,7 +28,7 @@
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
     <div class="kpi-label">Patrimonio Netto</div>
-    <div class="kpi-value" data-amount="{{ kpis.net_worth }}" data-currency="EUR">—</div>
+    <div class="kpi-value" data-amount="{{ kpis.net_worth }}">—</div>
     <div class="kpi-sub">Attività − passività (<a href="{{ url_for('accounting.balance_sheet') }}">dettaglio</a>)</div>
   </div>
   {% endif %}
@@ -37,7 +37,7 @@
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
     <div class="kpi-label">Entrate Mensili</div>
-    <div class="kpi-value" data-amount="{{ kpis.monthly_income }}" data-currency="EUR">—</div>
+    <div class="kpi-value" data-amount="{{ kpis.monthly_income }}">—</div>
     <div class="kpi-sub">Questo mese</div>
   </div>
   {% endif %}
@@ -46,7 +46,7 @@
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
     <div class="kpi-label">Uscite Mensili</div>
-    <div class="kpi-value" data-amount="{{ kpis.monthly_expenses }}" data-currency="EUR">—</div>
+    <div class="kpi-value" data-amount="{{ kpis.monthly_expenses }}">—</div>
     <div class="kpi-sub">Questo mese</div>
   </div>
   {% endif %}
@@ -64,7 +64,7 @@
   <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
     <div class="kpi-icon" style="background:var(--clr-purple-bg);color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
     <div class="kpi-label">Investimenti</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_investments }}" data-currency="EUR">—</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_investments }}">—</div>
     <div class="kpi-sub">{% if settings.module_portfolio %}<a href="{{ url_for('portfolio.index') }}">Portafoglio</a>{% else %}Portafoglio{% endif %}</div>
   </div>
   {% endif %}
@@ -73,7 +73,7 @@
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
     <div class="kpi-label">Debito Totale</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_debt }}" data-currency="EUR">—</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_debt }}">—</div>
     <div class="kpi-sub">In corso</div>
   </div>
   {% endif %}
@@ -147,14 +147,14 @@
         <tbody id="recent-tx-body">
           {% for tx in recent_transactions %}
           <tr>
-            <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ tx.date.strftime('%d/%m/%Y') }}</td>
+            <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ (tx.date|it_date) }}</td>
             <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
             <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
             {% if tx.type == 'transfer' %}
             <td class="amount" style="text-align:right;color:var(--clr-text-muted);white-space:nowrap;" title="Trasferimento tra conti">⇄ {{ tx.amount|abs|money }}</td>
             {% else %}
             <td class="amount text-right"
-                data-amount="{{ tx.signed_amount }}" data-currency="{{ tx.currency or 'EUR' }}">—</td>
+                data-amount="{{ tx.signed_amount }}">—</td>
             {% endif %}
           </tr>
           {% else %}

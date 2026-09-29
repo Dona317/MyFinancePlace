@@ -93,33 +93,33 @@
     <div class="kpi-card kpi-primary">
       <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
       <div class="kpi-label">Chiusura {{ cur.label }}</div>
-      <div class="kpi-value {{ 'positive' if cur.net >= 0 else 'negative' }}" data-amount="{{ cur.net }}" data-currency="EUR">—</div>
+      <div class="kpi-value {{ 'positive' if cur.net >= 0 else 'negative' }}" data-amount="{{ cur.net }}">—</div>
       <div class="kpi-sub">Registrato fino al {{ fc.cutoff.strftime('%d/%m') }} + previsto</div>
     </div>
     {% if nxt %}
     <div class="kpi-card kpi-positive">
       <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
       <div class="kpi-label">Entrate {{ nxt.label }}</div>
-      <div class="kpi-value" data-amount="{{ nxt.income }}" data-currency="EUR">—</div>
+      <div class="kpi-value" data-amount="{{ nxt.income }}">—</div>
       <div class="kpi-sub">di cui ricorrenti {{ nxt.scheduled_income|money }}</div>
     </div>
     <div class="kpi-card kpi-negative">
       <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
       <div class="kpi-label">Uscite {{ nxt.label }}</div>
-      <div class="kpi-value" data-amount="{{ nxt.expenses }}" data-currency="EUR">—</div>
+      <div class="kpi-value" data-amount="{{ nxt.expenses }}">—</div>
       <div class="kpi-sub">di cui ricorrenti {{ nxt.scheduled_expenses|money }}</div>
     </div>
     {% endif %}
     <div class="kpi-card kpi-neutral">
       <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
       <div class="kpi-label">Saldo tra {{ fc.horizon }} mesi</div>
-      <div class="kpi-value" data-amount="{{ fc.final_balance }}" data-currency="EUR">—</div>
+      <div class="kpi-value" data-amount="{{ fc.final_balance }}">—</div>
       <div class="kpi-sub">Oggi {{ fc.balance_now|money }}</div>
     </div>
     <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
       <div class="kpi-icon"><i class="bi bi-arrow-repeat"></i></div>
       <div class="kpi-label">Ricorrenti al mese</div>
-      <div class="kpi-value" data-amount="{{ fc.recurring_monthly }}" data-currency="EUR">—</div>
+      <div class="kpi-value" data-amount="{{ fc.recurring_monthly }}">—</div>
       <div class="kpi-sub">{{ fc.scheduled|length }} programmate{% if fc.candidates %} · {{ fc.candidates|length }} da confermare{% endif %}</div>
     </div>
   </div>
@@ -282,7 +282,7 @@
             {% for item in fc.upcoming[:15] %}
             {% set tx = item.tx %}
             <tr>
-              <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ item.date.strftime('%d/%m/%Y') }}</td>
+              <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ (item.date|it_date) }}</td>
               <td>{{ tx.description }}</td>
               <td class="col-optional"><span class="badge badge-muted">{{ frequencies[tx.recurrence][0] if tx.recurrence in frequencies else 'Mensile' }}</span></td>
               <td class="amount {{ tx.type|tone }} text-right nowrap">
@@ -314,7 +314,7 @@
             {% set tx = c.template %}
             <tr>
               <td><div style="font-weight:500;">{{ tx.description }}</div>
-                  <div class="text-xs text-muted">{{ c.count }} volte, ultima il {{ tx.date.strftime('%d/%m/%Y') }} · prossima il {{ c.next_date.strftime('%d/%m/%Y') }}</div></td>
+                  <div class="text-xs text-muted">{{ c.count }} volte, ultima il {{ (tx.date|it_date) }} · prossima il {{ (c.next_date|it_date) }}</div></td>
               <td class="col-optional">{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
               <td class="amount {{ tx.type|tone }} text-right nowrap">
                 {{ (-c.typical_amount if tx.type == 'expense' else c.typical_amount)|money }}</td>

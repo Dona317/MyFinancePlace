@@ -1,12 +1,13 @@
 """
 Several currencies: every transaction keeps its original amount and currency, and gets `amount_base`,
-its value in euro on its date. Totals, reports and forecasts add up `amount_base`, so a spending in USD
-is no longer summed as if it were in euro.
+its value in the base currency (Settings → Visualizzazione, euro by default) on its date. Totals, reports
+and forecasts add up `amount_base`, so a spending in USD is no longer summed as if it were in euro.
 
-Rates: 1 unit of the currency = `rate` EUR, on a date; the rate of a date is the latest one on or before
-it (else the first one after). Without any rate for a currency, its amounts count 1:1 and the Currencies
-page says so.
+Rates are stored against the euro: 1 unit of the currency = `rate` EUR, on a date; the rate of a date is
+the latest one on or before it (else the first one after). Another base currency is converted through the
+euro. Without any rate for a currency, its amounts count 1:1 and the Currencies page says so.
 """
+import json
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import date
@@ -18,7 +19,7 @@ from app.extensions import db
 from app.models.currency import ExchangeRate
 from app.models.transaction import Transaction
 
-BASE = "EUR"
+BASE = "EUR"  # the currency the rates are expressed in
 CURRENCIES = {  # code: (symbol, name)
     "EUR": ("€", "Euro"), "USD": ("$", "Dollaro USA"), "GBP": ("£", "Sterlina"), "CHF": ("CHF", "Franco svizzero"),
     "JPY": ("¥", "Yen"), "CAD": ("C$", "Dollaro canadese"), "AUD": ("A$", "Dollaro australiano"),
@@ -32,6 +33,21 @@ ECB_90_DAYS = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml"
 
 def symbol(code: str | None) -> str:
     return CURRENCIES.get(code or BASE, (code or BASE, ""))[0]
+
+
+def base(connection=None) -> str:
+    """The currency totals are shown in (Settings → Visualizzazione → Valuta)."""
+    if connection is None:
+        from app.routes.settings import current_settings  # settings live with their page
+
+        code = current_settings().get("currency")
+    else:  # inside a flush: read the saved preferences with the same connection
+        raw = connection.execute(text("SELECT value FROM app_settings WHERE key = 'ui.settings'")).scalar()
+        try:
+            code = json.loads(raw).get("currency") if raw else None
+        except (ValueError, AttributeError):
+            code = None
+    return code if code in CURRENCIES else BASE
 
 
 # ── Rates ──────────────────────────────────────────────────────────────────────
@@ -54,9 +70,14 @@ def rate_on(currency: str | None, on: date, connection=None) -> Decimal | None:
     return Decimal(value) if value is not None else None
 
 
-def to_base(amount, currency: str | None, on: date, connection=None) -> Decimal:
-    rate = rate_on(currency, on, connection)
-    return (Decimal(amount or 0) * (rate if rate is not None else Decimal(1))).quantize(Decimal("0.01"))
+def to_base(amount, currency: str | None, on: date, connection=None, target: str | None = None) -> Decimal:
+    """`amount` in `currency` expressed in the base currency (or `target`), through the euro."""
+    target = target or base(connection)
+    currency = currency or BASE
+    if currency == target:
+        return Decimal(amount or 0).quantize(Decimal("0.01"))
+    in_euro = Decimal(amount or 0) * (rate_on(currency, on, connection) or Decimal(1))
+    return (in_euro / (rate_on(target, on, connection) or Decimal(1))).quantize(Decimal("0.01"))
 
 
 @event.listens_for(Transaction, "before_insert")
@@ -68,15 +89,19 @@ def _fill_amount_base(mapper, connection, tx: Transaction) -> None:
 
 
 def recompute(currency: str | None = None) -> int:
-    """Refresh amount_base after rates changed (all foreign currencies, or one). Returns rows updated."""
-    query = Transaction.query.filter(Transaction.currency.isnot(None), Transaction.currency != BASE)
-    if currency:
+    """
+    Refresh amount_base after rates or the base currency changed: the transactions in `currency`, or
+    (without it) every transaction not in the base currency. Returns how many were updated.
+    """
+    target = base()
+    query = Transaction.query
+    if currency and currency != target and target == BASE:
         query = query.filter(Transaction.currency == currency)
     rows = query.all()
     for tx in rows:
-        tx.amount_base = to_base(abs(Decimal(tx.amount)), tx.currency, tx.date)
+        tx.amount_base = to_base(abs(Decimal(tx.amount)), tx.currency, tx.date, target=target)
     db.session.commit()
-    return len(rows)
+    return len([tx for tx in rows if (tx.currency or BASE) != target])
 
 
 def save_rate(currency: str, on: date, rate: Decimal, source: str = "manual") -> ExchangeRate:
