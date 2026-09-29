@@ -1,0 +1,4 @@
+# Lint rules the project follows. Written down so every ruff version checks the same thing
+# (ruff 0.16 enabled many more rules by default, which made CI fail on style it never enforced).
+[lint]
+select = ["E4", "E7", "E9", "F"]
