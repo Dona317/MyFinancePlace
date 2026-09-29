@@ -1,7 +1,11 @@
 from datetime import date
-from flask import render_template, request
+
+from flask import flash, redirect, render_template, request, url_for
 from apiflask import APIBlueprint
-from app.services import analytics
+
+from app.routes.helpers import form_decimal
+from app.services import analytics, settings_store, wealth
+from app.services.parsing import to_date
 
 accounting_bp = APIBlueprint(
     "accounting",
@@ -12,13 +16,43 @@ accounting_bp = APIBlueprint(
 
 @accounting_bp.route("/")
 def index():
-    return render_template("accounting/index.html")
+    year = date.today().year
+    return render_template(
+        "accounting/index.html",
+        trend=wealth.net_worth_trend(),
+        monthly=analytics.monthly_series(year),
+        month_count=date.today().month,
+        year=year,
+    )
 
 
 @accounting_bp.route("/balance-sheet")
 def balance_sheet():
-    # TODO: pass assets, liabilities, equity data
-    return render_template("accounting/balance_sheet.html")
+    choices = wealth.month_ends()
+    on = to_date(request.args.get("date")) or choices[0]
+    on = min(on, choices[0])  # no balance sheet of the future
+    if on not in choices:
+        choices.append(on)
+    return render_template(
+        "accounting/balance_sheet.html",
+        sheet=wealth.balance_sheet(on),
+        choices=sorted(choices, reverse=True),
+        opening_cash=wealth.opening_cash(),
+        today=choices[0],
+    )
+
+
+@accounting_bp.route("/balance-sheet/opening", methods=["POST"])
+def opening_cash():
+    """Money on the accounts before the first transaction recorded in the app."""
+    try:
+        amount = form_decimal("opening_cash", "Saldo iniziale", allow_negative=True)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("accounting.balance_sheet"))
+    settings_store.set(wealth.OPENING_CASH_SETTING, str(amount) if amount else None)
+    flash("Saldo iniziale dei conti aggiornato.", "success")
+    return redirect(url_for("accounting.balance_sheet"))
 
 
 @accounting_bp.route("/income-statement")

@@ -5,98 +5,120 @@
 {% block breadcrumb %}<li>Debiti</li>{% endblock %}
 
 {% block topbar_actions %}
-  <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-debt')">
+  <a href="{{ url_for('debt.new') }}" class="btn btn-primary btn-sm">
     <i class="bi bi-plus-lg"></i> Nuovo Debito
-  </button>
+  </a>
 {% endblock %}
 
 {% block content %}
 
 <!-- KPI ──────────────────────────────────────────────────────────────── -->
-<div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
+<div class="kpi-grid mb-24">
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-credit-card-2-back"></i></div>
-    <div class="kpi-label">Debito Totale</div>
-    <div class="kpi-value text-negative">€ 0</div>
+    <div class="kpi-label">Debito Residuo</div>
+    <div class="kpi-value text-negative">{{ total_balance|money }}</div>
+    <div class="kpi-sub">{{ summaries|length }} {{ 'debito' if summaries|length == 1 else 'debiti' }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
-    <div class="kpi-label">Rata Mensile Totale</div>
-    <div class="kpi-value">€ 0</div>
-    <div class="kpi-sub">Tutte le rate</div>
+    <div class="kpi-label">Rate Mensili</div>
+    <div class="kpi-value">{{ monthly_total|money }}</div>
+    <div class="kpi-sub">somma delle rate in corso</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-percent"></i></div>
-    <div class="kpi-label">Interessi Pagati YTD</div>
-    <div class="kpi-value">€ 0</div>
+    <div class="kpi-label">Interessi (anno)</div>
+    <div class="kpi-value">{{ interest_ytd|money }}</div>
+    <div class="kpi-sub">dal piano di ammortamento</div>
   </div>
-  <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
-    <div class="kpi-label">Debito/Reddito</div>
-    <div class="kpi-value">0%</div>
-    <div class="kpi-sub">Del reddito mensile</div>
+  <div class="kpi-card {{ 'kpi-negative' if debt_to_income and debt_to_income > 35 else 'kpi-positive' }}">
+    <div class="kpi-icon"><i class="bi bi-speedometer2"></i></div>
+    <div class="kpi-label">Rate / Reddito</div>
+    <div class="kpi-value">{{ (debt_to_income|number(1) ~ '%') if debt_to_income is not none else '—' }}</div>
+    <div class="kpi-sub">
+      {% if debt_to_income is none %}servono le entrate degli ultimi 12 mesi
+      {% else %}su {{ average_income|money }} di entrate medie al mese{% if debt_to_income > 35 %} · oltre il 35% consigliato{% endif %}{% endif %}
+    </div>
   </div>
 </div>
 
-<!-- Grafico amortamento ──────────────────────────────────────────────── -->
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+<!-- Grafici ──────────────────────────────────────────────────────────── -->
+<div class="row-2-1">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Piano di Ammortamento — Tutti i Debiti</div>
+      <div>
+        <div class="card-header-title">Debito Residuo nei Prossimi Anni</div>
+        <div class="card-header-sub">Secondo i piani di ammortamento</div>
+      </div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;"><canvas id="debtAmortChart"></canvas></div>
+      <div class="chart-container" style="height:240px;">
+        {% if projection.datasets %}<canvas id="debtAmortChart"></canvas>
+        {% else %}<div class="chart-empty">Nessun debito in corso.</div>{% endif %}
+      </div>
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-header-title">Distribuzione Debiti</div></div>
+    <div class="card-header"><div class="card-header-title">Distribuzione per Tipo</div></div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;"><canvas id="debtPieChart"></canvas></div>
+      <div class="chart-container" style="height:240px;">
+        {% if by_type %}<canvas id="debtPieChart"></canvas>
+        {% else %}<div class="chart-empty">Nessun debito in corso.</div>{% endif %}
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Tabella debiti ────────────────────────────────────────────────────── -->
 <div class="card">
-  <div class="card-header"><div class="card-header-title">Debiti in Corso</div></div>
+  <div class="card-header"><div class="card-header-title">Debiti</div></div>
 
-  {% if debts %}
+  {% if summaries %}
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>Tipo</th>
-          <th>Istituto</th>
-          <th class="text-right">Capitale Iniziale</th>
+          <th>Debito</th>
+          <th class="text-right">Capitale</th>
           <th class="text-right">Residuo</th>
-          <th class="text-right">Tasso (%)</th>
-          <th class="text-right">Rata Mensile</th>
-          <th>Scadenza</th>
-          <th>Progresso</th>
-          <th class="text-center">Azioni</th>
+          <th class="text-right">Tasso</th>
+          <th class="text-right">Rata</th>
+          <th>Fine</th>
+          <th>Rimborsato</th>
+          <th class="text-right">Azioni</th>
         </tr>
       </thead>
       <tbody>
-        {% for debt in debts %}
+        {% for s in summaries %}
+        {% set d = s.debt %}
         <tr>
-          <td><span class="badge badge-neutral">{{ debt.type }}</span></td>
-          <td style="font-weight:500;color:var(--clr-text-primary);">{{ debt.lender }}</td>
-          <td class="amount text-right">€ {{ '%.2f'|format(debt.principal) }}</td>
-          <td class="amount negative text-right">€ {{ '%.2f'|format(debt.balance) }}</td>
-          <td class="text-right">{{ debt.rate }}%</td>
-          <td class="amount text-right">€ {{ '%.2f'|format(debt.monthly_payment) }}</td>
-          <td style="white-space:nowrap;font-size:var(--font-size-xs);">{{ debt.due_date }}</td>
-          <td style="min-width:120px;">
-            {% set pct = ((debt.principal - debt.balance) / debt.principal * 100)|round(1) %}
-            <div class="progress-bar-wrap" style="height:6px;margin-bottom:2px;">
-              <div class="progress-bar-fill positive" style="width:{{ pct }}%;"></div>
-            </div>
-            <span class="text-xs text-muted">{{ pct }}% rimborsato</span>
+          <td>
+            <a class="cell-title" href="{{ url_for('debt.detail', debt_id=d.id) }}">{{ d.name }}</a>
+            <div><span class="badge badge-neutral">{{ d.type }}</span></div>
           </td>
-          <td class="text-center">
-            <a href="#" class="btn btn-ghost btn-icon btn-sm" title="Dettaglio">
-              <i class="bi bi-eye"></i>
-            </a>
+          <td class="amount text-right">{{ d.principal|money }}</td>
+          <td class="amount negative text-right">{{ s.balance|money }}</td>
+          <td class="text-right nowrap">{{ d.annual_rate|number(3) }}%</td>
+          <td class="amount text-right">{{ s.installment|money if s.installment else '—' }}</td>
+          <td class="nowrap text-xs">
+            {% if s.never_ends %}<span class="badge badge-negative" title="La rata non copre gli interessi">mai</span>
+            {% else %}{{ s.end_date|it_date }}{% if s.months_left %}<div class="text-muted">{{ s.months_left }} rate</div>{% endif %}{% endif %}
+          </td>
+          <td style="min-width:120px;">
+            <div class="progress-bar-wrap" style="height:6px;margin-bottom:2px;">
+              <div class="progress-bar-fill positive" style="width:{{ s.repaid_pct }}%;"></div>
+            </div>
+            <span class="text-xs text-muted">{{ s.repaid_pct|number(1) }}%</span>
+          </td>
+          <td>
+            <div class="cell-actions">
+              <a href="{{ url_for('debt.detail', debt_id=d.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Piano di ammortamento" aria-label="Piano di {{ d.name }}"><i class="bi bi-table"></i></a>
+              <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica" aria-label="Modifica {{ d.name }}"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{{ url_for('debt.delete', debt_id=d.id) }}" data-confirm="Eliminare il debito «{{ d.name }}»?">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ d.name }}"><i class="bi bi-trash3"></i></button>
+              </form>
+            </div>
           </td>
         </tr>
         {% endfor %}
@@ -107,10 +129,11 @@
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-credit-card"></i></div>
     <div class="empty-state-title">Nessun debito registrato</div>
-    <div class="empty-state-text">Aggiungi mutui, prestiti personali o altre passività per monitorarli nel flusso di cassa.</div>
-    <a href="{{ url_for('debt.new') }}" class="btn btn-primary">
-      <i class="bi bi-plus-lg"></i> Aggiungi Debito
-    </a>
+    <div class="empty-state-text">
+      Aggiungi mutui, prestiti e carte di credito: l'app calcola rata, piano di ammortamento e debito residuo,
+      e li sottrae dal patrimonio netto.
+    </div>
+    <a href="{{ url_for('debt.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Aggiungi Debito</a>
   </div>
   {% endif %}
 </div>
@@ -119,79 +142,11 @@
 
 {% block scripts %}
 <script>
-const mesi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-makeLineChart('debtAmortChart', mesi, [
-  { label:'Mutuo', data:[180000,179500,179000,178400,177900,177400,176800,176200,175700,175100,174500,173900], fill:false },
-]);
-makeDoughnutChart('debtPieChart', ['Mutuo','Prestito Auto','Carta di Credito'], [85, 10, 5]);
+{% if projection.datasets %}
+makeLineChart('debtAmortChart', {{ projection.labels | tojson }}, {{ projection.datasets | tojson }});
+{% endif %}
+{% if by_type %}
+makeDoughnutChart('debtPieChart', {{ by_type | map(attribute=0) | list | tojson }}, {{ by_type | map(attribute=1) | list | tojson }});
+{% endif %}
 </script>
-
-<!-- Modal: Nuovo Debito ──────────────────────────────────────────────────── -->
-<div class="modal-overlay" id="modal-new-debt">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-header">
-      <h3 class="modal-title"><i class="bi bi-plus-circle"></i> Nuovo Debito</h3>
-      <button class="modal-close" onclick="closeModal('modal-new-debt')">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <form method="POST" action="{{ url_for('debt.new') }}" id="form-new-debt">
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Tipo di Debito</label>
-            <select name="type" class="form-select">
-              {% for t in ['Mutuo', 'Prestito Personale', 'Prestito Auto', 'Carta di Credito', 'Prestito Studentesco', 'Altro'] %}
-              <option>{{ t }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Istituto / Creditore</label>
-            <input type="text" name="lender" class="form-control" placeholder="es. UniCredit" required />
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Capitale Iniziale (€)</label>
-            <input type="number" name="principal" class="form-control" step="0.01" min="0" placeholder="0.00" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Saldo Residuo (€)</label>
-            <input type="number" name="balance" class="form-control" step="0.01" min="0" placeholder="0.00" required />
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Tasso di Interesse (%)</label>
-            <input type="number" name="rate" class="form-control" step="0.01" min="0" max="100" placeholder="0.00" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Rata Mensile (€)</label>
-            <input type="number" name="monthly_payment" class="form-control" step="0.01" min="0" placeholder="0.00" />
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Data Inizio</label>
-            <input type="date" name="start_date" class="form-control" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Data Scadenza</label>
-            <input type="date" name="due_date" class="form-control" />
-          </div>
-        </div>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-new-debt')">
-        <i class="bi bi-x"></i> Annulla
-      </button>
-      <button type="submit" form="form-new-debt" class="btn btn-primary">
-        <i class="bi bi-check-lg"></i> Aggiungi Debito
-      </button>
-    </div>
-  </div>
-</div>
-
 {% endblock %}

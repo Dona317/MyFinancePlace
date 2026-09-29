@@ -5,59 +5,74 @@
 {% block breadcrumb %}<li>Portafoglio</li>{% endblock %}
 
 {% block topbar_actions %}
-  <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-holding')">
+  {% if summary.value or holdings %}
+  <a href="{{ url_for('portfolio.prices') }}" class="btn btn-ghost btn-sm">
+    <i class="bi bi-arrow-repeat"></i> Aggiorna prezzi
+  </a>
+  {% endif %}
+  <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary btn-sm">
     <i class="bi bi-plus-lg"></i> Aggiungi Posizione
-  </button>
+  </a>
 {% endblock %}
 
 {% block content %}
 
 <!-- KPI ──────────────────────────────────────────────────────────────── -->
-<div class="kpi-grid mb-24" style="grid-template-columns:repeat(5,1fr);">
+<div class="kpi-grid mb-24">
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
     <div class="kpi-label">Valore Totale</div>
-    <div class="kpi-value">€ 0</div>
+    <div class="kpi-value">{{ summary.value|money }}</div>
+    <div class="kpi-sub">ai prezzi più recenti</div>
   </div>
-  <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
-    <div class="kpi-label">Guadagno/Perdita</div>
-    <div class="kpi-value">€ 0</div>
-    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> 0%</div>
+  <div class="kpi-card {{ 'kpi-positive' if summary.gain >= 0 else 'kpi-negative' }}">
+    <div class="kpi-icon"><i class="bi bi-graph-{{ 'up' if summary.gain >= 0 else 'down' }}-arrow"></i></div>
+    <div class="kpi-label">Guadagno</div>
+    <div class="kpi-value {{ 'text-positive' if summary.gain >= 0 else 'text-negative' }}">{{ '+' if summary.gain > 0 }}{{ summary.gain|money }}</div>
+    <div class="kpi-sub">{{ '+' if summary.gain_pct > 0 }}{{ summary.gain_pct|number }}% sul capitale</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
-    <div class="kpi-label">Capitale Investito</div>
-    <div class="kpi-value">€ 0</div>
-  </div>
-  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
-    <div class="kpi-icon" style="background:var(--clr-purple-bg);color:var(--chart-5);"><i class="bi bi-percent"></i></div>
-    <div class="kpi-label">Rendimento YTD</div>
-    <div class="kpi-value">0%</div>
+    <div class="kpi-label">Investito</div>
+    <div class="kpi-value">{{ summary.cost|money }}</div>
+    <div class="kpi-sub">quantità × prezzo medio</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-building-check"></i></div>
-    <div class="kpi-label">Dividendi YTD</div>
-    <div class="kpi-value">€ 0</div>
+    <div class="kpi-label">Dividendi (anno)</div>
+    <div class="kpi-value">{{ dividends_ytd|money }}</div>
+    <div class="kpi-sub">entrate con categoria «Dividendi» o «Cedole»</div>
   </div>
 </div>
 
 <!-- Grafici ──────────────────────────────────────────────────────────── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+<div class="row-2">
   <div class="card">
     <div class="card-header">
       <div class="card-header-title">Allocazione per Classe</div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;"><canvas id="allocationChart"></canvas></div>
+      <div class="chart-container" style="height:220px;">
+        {% if summary.allocation %}<canvas id="allocationChart"></canvas>
+        {% else %}<div class="chart-empty">Aggiungi una posizione per vedere come è ripartito il patrimonio.</div>{% endif %}
+      </div>
     </div>
   </div>
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Andamento Valore Portafoglio</div>
+      <div>
+        <div class="card-header-title">Andamento del Portafoglio</div>
+        <div class="card-header-sub">Dalle istantanee</div>
+      </div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;"><canvas id="portfolioTrendChart"></canvas></div>
+      <div class="chart-container" style="height:220px;">
+        {% if trend.data|length >= 2 %}<canvas id="portfolioTrendChart"></canvas>
+        {% else %}<div class="chart-empty">
+          Il valore nel tempo viene dalle istantanee: creane una ogni mese da
+          <a href="{{ url_for('snapshots.index') }}">&nbsp;Istantanee</a>.
+        </div>{% endif %}
+      </div>
     </div>
   </div>
 </div>
@@ -65,17 +80,16 @@
 <!-- Tabella posizioni ─────────────────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
-    <div class="card-header-title">Posizioni Aperte</div>
-    <div style="display:flex;gap:6px;">
-      <select class="form-select" style="width:auto;">
-        <option>Tutte le classi</option>
-        <option>Azioni</option>
-        <option>ETF</option>
-        <option>Criptovalute</option>
-        <option>Obbligazioni</option>
-        <option>Conto Risparmio</option>
+    <div class="card-header-title">Posizioni</div>
+    <form method="GET" class="inline-filter">
+      <select name="asset_class" class="form-select" onchange="this.form.submit()" aria-label="Filtra per classe">
+        <option value="">Tutte le classi</option>
+        {% for cls in asset_classes %}
+        <option {{ 'selected' if cls == selected }}>{{ cls }}</option>
+        {% endfor %}
       </select>
-    </div>
+      <noscript><button class="btn btn-ghost btn-sm">Filtra</button></noscript>
+    </form>
   </div>
 
   {% if holdings %}
@@ -88,59 +102,75 @@
           <th class="text-right">Quantità</th>
           <th class="text-right">Prezzo Medio</th>
           <th class="text-right">Prezzo Attuale</th>
-          <th class="text-right">Valore Attuale</th>
+          <th class="text-right">Valore</th>
           <th class="text-right">G/P</th>
           <th class="text-right">G/P %</th>
-          <th class="text-center">Azioni</th>
+          <th class="text-right">Azioni</th>
         </tr>
       </thead>
       <tbody>
         {% for h in holdings %}
         <tr>
           <td>
-            <div style="font-weight:600;color:var(--clr-text-primary);">{{ h.ticker }}</div>
-            <div class="text-xs text-muted">{{ h.name }}</div>
+            <div class="cell-title">{{ h.name }}</div>
+            {% if h.ticker %}<div class="text-xs text-muted">{{ h.ticker }}</div>{% endif %}
           </td>
           <td><span class="badge badge-primary">{{ h.asset_class }}</span></td>
-          <td class="amount text-right">{{ h.quantity }}</td>
-          <td class="amount text-right">€ {{ '%.2f'|format(h.avg_price) }}</td>
-          <td class="amount text-right">€ {{ '%.2f'|format(h.current_price) }}</td>
-          <td class="amount text-right">€ {{ '%.2f'|format(h.current_value) }}</td>
-          <td class="amount {{ 'positive' if h.gain >= 0 else 'negative' }} text-right">
-            {{ '+' if h.gain >= 0 else '' }}€ {{ '%.2f'|format(h.gain) }}
+          <td class="amount text-right">{{ h.quantity|number(8) }}</td>
+          <td class="amount text-right">{{ h.avg_price|money }}</td>
+          <td class="amount text-right">
+            {{ h.price|money }}
+            <div class="text-xs text-muted">{{ ('al ' ~ (h.price_date|it_date)) if h.price_date else 'prezzo di acquisto' }}</div>
           </td>
+          <td class="amount text-right">{{ h.value|money }}</td>
+          <td class="amount text-right {{ 'positive' if h.gain >= 0 else 'negative' }}">{{ '+' if h.gain > 0 }}{{ h.gain|money }}</td>
           <td class="text-right">
             <span class="badge {{ 'badge-positive' if h.gain_pct >= 0 else 'badge-negative' }}">
-              {{ '+' if h.gain_pct >= 0 else '' }}{{ '%.1f'|format(h.gain_pct) }}%
+              {{ '+' if h.gain_pct > 0 }}{{ h.gain_pct|number(1) }}%
             </span>
           </td>
-          <td class="text-center">
-            <form method="POST" action="{{ url_for('portfolio.delete', holding_id=h.id) }}"
-                  data-confirm="Eliminare questa posizione?">
-              <button type="submit" class="btn btn-ghost btn-icon btn-sm" style="color:var(--clr-negative);">
-                <i class="bi bi-trash3"></i>
-              </button>
-            </form>
+          <td>
+            <div class="cell-actions">
+              <a href="{{ url_for('portfolio.edit', holding_id=h.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica" aria-label="Modifica {{ h.name }}">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="POST" action="{{ url_for('portfolio.delete', holding_id=h.id) }}"
+                    data-confirm="Eliminare la posizione «{{ h.name }}»?">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ h.name }}">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </form>
+            </div>
           </td>
         </tr>
         {% endfor %}
       </tbody>
+      {% if not selected %}
       <tfoot>
         <tr>
-          <td colspan="5">Totale Portafoglio</td>
-          <td class="amount text-right">€ 0</td>
-          <td class="amount text-right">€ 0</td>
-          <td class="amount text-right">0%</td>
+          <td colspan="5">Totale</td>
+          <td class="amount text-right">{{ summary.value|money }}</td>
+          <td class="amount text-right {{ 'positive' if summary.gain >= 0 else 'negative' }}">{{ '+' if summary.gain > 0 }}{{ summary.gain|money }}</td>
+          <td class="text-right">{{ '+' if summary.gain_pct > 0 }}{{ summary.gain_pct|number(1) }}%</td>
           <td></td>
         </tr>
       </tfoot>
+      {% endif %}
     </table>
+  </div>
+  {% elif selected %}
+  <div class="empty-state">
+    <div class="empty-state-text">Nessuna posizione nella classe «{{ selected }}».</div>
+    <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost">Mostra tutte</a>
   </div>
   {% else %}
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-briefcase"></i></div>
     <div class="empty-state-title">Nessuna posizione nel portafoglio</div>
-    <div class="empty-state-text">Aggiungi azioni, ETF, criptovalute, obbligazioni o conti di risparmio.</div>
+    <div class="empty-state-text">
+      Aggiungi azioni, ETF, fondi, obbligazioni, criptovalute, conti deposito, fondi pensione o immobili:
+      entrano nel patrimonio netto e nello stato patrimoniale.
+    </div>
     <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary">
       <i class="bi bi-plus-lg"></i> Aggiungi Posizione
     </a>
@@ -152,76 +182,16 @@
 
 {% block scripts %}
 <script>
+{% if summary.allocation %}
 makeDoughnutChart('allocationChart',
-  ['Azioni', 'ETF', 'Criptovalute', 'Obbligazioni', 'Liquidità'],
-  [40, 30, 10, 15, 5]
+  {{ summary.allocation | map(attribute=0) | list | tojson }},
+  {{ summary.allocation | map(attribute=1) | map('round', 2) | list | tojson }}
 );
-const mesi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-makeLineChart('portfolioTrendChart', mesi, [
-  { label:'Valore Portafoglio', data:[20000,21200,20800,22400,23100,22600,24300,25100,24800,26200,27000,28400] }
+{% endif %}
+{% if trend.data|length >= 2 %}
+makeLineChart('portfolioTrendChart', {{ trend.labels | tojson }}, [
+  { label: 'Investimenti', data: {{ trend.data | tojson }} }
 ]);
+{% endif %}
 </script>
-
-<!-- Modal: Aggiungi Posizione ────────────────────────────────────────────── -->
-<div class="modal-overlay" id="modal-new-holding">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-header">
-      <h3 class="modal-title"><i class="bi bi-plus-circle"></i> Aggiungi Posizione</h3>
-      <button class="modal-close" onclick="closeModal('modal-new-holding')">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <form method="POST" action="{{ url_for('portfolio.new') }}" id="form-new-holding">
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Ticker / Codice</label>
-            <input type="text" name="ticker" class="form-control" placeholder="es. AAPL, BTC, VWCE" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Nome Strumento</label>
-            <input type="text" name="name" class="form-control" placeholder="es. Apple Inc." />
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Classe di Attività</label>
-            <select name="asset_class" class="form-select">
-              {% for cls in ['Azione', 'ETF', 'Criptovaluta', 'Obbligazione', 'Conto Risparmio', 'Fondo Pensione', 'Altro'] %}
-              <option>{{ cls }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Data Acquisto</label>
-            <input type="date" name="purchase_date" class="form-control" />
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Quantità</label>
-            <input type="number" name="quantity" class="form-control" step="0.0001" min="0" placeholder="0" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Prezzo Medio Acquisto (€)</label>
-            <input type="number" name="avg_price" class="form-control" step="0.01" min="0" placeholder="0.00" required />
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Note</label>
-          <textarea name="notes" class="form-control" rows="2" placeholder="Note facoltative..."></textarea>
-        </div>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-new-holding')">
-        <i class="bi bi-x"></i> Annulla
-      </button>
-      <button type="submit" form="form-new-holding" class="btn btn-primary">
-        <i class="bi bi-check-lg"></i> Aggiungi al Portafoglio
-      </button>
-    </div>
-  </div>
-</div>
-
 {% endblock %}

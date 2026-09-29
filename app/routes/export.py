@@ -1,13 +1,15 @@
 import json
 import math
 from datetime import date, datetime
-from flask import render_template, request, redirect, url_for, flash, Response, current_app, jsonify
+from flask import render_template, request, redirect, url_for, flash, Response, current_app, jsonify, send_file, abort
 from apiflask import APIBlueprint
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.routes.helpers import form_ids
-from app.services import analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store
+from app.services import (
+    analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store, backup,
+)
 from app.services.categories import known_categories
 
 export_bp = APIBlueprint(
@@ -37,7 +39,60 @@ def index():
         years=analytics.available_years(),
         banks=bank_import.BANKS,
         ai_reader=ai_extraction.describe(),
+        safety_copies=backup.list_safety_copies(),
     )
+
+
+# ── Full backup and restore ────────────────────────────────────────────────────
+
+@export_bp.route("/backup")
+def download_backup():
+    """Everything in one .zip: all the tables and the files of the document archive."""
+    content = backup.create_archive()
+    return Response(content, mimetype="application/zip", headers={
+        "Content-Disposition": f'attachment; filename="myfinanceplace_backup_{datetime.now():%Y-%m-%d_%H%M}.zip"',
+    })
+
+
+@export_bp.route("/restore", methods=["POST"])
+def restore():
+    upload = request.files.get("file")
+    if not upload or not upload.filename:
+        flash("Scegli il file di backup da ripristinare.", "error")
+        return redirect(url_for("export.index") + "#backup")
+    try:
+        data, files = backup.read_upload(upload.read())
+        if not backup.is_full_backup(data):
+            added, skipped = backup.import_transactions(data)
+            flash(f"Export JSON importato: {added} transazioni aggiunte, {skipped} già presenti ignorate.", "success")
+            return redirect(url_for("transactions.index"))
+        if not request.form.get("confirm"):
+            flash("Per ripristinare un backup completo conferma che i dati attuali verranno sostituiti.", "error")
+            return redirect(url_for("export.index") + "#backup")
+        safety = backup.save_safety_copy()
+        restored = backup.restore(data, files)
+    except backup.BackupError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("export.index") + "#backup")
+    flash(
+        f"Backup ripristinato: {restored['transactions']} transazioni, {restored['holdings']} posizioni, "
+        f"{restored['debts']} debiti, {restored['insurance_policies']} polizze, {restored['goals']} obiettivi, "
+        f"{restored['documents']} documenti, {restored['snapshots']} istantanee. "
+        f"I dati di prima sono salvati in «{safety}» (vedi Backup automatici).",
+        "success",
+    )
+    return redirect(url_for("export.index") + "#backup")
+
+
+@export_bp.route("/backup/automatic/<name>")
+def download_safety_copy(name):
+    try:
+        path = backup.safety_copy_path(name)
+    except FileNotFoundError:
+        abort(404)
+    if not path.exists():
+        abort(404)
+    return send_file(path, mimetype="application/zip", as_attachment=True, download_name=name)
 
 
 @export_bp.route("/csv")

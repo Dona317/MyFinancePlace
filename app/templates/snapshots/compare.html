@@ -3,17 +3,97 @@
 {% block page_title %}Confronto Istantanee{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('snapshots.index') }}">Istantanee</a></li><li>Confronto</li>{% endblock %}
 
+{% macro diff(value) -%}
+  <span class="{{ 'diff-up' if value > 0 else 'diff-down' if value < 0 else 'text-muted' }}">{{ '+' if value > 0 }}{{ value|money }}</span>
+{%- endmacro %}
+
 {% block content %}
+{% if not left %}
 <div class="card">
-  <div class="card-body">
-    <div class="empty-state">
-      <div class="empty-state-icon"><i class="bi bi-arrow-left-right"></i></div>
-      <div class="empty-state-title">Confronto Istantanee</div>
-      <div class="empty-state-text">Seleziona due istantanee da confrontare per vedere l'evoluzione del tuo patrimonio.</div>
-      <a href="{{ url_for('snapshots.index') }}" class="btn btn-primary">
-        <i class="bi bi-arrow-left"></i> Torna alle Istantanee
-      </a>
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-arrow-left-right"></i></div>
+    <div class="empty-state-title">Nessuna istantanea da confrontare</div>
+    <div class="empty-state-text">Crea almeno un'istantanea: potrai confrontarla con la situazione di oggi.</div>
+    <a href="{{ url_for('snapshots.index') }}" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Torna alle Istantanee</a>
+  </div>
+</div>
+{% else %}
+
+<div class="card mb-16">
+  <form method="GET" class="filter-bar">
+    <label class="text-sm text-muted" for="cmp-a">Da</label>
+    <select id="cmp-a" name="a" class="form-select">
+      {% for s in snapshots %}<option value="{{ s.id }}" {{ 'selected' if s.id == left.id }}>{{ s.taken_on|it_date }}{{ ' — ' ~ s.label if s.label }}</option>{% endfor %}
+    </select>
+    <label class="text-sm text-muted" for="cmp-b">a</label>
+    <select id="cmp-b" name="b" class="form-select">
+      <option value="">Oggi (dati attuali)</option>
+      {% for s in snapshots %}<option value="{{ s.id }}" {{ 'selected' if s.id == right.id }}>{{ s.taken_on|it_date }}{{ ' — ' ~ s.label if s.label }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline"><i class="bi bi-arrow-left-right"></i> Confronta</button>
+  </form>
+</div>
+
+<div class="kpi-grid mb-24">
+  <div class="kpi-card kpi-neutral">
+    <div class="kpi-icon"><i class="bi bi-clock-history"></i></div>
+    <div class="kpi-label">{{ left.title }}</div>
+    <div class="kpi-value">{{ left.net_worth|money }}</div>
+    <div class="kpi-sub">patrimonio netto al {{ left.date|it_date }}</div>
+  </div>
+  <div class="kpi-card kpi-primary">
+    <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
+    <div class="kpi-label">{{ right.title }}</div>
+    <div class="kpi-value">{{ right.net_worth|money }}</div>
+    <div class="kpi-sub">patrimonio netto al {{ right.date|it_date }}</div>
+  </div>
+  {% set change = right.net_worth - left.net_worth %}
+  <div class="kpi-card {{ 'kpi-positive' if change >= 0 else 'kpi-negative' }}">
+    <div class="kpi-icon"><i class="bi bi-graph-{{ 'up' if change >= 0 else 'down' }}-arrow"></i></div>
+    <div class="kpi-label">Variazione</div>
+    <div class="kpi-value {{ 'text-positive' if change >= 0 else 'text-negative' }}">{{ '+' if change > 0 }}{{ change|money }}</div>
+    <div class="kpi-sub">
+      {% if left.net_worth %}{{ '+' if change > 0 }}{{ (change / (left.net_worth|abs) * 100)|number(1) }}% · {% endif %}{{ (right.date - left.date).days }} giorni
     </div>
   </div>
 </div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Voce</th>
+          <th class="text-right">{{ left.title }}</th>
+          <th class="text-right">{{ right.title }}</th>
+          <th class="text-right">Differenza</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for section, title in [('assets', 'Attività'), ('liabilities', 'Passività')] %}
+        <tr><td colspan="4" class="statement-group-title">{{ title }}</td></tr>
+        {% for line in lines if line.section == section %}
+        <tr>
+          <td>{{ line.name }}</td>
+          <td class="amount text-right">{{ line.a|money }}</td>
+          <td class="amount text-right">{{ line.b|money }}</td>
+          <td class="amount text-right">{{ diff(line.diff if section == 'assets' else -line.diff) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-muted text-sm">Nessuna voce</td></tr>
+        {% endfor %}
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr><td>Totale attività</td><td class="amount text-right">{{ left.total_assets|money }}</td><td class="amount text-right">{{ right.total_assets|money }}</td><td class="text-right">{{ diff(right.total_assets - left.total_assets) }}</td></tr>
+        <tr><td>Totale passività</td><td class="amount text-right">{{ left.total_liabilities|money }}</td><td class="amount text-right">{{ right.total_liabilities|money }}</td><td class="text-right">{{ diff(left.total_liabilities - right.total_liabilities) }}</td></tr>
+        <tr><td>Patrimonio netto</td><td class="amount text-right">{{ left.net_worth|money }}</td><td class="amount text-right">{{ right.net_worth|money }}</td><td class="text-right">{{ diff(right.net_worth - left.net_worth) }}</td></tr>
+      </tfoot>
+    </table>
+  </div>
+  <div class="card-footer text-xs text-muted">
+    Per le passività la differenza è mostrata dal punto di vista del patrimonio: un debito che scende è in verde.
+  </div>
+</div>
+{% endif %}
 {% endblock %}

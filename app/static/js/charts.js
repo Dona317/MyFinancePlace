@@ -124,7 +124,9 @@ function buildBarChart(ctx, labels, datasets, opts) {
       datasets: datasets.map((ds, i) => ({
         label: ds.label,
         data:  ds.data,
-        backgroundColor: (ds.colors || Theme.chart.map(c => hexAlpha(c, 0.85)))[i % Theme.chart.length],
+        // `colors`: one color per bar (theme tokens like "positive"); otherwise one palette color per dataset
+        backgroundColor: ds.colors ? ds.colors.map(c => themeColor(c, Theme.primary))
+                                   : hexAlpha(Theme.chart[i % Theme.chart.length], 0.85),
         borderRadius: 4,
       })),
     },

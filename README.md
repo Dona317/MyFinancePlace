@@ -155,12 +155,24 @@ TEST_DATABASE_URL=postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test py
 | Module | Status |
 |---|---|
 | Transactions | ✅ CRUD, REST API, search & filters, bulk delete, duplicate finder |
-| Dashboard | ✅ KPIs, 12-month cash flow, expenses by category, recent transactions |
-| Accounting | ✅ Income Statement, Cash Flow · ⏳ Balance Sheet (needs Portfolio/Debt models) |
-| Lifestyle | ✅ Category breakdown, trends, month-over-month · ⏳ Goals |
-| Export | ✅ CSV, JSON, tax export, printable report, CSV import |
+| Dashboard | ✅ KPIs (net worth = assets − liabilities, investments, debt, debt/income), 12-month cash flow, expenses by category, recent transactions |
+| Accounting | ✅ Balance Sheet (any month end, opening cash balance), Income Statement, Cash Flow, net-worth trend |
+| Lifestyle | ✅ Category breakdown, trends, month-over-month, savings Goals (contributions, monthly amount needed) |
+| Export | ✅ CSV, JSON, tax export, printable report, CSV import, **full backup (.zip) and restore** |
 | Bank import | ✅ Fineco, Intesa Sanpaolo and generic bank statements — Excel, CSV, PDF, TXT, Word, OpenDocument, RTF — with auto-categorization and duplicate detection |
-| Portfolio, Debt, Insurance, Documents, Snapshots, Auth | ⏳ UI only — models not implemented yet |
+| Portfolio | ✅ Holdings of any class (also savings accounts, pension funds, property), gain/loss, allocation, bulk price update |
+| Debt | ✅ Mortgages, loans, credit cards: French amortization plan, outstanding balance, interest |
+| Insurance | ✅ Policies, annual premium, expiry reminders (60 days) |
+| Documents | ✅ File archive (any format), filters, link to a transaction, included in the backup |
+| Snapshots | ✅ Net worth over time, compare two snapshots or a snapshot with today |
+| Auth | ⏳ UI only — no login yet |
+
+### Backup and restore
+
+Esporta → **Backup Completo e Ripristino** downloads one `.zip` with every table and the files of the
+document archive. Restoring it replaces all current data (all or nothing); the data being replaced is
+first saved under `instance/backups/` (last 10 kept, downloadable from the same page). The older JSON
+export of the transactions can be restored too: its transactions are added, skipping those already present.
 
 ## Database
 

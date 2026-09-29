@@ -2,5 +2,9 @@
 from .transaction import Transaction
 from .setting import AppSetting
 from .duplicate import DuplicateDismissal
+from .wealth import Debt, Document, Goal, Holding, InsurancePolicy, Snapshot
 
-__all__ = ["Transaction", "AppSetting", "DuplicateDismissal"]
+__all__ = [
+    "Transaction", "AppSetting", "DuplicateDismissal",
+    "Holding", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
+]

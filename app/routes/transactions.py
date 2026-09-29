@@ -5,6 +5,7 @@ from apiflask import APIBlueprint
 from sqlalchemy import or_
 from app.extensions import db
 from app.models.transaction import Transaction
+from app.models.wealth import Document
 from app.routes.helpers import form_ids, safe_next
 from app.services import ai_classification, ai_extraction, duplicates
 from app.services.categories import known_categories
@@ -126,6 +127,7 @@ def edit(tx_id):
     return render_template(
         "transactions/form.html", transaction=tx, action="edit",
         categories=known_categories(tx.category), next_url=safe_next(),
+        documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all(),
     )
 
 

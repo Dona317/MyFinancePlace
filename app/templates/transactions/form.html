@@ -170,6 +170,29 @@
       {% endif %}
     </div>
   </div>
+
+  {% if is_edit %}
+  <div class="card mt-16">
+    <div class="card-header">
+      <div class="card-header-title"><i class="bi bi-paperclip"></i> Documenti collegati</div>
+      <a href="{{ url_for('documents.index') }}" class="btn btn-ghost btn-sm">Archivio <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="card-body">
+      {% if documents %}
+      <ul class="backup-list">
+        {% for doc in documents %}
+        <li>
+          <a href="{{ url_for('documents.file', doc_id=doc.id) }}" target="_blank" rel="noopener"><i class="bi bi-file-earmark"></i> {{ doc.filename }}</a>
+          <span class="text-xs text-muted">{{ doc.doc_type or '' }} {{ doc.size|filesize }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-muted">Nessun documento. Carica la fattura o lo scontrino in Documenti e collegalo a questa transazione.</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 {% endblock %}

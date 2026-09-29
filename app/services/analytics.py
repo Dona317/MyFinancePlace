@@ -11,6 +11,7 @@ from sqlalchemy import extract, func
 
 from app.extensions import db
 from app.models.transaction import Transaction
+from app.services import wealth
 from app.services.periods import MONTH_LABELS, month_bounds, month_index, month_label, shift_month, year_bounds
 
 UNCATEGORIZED = "Senza categoria"
@@ -143,23 +144,25 @@ def dashboard_kpis(today: date | None = None) -> dict:
     today = today or date.today()
     month_start, month_end = month_bounds(today.year, today.month)
     month = totals(month_start, month_end)
+    sheet = wealth.balance_sheet(today)
 
-    # Net worth approximation: all-time cash balance from transactions
-    all_time = totals(date.min, date.max)
-
-    # Emergency fund: months of average expenses covered by the cash balance
+    # Emergency fund: months of average expenses covered by cash and savings accounts
     trailing = last_12_months(today)
     avg_expenses = sum(trailing["expenses"]) / 12
-    emergency_months = round(all_time["net"] / avg_expenses, 1) if avg_expenses > 0 else 0.0
+    liquid = sum(sheet["current_assets"].values())
+    emergency_months = round(liquid / avg_expenses, 1) if avg_expenses > 0 else 0.0
+    income = wealth.monthly_average_income(today)
+    installments = wealth.monthly_installments(today)
 
     return {
-        "net_worth": all_time["net"],
+        "net_worth": sheet["net_worth"],
         "monthly_income": month["income"],
         "monthly_expenses": month["expenses"],
         "savings_rate": max(month["savings_rate"], 0.0),
-        "total_investments": 0,  # TODO: sum portfolio holdings once the model exists
-        "total_debt": 0,         # TODO: sum outstanding debts once the model exists
+        "total_investments": sheet["investments"],
+        "total_debt": sheet["total_liabilities"],
         "emergency_months": max(emergency_months, 0.0),
+        "debt_to_income": round(installments / income * 100, 1) if income else None,
     }
 
 

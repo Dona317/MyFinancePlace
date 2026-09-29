@@ -1,0 +1,65 @@
+{#
+  Form fields shared by the Portfolio, Debt, Insurance, Goals and Documents forms.
+  `values` is the submitted form after a validation error (so nothing typed is lost), otherwise {}.
+  `current` is the stored value when editing.
+#}
+{% macro value_of(values, name, current) -%}
+  {{ values[name] if values and name in values else ('' if current is none or current is undefined else current) }}
+{%- endmacro %}
+
+{% macro text(values, name, label, current=none, required=false, placeholder='', hint=none, type='text') %}
+<div class="form-group">
+  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}</label>
+  <input type="{{ type }}" id="f-{{ name }}" name="{{ name }}" class="form-control" placeholder="{{ placeholder }}"
+         value="{{ value_of(values, name, current) }}" {{ 'required' if required }} />
+  {% if hint %}<div class="form-hint">{{ hint }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro number(values, name, label, current=none, required=false, placeholder='0', hint=none) %}
+<div class="form-group">
+  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}</label>
+  <input type="text" inputmode="decimal" id="f-{{ name }}" name="{{ name }}" class="form-control"
+         placeholder="{{ placeholder }}" value="{{ value_of(values, name, current|plain) }}"
+         {{ 'required' if required }} autocomplete="off" />
+  {% if hint %}<div class="form-hint">{{ hint }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro date(values, name, label, current=none, required=false, hint=none) %}
+<div class="form-group">
+  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}</label>
+  <input type="date" id="f-{{ name }}" name="{{ name }}" class="form-control"
+         value="{{ value_of(values, name, current.isoformat() if current else none) }}" {{ 'required' if required }} />
+  {% if hint %}<div class="form-hint">{{ hint }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select(values, name, label, options, current=none, blank=none) %}
+{# options: a list of values, or of (value, label) pairs #}
+{% set chosen = values[name] if values and name in values else current %}
+<div class="form-group">
+  <label class="form-label" for="f-{{ name }}">{{ label }}</label>
+  <select id="f-{{ name }}" name="{{ name }}" class="form-select">
+    {% if blank is not none %}<option value="">{{ blank }}</option>{% endif %}
+    {% for option in options %}
+      {% set opt_value, opt_label = (option if option is not string else (option, option)) %}
+      <option value="{{ opt_value }}" {{ 'selected' if chosen is not none and opt_value|string == chosen|string }}>{{ opt_label }}</option>
+    {% endfor %}
+  </select>
+</div>
+{% endmacro %}
+
+{% macro textarea(values, name, label, current=none, placeholder='') %}
+<div class="form-group">
+  <label class="form-label" for="f-{{ name }}">{{ label }}</label>
+  <textarea id="f-{{ name }}" name="{{ name }}" class="form-control" rows="2" placeholder="{{ placeholder }}">{{ value_of(values, name, current) }}</textarea>
+</div>
+{% endmacro %}
+
+{% macro actions(cancel_url, label) %}
+<div class="form-actions">
+  <a href="{{ cancel_url }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
+  <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ label }}</button>
+</div>
+{% endmacro %}

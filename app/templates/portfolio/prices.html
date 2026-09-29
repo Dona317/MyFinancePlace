@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Aggiorna prezzi — MyFinancePlace{% endblock %}
+{% block page_title %}Aggiorna Prezzi{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">Portafoglio</a></li><li>Prezzi</li>{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">Prezzi attuali</div>
+      <div class="card-header-sub">Scrivi solo quelli cambiati: gli altri restano come sono.</div>
+    </div>
+  </div>
+  {% if holdings %}
+  <form method="POST">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Strumento</th>
+            <th class="text-right">Quantità</th>
+            <th class="text-right">Prezzo attuale</th>
+            <th>Aggiornato</th>
+            <th class="text-right">Nuovo prezzo (€)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in holdings %}
+          {% set field = 'price-' ~ h.id %}
+          <tr>
+            <td><div class="cell-title">{{ h.name }}</div><div class="text-xs text-muted">{{ h.ticker or h.asset_class }}</div></td>
+            <td class="amount text-right">{{ h.quantity|number(8) }}</td>
+            <td class="amount text-right">{{ h.price|money }}</td>
+            <td class="text-xs text-muted nowrap">{{ h.price_date|it_date }}</td>
+            <td class="text-right">
+              <input type="text" inputmode="decimal" name="{{ field }}" class="form-control" style="max-width:140px;margin-left:auto;"
+                     value="{{ values[field] if field in values else '' }}" placeholder="{{ h.price|plain }}"
+                     aria-label="Nuovo prezzo di {{ h.name }}" autocomplete="off" />
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body">
+      <div class="form-actions">
+        <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salva prezzi</button>
+      </div>
+    </div>
+  </form>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-text">Nessuna posizione da aggiornare.</div>
+    <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Aggiungi Posizione</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 from apiflask import APIFlask
-from flask import session
+from jinja2 import Undefined
 from config import config
-from .routes.settings import DEFAULT_SETTINGS
+from .routes.settings import current_settings
 from .extensions import db, migrate
 
 
@@ -79,6 +79,32 @@ def create_app(config_name="default"):
         sign = "-" if float(value or 0) < 0 else ""
         return f"{sign}{symbol} {formatted}"
 
+    @app.template_filter("number")
+    def number(value, decimals=2):
+        """Italian-style number with up to `decimals` decimals, trailing zeros dropped: 1234.5 → '1.234,5'."""
+        text = f"{float(value or 0):,.{decimals}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return text.rstrip("0").rstrip(",") if "," in text else text
+
+    @app.template_filter("plain")
+    def plain(value):
+        """A stored number as a form field value, Italian decimal comma, no trailing zeros: Decimal('10.500') → '10,5'."""
+        if value is None or isinstance(value, Undefined):
+            return ""
+        text = format(value, "f")
+        return (text.rstrip("0").rstrip(".") if "." in text else text).replace(".", ",")
+
+    @app.template_filter("filesize")
+    def filesize(size):
+        size = float(size or 0)
+        for unit in ("B", "KB", "MB", "GB"):
+            if size < 1024 or unit == "GB":
+                return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}".replace(".", ",")
+            size /= 1024
+
+    @app.template_filter("it_date")
+    def it_date(value):
+        return value.strftime("%d/%m/%Y") if value else "—"
+
     @app.template_filter("tone")
     def tone(tx_type):
         """CSS class for an amount: red for expenses, green for income, neutral for transfers."""
@@ -86,12 +112,10 @@ def create_app(config_name="default"):
 
     # ── Settings context processor ─────────────────────────────────────────────
     # Makes `settings` available in every template automatically.
-    # Priority: session (user has saved preferences) → defaults (all on).
+    # The choices saved in the database (Settings page), over the defaults (all on).
     @app.context_processor
     def inject_settings():
-        current = {**DEFAULT_SETTINGS}
-        current.update(session.get("settings", {}))
-        return {"settings": current}
+        return {"settings": current_settings()}
 
     return app
 

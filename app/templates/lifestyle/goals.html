@@ -5,143 +5,115 @@
 {% block breadcrumb %}<li><a href="{{ url_for('lifestyle.index') }}">Stile di Vita</a></li><li>Obiettivi</li>{% endblock %}
 
 {% block topbar_actions %}
-  <button class="btn btn-primary btn-sm" onclick="document.getElementById('modal-new-goal').style.display='flex'">
+  <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary btn-sm">
     <i class="bi bi-plus-lg"></i> Nuovo Obiettivo
-  </button>
+  </a>
 {% endblock %}
 
 {% block content %}
 
 <!-- Riepilogo obiettivi ─────────────────────────────────────────────── -->
-<div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
+<div class="kpi-grid mb-24">
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-trophy"></i></div>
     <div class="kpi-label">Obiettivi Attivi</div>
-    <div class="kpi-value">0</div>
+    <div class="kpi-value">{{ active_count }}</div>
+    <div class="kpi-sub">{{ completed_count }} completati</div>
   </div>
   <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
-    <div class="kpi-label">Completati</div>
-    <div class="kpi-value text-positive">0</div>
-  </div>
-  <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
     <div class="kpi-label">Totale Risparmiato</div>
-    <div class="kpi-value">€ 0</div>
+    <div class="kpi-value text-positive">{{ saved_total|money }}</div>
+    <div class="kpi-sub">su {{ target_total|money }} di obiettivi</div>
   </div>
   <div class="kpi-card kpi-warning">
+    <div class="kpi-icon"><i class="bi bi-calendar2-week"></i></div>
+    <div class="kpi-label">Da Mettere da Parte</div>
+    <div class="kpi-value">{{ monthly_total|money }}</div>
+    <div class="kpi-sub">al mese, per rispettare le date</div>
+  </div>
+  <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-flag"></i></div>
-    <div class="kpi-label">Obiettivo Totale</div>
-    <div class="kpi-value">€ 0</div>
+    <div class="kpi-label">Mancano</div>
+    <div class="kpi-value">{{ [target_total - saved_total, 0]|max|money }}</div>
+    <div class="kpi-sub">per completarli tutti</div>
   </div>
 </div>
 
 <!-- Griglia obiettivi ───────────────────────────────────────────────── -->
 {% if goals %}
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
-    {% for goal in goals %}
-    <div class="card">
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-          <div>
-            <div style="font-weight:700;color:var(--clr-text-primary);">{{ goal.name }}</div>
-            <div class="text-xs text-muted">
-              Scadenza: {{ goal.deadline }}
-            </div>
+<div class="cards-grid">
+  {% for goal in goals %}
+  {% set monthly = goal.monthly_needed(today) %}
+  <div class="card goal-card">
+    <div class="card-body">
+      <div class="goal-head">
+        <div>
+          <div class="cell-title">{{ goal.name }}</div>
+          <div class="text-xs text-muted">
+            {% if goal.target_date %}Entro il {{ goal.target_date|it_date }}{% if goal.target_date < today and not goal.completed %} · <span class="text-negative">scaduto</span>{% endif %}
+            {% else %}Senza scadenza{% endif %}
           </div>
-          <span class="badge badge-{{ 'positive' if goal.progress >= 100 else 'neutral' }}">
-            {{ goal.progress }}%
-          </span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:var(--font-size-sm);margin-bottom:8px;">
-          <span class="amount positive">€ {{ goal.current }}</span>
-          <span class="amount text-muted">/ € {{ goal.target }}</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill {{ 'positive' if goal.progress >= 100 else '' }}"
-               style="width:{{ [goal.progress, 100]|min }}%;"></div>
+        <span class="badge badge-{{ 'positive' if goal.completed else 'neutral' }}">
+          {{ 'Raggiunto' if goal.completed else goal.progress|number(1) ~ '%' }}
+        </span>
+      </div>
+      <div class="goal-amounts">
+        <span class="amount positive">{{ goal.saved_amount|money }}</span>
+        <span class="amount text-muted">/ {{ goal.target_amount|money }}</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill {{ 'positive' if goal.completed }}" style="width:{{ goal.progress }}%;"></div>
+      </div>
+      {% if monthly %}<div class="text-xs text-muted mt-8">{{ monthly|money }} al mese per arrivarci in tempo</div>{% endif %}
+      {% if goal.notes %}<div class="text-xs text-muted mt-8">{{ goal.notes }}</div>{% endif %}
+      <div class="goal-foot">
+        <form method="POST" action="{{ url_for('lifestyle.goal_contribute', goal_id=goal.id) }}">
+          <input type="text" inputmode="decimal" name="amount" class="form-control" placeholder="+ importo"
+                 aria-label="Importo da aggiungere a {{ goal.name }}" autocomplete="off" required />
+          <button type="submit" class="btn btn-outline btn-sm" title="Aggiungi (usa il meno per togliere)"><i class="bi bi-plus-lg"></i> Versa</button>
+        </form>
+        <div class="cell-actions">
+          <a href="{{ url_for('lifestyle.goal_edit', goal_id=goal.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica" aria-label="Modifica {{ goal.name }}"><i class="bi bi-pencil"></i></a>
+          <form method="POST" action="{{ url_for('lifestyle.goal_delete', goal_id=goal.id) }}" data-confirm="Eliminare l'obiettivo «{{ goal.name }}»?">
+            <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ goal.name }}"><i class="bi bi-trash3"></i></button>
+          </form>
         </div>
       </div>
     </div>
-    {% endfor %}
   </div>
+  {% endfor %}
+</div>
 {% else %}
-  <div class="card">
-    <div class="empty-state">
-      <div class="empty-state-icon"><i class="bi bi-trophy"></i></div>
-      <div class="empty-state-title">Nessun obiettivo ancora</div>
-      <div class="empty-state-text">Crea il tuo primo obiettivo finanziario: fondo d'emergenza, vacanza, acquisto casa...</div>
-      <button class="btn btn-primary" onclick="document.getElementById('modal-new-goal').style.display='flex'">
-        <i class="bi bi-plus-lg"></i> Crea Obiettivo
-      </button>
-    </div>
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-trophy"></i></div>
+    <div class="empty-state-title">Nessun obiettivo ancora</div>
+    <div class="empty-state-text">Crea il tuo primo obiettivo finanziario, oppure parti da uno dei suggerimenti qui sotto.</div>
+    <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Crea Obiettivo</a>
   </div>
+</div>
 {% endif %}
 
 <!-- Suggerimenti ─────────────────────────────────────────────────────── -->
 <div class="card mt-24">
-  <div class="card-header"><div class="card-header-title">Obiettivi Suggeriti</div></div>
-  <div class="card-body">
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
-      {% for label, icon, desc in [
-        ('Fondo d\'Emergenza', 'bi-shield-check', '3–6 mesi di spese'),
-        ('Pensione Integrativa', 'bi-person-check', 'Contribuzione mensile'),
-        ('Acquisto Casa', 'bi-house-heart', 'Anticipo e spese notarili'),
-        ('Vacanza', 'bi-airplane', 'Risparmio per viaggi'),
-        ('Istruzione', 'bi-mortarboard', 'Corsi e formazione'),
-        ('Veicolo', 'bi-car-front', 'Auto o moto'),
-      ] %}
-      <div style="padding:14px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;transition:border-color .2s,background .2s;"
-           onmouseover="this.style.borderColor='var(--clr-primary)';this.style.background='var(--clr-primary-light)'"
-           onmouseout="this.style.borderColor='var(--clr-border)';this.style.background=''">
-        <div style="font-size:20px;margin-bottom:6px;color:var(--clr-primary);"><i class="bi {{ icon }}"></i></div>
-        <div style="font-weight:600;font-size:var(--font-size-sm);color:var(--clr-text-primary);">{{ label }}</div>
-        <div class="text-xs text-muted">{{ desc }}</div>
-      </div>
-      {% endfor %}
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">Obiettivi Suggeriti</div>
+      <div class="card-header-sub">Clicca per partire da un modello: potrai cambiare nome e importo</div>
     </div>
   </div>
-</div>
-
-<!-- Modal nuovo obiettivo ────────────────────────────────────────────── -->
-<div id="modal-new-goal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;">
-  <div style="background:var(--clr-bg-card);border-radius:var(--border-radius-lg);padding:32px;width:100%;max-width:460px;box-shadow:var(--shadow-lg);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <h3 style="font-size:var(--font-size-lg);font-weight:700;color:var(--clr-text-primary);margin:0;">Nuovo Obiettivo</h3>
-      <button onclick="document.getElementById('modal-new-goal').style.display='none'"
-              style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--clr-text-muted);">
-        <i class="bi bi-x-lg"></i>
-      </button>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+      {% for s in suggestions %}
+      <a class="suggestion" href="{{ url_for('lifestyle.goal_new', name=s.name, target_amount='%d'|format(s.target)) }}">
+        <i class="bi {{ s.icon }}"></i>
+        <div class="font-semibold text-sm">{{ s.name }}</div>
+        <div class="text-xs text-muted">{{ s.hint }} · {{ s.target|money }}</div>
+      </a>
+      {% endfor %}
     </div>
-    <form method="POST" action="#">
-      <div class="form-group">
-        <label class="form-label">Nome Obiettivo</label>
-        <input type="text" class="form-control" placeholder="es. Fondo d'emergenza" required />
-      </div>
-      <div class="grid-2">
-        <div class="form-group">
-          <label class="form-label">Importo Target</label>
-          <input type="number" class="form-control" placeholder="10000" step="100" min="0" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Risparmio Attuale</label>
-          <input type="number" class="form-control" placeholder="0" step="100" min="0" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Data Scadenza</label>
-        <input type="date" class="form-control" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Note</label>
-        <textarea class="form-control" rows="2" placeholder="Descrizione facoltativa..."></textarea>
-      </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
-        <button type="button" class="btn btn-ghost"
-                onclick="document.getElementById('modal-new-goal').style.display='none'">Annulla</button>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salva Obiettivo</button>
-      </div>
-    </form>
   </div>
 </div>
 

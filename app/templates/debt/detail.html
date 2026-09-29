@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% set d = summary.debt %}
+{% block title %}{{ d.name }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ d.name }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">Debiti</a></li><li>{{ d.name }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> Modifica</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="kpi-grid mb-24">
+  <div class="kpi-card kpi-negative">
+    <div class="kpi-icon"><i class="bi bi-credit-card-2-back"></i></div>
+    <div class="kpi-label">Residuo Oggi</div>
+    <div class="kpi-value text-negative">{{ summary.balance|money }}</div>
+    <div class="kpi-sub">{{ 'saldo inserito da te' if d.balance is not none else 'dal piano di ammortamento' }}</div>
+  </div>
+  <div class="kpi-card kpi-warning">
+    <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
+    <div class="kpi-label">Rata Mensile</div>
+    <div class="kpi-value">{{ summary.installment|money if summary.installment else '—' }}</div>
+    <div class="kpi-sub">{{ d.type }} · tasso {{ d.annual_rate|number(3) }}%</div>
+  </div>
+  <div class="kpi-card kpi-neutral">
+    <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+    <div class="kpi-label">Rate Rimanenti</div>
+    <div class="kpi-value">{{ summary.months_left }}</div>
+    <div class="kpi-sub">{{ ('ultima il ' ~ (summary.end_date|it_date)) if summary.end_date else '' }}</div>
+  </div>
+  <div class="kpi-card kpi-primary">
+    <div class="kpi-icon"><i class="bi bi-percent"></i></div>
+    <div class="kpi-label">Interessi Ancora da Pagare</div>
+    <div class="kpi-value">{{ summary.interest_left|money }}</div>
+    <div class="kpi-sub">{{ summary.interest_ytd|money }} pagati quest'anno</div>
+  </div>
+</div>
+
+{% if summary.never_ends %}
+<div class="alert alert-error mb-16"><i class="bi bi-exclamation-triangle"></i>
+  La rata ({{ summary.installment|money }}) non copre nemmeno gli interessi del primo mese: così il debito non si estingue mai. Controlla rata e tasso.
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">Piano di Ammortamento</div>
+      <div class="card-header-sub">Rata costante (alla francese): all'inizio si pagano soprattutto interessi, poi capitale</div>
+    </div>
+  </div>
+  {% if plan %}
+  <div class="table-wrapper" style="max-height:560px;overflow:auto;">
+    <table class="table-compact">
+      <thead>
+        <tr>
+          <th class="text-right">N°</th>
+          <th>Scadenza</th>
+          <th class="text-right">Rata</th>
+          <th class="text-right">Interessi</th>
+          <th class="text-right">Capitale</th>
+          <th class="text-right">Residuo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in plan %}
+        <tr {% if row.due <= today %}class="text-muted"{% endif %}>
+          <td class="text-right">{{ row.number }}</td>
+          <td class="nowrap">{{ row.due|it_date }}{% if row.due <= today %} <i class="bi bi-check2" title="Già scaduta"></i>{% endif %}</td>
+          <td class="amount text-right">{{ row.payment|money }}</td>
+          <td class="amount text-right">{{ row.interest|money }}</td>
+          <td class="amount text-right">{{ row.principal|money }}</td>
+          <td class="amount text-right">{{ row.balance|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2">Totale</td>
+          <td class="amount text-right">{{ plan|sum(attribute='payment')|money }}</td>
+          <td class="amount text-right">{{ plan|sum(attribute='interest')|money }}</td>
+          <td class="amount text-right">{{ plan|sum(attribute='principal')|money }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-text">
+      Per calcolare il piano servono la <strong>data di inizio</strong> e la <strong>durata</strong> (o la rata mensile).
+    </div>
+    <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> Completa i dati</a>
+  </div>
+  {% endif %}
+</div>
+
+{% if d.notes %}
+<div class="card mt-16"><div class="card-body"><strong>Note:</strong> {{ d.notes }}</div></div>
+{% endif %}
+
+{% endblock %}

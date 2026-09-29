@@ -19,34 +19,27 @@ Current status and roadmap. Update this file as items are completed.
 - **Forecast** (Contabilità → Previsioni): recurring transactions projected on their dates plus variable
   spending per category from a rolling window of N months, with six methods (moving, weighted and exponential
   average, median, linear trend, seasonal) compared on the past; unflagged recurring series are suggested
+- **Portfolio, Debt, Insurance, Documents, Snapshots, Goals** with their own tables: holdings of any class
+  (savings accounts, pension funds and property too) with gain/loss and bulk price update; debts with a French
+  amortization plan; policies with expiry reminders; a document archive linked to transactions; savings goals
+  with contributions; snapshots of the net worth and their comparison
+- **Balance Sheet** and real **net worth** (opening balance + transactions + holdings − debts), also at past
+  month ends; dashboard Investments, Total debt and Debt/Income KPIs
+- **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
+  the transactions can be re-imported
 
 ## 🔜 To do
 
-### 1. Data models for the remaining modules (next big step)
+### 1. Login
 
-Portfolio, Debt, Insurance, Documents, Snapshots, Goals and login still show only the page layout.
-Each needs its own database table, with a model, an Alembic migration, a service and routes:
+`User` + Flask-Login (already in `requirements.txt`), then `user_id` on every table. Until then anyone who
+can reach the server sees all the data: run it only on your own computer or local network.
 
-| Module | Model (main fields) | Notes |
-|---|---|---|
-| **Portfolio** | `Holding`: name, ticker, asset class (stock/ETF/crypto/bond/savings), quantity, avg. cost, current price | Total value and P&L; optional price updates |
-| **Debt** | `Debt`: name, type (mortgage/loan), principal, rate, start date, term (months), installment | Amortization schedule, remaining balance |
-| **Insurance** | `InsurancePolicy`: provider, type, premium, frequency, renewal date, coverage | Renewal reminders |
-| **Documents** | `Document`: file path, fiscal year, category, linked `transaction_id` | File storage (local folder) |
-| **Snapshots** | `Snapshot`: date, net worth, assets, liabilities, JSON detail | Created from the dashboard; the compare page |
-| **Goals** | `Goal`: name, target amount, target date, saved amount | Progress bars in Lifestyle → Goals |
-| **Auth** | `User` + Flask-Login (already in `requirements.txt`) | Then add `user_id` to every table |
+### 2. Price history
 
-Suggested order: **Portfolio → Debt** (they unlock net worth and the Balance Sheet) → Goals → Snapshots →
-Insurance → Documents → Auth.
-
-### 2. Net worth and Balance Sheet
-
-Until Portfolio and Debt exist, net worth is just income minus expenses, and the Balance Sheet stays a
-placeholder. Once they exist:
-- Net worth = cash balance + portfolio value − outstanding debt
-- Balance Sheet: assets (cash, investments) vs liabilities (debts)
-- Dashboard "Investments", "Total debt" and "Debt/Income" KPIs (currently 0 / —)
+Holdings are valued at their latest price, also in the balance sheet of past months (the app keeps no price
+history). Snapshots record the value at that moment; an optional price feed (ETFs, crypto) would make past
+balance sheets exact.
 
 ### 3. Cash flow classification
 
@@ -81,6 +74,5 @@ and runs `pytest` on every pull request.
 
 ### 7. Smaller clean-ups
 
-- Settings are stored in the session: persist them in the database once users exist
 - The transaction form crashes (500) on invalid input: add validation (e.g. Flask-WTF forms)
 - The category list is hardcoded in several templates: centralize it

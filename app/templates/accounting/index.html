@@ -35,11 +35,13 @@
 </div>
 
 <!-- Summary Charts ─────────────────────────────────────────────────────── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+<div class="row-2">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Andamento Patrimonio Netto</div>
-      <div class="card-header-sub">Istantanea mensile</div>
+      <div>
+        <div class="card-header-title">Andamento Patrimonio Netto</div>
+        <div class="card-header-sub">A fine mese, ultimi 12 mesi</div>
+      </div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
@@ -49,8 +51,10 @@
   </div>
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Entrate vs Uscite</div>
-      <div class="card-header-sub">Da inizio anno</div>
+      <div>
+        <div class="card-header-title">Entrate vs Uscite</div>
+        <div class="card-header-sub">Da inizio {{ year }}</div>
+      </div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
@@ -64,13 +68,12 @@
 
 {% block scripts %}
 <script>
-const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-makeLineChart('netWorthChart', months, [
-  { label:'Net Worth', data:[45000,46200,47100,46800,48500,49200,50100,50800,51500,52300,53100,54000], fill:true }
+makeLineChart('netWorthChart', {{ trend.labels | tojson }}, [
+  { label: 'Patrimonio Netto', data: {{ trend.data | tojson }}, fill: true }
 ]);
-makeBarChart('incomeExpChart', months.slice(0,6), [
-  { label:'Entrate',  data:[3200,3200,3400,3200,3200,3500] },
-  { label:'Uscite',   data:[2100,2400,1900,2200,2600,1800] },
-], { stacked: false });
+makeBarChart('incomeExpChart', {{ monthly.labels[:month_count] | tojson }}, [
+  { label: 'Entrate', data: {{ monthly.income[:month_count] | tojson }} },
+  { label: 'Uscite',  data: {{ monthly.expenses[:month_count] | tojson }} },
+]);
 </script>
 {% endblock %}

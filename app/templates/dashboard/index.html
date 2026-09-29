@@ -20,7 +20,7 @@
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
     <div class="kpi-label">Patrimonio Netto</div>
     <div class="kpi-value" data-amount="{{ kpis.net_worth }}" data-currency="EUR">—</div>
-    <div class="kpi-sub">Saldo cumulato delle transazioni</div>
+    <div class="kpi-sub">Attività − passività (<a href="{{ url_for('accounting.balance_sheet') }}">dettaglio</a>)</div>
   </div>
   {% endif %}
 
@@ -56,7 +56,7 @@
     <div class="kpi-icon" style="background:var(--clr-purple-bg);color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
     <div class="kpi-label">Investimenti</div>
     <div class="kpi-value" data-amount="{{ kpis.total_investments }}" data-currency="EUR">—</div>
-    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> Portafoglio</div>
+    <div class="kpi-sub">{% if settings.module_portfolio %}<a href="{{ url_for('portfolio.index') }}">Portafoglio</a>{% else %}Portafoglio{% endif %}</div>
   </div>
   {% endif %}
 
@@ -186,11 +186,11 @@
 
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Debito/Reddito</span>
-          <span class="text-xs text-muted">—</span>
+          <span style="font-size:var(--font-size-xs);font-weight:600;">Rate / Reddito</span>
+          <span class="text-xs text-muted">{{ ("%.0f"|format(kpis.debt_to_income) ~ '% · max 35%') if kpis.debt_to_income is not none else '—' }}</span>
         </div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar-fill warning" style="width:0%;"></div>
+          <div class="progress-bar-fill {{ 'negative' if (kpis.debt_to_income or 0) > 35 else 'warning' }}" style="width:{{ [kpis.debt_to_income or 0, 100]|min }}%;"></div>
         </div>
       </div>
 

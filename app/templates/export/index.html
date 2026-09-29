@@ -49,11 +49,11 @@
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">JSON</div>
-          <div class="text-xs text-muted">Backup completo, portabilità totale</div>
+          <div class="text-xs text-muted">Solo transazioni, reimportabile</div>
         </div>
       </div>
       <p style="font-size:var(--font-size-sm);color:var(--clr-text-muted);margin-bottom:16px;">
-        Esporta tutte le transazioni in formato JSON strutturato, utile come backup.
+        Tutte le transazioni in JSON strutturato. Si reimporta da «Ripristina» qui sotto: le transazioni già presenti vengono saltate.
       </p>
       <a href="{{ url_for('export.export_json') }}" class="btn btn-primary" style="width:100%;justify-content:center;display:flex;">
         <i class="bi bi-download"></i> Scarica JSON
@@ -88,6 +88,57 @@
     </div>
   </div>
 
+</div>
+
+<!-- Backup completo e ripristino ───────────────────────────────────── -->
+<div class="card mb-24" id="backup">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-safe"></i> Backup Completo e Ripristino</div>
+      <div class="card-header-sub">Tutti i dati dell'app in un file: transazioni, portafoglio, debiti, polizze, obiettivi, istantanee, impostazioni e i file dell'archivio documenti</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="grid-2">
+      <div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-download"></i> Scarica il backup</div>
+        <p class="text-xs text-muted mb-16">
+          Un file <strong>.zip</strong> da conservare fuori da questo computer (chiavetta, cloud). Fallo almeno una volta al mese
+          e prima di aggiornare l'app.
+        </p>
+        <a href="{{ url_for('export.download_backup') }}" class="btn btn-primary"><i class="bi bi-file-earmark-zip"></i> Scarica backup completo</a>
+      </div>
+      <div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-upload"></i> Ripristina</div>
+        <form method="POST" action="{{ url_for('export.restore') }}" enctype="multipart/form-data"
+              data-confirm="Ripristinare questo file? Se è un backup completo, TUTTI i dati attuali saranno sostituiti (una copia viene salvata prima).">
+          <div class="form-group">
+            <input type="file" name="file" class="form-control" accept=".zip,.json" required aria-label="File di backup" />
+            <div class="form-hint">Backup completo (.zip) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti).</div>
+          </div>
+          <label class="d-flex align-center gap-8 text-sm mb-16">
+            <input type="checkbox" name="confirm" value="1" />
+            <span>Ho capito: un backup completo <strong>sostituisce tutti i dati attuali</strong></span>
+          </label>
+          <button type="submit" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i> Ripristina</button>
+        </form>
+      </div>
+    </div>
+    {% if safety_copies %}
+    <details class="mt-16">
+      <summary class="text-sm font-semibold" style="cursor:pointer;">Backup automatici ({{ safety_copies|length }})</summary>
+      <p class="text-xs text-muted mt-8">Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10.</p>
+      <ul class="backup-list">
+        {% for copy in safety_copies %}
+        <li>
+          <span>Prima del ripristino del {{ copy.created.strftime('%d/%m/%Y alle %H:%M') }} · {{ copy.size|filesize }}</span>
+          <a href="{{ url_for('export.download_safety_copy', name=copy.name) }}"><i class="bi bi-download"></i> Scarica</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+  </div>
 </div>
 
 <!-- Esportazione Fiscale ─────────────────────────────────────────────── -->

@@ -1,6 +1,7 @@
+import json
 import re
 
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, has_request_context
 from apiflask import APIBlueprint
 
 from app.services import ai_classification, ai_extraction, ai_models, settings_store
@@ -46,32 +47,49 @@ DEFAULT_SETTINGS = {
 }
 
 
+SETTINGS_KEY = "ui.settings"  # the saved choices, as JSON in app_settings (so they survive cookies and browsers)
+
+
+def current_settings() -> dict:
+    """Defaults, overridden by the saved choices; unknown keys and values of the wrong type are ignored."""
+    current = {**DEFAULT_SETTINGS}
+    raw = settings_store.get(SETTINGS_KEY)
+    try:
+        # nothing saved yet: choices made with older versions, which kept them in the browser session
+        saved = json.loads(raw) if raw else (session.get("settings") if has_request_context() else None) or {}
+    except (ValueError, TypeError):
+        saved = {}
+    if not isinstance(saved, dict):
+        saved = {}
+    for key, default in DEFAULT_SETTINGS.items():
+        if key in saved and isinstance(saved[key], type(default)):
+            current[key] = saved[key]
+    return current
+
+
 @settings_bp.route("/")
 def index():
-    # TODO: load user-specific settings from DB; fall back to defaults
-    current = {**DEFAULT_SETTINGS}
-    return render_template("settings/index.html", settings=current, defaults=DEFAULT_SETTINGS)
+    return render_template("settings/index.html", settings=current_settings(), defaults=DEFAULT_SETTINGS)
 
 
 @settings_bp.route("/save", methods=["POST"])
 def save():
-    # TODO: persist settings to DB for the current user
-    # For now, store in session as a lightweight demo
     form = request.form
     new_settings = {}
-    for key in DEFAULT_SETTINGS:
-        if isinstance(DEFAULT_SETTINGS[key], bool):
+    for key, default in DEFAULT_SETTINGS.items():
+        if isinstance(default, bool):
             new_settings[key] = key in form  # checkbox is present only when checked
         else:
-            new_settings[key] = form.get(key, DEFAULT_SETTINGS[key])
-    session["settings"] = new_settings
+            new_settings[key] = (form.get(key) or default).strip()
+    settings_store.set(SETTINGS_KEY, json.dumps(new_settings))
+    session.pop("settings", None)  # older versions kept them in the browser session
     flash("Impostazioni salvate con successo.", "success")
     return redirect(url_for("settings.index"))
 
 
 @settings_bp.route("/reset", methods=["POST"])
 def reset():
-    # TODO: reset to defaults in DB
+    settings_store.set(SETTINGS_KEY, None)
     session.pop("settings", None)
     flash("Impostazioni ripristinate ai valori predefiniti.", "success")
     return redirect(url_for("settings.index"))
