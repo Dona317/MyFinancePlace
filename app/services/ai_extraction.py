@@ -23,6 +23,7 @@ import json
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
+from typing import Callable
 
 from flask import current_app
 
@@ -88,6 +89,15 @@ class AIExtractionError(ValueError):
     """User-facing (Italian) message about why the AI reading failed."""
 
 
+# Called as progress(done, total, unit) before the first part and after each part is read
+# (unit: "pagina", "parte", "blocco di pagine"). It may raise to stop the reading between parts.
+Progress = Callable[[int, int, str], None]
+
+
+def _no_progress(done: int, total: int, unit: str) -> None:
+    pass
+
+
 @dataclass
 class AIExtraction:
     movements: list[dict] = field(default_factory=list)
@@ -149,11 +159,13 @@ def timeout() -> float:
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
-def extract(filename: str, raw: bytes, text: str | None = None, model: str | None = None) -> AIExtraction:
+def extract(filename: str, raw: bytes, text: str | None = None, model: str | None = None,
+            progress: Progress | None = None) -> AIExtraction:
     """
     Read the movements of a statement with the configured model (or `model`, chosen by the user).
     `raw` is the uploaded file; `text` is its extracted text when the file is a text document
     (Word, TXT, RTF, OpenDocument, text PDF) — sent instead of images when there is no better input.
+    `progress` is told how many parts (pages, text chunks) are done; see Progress.
     """
     name = provider()
     if name is None:
@@ -162,9 +174,10 @@ def extract(filename: str, raw: bytes, text: str | None = None, model: str | Non
     if kind is None and not (text and text.strip()):
         raise AIExtractionError("Formato non leggibile dal modello: carica un PDF, un'immagine (JPG/PNG) o un documento di testo.")
 
+    progress = progress or _no_progress
     if name == "anthropic":
-        return _extract_anthropic(raw, kind, text, model or model_name())
-    return _extract_ollama(raw, kind, text, model or model_name())
+        return _extract_anthropic(raw, kind, text, model or model_name(), progress)
+    return _extract_ollama(raw, kind, text, model or model_name(), progress)
 
 
 def _file_kind(raw: bytes) -> str | None:
@@ -223,6 +236,16 @@ def _merge(parts: list[AIExtraction], model: str) -> AIExtraction:
 
 def _part_label(number: int, total: int, unit: str) -> str:
     return "" if total == 1 else f" ({unit} {number} di {total})"
+
+
+def _read_parts(parts: list, unit: str, read: Callable, progress: Progress, model: str) -> AIExtraction:
+    """Read each part with `read(number, part)`, reporting progress between parts, then merge."""
+    results = []
+    progress(0, len(parts), unit)
+    for number, part in enumerate(parts, start=1):
+        results.append(read(number, part))
+        progress(number, len(parts), unit)
+    return _merge(results, model)
 
 
 def _parse_result(payload: str, model: str) -> AIExtraction:
@@ -331,7 +354,7 @@ def anthropic_json(model: str, system: str, content: list[dict], schema: dict, m
     return next((block.text for block in message.content if block.type == "text"), None)
 
 
-def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:
+def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: str, progress: Progress) -> AIExtraction:
     if kind == "pdf":
         parts = [
             [{"type": "document", "source": {"type": "base64", "media_type": "application/pdf",
@@ -342,17 +365,18 @@ def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: st
     elif kind == "image":
         data, media_type = _normalize_image(raw)
         source = {"type": "base64", "media_type": media_type, "data": base64.standard_b64encode(data).decode()}
-        parts, unit = [[{"type": "image", "source": source}]], ""
+        parts, unit = [[{"type": "image", "source": source}]], "immagine"
     else:
         parts = [[{"type": "text", "text": f"<documento>\n{chunk}\n</documento>"}]
                  for chunk in split_text(text, TEXT_CHUNK_CHARS["anthropic"])]
         unit = "parte"
-    results = []
-    for number, content in enumerate(parts, start=1):
+
+    def read(number: int, content: list[dict]) -> AIExtraction:
         prompt = USER_PROMPT + _part_label(number, len(parts), unit)
         payload = anthropic_json(model, SYSTEM_PROMPT, content + [{"type": "text", "text": prompt}], MOVEMENTS_SCHEMA)
-        results.append(_parse_result(payload, model))
-    return _merge(results, model)
+        return _parse_result(payload, model)
+
+    return _read_parts(parts, unit, read, progress, model)
 
 
 # ── Ollama (local) ─────────────────────────────────────────────────────────────
@@ -390,18 +414,14 @@ def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> 
     return ollama_json(model, SYSTEM_PROMPT, prompt, MOVEMENTS_SCHEMA, images)
 
 
-def _extract_ollama(raw: bytes, kind: str | None, text: str | None, model: str) -> AIExtraction:
+def _extract_ollama(raw: bytes, kind: str | None, text: str | None, model: str, progress: Progress) -> AIExtraction:
     if kind is None:
         chunks = split_text(text, TEXT_CHUNK_CHARS["ollama"])
-        return _merge([
-            _parse_result(_ollama_chat(model, f"{USER_PROMPT}{_part_label(n, len(chunks), 'parte')}\n\n"
-                                              f"<documento>\n{chunk}\n</documento>"), model)
-            for n, chunk in enumerate(chunks, start=1)
-        ], model)
+        return _read_parts(chunks, "parte", lambda n, chunk: _parse_result(_ollama_chat(
+            model, f"{USER_PROMPT}{_part_label(n, len(chunks), 'parte')}\n\n<documento>\n{chunk}\n</documento>"), model),
+            progress, model)
 
     # Small models are more accurate one page at a time: read every page, then merge
     pages = _pdf_page_images(raw) if kind == "pdf" else [_normalize_image(raw)[0]]
-    return _merge([
-        _parse_result(_ollama_chat(model, USER_PROMPT + _part_label(n, len(pages), "pagina"), [page]), model)
-        for n, page in enumerate(pages, start=1)
-    ], model)
+    return _read_parts(pages, "pagina", lambda n, page: _parse_result(_ollama_chat(
+        model, USER_PROMPT + _part_label(n, len(pages), "pagina"), [page]), model), progress, model)

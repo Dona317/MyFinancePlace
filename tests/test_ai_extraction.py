@@ -241,6 +241,33 @@ def test_every_page_of_a_long_scan_is_read(ollama):
     assert "(pagina 30 di 30)" in ollama.calls[-1]["body"]["messages"][1]["content"]
 
 
+def test_progress_is_reported_per_page_and_can_stop_the_reading(ollama):
+    ollama.replies.append(model_reply(truth_movements()[:1], has_balances=False))
+    raw = (SAMPLES / SCAN).read_bytes()
+    seen = []
+    ai_extraction.extract(SCAN, raw, progress=lambda *args: seen.append(args))
+    assert seen == [(0, 2, "pagina"), (1, 2, "pagina"), (2, 2, "pagina")]
+
+    class Stop(Exception):
+        pass
+
+    def stop_after_first_page(done, total, unit):
+        if done == 1:
+            raise Stop
+
+    ollama.calls.clear()
+    with pytest.raises(Stop):
+        ai_extraction.extract(SCAN, raw, progress=stop_after_first_page)
+    assert len(ollama.calls) == 1
+
+
+def test_claude_reports_progress_per_page_block(claude):
+    claude.reply = model_reply(truth_movements()[:1])
+    seen = []
+    ai_extraction.extract(PHOTO, (SAMPLES / PHOTO).read_bytes(), progress=lambda *args: seen.append(args))
+    assert seen == [(0, 1, "immagine"), (1, 1, "immagine")]
+
+
 def test_claude_reads_a_long_pdf_in_page_blocks(claude):
     """A 45-page PDF goes to Claude as 3 requests of at most 20 pages, merged with the balances."""
     import io as _io

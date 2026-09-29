@@ -51,9 +51,15 @@ def load(token: str) -> tuple[bytes, dict]:
     return data_path.read_bytes(), json.loads(meta_path.read_text())
 
 
+def sidecar_path(token: str, name: str) -> Path:
+    """A small extra file kept next to an upload (e.g. the state of its AI reading), removed with it."""
+    return _paths(token)[0].with_name(f"{token}.{name}.json")
+
+
 def delete(token: str) -> None:
     try:
-        for path in _paths(token):
-            path.unlink(missing_ok=True)
+        data_path, meta_path = _paths(token)
     except KeyError:
-        pass
+        return
+    for path in (data_path, meta_path, *data_path.parent.glob(f"{token}.*.json")):
+        path.unlink(missing_ok=True)
