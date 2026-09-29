@@ -255,6 +255,14 @@
           </button>
         </div>
 
+        <!-- Reminders -->
+        {% set reminder_count = notification_count() %}
+        <a href="{{ url_for('notifications.index') }}" class="btn btn-ghost btn-icon topbar-bell"
+           title="Promemoria" aria-label="Promemoria{{ ' (%d)'|format(reminder_count) if reminder_count }}"
+           {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
+          <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
+        </a>
+
         <!-- Settings -->
         <a href="{{ url_for('settings.index') }}" class="btn btn-ghost btn-icon topbar-settings"
            title="Impostazioni" aria-label="Impostazioni"

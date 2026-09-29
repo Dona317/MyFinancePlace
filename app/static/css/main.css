@@ -1284,3 +1284,16 @@ tfoot td {
 /* A KPI label wraps before the icon instead of running under it; amounts in tables never break */
 .kpi-icon + .kpi-label { padding-right: 40px; }
 td.amount { white-space: nowrap; }
+
+/* ── Reminders: the bell in the top bar and the list ───────────────────────── */
+.topbar-bell { position: relative; font-size: 18px; }
+.topbar-bell .bell-count { position: absolute; top: 2px; right: 0; min-width: 17px; height: 17px; padding: 0 4px;
+                           border-radius: 9px; background: var(--clr-negative); color: #fff; font-size: 10px; font-weight: 700;
+                           line-height: 17px; text-align: center; }
+.notification-list { list-style: none; margin: 0; padding: 0; }
+.notification { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--clr-border-light); }
+.notification:last-child { border-bottom: 0; }
+.notification > i { font-size: 18px; color: var(--clr-primary); }
+.notification-warning > i { color: var(--clr-warning); }
+.notification-danger > i { color: var(--clr-negative); }
+.notification-body { flex: 1; min-width: 0; display: flex; flex-direction: column; text-decoration: none; color: inherit; }

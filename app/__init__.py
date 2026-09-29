@@ -29,6 +29,7 @@ def create_app(config_name="default"):
 
     from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
     from .services import currency  # noqa: F401 — fills transactions.amount_base on save
+    from .services import notifications
 
 
     app.config["DESCRIPTION"] = """
@@ -60,6 +61,7 @@ def create_app(config_name="default"):
     from .routes.insurance import insurance_bp
     from .routes.forecast import forecast_bp
     from .routes.accounts import accounts_bp
+    from .routes.notifications import notifications_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -75,6 +77,7 @@ def create_app(config_name="default"):
     app.register_blueprint(insurance_bp)
     app.register_blueprint(forecast_bp)
     app.register_blueprint(accounts_bp)
+    app.register_blueprint(notifications_bp)
 
     # ── Template filters ───────────────────────────────────────────────────────
     @app.template_filter("money")
@@ -120,7 +123,16 @@ def create_app(config_name="default"):
     # The choices saved in the database (Settings page), over the defaults (all on).
     @app.context_processor
     def inject_settings():
-        return {"settings": current_settings()}
+        return {"settings": current_settings(), "notification_count": notification_count}
+
+    def notification_count() -> int:
+        """Reminders not yet seen, for the bell (never breaks a page)."""
+        try:
+            return len(notifications.collect())
+        except Exception:  # noqa: BLE001 - a broken reminder source must not take the page down
+            app.logger.exception("reminders unavailable")
+            db.session.rollback()
+            return 0
 
     # A module switched off in Settings disappears from the menu and its pages answer "not found"
     @app.before_request

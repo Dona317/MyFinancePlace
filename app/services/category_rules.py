@@ -5,12 +5,13 @@ They are checked before the built-in rules of the bank import (bank_import.CATEG
 """
 import re
 
-from flask import g, has_app_context
+from flask import has_app_context
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db
 from app.models.category import CategoryRule
 from app.models.transaction import Transaction
+from app.services import request_cache
 from app.services.parsing import normalize
 
 MIN_KEYWORD = 3  # shorter words would match too much ("bar" is the shortest useful one)
@@ -22,15 +23,16 @@ def clean_keyword(keyword: str | None) -> str:
 
 def _compiled() -> list[tuple[CategoryRule, re.Pattern]]:
     """The rules as patterns, longest (most specific) first; loaded once per request."""
-    if "category_rules" not in g:
+    store = request_cache.cache()
+    if "category_rules" not in store:
         rules = CategoryRule.query.all()
         rules.sort(key=lambda r: (r.source != "manual", -len(r.keyword)))
-        g.category_rules = [(r, re.compile(r"\b" + re.escape(r.keyword) + r"\b")) for r in rules]
-    return g.category_rules
+        store["category_rules"] = [(r, re.compile(r"\b" + re.escape(r.keyword) + r"\b")) for r in rules]
+    return store["category_rules"]
 
 
 def forget_cache() -> None:
-    g.pop("category_rules", None)
+    request_cache.cache().pop("category_rules", None)
 
 
 def match(*texts: str | None) -> str | None:
