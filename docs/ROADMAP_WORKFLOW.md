@@ -66,6 +66,16 @@ Each step = model + migration + service + routes/templates + tests, then a commi
 | Real Portfolio, Debt, Insurance, Documents, Snapshots, Goals, Balance Sheet | C | ✅ `ea58fbe` |
 | Full backup and restore | C | ✅ `ea58fbe` |
 | Settings saved in the database (bug) | C | ✅ `ea58fbe` |
-| CI, Docker, production config | A | ⏳ |
-| More banks, Excel manual mapping, real PDF, `.doc` | B | ⏳ |
-| Steps C1–C12 | C | ⏳ |
+| CI (GitHub Actions), Docker image + compose, production config (gunicorn, secure cookies, proxy, logs) | A | ✅ merged `e48b48b` |
+| More banks (UniCredit, BPER, BancoPosta, ING, Revolut, N26), Excel manual mapping, real PDF, `.doc` | B | ✅ merged `e7cd60a` |
+| C1 Disabled modules unreachable | C | ✅ `9800dfd` |
+| C2 Transaction form validation | C | ✅ `598641e` |
+| C3 + C4 Editable categories, user and learned rules | C | ✅ `0ddfafc` |
+| C5 Accounts and cards, reconciliation | C | ✅ `c654363`, `2a9c875` |
+| C6 Multi-currency | C | ✅ `31f9daf` |
+| C7 Monthly budgets | C | ✅ `0e20de2` |
+| C8 Reminders | C | ✅ `7745eae` |
+| C9 Display preferences applied | C | ✅ `74aa1d9` |
+| C10 Cash flow from explicit links | C | ✅ `6791a8a` |
+| C11 AI reading in the background (in-memory job + JSON state, no job table) | agent | ✅ merged `88f22da` |
+| C12 i18n (Italian / English) | agent | ⏳ in progress on `track/i18n` |
