@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.wealth import Document
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
-from app.services import ai_classification, ai_extraction, duplicates
+from app.services import ai_classification, ai_extraction, category_rules, duplicates
 from app.services.categories import known_categories
 from app.services.parsing import TRANSACTION_TYPES, valid_amount
 from app.services.periods import month_bounds
@@ -131,8 +131,20 @@ def new():
         db.session.add(tx)
         db.session.commit()
         flash("Transazione aggiunta.", "success")
+        _learn_from(tx)
         return redirect(url_for("transactions.index"))
     return _render_form(None)
+
+
+def _learn_from(tx: Transaction) -> None:
+    """"Ricorda" ticked: the category becomes a rule for this counterparty (Settings → Regole)."""
+    if "learn_rule" not in request.form:
+        return
+    rule = category_rules.learn(tx.counterparty, tx.category)
+    if rule:
+        flash(f"Da ora le transazioni di «{tx.counterparty}» andranno in «{tx.category}».", "success")
+    else:
+        flash("Per ricordare la categoria servono una categoria e una controparte (almeno 3 lettere).", "warning")
 
 
 def _render_form(tx: Transaction | None):
@@ -156,6 +168,7 @@ def edit(tx_id):
             return _render_form(db.session.get(Transaction, tx_id))
         db.session.commit()
         flash("Transazione aggiornata.", "success")
+        _learn_from(tx)
         return redirect(safe_next() or url_for("transactions.index"))
     return _render_form(tx)
 

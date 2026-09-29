@@ -11,13 +11,11 @@ from sqlalchemy import extract, func
 
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.services import wealth
+from app.services import categories, wealth
 from app.services.periods import MONTH_LABELS, month_bounds, month_index, month_label, shift_month, year_bounds
 
 UNCATEGORIZED = "Senza categoria"
 
-# Categories considered non-essential when computing the discretionary share
-DISCRETIONARY_CATEGORIES = {"Svago", "Abbonamenti", "Ristoranti", "Viaggi", "Shopping", "Hobby"}
 
 # Keywords used to classify "transfer" transactions in the cash-flow statement
 INVESTING_KEYWORDS  = ("invest", "portafoglio", "etf", "azion", "crypto", "obbligaz")
@@ -266,7 +264,8 @@ def lifestyle_report(year: int, today: date | None = None) -> dict:
         })
 
     months_elapsed = ref_month
-    discretionary = sum(i["amount"] for i in breakdown if i["category"] in DISCRETIONARY_CATEGORIES)
+    non_essential = categories.discretionary()  # marked in Settings → Categorie
+    discretionary = sum(i["amount"] for i in breakdown if i["category"] in non_essential)
 
     return {
         "year": year,

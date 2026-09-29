@@ -97,6 +97,12 @@
           </div>
         </div>
 
+        <label class="d-flex align-center gap-8 text-sm mb-16" style="margin-top:-8px;">
+          <input type="checkbox" name="learn_rule" value="1" class="check" />
+          <span>Ricorda: usa questa categoria anche per le prossime transazioni di questa controparte
+            (<a href="{{ url_for('settings.rules_page') }}">regole</a>)</span>
+        </label>
+
         <!-- Tag ─────────────────────────────────────────────────────── -->
         <div class="form-group">
           <label class="form-label">Tag <span style="font-weight:400;color:var(--clr-text-muted);">(separati da virgola)</span></label>

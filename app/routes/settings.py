@@ -4,7 +4,11 @@ import re
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, has_request_context
 from apiflask import APIBlueprint
 
-from app.services import ai_classification, ai_extraction, ai_models, settings_store
+from app.extensions import db
+from app.models.category import Category, CategoryRule
+from app.routes.helpers import form_choice, form_text
+from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, settings_store
+from app.services.bank_import import CATEGORY_RULES
 
 settings_bp = APIBlueprint(
     "settings",
@@ -114,6 +118,95 @@ def reset():
     session.pop("settings", None)
     flash("Impostazioni ripristinate ai valori predefiniti.", "success")
     return redirect(url_for("settings.index"))
+
+
+# ── Categories ─────────────────────────────────────────────────────────────────
+
+@settings_bp.route("/categories")
+def categories_page():
+    return render_template("settings/categories.html", categories=categories.all_categories(),
+                           usage=categories.usage(), kinds=categories.KINDS,
+                           unmanaged=sorted(categories.used_names() - {c.name for c in categories.all_categories()}))
+
+
+@settings_bp.route("/categories/save", methods=["POST"])
+def category_save():
+    """Add a category, or change one: renaming it (or merging into another) updates every transaction."""
+    try:
+        name = form_text("name", "Nome", required=True)
+        kind = form_choice("kind", "Tipo", categories.KINDS)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("settings.categories_page"))
+    old = request.form.get("old_name")
+    hint = form_text("hint", "Descrizione")
+    discretionary = "discretionary" in request.form
+    if old and old != name:
+        merged = categories.rename(old, name)
+        flash(f"«{old}» unita a «{name}»." if merged else f"«{old}» rinominata in «{name}».", "success")
+    category = Category.query.filter_by(name=name).first()
+    if category is None:
+        category = Category(name=name, position=len(categories.all_categories()))
+        db.session.add(category)
+        if not old:
+            flash(f"Categoria «{name}» aggiunta.", "success")
+    elif not old:
+        flash(f"La categoria «{name}» esiste già: aggiornata.", "success")
+    category.kind, category.hint, category.discretionary = kind, hint, discretionary
+    db.session.commit()
+    if old == name:
+        flash(f"Categoria «{name}» aggiornata.", "success")
+    return redirect(url_for("settings.categories_page"))
+
+
+@settings_bp.route("/categories/delete", methods=["POST"])
+def category_delete():
+    name = request.form.get("name") or ""
+    replacement = request.form.get("replacement") or None
+    if replacement == name:
+        replacement = None
+    moved = categories.delete(name, replacement)
+    target = f"spostate in «{replacement}»" if replacement else "lasciate senza categoria"
+    flash(f"Categoria «{name}» eliminata" + (f": {moved} transazioni {target}." if moved else "."), "success")
+    return redirect(url_for("settings.categories_page"))
+
+
+# ── Categorization rules ───────────────────────────────────────────────────────
+
+@settings_bp.route("/rules")
+def rules_page():
+    rules = CategoryRule.query.order_by(CategoryRule.source, CategoryRule.keyword).all()
+    return render_template("settings/rules.html", rules=rules, builtin=CATEGORY_RULES,
+                           categories=categories.known_categories())
+
+
+@settings_bp.route("/rules/save", methods=["POST"])
+def rule_save():
+    try:
+        rule = category_rules.save(request.form.get("keyword") or "", request.form.get("category") or "")
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("settings.rules_page"))
+    flash(f"Regola salvata: «{rule.keyword}» → {rule.category}.", "success")
+    if request.form.get("apply"):
+        flash(f"Ricategorizzate {category_rules.apply()} transazioni senza categoria o in «Altro».", "success")
+    return redirect(url_for("settings.rules_page"))
+
+
+@settings_bp.route("/rules/<int:rule_id>/delete", methods=["POST"])
+def rule_delete(rule_id):
+    rule = db.get_or_404(CategoryRule, rule_id)
+    db.session.delete(rule)
+    db.session.commit()
+    flash(f"Regola «{rule.keyword}» eliminata.", "success")
+    return redirect(url_for("settings.rules_page"))
+
+
+@settings_bp.route("/rules/apply", methods=["POST"])
+def rules_apply():
+    changed = category_rules.apply(only_uncategorized=not request.form.get("all"))
+    flash(f"Regole applicate: {changed} transazioni ricategorizzate.", "success")
+    return redirect(url_for("settings.rules_page"))
 
 
 # ── AI models (Ollama / Anthropic) ─────────────────────────────────────────────

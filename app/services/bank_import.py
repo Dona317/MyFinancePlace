@@ -29,6 +29,7 @@ from decimal import Decimal
 from statistics import median
 
 from app.models.transaction import Transaction
+from app.services import category_rules
 from app.services import ai_extraction, duplicates
 from app.services import statement_readers as readers
 from app.services.parsing import TRANSACTION_TYPES, clean_text, normalize, to_date, to_decimal, valid_amount
@@ -155,7 +156,10 @@ def _search_text(*parts: str | None) -> str:
 
 
 def categorize(description: str, details: str | None = None, bank_category: str | None = None) -> str:
-    """App category for a statement row: keyword rules first, then the bank's own category, else "Altro"."""
+    """App category for a statement row: the user's rules, the built-in keyword rules, the bank's category, "Altro"."""
+    learned = category_rules.match(description, details)
+    if learned:
+        return learned
     text = _search_text(description, details)
     for category, pattern in _RULE_PATTERNS:
         if pattern.search(text):
