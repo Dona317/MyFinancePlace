@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Portafoglio — MyFinancePlace{% endblock %}
-{% block page_title %}Portafoglio Investimenti{% endblock %}
-{% block breadcrumb %}<li>Portafoglio</li>{% endblock %}
+{% block title %}{{ _('Portafoglio') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Portafoglio Investimenti') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Portafoglio') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% if summary.value or holdings %}
   <a href="{{ url_for('portfolio.prices') }}" class="btn btn-ghost btn-sm">
-    <i class="bi bi-arrow-repeat"></i> Aggiorna prezzi
+    <i class="bi bi-arrow-repeat"></i> {{ _('Aggiorna prezzi') }}
   </a>
   {% endif %}
   <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> Aggiungi Posizione
+    <i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}
   </a>
 {% endblock %}
 
@@ -21,27 +21,27 @@
 <div class="kpi-grid mb-24">
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
-    <div class="kpi-label">Valore Totale</div>
+    <div class="kpi-label">{{ _('Valore Totale') }}</div>
     <div class="kpi-value">{{ summary.value|money }}</div>
-    <div class="kpi-sub">ai prezzi più recenti</div>
+    <div class="kpi-sub">{{ _('ai prezzi più recenti') }}</div>
   </div>
   <div class="kpi-card {{ 'kpi-positive' if summary.gain >= 0 else 'kpi-negative' }}">
     <div class="kpi-icon"><i class="bi bi-graph-{{ 'up' if summary.gain >= 0 else 'down' }}-arrow"></i></div>
-    <div class="kpi-label">Guadagno</div>
+    <div class="kpi-label">{{ _('Guadagno') }}</div>
     <div class="kpi-value {{ 'text-positive' if summary.gain >= 0 else 'text-negative' }}">{{ '+' if summary.gain > 0 }}{{ summary.gain|money }}</div>
     <div class="kpi-sub">{{ '+' if summary.gain_pct > 0 }}{{ summary.gain_pct|number }}% sul capitale</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
-    <div class="kpi-label">Investito</div>
+    <div class="kpi-label">{{ _('Investito') }}</div>
     <div class="kpi-value">{{ summary.cost|money }}</div>
-    <div class="kpi-sub">quantità × prezzo medio</div>
+    <div class="kpi-sub">{{ _('quantità × prezzo medio') }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-building-check"></i></div>
-    <div class="kpi-label">Dividendi (anno)</div>
+    <div class="kpi-label">{{ _('Dividendi (anno)') }}</div>
     <div class="kpi-value">{{ dividends_ytd|money }}</div>
-    <div class="kpi-sub">entrate con categoria «Dividendi» o «Cedole»</div>
+    <div class="kpi-sub">{{ _('entrate con categoria «Dividendi» o «Cedole»') }}</div>
   </div>
 </div>
 
@@ -49,28 +49,28 @@
 <div class="row-2">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Allocazione per Classe</div>
+      <div class="card-header-title">{{ _('Allocazione per Classe') }}</div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
         {% if summary.allocation %}<canvas id="allocationChart"></canvas>
-        {% else %}<div class="chart-empty">Aggiungi una posizione per vedere come è ripartito il patrimonio.</div>{% endif %}
+        {% else %}<div class="chart-empty">{{ _('Aggiungi una posizione per vedere come è ripartito il patrimonio.') }}</div>{% endif %}
       </div>
     </div>
   </div>
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">Andamento del Portafoglio</div>
-        <div class="card-header-sub">Dalle istantanee</div>
+        <div class="card-header-title">{{ _('Andamento del Portafoglio') }}</div>
+        <div class="card-header-sub">{{ _('Dalle istantanee') }}</div>
       </div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
         {% if trend.data|length >= 2 %}<canvas id="portfolioTrendChart"></canvas>
         {% else %}<div class="chart-empty">
-          Il valore nel tempo viene dalle istantanee: creane una ogni mese da
-          <a href="{{ url_for('snapshots.index') }}">&nbsp;Istantanee</a>.
+          {{ _('Il valore nel tempo viene dalle istantanee: creane una ogni mese da') }}
+          <a href="{{ url_for('snapshots.index') }}">{{ _('&nbsp;Istantanee') }}</a>.
         </div>{% endif %}
       </div>
     </div>
@@ -80,15 +80,15 @@
 <!-- Tabella posizioni ─────────────────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
-    <div class="card-header-title">Posizioni</div>
+    <div class="card-header-title">{{ _('Posizioni') }}</div>
     <form method="GET" class="inline-filter">
-      <select name="asset_class" class="form-select" onchange="this.form.submit()" aria-label="Filtra per classe">
-        <option value="">Tutte le classi</option>
+      <select name="asset_class" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Filtra per classe') }}">
+        <option value="">{{ _('Tutte le classi') }}</option>
         {% for cls in asset_classes %}
         <option {{ 'selected' if cls == selected }}>{{ cls }}</option>
         {% endfor %}
       </select>
-      <noscript><button class="btn btn-ghost btn-sm">Filtra</button></noscript>
+      <noscript><button class="btn btn-ghost btn-sm">{{ _('Filtra') }}</button></noscript>
     </form>
   </div>
 
@@ -97,15 +97,15 @@
     <table>
       <thead>
         <tr>
-          <th>Strumento</th>
-          <th>Classe</th>
-          <th class="text-right">Quantità</th>
-          <th class="text-right">Prezzo Medio</th>
-          <th class="text-right">Prezzo Attuale</th>
-          <th class="text-right">Valore</th>
+          <th>{{ _('Strumento') }}</th>
+          <th>{{ _('Classe') }}</th>
+          <th class="text-right">{{ _('Quantità') }}</th>
+          <th class="text-right">{{ _('Prezzo Medio') }}</th>
+          <th class="text-right">{{ _('Prezzo Attuale') }}</th>
+          <th class="text-right">{{ _('Valore') }}</th>
           <th class="text-right">G/P</th>
           <th class="text-right">G/P %</th>
-          <th class="text-right">Azioni</th>
+          <th class="text-right">{{ _('Azioni') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -131,12 +131,12 @@
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('portfolio.edit', holding_id=h.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica" aria-label="Modifica {{ h.name }}">
+              <a href="{{ url_for('portfolio.edit', holding_id=h.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica {{ h.name }}">
                 <i class="bi bi-pencil"></i>
               </a>
               <form method="POST" action="{{ url_for('portfolio.delete', holding_id=h.id) }}"
                     data-confirm="Eliminare la posizione «{{ h.name }}»?">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ h.name }}">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ h.name }}">
                   <i class="bi bi-trash3"></i>
                 </button>
               </form>
@@ -148,7 +148,7 @@
       {% if not selected %}
       <tfoot>
         <tr>
-          <td colspan="5">Totale</td>
+          <td colspan="5">{{ _('Totale') }}</td>
           <td class="amount text-right">{{ summary.value|money }}</td>
           <td class="amount text-right {{ 'positive' if summary.gain >= 0 else 'negative' }}">{{ '+' if summary.gain > 0 }}{{ summary.gain|money }}</td>
           <td class="text-right">{{ '+' if summary.gain_pct > 0 }}{{ summary.gain_pct|number(1) }}%</td>
@@ -161,18 +161,17 @@
   {% elif selected %}
   <div class="empty-state">
     <div class="empty-state-text">Nessuna posizione nella classe «{{ selected }}».</div>
-    <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost">Mostra tutte</a>
+    <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost">{{ _('Mostra tutte') }}</a>
   </div>
   {% else %}
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-briefcase"></i></div>
-    <div class="empty-state-title">Nessuna posizione nel portafoglio</div>
+    <div class="empty-state-title">{{ _('Nessuna posizione nel portafoglio') }}</div>
     <div class="empty-state-text">
-      Aggiungi azioni, ETF, fondi, obbligazioni, criptovalute, conti deposito, fondi pensione o immobili:
-      entrano nel patrimonio netto e nello stato patrimoniale.
+      {{ _('Aggiungi azioni, ETF, fondi, obbligazioni, criptovalute, conti deposito, fondi pensione o immobili: entrano nel patrimonio netto e nello stato patrimoniale.') }}
     </div>
     <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary">
-      <i class="bi bi-plus-lg"></i> Aggiungi Posizione
+      <i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}
     </a>
   </div>
   {% endif %}

@@ -4,7 +4,7 @@
 {% set a = account or {} %}
 {% block title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Conto — MyFinancePlace{% endblock %}
 {% block page_title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Conto{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">Conti e Carte</a></li><li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">
@@ -24,7 +24,7 @@
         {{ f.text(values, 'iban_tail', 'Ultime cifre IBAN o carta', a.iban_tail, placeholder='es. 4821') }}
         {{ f.textarea(values, 'notes', 'Note', a.notes) }}
         {% set is_active = ('active' in values) if values else (a.active if is_edit else true) %}
-        <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" class="check" {{ 'checked' if is_active }} /> Conto attivo (togli la spunta se l'hai chiuso)</label>
+        <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" class="check" {{ 'checked' if is_active }} /> {{ _("Conto attivo (togli la spunta se l'hai chiuso)") }}</label>
         {{ f.actions(url_for('accounts.detail', account_id=account.id) if is_edit else url_for('accounts.index'),
                      'Salva Modifiche' if is_edit else 'Aggiungi Conto') }}
       </form>

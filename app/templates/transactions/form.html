@@ -5,7 +5,7 @@
 {% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione — MyFinancePlace{% endblock %}
 {% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione{% endblock %}
 {% block breadcrumb %}
-  <li><a href="{{ url_for('transactions.index') }}">Transazioni</a></li>
+  <li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li>
   <li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>
 {% endblock %}
 
@@ -25,7 +25,7 @@
         <!-- Tipo e Data ───────────────────────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Tipo</label>
+            <label class="form-label">{{ _('Tipo') }}</label>
             <div style="display:flex;gap:8px;">
               {% for val, label, color in [('expense','Uscita','negative'), ('income','Entrata','positive'), ('transfer','Trasferimento','neutral')] %}
               <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;transition:background .2s,border-color .2s;font-size:var(--font-size-sm);font-weight:500;">
@@ -38,7 +38,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Data</label>
+            <label class="form-label">{{ _('Data') }}</label>
             <input type="date" name="date" class="form-control"
                    value="{{ v.date }}" required />
           </div>
@@ -47,7 +47,7 @@
         <!-- Importo e Valuta ─────────────────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Importo</label>
+            <label class="form-label">{{ _('Importo') }}</label>
             <div style="position:relative;">
               <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
               <input type="text" inputmode="decimal" name="amount" class="form-control" style="padding-left:28px;"
@@ -55,7 +55,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Valuta</label>
+            <label class="form-label">{{ _('Valuta') }}</label>
             <select name="currency" class="form-select">
               {% for code, (sym, name) in currencies.items() %}
               <option value="{{ code }}" {{ 'selected' if v.currency == code }}>{{ code }} — {{ name }}</option>
@@ -66,13 +66,13 @@
 
         <!-- Descrizione ──────────────────────────────────────────────── -->
         <div class="form-group">
-          <label class="form-label">Descrizione</label>
+          <label class="form-label">{{ _('Descrizione') }}</label>
           <input type="text" name="description" class="form-control"
-                 placeholder="es. Spesa al supermercato"
+                 placeholder="{{ _('es. Spesa al supermercato') }}"
                  value="{{ v.description }}" required />
           {% if is_edit and transaction.bank_description %}
           <div style="margin-top:6px;font-size:var(--font-size-xs);color:var(--clr-text-muted);">
-            <i class="bi bi-bank"></i> <strong>Causale della banca</strong> (conservata così come importata, non modificabile):
+            <i class="bi bi-bank"></i> <strong>{{ _('Causale della banca') }}</strong> {{ _('(conservata così come importata, non modificabile):') }}
             <div style="font-family:monospace;background:var(--clr-bg-input);padding:6px 8px;border-radius:6px;margin-top:4px;">{{ transaction.bank_description }}</div>
           </div>
           {% endif %}
@@ -81,18 +81,18 @@
         <!-- Categoria e Controparte ──────────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Categoria</label>
+            <label class="form-label">{{ _('Categoria') }}</label>
             <select name="category" class="form-select">
-              <option value="">— Seleziona —</option>
+              <option value="">{{ _('— Seleziona —') }}</option>
               {% for cat in categories %}
               <option value="{{ cat }}" {{ 'selected' if v.category == cat else '' }}>{{ cat }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Controparte</label>
+            <label class="form-label">{{ _('Controparte') }}</label>
             <input type="text" name="counterparty" class="form-control"
-                   placeholder="es. Esselunga, Datore di lavoro..."
+                   placeholder="{{ _('es. Esselunga, Datore di lavoro...') }}"
                    value="{{ v.counterparty }}" />
           </div>
         </div>
@@ -100,16 +100,16 @@
         {% if accounts %}
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label" for="f-account">Conto</label>
+            <label class="form-label" for="f-account">{{ _('Conto') }}</label>
             <select id="f-account" name="account_id" class="form-select">
-              <option value="">— Nessuno —</option>
+              <option value="">{{ _('— Nessuno —') }}</option>
               {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if v.account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
             </select>
           </div>
           <div class="form-group" id="counter-account-group" {% if v.type != 'transfer' %}hidden{% endif %}>
-            <label class="form-label" for="f-counter">Verso il conto <span class="text-muted" style="font-weight:400;">(trasferimenti)</span></label>
+            <label class="form-label" for="f-counter">{{ _('Verso il conto') }} <span class="text-muted" style="font-weight:400;">{{ _('(trasferimenti)') }}</span></label>
             <select id="f-counter" name="counter_account_id" class="form-select">
-              <option value="">— Fuori dai miei conti —</option>
+              <option value="">{{ _('— Fuori dai miei conti —') }}</option>
               {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if v.counter_account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
             </select>
           </div>
@@ -120,18 +120,18 @@
         <div class="grid-2">
           {% if holdings %}
           <div class="form-group">
-            <label class="form-label" for="f-holding">Investimento <span class="text-muted" style="font-weight:400;">(acquisto, vendita, dividendo)</span></label>
+            <label class="form-label" for="f-holding">{{ _('Investimento') }} <span class="text-muted" style="font-weight:400;">{{ _('(acquisto, vendita, dividendo)') }}</span></label>
             <select id="f-holding" name="holding_id" class="form-select">
-              <option value="">— Nessuno —</option>
+              <option value="">{{ _('— Nessuno —') }}</option>
               {% for h in holdings %}<option value="{{ h.id }}" {{ 'selected' if v.holding_id == h.id|string }}>{{ h.name }}</option>{% endfor %}
             </select>
           </div>
           {% endif %}
           {% if debts %}
           <div class="form-group">
-            <label class="form-label" for="f-debt">Debito <span class="text-muted" style="font-weight:400;">(rata, erogazione)</span></label>
+            <label class="form-label" for="f-debt">{{ _('Debito') }} <span class="text-muted" style="font-weight:400;">{{ _('(rata, erogazione)') }}</span></label>
             <select id="f-debt" name="debt_id" class="form-select">
-              <option value="">— Nessuno —</option>
+              <option value="">{{ _('— Nessuno —') }}</option>
               {% for d in debts %}<option value="{{ d.id }}" {{ 'selected' if v.debt_id == d.id|string }}>{{ d.name }}</option>{% endfor %}
             </select>
           </div>
@@ -141,17 +141,16 @@
 
         <label class="d-flex align-center gap-8 text-sm mb-16" style="margin-top:-8px;">
           <input type="checkbox" name="learn_rule" value="1" class="check" />
-          <span>Ricorda: usa questa categoria anche per le prossime transazioni di questa controparte
-            (<a href="{{ url_for('settings.rules_page') }}">regole</a>)</span>
+          <span>{{ _('Ricorda: usa questa categoria anche per le prossime transazioni di questa controparte (') }}<a href="{{ url_for('settings.rules_page') }}">{{ _('regole') }}</a>)</span>
         </label>
 
         <!-- Tag ─────────────────────────────────────────────────────── -->
         <div class="form-group">
-          <label class="form-label">Tag <span style="font-weight:400;color:var(--clr-text-muted);">(separati da virgola)</span></label>
+          <label class="form-label">{{ _('Tag') }} <span style="font-weight:400;color:var(--clr-text-muted);">{{ _('(separati da virgola)') }}</span></label>
           <input type="text" name="tags" class="form-control"
-                 placeholder="es. deducibile, lavoro, vacanza"
+                 placeholder="{{ _('es. deducibile, lavoro, vacanza') }}"
                  value="{{ v.tags }}" />
-          <div class="form-hint">I tag facilitano la ricerca e il raggruppamento delle transazioni.</div>
+          <div class="form-hint">{{ _('I tag facilitano la ricerca e il raggruppamento delle transazioni.') }}</div>
         </div>
 
         <!-- Ricorrente ───────────────────────────────────────────────── -->
@@ -162,13 +161,13 @@
                      {{ 'checked' if v.is_recurring else '' }}
                      onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
               <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">
-                Transazione Ricorrente
+                {{ _('Transazione Ricorrente') }}
               </label>
             </div>
             <div id="recurring-opts" style="display:{{ 'block' if v.is_recurring else 'none' }};">
               <div class="grid-2">
                 <div class="form-group" style="margin-bottom:0;">
-                  <label class="form-label">Frequenza</label>
+                  <label class="form-label">{{ _('Frequenza') }}</label>
                   <select name="recurrence" class="form-select">
                     {% set current = v.recurrence or 'monthly' %}
                     {% for val, lbl in [('weekly','Settimanale'),('monthly','Mensile'),('quarterly','Trimestrale'),('yearly','Annuale')] %}
@@ -177,7 +176,7 @@
                   </select>
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
-                  <label class="form-label">Fine Ricorrenza</label>
+                  <label class="form-label">{{ _('Fine Ricorrenza') }}</label>
                   <input type="date" name="recurrence_end" class="form-control"
                          value="{{ v.recurrence_end }}" />
                 </div>
@@ -188,9 +187,9 @@
 
         <!-- Note ─────────────────────────────────────────────────────── -->
         <div class="form-group">
-          <label class="form-label">Note</label>
+          <label class="form-label">{{ _('Note') }}</label>
           <textarea name="notes" class="form-control" rows="2"
-                    placeholder="Note facoltative...">{{ v.notes }}</textarea>
+                    placeholder="{{ _('Note facoltative...') }}">{{ v.notes }}</textarea>
         </div>
 
         <!-- Azioni ──────────────────────────────────────────────────── -->
@@ -198,11 +197,11 @@
         <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
           {% if is_edit %}
           <button type="submit" form="delete-form" class="btn btn-ghost" style="margin-right:auto;color:var(--clr-negative);">
-            <i class="bi bi-trash3"></i> Elimina
+            <i class="bi bi-trash3"></i> {{ _('Elimina') }}
           </button>
           {% endif %}
           <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost">
-            <i class="bi bi-x"></i> Annulla
+            <i class="bi bi-x"></i> {{ _('Annulla') }}
           </a>
           <button type="submit" class="btn btn-primary">
             <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if is_edit else 'Aggiungi Transazione' }}
@@ -212,7 +211,7 @@
       </form>
       {% if is_edit %}
       <form method="POST" action="{{ url_for('transactions.delete', tx_id=transaction.id) }}" id="delete-form"
-            data-confirm="Eliminare definitivamente questa transazione?">
+            data-confirm="{{ _('Eliminare definitivamente questa transazione?') }}">
         <input type="hidden" name="next" value="{{ next_url or url_for('transactions.index') }}" />
       </form>
       {% endif %}
@@ -222,8 +221,8 @@
   {% if is_edit %}
   <div class="card mt-16">
     <div class="card-header">
-      <div class="card-header-title"><i class="bi bi-paperclip"></i> Documenti collegati</div>
-      <a href="{{ url_for('documents.index') }}" class="btn btn-ghost btn-sm">Archivio <i class="bi bi-arrow-right"></i></a>
+      <div class="card-header-title"><i class="bi bi-paperclip"></i> {{ _('Documenti collegati') }}</div>
+      <a href="{{ url_for('documents.index') }}" class="btn btn-ghost btn-sm">{{ _('Archivio') }} <i class="bi bi-arrow-right"></i></a>
     </div>
     <div class="card-body">
       {% if documents %}
@@ -236,7 +235,7 @@
         {% endfor %}
       </ul>
       {% else %}
-      <p class="text-sm text-muted">Nessun documento. Carica la fattura o lo scontrino in Documenti e collegalo a questa transazione.</p>
+      <p class="text-sm text-muted">{{ _('Nessun documento. Carica la fattura o lo scontrino in Documenti e collegalo a questa transazione.') }}</p>
       {% endif %}
     </div>
   </div>

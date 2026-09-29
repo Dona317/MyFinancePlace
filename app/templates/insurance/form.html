@@ -4,7 +4,7 @@
 {% set p = policy or {} %}
 {% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Polizza — MyFinancePlace{% endblock %}
 {% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Polizza{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('insurance.index') }}">Assicurazioni</a></li><li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('insurance.index') }}">{{ _('Assicurazioni') }}</a></li><li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">

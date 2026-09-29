@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Spese e Tendenze — MyFinancePlace{% endblock %}
-{% block page_title %}Stile di Vita{% endblock %}
-{% block breadcrumb %}<li>Spese e Tendenze</li>{% endblock %}
+{% block title %}{{ _('Spese e Tendenze') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Stile di Vita') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Spese e Tendenze') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% include "partials/year_select.html" %}
@@ -14,27 +14,27 @@
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-cart3"></i></div>
-    <div class="kpi-label">Spese Totali</div>
+    <div class="kpi-label">{{ _('Spese Totali') }}</div>
     <div class="kpi-value text-negative" data-amount="{{ report.total_expenses }}">—</div>
     <div class="kpi-sub">Anno {{ year }}</div>
   </div>
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-calendar3"></i></div>
-    <div class="kpi-label">Media Mensile</div>
+    <div class="kpi-label">{{ _('Media Mensile') }}</div>
     <div class="kpi-value" data-amount="{{ report.monthly_average }}">—</div>
     <div class="kpi-sub">Gen → {{ report.reference_month }} {{ year }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-graph-up"></i></div>
-    <div class="kpi-label">Categoria Top</div>
+    <div class="kpi-label">{{ _('Categoria Top') }}</div>
     <div class="kpi-value" style="font-size:var(--font-size-xl);">{{ report.top_category or '—' }}</div>
-    <div class="kpi-sub">Spesa maggiore</div>
+    <div class="kpi-sub">{{ _('Spesa maggiore') }}</div>
   </div>
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">Spese Discrezionali</div>
+    <div class="kpi-label">{{ _('Spese Discrezionali') }}</div>
     <div class="kpi-value">{{ "%.1f"|format(report.discretionary_share) }}%</div>
-    <div class="kpi-sub">del totale spese</div>
+    <div class="kpi-sub">{{ _('del totale spese') }}</div>
   </div>
 </div>
 
@@ -43,7 +43,7 @@
 
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Spese per Categoria</div>
+      <div class="card-header-title">{{ _('Spese per Categoria') }}</div>
       <div class="card-header-sub">Anno {{ year }}</div>
     </div>
     <div class="card-body">
@@ -53,7 +53,7 @@
 
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Andamento Mensile per Categoria</div>
+      <div class="card-header-title">{{ _('Andamento Mensile per Categoria') }}</div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:280px;"><canvas id="categoryTrend"></canvas></div>
@@ -65,18 +65,18 @@
 <!-- Tabella dettaglio categorie ─────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
-    <div class="card-header-title">Dettaglio per Categoria</div>
+    <div class="card-header-title">{{ _('Dettaglio per Categoria') }}</div>
     <div class="card-header-sub">{{ report.reference_month }} {{ year }} vs mese precedente</div>
   </div>
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>Categoria</th>
-          <th class="text-right">Questo Mese</th>
-          <th class="text-right">Mese Scorso</th>
-          <th class="text-right">Variazione</th>
-          <th style="min-width:140px;">% sul Totale</th>
+          <th>{{ _('Categoria') }}</th>
+          <th class="text-right">{{ _('Questo Mese') }}</th>
+          <th class="text-right">{{ _('Mese Scorso') }}</th>
+          <th class="text-right">{{ _('Variazione') }}</th>
+          <th style="min-width:140px;">{{ _('%% sul Totale') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -114,14 +114,14 @@
         <tr><td colspan="5">
           <div class="empty-state" style="padding:32px;">
             <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-            <div class="empty-state-text">Nessuna spesa registrata in questo periodo.</div>
+            <div class="empty-state-text">{{ _('Nessuna spesa registrata in questo periodo.') }}</div>
           </div>
         </td></tr>
         {% endfor %}
       </tbody>
       <tfoot>
         <tr>
-          <td>Totale</td>
+          <td>{{ _('Totale') }}</td>
           <td class="amount text-right">{{ report.this_month_total|money }}</td>
           <td class="amount text-right">{{ report.last_month_total|money }}</td>
           <td></td>

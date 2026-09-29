@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Debiti — MyFinancePlace{% endblock %}
-{% block page_title %}Gestione Debiti{% endblock %}
-{% block breadcrumb %}<li>Debiti</li>{% endblock %}
+{% block title %}{{ _('Debiti') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Gestione Debiti') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Debiti') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('debt.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> Nuovo Debito
+    <i class="bi bi-plus-lg"></i> {{ _('Nuovo Debito') }}
   </a>
 {% endblock %}
 
@@ -16,29 +16,29 @@
 <div class="kpi-grid mb-24">
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-credit-card-2-back"></i></div>
-    <div class="kpi-label">Debito Residuo</div>
+    <div class="kpi-label">{{ _('Debito Residuo') }}</div>
     <div class="kpi-value text-negative">{{ total_balance|money }}</div>
     <div class="kpi-sub">{{ summaries|length }} {{ 'debito' if summaries|length == 1 else 'debiti' }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
-    <div class="kpi-label">Rate Mensili</div>
+    <div class="kpi-label">{{ _('Rate Mensili') }}</div>
     <div class="kpi-value">{{ monthly_total|money }}</div>
-    <div class="kpi-sub">somma delle rate in corso</div>
+    <div class="kpi-sub">{{ _('somma delle rate in corso') }}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-percent"></i></div>
-    <div class="kpi-label">Interessi (anno)</div>
+    <div class="kpi-label">{{ _('Interessi (anno)') }}</div>
     <div class="kpi-value">{{ interest_ytd|money }}</div>
-    <div class="kpi-sub">dal piano di ammortamento</div>
+    <div class="kpi-sub">{{ _('dal piano di ammortamento') }}</div>
   </div>
   <div class="kpi-card {{ 'kpi-negative' if debt_to_income and debt_to_income > 35 else 'kpi-positive' }}">
     <div class="kpi-icon"><i class="bi bi-speedometer2"></i></div>
-    <div class="kpi-label">Rate / Reddito</div>
+    <div class="kpi-label">{{ _('Rate / Reddito') }}</div>
     <div class="kpi-value">{{ (debt_to_income|number(1) ~ '%') if debt_to_income is not none else '—' }}</div>
     <div class="kpi-sub">
-      {% if debt_to_income is none %}servono le entrate degli ultimi 12 mesi
-      {% else %}su {{ average_income|money }} di entrate medie al mese{% if debt_to_income > 35 %} · oltre il 35% consigliato{% endif %}{% endif %}
+      {% if debt_to_income is none %}{{ _('servono le entrate degli ultimi 12 mesi') }}
+      {% else %}su {{ average_income|money }} di entrate medie al mese{% if debt_to_income > 35 %} {{ _('· oltre il 35%% consigliato') }}{% endif %}{% endif %}
     </div>
   </div>
 </div>
@@ -48,23 +48,23 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">Debito Residuo nei Prossimi Anni</div>
-        <div class="card-header-sub">Secondo i piani di ammortamento</div>
+        <div class="card-header-title">{{ _('Debito Residuo nei Prossimi Anni') }}</div>
+        <div class="card-header-sub">{{ _('Secondo i piani di ammortamento') }}</div>
       </div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:240px;">
         {% if projection.datasets %}<canvas id="debtAmortChart"></canvas>
-        {% else %}<div class="chart-empty">Nessun debito in corso.</div>{% endif %}
+        {% else %}<div class="chart-empty">{{ _('Nessun debito in corso.') }}</div>{% endif %}
       </div>
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-header-title">Distribuzione per Tipo</div></div>
+    <div class="card-header"><div class="card-header-title">{{ _('Distribuzione per Tipo') }}</div></div>
     <div class="card-body">
       <div class="chart-container" style="height:240px;">
         {% if by_type %}<canvas id="debtPieChart"></canvas>
-        {% else %}<div class="chart-empty">Nessun debito in corso.</div>{% endif %}
+        {% else %}<div class="chart-empty">{{ _('Nessun debito in corso.') }}</div>{% endif %}
       </div>
     </div>
   </div>
@@ -72,21 +72,21 @@
 
 <!-- Tabella debiti ────────────────────────────────────────────────────── -->
 <div class="card">
-  <div class="card-header"><div class="card-header-title">Debiti</div></div>
+  <div class="card-header"><div class="card-header-title">{{ _('Debiti') }}</div></div>
 
   {% if summaries %}
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>Debito</th>
-          <th class="text-right">Capitale</th>
-          <th class="text-right">Residuo</th>
-          <th class="text-right">Tasso</th>
-          <th class="text-right">Rata</th>
-          <th>Fine</th>
-          <th>Rimborsato</th>
-          <th class="text-right">Azioni</th>
+          <th>{{ _('Debito') }}</th>
+          <th class="text-right">{{ _('Capitale') }}</th>
+          <th class="text-right">{{ _('Residuo') }}</th>
+          <th class="text-right">{{ _('Tasso') }}</th>
+          <th class="text-right">{{ _('Rata') }}</th>
+          <th>{{ _('Fine') }}</th>
+          <th>{{ _('Rimborsato') }}</th>
+          <th class="text-right">{{ _('Azioni') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -102,7 +102,7 @@
           <td class="text-right nowrap">{{ d.annual_rate|number(3) }}%</td>
           <td class="amount text-right">{{ s.installment|money if s.installment else '—' }}</td>
           <td class="nowrap text-xs">
-            {% if s.never_ends %}<span class="badge badge-negative" title="La rata non copre gli interessi">mai</span>
+            {% if s.never_ends %}<span class="badge badge-negative" title="{{ _('La rata non copre gli interessi') }}">{{ _('mai') }}</span>
             {% else %}{{ s.end_date|it_date }}{% if s.months_left %}<div class="text-muted">{{ s.months_left }} rate</div>{% endif %}{% endif %}
           </td>
           <td style="min-width:120px;">
@@ -113,10 +113,10 @@
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('debt.detail', debt_id=d.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Piano di ammortamento" aria-label="Piano di {{ d.name }}"><i class="bi bi-table"></i></a>
-              <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica" aria-label="Modifica {{ d.name }}"><i class="bi bi-pencil"></i></a>
+              <a href="{{ url_for('debt.detail', debt_id=d.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Piano di ammortamento') }}" aria-label="Piano di {{ d.name }}"><i class="bi bi-table"></i></a>
+              <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica {{ d.name }}"><i class="bi bi-pencil"></i></a>
               <form method="POST" action="{{ url_for('debt.delete', debt_id=d.id) }}" data-confirm="Eliminare il debito «{{ d.name }}»?">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ d.name }}"><i class="bi bi-trash3"></i></button>
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ d.name }}"><i class="bi bi-trash3"></i></button>
               </form>
             </div>
           </td>
@@ -128,12 +128,11 @@
   {% else %}
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-credit-card"></i></div>
-    <div class="empty-state-title">Nessun debito registrato</div>
+    <div class="empty-state-title">{{ _('Nessun debito registrato') }}</div>
     <div class="empty-state-text">
-      Aggiungi mutui, prestiti e carte di credito: l'app calcola rata, piano di ammortamento e debito residuo,
-      e li sottrae dal patrimonio netto.
+      {{ _("Aggiungi mutui, prestiti e carte di credito: l'app calcola rata, piano di ammortamento e debito residuo, e li sottrae dal patrimonio netto.") }}
     </div>
-    <a href="{{ url_for('debt.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Aggiungi Debito</a>
+    <a href="{{ url_for('debt.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Debito') }}</a>
   </div>
   {% endif %}
 </div>

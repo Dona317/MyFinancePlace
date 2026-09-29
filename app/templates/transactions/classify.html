@@ -1,17 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Classificazione AI — MyFinancePlace{% endblock %}
-{% block page_title %}Classificazione AI{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">Transazioni</a></li><li>Classificazione AI</li>{% endblock %}
+{% block title %}{{ _('Classificazione AI') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Classificazione AI') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Classificazione AI') }}</li>{% endblock %}
 
 {% block content %}
 
 {% set suggested = rows|selectattr(1)|list %}
 <div class="alert alert-info mb-16" style="display:block;">
   <i class="bi bi-stars"></i>
-  <strong>{{ suggested|length }} suggerimenti</strong> su {{ rows|length }} transazioni, dal modello <code>{{ model }}</code>,
-  basati sulla causale della banca. Sono preselezionati quelli che cambiano qualcosa e di cui il modello è abbastanza sicuro:
-  controlla, correggi e applica.
+  <strong>{{ suggested|length }} suggerimenti</strong> su {{ rows|length }} transazioni, dal modello <code>{{ model }}</code>{{ _(', basati sulla causale della banca. Sono preselezionati quelli che cambiano qualcosa e di cui il modello è abbastanza sicuro: controlla, correggi e applica.') }}
 </div>
 
 <form method="POST" action="{{ url_for('transactions.classify_apply') }}" id="classify-form">
@@ -21,14 +19,14 @@
       <table>
         <thead>
           <tr>
-            <th style="width:60px;">Applica</th>
-            <th>Data</th>
-            <th>Descrizione e causale</th>
-            <th class="text-right">Importo</th>
-            <th>Categoria attuale</th>
-            <th style="width:180px;">Nuova categoria</th>
-            <th style="width:180px;">Controparte</th>
-            <th>Confidenza</th>
+            <th style="width:60px;">{{ _('Applica') }}</th>
+            <th>{{ _('Data') }}</th>
+            <th>{{ _('Descrizione e causale') }}</th>
+            <th class="text-right">{{ _('Importo') }}</th>
+            <th>{{ _('Categoria attuale') }}</th>
+            <th style="width:180px;">{{ _('Nuova categoria') }}</th>
+            <th style="width:180px;">{{ _('Controparte') }}</th>
+            <th>{{ _('Confidenza') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -58,13 +56,13 @@
             <td><input type="text" name="category-{{ tx.id }}" value="{{ tx.category if worse else s.category }}" list="category-options"
                        class="form-control" style="padding:6px 8px;{{ 'border-color:var(--clr-warning);' if s.confidence == 'bassa' else 'border-color:var(--chart-5);' }}" /></td>
             <td><input type="text" name="counterparty-{{ tx.id }}" value="{{ s.counterparty or tx.counterparty or '' }}"
-                       class="form-control" style="padding:6px 8px;" placeholder="Controparte" /></td>
+                       class="form-control" style="padding:6px 8px;" placeholder="{{ _('Controparte') }}" /></td>
             <td>
               <span class="badge {{ 'badge-positive' if s.confidence == 'alta' else ('badge-negative' if s.confidence == 'bassa' else 'badge-muted') }}">
                 {{ s.confidence }}</span>
             </td>
             {% else %}
-            <td class="text-xs text-muted" colspan="3">Nessun suggerimento</td>
+            <td class="text-xs text-muted" colspan="3">{{ _('Nessun suggerimento') }}</td>
             {% endif %}
           </tr>
           {% endfor %}
@@ -78,8 +76,8 @@
   </datalist>
 
   <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
-    <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
-    <button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> Applica i selezionati</button>
+    <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> {{ _('Applica i selezionati') }}</button>
   </div>
 </form>
 

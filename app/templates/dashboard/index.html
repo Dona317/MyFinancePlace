@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard — MyFinancePlace{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
-{% block breadcrumb %}<li>Cruscotto</li>{% endblock %}
+{% block title %}{{ _('Dashboard') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Dashboard') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('transactions.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> Nuova Transazione
+    <i class="bi bi-plus-lg"></i> {{ _('Nuova Transazione') }}
   </a>
 {% endblock %}
 
@@ -15,9 +15,9 @@
 {% if budget_alerts %}
 <div class="alert {{ 'alert-error' if budget_alerts|selectattr('state', 'equalto', 'over')|list else 'alert-warning' }} mb-16">
   <i class="bi bi-clipboard-x"></i>
-  <span>Budget del mese:
+  <span>{{ _('Budget del mese:') }}
   {% for a in budget_alerts %}<strong>{{ a.category }}</strong> {{ a.share|number(0) }}%{{ ' (superato)' if a.state == 'over' }}{{ ', ' if not loop.last }}{% endfor %}.
-  <a href="{{ url_for('lifestyle.budget') }}">Vedi i budget</a></span>
+  <a href="{{ url_for('lifestyle.budget') }}">{{ _('Vedi i budget') }}</a></span>
 </div>
 {% endif %}
 
@@ -27,54 +27,54 @@
   {% if settings.dashboard_net_worth %}
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
-    <div class="kpi-label">Patrimonio Netto</div>
+    <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.net_worth }}">—</div>
-    <div class="kpi-sub">Attività − passività (<a href="{{ url_for('accounting.balance_sheet') }}">dettaglio</a>)</div>
+    <div class="kpi-sub">{{ _('Attività − passività (') }}<a href="{{ url_for('accounting.balance_sheet') }}">{{ _('dettaglio') }}</a>)</div>
   </div>
   {% endif %}
 
   {% if settings.dashboard_income %}
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
-    <div class="kpi-label">Entrate Mensili</div>
+    <div class="kpi-label">{{ _('Entrate Mensili') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.monthly_income }}">—</div>
-    <div class="kpi-sub">Questo mese</div>
+    <div class="kpi-sub">{{ _('Questo mese') }}</div>
   </div>
   {% endif %}
 
   {% if settings.dashboard_expenses %}
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
-    <div class="kpi-label">Uscite Mensili</div>
+    <div class="kpi-label">{{ _('Uscite Mensili') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.monthly_expenses }}">—</div>
-    <div class="kpi-sub">Questo mese</div>
+    <div class="kpi-sub">{{ _('Questo mese') }}</div>
   </div>
   {% endif %}
 
   {% if settings.dashboard_savings_rate %}
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">Tasso di Risparmio</div>
+    <div class="kpi-label">{{ _('Tasso di Risparmio') }}</div>
     <div class="kpi-value">{{ "%.1f"|format(kpis.savings_rate) }}%</div>
-    <div class="kpi-sub">del reddito di questo mese</div>
+    <div class="kpi-sub">{{ _('del reddito di questo mese') }}</div>
   </div>
   {% endif %}
 
   {% if settings.dashboard_investments %}
   <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
     <div class="kpi-icon" style="background:var(--clr-purple-bg);color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
-    <div class="kpi-label">Investimenti</div>
+    <div class="kpi-label">{{ _('Investimenti') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.total_investments }}">—</div>
-    <div class="kpi-sub">{% if settings.module_portfolio %}<a href="{{ url_for('portfolio.index') }}">Portafoglio</a>{% else %}Portafoglio{% endif %}</div>
+    <div class="kpi-sub">{% if settings.module_portfolio %}<a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a>{% else %}{{ _('Portafoglio') }}{% endif %}</div>
   </div>
   {% endif %}
 
   {% if settings.dashboard_debt %}
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
-    <div class="kpi-label">Debito Totale</div>
+    <div class="kpi-label">{{ _('Debito Totale') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.total_debt }}">—</div>
-    <div class="kpi-sub">In corso</div>
+    <div class="kpi-sub">{{ _('In corso') }}</div>
   </div>
   {% endif %}
 
@@ -88,11 +88,11 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">Flusso di Cassa — Ultimi 12 Mesi</div>
-        <div class="card-header-sub">Entrate vs Uscite</div>
+        <div class="card-header-title">{{ _('Flusso di Cassa — Ultimi 12 Mesi') }}</div>
+        <div class="card-header-sub">{{ _('Entrate vs Uscite') }}</div>
       </div>
       <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">
-        Vedi tutto <i class="bi bi-arrow-right"></i>
+        {{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i>
       </a>
     </div>
     <div class="card-body">
@@ -107,8 +107,8 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">Spese per Categoria</div>
-        <div class="card-header-sub">Questo mese</div>
+        <div class="card-header-title">{{ _('Spese per Categoria') }}</div>
+        <div class="card-header-sub">{{ _('Questo mese') }}</div>
       </div>
     </div>
     <div class="card-body">
@@ -129,19 +129,19 @@
   {% if settings.dashboard_recent_tx %}
   <div class="card" style="{% if settings.dashboard_health %}grid-column:span 2;{% endif %}">
     <div class="card-header">
-      <div class="card-header-title">Transazioni Recenti</div>
+      <div class="card-header-title">{{ _('Transazioni Recenti') }}</div>
       <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">
-        Tutte <i class="bi bi-arrow-right"></i>
+        {{ _('Tutte') }} <i class="bi bi-arrow-right"></i>
       </a>
     </div>
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Data</th>
-            <th>Descrizione</th>
-            <th>Categoria</th>
-            <th class="text-right">Importo</th>
+            <th>{{ _('Data') }}</th>
+            <th>{{ _('Descrizione') }}</th>
+            <th>{{ _('Categoria') }}</th>
+            <th class="text-right">{{ _('Importo') }}</th>
           </tr>
         </thead>
         <tbody id="recent-tx-body">
@@ -151,7 +151,7 @@
             <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
             <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
             {% if tx.type == 'transfer' %}
-            <td class="amount" style="text-align:right;color:var(--clr-text-muted);white-space:nowrap;" title="Trasferimento tra conti">⇄ {{ tx.amount|abs|money }}</td>
+            <td class="amount" style="text-align:right;color:var(--clr-text-muted);white-space:nowrap;" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money }}</td>
             {% else %}
             <td class="amount text-right"
                 data-amount="{{ tx.signed_amount }}">—</td>
@@ -162,9 +162,9 @@
             <td colspan="4">
               <div class="empty-state" style="padding:32px;">
                 <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-                <div class="empty-state-text">Nessuna transazione. Aggiungi la prima!</div>
+                <div class="empty-state-text">{{ _('Nessuna transazione. Aggiungi la prima!') }}</div>
                 <a class="btn btn-primary btn-sm" href="{{ url_for('transactions.new') }}">
-                  <i class="bi bi-plus"></i> Aggiungi Transazione
+                  <i class="bi bi-plus"></i> {{ _('Aggiungi Transazione') }}
                 </a>
               </div>
             </td>
@@ -179,13 +179,13 @@
   {% if settings.dashboard_health %}
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Salute Finanziaria</div>
+      <div class="card-header-title">{{ _('Salute Finanziaria') }}</div>
     </div>
     <div class="card-body">
 
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Tasso di Risparmio</span>
+          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Tasso di Risparmio') }}</span>
           <span class="text-xs text-muted">{{ "%.0f"|format(kpis.savings_rate) }}%</span>
         </div>
         <div class="progress-bar-wrap">
@@ -195,7 +195,7 @@
 
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Rate / Reddito</span>
+          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Rate / Reddito') }}</span>
           <span class="text-xs text-muted">{{ ("%.0f"|format(kpis.debt_to_income) ~ '% · max 35%') if kpis.debt_to_income is not none else '—' }}</span>
         </div>
         <div class="progress-bar-wrap">
@@ -205,7 +205,7 @@
 
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Fondo d'Emergenza</span>
+          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _("Fondo d'Emergenza") }}</span>
           <span class="text-xs text-muted">{{ "%.1f"|format(kpis.emergency_months) }} / 6 mesi</span>
         </div>
         <div class="progress-bar-wrap">
@@ -214,7 +214,7 @@
       </div>
 
       <a href="{{ url_for('snapshots.index') }}" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px;">
-        <i class="bi bi-camera"></i> Crea Istantanea
+        <i class="bi bi-camera"></i> {{ _('Crea Istantanea') }}
       </a>
     </div>
   </div>

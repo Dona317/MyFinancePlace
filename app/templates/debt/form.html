@@ -4,7 +4,7 @@
 {% set d = debt or {} %}
 {% block title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Debito — MyFinancePlace{% endblock %}
 {% block page_title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Debito{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">Debiti</a></li><li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">

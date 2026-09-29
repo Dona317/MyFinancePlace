@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Stato Patrimoniale — MyFinancePlace{% endblock %}
-{% block page_title %}Stato Patrimoniale{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">Contabilità</a></li><li>Stato Patrimoniale</li>{% endblock %}
+{% block title %}{{ _('Stato Patrimoniale') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Stato Patrimoniale') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Stato Patrimoniale') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <form method="GET" class="inline-filter">
-    <select name="date" class="form-select" onchange="this.form.submit()" aria-label="Data dello stato patrimoniale">
+    <select name="date" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Data dello stato patrimoniale') }}">
       {% for d in choices %}
       <option value="{{ d.isoformat() }}" {{ 'selected' if d == sheet.date }}>{{ 'Oggi' if d == today else 'Al ' ~ (d|it_date) }}</option>
       {% endfor %}
     </select>
-    <noscript><button class="btn btn-ghost btn-sm">Vai</button></noscript>
+    <noscript><button class="btn btn-ghost btn-sm">{{ _('Vai') }}</button></noscript>
   </form>
 {% endblock %}
 
@@ -21,10 +21,10 @@
     {% for name, amount in items.items() %}
     <tr><td>{{ name }}</td><td class="amount text-right">{{ amount|money }}</td></tr>
     {% else %}
-    <tr><td class="text-muted text-sm">Nessuna voce</td><td></td></tr>
+    <tr><td class="text-muted text-sm">{{ _('Nessuna voce') }}</td><td></td></tr>
     {% endfor %}
   </tbody>
-  <tfoot><tr><td>Subtotale</td><td class="amount text-right">{{ items.values()|sum|money }}</td></tr></tfoot>
+  <tfoot><tr><td>{{ _('Subtotale') }}</td><td class="amount text-right">{{ items.values()|sum|money }}</td></tr></tfoot>
 </table>
 {% endmacro %}
 
@@ -33,17 +33,17 @@
 <div class="kpi-grid mb-24">
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-    <div class="kpi-label">Totale Attività</div>
+    <div class="kpi-label">{{ _('Totale Attività') }}</div>
     <div class="kpi-value text-positive">{{ sheet.total_assets|money }}</div>
   </div>
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-exclamation-circle"></i></div>
-    <div class="kpi-label">Totale Passività</div>
+    <div class="kpi-label">{{ _('Totale Passività') }}</div>
     <div class="kpi-value text-negative">{{ sheet.total_liabilities|money }}</div>
   </div>
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
-    <div class="kpi-label">Patrimonio Netto</div>
+    <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
     <div class="kpi-value">{{ sheet.net_worth|money }}</div>
     <div class="kpi-sub">al {{ sheet.date|it_date }}</div>
   </div>
@@ -54,19 +54,19 @@
   <!-- ATTIVITÀ -->
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Attività</div>
+      <div class="card-header-title">{{ _('Attività') }}</div>
       <span class="badge badge-positive">{{ sheet.total_assets|money }}</span>
     </div>
     <div class="statement-group">
-      <div class="statement-group-title">Attività correnti</div>
+      <div class="statement-group-title">{{ _('Attività correnti') }}</div>
       {{ lines(sheet.current_assets) }}
     </div>
     <div class="statement-group">
-      <div class="statement-group-title">Investimenti e altri beni</div>
+      <div class="statement-group-title">{{ _('Investimenti e altri beni') }}</div>
       {{ lines(sheet.other_assets) }}
     </div>
     <div class="card-footer">
-      <div class="statement-total"><span>Totale Attività</span><span class="amount positive">{{ sheet.total_assets|money }}</span></div>
+      <div class="statement-total"><span>{{ _('Totale Attività') }}</span><span class="amount positive">{{ sheet.total_assets|money }}</span></div>
     </div>
   </div>
 
@@ -74,27 +74,27 @@
   <div class="d-flex" style="flex-direction:column;gap:16px;">
     <div class="card">
       <div class="card-header">
-        <div class="card-header-title">Passività</div>
+        <div class="card-header-title">{{ _('Passività') }}</div>
         <span class="badge badge-negative">{{ sheet.total_liabilities|money }}</span>
       </div>
       <div class="statement-group">
-        <div class="statement-group-title">Passività correnti (entro 12 mesi)</div>
+        <div class="statement-group-title">{{ _('Passività correnti (entro 12 mesi)') }}</div>
         {{ lines(sheet.current_liabilities) }}
       </div>
       <div class="statement-group">
-        <div class="statement-group-title">Passività a lungo termine</div>
+        <div class="statement-group-title">{{ _('Passività a lungo termine') }}</div>
         {{ lines(sheet.long_liabilities) }}
       </div>
       <div class="card-footer">
-        <div class="statement-total"><span>Totale Passività</span><span class="amount negative">{{ sheet.total_liabilities|money }}</span></div>
+        <div class="statement-total"><span>{{ _('Totale Passività') }}</span><span class="amount negative">{{ sheet.total_liabilities|money }}</span></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><div class="card-header-title">Patrimonio Netto</div></div>
+      <div class="card-header"><div class="card-header-title">{{ _('Patrimonio Netto') }}</div></div>
       <div class="card-body">
         <div class="d-flex justify-between align-center">
-          <span class="text-sm text-muted">Attività − Passività</span>
+          <span class="text-sm text-muted">{{ _('Attività − Passività') }}</span>
           <span class="amount {{ 'positive' if sheet.net_worth >= 0 else 'negative' }}" style="font-size:var(--font-size-xl);">{{ sheet.net_worth|money }}</span>
         </div>
         <div class="chart-container mt-16" style="height:140px;"><canvas id="assetLiabChart"></canvas></div>
@@ -107,30 +107,30 @@
 <div class="card mt-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title">Da dove vengono i numeri</div>
-      <div class="card-header-sub">Per un patrimonio netto corretto, tieni aggiornate queste tre fonti</div>
+      <div class="card-header-title">{{ _('Da dove vengono i numeri') }}</div>
+      <div class="card-header-sub">{{ _('Per un patrimonio netto corretto, tieni aggiornate queste tre fonti') }}</div>
     </div>
   </div>
   <div class="card-body">
     <div class="grid-3">
       <div>
-        <div class="font-semibold text-sm"><i class="bi bi-cash-stack"></i> Liquidità</div>
-        <p class="text-xs text-muted mt-4">Saldo iniziale + entrate − uscite di tutte le transazioni fino alla data. I trasferimenti tra conti propri non cambiano il totale.</p>
+        <div class="font-semibold text-sm"><i class="bi bi-cash-stack"></i> {{ _('Liquidità') }}</div>
+        <p class="text-xs text-muted mt-4">{{ _('Saldo iniziale + entrate − uscite di tutte le transazioni fino alla data. I trasferimenti tra conti propri non cambiano il totale.') }}</p>
         <form method="POST" action="{{ url_for('accounting.opening_cash') }}" class="d-flex gap-8 mt-8">
           <input type="text" inputmode="decimal" name="opening_cash" class="form-control" value="{{ opening_cash|plain if opening_cash else '' }}"
-                 placeholder="Saldo prima della 1ª transazione" aria-label="Saldo iniziale dei conti" autocomplete="off" />
-          <button type="submit" class="btn btn-outline btn-sm">Salva</button>
+                 placeholder="{{ _('Saldo prima della 1ª transazione') }}" aria-label="{{ _('Saldo iniziale dei conti') }}" autocomplete="off" />
+          <button type="submit" class="btn btn-outline btn-sm">{{ _('Salva') }}</button>
         </form>
       </div>
       <div>
-        <div class="font-semibold text-sm"><i class="bi bi-briefcase"></i> Investimenti e beni</div>
-        <p class="text-xs text-muted mt-4">Le posizioni del Portafoglio (anche conti deposito, fondi pensione e immobili), al prezzo più recente: per le date passate contano solo quelle già acquistate.</p>
-        <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost btn-sm mt-8">Portafoglio <i class="bi bi-arrow-right"></i></a>
+        <div class="font-semibold text-sm"><i class="bi bi-briefcase"></i> {{ _('Investimenti e beni') }}</div>
+        <p class="text-xs text-muted mt-4">{{ _('Le posizioni del Portafoglio (anche conti deposito, fondi pensione e immobili), al prezzo più recente: per le date passate contano solo quelle già acquistate.') }}</p>
+        <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost btn-sm mt-8">{{ _('Portafoglio') }} <i class="bi bi-arrow-right"></i></a>
       </div>
       <div>
-        <div class="font-semibold text-sm"><i class="bi bi-credit-card"></i> Debiti</div>
-        <p class="text-xs text-muted mt-4">Il residuo di mutui, prestiti e carte secondo il piano di ammortamento (o il saldo che hai inserito).</p>
-        <a href="{{ url_for('debt.index') }}" class="btn btn-ghost btn-sm mt-8">Debiti <i class="bi bi-arrow-right"></i></a>
+        <div class="font-semibold text-sm"><i class="bi bi-credit-card"></i> {{ _('Debiti') }}</div>
+        <p class="text-xs text-muted mt-4">{{ _('Il residuo di mutui, prestiti e carte secondo il piano di ammortamento (o il saldo che hai inserito).') }}</p>
+        <a href="{{ url_for('debt.index') }}" class="btn btn-ghost btn-sm mt-8">{{ _('Debiti') }} <i class="bi bi-arrow-right"></i></a>
       </div>
     </div>
   </div>

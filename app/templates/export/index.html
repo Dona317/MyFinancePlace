@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Esporta — MyFinancePlace{% endblock %}
-{% block page_title %}Esporta e Portabilità{% endblock %}
-{% block breadcrumb %}<li>Esporta</li>{% endblock %}
+{% block title %}{{ _('Esporta') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Esporta e Portabilità') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Esporta') }}</li>{% endblock %}
 
 {% block content %}
 
@@ -19,21 +19,21 @@
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">CSV</div>
-          <div class="text-xs text-muted">Compatibile con Excel, Google Sheets</div>
+          <div class="text-xs text-muted">{{ _('Compatibile con Excel, Google Sheets') }}</div>
         </div>
       </div>
       <form method="GET" action="{{ url_for('export.export_csv') }}">
         <div class="form-group">
-          <label class="form-label">Periodo</label>
+          <label class="form-label">{{ _('Periodo') }}</label>
           <select name="period" class="form-select">
-            <option value="all">Tutte le transazioni</option>
-            <option value="year">Anno corrente</option>
-            <option value="last_year">Anno scorso</option>
-            <option value="month">Mese corrente</option>
+            <option value="all">{{ _('Tutte le transazioni') }}</option>
+            <option value="year">{{ _('Anno corrente') }}</option>
+            <option value="last_year">{{ _('Anno scorso') }}</option>
+            <option value="month">{{ _('Mese corrente') }}</option>
           </select>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-          <i class="bi bi-download"></i> Scarica CSV
+          <i class="bi bi-download"></i> {{ _('Scarica CSV') }}
         </button>
       </form>
     </div>
@@ -49,14 +49,14 @@
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">JSON</div>
-          <div class="text-xs text-muted">Solo transazioni, reimportabile</div>
+          <div class="text-xs text-muted">{{ _('Solo transazioni, reimportabile') }}</div>
         </div>
       </div>
       <p style="font-size:var(--font-size-sm);color:var(--clr-text-muted);margin-bottom:16px;">
-        Tutte le transazioni in JSON strutturato. Si reimporta da «Ripristina» qui sotto: le transazioni già presenti vengono saltate.
+        {{ _('Tutte le transazioni in JSON strutturato. Si reimporta da «Ripristina» qui sotto: le transazioni già presenti vengono saltate.') }}
       </p>
       <a href="{{ url_for('export.export_json') }}" class="btn btn-primary" style="width:100%;justify-content:center;display:flex;">
-        <i class="bi bi-download"></i> Scarica JSON
+        <i class="bi bi-download"></i> {{ _('Scarica JSON') }}
       </a>
     </div>
   </div>
@@ -70,24 +70,24 @@
           <i class="bi bi-file-earmark-pdf"></i>
         </div>
         <div>
-          <div style="font-weight:700;color:var(--clr-text-primary);">Report PDF</div>
-          <div class="text-xs text-muted">Conto economico, mesi e rendiconto dell'anno</div>
+          <div style="font-weight:700;color:var(--clr-text-primary);">{{ _('Report PDF') }}</div>
+          <div class="text-xs text-muted">{{ _("Conto economico, mesi e rendiconto dell'anno") }}</div>
         </div>
       </div>
       <form method="GET" action="{{ url_for('export.export_pdf_download') }}">
         <div class="form-group">
-          <label class="form-label">Anno</label>
+          <label class="form-label">{{ _('Anno') }}</label>
           <select name="year" class="form-select">
             {% for y in years %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
           </select>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
-            <i class="bi bi-download"></i> Scarica PDF
+            <i class="bi bi-download"></i> {{ _('Scarica PDF') }}
           </button>
           <button type="submit" class="btn btn-outline" style="flex:1;justify-content:center;"
                   formaction="{{ url_for('export.export_pdf') }}">
-            <i class="bi bi-printer"></i> Stampa dal browser
+            <i class="bi bi-printer"></i> {{ _('Stampa dal browser') }}
           </button>
         </div>
       </form>
@@ -100,45 +100,44 @@
 <div class="card mb-24" id="backup">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-safe"></i> Backup Completo e Ripristino</div>
-      <div class="card-header-sub">Tutti i dati dell'app in un file: transazioni, portafoglio, debiti, polizze, obiettivi, istantanee, impostazioni e i file dell'archivio documenti</div>
+      <div class="card-header-title"><i class="bi bi-safe"></i> {{ _('Backup Completo e Ripristino') }}</div>
+      <div class="card-header-sub">{{ _("Tutti i dati dell'app in un file: transazioni, portafoglio, debiti, polizze, obiettivi, istantanee, impostazioni e i file dell'archivio documenti") }}</div>
     </div>
   </div>
   <div class="card-body">
     <div class="grid-2">
       <div>
-        <div class="font-semibold text-sm mb-8"><i class="bi bi-download"></i> Scarica il backup</div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-download"></i> {{ _('Scarica il backup') }}</div>
         <p class="text-xs text-muted mb-16">
-          Un file <strong>.zip</strong> da conservare fuori da questo computer (chiavetta, cloud). Fallo almeno una volta al mese
-          e prima di aggiornare l'app.
+          {{ _('Un file') }} <strong>{{ _('.zip') }}</strong> {{ _("da conservare fuori da questo computer (chiavetta, cloud). Fallo almeno una volta al mese e prima di aggiornare l'app.") }}
         </p>
-        <a href="{{ url_for('export.download_backup') }}" class="btn btn-primary"><i class="bi bi-file-earmark-zip"></i> Scarica backup completo</a>
+        <a href="{{ url_for('export.download_backup') }}" class="btn btn-primary"><i class="bi bi-file-earmark-zip"></i> {{ _('Scarica backup completo') }}</a>
       </div>
       <div>
-        <div class="font-semibold text-sm mb-8"><i class="bi bi-upload"></i> Ripristina</div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-upload"></i> {{ _('Ripristina') }}</div>
         <form method="POST" action="{{ url_for('export.restore') }}" enctype="multipart/form-data"
-              data-confirm="Ripristinare questo file? Se è un backup completo, TUTTI i dati attuali saranno sostituiti (una copia viene salvata prima).">
+              data-confirm="{{ _('Ripristinare questo file? Se è un backup completo, TUTTI i dati attuali saranno sostituiti (una copia viene salvata prima).') }}">
           <div class="form-group">
-            <input type="file" name="file" class="form-control" accept=".zip,.json" required aria-label="File di backup" />
-            <div class="form-hint">Backup completo (.zip) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti).</div>
+            <input type="file" name="file" class="form-control" accept=".zip,.json" required aria-label="{{ _('File di backup') }}" />
+            <div class="form-hint">{{ _('Backup completo (.zip) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti).') }}</div>
           </div>
           <label class="d-flex align-center gap-8 text-sm mb-16">
             <input type="checkbox" name="confirm" value="1" />
-            <span>Ho capito: un backup completo <strong>sostituisce tutti i dati attuali</strong></span>
+            <span>{{ _('Ho capito: un backup completo') }} <strong>{{ _('sostituisce tutti i dati attuali') }}</strong></span>
           </label>
-          <button type="submit" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i> Ripristina</button>
+          <button type="submit" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina') }}</button>
         </form>
       </div>
     </div>
     {% if safety_copies %}
     <details class="mt-16">
       <summary class="text-sm font-semibold" style="cursor:pointer;">Backup automatici ({{ safety_copies|length }})</summary>
-      <p class="text-xs text-muted mt-8">Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10.</p>
+      <p class="text-xs text-muted mt-8">{{ _("Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10.") }}</p>
       <ul class="backup-list">
         {% for copy in safety_copies %}
         <li>
           <span>Prima del ripristino del {{ copy.created.strftime('%d/%m/%Y alle %H:%M') }} · {{ copy.size|filesize }}</span>
-          <a href="{{ url_for('export.download_safety_copy', name=copy.name) }}"><i class="bi bi-download"></i> Scarica</a>
+          <a href="{{ url_for('export.download_safety_copy', name=copy.name) }}"><i class="bi bi-download"></i> {{ _('Scarica') }}</a>
         </li>
         {% endfor %}
       </ul>
@@ -151,8 +150,8 @@
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-bank"></i> Esportazione Fiscale per Anno</div>
-      <div class="card-header-sub">Entrate e spese con tag <em>deducibile</em>, <em>detraibile</em> o <em>fiscale</em></div>
+      <div class="card-header-title"><i class="bi bi-bank"></i> {{ _('Esportazione Fiscale per Anno') }}</div>
+      <div class="card-header-sub">{{ _('Entrate e spese con tag') }} <em>{{ _('deducibile') }}</em>, <em>{{ _('detraibile') }}</em> o <em>{{ _('fiscale') }}</em></div>
     </div>
   </div>
   <div class="card-body">
@@ -171,49 +170,48 @@
 <div class="card mb-16" id="bank-import">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-bank2"></i> Importa Estratto Conto Bancario</div>
-      <div class="card-header-sub">Excel, CSV, PDF, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati automaticamente, duplicati ignorati</div>
+      <div class="card-header-title"><i class="bi bi-bank2"></i> {{ _('Importa Estratto Conto Bancario') }}</div>
+      <div class="card-header-sub">{{ _("Excel, CSV, PDF, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati automaticamente, duplicati ignorati") }}</div>
     </div>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"
           style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end;">
       <div class="form-group" style="margin:0;">
-        <label class="form-label">File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF, foto)</label>
+        <label class="form-label">{{ _('File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF, foto)') }}</label>
         <input type="file" name="file" class="form-control"
                accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.doc,.ods,.odt,.rtf,.tsv,.jpg,.jpeg,.png,.webp" required />
       </div>
       <div class="form-group" style="margin:0;">
-        <label class="form-label">Banca</label>
+        <label class="form-label">{{ _('Banca') }}</label>
         <select name="bank" class="form-select">
-          <option value="auto">Rilevamento automatico</option>
+          <option value="auto">{{ _('Rilevamento automatico') }}</option>
           {% for key, bank in banks.items() %}
           <option value="{{ key }}">{{ bank.name }}</option>
           {% endfor %}
         </select>
       </div>
       <button type="submit" class="btn btn-primary">
-        <i class="bi bi-search"></i> Analizza file
+        <i class="bi bi-search"></i> {{ _('Analizza file') }}
       </button>
     </form>
     <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
-      <strong>Fineco:</strong> Conto → Movimenti → Esporta in Excel.
-      <strong>Intesa Sanpaolo:</strong> Conto corrente → Lista movimenti → Esporta Excel.
-      <strong>Revolut:</strong> Conto → Estratto conto → Excel/CSV.
-      <strong>N26:</strong> Transazioni → Scarica CSV.
-      Riconosciuti anche UniCredit, BPER, BancoPosta e ING.
-      <strong>Altre banche:</strong> qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite, Dare/Avere).
-      {% if not ai_reader %}I PDF devono essere quelli originali dell'home banking (non scansioni).{% endif %}
-      Prima dell'importazione potrai controllare e modificare ogni movimento.
+      <strong>{{ _('Fineco:') }}</strong> {{ _('Conto → Movimenti → Esporta in Excel.') }}
+      <strong>{{ _('Intesa Sanpaolo:') }}</strong> {{ _('Conto corrente → Lista movimenti → Esporta Excel.') }}
+      <strong>{{ _('Revolut:') }}</strong> {{ _('Conto → Estratto conto → Excel/CSV.') }}
+      <strong>N26:</strong> {{ _('Transazioni → Scarica CSV. Riconosciuti anche UniCredit, BPER, BancoPosta e ING.') }}
+      <strong>{{ _('Altre banche:') }}</strong> {{ _('qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite, Dare/Avere).') }}
+      {% if not ai_reader %}{{ _("I PDF devono essere quelli originali dell'home banking (non scansioni).") }}{% endif %}
+      {{ _("Prima dell'importazione potrai controllare e modificare ogni movimento.") }}
     </p>
     <p style="font-size:var(--font-size-xs);margin-top:8px;display:flex;align-items:center;gap:6px;">
       <i class="bi bi-stars" style="color:var(--clr-primary);"></i>
       {% if ai_reader %}
-        <span><strong>Lettura AI disponibile</strong> ({{ ai_reader }}): se un file non si riesce a leggere, ti verrà chiesto se usarla.
-          <a href="{{ url_for('settings.ai_models_page') }}">Cambia modello</a></span>
+        <span><strong>{{ _('Lettura AI disponibile') }}</strong> ({{ ai_reader }}): se un file non si riesce a leggere, ti verrà chiesto se usarla.
+          <a href="{{ url_for('settings.ai_models_page') }}">{{ _('Cambia modello') }}</a></span>
       {% else %}
-        <span class="text-muted"><strong>Lettura AI non attiva:</strong> scansioni e foto non sono leggibili.
-          <a href="{{ url_for('settings.ai_models_page') }}">Configura un modello AI</a></span>
+        <span class="text-muted"><strong>{{ _('Lettura AI non attiva:') }}</strong> {{ _('scansioni e foto non sono leggibili.') }}
+          <a href="{{ url_for('settings.ai_models_page') }}">{{ _('Configura un modello AI') }}</a></span>
       {% endif %}
     </p>
   </div>
@@ -223,8 +221,8 @@
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> Importa CSV o Excel con mappatura manuale</div>
-      <div class="card-header-sub">Per file con un formato non riconosciuto: scegli tu quali colonne usare</div>
+      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> {{ _('Importa CSV o Excel con mappatura manuale') }}</div>
+      <div class="card-header-sub">{{ _('Per file con un formato non riconosciuto: scegli tu quali colonne usare') }}</div>
     </div>
   </div>
   <div class="card-body">
@@ -236,7 +234,7 @@
         <div style="font-weight:700;color:var(--clr-text-primary);margin-bottom:12px;">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
                        background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">1</span>
-          Carica il file
+          {{ _('Carica il file') }}
         </div>
         <label style="display:block;border:2px dashed var(--clr-border);border-radius:var(--border-radius-sm);
                       padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;"
@@ -244,14 +242,12 @@
                onmouseout="this.style.borderColor='var(--clr-border)'">
           <i class="bi bi-cloud-upload" style="font-size:28px;color:var(--clr-text-muted);display:block;margin-bottom:8px;"></i>
           <span id="import-file-label" style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
-            Clicca per scegliere un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)
+            {{ _('Clicca per scegliere un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)') }}
           </span>
           <input type="file" name="file" id="import-file" accept=".csv,.txt,.tsv,.xlsx,.xlsm,.xls,.ods" style="display:none;" />
         </label>
         <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
-          Dei fogli Excel si legge il primo; le righe di intestazione della banca sopra i titoli delle colonne vengono saltate.
-          Senza colonna Tipo, gli importi negativi diventano uscite e quelli positivi entrate.
-          Date accettate: AAAA-MM-GG o GG/MM/AAAA (nei file Excel anche le celle di tipo data).
+          {{ _('Dei fogli Excel si legge il primo; le righe di intestazione della banca sopra i titoli delle colonne vengono saltate. Senza colonna Tipo, gli importi negativi diventano uscite e quelli positivi entrate. Date accettate: AAAA-MM-GG o GG/MM/AAAA (nei file Excel anche le celle di tipo data).') }}
         </p>
         <p id="import-status" class="text-xs" role="status" style="margin-top:8px;"></p>
       </div>
@@ -261,7 +257,7 @@
         <div style="font-weight:700;color:var(--clr-text-primary);margin-bottom:12px;">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
                        background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">2</span>
-          Mappa le colonne
+          {{ _('Mappa le colonne') }}
         </div>
         {% for field, label, required in [
           ('date', 'Colonna Data', true),
@@ -272,14 +268,14 @@
           ('counterparty', 'Colonna Controparte', false),
         ] %}
         <div class="form-group">
-          <label class="form-label">{{ label }}{% if not required %} <span class="text-muted">(opzionale)</span>{% endif %}</label>
+          <label class="form-label">{{ label }}{% if not required %} <span class="text-muted">{{ _('(opzionale)') }}</span>{% endif %}</label>
           <select name="col_{{ field }}" class="form-select import-col" data-field="{{ field }}" data-required="{{ required|lower }}" disabled>
-            <option value="">— Carica prima un file —</option>
+            <option value="">{{ _('— Carica prima un file —') }}</option>
           </select>
         </div>
         {% endfor %}
         <button type="submit" class="btn btn-primary" id="import-submit" disabled>
-          <i class="bi bi-check2-all"></i> Importa Transazioni
+          <i class="bi bi-check2-all"></i> {{ _('Importa Transazioni') }}
         </button>
       </div>
 

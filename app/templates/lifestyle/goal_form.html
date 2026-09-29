@@ -5,8 +5,8 @@
 {% block title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Obiettivo — MyFinancePlace{% endblock %}
 {% block page_title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Obiettivo{% endblock %}
 {% block breadcrumb %}
-  <li><a href="{{ url_for('lifestyle.index') }}">Stile di Vita</a></li>
-  <li><a href="{{ url_for('lifestyle.goals') }}">Obiettivi</a></li>
+  <li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di Vita') }}</a></li>
+  <li><a href="{{ url_for('lifestyle.goals') }}">{{ _('Obiettivi') }}</a></li>
   <li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>
 {% endblock %}
 

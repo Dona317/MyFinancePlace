@@ -44,7 +44,7 @@
       <div class="sidebar-brand-icon"><i class="bi bi-graph-up-arrow"></i></div>
       <div class="sidebar-brand-text">
         <span class="sidebar-brand-name">MyFinancePlace</span>
-        <span class="sidebar-brand-sub">Personal Finance</span>
+        <span class="sidebar-brand-sub">{{ _('Personal Finance') }}</span>
       </div>
     </a>
 
@@ -53,12 +53,12 @@
       <!-- PANORAMICA -->
       <div class="nav-section" data-section="panoramica">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-panoramica">
-          <span class="nav-label">Panoramica</span><i class="bi bi-chevron-down nav-chevron"></i>
+          <span class="nav-label">{{ _('Panoramica') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-panoramica"><div>
         <a href="{{ url_for('dashboard.dashboard') }}"
            class="nav-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
-          <i class="bi bi-speedometer2"></i> <span class="nav-label">Dashboard</span>
+          <i class="bi bi-speedometer2"></i> <span class="nav-label">{{ _('Dashboard') }}</span>
         </a>
         </div></div>
       </div>
@@ -66,34 +66,34 @@
       <!-- CONTABILITÀ -->
       <div class="nav-section" data-section="contabilita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-contabilita">
-          <span class="nav-label">Contabilità</span><i class="bi bi-chevron-down nav-chevron"></i>
+          <span class="nav-label">{{ _('Contabilità') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-contabilita"><div>
         <a href="{{ url_for('accounting.index') }}"
            class="nav-item {% if request.endpoint == 'accounting.index' %}active{% endif %}">
-          <i class="bi bi-bar-chart-line"></i> <span class="nav-label">Panoramica</span>
+          <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Panoramica') }}</span>
         </a>
         {% if settings.accounting_balance_sheet %}
         <a href="{{ url_for('accounting.balance_sheet') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.balance_sheet' %}active{% endif %}">
-          <i class="bi bi-clipboard-data"></i> <span class="nav-label">Stato Patrimoniale</span>
+          <i class="bi bi-clipboard-data"></i> <span class="nav-label">{{ _('Stato Patrimoniale') }}</span>
         </a>
         {% endif %}
         {% if settings.accounting_income_statement %}
         <a href="{{ url_for('accounting.income_statement') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.income_statement' %}active{% endif %}">
-          <i class="bi bi-receipt"></i> <span class="nav-label">Conto Economico</span>
+          <i class="bi bi-receipt"></i> <span class="nav-label">{{ _('Conto Economico') }}</span>
         </a>
         {% endif %}
         {% if settings.accounting_cash_flow %}
         <a href="{{ url_for('accounting.cash_flow') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.cash_flow' %}active{% endif %}">
-          <i class="bi bi-arrow-left-right"></i> <span class="nav-label">Flusso di Cassa</span>
+          <i class="bi bi-arrow-left-right"></i> <span class="nav-label">{{ _('Flusso di Cassa') }}</span>
         </a>
         {% endif %}
         <a href="{{ url_for('forecast.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
-          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">Previsioni</span>
+          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">{{ _('Previsioni') }}</span>
         </a>
         </div></div>
       </div>
@@ -101,21 +101,21 @@
       <!-- STILE DI VITA -->
       <div class="nav-section" data-section="stiledivita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-stiledivita">
-          <span class="nav-label">Stile di Vita</span><i class="bi bi-chevron-down nav-chevron"></i>
+          <span class="nav-label">{{ _('Stile di Vita') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-stiledivita"><div>
         <a href="{{ url_for('lifestyle.index') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
-          <i class="bi bi-pie-chart"></i> <span class="nav-label">Spese e Tendenze</span>
+          <i class="bi bi-pie-chart"></i> <span class="nav-label">{{ _('Spese e Tendenze') }}</span>
         </a>
         <a href="{{ url_for('lifestyle.budget') }}"
            class="nav-item {% if request.endpoint in ('lifestyle.budget', 'lifestyle.budget_save') %}active{% endif %}">
-          <i class="bi bi-clipboard-check"></i> <span class="nav-label">Budget</span>
+          <i class="bi bi-clipboard-check"></i> <span class="nav-label">{{ _('Budget') }}</span>
         </a>
         {% if settings.lifestyle_goals %}
         <a href="{{ url_for('lifestyle.goals') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
-          <i class="bi bi-trophy"></i> <span class="nav-label">Obiettivi</span>
+          <i class="bi bi-trophy"></i> <span class="nav-label">{{ _('Obiettivi') }}</span>
         </a>
         {% endif %}
         </div></div>
@@ -124,39 +124,39 @@
       <!-- GESTIONE -->
       <div class="nav-section" data-section="gestione">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-gestione">
-          <span class="nav-label">Gestione</span><i class="bi bi-chevron-down nav-chevron"></i>
+          <span class="nav-label">{{ _('Gestione') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-gestione"><div>
         <a href="{{ url_for('transactions.index') }}"
            class="nav-item {% if 'transactions' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-list-ul"></i> <span class="nav-label">Transazioni</span>
+          <i class="bi bi-list-ul"></i> <span class="nav-label">{{ _('Transazioni') }}</span>
         </a>
         <a href="{{ url_for('accounts.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
-          <i class="bi bi-bank"></i> <span class="nav-label">Conti e Carte</span>
+          <i class="bi bi-bank"></i> <span class="nav-label">{{ _('Conti e Carte') }}</span>
         </a>
         {% if settings.module_portfolio %}
         <a href="{{ url_for('portfolio.index') }}"
            class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-briefcase"></i> <span class="nav-label">Portafoglio</span>
+          <i class="bi bi-briefcase"></i> <span class="nav-label">{{ _('Portafoglio') }}</span>
         </a>
         {% endif %}
         {% if settings.module_debt %}
         <a href="{{ url_for('debt.index') }}"
            class="nav-item {% if 'debt' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-credit-card"></i> <span class="nav-label">Debiti</span>
+          <i class="bi bi-credit-card"></i> <span class="nav-label">{{ _('Debiti') }}</span>
         </a>
         {% endif %}
         {% if settings.module_insurance %}
         <a href="{{ url_for('insurance.index') }}"
            class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-shield-check"></i> <span class="nav-label">Assicurazioni</span>
+          <i class="bi bi-shield-check"></i> <span class="nav-label">{{ _('Assicurazioni') }}</span>
         </a>
         {% endif %}
         {% if settings.module_documents %}
         <a href="{{ url_for('documents.index') }}"
            class="nav-item {% if 'documents' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-folder2-open"></i> <span class="nav-label">Documenti</span>
+          <i class="bi bi-folder2-open"></i> <span class="nav-label">{{ _('Documenti') }}</span>
         </a>
         {% endif %}
         </div></div>
@@ -165,24 +165,24 @@
       <!-- STRUMENTI -->
       <div class="nav-section" data-section="strumenti">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-strumenti">
-          <span class="nav-label">Strumenti</span><i class="bi bi-chevron-down nav-chevron"></i>
+          <span class="nav-label">{{ _('Strumenti') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-strumenti"><div>
         {% if settings.module_snapshots %}
         <a href="{{ url_for('snapshots.index') }}"
            class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-camera"></i> <span class="nav-label">Istantanee</span>
+          <i class="bi bi-camera"></i> <span class="nav-label">{{ _('Istantanee') }}</span>
         </a>
         {% endif %}
         {% if settings.module_export %}
         <a href="{{ url_for('export.index') }}"
            class="nav-item {% if 'export' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-box-arrow-up"></i> <span class="nav-label">Esporta</span>
+          <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span>
         </a>
         {% endif %}
         <a href="{{ url_for('settings.index') }}"
            class="nav-item {% if 'settings' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-gear"></i> <span class="nav-label">Impostazioni</span>
+          <i class="bi bi-gear"></i> <span class="nav-label">{{ _('Impostazioni') }}</span>
         </a>
         </div></div>
       </div>
@@ -199,8 +199,8 @@
       });
     }());</script>
 
-    <button type="button" class="sidebar-mini-toggle" id="sidebar-mini-toggle" aria-label="Riduci il menu">
-      <i class="bi bi-chevron-double-left"></i> <span class="nav-label">Riduci menu</span>
+    <button type="button" class="sidebar-mini-toggle" id="sidebar-mini-toggle" aria-label="{{ _('Riduci il menu') }}">
+      <i class="bi bi-chevron-double-left"></i> <span class="nav-label">{{ _('Riduci menu') }}</span>
     </button>
 
     <!-- User footer -->
@@ -213,9 +213,9 @@
           <div class="sidebar-user-name">
             {{ current_user.username if current_user is defined and current_user.is_authenticated else 'User' }}
           </div>
-          <div class="sidebar-user-role">Account Personale</div>
+          <div class="sidebar-user-role">{{ _('Account Personale') }}</div>
         </div>
-        <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="Logout">
+        <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="{{ _('Logout') }}">
           <i class="bi bi-box-arrow-right"></i>
         </a>
       </div>
@@ -230,14 +230,14 @@
     <header class="topbar">
       <!-- Hides / shows the whole left column (desktop); opens it over the page on phones -->
       <button id="sidebar-toggle" class="btn btn-ghost btn-icon sidebar-toggle-btn"
-              aria-controls="sidebar" aria-expanded="true" aria-label="Nascondi il menu" title="Nascondi il menu">
+              aria-controls="sidebar" aria-expanded="true" aria-label="{{ _('Nascondi il menu') }}" title="{{ _('Nascondi il menu') }}">
         <i class="bi bi-list" style="font-size:20px;"></i>
       </button>
 
       <div class="topbar-title">
-        <h1>{% block page_title %}Page{% endblock %}</h1>
+        <h1>{% block page_title %}{{ _('Page') }}{% endblock %}</h1>
         <ul class="breadcrumb">
-          <li><a href="{{ url_for('dashboard.dashboard') }}">Home</a></li>
+          <li><a href="{{ url_for('dashboard.dashboard') }}">{{ _('Home') }}</a></li>
           {% block breadcrumb %}{% endblock %}
         </ul>
       </div>
@@ -246,26 +246,26 @@
         {% block topbar_actions %}{% endblock %}
 
         <!-- Light / dark mode -->
-        <div class="theme-switch" role="group" aria-label="Tema">
-          <button type="button" data-theme-choice="light" aria-pressed="false" title="Modalità chiara">
-            <i class="bi bi-sun"></i><span class="theme-label">Chiara</span>
+        <div class="theme-switch" role="group" aria-label="{{ _('Tema') }}">
+          <button type="button" data-theme-choice="light" aria-pressed="false" title="{{ _('Modalità chiara') }}">
+            <i class="bi bi-sun"></i><span class="theme-label">{{ _('Chiara') }}</span>
           </button>
-          <button type="button" data-theme-choice="dark" aria-pressed="false" title="Modalità scura">
-            <i class="bi bi-moon-stars"></i><span class="theme-label">Scura</span>
+          <button type="button" data-theme-choice="dark" aria-pressed="false" title="{{ _('Modalità scura') }}">
+            <i class="bi bi-moon-stars"></i><span class="theme-label">{{ _('Scura') }}</span>
           </button>
         </div>
 
         <!-- Reminders -->
         {% set reminder_count = notification_count() %}
         <a href="{{ url_for('notifications.index') }}" class="btn btn-ghost btn-icon topbar-bell"
-           title="Promemoria" aria-label="Promemoria{{ ' (%d)'|format(reminder_count) if reminder_count }}"
+           title="{{ _('Promemoria') }}" aria-label="Promemoria{{ ' (%d)'|format(reminder_count) if reminder_count }}"
            {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
           <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
         </a>
 
         <!-- Settings -->
         <a href="{{ url_for('settings.index') }}" class="btn btn-ghost btn-icon topbar-settings"
-           title="Impostazioni" aria-label="Impostazioni"
+           title="{{ _('Impostazioni') }}" aria-label="{{ _('Impostazioni') }}"
            {% if request.endpoint and request.endpoint.startswith('settings.') %}aria-current="page"{% endif %}>
           <i class="bi bi-gear"></i>
         </a>

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Flusso di Cassa — MyFinancePlace{% endblock %}
-{% block page_title %}Rendiconto Finanziario{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">Contabilità</a></li><li>Flusso di Cassa</li>{% endblock %}
+{% block title %}{{ _('Flusso di Cassa') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Rendiconto Finanziario') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Flusso di Cassa') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% include "partials/year_select.html" %}
@@ -17,27 +17,27 @@
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
-    <div class="kpi-label">CF Operativo</div>
+    <div class="kpi-label">{{ _('CF Operativo') }}</div>
     <div class="kpi-value {{ 'text-negative' if report.operating < 0 else 'text-positive' }}">{{ report.operating|money }}</div>
-    <div class="kpi-sub">Entrate − Uscite</div>
+    <div class="kpi-sub">{{ _('Entrate − Uscite') }}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-graph-up"></i></div>
-    <div class="kpi-label">CF Investimenti</div>
+    <div class="kpi-label">{{ _('CF Investimenti') }}</div>
     <div class="kpi-value">{{ report.investing|money }}</div>
-    <div class="kpi-sub">Investimenti netti</div>
+    <div class="kpi-sub">{{ _('Investimenti netti') }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-bank2"></i></div>
-    <div class="kpi-label">CF Finanziario</div>
+    <div class="kpi-label">{{ _('CF Finanziario') }}</div>
     <div class="kpi-value">{{ report.financing|money }}</div>
-    <div class="kpi-sub">Prestiti e rimborsi</div>
+    <div class="kpi-sub">{{ _('Prestiti e rimborsi') }}</div>
   </div>
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-    <div class="kpi-label">Variazione Netta Cassa</div>
+    <div class="kpi-label">{{ _('Variazione Netta Cassa') }}</div>
     <div class="kpi-value">{{ report.net_change|money }}</div>
-    <div class="kpi-sub">Apertura → Chiusura</div>
+    <div class="kpi-sub">{{ _('Apertura → Chiusura') }}</div>
   </div>
 </div>
 
@@ -45,50 +45,50 @@
 
   <!-- CF Table -->
   <div class="card">
-    <div class="card-header"><div class="card-header-title">Rendiconto Finanziario</div></div>
+    <div class="card-header"><div class="card-header-title">{{ _('Rendiconto Finanziario') }}</div></div>
     <div class="table-wrapper">
       <table>
         <thead>
-          <tr><th>Item</th><th class="text-right">Amount</th></tr>
+          <tr><th>{{ _('Item') }}</th><th class="text-right">{{ _('Amount') }}</th></tr>
         </thead>
         <tbody>
           <tr style="background:var(--clr-positive-bg);">
             <td colspan="2" style="font-weight:700;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
-              A — Attività Operative
+              {{ _('A — Attività Operative') }}
             </td>
           </tr>
-          <tr><td>Entrate − uscite (esclusi i movimenti collegati a investimenti o debiti)</td><td class="amount text-right">{{ report.operating|money }}</td></tr>
+          <tr><td>{{ _('Entrate − uscite (esclusi i movimenti collegati a investimenti o debiti)') }}</td><td class="amount text-right">{{ report.operating|money }}</td></tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>Flusso Operativo Netto</td><td class="amount {{ 'negative' if report.operating < 0 else 'positive' }} text-right">{{ report.operating|money }}</td>
+            <td>{{ _('Flusso Operativo Netto') }}</td><td class="amount {{ 'negative' if report.operating < 0 else 'positive' }} text-right">{{ report.operating|money }}</td>
           </tr>
 
           <tr style="height:8px;"><td colspan="2"></td></tr>
 
           <tr style="background:var(--clr-neutral-bg);">
             <td colspan="2" style="font-weight:700;color:var(--clr-neutral);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
-              B — Attività di Investimento
+              {{ _('B — Attività di Investimento') }}
             </td>
           </tr>
-          <tr><td>Acquisti (−) e vendite (+) di investimenti</td><td class="amount text-right">{{ report.investing|money }}</td></tr>
+          <tr><td>{{ _('Acquisti (−) e vendite (+) di investimenti') }}</td><td class="amount text-right">{{ report.investing|money }}</td></tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>Flusso di Investimento Netto</td><td class="amount text-right">{{ report.investing|money }}</td>
+            <td>{{ _('Flusso di Investimento Netto') }}</td><td class="amount text-right">{{ report.investing|money }}</td>
           </tr>
 
           <tr style="height:8px;"><td colspan="2"></td></tr>
 
           <tr style="background:var(--clr-warning-bg);">
             <td colspan="2" style="font-weight:700;color:var(--clr-warning);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
-              C — Attività Finanziarie
+              {{ _('C — Attività Finanziarie') }}
             </td>
           </tr>
-          <tr><td>Prestiti ricevuti (+) e rate rimborsate (−)</td><td class="amount text-right">{{ report.financing|money }}</td></tr>
+          <tr><td>{{ _('Prestiti ricevuti (+) e rate rimborsate (−)') }}</td><td class="amount text-right">{{ report.financing|money }}</td></tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>Flusso Finanziario Netto</td><td class="amount text-right">{{ report.financing|money }}</td>
+            <td>{{ _('Flusso Finanziario Netto') }}</td><td class="amount text-right">{{ report.financing|money }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
-            <td>VARIAZIONE NETTA CASSA (A+B+C)</td>
+            <td>{{ _('VARIAZIONE NETTA CASSA (A+B+C)') }}</td>
             <td class="amount" style="text-align:right;font-size:var(--font-size-lg);">{{ report.net_change|money }}</td>
           </tr>
         </tfoot>
@@ -103,13 +103,13 @@
   <!-- Charts -->
   <div style="display:flex;flex-direction:column;gap:16px;">
     <div class="card">
-      <div class="card-header"><div class="card-header-title">Flusso di Cassa Mensile</div></div>
+      <div class="card-header"><div class="card-header-title">{{ _('Flusso di Cassa Mensile') }}</div></div>
       <div class="card-body">
         <div class="chart-container" style="height:200px;"><canvas id="cfMonthChart"></canvas></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-header"><div class="card-header-title">Saldo Cumulativo</div></div>
+      <div class="card-header"><div class="card-header-title">{{ _('Saldo Cumulativo') }}</div></div>
       <div class="card-body">
         <div class="chart-container" style="height:200px;"><canvas id="cfCumChart"></canvas></div>
       </div>

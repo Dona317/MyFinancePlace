@@ -27,9 +27,9 @@
 </head>
 <body>
   <div class="toolbar">
-    <a href="{{ url_for('export.export_pdf_download', year=year) }}">Scarica PDF</a>
-    <button onclick="window.print()">Stampa dal browser</button>
-    <a href="{{ url_for('export.index') }}">← Torna a Esporta</a>
+    <a href="{{ url_for('export.export_pdf_download', year=year) }}">{{ _('Scarica PDF') }}</a>
+    <button onclick="window.print()">{{ _('Stampa dal browser') }}</button>
+    <a href="{{ url_for('export.index') }}">{{ _('← Torna a Esporta') }}</a>
   </div>
 
   <h1>Report Finanziario {{ year }}</h1>
@@ -37,31 +37,31 @@
 
   {% set s = statement.summary %}
   <div class="kpis">
-    <div class="kpi"><div class="kpi-label">Entrate</div><div class="kpi-value">{{ s.income|money }}</div></div>
-    <div class="kpi"><div class="kpi-label">Uscite</div><div class="kpi-value">{{ s.expenses|money }}</div></div>
-    <div class="kpi"><div class="kpi-label">Risparmio netto</div><div class="kpi-value">{{ s.net|money }}</div></div>
-    <div class="kpi"><div class="kpi-label">Tasso di risparmio</div><div class="kpi-value">{{ "%.1f"|format(s.savings_rate) }}%</div></div>
+    <div class="kpi"><div class="kpi-label">{{ _('Entrate') }}</div><div class="kpi-value">{{ s.income|money }}</div></div>
+    <div class="kpi"><div class="kpi-label">{{ _('Uscite') }}</div><div class="kpi-value">{{ s.expenses|money }}</div></div>
+    <div class="kpi"><div class="kpi-label">{{ _('Risparmio netto') }}</div><div class="kpi-value">{{ s.net|money }}</div></div>
+    <div class="kpi"><div class="kpi-label">{{ _('Tasso di risparmio') }}</div><div class="kpi-value">{{ "%.1f"|format(s.savings_rate) }}%</div></div>
   </div>
 
-  <h2>Conto Economico</h2>
+  <h2>{{ _('Conto Economico') }}</h2>
   <table>
-    <thead><tr><th>Voce</th><th class="num">Importo</th><th class="num">% Entrate</th></tr></thead>
+    <thead><tr><th>{{ _('Voce') }}</th><th class="num">{{ _('Importo') }}</th><th class="num">{{ _('%% Entrate') }}</th></tr></thead>
     <tbody>
-      <tr class="section"><td colspan="3">Entrate</td></tr>
+      <tr class="section"><td colspan="3">{{ _('Entrate') }}</td></tr>
       {% for line in statement.income_lines %}
       <tr><td>{{ line.category }}</td><td class="num">{{ line.amount|money }}</td><td class="num">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td></tr>
-      {% else %}<tr><td colspan="3">Nessuna entrata</td></tr>{% endfor %}
-      <tr class="section"><td colspan="3">Uscite</td></tr>
+      {% else %}<tr><td colspan="3">{{ _('Nessuna entrata') }}</td></tr>{% endfor %}
+      <tr class="section"><td colspan="3">{{ _('Uscite') }}</td></tr>
       {% for line in statement.expense_lines %}
       <tr><td>{{ line.category }}</td><td class="num">{{ line.amount|money }}</td><td class="num">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td></tr>
-      {% else %}<tr><td colspan="3">Nessuna uscita</td></tr>{% endfor %}
-      <tr class="total"><td>Risparmio netto</td><td class="num">{{ s.net|money }}</td><td class="num">{{ "%.1f%%"|format(s.savings_rate) if s.income else '—' }}</td></tr>
+      {% else %}<tr><td colspan="3">{{ _('Nessuna uscita') }}</td></tr>{% endfor %}
+      <tr class="total"><td>{{ _('Risparmio netto') }}</td><td class="num">{{ s.net|money }}</td><td class="num">{{ "%.1f%%"|format(s.savings_rate) if s.income else '—' }}</td></tr>
     </tbody>
   </table>
 
-  <h2>Andamento Mensile</h2>
+  <h2>{{ _('Andamento Mensile') }}</h2>
   <table>
-    <thead><tr><th>Mese</th><th class="num">Entrate</th><th class="num">Uscite</th><th class="num">Netto</th></tr></thead>
+    <thead><tr><th>{{ _('Mese') }}</th><th class="num">{{ _('Entrate') }}</th><th class="num">{{ _('Uscite') }}</th><th class="num">{{ _('Netto') }}</th></tr></thead>
     <tbody>
       {% set m = statement.monthly %}
       {% for label in m.labels %}
@@ -70,13 +70,13 @@
     </tbody>
   </table>
 
-  <h2>Rendiconto Finanziario</h2>
+  <h2>{{ _('Rendiconto Finanziario') }}</h2>
   <table>
     <tbody>
-      <tr><td>A — Flusso operativo</td><td class="num">{{ cash_flow.operating|money }}</td></tr>
-      <tr><td>B — Flusso di investimento</td><td class="num">{{ cash_flow.investing|money }}</td></tr>
-      <tr><td>C — Flusso finanziario</td><td class="num">{{ cash_flow.financing|money }}</td></tr>
-      <tr class="total"><td>Variazione netta cassa (A+B+C)</td><td class="num">{{ cash_flow.net_change|money }}</td></tr>
+      <tr><td>{{ _('A — Flusso operativo') }}</td><td class="num">{{ cash_flow.operating|money }}</td></tr>
+      <tr><td>{{ _('B — Flusso di investimento') }}</td><td class="num">{{ cash_flow.investing|money }}</td></tr>
+      <tr><td>{{ _('C — Flusso finanziario') }}</td><td class="num">{{ cash_flow.financing|money }}</td></tr>
+      <tr class="total"><td>{{ _('Variazione netta cassa (A+B+C)') }}</td><td class="num">{{ cash_flow.net_change|money }}</td></tr>
     </tbody>
   </table>
 </body>

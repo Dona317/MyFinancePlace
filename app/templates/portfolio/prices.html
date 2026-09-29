@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Aggiorna prezzi — MyFinancePlace{% endblock %}
-{% block page_title %}Aggiorna Prezzi{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">Portafoglio</a></li><li>Prezzi</li>{% endblock %}
+{% block title %}{{ _('Aggiorna prezzi') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Aggiorna Prezzi') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Prezzi') }}</li>{% endblock %}
 
 {% block content %}
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title">Prezzi attuali</div>
-      <div class="card-header-sub">Scrivi solo quelli cambiati: gli altri restano come sono.</div>
+      <div class="card-header-title">{{ _('Prezzi attuali') }}</div>
+      <div class="card-header-sub">{{ _('Scrivi solo quelli cambiati: gli altri restano come sono.') }}</div>
     </div>
   </div>
   {% if holdings %}
@@ -17,11 +17,11 @@
       <table>
         <thead>
           <tr>
-            <th>Strumento</th>
-            <th class="text-right">Quantità</th>
-            <th class="text-right">Prezzo attuale</th>
-            <th>Aggiornato</th>
-            <th class="text-right">Nuovo prezzo (€)</th>
+            <th>{{ _('Strumento') }}</th>
+            <th class="text-right">{{ _('Quantità') }}</th>
+            <th class="text-right">{{ _('Prezzo attuale') }}</th>
+            <th>{{ _('Aggiornato') }}</th>
+            <th class="text-right">{{ _('Nuovo prezzo (€)') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -44,15 +44,15 @@
     </div>
     <div class="card-body">
       <div class="form-actions">
-        <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salva prezzi</button>
+        <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva prezzi') }}</button>
       </div>
     </div>
   </form>
   {% else %}
   <div class="empty-state">
-    <div class="empty-state-text">Nessuna posizione da aggiornare.</div>
-    <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Aggiungi Posizione</a>
+    <div class="empty-state-text">{{ _('Nessuna posizione da aggiornare.') }}</div>
+    <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}</a>
   </div>
   {% endif %}
 </div>

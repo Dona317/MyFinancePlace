@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Documenti — MyFinancePlace{% endblock %}
-{% block page_title %}Archivio Documenti{% endblock %}
-{% block breadcrumb %}<li>Documenti</li>{% endblock %}
+{% block title %}{{ _('Documenti') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Archivio Documenti') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Documenti') }}</li>{% endblock %}
 
 {% block content %}
 
@@ -10,33 +10,33 @@
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-upload"></i> Carica Documenti</div>
-      <div class="card-header-sub">Fatture, scontrini, estratti conto, contratti: qualsiasi formato, nessun limite di dimensione</div>
+      <div class="card-header-title"><i class="bi bi-upload"></i> {{ _('Carica Documenti') }}</div>
+      <div class="card-header-sub">{{ _('Fatture, scontrini, estratti conto, contratti: qualsiasi formato, nessun limite di dimensione') }}</div>
     </div>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('documents.upload') }}" enctype="multipart/form-data" id="upload-form">
       <div class="grid-4">
         <div class="form-group">
-          <label class="form-label" for="up-files">File</label>
+          <label class="form-label" for="up-files">{{ _('File') }}</label>
           <input type="file" id="up-files" name="files" class="form-control" multiple required />
         </div>
         <div class="form-group">
-          <label class="form-label" for="up-type">Tipo</label>
+          <label class="form-label" for="up-type">{{ _('Tipo') }}</label>
           <select id="up-type" name="doc_type" class="form-select">
             <option value="">—</option>
             {% for t in doc_types %}<option>{{ t }}</option>{% endfor %}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="up-year">Anno fiscale</label>
+          <label class="form-label" for="up-year">{{ _('Anno fiscale') }}</label>
           <select id="up-year" name="fiscal_year" class="form-select">
             <option value="">—</option>
             {% for y in years %}<option {{ 'selected' if y == this_year }}>{{ y }}</option>{% endfor %}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="up-category">Categoria</label>
+          <label class="form-label" for="up-category">{{ _('Categoria') }}</label>
           <select id="up-category" name="category" class="form-select">
             <option value="">—</option>
             {% for c in categories %}<option>{{ c }}</option>{% endfor %}
@@ -45,10 +45,10 @@
       </div>
       <div id="drop-zone" class="drop-zone">
         <i class="bi bi-cloud-upload"></i>
-        <span id="drop-text">Trascina qui i file, oppure sceglili con il campo «File»</span>
+        <span id="drop-text">{{ _('Trascina qui i file, oppure sceglili con il campo «File»') }}</span>
       </div>
       <div class="form-actions mt-16">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Carica</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> {{ _('Carica') }}</button>
       </div>
     </form>
   </div>
@@ -57,28 +57,28 @@
 <!-- Filtri ────────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
   <form method="GET" class="filter-bar">
-    <input type="search" name="q" value="{{ filters.q }}" class="form-control" placeholder="Cerca per nome o note..." style="flex:1;" aria-label="Cerca documento" />
-    <select name="doc_type" class="form-select" aria-label="Tipo">
-      <option value="">Tutti i tipi</option>
+    <input type="search" name="q" value="{{ filters.q }}" class="form-control" placeholder="{{ _('Cerca per nome o note...') }}" style="flex:1;" aria-label="{{ _('Cerca documento') }}" />
+    <select name="doc_type" class="form-select" aria-label="{{ _('Tipo') }}">
+      <option value="">{{ _('Tutti i tipi') }}</option>
       {% for t in doc_types %}<option {{ 'selected' if t == filters.doc_type }}>{{ t }}</option>{% endfor %}
     </select>
-    <select name="year" class="form-select" aria-label="Anno fiscale">
-      <option value="">Tutti gli anni</option>
+    <select name="year" class="form-select" aria-label="{{ _('Anno fiscale') }}">
+      <option value="">{{ _('Tutti gli anni') }}</option>
       {% for y in years %}<option {{ 'selected' if y|string == filters.year }}>{{ y }}</option>{% endfor %}
     </select>
-    <select name="category" class="form-select" aria-label="Categoria">
-      <option value="">Tutte le categorie</option>
+    <select name="category" class="form-select" aria-label="{{ _('Categoria') }}">
+      <option value="">{{ _('Tutte le categorie') }}</option>
       {% for c in categories %}<option {{ 'selected' if c == filters.category }}>{{ c }}</option>{% endfor %}
     </select>
-    <button type="submit" class="btn btn-outline"><i class="bi bi-funnel"></i> Filtra</button>
-    {% if filters.values()|select|list %}<a href="{{ url_for('documents.index') }}" class="btn btn-ghost">Azzera</a>{% endif %}
+    <button type="submit" class="btn btn-outline"><i class="bi bi-funnel"></i> {{ _('Filtra') }}</button>
+    {% if filters.values()|select|list %}<a href="{{ url_for('documents.index') }}" class="btn btn-ghost">{{ _('Azzera') }}</a>{% endif %}
   </form>
 </div>
 
 <!-- Archivio ──────────────────────────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
-    <div class="card-header-title">Documenti</div>
+    <div class="card-header-title">{{ _('Documenti') }}</div>
     <span class="text-xs text-muted">{{ documents|length }} di {{ total }}</span>
   </div>
   {% if documents %}
@@ -86,12 +86,12 @@
     <table>
       <thead>
         <tr>
-          <th>Documento</th>
-          <th>Tipo</th>
-          <th>Anno</th>
-          <th>Categoria</th>
-          <th>Transazione</th>
-          <th class="text-right">Azioni</th>
+          <th>{{ _('Documento') }}</th>
+          <th>{{ _('Tipo') }}</th>
+          <th>{{ _('Anno') }}</th>
+          <th>{{ _('Categoria') }}</th>
+          <th>{{ _('Transazione') }}</th>
+          <th class="text-right">{{ _('Azioni') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -118,10 +118,10 @@
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('documents.file', doc_id=doc.id, download=1) }}" class="btn btn-ghost btn-icon btn-sm" title="Scarica" aria-label="Scarica {{ doc.filename }}"><i class="bi bi-download"></i></a>
-              <a href="{{ url_for('documents.edit', doc_id=doc.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica e collega" aria-label="Modifica {{ doc.filename }}"><i class="bi bi-pencil"></i></a>
+              <a href="{{ url_for('documents.file', doc_id=doc.id, download=1) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Scarica') }}" aria-label="Scarica {{ doc.filename }}"><i class="bi bi-download"></i></a>
+              <a href="{{ url_for('documents.edit', doc_id=doc.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica e collega') }}" aria-label="Modifica {{ doc.filename }}"><i class="bi bi-pencil"></i></a>
               <form method="POST" action="{{ url_for('documents.delete', doc_id=doc.id) }}" data-confirm="Eliminare «{{ doc.filename }}»? Il file verrà cancellato.">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ doc.filename }}"><i class="bi bi-trash3"></i></button>
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ doc.filename }}"><i class="bi bi-trash3"></i></button>
               </form>
             </div>
           </td>
@@ -132,16 +132,15 @@
   </div>
   {% elif total %}
   <div class="empty-state">
-    <div class="empty-state-text">Nessun documento corrisponde ai filtri.</div>
-    <a href="{{ url_for('documents.index') }}" class="btn btn-ghost">Mostra tutti</a>
+    <div class="empty-state-text">{{ _('Nessun documento corrisponde ai filtri.') }}</div>
+    <a href="{{ url_for('documents.index') }}" class="btn btn-ghost">{{ _('Mostra tutti') }}</a>
   </div>
   {% else %}
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-folder2-open"></i></div>
-    <div class="empty-state-title">Archivio vuoto</div>
+    <div class="empty-state-title">{{ _('Archivio vuoto') }}</div>
     <div class="empty-state-text">
-      Carica fatture, scontrini, estratti conto e contratti per tenerli a portata di mano,
-      collegati alle transazioni e ordinati per anno fiscale. Sono inclusi nel backup.
+      {{ _('Carica fatture, scontrini, estratti conto e contratti per tenerli a portata di mano, collegati alle transazioni e ordinati per anno fiscale. Sono inclusi nel backup.') }}
     </div>
   </div>
   {% endif %}

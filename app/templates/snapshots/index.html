@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Istantanee — MyFinancePlace{% endblock %}
-{% block page_title %}Istantanee Finanziarie{% endblock %}
-{% block breadcrumb %}<li>Istantanee</li>{% endblock %}
+{% block title %}{{ _('Istantanee') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Istantanee Finanziarie') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Istantanee') }}</li>{% endblock %}
 
 {% block content %}
 
@@ -13,12 +13,11 @@
       <div style="flex:1 1 280px;">
         <div class="cell-title">Patrimonio netto oggi: {{ current.net_worth|money }}</div>
         <div class="text-xs text-muted">
-          Un'istantanea fotografa liquidità, investimenti e debiti di oggi. Creane una al mese per seguire
-          l'evoluzione del patrimonio e confrontare due momenti.
+          {{ _("Un'istantanea fotografa liquidità, investimenti e debiti di oggi. Creane una al mese per seguire l'evoluzione del patrimonio e confrontare due momenti.") }}
         </div>
       </div>
-      <input type="text" name="label" class="form-control" style="max-width:240px;" placeholder="Etichetta (es. Fine anno)" aria-label="Etichetta" />
-      <button type="submit" class="btn btn-primary"><i class="bi bi-camera"></i> Crea Istantanea</button>
+      <input type="text" name="label" class="form-control" style="max-width:240px;" placeholder="{{ _('Etichetta (es. Fine anno)') }}" aria-label="{{ _('Etichetta') }}" />
+      <button type="submit" class="btn btn-primary"><i class="bi bi-camera"></i> {{ _('Crea Istantanea') }}</button>
     </form>
   </div>
 </div>
@@ -28,23 +27,23 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">Andamento Patrimonio Netto</div>
-        <div class="card-header-sub">Da tutte le istantanee</div>
+        <div class="card-header-title">{{ _('Andamento Patrimonio Netto') }}</div>
+        <div class="card-header-sub">{{ _('Da tutte le istantanee') }}</div>
       </div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
         {% if snapshots|length >= 2 %}<canvas id="snapshotTrend"></canvas>
-        {% else %}<div class="chart-empty">Serve almeno un'altra istantanea per disegnare l'andamento.</div>{% endif %}
+        {% else %}<div class="chart-empty">{{ _("Serve almeno un'altra istantanea per disegnare l'andamento.") }}</div>{% endif %}
       </div>
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-header-title">Confronta Istantanee</div></div>
+    <div class="card-header"><div class="card-header-title">{{ _('Confronta Istantanee') }}</div></div>
     <div class="card-body">
       <form method="GET" action="{{ url_for('snapshots.compare') }}">
         <div class="form-group">
-          <label class="form-label" for="cmp-a">Istantanea A</label>
+          <label class="form-label" for="cmp-a">{{ _('Istantanea A') }}</label>
           <select id="cmp-a" name="a" class="form-select">
             {% for s in snapshots %}
             <option value="{{ s.id }}" {{ 'selected' if loop.index == (snapshots|length - 1 if snapshots|length > 1 else 1) }}>{{ s.taken_on|it_date }}{{ ' — ' ~ s.label if s.label }}</option>
@@ -52,16 +51,16 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="cmp-b">Istantanea B</label>
+          <label class="form-label" for="cmp-b">{{ _('Istantanea B') }}</label>
           <select id="cmp-b" name="b" class="form-select">
-            <option value="">Oggi (dati attuali)</option>
+            <option value="">{{ _('Oggi (dati attuali)') }}</option>
             {% for s in snapshots %}
             <option value="{{ s.id }}" {{ 'selected' if loop.last and snapshots|length > 1 }}>{{ s.taken_on|it_date }}{{ ' — ' ~ s.label if s.label }}</option>
             {% endfor %}
           </select>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-          <i class="bi bi-arrow-left-right"></i> Confronta
+          <i class="bi bi-arrow-left-right"></i> {{ _('Confronta') }}
         </button>
       </form>
     </div>
@@ -69,19 +68,19 @@
 </div>
 
 <div class="card">
-  <div class="card-header"><div class="card-header-title">Tutte le Istantanee</div></div>
+  <div class="card-header"><div class="card-header-title">{{ _('Tutte le Istantanee') }}</div></div>
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>Data</th>
-          <th>Etichetta</th>
-          <th class="text-right">Patrimonio Netto</th>
-          <th class="text-right">Attività</th>
-          <th class="text-right">Passività</th>
-          <th class="text-right">Investimenti</th>
-          <th class="text-right">Variazione</th>
-          <th class="text-right">Azioni</th>
+          <th>{{ _('Data') }}</th>
+          <th>{{ _('Etichetta') }}</th>
+          <th class="text-right">{{ _('Patrimonio Netto') }}</th>
+          <th class="text-right">{{ _('Attività') }}</th>
+          <th class="text-right">{{ _('Passività') }}</th>
+          <th class="text-right">{{ _('Investimenti') }}</th>
+          <th class="text-right">{{ _('Variazione') }}</th>
+          <th class="text-right">{{ _('Azioni') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -97,13 +96,13 @@
           <td class="text-right">
             {% if row.delta is not none %}
             <span class="badge {{ 'badge-positive' if row.delta >= 0 else 'badge-negative' }}">{{ '+' if row.delta > 0 }}{{ row.delta|money }}</span>
-            {% else %}<span class="badge badge-muted">prima</span>{% endif %}
+            {% else %}<span class="badge badge-muted">{{ _('prima') }}</span>{% endif %}
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('snapshots.compare', a=s.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Confronta con oggi" aria-label="Confronta con oggi"><i class="bi bi-arrow-left-right"></i></a>
+              <a href="{{ url_for('snapshots.compare', a=s.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Confronta con oggi') }}" aria-label="{{ _('Confronta con oggi') }}"><i class="bi bi-arrow-left-right"></i></a>
               <form method="POST" action="{{ url_for('snapshots.delete', snapshot_id=s.id) }}" data-confirm="Eliminare l'istantanea del {{ s.taken_on|it_date }}?">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina istantanea"><i class="bi bi-trash3"></i></button>
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina istantanea') }}"><i class="bi bi-trash3"></i></button>
               </form>
             </div>
           </td>
@@ -118,8 +117,8 @@
 <div class="card">
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-camera"></i></div>
-    <div class="empty-state-title">Nessuna istantanea ancora</div>
-    <div class="empty-state-text">Crea la prima istantanea per iniziare a tracciare l'evoluzione del tuo patrimonio nel tempo.</div>
+    <div class="empty-state-title">{{ _('Nessuna istantanea ancora') }}</div>
+    <div class="empty-state-text">{{ _("Crea la prima istantanea per iniziare a tracciare l'evoluzione del tuo patrimonio nel tempo.") }}</div>
   </div>
 </div>
 {% endif %}

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Impostazioni — MyFinancePlace{% endblock %}
-{% block page_title %}Impostazioni{% endblock %}
-{% block breadcrumb %}<li>Impostazioni</li>{% endblock %}
+{% block title %}{{ _('Impostazioni') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Impostazioni') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Impostazioni') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <form method="POST" action="{{ url_for('settings.reset') }}" style="display:inline;">
     <button type="submit" class="btn btn-ghost btn-sm"
             onclick="return confirm('Ripristinare tutte le impostazioni predefinite?')">
-      <i class="bi bi-arrow-counterclockwise"></i> Ripristina Defaults
+      <i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina Defaults') }}
     </button>
   </form>
 {% endblock %}
@@ -37,34 +37,34 @@
   <!-- ── Left nav ───────────────────────────────────────────────────────── -->
   <nav class="settings-nav">
     <a href="#dashboard"   class="settings-nav-item active" onclick="scrollTo(this)">
-      <i class="bi bi-speedometer2"></i> Dashboard
+      <i class="bi bi-speedometer2"></i> {{ _('Dashboard') }}
     </a>
     <a href="#moduli"      class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-grid-3x3-gap"></i> Moduli
+      <i class="bi bi-grid-3x3-gap"></i> {{ _('Moduli') }}
     </a>
     <a href="#contabilita" class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-bar-chart-line"></i> Contabilità
+      <i class="bi bi-bar-chart-line"></i> {{ _('Contabilità') }}
     </a>
     <a href="#lifestyle"   class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-pie-chart"></i> Stile di Vita
+      <i class="bi bi-pie-chart"></i> {{ _('Stile di Vita') }}
     </a>
     <a href="#visualizza"  class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-palette"></i> Visualizzazione
+      <i class="bi bi-palette"></i> {{ _('Visualizzazione') }}
     </a>
     <a href="#account"     class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-person-circle"></i> Account
+      <i class="bi bi-person-circle"></i> {{ _('Account') }}
     </a>
     <a href="{{ url_for('settings.categories_page') }}" class="settings-nav-item">
-      <i class="bi bi-tags"></i> Categorie
+      <i class="bi bi-tags"></i> {{ _('Categorie') }}
     </a>
     <a href="{{ url_for('settings.rules_page') }}" class="settings-nav-item">
-      <i class="bi bi-magic"></i> Regole di categoria
+      <i class="bi bi-magic"></i> {{ _('Regole di categoria') }}
     </a>
     <a href="{{ url_for('settings.currencies_page') }}" class="settings-nav-item">
-      <i class="bi bi-currency-exchange"></i> Valute e cambi
+      <i class="bi bi-currency-exchange"></i> {{ _('Valute e cambi') }}
     </a>
     <a href="{{ url_for('settings.ai_models_page') }}" class="settings-nav-item">
-      <i class="bi bi-stars"></i> Modelli AI
+      <i class="bi bi-stars"></i> {{ _('Modelli AI') }}
     </a>
   </nav>
 
@@ -75,7 +75,7 @@
     <div class="settings-section" id="dashboard">
       <div class="settings-section-header">
         <i class="bi bi-speedometer2" style="color:var(--clr-primary);"></i>
-        Dashboard — Schede KPI
+        {{ _('Dashboard — Schede KPI') }}
       </div>
       <div class="settings-section-body">
         {{ toggle('dashboard_net_worth',    'Patrimonio Netto',    'Scheda con il valore netto totale (attività − passività)') }}
@@ -90,7 +90,7 @@
     <div class="settings-section">
       <div class="settings-section-header">
         <i class="bi bi-layout-text-window" style="color:var(--clr-primary);"></i>
-        Dashboard — Sezioni
+        {{ _('Dashboard — Sezioni') }}
       </div>
       <div class="settings-section-body">
         {{ toggle('dashboard_cashflow_chart', 'Grafico Flusso di Cassa',   'Grafico entrate/uscite degli ultimi 12 mesi') }}
@@ -104,9 +104,9 @@
     <div class="settings-section" id="moduli">
       <div class="settings-section-header">
         <i class="bi bi-grid-3x3-gap" style="color:var(--clr-primary);"></i>
-        Moduli — Visibilità nella Navigazione
+        {{ _('Moduli — Visibilità nella Navigazione') }}
         <span class="badge badge-muted" style="margin-left:auto;font-weight:400;">
-          Disabilitare un modulo lo nasconde dalla sidebar e dalla navigazione
+          {{ _('Disabilitare un modulo lo nasconde dalla sidebar e dalla navigazione') }}
         </span>
       </div>
       <div class="settings-section-body">
@@ -123,7 +123,7 @@
     <div class="settings-section" id="contabilita">
       <div class="settings-section-header">
         <i class="bi bi-bar-chart-line" style="color:var(--clr-primary);"></i>
-        Contabilità — Sotto-sezioni
+        {{ _('Contabilità — Sotto-sezioni') }}
       </div>
       <div class="settings-section-body">
         {{ toggle('accounting_balance_sheet',    'Stato Patrimoniale', 'Attività, passività e patrimonio netto') }}
@@ -136,7 +136,7 @@
     <div class="settings-section" id="lifestyle">
       <div class="settings-section-header">
         <i class="bi bi-pie-chart" style="color:var(--clr-primary);"></i>
-        Stile di Vita — Sotto-sezioni
+        {{ _('Stile di Vita — Sotto-sezioni') }}
       </div>
       <div class="settings-section-body">
         {{ toggle('lifestyle_goals', 'Obiettivi Personali', 'Tracciamento degli obiettivi finanziari con barre di progresso') }}
@@ -147,41 +147,41 @@
     <div class="settings-section" id="visualizza">
       <div class="settings-section-header">
         <i class="bi bi-palette" style="color:var(--clr-primary);"></i>
-        Visualizzazione
+        {{ _('Visualizzazione') }}
       </div>
       <div class="settings-section-body" style="padding-top:12px;padding-bottom:12px;">
 
         <div class="grid-3" style="gap:16px;">
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label" for="s-currency">Valuta dei totali</label>
+            <label class="form-label" for="s-currency">{{ _('Valuta dei totali') }}</label>
             <select id="s-currency" name="currency" class="form-select" onchange="this.form.submit()">
               {% for code, (sym, name) in currencies.items() %}
               <option value="{{ code }}" {{ 'selected' if settings.currency == code }}>{{ sym }} {{ code }} — {{ name }}</option>
               {% endfor %}
             </select>
-            <div class="form-hint">Le transazioni in altre valute vengono convertite con i <a href="{{ url_for('settings.currencies_page') }}">cambi</a>.</div>
+            <div class="form-hint">{{ _('Le transazioni in altre valute vengono convertite con i') }} <a href="{{ url_for('settings.currencies_page') }}">{{ _('cambi') }}</a>.</div>
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label" for="s-locale">Formato numeri</label>
+            <label class="form-label" for="s-locale">{{ _('Formato numeri') }}</label>
             <select id="s-locale" name="locale" class="form-select" onchange="this.form.submit()">
-              {% for code, (label, _, _) in locales.items() %}
+              {% for code, (label, _thousands, _decimal) in locales.items() %}
               <option value="{{ code }}" {{ 'selected' if settings.locale == code }}>{{ label }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label" for="s-date">Formato data</label>
+            <label class="form-label" for="s-date">{{ _('Formato data') }}</label>
             <select id="s-date" name="date_format" class="form-select" onchange="this.form.submit()">
-              <option value="DD/MM/YYYY" {{ 'selected' if settings.date_format == 'DD/MM/YYYY' }}>DD/MM/YYYY (italiano)</option>
-              <option value="YYYY-MM-DD" {{ 'selected' if settings.date_format == 'YYYY-MM-DD' }}>YYYY-MM-DD (ISO)</option>
-              <option value="MM/DD/YYYY" {{ 'selected' if settings.date_format == 'MM/DD/YYYY' }}>MM/DD/YYYY (US)</option>
+              <option value="DD/MM/YYYY" {{ 'selected' if settings.date_format == 'DD/MM/YYYY' }}>{{ _('DD/MM/YYYY (italiano)') }}</option>
+              <option value="YYYY-MM-DD" {{ 'selected' if settings.date_format == 'YYYY-MM-DD' }}>{{ _('YYYY-MM-DD (ISO)') }}</option>
+              <option value="MM/DD/YYYY" {{ 'selected' if settings.date_format == 'MM/DD/YYYY' }}>{{ _('MM/DD/YYYY (US)') }}</option>
             </select>
           </div>
         </div>
 
         <div style="margin-top:16px;padding:14px;background:var(--clr-bg-input);border-radius:var(--border-radius-sm);">
           <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">
-            Anteprima
+            {{ _('Anteprima') }}
           </div>
           <span style="font-family:var(--font-mono);font-size:var(--font-size-sm);">
             {{ 1234.56|money }} &nbsp;·&nbsp; {{ preview_date|it_date }}
@@ -190,8 +190,8 @@
 
         <div style="margin-top:16px;" class="toggle-wrap">
           <div class="toggle-info">
-            <div class="toggle-label">Modalità Scura</div>
-            <div class="toggle-hint">Tema scuro per l'intera interfaccia — disponibile prossimamente</div>
+            <div class="toggle-label">{{ _('Modalità Scura') }}</div>
+            <div class="toggle-hint">{{ _("Tema scuro per l'intera interfaccia — disponibile prossimamente") }}</div>
           </div>
           <label class="toggle-switch" style="opacity:.4;pointer-events:none;">
             <input type="checkbox" disabled />
@@ -206,48 +206,48 @@
     <div class="settings-section" id="account">
       <div class="settings-section-header">
         <i class="bi bi-person-circle" style="color:var(--clr-primary);"></i>
-        Account
+        {{ _('Account') }}
       </div>
       <div class="settings-section-body" style="padding-top:16px;padding-bottom:16px;">
         <div class="grid-2" style="gap:16px;margin-bottom:16px;">
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Nome</label>
-            <input type="text" class="form-control" placeholder="Il tuo nome"
+            <label class="form-label">{{ _('Nome') }}</label>
+            <input type="text" class="form-control" placeholder="{{ _('Il tuo nome') }}"
                    value="{{ current_user.first_name if current_user is defined and current_user.is_authenticated else '' }}" />
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Cognome</label>
-            <input type="text" class="form-control" placeholder="Il tuo cognome"
+            <label class="form-label">{{ _('Cognome') }}</label>
+            <input type="text" class="form-control" placeholder="{{ _('Il tuo cognome') }}"
                    value="{{ current_user.last_name if current_user is defined and current_user.is_authenticated else '' }}" />
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-control" placeholder="email@esempio.com"
+          <label class="form-label">{{ _('Email') }}</label>
+          <input type="email" class="form-control" placeholder="{{ _('email@esempio.com') }}"
                  value="{{ current_user.email if current_user is defined and current_user.is_authenticated else '' }}" />
         </div>
         <div style="border-top:1px solid var(--clr-border-light);padding-top:16px;margin-top:8px;">
           <div style="font-weight:600;font-size:var(--font-size-sm);color:var(--clr-text-primary);margin-bottom:12px;">
-            Cambia Password
+            {{ _('Cambia Password') }}
           </div>
           <div class="form-group">
-            <label class="form-label">Password Attuale</label>
+            <label class="form-label">{{ _('Password Attuale') }}</label>
             <input type="password" class="form-control" placeholder="••••••••" />
           </div>
           <div class="grid-2" style="gap:16px;">
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Nuova Password</label>
+              <label class="form-label">{{ _('Nuova Password') }}</label>
               <input type="password" class="form-control" placeholder="••••••••" />
             </div>
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Conferma Password</label>
+              <label class="form-label">{{ _('Conferma Password') }}</label>
               <input type="password" class="form-control" placeholder="••••••••" />
             </div>
           </div>
         </div>
         <div style="margin-top:20px;display:flex;justify-content:flex-end;">
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> Salva Modifiche Account
+            <i class="bi bi-check-lg"></i> {{ _('Salva Modifiche Account') }}
           </button>
         </div>
       </div>

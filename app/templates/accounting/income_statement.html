@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Conto Economico — MyFinancePlace{% endblock %}
-{% block page_title %}Conto Economico{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">Contabilità</a></li><li>Conto Economico</li>{% endblock %}
+{% block title %}{{ _('Conto Economico') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Conto Economico') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Conto Economico') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% include "partials/year_select.html" %}
@@ -17,22 +17,22 @@
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
-    <div class="kpi-label">Totale Entrate</div>
+    <div class="kpi-label">{{ _('Totale Entrate') }}</div>
     <div class="kpi-value text-positive">{{ report.summary.income|money }}</div>
   </div>
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
-    <div class="kpi-label">Totale Uscite</div>
+    <div class="kpi-label">{{ _('Totale Uscite') }}</div>
     <div class="kpi-value text-negative">{{ report.summary.expenses|money }}</div>
   </div>
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">Risparmio Netto</div>
+    <div class="kpi-label">{{ _('Risparmio Netto') }}</div>
     <div class="kpi-value {{ 'text-negative' if report.summary.net < 0 else '' }}">{{ report.summary.net|money }}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-percent"></i></div>
-    <div class="kpi-label">Tasso di Risparmio</div>
+    <div class="kpi-label">{{ _('Tasso di Risparmio') }}</div>
     <div class="kpi-value">{{ "%.1f"|format(report.summary.savings_rate) }}%</div>
   </div>
 </div>
@@ -41,20 +41,20 @@
 
   <!-- P&L Table -->
   <div class="card">
-    <div class="card-header"><div class="card-header-title">Profit & Loss</div></div>
+    <div class="card-header"><div class="card-header-title">{{ _('Profit & Loss') }}</div></div>
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Item</th>
-            <th class="text-right">Amount</th>
-            <th class="text-right">% of Income</th>
+            <th>{{ _('Item') }}</th>
+            <th class="text-right">{{ _('Amount') }}</th>
+            <th class="text-right">{{ _('%% of Income') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr style="background:var(--clr-positive-bg);">
             <td colspan="3" style="font-weight:700;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
-              Ricavi
+              {{ _('Ricavi') }}
             </td>
           </tr>
           {% for line in report.income_lines %}
@@ -64,17 +64,17 @@
             <td style="text-align:right;color:var(--clr-text-muted);">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
           </tr>
           {% else %}
-          <tr><td class="text-muted" colspan="3">Nessuna entrata registrata</td></tr>
+          <tr><td class="text-muted" colspan="3">{{ _('Nessuna entrata registrata') }}</td></tr>
           {% endfor %}
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>Totale Entrate</td><td class="amount positive text-right">{{ report.summary.income|money }}</td><td class="text-right">{{ '100%' if report.summary.income else '—' }}</td>
+            <td>{{ _('Totale Entrate') }}</td><td class="amount positive text-right">{{ report.summary.income|money }}</td><td class="text-right">{{ '100%' if report.summary.income else '—' }}</td>
           </tr>
 
           <tr style="height:8px;"><td colspan="3"></td></tr>
 
           <tr style="background:var(--clr-negative-bg);">
             <td colspan="3" style="font-weight:700;color:var(--clr-negative-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
-              Spese
+              {{ _('Spese') }}
             </td>
           </tr>
           {% for line in report.expense_lines %}
@@ -84,16 +84,16 @@
             <td style="text-align:right;color:var(--clr-text-muted);">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
           </tr>
           {% else %}
-          <tr><td class="text-muted" colspan="3">Nessuna spesa registrata</td></tr>
+          <tr><td class="text-muted" colspan="3">{{ _('Nessuna spesa registrata') }}</td></tr>
           {% endfor %}
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>Totale Uscite</td><td class="amount negative text-right">{{ report.summary.expenses|money }}</td>
+            <td>{{ _('Totale Uscite') }}</td><td class="amount negative text-right">{{ report.summary.expenses|money }}</td>
             <td class="text-right">{{ "%.1f%%"|format(100 - report.summary.savings_rate) if report.summary.income else '—' }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
-            <td>Risparmio Netto</td>
+            <td>{{ _('Risparmio Netto') }}</td>
             <td class="amount" style="text-align:right;font-size:var(--font-size-lg);">{{ report.summary.net|money }}</td>
             <td class="text-right">{{ "%.1f%%"|format(report.summary.savings_rate) if report.summary.income else '—' }}</td>
           </tr>
@@ -105,13 +105,13 @@
   <!-- Charts -->
   <div style="display:flex;flex-direction:column;gap:16px;">
     <div class="card">
-      <div class="card-header"><div class="card-header-title">Andamento Mensile</div></div>
+      <div class="card-header"><div class="card-header-title">{{ _('Andamento Mensile') }}</div></div>
       <div class="card-body">
         <div class="chart-container" style="height:200px;"><canvas id="isMonthlyChart"></canvas></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-header"><div class="card-header-title">Dettaglio Spese</div></div>
+      <div class="card-header"><div class="card-header-title">{{ _('Dettaglio Spese') }}</div></div>
       <div class="card-body">
         <div class="chart-container" style="height:200px;"><canvas id="isExpenseChart"></canvas></div>
       </div>

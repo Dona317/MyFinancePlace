@@ -4,7 +4,7 @@
 {% set h = holding or {} %}
 {% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Posizione — MyFinancePlace{% endblock %}
 {% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Posizione{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">Portafoglio</a></li><li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">

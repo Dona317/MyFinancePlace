@@ -50,7 +50,10 @@ DEFAULT_SETTINGS = {
     "currency":    "EUR",
     "locale":      "it-IT",
     "date_format": "DD/MM/YYYY",
+    "language":    "it",
 }
+
+LANGUAGES = {"it": "Italiano", "en": "English"}  # interface languages (translations/<code>/LC_MESSAGES)
 
 
 # Which setting switches off which pages: a whole blueprint, or single endpoints inside one
@@ -94,10 +97,20 @@ def current_settings() -> dict:
     return current
 
 
+def current_language() -> str:
+    """The interface language chosen in Settings (Italian unless English was chosen)."""
+    try:
+        language = current_settings().get("language")
+    except Exception:  # noqa: BLE001 - no database yet (e.g. `flask db upgrade` on a fresh one): the source language
+        db.session.rollback()
+        return "it"
+    return language if language in LANGUAGES else "it"
+
+
 @settings_bp.route("/")
 def index():
     return render_template("settings/index.html", settings=current_settings(), defaults=DEFAULT_SETTINGS,
-                           currencies=currency.CURRENCIES, locales=display.LOCALES, preview_date=date(2026, 5, 25))
+                           currencies=currency.CURRENCIES, locales=display.LOCALES, languages=LANGUAGES, preview_date=date(2026, 5, 25))
 
 
 @settings_bp.route("/save", methods=["POST"])

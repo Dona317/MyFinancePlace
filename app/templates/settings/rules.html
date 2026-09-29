@@ -1,28 +1,28 @@
 {% extends "base.html" %}
-{% block title %}Regole di categoria — MyFinancePlace{% endblock %}
-{% block page_title %}Regole di Categoria{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">Impostazioni</a></li><li>Regole</li>{% endblock %}
+{% block title %}{{ _('Regole di categoria') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Regole di Categoria') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Regole') }}</li>{% endblock %}
 
 {% block content %}
 
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-magic"></i> Nuova regola</div>
-      <div class="card-header-sub">Se la causale o la controparte contiene la parola, la transazione va nella categoria. Vale per gli import e per «Applica»</div>
+      <div class="card-header-title"><i class="bi bi-magic"></i> {{ _('Nuova regola') }}</div>
+      <div class="card-header-sub">{{ _('Se la causale o la controparte contiene la parola, la transazione va nella categoria. Vale per gli import e per «Applica»') }}</div>
     </div>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('settings.rule_save') }}" class="grid-3" style="align-items:end;">
-      <div class="form-group"><label class="form-label" for="r-keyword">Parola chiave *</label>
-        <input id="r-keyword" name="keyword" class="form-control" required placeholder="es. decathlon" /></div>
-      <div class="form-group"><label class="form-label" for="r-category">Categoria *</label>
+      <div class="form-group"><label class="form-label" for="r-keyword">{{ _('Parola chiave *') }}</label>
+        <input id="r-keyword" name="keyword" class="form-control" required placeholder="{{ _('es. decathlon') }}" /></div>
+      <div class="form-group"><label class="form-label" for="r-category">{{ _('Categoria *') }}</label>
         <select id="r-category" name="category" class="form-select" required>
-          <option value="">— Scegli —</option>{% for c in categories %}<option>{{ c }}</option>{% endfor %}
+          <option value="">{{ _('— Scegli —') }}</option>{% for c in categories %}<option>{{ c }}</option>{% endfor %}
         </select></div>
       <div class="form-group">
-        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="apply" value="1" checked /> Applica subito alle transazioni senza categoria</label>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Salva regola</button>
+        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="apply" value="1" checked /> {{ _('Applica subito alle transazioni senza categoria') }}</label>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Salva regola') }}</button>
       </div>
     </form>
   </div>
@@ -31,17 +31,17 @@
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title">Le tue regole</div>
-      <div class="card-header-sub">Hanno la precedenza sulle regole predefinite. «Imparata» = nata quando hai corretto la categoria di una transazione</div>
+      <div class="card-header-title">{{ _('Le tue regole') }}</div>
+      <div class="card-header-sub">{{ _('Hanno la precedenza sulle regole predefinite. «Imparata» = nata quando hai corretto la categoria di una transazione') }}</div>
     </div>
     <form method="POST" action="{{ url_for('settings.rules_apply') }}" class="inline-filter">
-      <button type="submit" class="btn btn-outline btn-sm" title="Solo le transazioni senza categoria o in «Altro»"><i class="bi bi-play"></i> Applica</button>
+      <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Solo le transazioni senza categoria o in «Altro»') }}"><i class="bi bi-play"></i> {{ _('Applica') }}</button>
     </form>
   </div>
   {% if rules %}
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>Parola chiave</th><th>Categoria</th><th>Origine</th><th class="text-right">Usata</th><th class="text-right">Azioni</th></tr></thead>
+      <thead><tr><th>{{ _('Parola chiave') }}</th><th>{{ _('Categoria') }}</th><th>{{ _('Origine') }}</th><th class="text-right">{{ _('Usata') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
       <tbody>
         {% for r in rules %}
         <tr>
@@ -52,7 +52,7 @@
           <td>
             <div class="cell-actions">
               <form method="POST" action="{{ url_for('settings.rule_delete', rule_id=r.id) }}" data-confirm="Eliminare la regola «{{ r.keyword }}»?">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina regola {{ r.keyword }}"><i class="bi bi-trash3"></i></button>
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina regola {{ r.keyword }}"><i class="bi bi-trash3"></i></button>
               </form>
             </div>
           </td>
@@ -64,8 +64,7 @@
   {% else %}
   <div class="empty-state">
     <div class="empty-state-text">
-      Nessuna regola ancora. Aggiungine una qui sopra, oppure correggi la categoria di una transazione
-      con «Ricorda per questa controparte»: l'app imparerà da sola.
+      {{ _("Nessuna regola ancora. Aggiungine una qui sopra, oppure correggi la categoria di una transazione con «Ricorda per questa controparte»: l'app imparerà da sola.") }}
     </div>
   </div>
   {% endif %}
@@ -75,13 +74,13 @@
   <details>
     <summary class="card-header" style="cursor:pointer;">
       <div>
-        <div class="card-header-title">Regole predefinite</div>
-        <div class="card-header-sub">Usate dopo le tue. Per cambiarne una, crea una tua regola con la stessa parola</div>
+        <div class="card-header-title">{{ _('Regole predefinite') }}</div>
+        <div class="card-header-sub">{{ _('Usate dopo le tue. Per cambiarne una, crea una tua regola con la stessa parola') }}</div>
       </div>
     </summary>
     <div class="table-wrapper">
       <table class="table-compact">
-        <thead><tr><th>Categoria</th><th>Parole chiave</th></tr></thead>
+        <thead><tr><th>{{ _('Categoria') }}</th><th>{{ _('Parole chiave') }}</th></tr></thead>
         <tbody>
           {% for category, keywords in builtin %}
           <tr><td class="nowrap"><span class="badge badge-primary">{{ category }}</span></td><td class="text-sm">{{ keywords|join(', ') }}</td></tr>

@@ -1,28 +1,28 @@
 {% extends "base.html" %}
-{% block title %}Categorie — MyFinancePlace{% endblock %}
-{% block page_title %}Categorie{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">Impostazioni</a></li><li>Categorie</li>{% endblock %}
+{% block title %}{{ _('Categorie') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Categorie') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Categorie') }}</li>{% endblock %}
 
 {% block content %}
 
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-plus-circle"></i> Nuova categoria</div>
-      <div class="card-header-sub">Compare in tutti gli elenchi: transazioni, import, documenti, budget, classificazione AI</div>
+      <div class="card-header-title"><i class="bi bi-plus-circle"></i> {{ _('Nuova categoria') }}</div>
+      <div class="card-header-sub">{{ _('Compare in tutti gli elenchi: transazioni, import, documenti, budget, classificazione AI') }}</div>
     </div>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('settings.category_save') }}" class="grid-4" style="align-items:end;">
-      <div class="form-group"><label class="form-label" for="new-name">Nome *</label>
-        <input id="new-name" name="name" class="form-control" required placeholder="es. Animali" /></div>
-      <div class="form-group"><label class="form-label" for="new-kind">Tipo</label>
+      <div class="form-group"><label class="form-label" for="new-name">{{ _('Nome *') }}</label>
+        <input id="new-name" name="name" class="form-control" required placeholder="{{ _('es. Animali') }}" /></div>
+      <div class="form-group"><label class="form-label" for="new-kind">{{ _('Tipo') }}</label>
         <select id="new-kind" name="kind" class="form-select">{% for k, label in kinds.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select></div>
-      <div class="form-group"><label class="form-label" for="new-hint">Cosa comprende</label>
-        <input id="new-hint" name="hint" class="form-control" placeholder="es. veterinario, cibo, toelettatura" /></div>
+      <div class="form-group"><label class="form-label" for="new-hint">{{ _('Cosa comprende') }}</label>
+        <input id="new-hint" name="hint" class="form-control" placeholder="{{ _('es. veterinario, cibo, toelettatura') }}" /></div>
       <div class="form-group">
-        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="discretionary" /> Spesa non essenziale</label>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Aggiungi</button>
+        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="discretionary" /> {{ _('Spesa non essenziale') }}</label>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
       </div>
     </form>
   </div>
@@ -31,14 +31,14 @@
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title">Le tue categorie</div>
-      <div class="card-header-sub">Rinominare una categoria aggiorna tutte le sue transazioni; dare il nome di un'altra le unisce</div>
+      <div class="card-header-title">{{ _('Le tue categorie') }}</div>
+      <div class="card-header-sub">{{ _("Rinominare una categoria aggiorna tutte le sue transazioni; dare il nome di un'altra le unisce") }}</div>
     </div>
   </div>
   <div class="table-wrapper">
     <table>
       <thead>
-        <tr><th>Categoria</th><th>Tipo</th><th>Cosa comprende</th><th class="text-center">Non essenziale</th><th class="text-right">Transazioni</th><th class="text-right">Azioni</th></tr>
+        <tr><th>{{ _('Categoria') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Cosa comprende') }}</th><th class="text-center">{{ _('Non essenziale') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr>
       </thead>
       <tbody>
         {% for c in categories %}
@@ -57,13 +57,13 @@
             <div class="cell-actions">
               <form method="POST" action="{{ url_for('settings.category_save') }}" id="{{ form_id }}">
                 <input type="hidden" name="old_name" value="{{ c.name }}" />
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="Salva" aria-label="Salva {{ c.name }}"><i class="bi bi-check-lg"></i></button>
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Salva') }}" aria-label="Salva {{ c.name }}"><i class="bi bi-check-lg"></i></button>
               </form>
               <form method="POST" action="{{ url_for('settings.category_delete') }}"
                     data-confirm="Eliminare «{{ c.name }}»?{% if usage.get(c.name) %} Le sue {{ usage.get(c.name) }} transazioni andranno in «Altro».{% endif %}">
                 <input type="hidden" name="name" value="{{ c.name }}" />
                 <input type="hidden" name="replacement" value="{{ 'Altro' if c.name != 'Altro' else '' }}" />
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ c.name }}"><i class="bi bi-trash3"></i></button>
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ c.name }}"><i class="bi bi-trash3"></i></button>
               </form>
             </div>
           </td>
@@ -74,11 +74,11 @@
   </div>
   {% if unmanaged %}
   <div class="card-footer text-sm">
-    <strong>Usate dalle transazioni ma non in elenco</strong> (es. arrivate da un import):
+    <strong>{{ _('Usate dalle transazioni ma non in elenco') }}</strong> {{ _('(es. arrivate da un import):') }}
     {% for name in unmanaged %}
     <form method="POST" action="{{ url_for('settings.category_save') }}" style="display:inline;">
       <input type="hidden" name="name" value="{{ name }}" /><input type="hidden" name="kind" value="expense" />
-      <button type="submit" class="badge badge-neutral" style="border:0;cursor:pointer;" title="Aggiungi all'elenco">+ {{ name }}</button>
+      <button type="submit" class="badge badge-neutral" style="border:0;cursor:pointer;" title="{{ _("Aggiungi all'elenco") }}">+ {{ name }}</button>
     </form>
     {% endfor %}
   </div>

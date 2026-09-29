@@ -2,8 +2,8 @@ from apiflask import APIFlask
 from flask import render_template, request
 from jinja2 import Undefined
 from config import config
-from .routes.settings import current_settings, module_setting
-from .extensions import db, migrate
+from .routes.settings import current_language, current_settings, module_setting
+from .extensions import babel, db, migrate
 
 
 def create_app(config_name="default"):
@@ -26,6 +26,9 @@ def create_app(config_name="default"):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    # Interface language (Settings → Visualizzazione): Italian is the source, English the translation
+    app.config.setdefault("BABEL_DEFAULT_LOCALE", "it")
+    babel.init_app(app, locale_selector=current_language)
 
     from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
     from .services import currency  # noqa: F401 — fills transactions.amount_base on save

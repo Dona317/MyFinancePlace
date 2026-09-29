@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Lettura con AI — MyFinancePlace{% endblock %}
-{% block page_title %}Lettura con l'intelligenza artificiale{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('export.index') }}">Esporta</a></li><li>Lettura AI</li>{% endblock %}
+{% block title %}{{ _('Lettura con AI') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _("Lettura con l'intelligenza artificiale") }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('export.index') }}">{{ _('Esporta') }}</a></li><li>{{ _('Lettura AI') }}</li>{% endblock %}
 
 {% block head %}
 {% if active %}<noscript><meta http-equiv="refresh" content="3"></noscript>{% endif %}
@@ -28,8 +28,8 @@
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;color:var(--clr-text-primary);overflow-wrap:anywhere;">{{ meta.filename }}</div>
         <p style="margin:6px 0 0;color:var(--clr-text-muted);font-size:var(--font-size-sm);">
-          Modello: <strong id="ai-model">{{ job.label or job.model }}</strong>
-          · Tempo trascorso: <strong id="ai-elapsed">{{ duration(job.elapsed) }}</strong>
+          {{ _('Modello:') }} <strong id="ai-model">{{ job.label or job.model }}</strong>
+          {{ _('· Tempo trascorso:') }} <strong id="ai-elapsed">{{ duration(job.elapsed) }}</strong>
         </p>
       </div>
     </div>
@@ -42,9 +42,9 @@
       <div style="font-weight:700;margin-bottom:10px;">
         <i class="bi bi-arrow-repeat ai-spinner"></i>
         <span id="ai-status">
-          {% if job.cancel_requested %}Annullamento in corso…
-          {% elif job.state == 'queued' %}In attesa di avvio…
-          {% else %}Lettura in corso…{% endif %}
+          {% if job.cancel_requested %}{{ _('Annullamento in corso…') }}
+          {% elif job.state == 'queued' %}{{ _('In attesa di avvio…') }}
+          {% else %}{{ _('Lettura in corso…') }}{% endif %}
         </span>
       </div>
       {% set determinate = job.total > 1 %}
@@ -57,16 +57,15 @@
         {{ job.progress }}
       </p>
       <p id="ai-cancel-note" style="margin:8px 0 0;font-size:var(--font-size-sm);color:var(--clr-text-muted);{{ '' if job.cancel_requested else 'display:none;' }}">
-        Il modello termina la parte che sta leggendo, poi la lettura si ferma.
+        {{ _('Il modello termina la parte che sta leggendo, poi la lettura si ferma.') }}
       </p>
       <p style="margin:12px 0 0;font-size:var(--font-size-sm);color:var(--clr-text-muted);">
-        <i class="bi bi-info-circle"></i> Con un modello locale senza scheda video può servire circa un minuto per pagina.
-        La pagina si aggiorna da sola e al termine mostra i movimenti da controllare.
+        <i class="bi bi-info-circle"></i> {{ _('Con un modello locale senza scheda video può servire circa un minuto per pagina. La pagina si aggiorna da sola e al termine mostra i movimenti da controllare.') }}
       </p>
       <form method="POST" action="{{ url_for('export.bank_ai_cancel', token=token) }}" style="margin-top:14px;">
         <input type="hidden" name="scope" value="job">
         <button type="submit" class="btn btn-ghost" id="ai-cancel" {{ 'disabled' if job.cancel_requested else '' }}>
-          <i class="bi bi-x-circle"></i> Annulla
+          <i class="bi bi-x-circle"></i> {{ _('Annulla') }}
         </button>
       </form>
     </div>
@@ -76,20 +75,20 @@
   {% if job.state == 'error' %}
   <div class="alert alert-error mb-16"><i class="bi bi-exclamation-triangle"></i> {{ job.error }}</div>
   {% elif job.state == 'cancelled' %}
-  <div class="alert alert-info mb-16"><i class="bi bi-x-circle"></i> Lettura annullata. Il file è ancora disponibile.</div>
+  <div class="alert alert-info mb-16"><i class="bi bi-x-circle"></i> {{ _('Lettura annullata. Il file è ancora disponibile.') }}</div>
   {% else %}
   <div class="alert alert-warning mb-16">
-    <i class="bi bi-exclamation-triangle"></i> La lettura si è interrotta prima di finire (l'applicazione è stata riavviata).
+    <i class="bi bi-exclamation-triangle"></i> {{ _("La lettura si è interrotta prima di finire (l'applicazione è stata riavviata).") }}
   </div>
   {% endif %}
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
     <form method="POST" action="{{ url_for('export.bank_ai', token=token) }}">
       <input type="hidden" name="model" value="{{ job.model }}">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-clockwise"></i> Riprova</button>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-clockwise"></i> {{ _('Riprova') }}</button>
     </form>
-    <a href="{{ url_for('export.bank_ai', token=token) }}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Scegli un altro modello</a>
+    <a href="{{ url_for('export.bank_ai', token=token) }}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> {{ _('Scegli un altro modello') }}</a>
     <form method="POST" action="{{ url_for('export.bank_ai_cancel', token=token) }}">
-      <button type="submit" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla l'importazione</button>
+      <button type="submit" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _("Annulla l'importazione") }}</button>
     </form>
   </div>
   {% endif %}

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Obiettivi — MyFinancePlace{% endblock %}
-{% block page_title %}Obiettivi Personali{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('lifestyle.index') }}">Stile di Vita</a></li><li>Obiettivi</li>{% endblock %}
+{% block title %}{{ _('Obiettivi') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Obiettivi Personali') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di Vita') }}</a></li><li>{{ _('Obiettivi') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> Nuovo Obiettivo
+    <i class="bi bi-plus-lg"></i> {{ _('Nuovo Obiettivo') }}
   </a>
 {% endblock %}
 
@@ -16,27 +16,27 @@
 <div class="kpi-grid mb-24">
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-trophy"></i></div>
-    <div class="kpi-label">Obiettivi Attivi</div>
+    <div class="kpi-label">{{ _('Obiettivi Attivi') }}</div>
     <div class="kpi-value">{{ active_count }}</div>
     <div class="kpi-sub">{{ completed_count }} completati</div>
   </div>
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-    <div class="kpi-label">Totale Risparmiato</div>
+    <div class="kpi-label">{{ _('Totale Risparmiato') }}</div>
     <div class="kpi-value text-positive">{{ saved_total|money }}</div>
     <div class="kpi-sub">su {{ target_total|money }} di obiettivi</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-calendar2-week"></i></div>
-    <div class="kpi-label">Da Mettere da Parte</div>
+    <div class="kpi-label">{{ _('Da Mettere da Parte') }}</div>
     <div class="kpi-value">{{ monthly_total|money }}</div>
-    <div class="kpi-sub">al mese, per rispettare le date</div>
+    <div class="kpi-sub">{{ _('al mese, per rispettare le date') }}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-flag"></i></div>
-    <div class="kpi-label">Mancano</div>
+    <div class="kpi-label">{{ _('Mancano') }}</div>
     <div class="kpi-value">{{ [target_total - saved_total, 0]|max|money }}</div>
-    <div class="kpi-sub">per completarli tutti</div>
+    <div class="kpi-sub">{{ _('per completarli tutti') }}</div>
   </div>
 </div>
 
@@ -51,8 +51,8 @@
         <div>
           <div class="cell-title">{{ goal.name }}</div>
           <div class="text-xs text-muted">
-            {% if goal.target_date %}Entro il {{ goal.target_date|it_date }}{% if goal.target_date < today and not goal.completed %} · <span class="text-negative">scaduto</span>{% endif %}
-            {% else %}Senza scadenza{% endif %}
+            {% if goal.target_date %}Entro il {{ goal.target_date|it_date }}{% if goal.target_date < today and not goal.completed %} · <span class="text-negative">{{ _('scaduto') }}</span>{% endif %}
+            {% else %}{{ _('Senza scadenza') }}{% endif %}
           </div>
         </div>
         <span class="badge badge-{{ 'positive' if goal.completed else 'neutral' }}">
@@ -70,14 +70,14 @@
       {% if goal.notes %}<div class="text-xs text-muted mt-8">{{ goal.notes }}</div>{% endif %}
       <div class="goal-foot">
         <form method="POST" action="{{ url_for('lifestyle.goal_contribute', goal_id=goal.id) }}">
-          <input type="text" inputmode="decimal" name="amount" class="form-control" placeholder="+ importo"
+          <input type="text" inputmode="decimal" name="amount" class="form-control" placeholder="{{ _('+ importo') }}"
                  aria-label="Importo da aggiungere a {{ goal.name }}" autocomplete="off" required />
-          <button type="submit" class="btn btn-outline btn-sm" title="Aggiungi (usa il meno per togliere)"><i class="bi bi-plus-lg"></i> Versa</button>
+          <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Aggiungi (usa il meno per togliere)') }}"><i class="bi bi-plus-lg"></i> {{ _('Versa') }}</button>
         </form>
         <div class="cell-actions">
-          <a href="{{ url_for('lifestyle.goal_edit', goal_id=goal.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica" aria-label="Modifica {{ goal.name }}"><i class="bi bi-pencil"></i></a>
+          <a href="{{ url_for('lifestyle.goal_edit', goal_id=goal.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica {{ goal.name }}"><i class="bi bi-pencil"></i></a>
           <form method="POST" action="{{ url_for('lifestyle.goal_delete', goal_id=goal.id) }}" data-confirm="Eliminare l'obiettivo «{{ goal.name }}»?">
-            <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ goal.name }}"><i class="bi bi-trash3"></i></button>
+            <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ goal.name }}"><i class="bi bi-trash3"></i></button>
           </form>
         </div>
       </div>
@@ -89,9 +89,9 @@
 <div class="card">
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-trophy"></i></div>
-    <div class="empty-state-title">Nessun obiettivo ancora</div>
-    <div class="empty-state-text">Crea il tuo primo obiettivo finanziario, oppure parti da uno dei suggerimenti qui sotto.</div>
-    <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Crea Obiettivo</a>
+    <div class="empty-state-title">{{ _('Nessun obiettivo ancora') }}</div>
+    <div class="empty-state-text">{{ _('Crea il tuo primo obiettivo finanziario, oppure parti da uno dei suggerimenti qui sotto.') }}</div>
+    <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea Obiettivo') }}</a>
   </div>
 </div>
 {% endif %}
@@ -100,8 +100,8 @@
 <div class="card mt-24">
   <div class="card-header">
     <div>
-      <div class="card-header-title">Obiettivi Suggeriti</div>
-      <div class="card-header-sub">Clicca per partire da un modello: potrai cambiare nome e importo</div>
+      <div class="card-header-title">{{ _('Obiettivi Suggeriti') }}</div>
+      <div class="card-header-sub">{{ _('Clicca per partire da un modello: potrai cambiare nome e importo') }}</div>
     </div>
   </div>
   <div class="card-body">

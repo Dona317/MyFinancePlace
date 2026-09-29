@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Assicurazioni — MyFinancePlace{% endblock %}
-{% block page_title %}Gestione Assicurazioni{% endblock %}
-{% block breadcrumb %}<li>Assicurazioni</li>{% endblock %}
+{% block title %}{{ _('Assicurazioni') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Gestione Assicurazioni') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Assicurazioni') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('insurance.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> Nuova Polizza
+    <i class="bi bi-plus-lg"></i> {{ _('Nuova Polizza') }}
   </a>
 {% endblock %}
 
@@ -16,27 +16,27 @@
 <div class="kpi-grid mb-24">
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-shield-check"></i></div>
-    <div class="kpi-label">Polizze Attive</div>
+    <div class="kpi-label">{{ _('Polizze Attive') }}</div>
     <div class="kpi-value">{{ active_count }}</div>
-    <div class="kpi-sub">non scadute</div>
+    <div class="kpi-sub">{{ _('non scadute') }}</div>
   </div>
   <div class="kpi-card kpi-negative">
     <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
-    <div class="kpi-label">Premio Annuo Totale</div>
+    <div class="kpi-label">{{ _('Premio Annuo Totale') }}</div>
     <div class="kpi-value">{{ annual_total|money }}</div>
     <div class="kpi-sub">{{ (annual_total / 12)|money }} al mese</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-calendar-event"></i></div>
-    <div class="kpi-label">Prossima Scadenza</div>
+    <div class="kpi-label">{{ _('Prossima Scadenza') }}</div>
     <div class="kpi-value">{{ next_expiry.expiry_date|it_date if next_expiry else '—' }}</div>
     <div class="kpi-sub">{{ (next_expiry.type ~ ' · ' ~ next_expiry.company) if next_expiry else 'Nessuna scadenza' }}</div>
   </div>
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-umbrella"></i></div>
-    <div class="kpi-label">Copertura Totale</div>
+    <div class="kpi-label">{{ _('Copertura Totale') }}</div>
     <div class="kpi-value">{{ coverage_total|money }}</div>
-    <div class="kpi-sub">massimali cumulati</div>
+    <div class="kpi-sub">{{ _('massimali cumulati') }}</div>
   </div>
 </div>
 
@@ -53,15 +53,15 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">Polizze</div>
-        <div class="card-header-sub">Ordinate per scadenza</div>
+        <div class="card-header-title">{{ _('Polizze') }}</div>
+        <div class="card-header-sub">{{ _('Ordinate per scadenza') }}</div>
       </div>
       <form method="GET" class="inline-filter">
-        <select name="type" class="form-select" onchange="this.form.submit()" aria-label="Filtra per tipo">
-          <option value="">Tutti i tipi</option>
+        <select name="type" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Filtra per tipo') }}">
+          <option value="">{{ _('Tutti i tipi') }}</option>
           {% for t in policy_types %}<option {{ 'selected' if t == selected }}>{{ t }}</option>{% endfor %}
         </select>
-        <noscript><button class="btn btn-ghost btn-sm">Filtra</button></noscript>
+        <noscript><button class="btn btn-ghost btn-sm">{{ _('Filtra') }}</button></noscript>
       </form>
     </div>
 
@@ -70,12 +70,12 @@
       <table>
         <thead>
           <tr>
-            <th>Polizza</th>
-            <th class="text-right">Premio</th>
-            <th class="text-right">Annuo</th>
-            <th>Scadenza</th>
-            <th>Stato</th>
-            <th class="text-right">Azioni</th>
+            <th>{{ _('Polizza') }}</th>
+            <th class="text-right">{{ _('Premio') }}</th>
+            <th class="text-right">{{ _('Annuo') }}</th>
+            <th>{{ _('Scadenza') }}</th>
+            <th>{{ _('Stato') }}</th>
+            <th class="text-right">{{ _('Azioni') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -90,15 +90,15 @@
             <td class="amount text-right">{{ p.annual_premium|money }}</td>
             <td class="nowrap">{{ p.expiry_date|it_date }}</td>
             <td>
-              {% if not active %}<span class="badge badge-negative">Scaduta</span>
-              {% elif p in upcoming %}<span class="badge badge-warning">In scadenza</span>
-              {% else %}<span class="badge badge-positive">Attiva</span>{% endif %}
+              {% if not active %}<span class="badge badge-negative">{{ _('Scaduta') }}</span>
+              {% elif p in upcoming %}<span class="badge badge-warning">{{ _('In scadenza') }}</span>
+              {% else %}<span class="badge badge-positive">{{ _('Attiva') }}</span>{% endif %}
             </td>
             <td>
               <div class="cell-actions">
-                <a href="{{ url_for('insurance.edit', policy_id=p.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica" aria-label="Modifica polizza {{ p.company }}"><i class="bi bi-pencil"></i></a>
+                <a href="{{ url_for('insurance.edit', policy_id=p.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica polizza {{ p.company }}"><i class="bi bi-pencil"></i></a>
                 <form method="POST" action="{{ url_for('insurance.delete', policy_id=p.id) }}" data-confirm="Eliminare la polizza {{ p.type }} di {{ p.company }}?">
-                  <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina polizza {{ p.company }}"><i class="bi bi-trash3"></i></button>
+                  <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina polizza {{ p.company }}"><i class="bi bi-trash3"></i></button>
                 </form>
               </div>
             </td>
@@ -110,13 +110,13 @@
     {% elif selected %}
     <div class="empty-state">
       <div class="empty-state-text">Nessuna polizza di tipo «{{ selected }}».</div>
-      <a href="{{ url_for('insurance.index') }}" class="btn btn-ghost">Mostra tutte</a>
+      <a href="{{ url_for('insurance.index') }}" class="btn btn-ghost">{{ _('Mostra tutte') }}</a>
     </div>
     {% else %}
     <div class="empty-state">
       <div class="empty-state-icon"><i class="bi bi-shield-slash"></i></div>
-      <div class="empty-state-text">Nessuna polizza registrata. Aggiungi la prima copertura: ti ricorderemo le scadenze.</div>
-      <a href="{{ url_for('insurance.new') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Aggiungi Polizza</a>
+      <div class="empty-state-text">{{ _('Nessuna polizza registrata. Aggiungi la prima copertura: ti ricorderemo le scadenze.') }}</div>
+      <a href="{{ url_for('insurance.new') }}" class="btn btn-primary"><i class="bi bi-plus"></i> {{ _('Aggiungi Polizza') }}</a>
     </div>
     {% endif %}
   </div>
@@ -124,14 +124,14 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">Premi per Tipo</div>
-        <div class="card-header-sub">Premio annuo delle polizze attive</div>
+        <div class="card-header-title">{{ _('Premi per Tipo') }}</div>
+        <div class="card-header-sub">{{ _('Premio annuo delle polizze attive') }}</div>
       </div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
         {% if by_type %}<canvas id="premiumPieChart"></canvas>
-        {% else %}<div class="chart-empty">Nessuna polizza attiva.</div>{% endif %}
+        {% else %}<div class="chart-empty">{{ _('Nessuna polizza attiva.') }}</div>{% endif %}
       </div>
     </div>
   </div>

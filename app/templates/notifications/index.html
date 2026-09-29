@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Promemoria — MyFinancePlace{% endblock %}
-{% block page_title %}Promemoria{% endblock %}
-{% block breadcrumb %}<li>Promemoria</li>{% endblock %}
+{% block title %}{{ _('Promemoria') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Promemoria') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Promemoria') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% if items %}
   <form method="POST" action="{{ url_for('notifications.dismiss') }}">
     <input type="hidden" name="all" value="1" />
-    <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-check2-all"></i> Segna tutti come visti</button>
+    <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-check2-all"></i> {{ _('Segna tutti come visti') }}</button>
   </form>
   {% endif %}
 {% endblock %}
@@ -25,7 +25,7 @@
       </a>
       <form method="POST" action="{{ url_for('notifications.dismiss') }}">
         <input type="hidden" name="key" value="{{ n.key }}" />
-        <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="Segna come visto" aria-label="Segna come visto: {{ n.title }}"><i class="bi bi-x-lg"></i></button>
+        <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Segna come visto') }}" aria-label="Segna come visto: {{ n.title }}"><i class="bi bi-x-lg"></i></button>
       </form>
     </li>
     {% endfor %}
@@ -33,10 +33,9 @@
   {% else %}
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-bell-slash"></i></div>
-    <div class="empty-state-title">Nessun promemoria</div>
+    <div class="empty-state-title">{{ _('Nessun promemoria') }}</div>
     <div class="empty-state-text">
-      Qui compaiono le polizze in scadenza, le spese ricorrenti e le rate dei prossimi 7 giorni,
-      i budget quasi esauriti e gli obiettivi in ritardo.
+      {{ _('Qui compaiono le polizze in scadenza, le spese ricorrenti e le rate dei prossimi 7 giorni, i budget quasi esauriti e gli obiettivi in ritardo.') }}
     </div>
   </div>
   {% endif %}
