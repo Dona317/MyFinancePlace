@@ -11,7 +11,7 @@ from sqlalchemy import case, func
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, Snapshot
-from app.services import settings_store
+from app.services import accounts, settings_store
 from app.services.periods import add_months
 
 # ── Asset classes and how the Balance Sheet groups them ────────────────────────
@@ -52,13 +52,16 @@ def opening_cash() -> float:
 
 
 def cash_balance(on: date | None = None) -> float:
-    """Opening balance + income − expenses up to and including `on` (transfers move money between own accounts)."""
+    """
+    Opening balance (general + each account's) + income − expenses up to and including `on`
+    (transfers move money between own accounts).
+    """
     signed = func.sum(case((Transaction.type == "expense", -func.abs(Transaction.amount)),
                            else_=func.abs(Transaction.amount)))
     query = db.session.query(func.coalesce(signed, 0)).filter(Transaction.type.in_(["income", "expense"]))
     if on is not None:
         query = query.filter(Transaction.date <= on)
-    return _money(opening_cash() + float(query.scalar()))
+    return _money(opening_cash() + accounts.opening_total() + float(query.scalar()))
 
 
 # ── Debts: French amortization (constant monthly installment) ──────────────────

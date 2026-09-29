@@ -20,7 +20,7 @@ from sqlalchemy.types import ARRAY, JSON, Boolean, Date, DateTime, Integer, Nume
 
 from app.extensions import db
 from app.models import (
-    AppSetting, Category, CategoryRule, Debt, Document, DuplicateDismissal, Goal, Holding, InsurancePolicy, Snapshot,
+    Account, AppSetting, Category, CategoryRule, Debt, Document, DuplicateDismissal, Goal, Holding, InsurancePolicy, Snapshot,
     Transaction,
 )
 from app.services import document_store
@@ -33,7 +33,7 @@ KEEP_SAFETY_COPIES = 10
 SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 
 # Insertion order: a table comes after the tables it points to (documents and dismissals → transactions)
-MODELS = [AppSetting, Category, CategoryRule, Transaction, DuplicateDismissal, Holding, Debt, InsurancePolicy, Goal, Document, Snapshot]
+MODELS = [AppSetting, Account, Category, CategoryRule, Transaction, DuplicateDismissal, Holding, Debt, InsurancePolicy, Goal, Document, Snapshot]
 
 
 class BackupError(Exception):

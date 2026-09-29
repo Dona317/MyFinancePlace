@@ -127,6 +127,10 @@
            class="nav-item {% if 'transactions' in request.endpoint %}active{% endif %}">
           <i class="bi bi-list-ul"></i> <span class="nav-label">Transazioni</span>
         </a>
+        <a href="{{ url_for('accounts.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
+          <i class="bi bi-bank"></i> <span class="nav-label">Conti e Carte</span>
+        </a>
         {% if settings.module_portfolio %}
         <a href="{{ url_for('portfolio.index') }}"
            class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">

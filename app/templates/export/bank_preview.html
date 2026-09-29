@@ -92,6 +92,18 @@
 
 <form method="POST" action="{{ url_for('export.bank_confirm') }}" id="preview-form">
   <input type="hidden" name="payload" value="{{ payload }}" />
+  {% if accounts %}
+  <div class="card mb-16">
+    <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;">
+      <label class="form-label" for="import-account" style="margin:0;"><i class="bi bi-bank"></i> Conto dei movimenti</label>
+      <select id="import-account" name="account_id" class="form-select" style="width:auto;">
+        <option value="">— Nessuno —</option>
+        {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == suggested_account }}>{{ a.name }}</option>{% endfor %}
+      </select>
+      <span class="text-xs text-muted">Il saldo e la riconciliazione del conto terranno conto di questi movimenti.</span>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="card">
     <div class="card-header">

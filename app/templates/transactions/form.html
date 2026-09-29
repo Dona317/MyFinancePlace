@@ -31,7 +31,7 @@
               <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;transition:background .2s,border-color .2s;font-size:var(--font-size-sm);font-weight:500;">
                 <input type="radio" name="type" value="{{ val }}" style="display:none;"
                        {{ 'checked' if v.type == val else '' }}
-                       onchange="this.closest('form').querySelectorAll('[data-type-label]').forEach(el => el.style.outline='');" />
+                       onchange="const g = document.getElementById('counter-account-group'); if (g) g.hidden = this.value !== 'transfer';" />
                 <span style="color:var(--clr-{{ color }}-text if color != 'neutral' else 'var(--clr-neutral)');">{{ label }}</span>
               </label>
               {% endfor %}
@@ -96,6 +96,25 @@
                    value="{{ v.counterparty }}" />
           </div>
         </div>
+
+        {% if accounts %}
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="f-account">Conto</label>
+            <select id="f-account" name="account_id" class="form-select">
+              <option value="">— Nessuno —</option>
+              {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if v.account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group" id="counter-account-group" {% if v.type != 'transfer' %}hidden{% endif %}>
+            <label class="form-label" for="f-counter">Verso il conto <span class="text-muted" style="font-weight:400;">(trasferimenti)</span></label>
+            <select id="f-counter" name="counter_account_id" class="form-select">
+              <option value="">— Fuori dai miei conti —</option>
+              {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if v.counter_account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        {% endif %}
 
         <label class="d-flex align-center gap-8 text-sm mb-16" style="margin-top:-8px;">
           <input type="checkbox" name="learn_rule" value="1" class="check" />

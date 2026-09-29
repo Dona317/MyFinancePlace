@@ -42,6 +42,13 @@
       <option value="{{ cat }}" {{ 'selected' if filters.category == cat else '' }}>{{ cat }}</option>
       {% endfor %}
     </select>
+    {% if accounts %}
+    <select name="account" class="form-select" onchange="this.form.submit()" aria-label="Conto">
+      <option value="">Conto</option>
+      {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if filters.account == a.id|string }}>{{ a.name }}</option>{% endfor %}
+      <option value="none" {{ 'selected' if filters.account == 'none' }}>— Senza conto —</option>
+    </select>
+    {% endif %}
     <input type="month" name="month" value="{{ filters.month }}" class="form-control" style="width:160px;" onchange="this.form.submit()" />
     <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);white-space:nowrap;">
       <input class="check" type="checkbox" name="recurring" value="1" {{ 'checked' if filters.recurring else '' }} onchange="this.form.submit()" /> Solo ricorrenti
@@ -70,6 +77,16 @@
               style="color:var(--clr-negative);">
         <i class="bi bi-trash3"></i> Elimina selezionate (<span id="bulk-count">0</span>)
       </button>
+      {% endif %}
+      {% if transactions and accounts %}
+      <form method="POST" action="{{ url_for('transactions.assign_account') }}" id="assign-form" class="inline-filter">
+        <input type="hidden" name="next" value="{{ request.full_path }}" />
+        <select name="account_id" class="form-select" aria-label="Conto per le selezionate">
+          {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+          <option value="">— nessun conto —</option>
+        </select>
+        <button type="submit" class="btn btn-ghost btn-sm" id="bulk-assign" disabled><i class="bi bi-bank"></i> Assegna</button>
+      </form>
       {% endif %}
       <a href="{{ url_for('export.export_csv') }}" class="btn btn-ghost btn-sm">
         <i class="bi bi-filetype-csv"></i> CSV
@@ -277,6 +294,18 @@
 <script>
 const bulkBoxes = document.querySelectorAll('.bulk-select');
 const bulkButton = document.getElementById('bulk-delete');
+// "Assegna" sends the same selection as the bulk delete: copy the ticked ids into its form
+const assignForm = document.getElementById('assign-form');
+if (assignForm) {
+  assignForm.addEventListener('submit', () => {
+    assignForm.querySelectorAll('input[name=ids]').forEach(el => el.remove());
+    document.querySelectorAll('.bulk-select:checked').forEach(box => {
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden'; hidden.name = 'ids'; hidden.value = box.value;
+      assignForm.appendChild(hidden);
+    });
+  });
+}
 const classifyButton = document.getElementById('ai-classify');
 const refreshBulk = () => {
   const count = [...bulkBoxes].filter(b => b.checked).length;
@@ -284,6 +313,8 @@ const refreshBulk = () => {
     bulkButton.disabled = count === 0;
     document.getElementById('bulk-count').textContent = count;
   }
+  const assignButton = document.getElementById('bulk-assign');
+  if (assignButton) assignButton.disabled = count === 0;
   if (classifyButton) {
     const unclassified = Number(classifyButton.dataset.unclassified);
     document.getElementById('ai-classify-label').textContent = count

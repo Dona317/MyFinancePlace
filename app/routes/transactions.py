@@ -2,10 +2,11 @@ from flask import render_template, request, redirect, url_for, flash
 from apiflask import APIBlueprint
 from sqlalchemy import or_
 from app.extensions import db
+from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Document
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
-from app.services import ai_classification, ai_extraction, category_rules, duplicates
+from app.services import accounts, ai_classification, ai_extraction, category_rules, duplicates
 from app.services.categories import known_categories
 from app.services.parsing import TRANSACTION_TYPES, valid_amount
 from app.services.periods import month_bounds
@@ -50,7 +51,17 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     else:
         tx.recurrence = tx.recurrence_end = None
     tx.notes = form_text("notes", "Note")
+    tx.account_id = _account_id("account_id")
+    # a transfer between two own accounts: where the money arrives
+    tx.counter_account_id = _account_id("counter_account_id") if tx.type == "transfer" else None
+    if tx.counter_account_id and tx.counter_account_id == tx.account_id:
+        raise ValueError("Verso il conto: deve essere diverso dal conto di partenza.")
     return tx
+
+
+def _account_id(field: str) -> int | None:
+    value = request.form.get(field, type=int)
+    return value if value and db.session.get(Account, value) else None
 
 
 def _form_values(tx: Transaction | None = None) -> dict:
@@ -59,15 +70,17 @@ def _form_values(tx: Transaction | None = None) -> dict:
         form = request.form
         return {key: form.get(key, "") for key in (
             "type", "date", "amount", "currency", "description", "category", "counterparty", "tags",
-            "recurrence", "recurrence_end", "notes")} | {"is_recurring": "is_recurring" in form}
+            "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id")} | {"is_recurring": "is_recurring" in form}
     if tx is None:
-        return {"type": "expense", "currency": "EUR", "is_recurring": False}
+        return {"type": "expense", "currency": "EUR", "is_recurring": False,
+                "account_id": request.args.get("account", "")}
     return {
         "type": tx.type, "date": tx.date.isoformat() if tx.date else "",
         "amount": f"{abs(tx.amount):.2f}".replace(".", ","), "currency": tx.currency or "EUR",
         "description": tx.description, "category": tx.category or "", "counterparty": tx.counterparty or "",
         "tags": ", ".join(tx.tags or []), "is_recurring": bool(tx.is_recurring), "recurrence": tx.recurrence or "",
         "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else "", "notes": tx.notes or "",
+        "account_id": str(tx.account_id or ""), "counter_account_id": str(tx.counter_account_id or ""),
     }
 
 
@@ -87,6 +100,11 @@ def _filtered_query(filters: dict):
         query = query.filter(Transaction.type == filters["type"])
     if filters["category"]:
         query = query.filter(Transaction.category == filters["category"])
+    if filters.get("account") == "none":
+        query = query.filter(Transaction.account_id.is_(None), Transaction.counter_account_id.is_(None))
+    elif (filters.get("account") or "").isdigit():
+        account_id = int(filters["account"])
+        query = query.filter((Transaction.account_id == account_id) | (Transaction.counter_account_id == account_id))
     if filters.get("recurring"):
         query = query.filter(Transaction.is_recurring.is_(True))
     if filters["month"]:
@@ -101,7 +119,7 @@ def _filtered_query(filters: dict):
 
 @transactions_bp.route("/")
 def index():
-    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring")}
+    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring", "account")}
     transactions = _filtered_query(filters).order_by(Transaction.date.desc(), Transaction.id.desc()).all()
     categories = [
         row[0] for row in
@@ -114,6 +132,7 @@ def index():
         filters=filters,
         categories=categories,
         all_categories=known_categories(),
+        accounts=accounts.active(),
         duplicate_groups=len(duplicates.find_groups()),
         unclassified=_unclassified_query().count(),
         **ai_classification.template_context(),
@@ -151,7 +170,7 @@ def _render_form(tx: Transaction | None):
     category = request.form.get("category") if request.method == "POST" else (tx.category if tx else None)
     return render_template(
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=_form_values(tx),
-        categories=known_categories(category), next_url=safe_next(),
+        categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )
 
@@ -189,6 +208,17 @@ def delete_selected():
     db.session.commit()
     flash(f"{deleted} transazioni eliminate." if deleted else "Nessuna transazione selezionata.",
           "success" if deleted else "warning")
+    return redirect(safe_next() or url_for("transactions.index"))
+
+
+@transactions_bp.route("/assign-account", methods=["POST"])
+def assign_account():
+    account_id = request.form.get("account_id", type=int)
+    account = db.session.get(Account, account_id) if account_id else None
+    changed = accounts.assign(form_ids(), account.id if account else None)
+    target = f"sul conto «{account.name}»" if account else "senza conto"
+    flash(f"{changed} transazioni messe {target}." if changed else "Nessuna transazione selezionata.",
+          "success" if changed else "warning")
     return redirect(safe_next() or url_for("transactions.index"))
 
 

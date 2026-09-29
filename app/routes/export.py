@@ -6,9 +6,11 @@ from apiflask import APIBlueprint
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
+from app.models.account import Account
+from app.services.parsing import to_decimal
 from app.routes.helpers import form_ids
 from app.services import (
-    analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store, backup,
+    accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_models, upload_store, backup,
 )
 from app.services.categories import known_categories
 
@@ -197,8 +199,16 @@ def _render_preview(preview, filename: str):
         payload=payload,
         filename=filename,
         categories=known_categories(),
+        accounts=accounts.active(),
+        suggested_account=_suggested_account(preview.bank.name),
         **ai_classification.template_context(),
     )
+
+
+def _suggested_account(bank_name: str) -> int | None:
+    """The account whose name contains the bank's (e.g. "Fineco" for a Fineco statement), if exactly one."""
+    matches = [a for a in accounts.active() if bank_name.split()[0].lower() in a.name.lower()]
+    return matches[0].id if len(matches) == 1 else None
 
 
 @export_bp.route("/bank", methods=["POST"])
@@ -294,6 +304,7 @@ def bank_confirm():
     existing = bank_import.already_imported([rows[i]["import_ref"] for i in selected if i < len(rows)])
 
     created, invalid, skipped = [], [], 0
+    account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
     for index in selected:
         base = rows[index] if index < len(rows) else {}  # indexes past the payload are rows added by hand
         if base.get("import_ref") in existing:
@@ -302,9 +313,18 @@ def bank_confirm():
         fields = {name: request.form.get(f"{name}-{index}", "") for name in
                   ("date", "description", "amount", "type", "category", "counterparty", "aicat")}
         try:
-            created.append(bank_import.build_transaction(base, data["bank"], fields, ai=data.get("ai", False)))
+            tx = bank_import.build_transaction(base, data["bank"], fields, ai=data.get("ai", False))
         except ValueError:
             invalid.append(index + 1)
+            continue
+        if account is not None:
+            # money coming in through a transfer arrives on this account; everything else moves from it
+            incoming = tx.type == "transfer" and (to_decimal(fields.get("amount")) or 0) > 0
+            if incoming:
+                tx.counter_account_id = account.id
+            else:
+                tx.account_id = account.id
+        created.append(tx)
 
     db.session.add_all(created)
     try:
@@ -314,7 +334,8 @@ def bank_confirm():
         flash("Alcuni movimenti risultano già importati: ricarica il file e riprova.", "error")
         return redirect(url_for("export.index"))
 
-    message = f"{len(created)} movimenti importati da {bank_import.BANKS[data['bank']].name}."
+    message = f"{len(created)} movimenti importati da {bank_import.BANKS[data['bank']].name}"
+    message += f" sul conto «{account.name}»." if account else "."
     if skipped:
         message += f" {skipped} già presenti sono stati ignorati."
     flash(message, "success")

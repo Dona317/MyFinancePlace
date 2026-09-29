@@ -55,7 +55,7 @@ def test_backup_contains_every_table_and_the_files(client, everything):
         assert archive.read("documents/" + "b" * 32 + ".pdf") == b"%PDF contratto"
     assert data["format"] == "myfinanceplace-backup"
     assert backup.counts(data) == {
-        "app_settings": 1, "categories": 0, "category_rules": 0, "transactions": 8, "duplicate_dismissals": 1, "holdings": 1, "debts": 1,
+        "app_settings": 1, "accounts": 0, "categories": 0, "category_rules": 0, "transactions": 8, "duplicate_dismissals": 1, "holdings": 1, "debts": 1,
         "insurance_policies": 1, "goals": 1, "documents": 1, "snapshots": 1,
     }
 

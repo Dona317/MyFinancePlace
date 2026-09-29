@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Conti e Carte — MyFinancePlace{% endblock %}
+{% block page_title %}Conti e Carte{% endblock %}
+{% block breadcrumb %}<li>Conti e Carte</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Nuovo Conto</a>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid mb-24">
+  <div class="kpi-card kpi-primary">
+    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
+    <div class="kpi-label">Saldo Totale</div>
+    <div class="kpi-value">{{ total|money }}</div>
+    <div class="kpi-sub">conti attivi</div>
+  </div>
+  <div class="kpi-card kpi-neutral">
+    <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+    <div class="kpi-label">Conti</div>
+    <div class="kpi-value">{{ rows|length }}</div>
+    <div class="kpi-sub">{{ rows|selectattr('account.active')|list|length }} attivi</div>
+  </div>
+  <div class="kpi-card {{ 'kpi-warning' if unassigned else 'kpi-positive' }}">
+    <div class="kpi-icon"><i class="bi bi-question-circle"></i></div>
+    <div class="kpi-label">Senza Conto</div>
+    <div class="kpi-value">{{ unassigned }}</div>
+    <div class="kpi-sub">{% if unassigned %}<a href="{{ url_for('transactions.index', account='none') }}">assegnale</a>{% else %}tutte assegnate{% endif %}</div>
+  </div>
+</div>
+
+<div class="card">
+  {% if rows %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Conto</th><th>Tipo</th><th class="text-right">Saldo</th><th>Riconciliato</th><th class="text-right">Transazioni</th><th class="text-right">Azioni</th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+        {% set a = row.account %}
+        <tr {% if not a.active %}class="text-muted"{% endif %}>
+          <td>
+            <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>
+            {% if a.iban_tail %}<div class="text-xs text-muted font-mono">…{{ a.iban_tail }}</div>{% endif %}
+            {% if not a.active %}<span class="badge badge-muted">chiuso</span>{% endif %}
+          </td>
+          <td>{{ kinds.get(a.kind, a.kind) }}{% if a.currency != 'EUR' %} · {{ a.currency }}{% endif %}</td>
+          <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money }}</td>
+          <td class="text-xs">{% if a.reconciled_on %}<i class="bi bi-check2-circle text-positive"></i> al {{ a.reconciled_on|it_date }}{% else %}<span class="text-muted">mai</span>{% endif %}</td>
+          <td class="text-right"><a href="{{ url_for('transactions.index', account=a.id) }}">{{ row.count }}</a></td>
+          <td>
+            <div class="cell-actions">
+              <a href="{{ url_for('accounts.detail', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Riconcilia" aria-label="Riconcilia {{ a.name }}"><i class="bi bi-check2-square"></i></a>
+              <a href="{{ url_for('accounts.edit', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Modifica" aria-label="Modifica {{ a.name }}"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{{ url_for('accounts.delete', account_id=a.id) }}" data-confirm="Eliminare il conto «{{ a.name }}»? Le transazioni restano, senza conto.">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Elimina" aria-label="Elimina {{ a.name }}"><i class="bi bi-trash3"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-bank"></i></div>
+    <div class="empty-state-title">Nessun conto</div>
+    <div class="empty-state-text">
+      Aggiungi conti correnti, carte, conti deposito e contanti: vedrai il saldo di ognuno, potrai importare
+      gli estratti sul conto giusto e riconciliarli con la banca.
+    </div>
+    <a href="{{ url_for('accounts.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Aggiungi Conto</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
