@@ -14,6 +14,8 @@ from decimal import Decimal
 from difflib import SequenceMatcher
 from itertools import combinations
 
+from sqlalchemy import literal_column, select
+
 from app.extensions import db
 from app.models.duplicate import DuplicateDismissal
 from app.models.transaction import Transaction
@@ -69,9 +71,21 @@ def _dismissed_pairs() -> set[tuple[int, int]]:
     return {(d.first_id, d.second_id) for d in DuplicateDismissal.query.all()}
 
 
+def _candidates(window_days: int):
+    """Only transactions with another one of the same type and amount a few days apart, found by the database
+    with a single sort: a window over the dates of each (type, amount)."""
+    days = int(window_days)
+    close = select(Transaction.id, literal_column(
+        "count(*) OVER (PARTITION BY type, abs(amount) ORDER BY date "
+        f"RANGE BETWEEN INTERVAL '{days} days' PRECEDING AND INTERVAL '{days} days' FOLLOWING)"
+    ).label("neighbours")).subquery()
+    return (Transaction.query.filter(Transaction.id.in_(select(close.c.id).where(close.c.neighbours > 1)))
+            .order_by(Transaction.date, Transaction.id))
+
+
 def find_groups(window_days: int = DEFAULT_WINDOW_DAYS, threshold: float = SENSITIVITY["normale"]) -> list[DuplicateGroup]:
     buckets: dict[tuple, list[Transaction]] = {}
-    for tx in Transaction.query.order_by(Transaction.date, Transaction.id).all():
+    for tx in _candidates(window_days):
         buckets.setdefault(_signed_key(tx.type, tx.amount), []).append(tx)
     dismissed = _dismissed_pairs()
 

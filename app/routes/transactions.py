@@ -147,6 +147,9 @@ def _plain(value) -> str:
 
 # ── HTML routes ────────────────────────────────────────────────────────────────
 
+PAGE_SIZE = 100  # rows per page of the list: the whole history at once made pages of megabytes
+
+
 def _filtered_query(filters: dict):
     """Apply the filter-bar values (q, type, category, month=YYYY-MM, recurring) to the transactions query."""
     query = Transaction.query
@@ -184,7 +187,12 @@ def _filtered_query(filters: dict):
 @transactions_bp.route("/")
 def index():
     filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring", "account", "tag")}
-    transactions = _filtered_query(filters).order_by(Transaction.date.desc(), Transaction.id.desc()).all()
+    query = _filtered_query(filters)
+    total = query.count()
+    pages = max(1, -(-total // PAGE_SIZE))
+    page = min(max(request.args.get("page", 1, type=int), 1), pages)
+    transactions = (query.order_by(Transaction.date.desc(), Transaction.id.desc())
+                    .offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all())
     categories = [
         row[0] for row in
         db.session.query(Transaction.category).filter(Transaction.category.isnot(None))
@@ -193,6 +201,8 @@ def index():
     return render_template(
         "transactions/index.html",
         transactions=transactions,
+        total=total, page=page, pages=pages,
+        page_url=lambda n: url_for("transactions.index", **(request.args.to_dict() | {"page": n})),
         filters=filters,
         categories=categories,
         all_categories=known_categories(),

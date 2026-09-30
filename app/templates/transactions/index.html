@@ -68,7 +68,7 @@
   <div class="card-header">
     <div>
       <div class="card-header-title">{{ _('Elenco Transazioni') }}</div>
-      <div class="card-header-sub">{{ _('%(count)s transazioni trovate', count=transactions|length if transactions else 0) }}</div>
+      <div class="card-header-sub">{{ _('%(count)s transazioni trovate', count=total) }}{% if pages > 1 %} · {{ _('pagina %(page)s di %(pages)s', page=page, pages=pages) }}{% endif %}</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       {% if transactions and ai_classifier %}
@@ -167,14 +167,10 @@
               <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}">
                 <i class="bi bi-pencil"></i>
               </a>
-              <form method="POST" action="{{ url_for('transactions.delete', tx_id=tx.id) }}"
-                    data-confirm="{{ _('Eliminare questa transazione?') }}">
-                <input type="hidden" name="next" value="{{ request.full_path }}" />
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Elimina') }}"
-                        style="color:var(--clr-negative);">
-                  <i class="bi bi-trash3"></i>
-                </button>
-              </form>
+              <button type="submit" form="row-delete-form" formaction="{{ url_for('transactions.delete', tx_id=tx.id) }}"
+                      class="btn btn-ghost btn-icon btn-sm" title="{{ _('Elimina') }}" style="color:var(--clr-negative);">
+                <i class="bi bi-trash3"></i>
+              </button>
             </div>
           </td>
         </tr>
@@ -182,6 +178,17 @@
       </tbody>
     </table>
   </div>
+  {% if pages > 1 %}
+  <nav class="pager" aria-label="{{ _('Pagine') }}">
+    {% if page > 1 %}<a class="btn btn-ghost btn-sm" href="{{ page_url(page - 1) }}"><i class="bi bi-chevron-left"></i> {{ _('Più recenti') }}</a>{% endif %}
+    <span class="text-sm text-muted">{{ _('pagina %(page)s di %(pages)s', page=page, pages=pages) }}</span>
+    {% if page < pages %}<a class="btn btn-ghost btn-sm" href="{{ page_url(page + 1) }}">{{ _('Meno recenti') }} <i class="bi bi-chevron-right"></i></a>{% endif %}
+  </nav>
+  {% endif %}
+  <!-- One form for every row's delete button (each button sets its own formaction) -->
+  <form method="POST" id="row-delete-form" data-confirm="{{ _('Eliminare questa transazione?') }}">
+    <input type="hidden" name="next" value="{{ request.full_path }}" />
+  </form>
   <form method="POST" action="{{ url_for('transactions.classify') }}" id="classify-form">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
   </form>

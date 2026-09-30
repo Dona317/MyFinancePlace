@@ -1,6 +1,6 @@
 """Editing and deleting transactions, bulk delete, and the duplicate finder."""
 import re
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
@@ -242,3 +242,16 @@ def test_italian_amounts_in_the_form(client, db):
     assert Transaction.query.one().amount == 2450
     html = client.get(f"/transactions/{Transaction.query.one().id}/edit").get_data(as_text=True)
     assert 'value="2450,00"' in html
+
+
+def test_list_is_paged(client, db):
+    db.session.add_all([make_tx(date=date(2026, 1, 1) + timedelta(days=i), description=f"Riga {i:03d}") for i in range(130)])
+    db.session.commit()
+    first = client.get("/transactions/?q=Riga").get_data(as_text=True)
+    assert first.count('class="bulk-select') == 100 and "130 transazioni trovate" in first and "Riga 129" in first
+    assert "page=2" in first and "pagina 1 di 2" in first
+    second = client.get("/transactions/?q=Riga&page=2").get_data(as_text=True)
+    assert second.count('class="bulk-select') == 30 and "Riga 000" in second and "Riga 129" not in second
+    assert client.get("/transactions/?q=Riga&page=99").status_code == 200  # past the end: the last page
+    # one shared form serves every row's delete button
+    assert first.count('form="row-delete-form"') == 100 and first.count('id="row-delete-form"') == 1

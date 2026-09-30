@@ -35,8 +35,10 @@ class Transaction(db.Model):
     holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="SET NULL"), index=True)
     debt_id    = db.Column(db.Integer, db.ForeignKey("debts.id", ondelete="SET NULL"), index=True)
 
-    account         = db.relationship("Account", foreign_keys=[account_id], lazy="joined")
-    counter_account = db.relationship("Account", foreign_keys=[counter_account_id], lazy="joined")
+    # loaded on first use (only the account page shows them): joining them on every query slowed down
+    # the pages that read the whole history
+    account         = db.relationship("Account", foreign_keys=[account_id])
+    counter_account = db.relationship("Account", foreign_keys=[counter_account_id])
 
     @property
     def magnitude(self) -> float:

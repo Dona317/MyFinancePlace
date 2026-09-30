@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 19:55+0000\n"
+"POT-Creation-Date: 2026-09-30 21:36+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2515,6 +2515,9 @@ msgstr "Simple average of the last N months."
 msgid "Mediana"
 msgstr "Median"
 
+msgid "Meno recenti"
+msgstr "Older"
+
 msgid "Mensile"
 msgstr "Monthly"
 
@@ -3059,6 +3062,9 @@ msgstr "Oct"
 msgid "Page"
 msgstr "Page"
 
+msgid "Pagine"
+msgstr "Pages"
+
 msgid "Pannelli nascosti:"
 msgstr "Hidden panels:"
 
@@ -3197,6 +3203,9 @@ msgstr "Amortization Plan"
 
 msgid "Piano di ammortamento"
 msgstr "Amortization plan"
+
+msgid "Più recenti"
+msgstr "Newer"
 
 msgid "Polizza"
 msgstr "Policy"
@@ -4712,6 +4721,10 @@ msgstr "ollama serve"
 
 msgid "ollama.com/download"
 msgstr "ollama.com/download"
+
+#, python-format
+msgid "pagina %(page)s di %(pages)s"
+msgstr "page %(page)s of %(pages)s"
 
 #, python-format
 msgid "patrimonio netto al %(day)s"

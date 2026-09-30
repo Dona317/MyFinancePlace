@@ -1378,3 +1378,6 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .auth-hint { margin-top: 16px; text-align: center; font-size: var(--font-size-xs); color: var(--clr-text-muted); }
 .password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none;
                    cursor: pointer; color: var(--clr-text-muted); }
+
+/* Pages of a long list */
+.pager { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px; flex-wrap: wrap; }

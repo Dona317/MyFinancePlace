@@ -87,9 +87,24 @@ def test_request_constrains_categories_and_sends_the_causale(ollama):
 
 
 def test_large_sets_are_sent_in_batches(ollama):
-    result = ai_classification.classify(items(*["ESSELUNGA"] * 95), ["Alimentari"])
+    shops = [f"ESSELUNGA {a}{b}" for a in "ABCDEFGHIJ" for b in "ABCDEFGHIJ"][:95]
+    result = ai_classification.classify(items(*shops), ["Alimentari"])
     assert [len(json.loads(c["messages"][1]["content"].split("movimenti:\n", 1)[1])) for c in ollama.calls] == [40, 40, 15]
     assert len(result) == 95
+
+
+def test_repeated_causali_are_asked_once(ollama):
+    texts = ["POS ESSELUNGA 12/05 CARTA *1234", "POS ESSELUNGA 19/05 CARTA *1234", "pos  esselunga 26/05 carta *1234",
+             "NETFLIX.COM", "NETFLIX.COM"]
+    result = ai_classification.classify(items(*texts), ["Alimentari", "Abbonamenti"])
+    sent = json.loads(ollama.calls[0]["messages"][1]["content"].split("movimenti:\n", 1)[1])
+    assert len(ollama.calls) == 1 and [m["id"] for m in sent] == [1, 4]  # dates and card numbers don't matter
+    assert {i: s.category for i, s in result.items()} == {1: "Alimentari", 2: "Alimentari", 3: "Alimentari",
+                                                          4: "Abbonamenti", 5: "Abbonamenti"}
+    # the same causale as income is a different question (a refund is not a purchase)
+    ai_classification.classify([{"id": 1, "text": "ESSELUNGA", "amount": -5}, {"id": 2, "text": "ESSELUNGA", "amount": 5}],
+                               ["Alimentari"])
+    assert len(json.loads(ollama.calls[1]["messages"][1]["content"].split("movimenti:\n", 1)[1])) == 2
 
 
 def test_invalid_model_output_is_filtered(ollama):
@@ -280,5 +295,23 @@ def test_classify_more_than_300_saved_transactions(client, ollama, db):
     db.session.add_all([make_tx(description=f"ESSELUNGA {i}", category="Altro", amount=10 + i) for i in range(350)])
     db.session.commit()
     page = client.post("/transactions/classify", data={}).get_data(as_text=True)
-    assert len(ollama.calls) == 9  # batches of 40
+    assert len(ollama.calls) == 1  # "ESSELUNGA <n>" is one causale: asked once, the answer goes to all 350
     assert page.count('name="apply"') == 350
+
+
+def test_claude_batches_run_in_parallel(app, monkeypatch):
+    """Several Claude batches go out at once; each runs with the app's configuration."""
+    import threading
+    app.config.update(LLM_PROVIDER="anthropic", LLM_MODEL="claude-haiku-4-5")
+    threads = set()
+
+    def ask(model, batch, categories):
+        threads.add(threading.get_ident())
+        assert ai_extraction.timeout() == 600  # app context available in the worker
+        return json.dumps(fake_answer([{"id": i["id"], "causale": i["text"]} for i in batch], categories))
+
+    monkeypatch.setattr(ai_classification, "_ask", ask)
+    shops = [f"ESSELUNGA {a}{b}" for a in "ABCDEFGHIJ" for b in "ABCDEFGHIJ"]
+    result = ai_classification.classify(items(*shops), ["Alimentari"])
+    assert len(result) == 100 and all(s.category == "Alimentari" for s in result.values())
+    assert threading.get_ident() not in threads  # answered by the worker threads

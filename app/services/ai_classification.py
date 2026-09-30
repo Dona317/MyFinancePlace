@@ -9,7 +9,11 @@ directly: the user reviews them in the import preview or on the "Classifica con 
 from __future__ import annotations
 
 import json
+import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+
+from flask import current_app
 
 from app.services import ai_extraction, categories as category_service, category_rules, settings_store
 from app.services.ai_extraction import AIExtractionError
@@ -20,6 +24,7 @@ AI_TAG = "da confermare (AI)"
 OLD_AI_TAG = "categoria-ai"  # the same, before it was renamed
 
 BATCH_SIZE = 40          # movements per request: keeps tiny models within their context
+PARALLEL_REQUESTS = 4    # Claude batches sent at once (a local Ollama model answers one at a time anyway)
 CONFIDENCE = ("alta", "media", "bassa")
 
 SYSTEM_PROMPT = """Classifichi movimenti bancari italiani per un'app di finanza personale.
@@ -127,10 +132,36 @@ def _ask(model: str, batch: list[dict], categories: list[str]) -> str:
     return ai_extraction.ollama_json(model, SYSTEM_PROMPT, prompt, schema)
 
 
+def same_causale(item: dict) -> tuple[bool, str]:
+    """Causali that differ only in dates, card or reference numbers get the same answer: ask once."""
+    text = re.sub(r"\d+", "#", " ".join((item.get("text") or "").lower().split()))
+    return float(item["amount"]) < 0, text
+
+
+def _read(reply: str | None, batch: list[dict], categories: list[str]) -> dict[int, Suggestion]:
+    try:
+        data = json.loads(reply or "")
+    except (TypeError, json.JSONDecodeError):
+        raise AIExtractionError(_("Il modello non ha restituito una classificazione leggibile: riprova."))
+    batch_ids, found = {item["id"] for item in batch}, {}
+    for entry in data.get("items", []) if isinstance(data, dict) else []:
+        if not isinstance(entry, dict):
+            continue
+        item_id, category = entry.get("id"), entry.get("category")
+        # Validate even though the schema constrains it: some local runtimes enforce enums loosely
+        if item_id not in batch_ids or item_id in found or category not in categories:
+            continue
+        confidence = entry.get("confidence") if entry.get("confidence") in CONFIDENCE else "bassa"
+        counterparty = " ".join(str(entry.get("counterparty") or "").split())
+        found[item_id] = Suggestion(category, counterparty, confidence)
+    return found
+
+
 def classify(items: list[dict], categories: list[str], model: str | None = None) -> dict[int, Suggestion]:
     """
     Suggest category and counterparty for each item {"id": int, "text": causale, "amount": signed number}.
     Returns {id: Suggestion} for the items the model classified validly (others are simply missing).
+    Repeated causali (the same shop every week) are sent once; Claude batches go out in parallel.
     """
     if ai_extraction.provider() is None:
         raise AIExtractionError(_("La classificazione AI non è configurata: scegli un modello in Impostazioni → Modelli AI."))
@@ -138,25 +169,27 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
     if "Altro" not in categories:
         categories.append("Altro")
     model = model or model_name()
-    wanted = {item["id"] for item in items if (item.get("text") or "").strip()}
 
-    suggestions: dict[int, Suggestion] = {}
-    usable = [item for item in items if item["id"] in wanted]
-    for start in range(0, len(usable), BATCH_SIZE):
-        batch = usable[start:start + BATCH_SIZE]
-        try:
-            data = json.loads(_ask(model, batch, categories) or "")
-        except (TypeError, json.JSONDecodeError):
-            raise AIExtractionError(_("Il modello non ha restituito una classificazione leggibile: riprova."))
-        batch_ids = {item["id"] for item in batch}
-        for entry in data.get("items", []) if isinstance(data, dict) else []:
-            if not isinstance(entry, dict):
-                continue
-            item_id, category = entry.get("id"), entry.get("category")
-            # Validate even though the schema constrains it: some local runtimes enforce enums loosely
-            if item_id not in batch_ids or item_id in suggestions or category not in categories:
-                continue
-            confidence = entry.get("confidence") if entry.get("confidence") in CONFIDENCE else "bassa"
-            counterparty = " ".join(str(entry.get("counterparty") or "").split())
-            suggestions[item_id] = Suggestion(category, counterparty, confidence)
-    return suggestions
+    groups: dict[tuple, list[dict]] = {}
+    for item in items:
+        if (item.get("text") or "").strip():
+            groups.setdefault(same_causale(item), []).append(item)
+    asked = [group[0] for group in groups.values()]  # one representative per distinct causale
+    batches = [asked[start:start + BATCH_SIZE] for start in range(0, len(asked), BATCH_SIZE)]
+
+    app = current_app._get_current_object()
+
+    def run(batch: list[dict]) -> dict[int, Suggestion]:
+        with app.app_context():
+            return _read(_ask(model, batch, categories), batch, categories)
+
+    parallel = PARALLEL_REQUESTS if ai_extraction.provider() == "anthropic" else 1
+    if parallel > 1 and len(batches) > 1:
+        with ThreadPoolExecutor(max_workers=min(parallel, len(batches))) as pool:
+            answers = list(pool.map(run, batches))
+    else:
+        answers = [run(batch) for batch in batches]
+
+    by_id = {k: v for answer in answers for k, v in answer.items()}
+    return {item["id"]: by_id[group[0]["id"]] for group in groups.values() if group[0]["id"] in by_id
+            for item in group}
