@@ -13,6 +13,7 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from flask_babel import gettext as _
+from app.services.i18n import N_
 
 TIERS = {"medio": "Medi (5–10 GB)", "piccolo": "Piccoli (2–4 GB)", "tiny": "Tiny (< 2 GB)"}
 
@@ -34,13 +35,13 @@ class CatalogModel:
 
 CATALOG: list[CatalogModel] = [
     # ── Medium: best accuracy under 10 GB ─────────────────────────────────────
-    CatalogModel("qwen2.5vl:7b", "Qwen", 6.0, "medio", True, "Consigliato: il più preciso nel leggere documenti e tabelle"),
+    CatalogModel("qwen2.5vl:7b", "Qwen", 6.0, "medio", True, N_("Consigliato: il più preciso nel leggere documenti e tabelle")),
     CatalogModel("llama3.2-vision:11b", "Llama", 7.8, "medio", True),
     CatalogModel("gemma3:12b", "Gemma", 8.1, "medio", True),
     CatalogModel("qwen3:8b", "Qwen", 5.2, "medio", False),
     CatalogModel("llama3.1:8b", "Llama", 4.9, "medio", False),
     # ── Small: laptops with 8 GB of RAM ───────────────────────────────────────
-    CatalogModel("qwen2.5vl:3b", "Qwen", 3.2, "piccolo", True, "Il vision più leggero: buon compromesso"),
+    CatalogModel("qwen2.5vl:3b", "Qwen", 3.2, "piccolo", True, N_("Il vision più leggero: buon compromesso")),
     CatalogModel("gemma3:4b", "Gemma", 3.3, "piccolo", True),
     CatalogModel("qwen3:4b", "Qwen", 2.5, "piccolo", False),
     CatalogModel("llama3.2:3b", "Llama", 2.0, "piccolo", False),
@@ -48,7 +49,7 @@ CATALOG: list[CatalogModel] = [
     CatalogModel("qwen3:1.7b", "Qwen", 1.4, "tiny", False),
     CatalogModel("llama3.2:1b", "Llama", 1.3, "tiny", False),
     CatalogModel("gemma3:1b", "Gemma", 0.8, "tiny", False),
-    CatalogModel("qwen3:0.6b", "Qwen", 0.5, "tiny", False, "Il più piccolo: solo testi semplici"),
+    CatalogModel("qwen3:0.6b", "Qwen", 0.5, "tiny", False, N_("Il più piccolo: solo testi semplici")),
 ]
 BY_NAME = {m.name: m for m in CATALOG}
 VISION_FAMILIES = ("vl", "vision", "gemma3:4b", "gemma3:12b", "gemma3:27b", "llava", "minicpm-v", "moondream")

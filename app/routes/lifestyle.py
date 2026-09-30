@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.budget import Budget
 from app.models.wealth import Goal
 from app.routes.helpers import form_date, form_decimal, form_text
-from app.services import analytics, budgets, categories
+from app.services import analytics, budgets, categories, display
 from app.services.periods import add_months
 from flask_babel import gettext as _
 
@@ -172,8 +172,9 @@ def goal_contribute(goal_id):
     if goal.completed and not was_completed:
         flash(_("🎉 Obiettivo «%(name)s» raggiunto!", name=goal.name), "success")
     else:
-        shown = f"{abs(amount):.2f}".replace(".", ",")
-        flash(_("«%(name)s»: %(value)s € %(shown)s.", name=goal.name, value=(_('aggiunti') if amount >= 0 else _('tolti')), shown=shown), "success")
+        shown = display.money(abs(amount))
+        flash(_("«%(name)s»: aggiunti %(amount)s.", name=goal.name, amount=shown) if amount >= 0
+              else _("«%(name)s»: tolti %(amount)s.", name=goal.name, amount=shown), "success")
     return redirect(url_for("lifestyle.goals"))
 
 

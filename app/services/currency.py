@@ -18,15 +18,16 @@ from sqlalchemy import event, select, text
 from app.extensions import db
 from app.models.currency import ExchangeRate
 from app.models.transaction import Transaction
+from app.services.i18n import N_
 from flask_babel import gettext as _
 
 BASE = "EUR"  # the currency the rates are expressed in
 CURRENCIES = {  # code: (symbol, name)
-    "EUR": ("€", "Euro"), "USD": ("$", "Dollaro USA"), "GBP": ("£", "Sterlina"), "CHF": ("CHF", "Franco svizzero"),
-    "JPY": ("¥", "Yen"), "CAD": ("C$", "Dollaro canadese"), "AUD": ("A$", "Dollaro australiano"),
-    "SEK": ("kr", "Corona svedese"), "NOK": ("kr", "Corona norvegese"), "DKK": ("kr", "Corona danese"),
-    "PLN": ("zł", "Złoty"), "CZK": ("Kč", "Corona ceca"), "HUF": ("Ft", "Fiorino"), "RON": ("lei", "Leu"),
-    "CNY": ("¥", "Renminbi"), "TRY": ("₺", "Lira turca"), "BRL": ("R$", "Real"), "INR": ("₹", "Rupia"),
+    "EUR": ("€", N_("Euro")), "USD": ("$", N_("Dollaro USA")), "GBP": ("£", N_("Sterlina")), "CHF": ("CHF", N_("Franco svizzero")),
+    "JPY": ("¥", N_("Yen")), "CAD": ("C$", N_("Dollaro canadese")), "AUD": ("A$", N_("Dollaro australiano")),
+    "SEK": ("kr", N_("Corona svedese")), "NOK": ("kr", N_("Corona norvegese")), "DKK": ("kr", N_("Corona danese")),
+    "PLN": ("zł", N_("Złoty")), "CZK": ("Kč", N_("Corona ceca")), "HUF": ("Ft", N_("Fiorino")), "RON": ("lei", N_("Leu")),
+    "CNY": ("¥", N_("Renminbi")), "TRY": ("₺", N_("Lira turca")), "BRL": ("R$", N_("Real")), "INR": ("₹", N_("Rupia")),
 }
 ECB_DAILY = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
 ECB_90_DAYS = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml"

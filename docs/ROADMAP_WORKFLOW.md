@@ -78,4 +78,4 @@ Each step = model + migration + service + routes/templates + tests, then a commi
 | C9 Display preferences applied | C | ✅ `74aa1d9` |
 | C10 Cash flow from explicit links | C | ✅ `6791a8a` |
 | C11 AI reading in the background (in-memory job + JSON state, no job table) | agent | ✅ merged `88f22da` |
-| C12 i18n (Italian / English) | agent | ⏳ in progress on `track/i18n` |
+| C12 i18n (Italian / English) | agent + C | ✅ merged from `track/i18n` |

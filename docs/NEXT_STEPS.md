@@ -32,6 +32,10 @@ Current status and roadmap. Update this file as items are completed.
   (bell in the top bar); **editable categories** and **categorization rules** written or learned from
   corrections; cash flow from **explicit links** to investments and debts; display preferences applied
 - **CI** (GitHub Actions), **Docker** image and compose, **production config** (see `docs/DEPLOY.md`)
+- **Interface in Italian or English** (Settings → Visualizzazione → Lingua): Flask-Babel, Italian as the source,
+  `app/translations/en` complete; words stored as data (policy types, asset classes…) stay Italian in the database
+  and are translated when shown. After changing texts: `python scripts/translations.py update`, translate the new
+  entries in `messages.po`, then `python scripts/translations.py compile` (a test fails if the catalog is incomplete)
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 

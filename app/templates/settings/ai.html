@@ -96,7 +96,7 @@
     <div style="font-weight:600;color:var(--clr-text-primary);">{{ m.name }}
       {% if provider == 'ollama' and model == m.name %}<span class="badge badge-primary">{{ _('In uso') }}</span>{% endif %}
     </div>
-    {% if m.note %}<div class="text-xs text-muted">{{ m.note }}</div>{% endif %}
+    {% if m.note %}<div class="text-xs text-muted">{{ m.note|tr }}</div>{% endif %}
   </td>
   <td>{{ m.family }}</td>
   <td class="amount text-right">~{{ "%.1f"|format(m.size_gb) }} GB</td>

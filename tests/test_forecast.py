@@ -243,7 +243,7 @@ def test_page_is_a_two_column_dashboard(client, db):
     assert "Netflix" in html.split('<div class="card-header-title">Sembrano ricorrenti')[1]      # suggested
     assert "Stipendio" in html.split('<div class="card-header-title">Prossime ricorrenti')[1]    # scheduled
     for label, _ in forecast.METHODS.values():
-        assert label in html
+        assert str(label) in html
     assert 'href="/forecast/"' in client.get("/transactions/").get_data(as_text=True)  # sidebar link
 
 

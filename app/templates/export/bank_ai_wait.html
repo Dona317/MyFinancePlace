@@ -42,9 +42,9 @@
       <div style="font-weight:700;margin-bottom:10px;">
         <i class="bi bi-arrow-repeat ai-spinner"></i>
         <span id="ai-status">
-          {% if job.cancel_requested %}{{ _({{ _('Annullamento in corso…')|tojson }}) }}
-          {% elif job.state == 'queued' %}{{ _({{ _('In attesa di avvio…')|tojson }}) }}
-          {% else %}{{ _({{ _('Lettura in corso…')|tojson }}) }}{% endif %}
+          {% if job.cancel_requested %}{{ _('Annullamento in corso…') }}
+          {% elif job.state == 'queued' %}{{ _('In attesa di avvio…') }}
+          {% else %}{{ _('Lettura in corso…') }}{% endif %}
         </span>
       </div>
       {% set determinate = job.total > 1 %}
@@ -111,8 +111,8 @@
     elapsed = job.elapsed;
     $('ai-elapsed').textContent = format(elapsed);
     $('ai-model').textContent = job.label || job.model;  // text only: never HTML from the server
-    $('ai-status').textContent = job.cancel_requested ? 'Annullamento in corso…'
-      : job.state === 'queued' ? 'In attesa di avvio…' : 'Lettura in corso…';
+    $('ai-status').textContent = job.cancel_requested ? {{ _('Annullamento in corso…')|tojson }}
+      : job.state === 'queued' ? {{ _('In attesa di avvio…')|tojson }} : {{ _('Lettura in corso…')|tojson }};
     $('ai-cancel-note').style.display = job.cancel_requested ? '' : 'none';
     $('ai-cancel').disabled = job.cancel_requested;
     const determinate = job.total > 1;

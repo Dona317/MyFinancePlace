@@ -16,6 +16,7 @@ Personal finance management app — from household budgeting to investment portf
 | **Documents** | Archive linked to transactions, with fiscal-year tagging |
 | **Snapshots** | Point-in-time financial snapshots for historical comparison |
 | **Export** | CSV, JSON, downloadable PDF report, tax export by year, CSV/Excel import with column mapping |
+| **Languages** | Italian or English interface (Settings → Visualizzazione → Lingua) |
 
 ## Quick Start
 
@@ -280,6 +281,18 @@ MyFinancePlace/
 
 All colors are CSS variables defined in **`app/static/css/theme.css`**.
 To retheme the entire app, only edit that one file — no other file needs changing.
+
+## Translations
+
+Italian is the source language; the English catalog is in `app/translations/en/LC_MESSAGES/messages.po`.
+Texts are marked with `_()` / `ngettext()` (templates and Python), `_l()` for labels defined at import time and
+`N_()` for words that are also stored as data (shown with the `|tr` filter). After changing texts:
+
+```bash
+python scripts/translations.py update    # extract and merge the new texts into messages.po
+# translate the new (empty) entries in messages.po
+python scripts/translations.py compile   # rebuild messages.mo (committed; a test checks it is complete and current)
+```
 
 ## Tech Stack
 

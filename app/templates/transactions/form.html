@@ -58,7 +58,7 @@
             <label class="form-label">{{ _('Valuta') }}</label>
             <select name="currency" class="form-select">
               {% for code, (sym, name) in currencies.items() %}
-              <option value="{{ code }}" {{ 'selected' if v.currency == code }}>{{ code }} — {{ name }}</option>
+              <option value="{{ code }}" {{ 'selected' if v.currency == code }}>{{ code }} — {{ name|tr }}</option>
               {% endfor %}
             </select>
           </div>

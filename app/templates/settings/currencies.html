@@ -30,7 +30,7 @@
       <form method="POST" action="{{ url_for('settings.currency_rate_save') }}">
         <div class="grid-3">
           <div class="form-group"><label class="form-label" for="c-cur">{{ _('Valuta') }}</label>
-            <select id="c-cur" name="currency" class="form-select">{% for code, (sym, name) in currencies.items() %}<option value="{{ code }}">{{ code }} — {{ name }}</option>{% endfor %}</select></div>
+            <select id="c-cur" name="currency" class="form-select">{% for code, (sym, name) in currencies.items() %}<option value="{{ code }}">{{ code }} — {{ name|tr }}</option>{% endfor %}</select></div>
           <div class="form-group"><label class="form-label" for="c-on">{{ _('Data') }}</label>
             <input type="date" id="c-on" name="on" class="form-control" value="{{ today.isoformat() }}" required /></div>
           <div class="form-group"><label class="form-label" for="c-rate">{{ _('1 unità = € …') }}</label>

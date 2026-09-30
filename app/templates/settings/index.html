@@ -151,12 +151,20 @@
       </div>
       <div class="settings-section-body" style="padding-top:12px;padding-bottom:12px;">
 
-        <div class="grid-3" style="gap:16px;">
+        <div class="grid-4" style="gap:16px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="s-language">{{ _('Lingua') }}{% if current_language() != 'en' %} · Language{% endif %}</label>
+            <select id="s-language" name="language" class="form-select" onchange="this.form.submit()">
+              {% for code, label in languages.items() %}
+              <option value="{{ code }}" lang="{{ code }}" {{ 'selected' if settings.language == code }}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="s-currency">{{ _('Valuta dei totali') }}</label>
             <select id="s-currency" name="currency" class="form-select" onchange="this.form.submit()">
               {% for code, (sym, name) in currencies.items() %}
-              <option value="{{ code }}" {{ 'selected' if settings.currency == code }}>{{ sym }} {{ code }} — {{ name }}</option>
+              <option value="{{ code }}" {{ 'selected' if settings.currency == code }}>{{ sym }} {{ code }} — {{ name|tr }}</option>
               {% endfor %}
             </select>
             <div class="form-hint">{{ _('Le transazioni in altre valute vengono convertite con i') }} <a href="{{ url_for('settings.currencies_page') }}">{{ _('cambi') }}</a>.</div>
