@@ -118,3 +118,10 @@ def test_theme_tokens_are_well_formed():
         body = re.sub(r"/\*.*?\*/", "", block, flags=re.S)
         for declaration in filter(None, (d.strip() for d in body.split(";"))):
             assert declaration.count(":") == 1 and declaration.startswith("--"), declaration
+
+
+def test_static_files_carry_a_version(client, app):
+    """CSS and JS links change when the file changes, so browsers don't keep showing the old look."""
+    html = client.get("/transactions/").get_data(as_text=True)
+    for name in ("css/theme.css", "css/main.css", "js/main.js", "js/charts.js"):
+        assert re.search(rf'/static/{name}\?v=\d+"', html), name

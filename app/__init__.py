@@ -1,3 +1,5 @@
+import os
+
 from apiflask import APIFlask
 from flask import render_template, request
 from jinja2 import Undefined
@@ -115,6 +117,16 @@ def create_app(config_name="default"):
     def tone(tx_type):
         """CSS class for an amount: red for expenses, green for income, neutral for transfers."""
         return {"expense": "negative", "income": "positive"}.get(tx_type, "")
+
+    # ── Static files: a version in the URL (the file's modification time), so a browser that cached
+    # the old CSS/JS fetches the new one right after an update instead of showing the old look
+    @app.url_defaults
+    def static_version(endpoint, values):
+        if endpoint == "static" and "filename" in values and "v" not in values:
+            try:
+                values["v"] = int(os.path.getmtime(os.path.join(app.static_folder, values["filename"])))
+            except OSError:
+                pass
 
     # ── Settings context processor ─────────────────────────────────────────────
     # Makes `settings` available in every template automatically.
