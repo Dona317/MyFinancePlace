@@ -147,3 +147,15 @@ def test_old_json_export_adds_only_new_transactions(client, db, sample_data, ins
     assert "1 transazioni aggiunte, 8 già presenti ignorate" in html
     assert Transaction.query.count() == 9
     assert Transaction.query.filter_by(description="Nuova spesa").one().amount == Decimal("42.50")
+
+
+def test_restore_keeps_transactions_linked_to_debts_and_holdings(client, db, everything):
+    """Links from transactions to a debt or a holding need those tables restored first."""
+    first, second = Transaction.query.order_by(Transaction.id).limit(2).all()
+    first.debt_id, second.holding_id = Debt.query.one().id, Holding.query.one().id
+    db.session.commit()
+    archive = client.get("/export/backup").data
+    html = upload(client, archive).get_data(as_text=True)
+    assert "Backup ripristinato" in html
+    assert Transaction.query.filter(Transaction.debt_id.isnot(None)).count() == 1
+    assert Transaction.query.filter(Transaction.holding_id.isnot(None)).count() == 1

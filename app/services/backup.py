@@ -34,7 +34,8 @@ KEEP_SAFETY_COPIES = 10
 SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 
 # Insertion order: a table comes after the tables it points to (documents and dismissals → transactions)
-MODELS = [AppSetting, Account, Category, CategoryRule, ExchangeRate, Transaction, DuplicateDismissal, Holding, Debt, InsurancePolicy, Goal, Budget, Document, Snapshot]
+MODELS = [AppSetting, Account, Category, CategoryRule, ExchangeRate, Holding, Debt, Transaction, DuplicateDismissal,
+          InsurancePolicy, Goal, Budget, Document, Snapshot]  # parents before the rows that point to them
 
 
 class BackupError(Exception):
