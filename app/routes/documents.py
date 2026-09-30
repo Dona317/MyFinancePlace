@@ -10,6 +10,7 @@ from app.models.wealth import Document
 from app.routes.helpers import form_int, form_text, safe_next
 from app.services import document_store
 from app.services.categories import known_categories
+from flask_babel import gettext as _, ngettext
 
 documents_bp = APIBlueprint(
     "documents",
@@ -66,7 +67,7 @@ def index():
 def upload():
     files = [f for f in request.files.getlist("files") if f and f.filename]
     if not files:
-        flash("Scegli almeno un file da caricare.", "error")
+        flash(_("Scegli almeno un file da caricare."), "error")
         return redirect(url_for("documents.index"))
     try:
         year = form_int("fiscal_year", "Anno fiscale", minimum=1900, maximum=2999)
@@ -81,7 +82,7 @@ def upload():
         db.session.add(Document(filename=upload_file.filename, stored_name=stored, mimetype=mimetype, size=len(raw),
                                 doc_type=doc_type, fiscal_year=year, category=category))
     db.session.commit()
-    flash(f"{len(files)} {'documento caricato' if len(files) == 1 else 'documenti caricati'}.", "success")
+    flash(ngettext("%(num)s documento caricato.", "%(num)s documenti caricati.", len(files)), "success")
     return redirect(url_for("documents.index"))
 
 
@@ -119,7 +120,7 @@ def edit(doc_id):
         document.notes = form_text("notes", "Note")
         document.transaction_id = tx_id if tx_id and db.session.get(Transaction, tx_id) else None
         db.session.commit()
-        flash(f"Documento «{document.filename}» aggiornato.", "success")
+        flash(_("Documento «%(filename)s» aggiornato.", filename=document.filename), "success")
         return redirect(safe_next() or url_for("documents.index"))
     return render_template(
         "documents/form.html",
@@ -138,5 +139,5 @@ def delete(doc_id):
     db.session.delete(document)
     db.session.commit()
     document_store.remove(document.stored_name)
-    flash(f"Documento «{document.filename}» eliminato.", "success")
+    flash(_("Documento «%(filename)s» eliminato.", filename=document.filename), "success")
     return redirect(url_for("documents.index"))

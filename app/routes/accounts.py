@@ -7,7 +7,8 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
-from app.services import accounts, currency as currency_service
+from app.services import accounts, currency as currency_service, display
+from flask_babel import gettext as _
 
 accounts_bp = APIBlueprint(
     "accounts",
@@ -30,7 +31,7 @@ def _account_from_form(account: Account) -> Account:
     account.active = "active" in request.form
     duplicate = Account.query.filter(Account.name == account.name, Account.id != account.id).first()
     if duplicate:
-        raise ValueError(f"Esiste già un conto chiamato «{account.name}».")
+        raise ValueError(_("Esiste già un conto chiamato «%(name)s».", name=account.name))
     return account
 
 
@@ -69,7 +70,7 @@ def reconcile(account_id):
         return redirect(url_for("accounts.detail", account_id=account.id))
     result = accounts.reconcile(account, on, statement)
     if result["difference"] == 0:
-        flash(f"Conto riconciliato al {on:%d/%m/%Y}: il saldo coincide con l'estratto.", "success")
+        flash(_("Conto riconciliato al %(on)s: il saldo coincide con l'estratto.", on=display.day(on)), "success")
     recent = (Transaction.query.filter(Transaction.account_id == account.id, Transaction.date <= on)
               .order_by(Transaction.date.desc(), Transaction.id.desc()).limit(50).all())
     return render_template("accounts/detail.html", account=account, balance=accounts.balance(account),
@@ -86,7 +87,7 @@ def new():
             return _render_form(None, request.form)
         db.session.add(account)
         db.session.commit()
-        flash(f"Conto «{account.name}» aggiunto.", "success")
+        flash(_("Conto «%(name)s» aggiunto.", name=account.name), "success")
         return redirect(url_for("accounts.index"))
     return _render_form(None, {})
 
@@ -102,7 +103,7 @@ def edit(account_id):
             flash(str(exc), "error")
             return _render_form(account, request.form)
         db.session.commit()
-        flash(f"Conto «{account.name}» aggiornato.", "success")
+        flash(_("Conto «%(name)s» aggiornato.", name=account.name), "success")
         return redirect(url_for("accounts.detail", account_id=account.id))
     return _render_form(account, {})
 
@@ -112,5 +113,5 @@ def delete(account_id):
     account = db.get_or_404(Account, account_id)
     db.session.delete(account)
     db.session.commit()
-    flash(f"Conto «{account.name}» eliminato: le sue transazioni restano, senza conto.", "success")
+    flash(_("Conto «%(name)s» eliminato: le sue transazioni restano, senza conto.", name=account.name), "success")
     return redirect(url_for("accounts.index"))

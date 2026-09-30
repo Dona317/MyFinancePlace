@@ -8,6 +8,7 @@ from app.extensions import db
 from app.models.wealth import Debt
 from app.routes.helpers import form_choice, form_date, form_decimal, form_int, form_text
 from app.services import wealth
+from flask_babel import gettext as _
 
 debt_bp = APIBlueprint(
     "debt",
@@ -23,7 +24,7 @@ def _debt_from_form(debt: Debt) -> Debt:
     debt.principal = form_decimal("principal", "Capitale iniziale", required=True)
     rate = form_decimal("annual_rate", "Tasso annuo")
     if rate is not None and rate > 100:
-        raise ValueError("Tasso annuo: al massimo 100%.")
+        raise ValueError(_("Tasso annuo: al massimo 100%."))
     debt.annual_rate = rate or 0
     debt.term_months = form_int("term_months", "Durata (mesi)", minimum=1, maximum=wealth.MAX_PLAN_MONTHS)
     debt.start_date = form_date("start_date", "Data di inizio")
@@ -31,7 +32,7 @@ def _debt_from_form(debt: Debt) -> Debt:
     debt.balance = form_decimal("balance", "Saldo residuo")
     debt.notes = form_text("notes", "Note")
     if not debt.principal:
-        raise ValueError("Capitale iniziale: deve essere maggiore di zero.")
+        raise ValueError(_("Capitale iniziale: deve essere maggiore di zero."))
     return debt
 
 
@@ -83,7 +84,7 @@ def new():
             return _render_form(None, request.form)
         db.session.add(debt)
         db.session.commit()
-        flash(f"Debito «{debt.name}» aggiunto.", "success")
+        flash(_("Debito «%(name)s» aggiunto.", name=debt.name), "success")
         return redirect(url_for("debt.detail", debt_id=debt.id))
     return _render_form(None, {})
 
@@ -99,7 +100,7 @@ def edit(debt_id):
             flash(str(exc), "error")
             return _render_form(debt, request.form)
         db.session.commit()
-        flash(f"Debito «{debt.name}» aggiornato.", "success")
+        flash(_("Debito «%(name)s» aggiornato.", name=debt.name), "success")
         return redirect(url_for("debt.detail", debt_id=debt.id))
     return _render_form(debt, {})
 
@@ -109,5 +110,5 @@ def delete(debt_id):
     debt = db.get_or_404(Debt, debt_id)
     db.session.delete(debt)
     db.session.commit()
-    flash(f"Debito «{debt.name}» eliminato.", "success")
+    flash(_("Debito «%(name)s» eliminato.", name=debt.name), "success")
     return redirect(url_for("debt.index"))

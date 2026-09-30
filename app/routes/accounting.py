@@ -6,6 +6,7 @@ from apiflask import APIBlueprint
 from app.routes.helpers import form_decimal
 from app.services import analytics, settings_store, wealth
 from app.services.parsing import to_date
+from flask_babel import gettext as _
 
 accounting_bp = APIBlueprint(
     "accounting",
@@ -51,7 +52,7 @@ def opening_cash():
         flash(str(exc), "error")
         return redirect(url_for("accounting.balance_sheet"))
     settings_store.set(wealth.OPENING_CASH_SETTING, str(amount) if amount else None)
-    flash("Saldo iniziale dei conti aggiornato.", "success")
+    flash(_("Saldo iniziale dei conti aggiornato."), "success")
     return redirect(url_for("accounting.balance_sheet"))
 
 

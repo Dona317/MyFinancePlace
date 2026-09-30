@@ -8,6 +8,7 @@ from datetime import date, datetime
 from app.models.transaction import Transaction
 from app.services.parsing import TRANSACTION_TYPES, parse_amount, parse_date
 from app.services.periods import month_bounds, year_bounds
+from flask_babel import gettext as _
 
 EXPORT_FIELDS = [
     "id", "date", "description", "amount", "currency", "type", "category",
@@ -174,7 +175,7 @@ def rows_to_transactions(rows: list[dict], mapping: dict, first_line: int = 2) -
             amount = parse_amount(row.get(mapping["amount"]) or "")
             description = (row.get(mapping["description"]) or "").strip()
             if not description:
-                raise ValueError("descrizione mancante")
+                raise ValueError(_("descrizione mancante"))
 
             tx_type = (row.get(mapping.get("type") or "") or "").strip().lower()
             if tx_type not in TRANSACTION_TYPES:

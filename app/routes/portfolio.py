@@ -7,6 +7,7 @@ from app.extensions import db
 from app.models.wealth import Holding, Snapshot
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
 from app.services import wealth
+from flask_babel import gettext as _
 
 portfolio_bp = APIBlueprint(
     "portfolio",
@@ -60,7 +61,7 @@ def new():
                                    values=request.form)
         db.session.add(holding)
         db.session.commit()
-        flash(f"Posizione «{holding.name}» aggiunta.", "success")
+        flash(_("Posizione «%(name)s» aggiunta.", name=holding.name), "success")
         return redirect(url_for("portfolio.index"))
     return render_template("portfolio/form.html", holding=None, asset_classes=wealth.ASSET_CLASSES, values={})
 
@@ -77,7 +78,7 @@ def edit(holding_id):
             return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES,
                                    values=request.form)
         db.session.commit()
-        flash(f"Posizione «{holding.name}» aggiornata.", "success")
+        flash(_("Posizione «%(name)s» aggiornata.", name=holding.name), "success")
         return redirect(url_for("portfolio.index"))
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values={})
 
@@ -100,7 +101,7 @@ def prices():
             flash(str(exc), "error")
             return render_template("portfolio/prices.html", holdings=holdings, values=request.form)
         db.session.commit()
-        flash(f"Prezzi aggiornati: {changed}." if changed else "Nessun prezzo cambiato.", "success")
+        flash(_("Prezzi aggiornati: %(changed)s.", changed=changed) if changed else _("Nessun prezzo cambiato."), "success")
         return redirect(url_for("portfolio.index"))
     return render_template("portfolio/prices.html", holdings=holdings, values={})
 
@@ -110,5 +111,5 @@ def delete(holding_id):
     holding = db.get_or_404(Holding, holding_id)
     db.session.delete(holding)
     db.session.commit()
-    flash(f"Posizione «{holding.name}» eliminata.", "success")
+    flash(_("Posizione «%(name)s» eliminata.", name=holding.name), "success")
     return redirect(url_for("portfolio.index"))

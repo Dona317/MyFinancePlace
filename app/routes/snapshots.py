@@ -4,7 +4,8 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.wealth import Snapshot
 from app.routes.helpers import form_text
-from app.services import wealth
+from app.services import display, wealth
+from flask_babel import gettext as _
 
 snapshots_bp = APIBlueprint(
     "snapshots",
@@ -37,7 +38,7 @@ def index():
 def create():
     snapshot = wealth.take_snapshot(form_text("label", "Etichetta"))
     net_worth = f"{float(snapshot.net_worth):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    flash(f"Istantanea del {snapshot.taken_on.strftime('%d/%m/%Y')} salvata: patrimonio netto € {net_worth}.", "success")
+    flash(_("Istantanea del %(day)s salvata: patrimonio netto € %(net_worth)s.", day=display.day(snapshot.taken_on), net_worth=net_worth), "success")
     return redirect(url_for("snapshots.index"))
 
 
@@ -46,7 +47,7 @@ def delete(snapshot_id):
     snapshot = db.get_or_404(Snapshot, snapshot_id)
     db.session.delete(snapshot)
     db.session.commit()
-    flash("Istantanea eliminata.", "success")
+    flash(_("Istantanea eliminata."), "success")
     return redirect(url_for("snapshots.index"))
 
 

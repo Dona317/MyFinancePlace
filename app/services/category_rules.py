@@ -13,6 +13,7 @@ from app.models.category import CategoryRule
 from app.models.transaction import Transaction
 from app.services import request_cache
 from app.services.parsing import normalize
+from flask_babel import gettext as _
 
 MIN_KEYWORD = 3  # shorter words would match too much ("bar" is the shortest useful one)
 
@@ -53,9 +54,9 @@ def save(keyword: str, category: str, source: str = "manual") -> CategoryRule:
     """Create or update the rule for a keyword (a manual rule is never downgraded to learned)."""
     keyword = clean_keyword(keyword)
     if len(keyword) < MIN_KEYWORD:
-        raise ValueError(f"Parola chiave: almeno {MIN_KEYWORD} caratteri.")
+        raise ValueError(_("Parola chiave: almeno %(MIN_KEYWORD)s caratteri.", MIN_KEYWORD=MIN_KEYWORD))
     if not category:
-        raise ValueError("Categoria: scegline una.")
+        raise ValueError(_("Categoria: scegline una."))
     rule = CategoryRule.query.filter_by(keyword=keyword).first()
     if rule is None:
         rule = CategoryRule(keyword=keyword, category=category, source=source, hits=0)
@@ -94,7 +95,7 @@ def apply(only_uncategorized: bool = True) -> int:
                     changed += 1
                     hits[rule.id] = hits.get(rule.id, 0) + 1
                 break
-    for rule, _ in rules:
+    for rule, _matched in rules:
         rule.hits = (rule.hits or 0) + hits.get(rule.id, 0)
     db.session.commit()
     return changed

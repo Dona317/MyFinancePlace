@@ -5,6 +5,7 @@ Shared by the CSV import, the bank-statement import and the transaction forms.
 import re
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+from flask_babel import gettext as _
 
 DATE_FORMATS = ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y", "%m/%d/%Y")
 MAX_AMOUNT = Decimal("9" * 36 + ".99")  # transactions.amount is Numeric(38, 2): no practical limit
@@ -18,7 +19,7 @@ def parse_date(value: str) -> date:
             return datetime.strptime(value, fmt).date()
         except ValueError:
             continue
-    raise ValueError(f"data non riconosciuta: '{value}'")
+    raise ValueError(_("data non riconosciuta: '%(value)s'", value=value))
 
 
 def parse_amount(value: str) -> Decimal:
@@ -34,7 +35,7 @@ def parse_amount(value: str) -> Decimal:
     try:
         return Decimal(raw)
     except InvalidOperation:
-        raise ValueError(f"importo non valido: '{value}'") from None
+        raise ValueError(_("importo non valido: '%(value)s'", value=value)) from None
 
 
 def to_date(value) -> date | None:

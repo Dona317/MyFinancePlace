@@ -18,6 +18,7 @@ from sqlalchemy import event, select, text
 from app.extensions import db
 from app.models.currency import ExchangeRate
 from app.models.transaction import Transaction
+from flask_babel import gettext as _
 
 BASE = "EUR"  # the currency the rates are expressed in
 CURRENCIES = {  # code: (symbol, name)
@@ -106,9 +107,9 @@ def recompute(currency: str | None = None) -> int:
 
 def save_rate(currency: str, on: date, rate: Decimal, source: str = "manual") -> ExchangeRate:
     if currency not in CURRENCIES or currency == BASE:
-        raise ValueError("Valuta: scegline una diversa dall'euro.")
+        raise ValueError(_("Valuta: scegline una diversa dall'euro."))
     if rate is None or rate <= 0:
-        raise ValueError("Cambio: deve essere maggiore di zero.")
+        raise ValueError(_("Cambio: deve essere maggiore di zero."))
     row = ExchangeRate.query.filter_by(currency=currency, on=on).first()
     if row is None:
         row = ExchangeRate(currency=currency, on=on, rate=rate, source=source)
@@ -141,7 +142,7 @@ def download_ecb(history: bool = True, timeout: int = 20) -> int:
     with urllib.request.urlopen(ECB_90_DAYS if history else ECB_DAILY, timeout=timeout) as response:  # noqa: S310 - fixed https URL
         rates = parse_ecb(response.read())
     if not rates:
-        raise ValueError("nessun cambio nel file della BCE")
+        raise ValueError(_("nessun cambio nel file della BCE"))
     existing = {(r.currency, r.on): r for r in ExchangeRate.query.filter(
         ExchangeRate.on >= min(d for d, _, _ in rates)).all()}
     for on, code, rate in rates:

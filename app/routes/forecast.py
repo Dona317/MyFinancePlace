@@ -6,6 +6,7 @@ from flask import flash, jsonify, redirect, render_template, request, url_for
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.services import forecast
+from flask_babel import gettext as _
 
 forecast_bp = APIBlueprint(
     "forecast",
@@ -61,9 +62,9 @@ def mark_recurring(tx_id):
     tx = db.get_or_404(Transaction, tx_id)
     frequency = request.form.get("frequency")
     if frequency not in forecast.FREQUENCIES:
-        flash("Frequenza non valida.", "error")
+        flash(_("Frequenza non valida."), "error")
         return redirect(url_for("forecast.index"))
     tx.is_recurring, tx.recurrence = True, frequency
     db.session.commit()
-    flash(f"«{tx.description}» è ora una transazione ricorrente ({forecast.FREQUENCIES[frequency][0].lower()}).", "success")
+    flash(_("«%(description)s» è ora una transazione ricorrente (%(value)s).", description=tx.description, value=forecast.FREQUENCIES[frequency][0].lower()), "success")
     return redirect(url_for("forecast.index"))

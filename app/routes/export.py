@@ -14,6 +14,7 @@ from app.services import (
     pdf_report,
 )
 from app.services.categories import known_categories
+from flask_babel import gettext as _
 
 export_bp = APIBlueprint(
     "export",
@@ -61,16 +62,16 @@ def download_backup():
 def restore():
     upload = request.files.get("file")
     if not upload or not upload.filename:
-        flash("Scegli il file di backup da ripristinare.", "error")
+        flash(_("Scegli il file di backup da ripristinare."), "error")
         return redirect(url_for("export.index") + "#backup")
     try:
         data, files = backup.read_upload(upload.read())
         if not backup.is_full_backup(data):
             added, skipped = backup.import_transactions(data)
-            flash(f"Export JSON importato: {added} transazioni aggiunte, {skipped} già presenti ignorate.", "success")
+            flash(_("Export JSON importato: %(added)s transazioni aggiunte, %(skipped)s già presenti ignorate.", added=added, skipped=skipped), "success")
             return redirect(url_for("transactions.index"))
         if not request.form.get("confirm"):
-            flash("Per ripristinare un backup completo conferma che i dati attuali verranno sostituiti.", "error")
+            flash(_("Per ripristinare un backup completo conferma che i dati attuali verranno sostituiti."), "error")
             return redirect(url_for("export.index") + "#backup")
         safety = backup.save_safety_copy()
         restored = backup.restore(data, files)
@@ -78,10 +79,7 @@ def restore():
         flash(str(exc), "error")
         return redirect(url_for("export.index") + "#backup")
     flash(
-        f"Backup ripristinato: {restored['transactions']} transazioni, {restored['holdings']} posizioni, "
-        f"{restored['debts']} debiti, {restored['insurance_policies']} polizze, {restored['goals']} obiettivi, "
-        f"{restored['documents']} documenti, {restored['snapshots']} istantanee. "
-        f"I dati di prima sono salvati in «{safety}» (vedi Backup automatici).",
+        _("Backup ripristinato: %(transactions)s transazioni, %(holdings)s posizioni, %(debts)s debiti, %(policies)s polizze, %(goals)s obiettivi, %(documents)s documenti, %(snapshots)s istantanee. I dati di prima sono salvati in «%(safety)s» (vedi Backup automatici).", transactions=restored['transactions'], holdings=restored['holdings'], debts=restored['debts'], policies=restored['insurance_policies'], goals=restored['goals'], documents=restored['documents'], snapshots=restored['snapshots'], safety=safety),
         "success",
     )
     return redirect(url_for("export.index") + "#backup")
@@ -171,7 +169,7 @@ def import_csv():
     """Manual column-mapping import of a CSV or spreadsheet (.xlsx, .xls, .ods)."""
     upload = request.files.get("file")
     if not upload or not upload.filename:
-        flash("Seleziona un file CSV o Excel da importare.", "error")
+        flash(_("Seleziona un file CSV o Excel da importare."), "error")
         return redirect(url_for("export.index"))
     try:
         headers, rows, first_line = transfer.read_table(upload.filename, upload.read())
@@ -185,18 +183,18 @@ def import_csv():
     }
     missing = [f for f in ("date", "amount", "description") if mapping[f] not in headers]
     if missing:
-        flash(f"Colonne obbligatorie non mappate: {', '.join(missing)}.", "error")
+        flash(_("Colonne obbligatorie non mappate: %(value)s.", value=', '.join(missing)), "error")
         return redirect(url_for("export.index"))
 
     transactions, errors = transfer.rows_to_transactions(rows, mapping, first_line)
     if errors:
         preview = "; ".join(errors[:5]) + (" …" if len(errors) > 5 else "")
-        flash(f"Importazione annullata, {len(errors)} righe non valide — {preview}", "error")
+        flash(_("Importazione annullata, %(count)s righe non valide — %(preview)s", count=len(errors), preview=preview), "error")
         return redirect(url_for("export.index"))
 
     db.session.add_all(transactions)
     db.session.commit()
-    flash(f"{len(transactions)} transazioni importate con successo.", "success")
+    flash(_("%(count)s transazioni importate con successo.", count=len(transactions)), "success")
     return redirect(url_for("transactions.index"))
 
 
@@ -237,7 +235,7 @@ def bank_preview():
     """Step 1: parse the uploaded statement and show an editable preview (or ask about AI reading)."""
     upload = request.files.get("file")
     if not upload or not upload.filename:
-        flash("Seleziona l'estratto conto da importare.", "error")
+        flash(_("Seleziona l'estratto conto da importare."), "error")
         return redirect(url_for("export.index"))
 
     bank = request.form.get("bank", bank_import.AUTO)
@@ -275,7 +273,7 @@ def _load_upload(token: str):
     try:
         return upload_store.load(token)
     except KeyError:
-        flash("Il file non è più disponibile: caricalo di nuovo.", "error")
+        flash(_("Il file non è più disponibile: caricalo di nuovo."), "error")
         return None
 
 
@@ -372,7 +370,7 @@ def bank_ai_cancel(token):
         ai_jobs.cancel(token)
         return redirect(url_for("export.bank_ai_wait", token=token))
     ai_jobs.discard(token)
-    flash("Importazione annullata.", "success")
+    flash(_("Importazione annullata."), "success")
     return redirect(url_for("export.index"))
 
 
@@ -382,7 +380,7 @@ def bank_confirm():
     try:
         data = _preview_serializer().loads(request.form.get("payload", ""))
     except BadSignature:
-        flash("Anteprima non valida o scaduta: carica di nuovo il file.", "error")
+        flash(_("Anteprima non valida o scaduta: carica di nuovo il file."), "error")
         return redirect(url_for("export.index"))
 
     rows = data["rows"]
@@ -418,7 +416,7 @@ def bank_confirm():
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        flash("Alcuni movimenti risultano già importati: ricarica il file e riprova.", "error")
+        flash(_("Alcuni movimenti risultano già importati: ricarica il file e riprova."), "error")
         return redirect(url_for("export.index"))
 
     message = f"{len(created)} movimenti importati da {bank_import.BANKS[data['bank']].name}"
@@ -427,7 +425,7 @@ def bank_confirm():
         message += f" {skipped} già presenti sono stati ignorati."
     flash(message, "success")
     if invalid:
-        flash(f"Righe non salvate perché incomplete o non valide: {', '.join(map(str, invalid))}.", "warning")
+        flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")
     return redirect(url_for("transactions.index"))
 
 

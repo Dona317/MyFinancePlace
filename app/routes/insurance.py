@@ -7,6 +7,7 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.wealth import InsurancePolicy
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
+from flask_babel import gettext as _
 
 insurance_bp = APIBlueprint(
     "insurance",
@@ -31,7 +32,7 @@ def _policy_from_form(policy: InsurancePolicy) -> InsurancePolicy:
     policy.expiry_date = form_date("expiry_date", "Data di scadenza")
     policy.notes = form_text("notes", "Note")
     if policy.start_date and policy.expiry_date and policy.expiry_date < policy.start_date:
-        raise ValueError("La scadenza non può essere prima dell'inizio.")
+        raise ValueError(_("La scadenza non può essere prima dell'inizio."))
     return policy
 
 
@@ -78,7 +79,7 @@ def new():
             return _render_form(None, request.form)
         db.session.add(policy)
         db.session.commit()
-        flash(f"Polizza {policy.type} di {policy.company} aggiunta.", "success")
+        flash(_("Polizza %(type)s di %(company)s aggiunta.", type=policy.type, company=policy.company), "success")
         return redirect(url_for("insurance.index"))
     return _render_form(None, {})
 
@@ -94,7 +95,7 @@ def edit(policy_id):
             flash(str(exc), "error")
             return _render_form(policy, request.form)
         db.session.commit()
-        flash(f"Polizza {policy.type} di {policy.company} aggiornata.", "success")
+        flash(_("Polizza %(type)s di %(company)s aggiornata.", type=policy.type, company=policy.company), "success")
         return redirect(url_for("insurance.index"))
     return _render_form(policy, {})
 
@@ -104,5 +105,5 @@ def delete(policy_id):
     policy = db.get_or_404(InsurancePolicy, policy_id)
     db.session.delete(policy)
     db.session.commit()
-    flash(f"Polizza {policy.type} di {policy.company} eliminata.", "success")
+    flash(_("Polizza %(type)s di %(company)s eliminata.", type=policy.type, company=policy.company), "success")
     return redirect(url_for("insurance.index"))

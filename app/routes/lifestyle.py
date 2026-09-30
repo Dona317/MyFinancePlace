@@ -10,6 +10,7 @@ from app.models.wealth import Goal
 from app.routes.helpers import form_date, form_decimal, form_text
 from app.services import analytics, budgets, categories
 from app.services.periods import add_months
+from flask_babel import gettext as _
 
 lifestyle_bp = APIBlueprint(
     "lifestyle",
@@ -69,7 +70,7 @@ def budget_save():
         flash(str(exc), "error")
         return redirect(url_for("lifestyle.budget", month=f"{month:%Y-%m}"))
     db.session.commit()
-    flash("Budget salvati.", "success")
+    flash(_("Budget salvati."), "success")
     return redirect(url_for("lifestyle.budget", month=f"{month:%Y-%m}"))
 
 
@@ -98,7 +99,7 @@ def _goal_from_form(goal: Goal) -> Goal:
     goal.target_date = form_date("target_date", "Data obiettivo")
     goal.notes = form_text("notes", "Note")
     if not goal.target_amount:
-        raise ValueError("Importo obiettivo: deve essere maggiore di zero.")
+        raise ValueError(_("Importo obiettivo: deve essere maggiore di zero."))
     return goal
 
 
@@ -133,7 +134,7 @@ def goal_new():
             return _render_goal_form(None, request.form)
         db.session.add(goal)
         db.session.commit()
-        flash(f"Obiettivo «{goal.name}» creato.", "success")
+        flash(_("Obiettivo «%(name)s» creato.", name=goal.name), "success")
         return redirect(url_for("lifestyle.goals"))
     # a suggestion pre-fills name and amount
     prefill = {k: request.args[k] for k in ("name", "target_amount") if request.args.get(k)}
@@ -151,7 +152,7 @@ def goal_edit(goal_id):
             flash(str(exc), "error")
             return _render_goal_form(goal, request.form)
         db.session.commit()
-        flash(f"Obiettivo «{goal.name}» aggiornato.", "success")
+        flash(_("Obiettivo «%(name)s» aggiornato.", name=goal.name), "success")
         return redirect(url_for("lifestyle.goals"))
     return _render_goal_form(goal, {})
 
@@ -169,10 +170,10 @@ def goal_contribute(goal_id):
     goal.saved_amount = max(Decimal(goal.saved_amount or 0) + amount, Decimal(0))
     db.session.commit()
     if goal.completed and not was_completed:
-        flash(f"🎉 Obiettivo «{goal.name}» raggiunto!", "success")
+        flash(_("🎉 Obiettivo «%(name)s» raggiunto!", name=goal.name), "success")
     else:
         shown = f"{abs(amount):.2f}".replace(".", ",")
-        flash(f"«{goal.name}»: {'aggiunti' if amount >= 0 else 'tolti'} € {shown}.", "success")
+        flash(_("«%(name)s»: %(value)s € %(shown)s.", name=goal.name, value=(_('aggiunti') if amount >= 0 else _('tolti')), shown=shown), "success")
     return redirect(url_for("lifestyle.goals"))
 
 
@@ -181,5 +182,5 @@ def goal_delete(goal_id):
     goal = db.get_or_404(Goal, goal_id)
     db.session.delete(goal)
     db.session.commit()
-    flash(f"Obiettivo «{goal.name}» eliminato.", "success")
+    flash(_("Obiettivo «%(name)s» eliminato.", name=goal.name), "success")
     return redirect(url_for("lifestyle.goals"))

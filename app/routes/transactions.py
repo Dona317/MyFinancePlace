@@ -12,6 +12,7 @@ from app.services.parsing import TRANSACTION_TYPES, valid_amount
 from app.services.periods import month_bounds
 from app.schemas.transaction import TransactionIn, TransactionOut, TransactionListOut
 from app.schemas.common import DeleteOut
+from flask_babel import gettext as _
 
 transactions_bp = APIBlueprint(
     "transactions",
@@ -32,7 +33,7 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     tx.date = form_date("date", "Data", required=True)
     amount = form_decimal("amount", "Importo", required=True, allow_negative=True)
     if not valid_amount(amount):
-        raise ValueError("Importo: deve essere diverso da zero.")
+        raise ValueError(_("Importo: deve essere diverso da zero."))
     tx.amount = abs(amount)
     tx.description = form_text("description", "Descrizione", required=True)
     currency = request.form.get("currency") or "EUR"
@@ -46,7 +47,7 @@ def _tx_from_form(tx: Transaction) -> Transaction:
         tx.recurrence = form_choice("recurrence", "Frequenza", RECURRENCES)
         tx.recurrence_end = form_date("recurrence_end", "Fine ricorrenza")
         if tx.recurrence_end and tx.recurrence_end < tx.date:
-            raise ValueError("Fine ricorrenza: non può essere prima della data.")
+            raise ValueError(_("Fine ricorrenza: non può essere prima della data."))
     else:
         tx.recurrence = tx.recurrence_end = None
     tx.notes = form_text("notes", "Note")
@@ -54,7 +55,7 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     # a transfer between two own accounts: where the money arrives
     tx.counter_account_id = _account_id("counter_account_id") if tx.type == "transfer" else None
     if tx.counter_account_id and tx.counter_account_id == tx.account_id:
-        raise ValueError("Verso il conto: deve essere diverso dal conto di partenza.")
+        raise ValueError(_("Verso il conto: deve essere diverso dal conto di partenza."))
     # what the money is for, in the cash-flow statement: an investment or a debt (one of the two)
     tx.holding_id = _linked_id("holding_id", Holding)
     tx.debt_id = _linked_id("debt_id", Debt) if not tx.holding_id else None
@@ -157,7 +158,7 @@ def new():
             return _render_form(None)
         db.session.add(tx)
         db.session.commit()
-        flash("Transazione aggiunta.", "success")
+        flash(_("Transazione aggiunta."), "success")
         _learn_from(tx)
         return redirect(url_for("transactions.index"))
     return _render_form(None)
@@ -169,9 +170,9 @@ def _learn_from(tx: Transaction) -> None:
         return
     rule = category_rules.learn(tx.counterparty, tx.category)
     if rule:
-        flash(f"Da ora le transazioni di «{tx.counterparty}» andranno in «{tx.category}».", "success")
+        flash(_("Da ora le transazioni di «%(counterparty)s» andranno in «%(category)s».", counterparty=tx.counterparty, category=tx.category), "success")
     else:
-        flash("Per ricordare la categoria servono una categoria e una controparte (almeno 3 lettere).", "warning")
+        flash(_("Per ricordare la categoria servono una categoria e una controparte (almeno 3 lettere)."), "warning")
 
 
 def _render_form(tx: Transaction | None):
@@ -196,7 +197,7 @@ def edit(tx_id):
             flash(str(exc), "error")
             return _render_form(db.session.get(Transaction, tx_id))
         db.session.commit()
-        flash("Transazione aggiornata.", "success")
+        flash(_("Transazione aggiornata."), "success")
         _learn_from(tx)
         return redirect(safe_next() or url_for("transactions.index"))
     return _render_form(tx)
@@ -207,7 +208,7 @@ def delete(tx_id):
     tx = db.get_or_404(Transaction, tx_id)
     db.session.delete(tx)
     db.session.commit()
-    flash(f"Transazione «{tx.description}» eliminata.", "success")
+    flash(_("Transazione «%(description)s» eliminata.", description=tx.description), "success")
     return redirect(safe_next() or url_for("transactions.index"))
 
 
@@ -216,7 +217,7 @@ def delete_selected():
     ids = form_ids()
     deleted = Transaction.query.filter(Transaction.id.in_(ids)).delete(synchronize_session=False) if ids else 0
     db.session.commit()
-    flash(f"{deleted} transazioni eliminate." if deleted else "Nessuna transazione selezionata.",
+    flash(_("%(deleted)s transazioni eliminate.", deleted=deleted) if deleted else _("Nessuna transazione selezionata."),
           "success" if deleted else "warning")
     return redirect(safe_next() or url_for("transactions.index"))
 
@@ -226,9 +227,12 @@ def assign_account():
     account_id = request.form.get("account_id", type=int)
     account = db.session.get(Account, account_id) if account_id else None
     changed = accounts.assign(form_ids(), account.id if account else None)
-    target = f"sul conto «{account.name}»" if account else "senza conto"
-    flash(f"{changed} transazioni messe {target}." if changed else "Nessuna transazione selezionata.",
-          "success" if changed else "warning")
+    if not changed:
+        flash(_("Nessuna transazione selezionata."), "warning")
+    elif account:
+        flash(_("%(changed)s transazioni messe sul conto «%(name)s».", changed=changed, name=account.name), "success")
+    else:
+        flash(_("%(changed)s transazioni messe senza conto.", changed=changed), "success")
     return redirect(safe_next() or url_for("transactions.index"))
 
 
@@ -254,7 +258,7 @@ def duplicates_dismiss():
     ids = _group_ids()
     if len(ids) >= 2:
         duplicates.dismiss(ids)
-        flash("Segnate come transazioni diverse: non verranno più proposte come duplicati.", "success")
+        flash(_("Segnate come transazioni diverse: non verranno più proposte come duplicati."), "success")
     return redirect(safe_next() or url_for("transactions.duplicates_page"))
 
 
@@ -264,12 +268,12 @@ def duplicates_keep():
     ids = _group_ids()
     keep = request.form.get("keep", type=int)
     if keep not in ids:
-        flash("Scegli quale transazione tenere.", "error")
+        flash(_("Scegli quale transazione tenere."), "error")
     else:
         others = [i for i in ids if i != keep]
         Transaction.query.filter(Transaction.id.in_(others)).delete(synchronize_session=False)
         db.session.commit()
-        flash(f"Tenuta 1 transazione, eliminati {len(others)} duplicati.", "success")
+        flash(_("Tenuta 1 transazione, eliminati %(count)s duplicati.", count=len(others)), "success")
     return redirect(safe_next() or url_for("transactions.duplicates_page"))
 
 
@@ -337,7 +341,7 @@ def classify():
     query = Transaction.query.filter(Transaction.id.in_(ids)) if ids else _unclassified_query()
     transactions = query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
     if not transactions:
-        flash("Nessuna transazione da classificare.", "warning")
+        flash(_("Nessuna transazione da classificare."), "warning")
         return redirect(safe_next() or url_for("transactions.index"))
     items = [
         {"id": tx.id, "text": _classification_text(tx), "amount": tx.signed_amount} for tx in transactions
@@ -345,7 +349,7 @@ def classify():
     try:
         suggestions = ai_classification.classify(items, known_categories())
     except ai_extraction.AIExtractionError as exc:
-        flash(f"Classificazione AI non riuscita: {exc}", "error")
+        flash(_("Classificazione AI non riuscita: %(exc)s", exc=exc), "error")
         return redirect(safe_next() or url_for("transactions.index"))
     return render_template(
         "transactions/classify.html",
@@ -375,5 +379,5 @@ def classify_apply():
         tx.tags = tags
         updated += 1
     db.session.commit()
-    flash(f"{updated} transazioni aggiornate." if updated else "Nessuna modifica applicata.", "success" if updated else "warning")
+    flash(_("%(updated)s transazioni aggiornate.", updated=updated) if updated else _("Nessuna modifica applicata."), "success" if updated else "warning")
     return redirect(safe_next() or url_for("transactions.index"))

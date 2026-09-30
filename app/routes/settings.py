@@ -11,6 +11,7 @@ from app.models.currency import ExchangeRate
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
 from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, display, settings_store
 from app.services.bank_import import CATEGORY_RULES
+from flask_babel import gettext as _
 
 settings_bp = APIBlueprint(
     "settings",
@@ -125,10 +126,10 @@ def save():
     old_base = currency.base()
     settings_store.set(SETTINGS_KEY, json.dumps(new_settings))
     session.pop("settings", None)  # older versions kept them in the browser session
-    flash("Impostazioni salvate con successo.", "success")
+    flash(_("Impostazioni salvate con successo."), "success")
     if currency.base() != old_base:
         currency.recompute()
-        flash(f"Totali ora in {currency.base()}: controvalori ricalcolati con i cambi salvati.", "success")
+        flash(_("Totali ora in %(value)s: controvalori ricalcolati con i cambi salvati.", value=currency.base()), "success")
     return redirect(url_for("settings.index"))
 
 
@@ -136,7 +137,7 @@ def save():
 def reset():
     settings_store.set(SETTINGS_KEY, None)
     session.pop("settings", None)
-    flash("Impostazioni ripristinate ai valori predefiniti.", "success")
+    flash(_("Impostazioni ripristinate ai valori predefiniti."), "success")
     return redirect(url_for("settings.index"))
 
 
@@ -163,19 +164,19 @@ def category_save():
     discretionary = "discretionary" in request.form
     if old and old != name:
         merged = categories.rename(old, name)
-        flash(f"«{old}» unita a «{name}»." if merged else f"«{old}» rinominata in «{name}».", "success")
+        flash(_("«%(old)s» unita a «%(name)s».", old=old, name=name) if merged else _("«%(old)s» rinominata in «%(name)s».", old=old, name=name), "success")
     category = Category.query.filter_by(name=name).first()
     if category is None:
         category = Category(name=name, position=len(categories.all_categories()))
         db.session.add(category)
         if not old:
-            flash(f"Categoria «{name}» aggiunta.", "success")
+            flash(_("Categoria «%(name)s» aggiunta.", name=name), "success")
     elif not old:
-        flash(f"La categoria «{name}» esiste già: aggiornata.", "success")
+        flash(_("La categoria «%(name)s» esiste già: aggiornata.", name=name), "success")
     category.kind, category.hint, category.discretionary = kind, hint, discretionary
     db.session.commit()
     if old == name:
-        flash(f"Categoria «{name}» aggiornata.", "success")
+        flash(_("Categoria «%(name)s» aggiornata.", name=name), "success")
     return redirect(url_for("settings.categories_page"))
 
 
@@ -186,8 +187,13 @@ def category_delete():
     if replacement == name:
         replacement = None
     moved = categories.delete(name, replacement)
-    target = f"spostate in «{replacement}»" if replacement else "lasciate senza categoria"
-    flash(f"Categoria «{name}» eliminata" + (f": {moved} transazioni {target}." if moved else "."), "success")
+    if not moved:
+        flash(_("Categoria «%(name)s» eliminata.", name=name), "success")
+    elif replacement:
+        flash(_("Categoria «%(name)s» eliminata: %(moved)s transazioni spostate in «%(replacement)s».",
+                name=name, moved=moved, replacement=replacement), "success")
+    else:
+        flash(_("Categoria «%(name)s» eliminata: %(moved)s transazioni lasciate senza categoria.", name=name, moved=moved), "success")
     return redirect(url_for("settings.categories_page"))
 
 
@@ -207,9 +213,9 @@ def rule_save():
     except ValueError as exc:
         flash(str(exc), "error")
         return redirect(url_for("settings.rules_page"))
-    flash(f"Regola salvata: «{rule.keyword}» → {rule.category}.", "success")
+    flash(_("Regola salvata: «%(keyword)s» → %(category)s.", keyword=rule.keyword, category=rule.category), "success")
     if request.form.get("apply"):
-        flash(f"Ricategorizzate {category_rules.apply()} transazioni senza categoria o in «Altro».", "success")
+        flash(_("Ricategorizzate %(value)s transazioni senza categoria o in «Altro».", value=category_rules.apply()), "success")
     return redirect(url_for("settings.rules_page"))
 
 
@@ -218,14 +224,14 @@ def rule_delete(rule_id):
     rule = db.get_or_404(CategoryRule, rule_id)
     db.session.delete(rule)
     db.session.commit()
-    flash(f"Regola «{rule.keyword}» eliminata.", "success")
+    flash(_("Regola «%(keyword)s» eliminata.", keyword=rule.keyword), "success")
     return redirect(url_for("settings.rules_page"))
 
 
 @settings_bp.route("/rules/apply", methods=["POST"])
 def rules_apply():
     changed = category_rules.apply(only_uncategorized=not request.form.get("all"))
-    flash(f"Regole applicate: {changed} transazioni ricategorizzate.", "success")
+    flash(_("Regole applicate: %(changed)s transazioni ricategorizzate.", changed=changed), "success")
     return redirect(url_for("settings.rules_page"))
 
 
@@ -250,7 +256,7 @@ def currency_rate_save():
         flash(str(exc), "error")
         return redirect(url_for("settings.currencies_page"))
     updated = currency.recompute(code)
-    flash(f"Cambio salvato: 1 {code} = € {rate} al {on:%d/%m/%Y}. Ricalcolate {updated} transazioni.", "success")
+    flash(_("Cambio salvato: 1 %(code)s = € %(rate)s al %(on)s. Ricalcolate %(updated)s transazioni.", code=code, rate=rate, on=display.day(on), updated=updated), "success")
     return redirect(url_for("settings.currencies_page"))
 
 
@@ -261,7 +267,7 @@ def currency_rate_delete(rate_id):
     db.session.delete(rate)
     db.session.commit()
     currency.recompute(code)
-    flash("Cambio eliminato.", "success")
+    flash(_("Cambio eliminato."), "success")
     return redirect(url_for("settings.currencies_page"))
 
 
@@ -270,9 +276,9 @@ def currency_ecb():
     try:
         count = currency.download_ecb()
     except (OSError, ValueError) as exc:
-        flash(f"Non riesco a scaricare i cambi della BCE ({exc}). Controlla la connessione o inseriscili a mano.", "error")
+        flash(_("Non riesco a scaricare i cambi della BCE (%(exc)s). Controlla la connessione o inseriscili a mano.", exc=exc), "error")
         return redirect(url_for("settings.currencies_page"))
-    flash(f"Scaricati {count} cambi di riferimento BCE degli ultimi 90 giorni; transazioni ricalcolate.", "success")
+    flash(_("Scaricati %(count)s cambi di riferimento BCE degli ultimi 90 giorni; transazioni ricalcolate.", count=count), "success")
     return redirect(url_for("settings.currencies_page"))
 
 
@@ -314,15 +320,15 @@ def ai_save():
     model = (request.form.get("model") or "").strip()
     classify_model = (request.form.get("classify_model") or "").strip()
     if provider != "none" and provider not in ai_extraction.DEFAULT_MODELS:
-        flash("Provider non valido.", "error")
+        flash(_("Provider non valido."), "error")
         return redirect(url_for("settings.ai_models_page"))
     for name in (model, classify_model):
         if name and not _valid_model_name(name):
-            flash("Nome del modello non valido.", "error")
+            flash(_("Nome del modello non valido."), "error")
             return redirect(url_for("settings.ai_models_page"))
         if provider != "none" and name and not ai_extraction.model_matches_provider(provider, name):
             which = "un modello Claude (es. claude-haiku-4-5)" if provider == "anthropic" else "un modello Ollama (es. qwen2.5vl:7b)"
-            flash(f"{name} non è un modello per questo provider: scegli {which}.", "error")
+            flash(_("%(name)s non è un modello per questo provider: scegli %(which)s.", name=name, which=which), "error")
             return redirect(url_for("settings.ai_models_page"))
     settings_store.set(ai_extraction.PROVIDER_SETTING, provider)
     if provider != "none" and model:  # empty field: keep this provider's previous choice
@@ -331,9 +337,9 @@ def ai_save():
         # empty = classify with the same model that reads documents
         settings_store.set(ai_classification.classify_setting(provider), classify_model or None)
     if provider == "none":
-        flash("Lettura AI disattivata.", "success")
+        flash(_("Lettura AI disattivata."), "success")
     else:
-        flash(f"Lettura AI attiva: {ai_extraction.describe()}.", "success")
+        flash(_("Lettura AI attiva: %(value)s.", value=ai_extraction.describe()), "success")
     return redirect(url_for("settings.ai_models_page"))
 
 
@@ -341,11 +347,11 @@ def ai_save():
 def ai_pull():
     name = (request.form.get("name") or "").strip()
     if not _valid_model_name(name):
-        flash("Nome del modello non valido.", "error")
+        flash(_("Nome del modello non valido."), "error")
     elif ai_models.start_pull(ai_extraction.base_url(), name):
-        flash(f"Download di {name} avviato: puoi seguire l'avanzamento qui sotto.", "success")
+        flash(_("Download di %(name)s avviato: puoi seguire l'avanzamento qui sotto.", name=name), "success")
     else:
-        flash(f"Il download di {name} è già in corso.", "warning")
+        flash(_("Il download di %(name)s è già in corso.", name=name), "warning")
     return redirect(url_for("settings.ai_models_page"))
 
 
@@ -358,11 +364,11 @@ def ai_pull_status():
 def ai_delete():
     name = (request.form.get("name") or "").strip()
     if not _valid_model_name(name):
-        flash("Nome del modello non valido.", "error")
+        flash(_("Nome del modello non valido."), "error")
         return redirect(url_for("settings.ai_models_page"))
     try:
         ai_models.delete(ai_extraction.base_url(), name)
-        flash(f"Modello {name} rimosso.", "success")
+        flash(_("Modello %(name)s rimosso.", name=name), "success")
     except ai_models.OllamaError as exc:
         flash(str(exc), "error")
     return redirect(url_for("settings.ai_models_page"))
