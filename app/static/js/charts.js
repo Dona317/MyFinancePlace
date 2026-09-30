@@ -117,29 +117,45 @@ function makeBarChart(canvasId, labels, datasets, opts = {}) {
 }
 
 function buildBarChart(ctx, labels, datasets, opts) {
+  const valueAxis = opts.horizontal ? "x" : "y", labelAxis = opts.horizontal ? "y" : "x";
   return new Chart(ctx, {
     type: "bar",
     data: {
       labels,
       datasets: datasets.map((ds, i) => ({
+        type: ds.type,                                   // "line" mixes a line into the bars (e.g. the net)
         label: ds.label,
         data:  ds.data,
-        // `colors`: one color per bar (theme tokens like "positive"); otherwise one palette color per dataset
+        // `colors`: one color per bar (theme tokens like "positive"); `palette`: the chart palette bar by bar;
+        // `color`: one theme color for the dataset; otherwise one palette color per dataset
         backgroundColor: ds.colors ? ds.colors.map(c => themeColor(c, Theme.primary))
-                                   : hexAlpha(Theme.chart[i % Theme.chart.length], 0.85),
+                       : ds.palette ? ds.data.map((_, j) => Theme.chart[j % Theme.chart.length])
+                       : ds.color ? hexAlpha(themeColor(ds.color, Theme.primary), ds.type === "line" ? 0.2 : 0.85)
+                       : hexAlpha(Theme.chart[i % Theme.chart.length], 0.85),
+        borderColor: ds.color ? themeColor(ds.color, Theme.primary) : undefined,
+        borderWidth: ds.type === "line" ? 2 : 0,
+        tension: 0.3,
         borderRadius: 4,
       })),
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: datasets.length > 1 } },
+      indexAxis: labelAxis,
+      onClick: clickHandler(opts),
+      plugins: { legend: { display: opts.legend ?? datasets.length > 1 } },
       scales: {
-        x: { grid: { display: false }, stacked: opts.stacked || false },
-        y: { grid: { color: Theme.border }, stacked: opts.stacked || false },
+        [labelAxis]: { grid: { display: false }, stacked: opts.stacked || false },
+        [valueAxis]: { grid: { color: Theme.border }, stacked: opts.stacked || false },
       },
     },
   });
+}
+
+/** `opts.onClickIndex(i)`: called with the index of the clicked bar or slice */
+function clickHandler(opts) {
+  if (!opts.onClickIndex) return undefined;
+  return (event, elements) => { if (elements.length) opts.onClickIndex(elements[0].index); };
 }
 
 /**
@@ -162,6 +178,7 @@ function buildDoughnutChart(ctx, labels, data, opts) {
       responsive: true,
       maintainAspectRatio: false,
       cutout: opts.pie ? 0 : "65%",
+      onClick: clickHandler(opts),
       plugins: { legend: { display: opts.legend !== false, position: opts.legendPosition || "right" } },
     },
   });

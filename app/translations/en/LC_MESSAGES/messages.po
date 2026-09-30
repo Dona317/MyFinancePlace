@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 11:19+0000\n"
+"POT-Creation-Date: 2026-09-30 11:25+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -256,10 +256,20 @@ msgstr[0] "%(num)d policy expires within %(days)s days:"
 msgstr[1] "%(num)d policies expire within %(days)s days:"
 
 #, python-format
+msgid "%(num)d transazione"
+msgid_plural "%(num)d transazioni"
+msgstr[0] "%(num)d transaction"
+msgstr[1] "%(num)d transactions"
+
+#, python-format
 msgid "%(num)s documento caricato."
 msgid_plural "%(num)s documenti caricati."
 msgstr[0] "%(num)s document uploaded."
 msgstr[1] "%(num)s documents uploaded."
+
+#, python-format
+msgid "%(pct)s%% rispetto al periodo precedente (%(amount)s)"
+msgstr "%(pct)s%% compared with the previous period (%(amount)s)"
 
 #, python-format
 msgid "%(pct)s%% sul capitale"
@@ -518,6 +528,9 @@ msgstr "Added by hand"
 msgid "Ago"
 msgstr "Aug"
 
+msgid "Al"
+msgstr "To"
+
 #, python-format
 msgid "Al %(date)s"
 msgstr "On %(date)s"
@@ -626,6 +639,9 @@ msgstr "Apply"
 
 msgid "Applica i selezionati"
 msgstr "Apply selected"
+
+msgid "Applica le date"
+msgstr "Apply the dates"
 
 msgid "Applica subito alle transazioni senza categoria"
 msgstr "Apply now to transactions without a category"
@@ -741,6 +757,9 @@ msgstr "Bank"
 #, python-format
 msgid "Banca non supportata: %(bank)s"
 msgstr "Bank not supported: %(bank)s"
+
+msgid "Barre"
+msgstr "Bars"
 
 msgid "Barre di progresso per risparmio, debito e fondo emergenza"
 msgstr "Progress bars for savings, debt and emergency fund"
@@ -945,6 +964,9 @@ msgstr "Anthropic API key missing or invalid (ANTHROPIC_API_KEY)."
 #, python-format
 msgid "Chiusura %(month)s"
 msgstr "Closing %(month)s"
+
+msgid "Ciambella"
+msgstr "Doughnut"
 
 msgid "Classe"
 msgstr "Class"
@@ -1256,6 +1278,9 @@ msgstr "From when it counts in the balance sheet of past months."
 msgid "Da tutte le istantanee"
 msgstr "From all snapshots"
 
+msgid "Dal"
+msgstr "From"
+
 msgid "Dalle istantanee"
 msgstr "From the snapshots"
 
@@ -1270,6 +1295,9 @@ msgstr "Dashboard — Sections"
 
 msgid "Data"
 msgstr "Date"
+
+msgid "Data (recenti prima)"
+msgstr "Date (newest first)"
 
 msgid "Data d'acquisto"
 msgstr "Purchase date"
@@ -1481,6 +1509,12 @@ msgstr "Monthly Income"
 msgid "Entrate e spese con tag"
 msgstr "Tagged income and expenses"
 
+msgid "Entrate e uscite per mese"
+msgstr "Income and expenses by month"
+
+msgid "Entrate per categoria"
+msgstr "Income by category"
+
 msgid "Entrate previste"
 msgstr "Expected income"
 
@@ -1617,6 +1651,9 @@ msgstr "Filter by class"
 msgid "Filtra per tipo"
 msgstr "Filter by type"
 
+msgid "Filtri"
+msgstr "Filters"
+
 msgid "Fine"
 msgstr "End"
 
@@ -1668,6 +1705,9 @@ msgstr "Cash Flow — Last 12 Months"
 
 msgid "Flusso di Investimento Netto"
 msgstr "Net Investing Flow"
+
+msgid "Flusso di cassa"
+msgstr "Cash flow"
 
 msgid "Fondo"
 msgstr "Fund"
@@ -1775,6 +1815,9 @@ msgstr "Spending by Category Chart"
 
 msgid "Grafico entrate/uscite degli ultimi 12 mesi"
 msgstr "Income/expenses chart of the last 12 months"
+
+msgid "Grafico per categoria"
+msgstr "Chart by category"
 
 msgid "Guadagno"
 msgstr "Gain"
@@ -1981,6 +2024,9 @@ msgstr "Import cancelled."
 msgid "Importo"
 msgstr "Amount"
 
+msgid "Importo (più alti prima)"
+msgstr "Amount (largest first)"
+
 msgid "Importo obiettivo"
 msgstr "Target amount"
 
@@ -2177,6 +2223,9 @@ msgstr "Reading with artificial intelligence is not active (LLM_PROVIDER)."
 
 msgid "La lettura si è interrotta prima di finire (l'applicazione è stata riavviata)."
 msgstr "The reading stopped before finishing (the application was restarted)."
+
+msgid "La più alta"
+msgstr "Largest"
 
 msgid "La prima rata cade un mese dopo."
 msgstr "The first installment falls one month later."
@@ -2405,6 +2454,9 @@ msgstr "Month by month"
 msgid "Mese precedente"
 msgstr "Previous month"
 
+msgid "Mese scorso"
+msgstr "Last month"
+
 msgid "Mese successivo"
 msgstr "Next month"
 
@@ -2512,6 +2564,13 @@ msgstr "Modules — Visibility in the Navigation"
 msgid "Mostra tutte"
 msgstr "Show all"
 
+msgid "Mostra tutte le categorie"
+msgstr "Show all categories"
+
+#, python-format
+msgid "Mostra tutte le categorie (%(count)s)"
+msgstr "Show all categories (%(count)s)"
+
 msgid "Mostra tutti"
 msgstr "Show all"
 
@@ -2601,6 +2660,9 @@ msgstr "No category forecast."
 msgid "Nessuna entrata"
 msgstr "No income"
 
+msgid "Nessuna entrata in questo periodo."
+msgstr "No income in this period."
+
 msgid "Nessuna entrata registrata"
 msgstr "No income recorded"
 
@@ -2646,6 +2708,9 @@ msgstr "No expiry"
 msgid "Nessuna serie ricorrente da confermare."
 msgstr "No recurring series to confirm."
 
+msgid "Nessuna spesa in questo periodo."
+msgstr "No spending in this period."
+
 msgid "Nessuna spesa questo mese."
 msgstr "No spending this month."
 
@@ -2657,6 +2722,9 @@ msgstr "No spending recorded in this period."
 
 msgid "Nessuna transazione"
 msgstr "No transactions"
+
+msgid "Nessuna transazione con questi filtri."
+msgstr "No transactions with these filters."
 
 msgid "Nessuna transazione corrisponde ai filtri selezionati."
 msgstr "No transaction matches the selected filters."
@@ -2871,6 +2939,9 @@ msgstr "Ollama is not reachable at %(base_url)s: is it installed and running (`o
 msgid "Oltre il 20%% sopra la media"
 msgstr "More than 20%% above the average"
 
+msgid "Ordina"
+msgstr "Sort"
+
 msgid "Ordinate per scadenza"
 msgstr "Sorted by expiry"
 
@@ -2997,6 +3068,9 @@ msgstr "Customize"
 
 msgid "Personalizza la pagina."
 msgstr "Customize the page."
+
+msgid "Personalizzato"
+msgstr "Custom"
 
 #, python-format
 msgid "Piano di %(name)s"
@@ -3200,6 +3274,9 @@ msgstr "How many recent full months to use to estimate variable spending and inc
 msgid "Quantità"
 msgstr "Quantity"
 
+msgid "Quest'anno"
+msgstr "This year"
+
 msgid "Questa sezione è disattivata"
 msgstr "This section is turned off"
 
@@ -3293,6 +3370,9 @@ msgstr "Cash Flow Statement"
 msgid "Renminbi"
 msgstr "Renminbi"
 
+msgid "Report"
+msgstr "Reports"
+
 #, python-format
 msgid "Report Finanziario %(year)s"
 msgstr "Financial Report %(year)s"
@@ -3372,6 +3452,9 @@ msgstr "Scheduled recurring + estimated variable"
 
 msgid "Riduci il menu"
 msgstr "Shrink the menu"
+
+msgid "Riepilogo"
+msgstr "Summary"
 
 #, python-format
 msgid "Righe non salvate perché incomplete o non valide: %(value)s."
@@ -3725,6 +3808,9 @@ msgstr "Spending and Trends"
 msgid "Spese per Categoria"
 msgstr "Spending by Category"
 
+msgid "Spese per categoria"
+msgstr "Spending by category"
+
 #, python-format
 msgid "Spesi %(spent)s su %(planned)s (%(share)s%%)"
 msgstr "Spent %(spent)s of %(planned)s (%(share)s%%)"
@@ -3861,8 +3947,14 @@ msgstr "Keep the selected one, delete the others"
 msgid "Tipo"
 msgstr "Type"
 
+msgid "Tipo di grafico"
+msgstr "Chart type"
+
 msgid "Tipo di polizza"
 msgstr "Policy type"
+
+msgid "Tipo di report"
+msgstr "Report type"
 
 msgid "Torna alle Istantanee"
 msgstr "Back to Snapshots"
@@ -3894,11 +3986,17 @@ msgstr "Total Expenses"
 msgid "Totale attività"
 msgstr "Total assets"
 
+msgid "Totale entrate"
+msgstr "Total income"
+
 msgid "Totale entrate del mese in corso"
 msgstr "Total income of the current month"
 
 msgid "Totale passività"
 msgstr "Total liabilities"
+
+msgid "Totale spese"
+msgstr "Total spending"
 
 msgid "Totale uscite del mese in corso"
 msgstr "Total expenses of the current month"
@@ -4000,6 +4098,9 @@ msgstr "All transactions in structured JSON. Re-import it from «Restore» below
 msgid "Tutti gli anni"
 msgstr "All years"
 
+msgid "Tutti i conti"
+msgstr "All accounts"
+
 msgid ""
 "Tutti i dati dell'app in un file: transazioni, portafoglio, debiti, polizze, obiettivi, istantanee, impostazioni e i "
 "file dell'archivio documenti"
@@ -4028,6 +4129,15 @@ msgstr "Last digits of IBAN / card"
 
 msgid "Ultime cifre IBAN o carta"
 msgstr "Last digits of IBAN or card"
+
+msgid "Ultimi 12 mesi"
+msgstr "Last 12 months"
+
+msgid "Ultimi 3 mesi"
+msgstr "Last 3 months"
+
+msgid "Ultimi 6 mesi"
+msgstr "Last 6 months"
 
 msgid "Ultimi movimenti"
 msgstr "Latest movements"

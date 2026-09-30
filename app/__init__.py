@@ -67,6 +67,7 @@ def create_app(config_name="default"):
     from .routes.forecast import forecast_bp
     from .routes.accounts import accounts_bp
     from .routes.notifications import notifications_bp
+    from .routes.reports import reports_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -83,6 +84,7 @@ def create_app(config_name="default"):
     app.register_blueprint(forecast_bp)
     app.register_blueprint(accounts_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(reports_bp)
 
     # ── Template filters ───────────────────────────────────────────────────────
     # Amounts, numbers and dates follow Settings → Visualizzazione (services.display)

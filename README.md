@@ -7,6 +7,7 @@ Personal finance management app — from household budgeting to investment portf
 | Module | Description |
 |---|---|
 | **Dashboard** | KPI cockpit — net worth, income, expenses, savings rate |
+| **Reports** | Spending, income and cash flow for any period and account: split by category (doughnut or bars, click to drill down), transactions by day, summary vs the previous period, CSV |
 | **Accounting** | Balance Sheet, Income Statement, Cash Flow Statement |
 | **Lifestyle** | Expenses by category, trends, personal goals |
 | **Forecast** | Cash-flow forecast: recurring entries + variable spending over a rolling window, six methods compared |

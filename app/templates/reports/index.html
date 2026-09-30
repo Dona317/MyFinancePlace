@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% set f = filters %}
+{% macro link(changes) -%}
+  {{ url_for('reports.index', **dict(query_args, **changes)) }}
+{%- endmacro %}
+
+{% block title %}{{ _('Report') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Report') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Report') }}</li>{% endblock %}
+
+{% block content %}
+
+<!-- Tabs, period and filters ─────────────────────────────────────────────── -->
+<div class="report-bar mb-16">
+  <nav class="report-tabs" aria-label="{{ _('Tipo di report') }}">
+    {% for key, label in tabs.items() %}
+    <a href="{{ link({'tab': key, 'category': ''}) }}" class="report-tab{{ ' active' if f.tab == key }}"
+       {% if f.tab == key %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+  <form method="GET" class="report-controls" id="report-form">
+    <input type="hidden" name="tab" value="{{ f.tab }}">
+    {% if f.category %}<input type="hidden" name="category" value="{{ f.category }}">{% endif %}
+    <input type="hidden" name="sort" value="{{ f.sort }}">
+    <label class="sr-only" for="r-period">{{ _('Periodo') }}</label>
+    <select id="r-period" name="period" class="form-select" onchange="this.form.requestSubmit()">
+      {% for key, label in periods.items() %}<option value="{{ key }}" {{ 'selected' if f.period == key }}>{{ label }}</option>{% endfor %}
+    </select>
+    <details class="report-filters">
+      <summary class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> {{ _('Filtri') }}{% if f.account or f.period == 'custom' %} · {{ (1 if f.account else 0) + (1 if f.period == 'custom' else 0) }}{% endif %}</summary>
+      <div class="report-filters-panel">
+        <label class="form-label" for="r-account">{{ _('Conto') }}</label>
+        <select id="r-account" name="account" class="form-select" onchange="this.form.requestSubmit()">
+          <option value="">{{ _('Tutti i conti') }}</option>
+          {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if f.account == a.id|string }}>{{ a.name }}</option>{% endfor %}
+          <option value="none" {{ 'selected' if f.account == 'none' }}>{{ _('— Senza conto —') }}</option>
+        </select>
+        <div class="report-custom">
+          <div>
+            <label class="form-label" for="r-start">{{ _('Dal') }}</label>
+            <input id="r-start" type="date" name="start" class="form-control" value="{{ f.start.isoformat() }}">
+          </div>
+          <div>
+            <label class="form-label" for="r-end">{{ _('Al') }}</label>
+            <input id="r-end" type="date" name="end" class="form-control" value="{{ f.last_day.isoformat() }}">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm" onclick="this.form.period.value='custom'">{{ _('Applica le date') }}</button>
+      </div>
+    </details>
+  </form>
+</div>
+
+{% if f.tab != 'cashflow' %}
+<!-- By category ─────────────────────────────────────────────────────────── -->
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="report-eyebrow">{{ _('Spese per categoria') if f.tab == 'spending' else _('Entrate per categoria') }}</div>
+      <div class="card-header-title">{{ f.start|it_date }} – {{ f.last_day|it_date }}</div>
+    </div>
+    {% if items %}
+    <div class="view-switch" role="group" aria-label="{{ _('Tipo di grafico') }}">
+      <button type="button" class="btn btn-ghost btn-icon" data-view="doughnut" aria-pressed="true" title="{{ _('Ciambella') }}"><i class="bi bi-pie-chart"></i></button>
+      <button type="button" class="btn btn-ghost btn-icon" data-view="bar" aria-pressed="false" title="{{ _('Barre') }}"><i class="bi bi-bar-chart-steps"></i></button>
+    </div>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if items %}
+    <div class="report-split">
+      <div class="report-chart"><canvas id="reportChart" aria-label="{{ _('Grafico per categoria') }}"></canvas></div>
+      <div>
+        {% if f.category %}
+        <div class="report-chip mb-16">
+          <span>{{ _('Categoria') }}: <strong>{{ f.category }}</strong></span>
+          <a href="{{ link({'category': ''}) }}" aria-label="{{ _('Mostra tutte le categorie') }}"><i class="bi bi-x-lg"></i></a>
+        </div>
+        {% endif %}
+        <ul class="report-legend">
+          {% for c in items %}
+          {% if loop.index0 == legend_shown %}</ul><details class="report-more"><summary>{{ _('Mostra tutte le categorie (%(count)s)', count=items|length) }} <i class="bi bi-chevron-down"></i></summary><ul class="report-legend">{% endif %}
+          <li>
+            <a href="{{ link({'category': '' if f.category == c.category else c.category}) }}"
+               class="{{ 'selected' if f.category == c.category }}">
+              <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
+              <span class="report-legend-name">{{ c.category }}</span>
+              <span class="report-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if items|length > legend_shown %}</details>{% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:32px;">
+      <div class="empty-state-icon"><i class="bi bi-pie-chart"></i></div>
+      <div class="empty-state-text">{{ _('Nessuna spesa in questo periodo.') if f.tab == 'spending' else _('Nessuna entrata in questo periodo.') }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<!-- Cash flow ──────────────────────────────────────────────────────────── -->
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="report-eyebrow">{{ _('Entrate e uscite per mese') }}</div>
+      <div class="card-header-title">{{ f.start|it_date }} – {{ f.last_day|it_date }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:280px;"><canvas id="flowChart" aria-label="{{ _('Entrate e uscite per mese') }}"></canvas></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Transactions and summary ─────────────────────────────────────────────── -->
+<div class="report-bottom">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Transazioni') }}</div>
+        <div class="card-header-sub">{{ ngettext('%(num)d transazione', '%(num)d transazioni', rows|length) }}{% if f.category %} · {{ f.category }}{% endif %}</div>
+      </div>
+      <form method="GET" class="report-sort">
+        {% for key, value in query_args.items() if key != 'sort' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+        <label class="sr-only" for="r-sort">{{ _('Ordina') }}</label>
+        <select id="r-sort" name="sort" class="form-select" onchange="this.form.submit()">
+          {% for key, label in sorts.items() %}<option value="{{ key }}" {{ 'selected' if f.sort == key }}>{{ label }}</option>{% endfor %}
+        </select>
+      </form>
+    </div>
+    {% if rows %}
+    <div class="report-list">
+      {% macro tx_row(tx) %}
+      <a class="report-row" href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.full_path) }}">
+        <span class="report-row-desc">{{ tx.description }}</span>
+        <span class="report-row-cat">{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% endif %}</span>
+        <span class="report-row-account">{{ account_names.get(tx.account_id, '') }}</span>
+        <span class="amount {{ tx.type|tone }}">{{ ('+' if tx.type == 'income' else '−') }}{{ tx.magnitude|money }}</span>
+      </a>
+      {% endmacro %}
+      {% if days %}
+        {% for d in days %}
+        <div class="report-day"><span>{{ d.day|it_date }}</span><span class="amount {{ 'positive' if d.total > 0 else 'negative' if d.total < 0 }}">{{ ('+' if d.total > 0 else '−' if d.total < 0 else '') }}{{ d.total|abs|money }}</span></div>
+        {% for tx in d.rows %}{{ tx_row(tx) }}{% endfor %}
+        {% endfor %}
+      {% else %}
+        {% for tx in rows %}<div class="report-day report-day-inline"><span>{{ tx.date|it_date }}</span></div>{{ tx_row(tx) }}{% endfor %}
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:32px;"><div class="empty-state-text">{{ _('Nessuna transazione con questi filtri.') }}</div></div>
+    {% endif %}
+  </div>
+
+  <div class="card report-summary">
+    <div class="card-header"><div class="card-header-title">{{ _('Riepilogo') }}</div></div>
+    <div class="card-body">
+      <dl>
+        {% if summary %}
+        <div><dt>{{ _('Transazioni') }}</dt><dd>{{ summary.count }}</dd></div>
+        <div><dt>{{ _('La più alta') }}</dt><dd>{{ summary.largest.magnitude|money if summary.largest else '—' }}</dd></div>
+        {% if summary.largest %}<div class="report-summary-note">{{ summary.largest.description }} · {{ summary.largest.date|it_date }}</div>{% endif %}
+        <div><dt>{{ _('Media') }}</dt><dd>{{ summary.average|money }}</dd></div>
+        <div class="report-summary-total"><dt>{{ _('Totale spese') if f.tab == 'spending' else _('Totale entrate') }}</dt><dd>{{ summary.total|money }}</dd></div>
+        {% if not f.category and previous %}
+        {% set change = (total - previous) / previous * 100 %}
+        <div class="report-summary-note">
+          {{ _('%(pct)s%% rispetto al periodo precedente (%(amount)s)', pct=('+' if change > 0 else '') ~ (change|number(1)), amount=previous|money) }}
+        </div>
+        {% endif %}
+        {% else %}
+        <div><dt>{{ _('Entrate') }}</dt><dd class="text-positive">{{ flow.total_income|money }}</dd></div>
+        <div><dt>{{ _('Uscite') }}</dt><dd class="text-negative">{{ flow.total_expenses|money }}</dd></div>
+        <div class="report-summary-total"><dt>{{ _('Netto') }}</dt><dd>{{ flow.net_total|money }}</dd></div>
+        <div><dt>{{ _('Tasso di risparmio') }}</dt><dd>{{ flow.savings_rate|number(1) ~ '%' if flow.savings_rate is not none else '—' }}</dd></div>
+        <div><dt>{{ _('Transazioni') }}</dt><dd>{{ rows|length }}</dd></div>
+        {% endif %}
+      </dl>
+      <a href="{{ url_for('reports.csv', **query_args) }}" class="btn btn-ghost btn-sm report-csv"><i class="bi bi-download"></i> {{ _('Scarica CSV') }}</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if f.tab != 'cashflow' and items %}
+const items = {{ items|tojson }};
+const categoryUrl = {{ link({'category': '__CAT__'})|tojson }};
+const openCategory = i => { window.location = categoryUrl.replace('__CAT__', encodeURIComponent(items[i].category)); };
+const labels = items.map(c => c.category), values = items.map(c => c.amount);
+let chart = null;
+function showView(view) {
+  if (chart) { chart.destroy(); themedCharts.splice(themedCharts.findIndex(e => e.chart === chart), 1); }
+  chart = view === 'bar'
+    ? makeBarChart('reportChart', labels, [{ label: '', data: values, palette: true }], { horizontal: true, legend: false, onClickIndex: openCategory })
+    : makeDoughnutChart('reportChart', labels, values, { legend: false, onClickIndex: openCategory });
+  document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+  document.querySelector('.report-chart').classList.toggle('bars', view === 'bar');
+  try { localStorage.setItem('mfp-report-view', view); } catch (e) {}
+}
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+let saved = 'doughnut';
+try { saved = localStorage.getItem('mfp-report-view') || 'doughnut'; } catch (e) {}
+showView(saved);
+{% elif f.tab == 'cashflow' %}
+const flow = {{ flow|tojson }};
+makeBarChart('flowChart', flow.labels, [
+  { label: {{ _('Entrate')|tojson }}, data: flow.income, color: 'positive' },
+  { label: {{ _('Uscite')|tojson }}, data: flow.expenses, color: 'negative' },
+  { label: {{ _('Netto')|tojson }}, data: flow.net, color: 'primary', type: 'line' },
+], { legend: true });
+{% endif %}
+</script>
+{% endblock %}
