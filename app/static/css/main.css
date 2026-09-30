@@ -46,42 +46,30 @@ a:hover { color: var(--clr-primary-hover); }
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-thumb { background: var(--clr-sidebar-hover); border-radius: 4px; }
 
-.sidebar-brand {
+/* Top of the sidebar: the button that shrinks / expands the menu */
+.sidebar-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--clr-sidebar-border);
-  text-decoration: none;
-}
-
-.sidebar-brand-icon {
-  width: 36px; height: 36px;
-  background: var(--clr-primary);
-  border-radius: var(--border-radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--clr-on-primary);
-  font-size: 18px;
+  height: var(--topbar-height);  /* its bottom border continues the topbar's */
   flex-shrink: 0;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--clr-sidebar-border);
 }
 
-.sidebar-brand-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-}
-
-.sidebar-brand-name {
-  font-weight: 700;
-  font-size: var(--font-size-md);
-  color: var(--clr-sidebar-strong);
-  letter-spacing: -0.01em;
-}
-
-.sidebar-brand-sub {
-  font-size: var(--font-size-xs);
+/* 12px padding + 44px wide: the ☰ sits centred on the same column as the menu icons */
+.sidebar-toggle-btn {
+  width: 44px; height: 40px;
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: none;
+  border-radius: 10px;
   color: var(--clr-sidebar-text);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
 }
+.sidebar-toggle-btn:hover,
+.sidebar-toggle-btn:focus-visible { background: var(--clr-sidebar-hover); color: var(--clr-sidebar-title); outline: none; }
 
 .sidebar-nav {
   flex: 1;
@@ -164,6 +152,22 @@ a:hover { color: var(--clr-primary-hover); }
   text-align: center;
   flex-shrink: 0;
 }
+
+/* Roadmap badges: pages not in the MVP (see ROADMAP.md) */
+.nav-badge {
+  margin-left: auto;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  line-height: 1.5;
+  border-radius: 6px;
+  border: 1px solid var(--clr-sidebar-border);
+  color: var(--clr-sidebar-text);
+  opacity: .75;
+  transition: opacity .16s ease .08s;
+}
+.nav-badge-next { color: var(--clr-primary); border-color: currentColor; }
 
 .nav-sub { padding-left: 30px; }
 .nav-sub .nav-item { padding: 6px 12px; font-size: var(--font-size-xs); }
@@ -754,6 +758,9 @@ tfoot td {
   background: var(--clr-bg-input);
   border-bottom: 1px solid var(--clr-border-light);
 }
+/* At the edge of a card the bar follows its rounded corners (just inside the card's 1px border) */
+.card > .filter-bar:first-child { border-top-left-radius: calc(var(--border-radius) - 1px); border-top-right-radius: calc(var(--border-radius) - 1px); }
+.card > .filter-bar:last-child  { border-bottom-left-radius: calc(var(--border-radius) - 1px); border-bottom-right-radius: calc(var(--border-radius) - 1px); border-bottom: none; }
 
 .filter-bar .form-control,
 .filter-bar .form-select {
@@ -1057,38 +1064,56 @@ tfoot td {
 
 
 /* ── Sidebar: icons-only mode (desktop) ──────────────────────────────────── */
-.sidebar, .main-content { transition: width .2s ease, margin-left .2s ease, transform .2s ease; }
+/* The icons never move: they sit on the same column in both modes, the sidebar only narrows
+   around them and clips the names, which fade out first when shrinking and fade in last when expanding */
+:root { --sidebar-ease: .24s cubic-bezier(.4, 0, .2, 1); }
+.sidebar, .main-content { transition: width var(--sidebar-ease), margin-left var(--sidebar-ease), transform var(--sidebar-ease); }
+.sidebar { overflow-x: hidden; white-space: nowrap; }
+.sidebar .nav-label,
+.sidebar-user-info,
+.sidebar-logout,
+.nav-chevron { transition: opacity .16s ease .08s, transform .2s ease; }
+.sidebar-footer, .nav-sub { transition: padding var(--sidebar-ease); }
+.nav-section-title {
+  height: 32px;
+  overflow: hidden;
+  border-top: 1px solid transparent;
+  transition: height var(--sidebar-ease), padding var(--sidebar-ease), border-color var(--sidebar-ease),
+              opacity var(--transition), color var(--transition);
+}
+.nav-section:first-child .nav-section-title { border-top: none; }
 
 @media (min-width: 993px) {
   html.sidebar-mini { --sidebar-width: 68px; }
-  html.sidebar-mini .sidebar { overflow-x: hidden; }
   html.sidebar-mini .sidebar .nav-label,
-  html.sidebar-mini .sidebar-brand-text,
+  html.sidebar-mini .sidebar .nav-badge,
   html.sidebar-mini .sidebar-user-info,
   html.sidebar-mini .sidebar-logout,
-  html.sidebar-mini .nav-chevron { display: none; }
-  html.sidebar-mini .sidebar-brand,
-  html.sidebar-mini .sidebar-user { justify-content: center; }
-  html.sidebar-mini .sidebar-brand { padding-left: 0; padding-right: 0; }
-  html.sidebar-mini .nav-item,
-  html.sidebar-mini .nav-sub { justify-content: center; padding-left: 0; padding-right: 0; }
-  html.sidebar-mini .nav-item { margin: 1px 8px; }
-  html.sidebar-mini .nav-item i { font-size: 18px; }
+  html.sidebar-mini .nav-chevron { opacity: 0; transition: opacity .1s ease; }
+  /* 68px wide: 12px margin + 12px padding puts the 20px icon box centred at 34px */
+  html.sidebar-mini .nav-sub { padding-left: 12px; }
+  html.sidebar-mini .sidebar-footer { padding-left: 18px; padding-right: 18px; }
   /* sections become thin separators and are always open: every icon stays reachable */
-  html.sidebar-mini .nav-section-title { pointer-events: none; padding: 6px 0; border-top: 1px solid var(--clr-sidebar-border); }
-  html.sidebar-mini .nav-section:first-child .nav-section-title { border-top: none; }
+  html.sidebar-mini .nav-section-title { pointer-events: none; height: 13px; padding-top: 6px; padding-bottom: 6px; border-top-color: var(--clr-sidebar-border); }
   html.sidebar-mini .nav-section.collapsed .nav-section-items { grid-template-rows: 1fr; }
-  html.sidebar-mini .sidebar-footer { padding-left: 0; padding-right: 0; }
 }
 
-/* ── The ☰ button in the topbar: icons only ↔ icons + names (desktop), opens the menu (phones) ── */
-.sidebar-toggle-btn { display: inline-flex; margin-right: 4px; }
+/* ── The ☰ button in the topbar: only on phones and tablets, where the sidebar is hidden ── */
+.sidebar-open-btn { display: none; margin-right: 4px; }
+@media (max-width: 992px) { .sidebar-open-btn { display: inline-flex; } }
 
 /* ── Sidebar on tablets and phones: hidden, opened by the ☰ button ─────────── */
-#sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, .4); z-index: 99; }
+#sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, .4); z-index: 99;
+                   opacity: 0; visibility: hidden; transition: opacity var(--sidebar-ease), visibility var(--sidebar-ease); }
 @media (max-width: 992px) {
-  .sidebar { z-index: 100; transition: transform .2s ease; }
-  #sidebar-overlay.active { display: block; }
+  .sidebar { z-index: 100; transition: transform .28s cubic-bezier(.32, .72, 0, 1); }
+  .sidebar.open { box-shadow: 0 0 40px rgba(0, 0, 0, .25); }
+  #sidebar-overlay { display: block; }
+  #sidebar-overlay.active { opacity: 1; visibility: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar, .sidebar *, .main-content, #sidebar-overlay { transition: none !important; }
 }
 
 
@@ -1186,6 +1211,13 @@ tfoot td {
 @media (max-width: 700px) { .fc-widget .col-optional { display: none; } }
 .table-compact thead th:first-child, .table-compact tbody td:first-child { padding-left: 16px; }
 .candidate-form .form-select { width: auto; padding: 4px 8px; }
+
+/* Import with manual mapping: click or drop the file on the dashed box */
+.import-drop { display: block; border: 2px dashed var(--clr-border); border-radius: var(--border-radius-sm);
+               padding: 24px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+.import-drop:hover { border-color: var(--clr-primary); }
+.import-drop.over { border-color: var(--clr-primary); background: var(--clr-primary-light); }
+.import-drop.over * { pointer-events: none; }
 
 /* ── Wealth modules (portfolio, debt, insurance, goals, documents, snapshots) ─ */
 .page-form { max-width: 720px; }

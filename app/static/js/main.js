@@ -136,16 +136,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── Sidebar ─────────────────────────────────────────────────────────── */
   const toggleBtn = document.getElementById("sidebar-toggle");
+  const openBtn   = document.getElementById("sidebar-open");
   const sidebar   = document.getElementById("sidebar");
   const overlay   = document.getElementById("sidebar-overlay");
 
-  // The ☰ button: on desktop it switches the menu between icons + names and icons only (remembered),
-  // so the menu never disappears; on phones and tablets it slides the sidebar in, the overlay or ESC closes it
+  // The ☰ button in the sidebar: on desktop it switches the menu between icons + names and icons only
+  // (remembered), so the menu never disappears; on phones and tablets the sidebar is hidden, the ☰ in the
+  // topbar slides it in and the one in the sidebar, the overlay or ESC closes it
   const phone = window.matchMedia("(max-width: 992px)");
   const closeSidebar = () => {
     sidebar && sidebar.classList.remove("open");
     overlay && overlay.classList.remove("active");
   };
+  openBtn && sidebar && openBtn.addEventListener("click", () => {
+    sidebar.classList.add("open");
+    overlay && overlay.classList.add("active");
+  });
   // Icons only: more room for tables; each icon gets its name as a tooltip
   const applyMini = (mini) => {
     document.documentElement.classList.toggle("sidebar-mini", mini);
@@ -164,8 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (toggleBtn && sidebar) {
     toggleBtn.addEventListener("click", () => {
       if (phone.matches) {
-        sidebar.classList.toggle("open");
-        overlay && overlay.classList.toggle("active", sidebar.classList.contains("open"));
+        closeSidebar();
         return;
       }
       const mini = !document.documentElement.classList.contains("sidebar-mini");

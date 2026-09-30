@@ -236,13 +236,10 @@
                        background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">1</span>
           {{ _('Carica il file') }}
         </div>
-        <label style="display:block;border:2px dashed var(--clr-border);border-radius:var(--border-radius-sm);
-                      padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;"
-               onmouseover="this.style.borderColor='var(--clr-primary)'"
-               onmouseout="this.style.borderColor='var(--clr-border)'">
+        <label id="import-drop" class="import-drop">
           <i class="bi bi-cloud-upload" style="font-size:28px;color:var(--clr-text-muted);display:block;margin-bottom:8px;"></i>
           <span id="import-file-label" style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
-            {{ _('Clicca per scegliere un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)') }}
+            {{ _('Trascina qui il file, oppure clicca per sceglierlo: CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)') }}
           </span>
           <input type="file" name="file" id="import-file" accept=".csv,.txt,.tsv,.xlsx,.xlsm,.xls,.ods" style="display:none;" />
         </label>
@@ -310,6 +307,24 @@ function fillSelects(headers, guess = {}) {
   });
   document.getElementById('import-submit').disabled = headers.length === 0;
 }
+
+// Drag and drop on the dashed box: the dropped file goes into the hidden input and is read like a chosen one
+(() => {
+  const zone = document.getElementById('import-drop');
+  const input = document.getElementById('import-file');
+  ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('over'); }));
+  zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('over'); });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('over');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const transfer = new DataTransfer();
+    transfer.items.add(file);  // one file only, like the picker
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+  });
+})();
 
 document.getElementById('import-file').addEventListener('change', async (e) => {
   const file = e.target.files[0];

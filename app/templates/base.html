@@ -39,13 +39,13 @@
   <!-- ══ Sidebar ═══════════════════════════════════════════════════════════ -->
   <aside class="sidebar" id="sidebar">
 
-    <a class="sidebar-brand" href="{{ url_for('dashboard.dashboard') }}">
-      <div class="sidebar-brand-icon"><i class="bi bi-graph-up-arrow"></i></div>
-      <div class="sidebar-brand-text">
-        <span class="sidebar-brand-name">MyFinancePlace</span>
-        <span class="sidebar-brand-sub">{{ _('Personal Finance') }}</span>
-      </div>
-    </a>
+    <div class="sidebar-head">
+      <!-- Desktop: switches the menu between icons + names and icons only; phones: closes it -->
+      <button id="sidebar-toggle" type="button" class="sidebar-toggle-btn"
+              aria-controls="sidebar" aria-expanded="true" aria-label="{{ _('Riduci il menu') }}" title="{{ _('Riduci il menu') }}">
+        <i class="bi bi-layout-sidebar"></i>
+      </button>
+    </div>
 
     <nav class="sidebar-nav">
 
@@ -74,24 +74,24 @@
         <div class="nav-section-items" id="nav-contabilita"><div>
         <a href="{{ url_for('accounting.index') }}"
            class="nav-item {% if request.endpoint == 'accounting.index' %}active{% endif %}">
-          <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Panoramica') }}</span>
+          <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Panoramica') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% if settings.accounting_balance_sheet %}
         <a href="{{ url_for('accounting.balance_sheet') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.balance_sheet' %}active{% endif %}">
-          <i class="bi bi-clipboard-data"></i> <span class="nav-label">{{ _('Stato Patrimoniale') }}</span>
+          <i class="bi bi-clipboard-data"></i> <span class="nav-label">{{ _('Stato Patrimoniale') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% endif %}
         {% if settings.accounting_income_statement %}
         <a href="{{ url_for('accounting.income_statement') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.income_statement' %}active{% endif %}">
-          <i class="bi bi-receipt"></i> <span class="nav-label">{{ _('Conto Economico') }}</span>
+          <i class="bi bi-receipt"></i> <span class="nav-label">{{ _('Conto Economico') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% endif %}
         {% if settings.accounting_cash_flow %}
         <a href="{{ url_for('accounting.cash_flow') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.cash_flow' %}active{% endif %}">
-          <i class="bi bi-arrow-left-right"></i> <span class="nav-label">{{ _('Flusso di Cassa') }}</span>
+          <i class="bi bi-arrow-left-right"></i> <span class="nav-label">{{ _('Flusso di Cassa') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% endif %}
         <a href="{{ url_for('forecast.index') }}"
@@ -141,25 +141,25 @@
         {% if settings.module_portfolio %}
         <a href="{{ url_for('portfolio.index') }}"
            class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-briefcase"></i> <span class="nav-label">{{ _('Portafoglio') }}</span>
+          <i class="bi bi-briefcase"></i> <span class="nav-label">{{ _('Portafoglio') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.module_debt %}
         <a href="{{ url_for('debt.index') }}"
            class="nav-item {% if 'debt' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-credit-card"></i> <span class="nav-label">{{ _('Debiti') }}</span>
+          <i class="bi bi-credit-card"></i> <span class="nav-label">{{ _('Debiti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.module_insurance %}
         <a href="{{ url_for('insurance.index') }}"
            class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-shield-check"></i> <span class="nav-label">{{ _('Assicurazioni') }}</span>
+          <i class="bi bi-shield-check"></i> <span class="nav-label">{{ _('Assicurazioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.module_documents %}
         <a href="{{ url_for('documents.index') }}"
            class="nav-item {% if 'documents' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-folder2-open"></i> <span class="nav-label">{{ _('Documenti') }}</span>
+          <i class="bi bi-folder2-open"></i> <span class="nav-label">{{ _('Documenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         </div></div>
@@ -174,13 +174,13 @@
         {% if settings.module_snapshots %}
         <a href="{{ url_for('snapshots.index') }}"
            class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-camera"></i> <span class="nav-label">{{ _('Istantanee') }}</span>
+          <i class="bi bi-camera"></i> <span class="nav-label">{{ _('Istantanee') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.module_export %}
         <a href="{{ url_for('export.index') }}"
            class="nav-item {% if 'export' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span>
+          <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         <a href="{{ url_for('settings.index') }}"
@@ -229,9 +229,9 @@
 
     <!-- Topbar -->
     <header class="topbar">
-      <!-- Desktop: switches the menu between icons + names and icons only; phones: opens it over the page -->
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon sidebar-toggle-btn"
-              aria-controls="sidebar" aria-expanded="true" aria-label="{{ _('Riduci il menu') }}" title="{{ _('Riduci il menu') }}">
+      <!-- Phones and tablets only: the sidebar is hidden there, this opens it over the page -->
+      <button id="sidebar-open" type="button" class="btn btn-ghost btn-icon sidebar-open-btn"
+              aria-controls="sidebar" aria-label="{{ _('Espandi il menu') }}" title="{{ _('Espandi il menu') }}">
         <i class="bi bi-list" style="font-size:20px;"></i>
       </button>
 

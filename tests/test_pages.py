@@ -79,10 +79,13 @@ def test_sidebar_sections_are_collapsible(client, app):
     for key in sections:
         # each title is a button controlling its own group of links
         assert f'aria-controls="nav-{key}"' in html and f'<div class="nav-section-items" id="nav-{key}">' in html
-    # the ☰ button switches icons + names ↔ icons only (remembered): the menu never disappears on desktop
+    # the ☰ button sits in the sidebar and switches icons + names ↔ icons only (remembered): the menu never
+    # disappears on desktop; a second ☰ in the topbar opens the hidden menu on phones
     assert 'aria-controls="sidebar"' in html and "mfp-sidebar-mini" in html
     assert "sidebar-hidden" not in html and 'id="sidebar-mini-toggle"' not in html
-    assert 'class="btn btn-ghost btn-icon sidebar-toggle-btn"' in html and 'style="display:none;"' not in html.split("sidebar-toggle-btn")[1][:40]
+    sidebar = html.split('<aside class="sidebar"')[1].split("</aside>")[0]
+    assert 'id="sidebar-toggle"' in sidebar and 'class="sidebar-toggle-btn"' in sidebar
+    assert 'id="sidebar-open"' in html and 'id="sidebar-open"' not in sidebar
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
     assert len(re.findall(r'class="nav-item', html)) == len(re.findall(r'<span class="nav-label">', html)) - len(sections)
 
