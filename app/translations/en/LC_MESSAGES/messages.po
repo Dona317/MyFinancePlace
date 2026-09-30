@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 10:41+0000\n"
+"POT-Creation-Date: 2026-09-30 11:19+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2509,9 +2509,6 @@ msgstr "Modules"
 msgid "Moduli — Visibilità nella Navigazione"
 msgstr "Modules — Visibility in the Navigation"
 
-msgid "Mostra il menu"
-msgstr "Show the menu"
-
 msgid "Mostra tutte"
 msgstr "Show all"
 
@@ -2542,9 +2539,6 @@ msgstr "N months"
 
 msgid "Nascondi"
 msgstr "Hide"
-
-msgid "Nascondi il menu"
-msgstr "Hide the menu"
 
 #, python-format
 msgid "Nel file .zip manca %(DATA_FILE)s: non è un backup di MyFinancePlace."
@@ -3378,9 +3372,6 @@ msgstr "Scheduled recurring + estimated variable"
 
 msgid "Riduci il menu"
 msgstr "Shrink the menu"
-
-msgid "Riduci menu"
-msgstr "Shrink menu"
 
 #, python-format
 msgid "Righe non salvate perché incomplete o non valide: %(value)s."

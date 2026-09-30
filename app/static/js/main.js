@@ -71,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Interface texts in the chosen language (set by base.html), Italian when missing
   const text = Object.assign({
-    show_menu: "Mostra il menu", hide_menu: "Nascondi il menu",
     expand_menu: "Espandi il menu", shrink_menu: "Riduci il menu", confirm: "Sei sicuro?",
   }, window.MFP_TEXT || {});
 
@@ -80,22 +79,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const sidebar   = document.getElementById("sidebar");
   const overlay   = document.getElementById("sidebar-overlay");
 
-  // The ☰ button: on desktop it hides / shows the whole left column (remembered);
-  // on phones and tablets it slides the sidebar in, and the dark overlay or ESC closes it
+  // The ☰ button: on desktop it switches the menu between icons + names and icons only (remembered),
+  // so the menu never disappears; on phones and tablets it slides the sidebar in, the overlay or ESC closes it
   const phone = window.matchMedia("(max-width: 992px)");
   const closeSidebar = () => {
     sidebar && sidebar.classList.remove("open");
     overlay && overlay.classList.remove("active");
   };
-  const applyHidden = (hidden) => {
-    document.documentElement.classList.toggle("sidebar-hidden", hidden);
+  // Icons only: more room for tables; each icon gets its name as a tooltip
+  const applyMini = (mini) => {
+    document.documentElement.classList.toggle("sidebar-mini", mini);
+    document.querySelectorAll(".sidebar .nav-item").forEach(item => {
+      const label = item.querySelector(".nav-label");
+      if (mini && label) item.title = label.textContent.trim();
+      else item.removeAttribute("title");
+    });
     if (!toggleBtn) return;
-    const label = hidden ? text.show_menu : text.hide_menu;
+    const label = mini ? text.expand_menu : text.shrink_menu;
     toggleBtn.setAttribute("aria-label", label);
-    toggleBtn.setAttribute("aria-expanded", String(!hidden));
+    toggleBtn.setAttribute("aria-expanded", String(!mini));
     toggleBtn.title = label;
   };
-  applyHidden(document.documentElement.classList.contains("sidebar-hidden"));
+  applyMini(document.documentElement.classList.contains("sidebar-mini"));
   if (toggleBtn && sidebar) {
     toggleBtn.addEventListener("click", () => {
       if (phone.matches) {
@@ -103,9 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
         overlay && overlay.classList.toggle("active", sidebar.classList.contains("open"));
         return;
       }
-      const hidden = !document.documentElement.classList.contains("sidebar-hidden");
-      applyHidden(hidden);
-      store.set("mfp-sidebar-hidden", hidden ? "1" : "0");
+      const mini = !document.documentElement.classList.contains("sidebar-mini");
+      applyMini(mini);
+      store.set("mfp-sidebar-mini", mini ? "1" : "0");
     });
   }
   overlay && overlay.addEventListener("click", closeSidebar);
@@ -129,27 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
       title.setAttribute("aria-expanded", String(!collapsed));
       saveCollapsed();
     });
-  });
-
-  // Icons-only sidebar (desktop): more room for tables; each icon gets its name as a tooltip
-  const miniToggle = document.getElementById("sidebar-mini-toggle");
-  const applyMini = (mini) => {
-    document.documentElement.classList.toggle("sidebar-mini", mini);
-    document.querySelectorAll(".sidebar .nav-item").forEach(item => {
-      const label = item.querySelector(".nav-label");
-      if (mini && label) item.title = label.textContent.trim();
-      else item.removeAttribute("title");
-    });
-    if (miniToggle) {
-      miniToggle.setAttribute("aria-label", mini ? text.expand_menu : text.shrink_menu);
-      miniToggle.title = mini ? text.expand_menu : "";
-    }
-  };
-  applyMini(document.documentElement.classList.contains("sidebar-mini"));
-  miniToggle && miniToggle.addEventListener("click", () => {
-    const mini = !document.documentElement.classList.contains("sidebar-mini");
-    applyMini(mini);
-    store.set("mfp-sidebar-mini", mini ? "1" : "0");
   });
 
   /* ── Auto-dismiss flash alerts ──────────────────────────────────────── */

@@ -27,7 +27,6 @@
   <!-- Apply the saved sidebar layout before paint (icons-only sidebar) -->
   <script>(function(){try{
     if(localStorage.getItem('mfp-sidebar-mini')==='1')document.documentElement.classList.add('sidebar-mini');
-    if(localStorage.getItem('mfp-sidebar-hidden')==='1')document.documentElement.classList.add('sidebar-hidden');
   }catch(e){}}());</script>
 </head>
 <body>
@@ -199,10 +198,6 @@
       });
     }());</script>
 
-    <button type="button" class="sidebar-mini-toggle" id="sidebar-mini-toggle" aria-label="{{ _('Riduci il menu') }}">
-      <i class="bi bi-chevron-double-left"></i> <span class="nav-label">{{ _('Riduci menu') }}</span>
-    </button>
-
     <!-- User footer -->
     <div class="sidebar-footer">
       <div class="sidebar-user">
@@ -228,9 +223,9 @@
 
     <!-- Topbar -->
     <header class="topbar">
-      <!-- Hides / shows the whole left column (desktop); opens it over the page on phones -->
+      <!-- Desktop: switches the menu between icons + names and icons only; phones: opens it over the page -->
       <button id="sidebar-toggle" class="btn btn-ghost btn-icon sidebar-toggle-btn"
-              aria-controls="sidebar" aria-expanded="true" aria-label="{{ _('Nascondi il menu') }}" title="{{ _('Nascondi il menu') }}">
+              aria-controls="sidebar" aria-expanded="true" aria-label="{{ _('Riduci il menu') }}" title="{{ _('Riduci il menu') }}">
         <i class="bi bi-list" style="font-size:20px;"></i>
       </button>
 
@@ -297,7 +292,6 @@
 
 <!-- Texts used by main.js -->
 <script>window.MFP_TEXT = {{ {
-  "show_menu": _("Mostra il menu"), "hide_menu": _("Nascondi il menu"),
   "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
   "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
 }|tojson }};</script>
