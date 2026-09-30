@@ -33,9 +33,13 @@ function currentTheme() {
 
 function applyTheme(theme, remember) {
   document.documentElement.setAttribute("data-theme", theme);
-  document.querySelectorAll("[data-theme-choice]").forEach(button => {
-    button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme));
-  });
+  // One button: the sun in light mode, the moon in dark mode; the label says what a click does
+  const toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    const label = theme === "dark" ? "Passa alla modalità chiara" : "Passa alla modalità scura";
+    toggle.setAttribute("aria-label", label);
+    toggle.title = label;
+  }
   if (remember) store.set("mfp-theme", theme);
   document.dispatchEvent(new CustomEvent("mfp:themechange", { detail: { theme } }));
 }
@@ -44,8 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Theme switch: show the theme applied in <head>, change it on click
   applyTheme(currentTheme(), false);
-  document.querySelectorAll("[data-theme-choice]").forEach(button => {
-    button.addEventListener("click", () => applyTheme(button.dataset.themeChoice, true));
+  document.getElementById("theme-toggle")?.addEventListener("click", () => {
+    applyTheme(currentTheme() === "dark" ? "light" : "dark", true);
   });
   // Follow the operating system while the user has not chosen
   window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change", e => {

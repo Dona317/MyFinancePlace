@@ -86,23 +86,35 @@ def test_sidebar_sections_are_collapsible(client, app):
     assert len(re.findall(r'class="nav-item', html)) == len(re.findall(r'<span class="nav-label">', html)) - len(sections) - 1
 
 
-def test_theme_switch_in_topbar(client, app):
+def test_theme_toggle_in_topbar(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
     topbar = html.split('class="topbar-actions"')[1]
-    switch = re.search(r'<div class="theme-switch" role="group" aria-label="Tema">(.*?)</div>', topbar, re.S)
-    assert switch, "light/dark switch missing from the top right"
-    choices = re.findall(r'data-theme-choice="(\w+)" aria-pressed="false"', switch.group(1))
-    assert choices == ["light", "dark"] and "Chiara" in switch.group(1) and "Scura" in switch.group(1)
+    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', topbar, re.S)
+    assert toggle, "light/dark toggle missing from the top right"
+    # a single icon: the sun in light mode, the moon in dark mode (CSS shows one of the two)
+    assert "bi-sun-fill theme-icon-light" in toggle.group(1) and "bi-moon-stars-fill theme-icon-dark" in toggle.group(1)
+    assert 'aria-label="Passa alla modalità scura"' in toggle.group(1)
+    assert "data-theme-choice" not in html and "theme-switch" not in html
     # the theme is applied before paint: the saved choice, else the system preference
     head = html.split("</head>")[0]
     assert "mfp-theme" in head and "prefers-color-scheme: dark" in head
-    assert 'id="theme-toggle"' not in html
 
 
 def test_settings_button_next_to_theme_switch(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
-    after_switch = html.split('class="topbar-actions"')[1].split('class="theme-switch"')[1]
+    after_switch = html.split('class="topbar-actions"')[1].split('id="theme-toggle"')[1]
     button = re.search(r'<a href="(/settings/)" class="btn btn-ghost btn-icon topbar-settings"(.*?)>', after_switch, re.S)
     assert button and 'aria-label="Impostazioni"' in button.group(2) and "aria-current" not in button.group(2)
     # highlighted while on the settings pages
     assert 'aria-current="page"' in client.get("/settings/").get_data(as_text=True).split("topbar-settings")[1][:300]
+
+
+def test_theme_tokens_are_well_formed():
+    """A missing ';' in theme.css silently drops the next token (e.g. a chart colour turns black)."""
+    from pathlib import Path
+
+    css = (Path(__file__).parents[1] / "app/static/css/theme.css").read_text()
+    for block in re.findall(r"\{(.*?)\}", css, re.S):
+        body = re.sub(r"/\*.*?\*/", "", block, flags=re.S)
+        for declaration in filter(None, (d.strip() for d in body.split(";"))):
+            assert declaration.count(":") == 1 and declaration.startswith("--"), declaration

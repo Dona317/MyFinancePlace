@@ -112,9 +112,21 @@
       </div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:240px;">
+      <div class="chart-container" style="height:200px;">
         <canvas id="expensePieChart"></canvas>
       </div>
+      {% if expense_breakdown %}
+      {# legend as a grid: colour, category, amount and share, like the chart slices (8 colours, repeating) #}
+      <ul class="category-legend">
+        {% for c in expense_breakdown %}
+        <li>
+          <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
+          <span class="category-legend-name">{{ c.category }}</span>
+          <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </div>
   </div>
   {% endif %}
@@ -241,7 +253,8 @@ makeLineChart('cashFlowChart', cashFlow.labels, [
 if (expenseBreakdown.length) {
   makeDoughnutChart('expensePieChart',
     expenseBreakdown.map(c => c.category),
-    expenseBreakdown.map(c => c.amount)
+    expenseBreakdown.map(c => c.amount),
+    { legend: false }
   );
 } else {
   document.getElementById('expensePieChart').parentElement.innerHTML =

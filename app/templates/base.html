@@ -246,14 +246,11 @@
         {% block topbar_actions %}{% endblock %}
 
         <!-- Light / dark mode -->
-        <div class="theme-switch" role="group" aria-label="Tema">
-          <button type="button" data-theme-choice="light" aria-pressed="false" title="Modalità chiara">
-            <i class="bi bi-sun"></i><span class="theme-label">Chiara</span>
-          </button>
-          <button type="button" data-theme-choice="dark" aria-pressed="false" title="Modalità scura">
-            <i class="bi bi-moon-stars"></i><span class="theme-label">Scura</span>
-          </button>
-        </div>
+        <button type="button" id="theme-toggle" class="btn btn-ghost btn-icon theme-toggle"
+                aria-label="Passa alla modalità scura" title="Passa alla modalità scura">
+          <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
+          <i class="bi bi-moon-stars-fill theme-icon-dark" aria-hidden="true"></i>
+        </button>
 
         <!-- Reminders -->
         {% set reminder_count = notification_count() %}

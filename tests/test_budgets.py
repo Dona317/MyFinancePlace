@@ -63,3 +63,15 @@ def test_renamed_category_keeps_its_budget(db):
     assert Budget.query.one().category == "Tempo libero"
     categories.delete("Tempo libero", None)
     assert Budget.query.count() == 0
+
+
+def test_dashboard_category_legend_shows_amount_and_share(client, db):
+    today = date.today()
+    db.session.add_all([make_tx(date=today, category="Casa", amount=300), make_tx(date=today, category="Svago", amount=100)])
+    db.session.commit()
+    html = client.get("/dashboard").get_data(as_text=True)
+    legend = html.split('<ul class="category-legend">')[1].split("</ul>")[0]
+    # biggest first, each with the slice colour, the amount and its share of the month
+    assert legend.index("Casa") < legend.index("Svago")
+    assert "var(--chart-1)" in legend and "var(--chart-2)" in legend
+    assert "(75%)" in legend and "(25%)" in legend
