@@ -7,7 +7,6 @@ from datetime import date, datetime
 
 from app.models.transaction import Transaction
 from app.services import categories
-from app.services.parsing import TRANSACTION_TYPES, parse_amount, parse_date
 from app.services.periods import month_bounds, year_bounds
 from flask_babel import gettext as _
 
@@ -159,42 +158,3 @@ def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
     while rows and not any(rows[-1].values()):
         rows.pop()
     return headers, rows, header_at + 2
-
-
-def rows_to_transactions(rows: list[dict], mapping: dict, first_line: int = 2) -> tuple[list[Transaction], list[str]]:
-    """
-    Build Transaction objects from CSV / spreadsheet rows (`first_line` is the file line of the first row).
-
-    `mapping` maps model fields ("date", "amount", "description", optional "category",
-    "type", "counterparty") to CSV column names. When no type column is mapped, the sign
-    of the amount decides: negative → expense, positive → income.
-    """
-    transactions, errors = [], []
-    for line_no, row in enumerate(rows, start=first_line):
-        if not any((value or "").strip() for value in row.values() if isinstance(value, str)):
-            continue  # blank line
-        try:
-            amount = parse_amount(row.get(mapping["amount"]) or "")
-            description = (row.get(mapping["description"]) or "").strip()
-            if not description:
-                raise ValueError(_("descrizione mancante"))
-
-            tx_type = (row.get(mapping.get("type") or "") or "").strip().lower()
-            if tx_type not in TRANSACTION_TYPES:
-                tx_type = "expense" if amount < 0 else "income"
-
-            counterparty = (row.get(mapping.get("counterparty") or "") or "").strip() or None
-            transactions.append(Transaction(
-                date=parse_date(row.get(mapping["date"]) or ""),
-                description=description,
-                amount=abs(amount),
-                currency="EUR",
-                type=tx_type,
-                category=(row.get(mapping.get("category") or "") or "").strip() or None,
-                counterparty=counterparty,
-                tags=[counterparty] if counterparty else [],  # the counterparty is shown as the first tag
-                is_recurring=False,
-            ))
-        except ValueError as exc:
-            errors.append(f"Riga {line_no}: {exc}")
-    return transactions, errors

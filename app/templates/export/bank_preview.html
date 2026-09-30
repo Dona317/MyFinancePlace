@@ -36,6 +36,17 @@
   </div>
 </div>
 
+{% if preview.notes or preview.unread %}
+<div class="alert {{ 'alert-warning' if preview.unread else 'alert-info' }} mb-16" style="display:block;">
+  <i class="bi bi-magic"></i>
+  {% for note in preview.notes %}<div>{{ note }}</div>{% endfor %}
+  {% if preview.unread %}
+  <details><summary>{{ ngettext("%(num)s riga del file non letta: aggiungila a mano se serve.", "%(num)s righe del file non lette: aggiungile a mano se servono.", preview.unread|length) }}</summary>
+    <ul class="text-xs" style="margin:6px 0 0 16px;">{% for line in preview.unread[:50] %}<li>{{ line }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+</div>
+{% endif %}
 {% if preview.ocr %}
 <div class="alert {{ 'alert-warning' if preview.ocr_doubtful else 'alert-info' }} mb-16" style="display:block;">
   <i class="bi bi-eye"></i>
@@ -176,7 +187,7 @@
               <input type="text" name="description-{{ i }}" value="{{ row.description }}" class="form-control row-field"
                      style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} />
               {% if row.details %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:2px;">{{ row.details|truncate(90) }}</div>{% endif %}
-              <input type="text" name="counterparty-{{ i }}" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
+              <input type="text" name="counterparty-{{ i }}" value="{{ row.counterparty or '' }}" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
                      style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" {{ '' if checked else 'disabled' }} />
               {% if row.similar_to %}
               <div class="badge badge-negative" style="margin-top:4px;white-space:normal;" title="{{ _('Stesso importo, data vicina e descrizione simile a una transazione già salvata') }}">

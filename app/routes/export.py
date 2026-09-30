@@ -11,7 +11,7 @@ from app.services.parsing import to_decimal
 from app.routes.helpers import form_ids
 from app.services import (
     accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_jobs, ai_models, upload_store, backup,
-    pdf_report, statement_readers,
+    pdf_report, statement_readers, column_guess,
 )
 from app.routes.transactions import all_tags
 from app.services.categories import known_categories
@@ -44,6 +44,7 @@ def index():
         years=analytics.available_years(),
         banks=bank_import.BANKS,
         ai_reader=ai_extraction.describe(),
+        **ai_classification.template_context(),
         safety_copies=backup.list_safety_copies(),
     )
 
@@ -162,7 +163,23 @@ def import_columns():
         headers, rows, first_line = transfer.read_table(upload.filename, upload.read())
     except transfer.TableError as exc:
         return jsonify({"error": str(exc)}), 400
-    return jsonify({"headers": headers, "rows": len(rows), "header_line": first_line - 1})
+    guessed = column_guess.guess(headers, rows)
+    return jsonify({"headers": headers, "rows": len(rows), "header_line": first_line - 1,
+                    "guess": guessed.mapping, "sure": guessed.sure})
+
+
+@export_bp.route("/import/columns/ai", methods=["POST"])
+def import_columns_ai():
+    """Ask the AI which column is what, sending only the titles and the first rows (the user clicked for it)."""
+    upload = request.files.get("file")
+    if not upload or not upload.filename:
+        return jsonify({"error": _("Seleziona un file.")}), 400
+    try:
+        headers, rows, _first_line = transfer.read_table(upload.filename, upload.read())
+        guessed = column_guess.ask_ai(headers, rows)
+    except (transfer.TableError, ai_extraction.AIExtractionError) as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({"guess": guessed.mapping, "notes": guessed.notes, "model": ai_classification.model_name()})
 
 
 @export_bp.route("/import", methods=["POST"])
@@ -178,25 +195,14 @@ def import_csv():
         flash(str(exc), "error")
         return redirect(url_for("export.index"))
 
-    mapping = {
-        field: request.form.get(f"col_{field}") or None
-        for field in ("date", "amount", "description", "category", "type", "counterparty")
-    }
-    missing = [f for f in ("date", "amount", "description") if mapping[f] not in headers]
-    if missing:
-        flash(_("Colonne obbligatorie non mappate: %(value)s.", value=', '.join(missing)), "error")
+    # the chosen columns are checked against the values, then the rows open in the editable preview
+    mapping = {field: request.form.get(f"col_{field}") or None for field in column_guess.FIELDS}
+    try:
+        preview = bank_import.preview_from_mapping(headers, rows, mapping, first_line)
+    except bank_import.StatementImportError as exc:
+        flash(str(exc), "error")
         return redirect(url_for("export.index"))
-
-    transactions, errors = transfer.rows_to_transactions(rows, mapping, first_line)
-    if errors:
-        preview = "; ".join(errors[:5]) + (" …" if len(errors) > 5 else "")
-        flash(_("Importazione annullata, %(count)s righe non valide — %(preview)s", count=len(errors), preview=preview), "error")
-        return redirect(url_for("export.index"))
-
-    db.session.add_all(transactions)
-    db.session.commit()
-    flash(_("%(count)s transazioni importate con successo.", count=len(transactions)), "success")
-    return redirect(url_for("transactions.index"))
+    return _render_preview(preview, upload.filename)
 
 
 # ── Bank statement import (Fineco, Intesa Sanpaolo, generic) ───────────────────

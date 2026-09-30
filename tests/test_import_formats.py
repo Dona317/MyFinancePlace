@@ -10,6 +10,7 @@ import pytest
 
 from app.models.transaction import Transaction
 from app.services import bank_import, statement_readers, transfer
+from tests.form_helper import form_data
 from tests.statements import fineco_xlsx, xlsx
 
 SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
@@ -249,9 +250,11 @@ def test_broken_doc_explains_what_to_do(app):
 # ── Manual column mapping: Excel and .ods ──────────────────────────────────────
 
 def _mapping_upload(client, content: bytes, filename: str, **columns):
+    """Upload with the chosen columns, then confirm the preview as it is."""
     data = {"file": (io.BytesIO(content), filename)}
     data.update({f"col_{k}": v for k, v in columns.items()})
-    return client.post("/export/import", data=data, content_type="multipart/form-data")
+    html = client.post("/export/import", data=data, content_type="multipart/form-data").get_data(as_text=True)
+    return client.post("/export/bank/confirm", data=form_data(html, "preview-form"))
 
 
 def test_manual_mapping_reads_xlsx_with_a_preamble(client, db):
@@ -266,7 +269,10 @@ def test_manual_mapping_reads_xlsx_with_a_preamble(client, db):
     ])
     columns = client.post("/export/import/columns", data={"file": (io.BytesIO(content), "banca.xlsx")},
                           content_type="multipart/form-data").get_json()
-    assert columns == {"headers": ["Giorno", "Importo", "Causale", "Categoria"], "rows": 2, "header_line": 4}
+    assert {k: columns[k] for k in ("headers", "rows", "header_line")} == {
+        "headers": ["Giorno", "Importo", "Causale", "Categoria"], "rows": 2, "header_line": 4}
+    assert {k: v for k, v in columns["guess"].items() if v} == {
+        "date": "Giorno", "amount": "Importo", "description": "Causale", "category": "Categoria"}
 
     response = _mapping_upload(client, content, "banca.xlsx", date="Giorno", amount="Importo",
                                description="Causale", category="Categoria")
@@ -301,17 +307,18 @@ def test_manual_mapping_xls_import(client, db):
 
 def test_manual_mapping_error_line_numbers_match_the_spreadsheet(client, db):
     content = xlsx([["Titolo"], ["Data", "Importo", "Causale"], ["01/06/2026", 10, "Ok"], ["non una data", 5, "Male"]])
-    _mapping_upload(client, content, "x.xlsx", date="Data", amount="Importo", description="Causale")
-    assert Transaction.query.count() == 0
-    with client.session_transaction() as session:
-        assert "Riga 4" in session["_flashes"][0][1]
+    html = client.post("/export/import", data={"file": (io.BytesIO(content), "x.xlsx"), "col_date": "Data",
+                                               "col_amount": "Importo", "col_description": "Causale"},
+                       content_type="multipart/form-data").get_data(as_text=True)
+    assert "Riga 4: data non riconosciuta" in html and Transaction.query.count() == 0
 
 
 def test_manual_mapping_rejects_other_formats(client, db):
     response = client.post("/export/import/columns", data={"file": (io.BytesIO(b"%PDF-1.4"), "x.pdf")},
                            content_type="multipart/form-data")
     assert response.status_code == 400 and "Formato non supportato" in response.get_json()["error"]
-    _mapping_upload(client, fineco_xlsx(), "movimenti.docx", date="Data", amount="Importo", description="Causale")
+    client.post("/export/import", data={"file": (io.BytesIO(fineco_xlsx()), "movimenti.docx"), "col_date": "Data"},
+                content_type="multipart/form-data")
     with client.session_transaction() as session:
         assert "Formato non supportato" in session["_flashes"][0][1]
 

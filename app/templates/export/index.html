@@ -250,6 +250,12 @@
           {{ _('Dei fogli Excel si legge il primo; le righe di intestazione della banca sopra i titoli delle colonne vengono saltate. Senza colonna Tipo, gli importi negativi diventano uscite e quelli positivi entrate. Date accettate: AAAA-MM-GG o GG/MM/AAAA (nei file Excel anche le celle di tipo data).') }}
         </p>
         <p id="import-status" class="text-xs" role="status" style="margin-top:8px;"></p>
+        {% if ai_classifier %}
+        <button type="button" class="btn btn-outline btn-sm" id="import-ask-ai" hidden
+                title="{{ _('Al modello vanno solo le intestazioni e le prime %(count)s righe', count=10) }}{{ _(' (Anthropic, fuori dal tuo computer)') if ai_cloud else '' }}">
+          <i class="bi bi-stars"></i> {{ _("Chiedi all'AI quali colonne sono") }}
+        </button>
+        {% endif %}
       </div>
 
       <!-- Step 2 -->
@@ -261,7 +267,9 @@
         </div>
         {% for field, label, required in [
           ('date', _('Colonna Data'), true),
-          ('amount', _('Colonna Importo'), true),
+          ('amount', _('Colonna Importo (con segno)'), false),
+          ('debit', _('oppure Colonna Uscite / Dare'), false),
+          ('credit', _('e Colonna Entrate / Avere'), false),
           ('description', _('Colonna Descrizione'), true),
           ('category', _('Colonna Categoria'), false),
           ('type', _('Colonna Tipo (income/expense/transfer)'), false),
@@ -289,23 +297,15 @@
 {% block scripts %}
 <script>
 // Ask the server for the column names of the chosen file (CSV, Excel or .ods) and offer them in the mapping selects.
-const GUESSES = {
-  date:         ['date', 'data', 'data operazione', 'data valuta', 'data contabile', 'data registrazione'],
-  amount:       ['amount', 'importo', 'valore', 'ammontare', 'importo (eur)'],
-  description:  ['description', 'descrizione', 'causale', 'dettagli'],
-  category:     ['category', 'categoria'],
-  type:         ['type', 'tipo'],
-  counterparty: ['counterparty', 'controparte', 'beneficiario'],
-};
+// the server reads the values and proposes which column is what (data.guess)
 const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
-function fillSelects(headers) {
+function fillSelects(headers, guess = {}) {
   document.querySelectorAll('.import-col').forEach(select => {
     const required = select.dataset.required === 'true';
     select.innerHTML = (required ? '' : '<option value="">' + {{ _('— Nessuna —')|tojson }} + '</option>') +
       headers.map(h => `<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('');
-    const guess = headers.find(h => GUESSES[select.dataset.field].includes(h.toLowerCase().trim()));
-    select.value = guess || (required ? headers[0] : '');
+    select.value = guess[select.dataset.field] || (required ? headers[0] : '');
     select.disabled = headers.length === 0;
   });
   document.getElementById('import-submit').disabled = headers.length === 0;
@@ -324,12 +324,42 @@ document.getElementById('import-file').addEventListener('change', async (e) => {
     const response = await fetch("{{ url_for('export.import_columns') }}", { method: 'POST', body });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || {{ _('File non leggibile.')|tojson }});
-    fillSelects(data.headers);
-    status.textContent = fmt({{ _('%(count)s colonne trovate (intestazione alla riga %(line)s), %(rows)s righe.', count='%(count)s', line='%(line)s', rows='%(rows)s')|tojson }}, {count: data.headers.length, line: data.header_line, rows: data.rows});
+    fillSelects(data.headers, data.guess);
+    const askAi = document.getElementById('import-ask-ai');
+    if (askAi) askAi.hidden = data.sure;  // the AI only when the values did not make it clear
+    status.textContent = (data.sure ? {{ _('Colonne riconosciute: controlla e importa.')|tojson }} + ' '
+                                    : {{ _('Colonne riconosciute solo in parte: controlla le scelte.')|tojson }} + ' ') + fmt({{ _('%(count)s colonne trovate (intestazione alla riga %(line)s), %(rows)s righe.', count='%(count)s', line='%(line)s', rows='%(rows)s')|tojson }}, {count: data.headers.length, line: data.header_line, rows: data.rows});
   } catch (error) {
     fillSelects([]);
     status.textContent = error.message;
     status.style.color = 'var(--clr-negative-text)';
+  }
+});
+
+document.getElementById('import-ask-ai')?.addEventListener('click', async (e) => {
+  const file = document.getElementById('import-file').files[0];
+  const status = document.getElementById('import-status');
+  const button = e.currentTarget;
+  if (!file) return;
+  button.disabled = true;
+  status.textContent = {{ _("L'AI sta leggendo le intestazioni…")|tojson }};
+  const body = new FormData();
+  body.append('file', file);
+  try {
+    const response = await fetch("{{ url_for('export.import_columns_ai') }}", { method: 'POST', body });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    document.querySelectorAll('.import-col').forEach(select => {
+      if (data.guess[select.dataset.field] !== undefined) select.value = data.guess[select.dataset.field] || '';
+    });
+    status.textContent = fmt({{ _('Colonne proposte da %(model)s: controlla e importa.', model='%(model)s')|tojson }}, {model: data.model})
+      + (data.notes.length ? ' ' + data.notes.join(' ') : '');
+    status.style.color = 'var(--clr-text-muted)';
+  } catch (error) {
+    status.textContent = error.message;
+    status.style.color = 'var(--clr-negative-text)';
+  } finally {
+    button.disabled = false;
   }
 });
 </script>

@@ -5,7 +5,9 @@ from decimal import Decimal
 import pytest
 
 from app.models.transaction import Transaction
-from app.services import transfer
+from app.services import bank_import, transfer
+from app.services.parsing import parse_amount, parse_date
+from tests.form_helper import form_data
 
 
 @pytest.mark.parametrize("raw, expected", [
@@ -15,29 +17,30 @@ from app.services import transfer
     ("€ 12.5", Decimal("12.5")),
 ])
 def test_parse_amount(raw, expected):
-    assert transfer.parse_amount(raw) == expected
+    assert parse_amount(raw) == expected
 
 
 def test_parse_amount_invalid():
     with pytest.raises(ValueError):
-        transfer.parse_amount("abc")
+        parse_amount("abc")
 
 
 @pytest.mark.parametrize("raw", ["2026-06-15", "15/06/2026", "15.06.2026"])
 def test_parse_date(raw):
-    assert transfer.parse_date(raw) == date(2026, 6, 15)
+    assert parse_date(raw) == date(2026, 6, 15)
 
 
-def test_rows_to_transactions_uses_sign_for_type():
+def test_mapped_rows_use_the_sign_and_list_unreadable_ones(app, db):
     rows = [
         {"Data": "01/06/2026", "Importo": "-12,50", "Causale": "Bar"},
         {"Data": "02/06/2026", "Importo": "100", "Causale": "Rimborso"},
         {"Data": "bad", "Importo": "1", "Causale": "X"},
     ]
     mapping = {"date": "Data", "amount": "Importo", "description": "Causale"}
-    txs, errors = transfer.rows_to_transactions(rows, mapping)
-    assert [(t.type, t.amount) for t in txs] == [("expense", Decimal("12.50")), ("income", Decimal("100"))]
-    assert errors == ["Riga 4: data non riconosciuta: 'bad'"]
+    with app.test_request_context():
+        preview = bank_import.preview_from_mapping(["Data", "Importo", "Causale"], rows, mapping)
+    assert [(r.type, r.amount) for r in preview.rows] == [("expense", Decimal("-12.50")), ("income", Decimal("100.00"))]
+    assert preview.unread == ["Riga 4: data non riconosciuta («bad»)"]
 
 
 def test_period_bounds():
@@ -80,17 +83,38 @@ def test_import_csv(client, db):
         "file": (io.BytesIO(csv_content.encode()), "movimenti.csv"),
         "col_date": "Data", "col_amount": "Importo", "col_description": "Causale", "col_category": "Categoria",
     }, content_type="multipart/form-data")
-    assert response.status_code == 302
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200 and 'id="preview-form"' in html  # nothing saved before the preview
+    assert Transaction.query.count() == 0
+    client.post("/export/bank/confirm", data=form_data(html, "preview-form"))
     rows = Transaction.query.order_by(Transaction.date).all()
     assert [(t.description, t.type, float(t.amount), t.category) for t in rows] == [
         ("Bar", "expense", 12.5, "Svago"), ("Stipendio", "income", 1500.0, "Stipendio"),
     ]
 
 
-def test_import_csv_rejects_invalid_rows_atomically(client, db):
+def test_import_csv_lists_invalid_rows_instead_of_failing(client, db):
     csv_content = "Data,Importo,Causale\n2026-06-01,10,Ok\nnot-a-date,5,Bad\n"
-    client.post("/export/import", data={
+    html = client.post("/export/import", data={
         "file": (io.BytesIO(csv_content.encode()), "x.csv"),
         "col_date": "Data", "col_amount": "Importo", "col_description": "Causale",
-    }, content_type="multipart/form-data")
-    assert Transaction.query.count() == 0
+    }, content_type="multipart/form-data").get_data(as_text=True)
+    assert "1 riga del file non letta" in html and "Riga 3: data non riconosciuta" in html
+    client.post("/export/bank/confirm", data=form_data(html, "preview-form"))
+    assert [t.description for t in Transaction.query.all()] == ["Ok"]
+
+
+def test_wrong_columns_are_corrected(client, db):
+    """The user picked the value date as the amount and the amount as the description: the values say otherwise."""
+    csv_content = ("Data;Valuta;Importo;Causale\n01/06/2026;02/06/2026;-12,50;Bar Centrale\n"
+                   "03/06/2026;03/06/2026;1.500,00;Stipendio ACME\n")
+    html = client.post("/export/import", data={
+        "file": (io.BytesIO(csv_content.encode()), "x.csv"),
+        "col_date": "Causale", "col_amount": "Valuta", "col_description": "Importo",
+    }, content_type="multipart/form-data").get_data(as_text=True)
+    assert "Data: «Causale» non contiene date, uso «Data»" in html
+    assert "Importo: «Valuta» non contiene importi, uso «Importo»" in html
+    assert "Descrizione: «Importo» non contiene testo, uso «Causale»" in html
+    client.post("/export/bank/confirm", data=form_data(html, "preview-form"))
+    assert [(t.description, t.type, float(t.amount)) for t in Transaction.query.order_by(Transaction.date)] == [
+        ("Bar Centrale", "expense", 12.5), ("Stipendio ACME", "income", 1500.0)]

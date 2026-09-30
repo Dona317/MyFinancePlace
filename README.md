@@ -17,7 +17,7 @@ Personal finance management app — from household budgeting to investment portf
 | **Debt** | Mortgages and loans with amortization schedules |
 | **Documents** | Archive linked to transactions, with fiscal-year tagging |
 | **Snapshots** | Point-in-time financial snapshots for historical comparison |
-| **Export** | CSV, JSON, downloadable PDF report, tax export by year, CSV/Excel import with column mapping |
+| **Export** | CSV, JSON, downloadable PDF report, tax export by year, CSV/Excel import with columns recognised from the values (AI on a 10-row sample as backup) |
 | **Languages** | Italian or English interface (Settings → Visualizzazione → Lingua) |
 
 ## Quick Start
@@ -83,8 +83,13 @@ Word 97-2003 `.doc` files are read in pure Python (`olefile`: the text and its t
 `WordDocument` stream), so no antiword or LibreOffice is needed; password-protected `.doc` files are refused with a message.
 
 **Importa CSV o Excel con mappatura manuale** (same page) is for files no layout recognizes: pick the file
-(`.csv`, `.xlsx`, `.xls`, `.ods`), the app finds the header row (skipping the bank's preamble) and you choose
-which columns are date, amount, description, category, type and counterparty.
+(`.csv`, `.xlsx`, `.xls`, `.ods`), the app finds the header row (skipping the bank's preamble) and **recognises the
+columns from their values** — dates, amounts, separate Dare/Avere columns, type words, the richest text as the
+description — and preselects them; you can change them. A wrong choice is not an error: a column that holds no
+dates/amounts/text is swapped for the right one with a note, rows that still cannot be read are listed, and the
+rows open in the **same editable preview** as bank statements (duplicates, categories from your history). When
+the values are not clear and an AI model is set, *Chiedi all'AI quali colonne sono* sends it only the headers and
+the first 10 rows, and its answer is checked the same way.
 
 **Report PDF**: *Scarica PDF* downloads the yearly report (key figures, income statement by category, monthly table,
 cash flow) generated on the server with `fpdf2` (pure Python); *Stampa dal browser* opens the same report as a page to print.

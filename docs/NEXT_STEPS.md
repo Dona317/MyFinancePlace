@@ -56,6 +56,8 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Subcategories** (migration `270b797b5daf`): `categories.parent_id`, one level; a starting set added once
   (Casa, Bollette, Trasporto, Ristoranti, Salute, Abbonamenti); grouped lists, roll-up in dashboard/budgets,
   report drill-down, `main_category` in the CSV/JSON export, hierarchy in the AI prompt
+- **Mapped import without errors**: `services/column_guess.py` recognises the columns from the values, fixes a
+  wrong choice with a note, and can ask the AI on a 10-row sample; the rows open in the editable preview
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 

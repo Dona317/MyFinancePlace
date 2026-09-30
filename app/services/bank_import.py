@@ -43,7 +43,7 @@ from statistics import median
 from app.models.transaction import Transaction
 from app.services import category_rules
 from app.services.ai_classification import AI_TAG
-from app.services import ai_extraction, duplicates, history_classifier, ocr
+from app.services import ai_extraction, column_guess, duplicates, history_classifier, ocr
 from app.services import statement_readers as readers
 from app.services.parsing import TRANSACTION_TYPES, clean_text, normalize, to_date, to_decimal, valid_amount
 from app.services.statement_readers import Word
@@ -541,6 +541,7 @@ class StatementRow:
     import_ref: str = ""
     duplicate: bool = False
     similar_to: str | None = None   # description of an existing transaction this row may duplicate
+    counterparty: str | None = None  # from a mapped "controparte" column (becomes the first tag)
 
     @property
     def causale(self) -> str | None:
@@ -558,6 +559,7 @@ class StatementRow:
             "category": self.category,
             "import_ref": self.import_ref,
             "duplicate": self.duplicate,
+            "counterparty": self.counterparty,
         }
 
 
@@ -694,6 +696,8 @@ class StatementPreview:
     ai_model: str | None = None              # set when the movements were read by an AI model
     ocr: bool = False                        # read from a scan or photo by the light OCR
     ocr_doubtful: bool = False               # fewer rows than dated lines: something was probably missed
+    notes: list[str] = field(default_factory=list)    # columns corrected in a mapped import
+    unread: list[str] = field(default_factory=list)   # "Riga 7: data mancante" — rows of the file not read
     balance_check: BalanceCheck | None = None
     discarded: int = 0                       # AI rows dropped because the date/amount was invalid
 
@@ -777,6 +781,75 @@ def _read_with_ocr(filename: str, raw: bytes, bank: str) -> StatementPreview | N
     rows.sort(key=lambda r: r.date)
     return StatementPreview(bank=layout_bank, rows=enrich(rows, layout_bank.key), pending_skipped=pending,
                             ocr=True, ocr_doubtful=len(rows) < 0.9 * dated)
+
+
+# ── A CSV / spreadsheet with the columns chosen by the user (Esporta → Importa con mappatura) ─────────
+
+_TYPE_WORDS = {
+    "expense": {"expense", "uscita", "uscite", "addebito", "addebiti", "dare", "spesa"},
+    "income": {"income", "entrata", "entrate", "accredito", "accrediti", "avere"},
+    "transfer": {"transfer", "giroconto", "trasferimento"},
+}
+
+
+def _explicit_type(value: str | None) -> str | None:
+    word = normalize(value)
+    return next((kind for kind, words in _TYPE_WORDS.items() if word in words), None)
+
+
+def preview_from_mapping(headers: list[str], rows: list[dict], mapping: dict, first_line: int = 2) -> StatementPreview:
+    """
+    The rows of a mapped file as an editable preview. The mapping is first checked against the values (a date
+    column without dates is swapped for the one with them, with a note); rows that still cannot be read are
+    listed instead of failing the whole import.
+    """
+    checked = column_guess.fix(mapping, headers, rows)
+    columns = checked.mapping
+    if not columns["date"] or not (columns["amount"] or (columns["debit"] and columns["credit"])):
+        raise StatementImportError(_("Non trovo le colonne di data e importo: sceglile a mano."))
+
+    def cell(row: dict, name: str) -> str:
+        return (row.get(columns[name]) or "").strip() if columns.get(name) else ""
+
+    parsed, unread, extras = [], [], []
+    for line, row in enumerate(rows, start=first_line):
+        if not any(isinstance(v, str) and v.strip() for v in row.values()):
+            continue
+        tx_date = to_date(cell(row, "date"))
+        if columns["amount"]:
+            amount = to_decimal(cell(row, "amount"))
+        else:  # debit and credit columns: money in minus money out
+            debit, credit = to_decimal(cell(row, "debit")), to_decimal(cell(row, "credit"))
+            amount = None if debit is None and credit is None else abs(credit or 0) - abs(debit or 0)
+        counterparty = clean_text(cell(row, "counterparty"))
+        description = clean_text(cell(row, "description")) or counterparty
+        if tx_date is None:
+            unread.append(_("Riga %(line)s: data non riconosciuta («%(value)s»)", line=line, value=cell(row, "date")))
+            continue
+        if not valid_amount(amount):
+            unread.append(_("Riga %(line)s: importo mancante o non valido", line=line))
+            continue
+        if not description:
+            unread.append(_("Riga %(line)s: descrizione mancante", line=line))
+            continue
+        kind = _explicit_type(cell(row, "type"))
+        if kind in ("expense", "income"):  # the type column wins over a missing sign
+            amount = -abs(amount) if kind == "expense" else abs(amount)
+        parsed.append(StatementRow(date=tx_date, description=description, amount=amount.quantize(Decimal("0.01")),
+                                   counterparty=counterparty))
+        extras.append((kind, clean_text(cell(row, "category"))))
+    if not parsed:
+        raise StatementImportError(_("Nessuna riga leggibile con queste colonne.") + (" " + unread[0] if unread else ""))
+
+    enrich(parsed, "generic")
+    for row, (kind, category) in zip(parsed, extras):
+        if kind == "transfer":
+            row.type, row.category = "transfer", "Giroconto"
+        if category:  # the file's own category wins over the guessed one
+            row.category = category
+    order = sorted(range(len(parsed)), key=lambda i: parsed[i].date)
+    return StatementPreview(bank=BANKS["generic"], rows=[parsed[i] for i in order], pending_skipped=0,
+                            notes=checked.notes, unread=unread)
 
 
 def text_for_ai(filename: str, raw: bytes) -> str | None:
