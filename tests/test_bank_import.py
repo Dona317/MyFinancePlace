@@ -374,3 +374,16 @@ def test_upload_pdf_through_web_flow(client, db):
     assert "Intesa Sanpaolo" in html and "TRENITALIA WEB" in html
     _confirm(client, html)
     assert Transaction.query.count() == 21
+
+
+def test_preview_suggests_the_tags_already_used_for_the_counterparty(client, db):
+    db.session.add(Transaction(date=date(2026, 1, 1), description="x", amount=1, type="expense", tags=["Esselunga", "spesa"]))
+    db.session.commit()
+    html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
+    pool = html.split('<datalist id="tag-pool">')[1].split("</datalist>")[0]
+    assert '<option value="Esselunga">' in pool and '<option value="spesa">' in pool
+    assert 'class="form-control row-field row-counterparty" list="tag-pool"' in html
+    # the counterparty typed in the preview becomes the first tag
+    _confirm(client, html, include=["0"], **{"counterparty-0": "Esselunga"})
+    imported = Transaction.query.filter(Transaction.import_ref.isnot(None)).one()
+    assert imported.tags[0] == "Esselunga" and imported.counterparty == "Esselunga"

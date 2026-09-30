@@ -5,6 +5,7 @@
 {% block breadcrumb %}<li><a href="{{ url_for('export.index') }}">{{ _('Esporta') }}</a></li><li>{{ _('Estratto conto') }}</li>{% endblock %}
 
 {% block content %}
+<datalist id="tag-pool">{% for tag in tag_pool %}<option value="{{ tag }}">{% endfor %}</datalist>
 
 <!-- Riepilogo ───────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
@@ -165,7 +166,7 @@
               <input type="text" name="description-{{ i }}" value="{{ row.description }}" class="form-control row-field"
                      style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} />
               {% if row.details %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:2px;">{{ row.details|truncate(90) }}</div>{% endif %}
-              <input type="text" name="counterparty-{{ i }}" class="form-control row-field row-counterparty" placeholder="{{ _('Controparte (tag)') }}"
+              <input type="text" name="counterparty-{{ i }}" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
                      style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" {{ '' if checked else 'disabled' }} />
               {% if row.similar_to %}
               <div class="badge badge-negative" style="margin-top:4px;white-space:normal;" title="{{ _('Stesso importo, data vicina e descrizione simile a una transazione già salvata') }}">
@@ -204,7 +205,7 @@
       <td><input type="checkbox" name="include" value="__i__" class="row-include check" checked /></td>
       <td><input type="date" name="date-__i__" class="form-control row-field" style="padding:6px 8px;" required /></td>
       <td><input type="text" name="description-__i__" class="form-control row-field" style="padding:6px 8px;" required placeholder="{{ _('Descrizione') }}" />
-          <input type="text" name="counterparty-__i__" class="form-control row-field row-counterparty" placeholder="{{ _('Controparte (tag)') }}"
+          <input type="text" name="counterparty-__i__" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
                  style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" />
           <span class="badge badge-primary" style="margin-top:4px;">{{ _('Aggiunta a mano') }}</span></td>
       <td><input type="text" name="category-__i__" list="category-options" class="form-control row-field row-category" style="padding:6px 8px;" placeholder="{{ _('Categoria') }}" /></td>

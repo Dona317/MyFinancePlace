@@ -13,6 +13,7 @@ from app.services import (
     accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_jobs, ai_models, upload_store, backup,
     pdf_report,
 )
+from app.routes.transactions import all_tags
 from app.services.categories import known_categories
 from flask_babel import gettext as _
 
@@ -218,6 +219,7 @@ def _render_preview(preview, filename: str):
         payload=payload,
         filename=filename,
         categories=known_categories(),
+        tag_pool=all_tags(),
         accounts=accounts.active(),
         suggested_account=_suggested_account(preview.bank.name),
         **ai_classification.template_context(),
