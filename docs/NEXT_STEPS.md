@@ -27,6 +27,11 @@ Current status and roadmap. Update this file as items are completed.
   with contributions; snapshots of the net worth and their comparison
 - **Balance Sheet** and real **net worth** (opening balance + transactions + holdings − debts), also at past
   month ends; dashboard Investments, Total debt and Debt/Income KPIs
+- **Accounts and cards** with balance per account and reconciliation; **several currencies** with rates by
+  date (ECB download) and totals in a chosen base currency; **monthly budgets** with warnings; **reminders**
+  (bell in the top bar); **editable categories** and **categorization rules** written or learned from
+  corrections; cash flow from **explicit links** to investments and debts; display preferences applied
+- **CI** (GitHub Actions), **Docker** image and compose, **production config** (see `docs/DEPLOY.md`)
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 
@@ -43,37 +48,23 @@ Holdings are valued at their latest price, also in the balance sheet of past mon
 history). Snapshots record the value at that moment; an optional price feed (ETFs, crypto) would make past
 balance sheets exact.
 
-### 3. Cash flow classification
-
-Cash flow sorts `transfer` transactions by category name: anything like "Investimenti" counts as investing,
-and "mutuo" or "prestito" counts as loans. Replace this with explicit links: a transfer tied to a
-portfolio holding (investing) or to a debt (financing).
-
-### 5. Bank import improvements
+### 3. Bank import improvements
 
 - Check the new layouts (UniCredit, BPER, BancoPosta, ING, Revolut, N26) against real anonymized exports: they
   follow the published column names, but the samples in `samples/bank_statements` are generated. Banca Sella,
   Mediolanum and BCC are read by the generic layout until a real export shows distinctive columns
 - Files imported as "generic" before a bank got its own layout (e.g. a Revolut CSV) get a different fingerprint
   when imported again, so they are shown as *possible* duplicates (similar amount/date) rather than skipped
-- Non-EUR rows (Revolut) keep their currency, but the preview totals and reports add them as if they were EUR
-  until multi-currency (track C, step 6)
-- User-editable categorization rules (e.g. a "Rules" page in Settings) instead of the hardcoded `CATEGORY_RULES`
-- Learn from corrections: remember the category the user picked for a counterparty, and pass past examples
-  to the AI classifier as few-shot hints (the `categoria-ai` tag marks rows to learn from once reviewed)
 - Extract the counterparty (merchant name) from the description
 - Test against real exported files (anonymized) from each bank, especially PDFs, whose layouts vary the most
 - AI reading (done, optional): measure accuracy of `qwen2.5vl:7b` vs Claude on real anonymized scans.
   It runs in a background thread (`app/services/ai_jobs.py`) with a waiting page showing progress per page;
   job state is in memory plus a JSON next to the upload, so it assumes one gunicorn process (the default)
 
-### 6. Continuous integration
+### 4. Smaller clean-ups
 
-The repo has no CI yet, so the tests only run when you run `pytest` yourself (see the README).
-Add a GitHub Actions workflow that starts a PostgreSQL service container, installs `requirements.txt`
-and runs `pytest` on every pull request.
-
-### 7. Smaller clean-ups
-
-- The transaction form crashes (500) on invalid input: add validation (e.g. Flask-WTF forms)
-- The category list is hardcoded in several templates: centralize it
+- `docker-compose.yml`: the `db` service sets `PGDARE` (typo for `PGDATA`), so Postgres keeps its data in an
+  anonymous volume and `docker compose down` + `up` starts empty. Fixing it moves where the data lives: dump
+  first (`pg_dump`), fix `PGDATA`, restore. `image: postgres:latest` should be pinned too
+- Account balances use the transactions' original amounts: a card payment in USD on a EUR account counts in USD
+  until the bank's EUR amount is entered

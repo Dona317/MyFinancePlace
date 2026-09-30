@@ -9,18 +9,18 @@
 :root {
 
   /* ── Brand ────────────────────────────────────────────────────── */
-  --clr-primary:        #3B5BDB;   /* main accent (buttons, links, active nav) */
-  --clr-primary-hover:  #364FC7;
-  --clr-primary-light:  #EDF2FF;   /* light tint for badges / highlights */
-  --clr-primary-muted:  #748FFC;
+  --clr-primary:        #C8500F;   /* main accent (buttons, links, active nav) */
+  --clr-primary-hover:  #A8430C;
+  --clr-primary-light:  #FFF1E6;   /* light tint for badges / highlights */
+  --clr-primary-muted:  #F08C4B;
 
   /* ── Sidebar ──────────────────────────────────────────────────── */
-  --clr-sidebar-bg:     #0F1C3F;   /* sidebar background */
-  --clr-sidebar-hover:  #1A2D5A;
-  --clr-sidebar-active: #243570;   /* active nav item */
-  --clr-sidebar-text:   #8BA3C8;   /* default sidebar text */
-  --clr-sidebar-title:  #C6D4EE;   /* section titles */
-  --clr-sidebar-border: #1E2F5C;
+  --clr-sidebar-bg:     #FAFAF8;   /* sidebar background */
+  --clr-sidebar-hover:  #F0EFEC;
+  --clr-sidebar-active: #E9E7E3;   /* active nav item */
+  --clr-sidebar-text:   #5C6068;   /* default sidebar text */
+  --clr-sidebar-title:  #1D2025;   /* section titles */
+  --clr-sidebar-border: #ECEAE6;
 
   /* ── Financial Signals ────────────────────────────────────────── */
   --clr-positive:       #2F9E44;   /* income, gains, green */
@@ -35,46 +35,46 @@
   --clr-warning-bg:     #FFF4E6;
 
   /* ── App Backgrounds ──────────────────────────────────────────── */
-  --clr-bg-app:         #F0F3F9;   /* main content area background */
+  --clr-bg-app:         #F5F5F3;   /* main content area background */
   --clr-bg-card:        #FFFFFF;   /* cards, panels */
-  --clr-bg-input:       #F8FAFD;   /* form inputs */
-  --clr-bg-table-alt:   #F8FAFD;   /* alternating table rows */
+  --clr-bg-input:       #F8F8F6;   /* form inputs */
+  --clr-bg-table-alt:   #FAFAF8;   /* alternating table rows */
 
   /* ── Typography ───────────────────────────────────────────────── */
-  --clr-text-primary:   #1A2540;   /* headings, strong text */
-  --clr-text-secondary: #4A5E80;   /* body text */
-  --clr-text-muted:     #8A9DC0;   /* hints, placeholders */
+  --clr-text-primary:   #16181D;   /* headings, strong text */
+  --clr-text-secondary: #4B5058;   /* body text */
+  --clr-text-muted:     #7A7F88;   /* hints, placeholders */
   --clr-text-inverse:   #FFFFFF;   /* text on dark backgrounds */
   --clr-on-primary:     #FFFFFF;   /* text on primary / danger buttons and badges */
-  --clr-sidebar-strong: #FFFFFF;   /* brand name and active item: the sidebar is dark in both themes */
-  --clr-purple-bg:      #F3EFFF;   /* tint for purple icons (investments) */
+  --clr-sidebar-strong: #16181D;   /* brand name and active item in the sidebar */
+  --clr-purple-bg:      #F3F0FF;   /* tint for purple icons (investments) */
 
   /* ── Borders ──────────────────────────────────────────────────── */
-  --clr-border:         #DDE3F0;
-  --clr-border-light:   #EEF2FA;
+  --clr-border:         #E7E5E1;
+  --clr-border-light:   #F1EFEC;
 
   /* ── Shadows ──────────────────────────────────────────────────── */
-  --shadow-sm:   0 1px 3px rgba(15, 28, 63, 0.08);
-  --shadow-md:   0 4px 12px rgba(15, 28, 63, 0.10);
-  --shadow-lg:   0 8px 24px rgba(15, 28, 63, 0.12);
-  --shadow-card: 0 2px 8px rgba(15, 28, 63, 0.08);
+  --shadow-sm:   0 1px 2px rgba(22, 24, 29, 0.05);
+  --shadow-md:   0 4px 12px rgba(22, 24, 29, 0.07);
+  --shadow-lg:   0 12px 28px rgba(22, 24, 29, 0.10);
+  --shadow-card: 0 1px 2px rgba(22, 24, 29, 0.04);
 
   /* ── Chart Palette ────────────────────────────────────────────── */
-  --chart-1:  #3B5BDB;
-  --chart-2:  #2F9E44;
-  --chart-3:  #E67700;
-  --chart-4:  #C92A2A;
-  --chart-5:  #7048E8;
-  --chart-6:  #1098AD;
-  --chart-7:  #D6336C;
-  --chart-8:  #5C7CFA;
+  --chart-1:  #F76707;
+  --chart-2:  #12B886;
+  --chart-3:  #4C6EF5;
+  --chart-4:  #E64980;
+  --chart-5:  #7950F2;
+  --chart-6:  #FAB005;
+  --chart-7:  #15AABF;
+  --chart-8:  #82C91E;
 
   /* ── Layout ───────────────────────────────────────────────────── */
   --sidebar-width:    260px;
   --topbar-height:    60px;
-  --border-radius:    10px;
-  --border-radius-sm: 6px;
-  --border-radius-lg: 16px;
+  --border-radius:    14px;
+  --border-radius-sm: 8px;
+  --border-radius-lg: 20px;
 
   /* ── Fonts ────────────────────────────────────────────────────── */
   --font-body:    'Inter', 'Segoe UI', system-ui, sans-serif;
@@ -98,18 +98,18 @@
 [data-theme="dark"] {
 
   /* ── Brand ────────────────────────────────────────────────────── */
-  --clr-primary:        #7C9EFF;
-  --clr-primary-hover:  #9DB4FF;
-  --clr-primary-light:  #1E2A4A;
-  --clr-primary-muted:  #5A78D4;
+  --clr-primary:        #FF8A3D;
+  --clr-primary-hover:  #FFA466;
+  --clr-primary-light:  #3A2414;
+  --clr-primary-muted:  #D9722F;
 
   /* ── Sidebar ──────────────────────────────────────────────────── */
-  --clr-sidebar-bg:     #0A1020;
-  --clr-sidebar-hover:  #141F38;
-  --clr-sidebar-active: #1C2B52;
-  --clr-sidebar-text:   #7090B8;
-  --clr-sidebar-title:  #A0B4D0;
-  --clr-sidebar-border: #151F38;
+  --clr-sidebar-bg:     #15171B;
+  --clr-sidebar-hover:  #1F2228;
+  --clr-sidebar-active: #2A2E35;
+  --clr-sidebar-text:   #9CA1AB;
+  --clr-sidebar-title:  #E6E8EC;
+  --clr-sidebar-border: #23262C;
 
   /* ── Financial Signals ────────────────────────────────────────── */
   --clr-positive:       #40C057;
@@ -124,23 +124,23 @@
   --clr-warning-bg:     #2A1800;
 
   /* ── App Backgrounds ──────────────────────────────────────────── */
-  --clr-bg-app:         #0E1623;
-  --clr-bg-card:        #141E30;
-  --clr-bg-input:       #1A2540;
-  --clr-bg-table-alt:   #162033;
+  --clr-bg-app:         #0F1114;
+  --clr-bg-card:        #181A1F;
+  --clr-bg-input:       #20232A;
+  --clr-bg-table-alt:   #1C1F24;
 
   /* ── Typography ───────────────────────────────────────────────── */
-  --clr-text-primary:   #E8EEFA;
-  --clr-text-secondary: #A0B4D0;
-  --clr-text-muted:     #5A78A0;
+  --clr-text-primary:   #ECEEF2;
+  --clr-text-secondary: #B4B9C3;
+  --clr-text-muted:     #7F8591;
   --clr-text-inverse:   #0E1623;
   --clr-on-primary:     #0E1623;   /* light buttons in dark mode need dark text for contrast */
   --clr-sidebar-strong: #FFFFFF;
-  --clr-purple-bg:      #241B42;
+  --clr-purple-bg:      #241F38;
 
   /* ── Borders ──────────────────────────────────────────────────── */
-  --clr-border:         #233050;
-  --clr-border-light:   #1C2840;
+  --clr-border:         #2A2D34;
+  --clr-border-light:   #22252B;
 
   /* ── Shadows ──────────────────────────────────────────────────── */
   --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.40);
@@ -149,12 +149,12 @@
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.40);
 
   /* ── Chart Palette ────────────────────────────────────────────── */
-  --chart-1:  #7C9EFF;
-  --chart-2:  #40C057;
-  --chart-3:  #FFB84D;
-  --chart-4:  #FF6B6B;
-  --chart-5:  #B197FC;
-  --chart-6:  #22D3EE;
-  --chart-7:  #F472B6;
-  --chart-8:  #A5B4FC;
+  --chart-1:  #FF922B;
+  --chart-2:  #38D9A9;
+  --chart-3:  #748FFC;
+  --chart-4:  #F06595;
+  --chart-5:  #9775FA;
+  --chart-6:  #FFD43B;
+  --chart-7:  #3BC9DB;
+  --chart-8:  #A9E34B;
 }

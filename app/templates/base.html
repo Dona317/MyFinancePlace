@@ -246,14 +246,11 @@
         {% block topbar_actions %}{% endblock %}
 
         <!-- Light / dark mode -->
-        <div class="theme-switch" role="group" aria-label="{{ _('Tema') }}">
-          <button type="button" data-theme-choice="light" aria-pressed="false" title="{{ _('Modalità chiara') }}">
-            <i class="bi bi-sun"></i><span class="theme-label">{{ _('Chiara') }}</span>
-          </button>
-          <button type="button" data-theme-choice="dark" aria-pressed="false" title="{{ _('Modalità scura') }}">
-            <i class="bi bi-moon-stars"></i><span class="theme-label">{{ _('Scura') }}</span>
-          </button>
-        </div>
+        <button type="button" id="theme-toggle" class="btn btn-ghost btn-icon theme-toggle"
+                aria-label="{{ _('Passa alla modalità scura') }}" title="{{ _('Passa alla modalità scura') }}">
+          <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
+          <i class="bi bi-moon-stars-fill theme-icon-dark" aria-hidden="true"></i>
+        </button>
 
         <!-- Reminders -->
         {% set reminder_count = notification_count() %}
@@ -302,6 +299,7 @@
 <script>window.MFP_TEXT = {{ {
   "show_menu": _("Mostra il menu"), "hide_menu": _("Nascondi il menu"),
   "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
+  "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
 }|tojson }};</script>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>

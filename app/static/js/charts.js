@@ -162,7 +162,7 @@ function buildDoughnutChart(ctx, labels, data, opts) {
       responsive: true,
       maintainAspectRatio: false,
       cutout: opts.pie ? 0 : "65%",
-      plugins: { legend: { position: opts.legendPosition || "right" } },
+      plugins: { legend: { display: opts.legend !== false, position: opts.legendPosition || "right" } },
     },
   });
 }
