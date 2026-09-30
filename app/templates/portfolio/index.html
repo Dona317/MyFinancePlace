@@ -29,7 +29,7 @@
     <div class="kpi-icon"><i class="bi bi-graph-{{ 'up' if summary.gain >= 0 else 'down' }}-arrow"></i></div>
     <div class="kpi-label">{{ _('Guadagno') }}</div>
     <div class="kpi-value {{ 'text-positive' if summary.gain >= 0 else 'text-negative' }}">{{ '+' if summary.gain > 0 }}{{ summary.gain|money }}</div>
-    <div class="kpi-sub">{{ '+' if summary.gain_pct > 0 }}{{ summary.gain_pct|number }}% sul capitale</div>
+    <div class="kpi-sub">{{ '+' if summary.gain_pct > 0 }}{{ _('%(pct)s%% sul capitale', pct=summary.gain_pct|number) }}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
@@ -85,7 +85,7 @@
       <select name="asset_class" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Filtra per classe') }}">
         <option value="">{{ _('Tutte le classi') }}</option>
         {% for cls in asset_classes %}
-        <option {{ 'selected' if cls == selected }}>{{ cls }}</option>
+        <option value="{{ cls }}" {{ 'selected' if cls == selected }}>{{ cls|tr }}</option>
         {% endfor %}
       </select>
       <noscript><button class="btn btn-ghost btn-sm">{{ _('Filtra') }}</button></noscript>
@@ -115,12 +115,12 @@
             <div class="cell-title">{{ h.name }}</div>
             {% if h.ticker %}<div class="text-xs text-muted">{{ h.ticker }}</div>{% endif %}
           </td>
-          <td><span class="badge badge-primary">{{ h.asset_class }}</span></td>
+          <td><span class="badge badge-primary">{{ h.asset_class|tr }}</span></td>
           <td class="amount text-right">{{ h.quantity|number(8) }}</td>
           <td class="amount text-right">{{ h.avg_price|money }}</td>
           <td class="amount text-right">
             {{ h.price|money }}
-            <div class="text-xs text-muted">{{ ('al ' ~ (h.price_date|it_date)) if h.price_date else 'prezzo di acquisto' }}</div>
+            <div class="text-xs text-muted">{{ ('al ' ~ (h.price_date|it_date)) if h.price_date else _('prezzo di acquisto') }}</div>
           </td>
           <td class="amount text-right">{{ h.value|money }}</td>
           <td class="amount text-right {{ 'positive' if h.gain >= 0 else 'negative' }}">{{ '+' if h.gain > 0 }}{{ h.gain|money }}</td>
@@ -160,7 +160,7 @@
   </div>
   {% elif selected %}
   <div class="empty-state">
-    <div class="empty-state-text">Nessuna posizione nella classe «{{ selected }}».</div>
+    <div class="empty-state-text">{{ _('Nessuna posizione nella classe «%(cls)s».', cls=selected|tr) }}</div>
     <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost">{{ _('Mostra tutte') }}</a>
   </div>
   {% else %}
@@ -183,13 +183,13 @@
 <script>
 {% if summary.allocation %}
 makeDoughnutChart('allocationChart',
-  {{ summary.allocation | map(attribute=0) | list | tojson }},
+  {{ summary.allocation | map(attribute=0) | map('tr') | list | tojson }},
   {{ summary.allocation | map(attribute=1) | map('round', 2) | list | tojson }}
 );
 {% endif %}
 {% if trend.data|length >= 2 %}
 makeLineChart('portfolioTrendChart', {{ trend.labels | tojson }}, [
-  { label: 'Investimenti', data: {{ trend.data | tojson }} }
+  { label: {{ _('Investimenti')|tojson }}, data: {{ trend.data | tojson }} }
 ]);
 {% endif %}
 </script>

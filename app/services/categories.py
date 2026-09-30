@@ -11,8 +11,9 @@ from app.models.category import Category, CategoryRule
 from app.models.transaction import Transaction
 from app.models.wealth import Document
 from app.services import settings_store
+from app.services.i18n import _l
 
-KINDS = {"expense": "Uscite", "income": "Entrate", "both": "Entrambe"}
+KINDS = {"expense": _l("Uscite"), "income": _l("Entrate"), "both": _l("Entrambe")}
 SEEDED_SETTING = "categories.seeded"
 FALLBACK = "Altro"
 

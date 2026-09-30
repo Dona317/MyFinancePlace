@@ -156,7 +156,7 @@ def import_columns():
     """Column names of an uploaded CSV / Excel / .ods file, for the mapping selects (JSON); nothing is saved."""
     upload = request.files.get("file")
     if not upload or not upload.filename:
-        return jsonify({"error": "Seleziona un file."}), 400
+        return jsonify({"error": _("Seleziona un file.")}), 400
     try:
         headers, rows, first_line = transfer.read_table(upload.filename, upload.read())
     except transfer.TableError as exc:
@@ -296,9 +296,9 @@ def bank_ai(token):
         model = (request.form.get("model") or "").strip() or None
         usable = {m["name"] for m in choices["models"] if m["usable"]}
         if choices["provider"] is None:
-            error = "La lettura AI non è configurata."
+            error = _("La lettura AI non è configurata.")
         elif model and model not in usable:
-            error = f"Il modello {model} non può leggere questo file."
+            error = _("Il modello %(model)s non può leggere questo file.", model=model)
         else:
             job = ai_jobs.start(token, meta["filename"], raw, meta.get("bank", bank_import.AUTO), model)
             if job["state"] == "done":  # AI_JOBS_SYNC: already read
@@ -419,10 +419,14 @@ def bank_confirm():
         flash(_("Alcuni movimenti risultano già importati: ricarica il file e riprova."), "error")
         return redirect(url_for("export.index"))
 
-    message = f"{len(created)} movimenti importati da {bank_import.BANKS[data['bank']].name}"
-    message += f" sul conto «{account.name}»." if account else "."
+    bank_name = bank_import.BANKS[data['bank']].name
+    if account:
+        message = _("%(count)s movimenti importati da %(bank)s sul conto «%(account)s».",
+                    count=len(created), bank=bank_name, account=account.name)
+    else:
+        message = _("%(count)s movimenti importati da %(bank)s.", count=len(created), bank=bank_name)
     if skipped:
-        message += f" {skipped} già presenti sono stati ignorati."
+        message += " " + _("%(count)s già presenti sono stati ignorati.", count=skipped)
     flash(message, "success")
     if invalid:
         flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")
@@ -445,7 +449,7 @@ def bank_classify():
         except (KeyError, TypeError, ValueError):
             continue
     if not items:
-        return jsonify({"error": "Nessun movimento da classificare."}), 400
+        return jsonify({"error": _("Nessun movimento da classificare.")}), 400
     try:
         suggestions = ai_classification.classify(items, known_categories())
     except ai_extraction.AIExtractionError as exc:

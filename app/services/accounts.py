@@ -12,9 +12,10 @@ from sqlalchemy import case, func
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
+from app.services.i18n import _l
 
-KINDS = {"current": "Conto corrente", "card": "Carta di credito", "prepaid": "Carta prepagata",
-         "savings": "Conto deposito", "cash": "Contanti", "other": "Altro"}
+KINDS = {"current": _l("Conto corrente"), "card": _l("Carta di credito"), "prepaid": _l("Carta prepagata"),
+         "savings": _l("Conto deposito"), "cash": _l("Contanti"), "other": _l("Altro")}
 ICONS = {"current": "bank", "card": "credit-card", "prepaid": "credit-card-2-front", "savings": "piggy-bank",
          "cash": "cash-coin", "other": "wallet2"}
 

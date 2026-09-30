@@ -21,13 +21,13 @@ CURRENCIES = list(currency_service.CURRENCIES)
 
 
 def _account_from_form(account: Account) -> Account:
-    account.name = form_text("name", "Nome", required=True)
-    account.kind = form_choice("kind", "Tipo", accounts.KINDS)
+    account.name = form_text("name", _("Nome"), required=True)
+    account.kind = form_choice("kind", _("Tipo"), accounts.KINDS)
     currency = (request.form.get("currency") or "EUR").upper()
     account.currency = currency if currency in CURRENCIES else "EUR"
-    account.opening_balance = form_decimal("opening_balance", "Saldo iniziale", allow_negative=True) or 0
-    account.iban_tail = (form_text("iban_tail", "Ultime cifre IBAN / carta") or "")[-10:] or None
-    account.notes = form_text("notes", "Note")
+    account.opening_balance = form_decimal("opening_balance", _("Saldo iniziale"), allow_negative=True) or 0
+    account.iban_tail = (form_text("iban_tail", _("Ultime cifre IBAN / carta")) or "")[-10:] or None
+    account.notes = form_text("notes", _("Note"))
     account.active = "active" in request.form
     duplicate = Account.query.filter(Account.name == account.name, Account.id != account.id).first()
     if duplicate:
@@ -63,8 +63,8 @@ def detail(account_id):
 def reconcile(account_id):
     account = db.get_or_404(Account, account_id)
     try:
-        on = form_date("on", "Data dell'estratto", required=True)
-        statement = form_decimal("statement_balance", "Saldo dell'estratto", required=True, allow_negative=True)
+        on = form_date("on", _("Data dell'estratto"), required=True)
+        statement = form_decimal("statement_balance", _("Saldo dell'estratto"), required=True, allow_negative=True)
     except ValueError as exc:
         flash(str(exc), "error")
         return redirect(url_for("accounts.detail", account_id=account.id))

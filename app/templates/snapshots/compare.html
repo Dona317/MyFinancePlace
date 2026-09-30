@@ -39,13 +39,13 @@
     <div class="kpi-icon"><i class="bi bi-clock-history"></i></div>
     <div class="kpi-label">{{ left.title }}</div>
     <div class="kpi-value">{{ left.net_worth|money }}</div>
-    <div class="kpi-sub">patrimonio netto al {{ left.date|it_date }}</div>
+    <div class="kpi-sub">{{ _('patrimonio netto al %(day)s', day=left.date|it_date) }}</div>
   </div>
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
     <div class="kpi-label">{{ right.title }}</div>
     <div class="kpi-value">{{ right.net_worth|money }}</div>
-    <div class="kpi-sub">patrimonio netto al {{ right.date|it_date }}</div>
+    <div class="kpi-sub">{{ _('patrimonio netto al %(day)s', day=right.date|it_date) }}</div>
   </div>
   {% set change = right.net_worth - left.net_worth %}
   <div class="kpi-card {{ 'kpi-positive' if change >= 0 else 'kpi-negative' }}">
@@ -53,7 +53,7 @@
     <div class="kpi-label">{{ _('Variazione') }}</div>
     <div class="kpi-value {{ 'text-positive' if change >= 0 else 'text-negative' }}">{{ '+' if change > 0 }}{{ change|money }}</div>
     <div class="kpi-sub">
-      {% if left.net_worth %}{{ '+' if change > 0 }}{{ (change / (left.net_worth|abs) * 100)|number(1) }}% · {% endif %}{{ (right.date - left.date).days }} giorni
+      {% if left.net_worth %}{{ '+' if change > 0 }}{{ (change / (left.net_worth|abs) * 100)|number(1) }}% · {% endif %}{{ _('%(days)s giorni', days=(right.date - left.date).days) }}
     </div>
   </div>
 </div>
@@ -70,11 +70,11 @@
         </tr>
       </thead>
       <tbody>
-        {% for section, title in [('assets', 'Attività'), ('liabilities', 'Passività')] %}
+        {% for section, title in [('assets', _('Attività')), ('liabilities', _('Passività'))] %}
         <tr><td colspan="4" class="statement-group-title">{{ title }}</td></tr>
         {% for line in lines if line.section == section %}
         <tr>
-          <td>{{ line.name }}</td>
+          <td>{{ line.name|tr }}</td>
           <td class="amount text-right">{{ line.a|money }}</td>
           <td class="amount text-right">{{ line.b|money }}</td>
           <td class="amount text-right">{{ diff(line.diff if section == 'assets' else -line.diff) }}</td>

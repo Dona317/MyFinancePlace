@@ -34,7 +34,7 @@ def create_app(config_name="default"):
 
     from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
     from .services import currency  # noqa: F401 — fills transactions.amount_base on save
-    from .services import display, notifications
+    from .services import display, i18n, notifications
 
 
     app.config["DESCRIPTION"] = """
@@ -111,6 +111,11 @@ def create_app(config_name="default"):
             if size < 1024 or unit == "GB":
                 return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}".replace(".", ",")
             size /= 1024
+
+    @app.template_filter("tr")
+    def translate_stored(value):
+        """A word stored in Italian (policy type, asset class…) shown in the interface language."""
+        return i18n.tr(value)
 
     @app.template_filter("it_date")
     def it_date(value):

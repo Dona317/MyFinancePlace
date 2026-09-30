@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% set months = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'] %}
-{% set month_name = months[month.month - 1] ~ ' ' ~ month.year %}
+{% set month_name = month|dateformat('MMMM y') %}
 {% block title %}{{ _('Budget') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Budget Mensili') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di Vita') }}</a></li><li>{{ _('Budget') }}</li>{% endblock %}
@@ -23,7 +22,7 @@
     <div class="kpi-icon"><i class="bi bi-cart"></i></div>
     <div class="kpi-label">{{ _('Speso') }}</div>
     <div class="kpi-value">{{ spent_total|money }}</div>
-    <div class="kpi-sub">{{ ((spent_total / planned * 100)|number(0) ~ '% del previsto') if planned else 'nelle categorie con budget' }}</div>
+    <div class="kpi-sub">{{ ((spent_total / planned * 100)|number(0) ~ _('%% del previsto')) if planned else _('nelle categorie con budget') }}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
@@ -44,8 +43,8 @@
       <div>
         <div class="card-header-title">{{ _('Budget per categoria') }}</div>
         <div class="card-header-sub">
-          «Ogni mese» vale per tutti i mesi; «solo {{ months[month.month - 1] }}» lo sostituisce per questo mese.
-          Avviso all'{{ warning }}% e quando lo superi. Lascia vuoto per nessun budget.
+          {{ _('«Ogni mese» vale per tutti i mesi; «solo %(month)s» lo sostituisce per questo mese.', month=month|dateformat('MMMM')) }}
+          {{ _("Avviso all'%(share)s%% e quando lo superi. Lascia vuoto per nessun budget.", share=warning) }}
         </div>
       </div>
       <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
@@ -53,7 +52,7 @@
     <div class="table-wrapper">
       <table>
         <thead>
-          <tr><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Ogni mese (€)') }}</th><th class="text-right">Solo {{ months[month.month - 1] }} (€)</th>
+          <tr><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Ogni mese (€)') }}</th><th class="text-right">{{ _('Solo %(month)s (€)', month=month|dateformat('MMMM')) }}</th>
               <th class="text-right">{{ _('Speso') }}</th><th style="min-width:180px;">{{ _('Andamento') }}</th><th class="text-right">{{ _('Rimane') }}</th></tr>
         </thead>
         <tbody>

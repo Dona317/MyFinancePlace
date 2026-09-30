@@ -28,7 +28,7 @@
           {% for h in holdings %}
           {% set field = 'price-' ~ h.id %}
           <tr>
-            <td><div class="cell-title">{{ h.name }}</div><div class="text-xs text-muted">{{ h.ticker or h.asset_class }}</div></td>
+            <td><div class="cell-title">{{ h.name }}</div><div class="text-xs text-muted">{{ h.ticker or h.asset_class|tr }}</div></td>
             <td class="amount text-right">{{ h.quantity|number(8) }}</td>
             <td class="amount text-right">{{ h.price|money }}</td>
             <td class="text-xs text-muted nowrap">{{ h.price_date|it_date }}</td>

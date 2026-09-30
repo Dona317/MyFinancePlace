@@ -42,7 +42,7 @@
 </div>
 {% if hidden %}
 <details class="card">
-  <summary class="card-header" style="cursor:pointer;"><div class="card-header-title text-muted">Già visti ({{ hidden|length }})</div></summary>
+  <summary class="card-header" style="cursor:pointer;"><div class="card-header-title text-muted">{{ _('Già visti (%(count)s)', count=hidden|length) }}</div></summary>
   <ul class="notification-list">
     {% for n in hidden %}
     <li class="notification text-muted"><i class="bi bi-{{ n.icon }}"></i><a href="{{ n.url }}" class="notification-body"><span>{{ n.title }}</span><span class="text-xs">{{ n.detail }}</span></a></li>

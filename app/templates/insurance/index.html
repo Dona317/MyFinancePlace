@@ -24,13 +24,13 @@
     <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
     <div class="kpi-label">{{ _('Premio Annuo Totale') }}</div>
     <div class="kpi-value">{{ annual_total|money }}</div>
-    <div class="kpi-sub">{{ (annual_total / 12)|money }} al mese</div>
+    <div class="kpi-sub">{{ _('%(amount)s al mese', amount=(annual_total / 12)|money) }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-calendar-event"></i></div>
     <div class="kpi-label">{{ _('Prossima Scadenza') }}</div>
     <div class="kpi-value">{{ next_expiry.expiry_date|it_date if next_expiry else '—' }}</div>
-    <div class="kpi-sub">{{ (next_expiry.type ~ ' · ' ~ next_expiry.company) if next_expiry else 'Nessuna scadenza' }}</div>
+    <div class="kpi-sub">{{ (next_expiry.type ~ ' · ' ~ next_expiry.company) if next_expiry else _('Nessuna scadenza') }}</div>
   </div>
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-umbrella"></i></div>
@@ -43,8 +43,8 @@
 {% if upcoming %}
 <div class="alert alert-warning mb-16">
   <i class="bi bi-bell"></i>
-  {{ upcoming|length }} {{ 'polizza scade' if upcoming|length == 1 else 'polizze scadono' }} entro {{ reminder_days }} giorni:
-  {% for p in upcoming %}<strong>{{ p.type }} ({{ p.company }})</strong> il {{ p.expiry_date|it_date }}{{ ', ' if not loop.last else '.' }}{% endfor %}
+  {{ ngettext('%(num)d polizza scade entro %(days)s giorni:', '%(num)d polizze scadono entro %(days)s giorni:', upcoming|length, days=reminder_days) }}
+  {% for p in upcoming %}<strong>{{ p.type|tr }} ({{ p.company }})</strong> {{ _('il %(day)s', day=p.expiry_date|it_date) }}{{ ', ' if not loop.last else '.' }}{% endfor %}
 </div>
 {% endif %}
 
@@ -59,7 +59,7 @@
       <form method="GET" class="inline-filter">
         <select name="type" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Filtra per tipo') }}">
           <option value="">{{ _('Tutti i tipi') }}</option>
-          {% for t in policy_types %}<option {{ 'selected' if t == selected }}>{{ t }}</option>{% endfor %}
+          {% for t in policy_types %}<option value="{{ t }}" {{ 'selected' if t == selected }}>{{ t|tr }}</option>{% endfor %}
         </select>
         <noscript><button class="btn btn-ghost btn-sm">{{ _('Filtra') }}</button></noscript>
       </form>
@@ -83,7 +83,7 @@
           {% set active = p.is_active(today) %}
           <tr>
             <td>
-              <div class="cell-title">{{ p.type }} · {{ p.company }}</div>
+              <div class="cell-title">{{ p.type|tr }} · {{ p.company }}</div>
               {% if p.policy_number %}<div class="text-xs text-muted font-mono">{{ p.policy_number }}</div>{% endif %}
             </td>
             <td class="amount text-right">{{ p.premium|money }}<div class="text-xs text-muted">{{ frequency_labels.get(p.frequency, p.frequency) }}</div></td>
@@ -97,7 +97,7 @@
             <td>
               <div class="cell-actions">
                 <a href="{{ url_for('insurance.edit', policy_id=p.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica polizza {{ p.company }}"><i class="bi bi-pencil"></i></a>
-                <form method="POST" action="{{ url_for('insurance.delete', policy_id=p.id) }}" data-confirm="Eliminare la polizza {{ p.type }} di {{ p.company }}?">
+                <form method="POST" action="{{ url_for('insurance.delete', policy_id=p.id) }}" data-confirm="Eliminare la polizza {{ p.type|tr }} di {{ p.company }}?">
                   <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina polizza {{ p.company }}"><i class="bi bi-trash3"></i></button>
                 </form>
               </div>
@@ -109,7 +109,7 @@
     </div>
     {% elif selected %}
     <div class="empty-state">
-      <div class="empty-state-text">Nessuna polizza di tipo «{{ selected }}».</div>
+      <div class="empty-state-text">{{ _('Nessuna polizza di tipo «%(type)s».', type=selected|tr) }}</div>
       <a href="{{ url_for('insurance.index') }}" class="btn btn-ghost">{{ _('Mostra tutte') }}</a>
     </div>
     {% else %}

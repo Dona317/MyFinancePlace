@@ -28,22 +28,23 @@ from app.services import settings_store
 from app.services.analytics import UNCATEGORIZED
 from app.services.duplicates import meaningful_words
 from app.services.periods import add_months, month_index, month_label, month_start, shift_month  # noqa: F401 (shift_month re-exported)
+from app.services.i18n import _l
 
 # ── Methods and preferences ────────────────────────────────────────────────────
 
 METHODS = {
-    "media":        ("Media mobile", "Media semplice degli ultimi N mesi."),
-    "ponderata":    ("Media ponderata", "Media degli ultimi N mesi con più peso ai mesi recenti (pesi 1, 2, … N)."),
-    "esponenziale": ("Media esponenziale", "Livellamento esponenziale con α = 2 / (N + 1): segue i cambiamenti più in fretta."),
-    "mediana":      ("Mediana", "Valore centrale degli ultimi N mesi: ignora i mesi eccezionali (una spesa una tantum)."),
-    "trend":        ("Trend lineare", "Retta di regressione sugli ultimi N mesi, proiettata in avanti: coglie spese in crescita o in calo."),
-    "stagionale":   ("Stagionale", "Lo stesso mese dell'anno prima, riscalato sul livello degli ultimi N mesi: coglie bollette "
-                                   "invernali, vacanze estive, tredicesima. Serve almeno un anno di storico."),
+    "media":        (_l("Media mobile"), _l("Media semplice degli ultimi N mesi.")),
+    "ponderata":    (_l("Media ponderata"), _l("Media degli ultimi N mesi con più peso ai mesi recenti (pesi 1, 2, … N).")),
+    "esponenziale": (_l("Media esponenziale"), _l("Livellamento esponenziale con α = 2 / (N + 1): segue i cambiamenti più in fretta.")),
+    "mediana":      (_l("Mediana"), _l("Valore centrale degli ultimi N mesi: ignora i mesi eccezionali (una spesa una tantum).")),
+    "trend":        (_l("Trend lineare"), _l("Retta di regressione sugli ultimi N mesi, proiettata in avanti: coglie spese in crescita o in calo.")),
+    "stagionale":   (_l("Stagionale"), _l("Lo stesso mese dell'anno prima, riscalato sul livello degli ultimi N mesi: coglie bollette "
+                                   "invernali, vacanze estive, tredicesima. Serve almeno un anno di storico.")),
 }
 # Amount of each recurring series in the forecast (salary with overtime, bills that change)
 RECURRING_AMOUNTS = {
-    "media":  ("Media della finestra", "Media degli importi della serie negli ultimi N mesi, come per le variabili."),
-    "ultimo": ("Ultimo importo", "L'importo dell'ultima transazione della serie: segue subito un aumento o un rinnovo."),
+    "media":  (_l("Media della finestra"), _l("Media degli importi della serie negli ultimi N mesi, come per le variabili.")),
+    "ultimo": (_l("Ultimo importo"), _l("L'importo dell'ultima transazione della serie: segue subito un aumento o un rinnovo.")),
 }
 DEFAULT_RECURRING = "media"
 DEFAULT_METHOD = "media"
@@ -55,10 +56,10 @@ BACKTEST_MONTHS = 6
 AMOUNT_TOLERANCE = 0.15   # a recurring series keeps its amount within ±15% (fuel or groceries don't)
 
 FREQUENCIES = {  # label, average length in days, tolerance in days, occurrences per month
-    "weekly":    ("Settimanale", 7.0, 2, 52 / 12),
-    "monthly":   ("Mensile", 30.44, 5, 1.0),
-    "quarterly": ("Trimestrale", 91.31, 10, 1 / 3),
-    "yearly":    ("Annuale", 365.25, 15, 1 / 12),
+    "weekly":    (_l("Settimanale"), 7.0, 2, 52 / 12),
+    "monthly":   (_l("Mensile"), 30.44, 5, 1.0),
+    "quarterly": (_l("Trimestrale"), 91.31, 10, 1 / 3),
+    "yearly":    (_l("Annuale"), 365.25, 15, 1 / 12),
 }
 STEP_MONTHS = {"monthly": 1, "quarterly": 3, "yearly": 12}
 
@@ -92,17 +93,17 @@ def save_preferences(method=None, window=None, horizon=None, recurring=None) -> 
 # ── Page layout: which panels, in which order, half or whole row ──────────────
 
 WIDGETS = {  # id: (title, default span: 1 = half row, 2 = whole row)
-    "kpi":        ("Indicatori", 2),
-    "net":        ("Netto mensile", 1),
-    "methods":    ("Confronto dei metodi", 1),
-    "income":     ("Entrate", 1),
-    "expenses":   ("Uscite", 1),
-    "balance":    ("Saldo di cassa previsto", 1),
-    "months":     ("Mese per mese", 1),
-    "categories": ("Previsione per categoria", 1),
-    "upcoming":   ("Prossime ricorrenti", 1),
-    "candidates": ("Sembrano ricorrenti", 1),
-    "help":       ("Come funziona", 1),
+    "kpi":        (_l("Indicatori"), 2),
+    "net":        (_l("Netto mensile"), 1),
+    "methods":    (_l("Confronto dei metodi"), 1),
+    "income":     (_l("Entrate"), 1),
+    "expenses":   (_l("Uscite"), 1),
+    "balance":    (_l("Saldo di cassa previsto"), 1),
+    "months":     (_l("Mese per mese"), 1),
+    "categories": (_l("Previsione per categoria"), 1),
+    "upcoming":   (_l("Prossime ricorrenti"), 1),
+    "candidates": (_l("Sembrano ricorrenti"), 1),
+    "help":       (_l("Come funziona"), 1),
 }
 
 

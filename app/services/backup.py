@@ -24,6 +24,7 @@ from app.models import (
     Transaction,
 )
 from app.services import currency, document_store
+from flask_babel import gettext as _
 
 FORMAT = "myfinanceplace-backup"
 VERSION = 2
@@ -78,7 +79,7 @@ def _row(model, record: dict) -> dict:
         if column.name in record:
             values[column.name] = _load(column, record[column.name])
         elif not column.nullable and column.default is None and not column.primary_key:
-            raise BackupError(f"Tabella {model.__tablename__}: manca il campo obbligatorio «{column.name}».")
+            raise BackupError(_("Tabella %(tablename__)s: manca il campo obbligatorio «%(name)s».", tablename__=model.__tablename__, name=column.name))
     return values
 
 
@@ -124,23 +125,23 @@ def read_upload(raw: bytes) -> tuple[dict, dict[str, bytes]]:
                     if name.startswith(DOCUMENTS_DIR) and stored and "/" not in stored and not stored.startswith("."):
                         files[stored] = archive.read(name)
         except KeyError:
-            raise BackupError(f"Nel file .zip manca {DATA_FILE}: non è un backup di MyFinancePlace.") from None
+            raise BackupError(_("Nel file .zip manca %(DATA_FILE)s: non è un backup di MyFinancePlace.", DATA_FILE=DATA_FILE)) from None
         except (zipfile.BadZipFile, UnicodeDecodeError, json.JSONDecodeError):
-            raise BackupError("Il file .zip è danneggiato o non è un backup di MyFinancePlace.") from None
+            raise BackupError(_("Il file .zip è danneggiato o non è un backup di MyFinancePlace.")) from None
     else:
         try:
             data = json.loads(raw.decode("utf-8-sig"))
         except (UnicodeDecodeError, json.JSONDecodeError):
-            raise BackupError("Il file non è un backup (.zip) né un export JSON di MyFinancePlace.") from None
+            raise BackupError(_("Il file non è un backup (.zip) né un export JSON di MyFinancePlace.")) from None
     if not isinstance(data, dict):
-        raise BackupError("Il file non è un backup di MyFinancePlace.")
+        raise BackupError(_("Il file non è un backup di MyFinancePlace."))
     if data.get("format") == FORMAT:
         if not isinstance(data.get("tables"), dict):
-            raise BackupError("Backup incompleto: mancano le tabelle.")
+            raise BackupError(_("Backup incompleto: mancano le tabelle."))
         if int(data.get("version") or 0) > VERSION:
-            raise BackupError("Il backup viene da una versione più recente dell'app: aggiorna l'app prima di ripristinarlo.")
+            raise BackupError(_("Il backup viene da una versione più recente dell'app: aggiorna l'app prima di ripristinarlo."))
     elif not isinstance(data.get("transactions"), list):
-        raise BackupError("Il file non è un backup di MyFinancePlace.")
+        raise BackupError(_("Il file non è un backup di MyFinancePlace."))
     return data, files
 
 
@@ -170,10 +171,10 @@ def restore(data: dict, files: dict[str, bytes]) -> dict:
         raise
     except (ValueError, TypeError, InvalidOperation, KeyError) as exc:
         db.session.rollback()
-        raise BackupError(f"Il backup contiene un valore non valido ({exc}).") from None
+        raise BackupError(_("Il backup contiene un valore non valido (%(exc)s).", exc=exc)) from None
     except Exception as exc:  # database constraints (duplicates, broken links)
         db.session.rollback()
-        raise BackupError(f"Il database ha rifiutato il backup: {str(exc).splitlines()[0]}") from None
+        raise BackupError(_("Il database ha rifiutato il backup: %(value)s", value=str(exc).splitlines()[0])) from None
 
     kept = {record["stored_name"] for record in tables.get("documents", [])}
     for stored, content in files.items():
@@ -207,7 +208,7 @@ def import_transactions(data: dict) -> tuple[int, int]:
             record = {k: v for k, v in record.items() if k != "id"}
             values = _row(Transaction, record)
             if "date" not in values or "description" not in values or "amount" not in values:
-                raise BackupError("Una transazione del file non ha data, descrizione o importo.")
+                raise BackupError(_("Una transazione del file non ha data, descrizione o importo."))
             values["amount"] = abs(values["amount"])
             key = (values["date"], values["description"], values["amount"].quantize(Decimal("0.01")), values.get("type"))
             if key in existing:
@@ -223,7 +224,7 @@ def import_transactions(data: dict) -> tuple[int, int]:
         raise
     except (ValueError, TypeError, InvalidOperation, AttributeError) as exc:
         db.session.rollback()
-        raise BackupError(f"Il file contiene un valore non valido ({exc}).") from None
+        raise BackupError(_("Il file contiene un valore non valido (%(exc)s).", exc=exc)) from None
     return added, skipped
 
 

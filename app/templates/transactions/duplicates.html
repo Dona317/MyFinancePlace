@@ -15,7 +15,7 @@
     <label style="font-size:var(--font-size-sm);display:flex;align-items:center;gap:6px;margin-left:auto;">
       {{ _('Sensibilità') }}
       <select name="sensitivity" class="form-select" style="width:auto;" onchange="this.form.submit()">
-        {% for key, label in [('alta', 'Alta — descrizioni anche poco simili'), ('normale', 'Normale'), ('bassa', 'Bassa — quasi identiche')] %}
+        {% for key, label in [('alta', _('Alta — descrizioni anche poco simili')), ('normale', _('Normale')), ('bassa', _('Bassa — quasi identiche'))] %}
         <option value="{{ key }}" {{ 'selected' if sensitivity == key else '' }}>{{ label }}</option>
         {% endfor %}
       </select>
@@ -23,7 +23,7 @@
     <label style="font-size:var(--font-size-sm);display:flex;align-items:center;gap:6px;">
       {{ _('Distanza date') }}
       <select name="window" class="form-select" style="width:auto;" onchange="this.form.submit()">
-        {% for days, label in [(0, 'stesso giorno'), (1, '± 1 giorno'), (3, '± 3 giorni'), (7, '± 7 giorni')] %}
+        {% for days, label in [(0, _('stesso giorno')), (1, _('± 1 giorno')), (3, _('± 3 giorni')), (7, _('± 7 giorni'))] %}
         <option value="{{ days }}" {{ 'selected' if window == days else '' }}>{{ label }}</option>
         {% endfor %}
       </select>
@@ -40,7 +40,7 @@
     <div>
       <div class="card-header-title">
         {% if group.identical %}<span class="badge badge-negative">{{ _('Identici') }}</span>{% else %}<span class="badge badge-muted">{{ _('Simili') }}</span>{% endif %}
-        {{ group.transactions|length }} transazioni da
+        {{ _('%(count)s transazioni da', count=group.transactions|length) }}
         <span class="amount {{ first.type|tone }}">{{ first.amount|abs|money }}</span>
       </div>
       <div class="card-header-sub">

@@ -47,7 +47,7 @@
         <tr>
           <td class="font-mono">{{ r.keyword }}</td>
           <td><span class="badge badge-primary">{{ r.category }}</span></td>
-          <td><span class="badge {{ 'badge-neutral' if r.source == 'manual' else 'badge-warning' }}">{{ 'Tua' if r.source == 'manual' else 'Imparata' }}</span></td>
+          <td><span class="badge {{ 'badge-neutral' if r.source == 'manual' else 'badge-warning' }}">{{ _('Tua') if r.source == 'manual' else _('Imparata') }}</span></td>
           <td class="text-right">{{ r.hits }}</td>
           <td>
             <div class="cell-actions">

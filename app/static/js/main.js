@@ -25,6 +25,11 @@ function closeModal(id) {
   document.body.style.overflow = "";
 }
 
+/* Fill a translated message: fmt("%(count)s rows", {count: 3}) → "3 rows" */
+function fmt(message, values) {
+  return String(message).replace(/%\((\w+)\)s/g, (all, key) => (key in values ? values[key] : all));
+}
+
 /* ── Light / dark mode ─────────────────────────────────────────────────── */
 // The user's choice is remembered; until they choose, the app follows the operating system.
 function currentTheme() {

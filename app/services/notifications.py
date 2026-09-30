@@ -8,11 +8,13 @@ from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
 from flask import url_for
+from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
 from app.routes.settings import current_settings
-from app.services import budgets, forecast, request_cache, settings_store, wealth
+from app.services import budgets, display, forecast, request_cache, settings_store, wealth
+from app.services.i18n import tr
 
 DISMISSED_SETTING = "notifications.dismissed"
 KEEP_DISMISSED = 500
@@ -37,7 +39,7 @@ class Notification:
 
 
 def _money(value: float) -> str:
-    return f"€ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return display.money(value)
 
 
 def _policies(today: date) -> list[Notification]:
@@ -46,9 +48,9 @@ def _policies(today: date) -> list[Notification]:
         days = (p.expiry_date - today).days
         if -7 <= days <= POLICY_DAYS:
             level = "danger" if days < 0 else "warning" if days <= 15 else "info"
-            when = "scaduta" if days < 0 else "scade oggi" if days == 0 else f"scade tra {days} giorni"
+            when = _("Scaduta") if days < 0 else _("Scade oggi") if days == 0 else _("Scade tra %(days)s giorni", days=days)
             items.append(Notification(f"policy-{p.id}-{p.expiry_date}", level, "shield-exclamation",
-                                      f"Polizza {p.type} · {p.company}", f"{when.capitalize()} ({p.expiry_date:%d/%m/%Y})",
+                                      _("Polizza %(type)s · %(company)s", type=tr(p.type), company=p.company), f"{when} ({display.day(p.expiry_date)})",
                                       p.expiry_date, url_for("insurance.edit", policy_id=p.id)))
     return items
 
@@ -62,8 +64,9 @@ def _recurring(today: date) -> list[Notification]:
             income = tx.type == "income"
             items.append(Notification(
                 f"recurring-{tx.id}-{due}", "info", "arrow-repeat",
-                f"{'Entrata' if income else 'Spesa'} ricorrente: {tx.description}",
-                f"{_money(tx.magnitude)} il {due:%d/%m/%Y}", due, url_for("transactions.edit", tx_id=tx.id)))
+                (_("Entrata ricorrente: %(description)s", description=tx.description) if income
+                 else _("Spesa ricorrente: %(description)s", description=tx.description)),
+                _("%(amount)s il %(day)s", amount=_money(tx.magnitude), day=display.day(due)), due, url_for("transactions.edit", tx_id=tx.id)))
     return items
 
 
@@ -74,7 +77,7 @@ def _installments(today: date) -> list[Notification]:
         for row in wealth.schedule(debt):
             if today <= row.due <= end:
                 items.append(Notification(f"debt-{debt.id}-{row.due}", "info", "credit-card",
-                                          f"Rata {debt.name}", f"{_money(row.payment)} il {row.due:%d/%m/%Y}",
+                                          _("Rata %(name)s", name=debt.name), _("%(amount)s il %(day)s", amount=_money(row.payment), day=display.day(row.due)),
                                           row.due, url_for("debt.detail", debt_id=debt.id)))
             if row.due > end:
                 break
@@ -87,8 +90,10 @@ def _budgets(today: date) -> list[Notification]:
         over = line["state"] == "over"
         items.append(Notification(
             f"budget-{line['category']}-{today:%Y-%m}-{line['state']}", "danger" if over else "warning", "clipboard-x",
-            f"Budget {line['category']} {'superato' if over else 'quasi esaurito'}",
-            f"Spesi {_money(line['spent'])} su {_money(line['planned'])} ({line['share']:.0f}%)",
+            (_("Budget %(category)s superato", category=line['category']) if over
+             else _("Budget %(category)s quasi esaurito", category=line['category'])),
+            _("Spesi %(spent)s su %(planned)s (%(share)s%%)", spent=_money(line['spent']), planned=_money(line['planned']),
+              share=f"{line['share']:.0f}"),
             today, url_for("lifestyle.budget")))
     return items
 
@@ -100,13 +105,14 @@ def _goals(today: date) -> list[Notification]:
             continue
         days = (goal.target_date - today).days
         if days < 0:
-            items.append(Notification(f"goal-{goal.id}-late", "warning", "trophy", f"Obiettivo «{goal.name}» scaduto",
-                                      f"Mancano {_money(goal.remaining)}; sposta la data o aggiungi un versamento",
+            items.append(Notification(f"goal-{goal.id}-late", "warning", "trophy", _("Obiettivo «%(name)s» scaduto", name=goal.name),
+                                      _("Mancano %(amount)s; sposta la data o aggiungi un versamento", amount=_money(goal.remaining)),
                                       goal.target_date, url_for("lifestyle.goals")))
         elif days <= GOAL_DAYS:
             items.append(Notification(f"goal-{goal.id}-{goal.target_date}", "info", "trophy",
-                                      f"Obiettivo «{goal.name}» tra {days} giorni",
-                                      f"Mancano {_money(goal.remaining)} ({goal.progress:.0f}% raggiunto)",
+                                      _("Obiettivo «%(name)s» tra %(days)s giorni", name=goal.name, days=days),
+                                      _("Mancano %(amount)s (%(progress)s%% raggiunto)", amount=_money(goal.remaining),
+                                        progress=f"{goal.progress:.0f}"),
                                       goal.target_date, url_for("lifestyle.goals")))
     return items
 

@@ -29,6 +29,7 @@ from flask import current_app
 
 from app.services import settings_store
 from app.services.statement_readers import is_image, is_pdf
+from flask_babel import gettext as _
 
 DEFAULT_MODELS = {"ollama": "qwen2.5vl:7b", "anthropic": "claude-opus-5"}
 ANTHROPIC_MODELS = ("claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5")  # offered in the UI, most capable first
@@ -169,10 +170,10 @@ def extract(filename: str, raw: bytes, text: str | None = None, model: str | Non
     """
     name = provider()
     if name is None:
-        raise AIExtractionError("La lettura con intelligenza artificiale non è attiva (LLM_PROVIDER).")
+        raise AIExtractionError(_("La lettura con intelligenza artificiale non è attiva (LLM_PROVIDER)."))
     kind = _file_kind(raw)
     if kind is None and not (text and text.strip()):
-        raise AIExtractionError("Formato non leggibile dal modello: carica un PDF, un'immagine (JPG/PNG) o un documento di testo.")
+        raise AIExtractionError(_("Formato non leggibile dal modello: carica un PDF, un'immagine (JPG/PNG) o un documento di testo."))
 
     progress = progress or _no_progress
     if name == "anthropic":
@@ -205,7 +206,7 @@ def split_pdf(raw: bytes, pages_per_part: int) -> list[bytes]:
     try:
         source = pdfium.PdfDocument(raw)
     except Exception as exc:
-        raise AIExtractionError(f"Impossibile leggere il PDF: {exc}")
+        raise AIExtractionError(_("Impossibile leggere il PDF: %(exc)s", exc=exc))
     total = len(source)
     if total <= pages_per_part:
         return [raw]
@@ -252,10 +253,10 @@ def _parse_result(payload: str, model: str) -> AIExtraction:
     try:
         data = json.loads(payload)
     except (TypeError, json.JSONDecodeError):
-        raise AIExtractionError("Il modello non ha restituito dati leggibili: riprova o usa un file di qualità migliore.")
+        raise AIExtractionError(_("Il modello non ha restituito dati leggibili: riprova o usa un file di qualità migliore."))
     movements = data.get("movements") if isinstance(data, dict) else None
     if not isinstance(movements, list):
-        raise AIExtractionError("Il modello non ha restituito l'elenco dei movimenti.")
+        raise AIExtractionError(_("Il modello non ha restituito l'elenco dei movimenti."))
     return AIExtraction(
         movements=[m for m in movements if isinstance(m, dict)],
         bank_name=str(data.get("bank_name") or ""),
@@ -276,7 +277,7 @@ def _normalize_image(raw: bytes) -> tuple[bytes, str]:
         image = Image.open(io.BytesIO(raw))
         image = ImageOps.exif_transpose(image)  # phone photos: honour the rotation flag
     except Exception:
-        raise AIExtractionError("Immagine non leggibile: carica una foto JPG o PNG.")
+        raise AIExtractionError(_("Immagine non leggibile: carica una foto JPG o PNG."))
     image.thumbnail((MAX_IMAGE_SIDE, MAX_IMAGE_SIDE))
     buffer = io.BytesIO()
     if image.mode in ("RGBA", "LA", "P"):
@@ -300,7 +301,7 @@ def _pdf_page_images(raw: bytes) -> list[bytes]:
     except AIExtractionError:
         raise
     except Exception as exc:
-        raise AIExtractionError(f"Impossibile leggere il PDF: {exc}")
+        raise AIExtractionError(_("Impossibile leggere il PDF: %(exc)s", exc=exc))
 
 
 # ── Anthropic (Claude) ─────────────────────────────────────────────────────────
@@ -331,24 +332,24 @@ def anthropic_json(model: str, system: str, content: list[dict], schema: dict, m
         with client.beta.messages.stream(**request) as stream:
             message = stream.get_final_message()
     except anthropic.AuthenticationError:
-        raise AIExtractionError("Chiave API Anthropic mancante o non valida (ANTHROPIC_API_KEY).")
+        raise AIExtractionError(_("Chiave API Anthropic mancante o non valida (ANTHROPIC_API_KEY)."))
     except anthropic.PermissionDeniedError:
-        raise AIExtractionError("La chiave API Anthropic non ha accesso a questo modello (LLM_MODEL).")
+        raise AIExtractionError(_("La chiave API Anthropic non ha accesso a questo modello (LLM_MODEL)."))
     except anthropic.NotFoundError:
-        raise AIExtractionError(f"Modello Anthropic non trovato: {model} (LLM_MODEL).")
+        raise AIExtractionError(_("Modello Anthropic non trovato: %(model)s (LLM_MODEL).", model=model))
     except anthropic.RateLimitError:
-        raise AIExtractionError("Troppe richieste all'API Anthropic: riprova tra qualche minuto.")
+        raise AIExtractionError(_("Troppe richieste all'API Anthropic: riprova tra qualche minuto."))
     except anthropic.BadRequestError as exc:
-        raise AIExtractionError(f"Richiesta rifiutata dall'API Anthropic: {exc.message}")
+        raise AIExtractionError(_("Richiesta rifiutata dall'API Anthropic: %(message)s", message=exc.message))
     except anthropic.APIStatusError as exc:
-        raise AIExtractionError(f"Errore del servizio Anthropic ({exc.status_code}): riprova più tardi.")
+        raise AIExtractionError(_("Errore del servizio Anthropic (%(status_code)s): riprova più tardi.", status_code=exc.status_code))
     except anthropic.APITimeoutError:
-        raise AIExtractionError("Il modello ha impiegato troppo tempo: riprova o dividi il lavoro.")
+        raise AIExtractionError(_("Il modello ha impiegato troppo tempo: riprova o dividi il lavoro."))
     except anthropic.APIConnectionError:
-        raise AIExtractionError("Impossibile contattare l'API Anthropic: controlla la connessione.")
+        raise AIExtractionError(_("Impossibile contattare l'API Anthropic: controlla la connessione."))
 
     if message.stop_reason == "refusal":
-        raise AIExtractionError("Il modello ha rifiutato la richiesta.")
+        raise AIExtractionError(_("Il modello ha rifiutato la richiesta."))
     if message.stop_reason == "max_tokens":
         raise AIExtractionError(too_long)
     return next((block.text for block in message.content if block.type == "text"), None)
@@ -400,14 +401,14 @@ def ollama_json(model: str, system: str, prompt: str, schema: dict, images: list
             return json.loads(response.read())["message"]["content"]
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
-            raise AIExtractionError(f"Modello non installato in Ollama: esegui `ollama pull {model}`.")
-        raise AIExtractionError(f"Errore di Ollama ({exc.code}): {exc.read()[:200].decode(errors='replace')}")
+            raise AIExtractionError(_("Modello non installato in Ollama: esegui `ollama pull %(model)s`.", model=model))
+        raise AIExtractionError(_("Errore di Ollama (%(code)s): %(value)s", code=exc.code, value=exc.read()[:200].decode(errors='replace')))
     except (urllib.error.URLError, ConnectionError):
-        raise AIExtractionError(f"Ollama non raggiungibile su {url}: avvialo con `ollama serve`.")
+        raise AIExtractionError(_("Ollama non raggiungibile su %(url)s: avvialo con `ollama serve`.", url=url))
     except TimeoutError:
-        raise AIExtractionError("Il modello locale ha impiegato troppo tempo: riprova o dividi il lavoro.")
+        raise AIExtractionError(_("Il modello locale ha impiegato troppo tempo: riprova o dividi il lavoro."))
     except (KeyError, json.JSONDecodeError):
-        raise AIExtractionError("Risposta di Ollama non valida.")
+        raise AIExtractionError(_("Risposta di Ollama non valida."))
 
 
 def _ollama_chat(model: str, prompt: str, images: list[bytes] | None = None) -> str:

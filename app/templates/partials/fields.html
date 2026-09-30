@@ -44,7 +44,7 @@
     {% if blank is not none %}<option value="">{{ blank }}</option>{% endif %}
     {% for option in options %}
       {% set opt_value, opt_label = (option if option is not string else (option, option)) %}
-      <option value="{{ opt_value }}" {{ 'selected' if chosen is not none and opt_value|string == chosen|string }}>{{ opt_label }}</option>
+      <option value="{{ opt_value }}" {{ 'selected' if chosen is not none and opt_value|string == chosen|string }}>{{ opt_label|tr }}</option>
     {% endfor %}
   </select>
 </div>

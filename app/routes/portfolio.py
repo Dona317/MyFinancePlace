@@ -18,17 +18,17 @@ portfolio_bp = APIBlueprint(
 
 
 def _holding_from_form(holding: Holding) -> Holding:
-    holding.name = form_text("name", "Nome", required=True)
-    holding.ticker = form_text("ticker", "Ticker")
-    holding.asset_class = form_choice("asset_class", "Classe", wealth.ASSET_CLASSES)
-    holding.quantity = form_decimal("quantity", "Quantità", required=True)
-    holding.avg_price = form_decimal("avg_price", "Prezzo medio di acquisto", required=True)
-    price = form_decimal("current_price", "Prezzo attuale")
+    holding.name = form_text("name", _("Nome"), required=True)
+    holding.ticker = form_text("ticker", _("Ticker"))
+    holding.asset_class = form_choice("asset_class", _("Classe"), wealth.ASSET_CLASSES)
+    holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
+    holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
+    price = form_decimal("current_price", _("Prezzo attuale"))
     if price != holding.current_price:
         holding.price_date = date.today() if price is not None else None
     holding.current_price = price
-    holding.purchase_date = form_date("purchase_date", "Data di acquisto")
-    holding.notes = form_text("notes", "Note")
+    holding.purchase_date = form_date("purchase_date", _("Data di acquisto"))
+    holding.notes = form_text("notes", _("Note"))
     return holding
 
 
@@ -91,7 +91,7 @@ def prices():
         changed = 0
         try:
             for holding in holdings:
-                price = form_decimal(f"price-{holding.id}", f"Prezzo di {holding.name}")
+                price = form_decimal(f"price-{holding.id}", _("Prezzo di %(name)s", name=holding.name))
                 if price is not None and price != holding.current_price:
                     holding.current_price = price
                     holding.price_date = date.today()

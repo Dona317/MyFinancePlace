@@ -46,6 +46,7 @@ from app.services import ai_extraction, duplicates
 from app.services import statement_readers as readers
 from app.services.parsing import TRANSACTION_TYPES, clean_text, normalize, to_date, to_decimal, valid_amount
 from app.services.statement_readers import Word
+from flask_babel import gettext as _
 
 HEADER_SCAN_ROWS = 40
 PENDING_STATUSES = ("non contabilizzat", "autorizzat", "in attesa", "pending", "da contabilizzare")
@@ -362,7 +363,7 @@ def layout_for_headers(headers: list[str], bank: str = AUTO, identified: str | N
 
 def detect_layout(rows: list[list], filename: str = "", bank: str = AUTO) -> Layout:
     if bank != AUTO and bank not in BANKS:
-        raise StatementImportError(f"Banca non supportata: {bank}")
+        raise StatementImportError(_("Banca non supportata: %(bank)s", bank=bank))
 
     for index, row in enumerate(rows[:HEADER_SCAN_ROWS]):
         headers = [header_key(c) for c in row]
@@ -373,7 +374,7 @@ def detect_layout(rows: list[list], filename: str = "", bank: str = AUTO) -> Lay
             return Layout(bank=BANKS[key], header_row=index, columns=columns, headers=headers)
 
     expected = "Data, Descrizione e Importo (oppure Entrate/Uscite)"
-    raise StatementImportError(f"Intestazione dei movimenti non trovata: servono almeno le colonne {expected}.")
+    raise StatementImportError(_("Intestazione dei movimenti non trovata: servono almeno le colonne %(expected)s.", expected=expected))
 
 
 # ── Column layouts without a table (PDF text, fixed-width TXT) ─────────────────
@@ -770,7 +771,7 @@ def read_with_ai(filename: str, raw: bytes, model: str | None = None,
     try:
         return ai_extraction.extract(filename, raw, text_for_ai(filename, raw), model, progress)
     except ai_extraction.AIExtractionError as exc:
-        raise StatementImportError(f"Lettura AI non riuscita: {exc}")
+        raise StatementImportError(_("Lettura AI non riuscita: %(exc)s", exc=exc))
 
 
 def preview_from_ai(filename: str, result: ai_extraction.AIExtraction, bank: str = AUTO) -> StatementPreview:
@@ -789,7 +790,7 @@ def preview_from_ai(filename: str, result: ai_extraction.AIExtraction, bank: str
             details=clean_text(item.get("details")),
         ))
     if not rows:
-        raise StatementImportError("Lettura AI: nessun movimento riconosciuto nel documento.")
+        raise StatementImportError(_("Lettura AI: nessun movimento riconosciuto nel documento."))
 
     bank_key = bank if bank != AUTO else _bank_from_name(f"{result.bank_name} {filename}")
     rows.sort(key=lambda r: r.date)
@@ -830,7 +831,7 @@ def _extract_rows(document: readers.Document, filename: str, bank: str) -> tuple
         if rows:
             return rows, 0, BANKS["generic"]
 
-    raise error or StatementImportError("Nessun movimento trovato nel file.")
+    raise error or StatementImportError(_("Nessun movimento trovato nel file."))
 
 
 def bank_causale(row: dict) -> str | None:

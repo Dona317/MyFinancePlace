@@ -47,7 +47,7 @@ def balance_sheet():
 def opening_cash():
     """Money on the accounts before the first transaction recorded in the app."""
     try:
-        amount = form_decimal("opening_cash", "Saldo iniziale", allow_negative=True)
+        amount = form_decimal("opening_cash", _("Saldo iniziale"), allow_negative=True)
     except ValueError as exc:
         flash(str(exc), "error")
         return redirect(url_for("accounting.balance_sheet"))

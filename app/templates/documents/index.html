@@ -60,7 +60,7 @@
     <input type="search" name="q" value="{{ filters.q }}" class="form-control" placeholder="{{ _('Cerca per nome o note...') }}" style="flex:1;" aria-label="{{ _('Cerca documento') }}" />
     <select name="doc_type" class="form-select" aria-label="{{ _('Tipo') }}">
       <option value="">{{ _('Tutti i tipi') }}</option>
-      {% for t in doc_types %}<option {{ 'selected' if t == filters.doc_type }}>{{ t }}</option>{% endfor %}
+      {% for t in doc_types %}<option value="{{ t }}" {{ 'selected' if t == filters.doc_type }}>{{ t|tr }}</option>{% endfor %}
     </select>
     <select name="year" class="form-select" aria-label="{{ _('Anno fiscale') }}">
       <option value="">{{ _('Tutti gli anni') }}</option>
@@ -107,7 +107,7 @@
               </div>
             </div>
           </td>
-          <td>{% if doc.doc_type %}<span class="badge badge-primary">{{ doc.doc_type }}</span>{% else %}—{% endif %}</td>
+          <td>{% if doc.doc_type %}<span class="badge badge-primary">{{ doc.doc_type|tr }}</span>{% else %}—{% endif %}</td>
           <td>{{ doc.fiscal_year or '—' }}</td>
           <td>{{ doc.category or '—' }}</td>
           <td class="text-xs">

@@ -18,13 +18,13 @@
     <div class="kpi-icon"><i class="bi bi-trophy"></i></div>
     <div class="kpi-label">{{ _('Obiettivi Attivi') }}</div>
     <div class="kpi-value">{{ active_count }}</div>
-    <div class="kpi-sub">{{ completed_count }} completati</div>
+    <div class="kpi-sub">{{ _('%(count)s completati', count=completed_count) }}</div>
   </div>
   <div class="kpi-card kpi-positive">
     <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
     <div class="kpi-label">{{ _('Totale Risparmiato') }}</div>
     <div class="kpi-value text-positive">{{ saved_total|money }}</div>
-    <div class="kpi-sub">su {{ target_total|money }} di obiettivi</div>
+    <div class="kpi-sub">{{ _('su %(amount)s di obiettivi', amount=target_total|money) }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-calendar2-week"></i></div>
@@ -51,12 +51,12 @@
         <div>
           <div class="cell-title">{{ goal.name }}</div>
           <div class="text-xs text-muted">
-            {% if goal.target_date %}Entro il {{ goal.target_date|it_date }}{% if goal.target_date < today and not goal.completed %} · <span class="text-negative">{{ _('scaduto') }}</span>{% endif %}
+            {% if goal.target_date %}{{ _('Entro il %(day)s', day=goal.target_date|it_date) }}{% if goal.target_date < today and not goal.completed %} · <span class="text-negative">{{ _('scaduto') }}</span>{% endif %}
             {% else %}{{ _('Senza scadenza') }}{% endif %}
           </div>
         </div>
         <span class="badge badge-{{ 'positive' if goal.completed else 'neutral' }}">
-          {{ 'Raggiunto' if goal.completed else goal.progress|number(1) ~ '%' }}
+          {{ _('Raggiunto') if goal.completed else goal.progress|number(1) ~ '%' }}
         </span>
       </div>
       <div class="goal-amounts">
@@ -66,7 +66,7 @@
       <div class="progress-bar-wrap">
         <div class="progress-bar-fill {{ 'positive' if goal.completed }}" style="width:{{ goal.progress }}%;"></div>
       </div>
-      {% if monthly %}<div class="text-xs text-muted mt-8">{{ monthly|money }} al mese per arrivarci in tempo</div>{% endif %}
+      {% if monthly %}<div class="text-xs text-muted mt-8">{{ _('%(amount)s al mese per arrivarci in tempo', amount=monthly|money) }}</div>{% endif %}
       {% if goal.notes %}<div class="text-xs text-muted mt-8">{{ goal.notes }}</div>{% endif %}
       <div class="goal-foot">
         <form method="POST" action="{{ url_for('lifestyle.goal_contribute', goal_id=goal.id) }}">

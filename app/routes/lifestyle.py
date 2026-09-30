@@ -63,8 +63,8 @@ def budget_save():
     month = _month_arg()
     try:
         for name in request.form.getlist("category"):
-            budgets.save(name, form_decimal(f"every-{name}", f"Budget mensile di {name}"), None)
-            budgets.save(name, form_decimal(f"month-{name}", f"Budget di questo mese per {name}"), month)
+            budgets.save(name, form_decimal(f"every-{name}", _("Budget mensile di %(name)s", name=name)), None)
+            budgets.save(name, form_decimal(f"month-{name}", _("Budget di questo mese per %(name)s", name=name)), month)
     except ValueError as exc:
         db.session.rollback()
         flash(str(exc), "error")
@@ -82,22 +82,22 @@ def _suggestions() -> list[dict]:
     avg_expenses = sum(trailing["expenses"]) / 12
     emergency = round(avg_expenses * 6, -2) if avg_expenses else 10000
     return [
-        {"name": "Fondo d'emergenza", "icon": "bi-shield-check", "target": emergency,
-         "hint": "6 mesi delle tue spese medie" if avg_expenses else "3–6 mesi di spese"},
-        {"name": "Pensione integrativa", "icon": "bi-person-check", "target": 50000, "hint": "Contribuzione mensile"},
-        {"name": "Acquisto casa", "icon": "bi-house-heart", "target": 40000, "hint": "Anticipo e spese notarili"},
-        {"name": "Vacanza", "icon": "bi-airplane", "target": 3000, "hint": "Risparmio per viaggi"},
-        {"name": "Istruzione", "icon": "bi-mortarboard", "target": 5000, "hint": "Corsi e formazione"},
-        {"name": "Veicolo", "icon": "bi-car-front", "target": 15000, "hint": "Auto o moto"},
+        {"name": _("Fondo d'emergenza"), "icon": "bi-shield-check", "target": emergency,
+         "hint": _("6 mesi delle tue spese medie") if avg_expenses else _("3–6 mesi di spese")},
+        {"name": _("Pensione integrativa"), "icon": "bi-person-check", "target": 50000, "hint": _("Contribuzione mensile")},
+        {"name": _("Acquisto casa"), "icon": "bi-house-heart", "target": 40000, "hint": _("Anticipo e spese notarili")},
+        {"name": _("Vacanza"), "icon": "bi-airplane", "target": 3000, "hint": _("Risparmio per viaggi")},
+        {"name": _("Istruzione"), "icon": "bi-mortarboard", "target": 5000, "hint": _("Corsi e formazione")},
+        {"name": _("Veicolo"), "icon": "bi-car-front", "target": 15000, "hint": _("Auto o moto")},
     ]
 
 
 def _goal_from_form(goal: Goal) -> Goal:
-    goal.name = form_text("name", "Nome", required=True)
-    goal.target_amount = form_decimal("target_amount", "Importo obiettivo", required=True)
-    goal.saved_amount = form_decimal("saved_amount", "Già risparmiato") or 0
-    goal.target_date = form_date("target_date", "Data obiettivo")
-    goal.notes = form_text("notes", "Note")
+    goal.name = form_text("name", _("Nome"), required=True)
+    goal.target_amount = form_decimal("target_amount", _("Importo obiettivo"), required=True)
+    goal.saved_amount = form_decimal("saved_amount", _("Già risparmiato")) or 0
+    goal.target_date = form_date("target_date", _("Data obiettivo"))
+    goal.notes = form_text("notes", _("Note"))
     if not goal.target_amount:
         raise ValueError(_("Importo obiettivo: deve essere maggiore di zero."))
     return goal
@@ -162,7 +162,7 @@ def goal_contribute(goal_id):
     """Add (or, with a negative amount, withdraw) money set aside for the goal."""
     goal = db.get_or_404(Goal, goal_id)
     try:
-        amount = form_decimal("amount", "Importo", required=True, allow_negative=True)
+        amount = form_decimal("amount", _("Importo"), required=True, allow_negative=True)
     except ValueError as exc:
         flash(str(exc), "error")
         return redirect(url_for("lifestyle.goals"))

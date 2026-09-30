@@ -2,11 +2,11 @@
 
 {% set is_edit = transaction is not none %}
 {# `v`: what the fields show — the stored transaction, or what was typed when saving failed #}
-{% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione — MyFinancePlace{% endblock %}
-{% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione{% endblock %}
+{% block title %}{{ _('Modifica transazione') if is_edit else _('Nuova transazione') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Modifica transazione') if is_edit else _('Nuova transazione') }}{% endblock %}
 {% block breadcrumb %}
   <li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li>
-  <li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>
+  <li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>
 {% endblock %}
 
 {% block content %}
@@ -16,7 +16,7 @@
     <div class="card-header">
       <div class="card-header-title">
         <i class="bi bi-{{ 'pencil' if is_edit else 'plus-circle' }}"></i>
-        {{ 'Modifica Transazione' if is_edit else 'Inserisci Nuova Transazione' }}
+        {{ _('Modifica Transazione') if is_edit else _('Inserisci Nuova Transazione') }}
       </div>
     </div>
     <div class="card-body">
@@ -27,7 +27,7 @@
           <div class="form-group">
             <label class="form-label">{{ _('Tipo') }}</label>
             <div style="display:flex;gap:8px;">
-              {% for val, label, color in [('expense','Uscita','negative'), ('income','Entrata','positive'), ('transfer','Trasferimento','neutral')] %}
+              {% for val, label, color in [('expense',_('Uscita'),'negative'), ('income',_('Entrata'),'positive'), ('transfer',_('Trasferimento'),'neutral')] %}
               <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;transition:background .2s,border-color .2s;font-size:var(--font-size-sm);font-weight:500;">
                 <input type="radio" name="type" value="{{ val }}" style="display:none;"
                        {{ 'checked' if v.type == val else '' }}
@@ -170,7 +170,7 @@
                   <label class="form-label">{{ _('Frequenza') }}</label>
                   <select name="recurrence" class="form-select">
                     {% set current = v.recurrence or 'monthly' %}
-                    {% for val, lbl in [('weekly','Settimanale'),('monthly','Mensile'),('quarterly','Trimestrale'),('yearly','Annuale')] %}
+                    {% for val, lbl in [('weekly',_('Settimanale')),('monthly',_('Mensile')),('quarterly',_('Trimestrale')),('yearly',_('Annuale'))] %}
                     <option value="{{ val }}" {{ 'selected' if current == val else '' }}>{{ lbl }}</option>
                     {% endfor %}
                   </select>
@@ -204,7 +204,7 @@
             <i class="bi bi-x"></i> {{ _('Annulla') }}
           </a>
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if is_edit else 'Aggiungi Transazione' }}
+            <i class="bi bi-check-lg"></i> {{ _('Salva Modifiche') if is_edit else _('Aggiungi Transazione') }}
           </button>
         </div>
 

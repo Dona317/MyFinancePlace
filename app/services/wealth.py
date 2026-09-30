@@ -13,25 +13,26 @@ from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, Snapshot
 from app.services import accounts, settings_store
 from app.services.periods import add_months
+from app.services.i18n import N_
 
 # ── Asset classes and how the Balance Sheet groups them ────────────────────────
 
-INVESTMENTS = "Portafoglio investimenti"
+INVESTMENTS = N_("Portafoglio investimenti")
 ASSET_CLASSES = {
     # class: (balance-sheet line, is it part of the investment portfolio?)
-    "Azione":          (INVESTMENTS, True),
-    "ETF":             (INVESTMENTS, True),
-    "Fondo":           (INVESTMENTS, True),
-    "Obbligazione":    (INVESTMENTS, True),
-    "Criptovaluta":    (INVESTMENTS, True),
-    "Conto Risparmio": ("Conti deposito e risparmio", False),
-    "Fondo Pensione":  ("Previdenza complementare", False),
-    "Immobile":        ("Immobili", False),
-    "Altro":           ("Altri beni", False),
+    N_("Azione"):          (INVESTMENTS, True),
+    N_("ETF"):             (INVESTMENTS, True),
+    N_("Fondo"):           (INVESTMENTS, True),
+    N_("Obbligazione"):    (INVESTMENTS, True),
+    N_("Criptovaluta"):    (INVESTMENTS, True),
+    N_("Conto Risparmio"): (N_("Conti deposito e risparmio"), False),
+    N_("Fondo Pensione"):  (N_("Previdenza complementare"), False),
+    N_("Immobile"):        (N_("Immobili"), False),
+    N_("Altro"):           (N_("Altri beni"), False),
 }
-CURRENT_ASSET_LINES = ("Liquidità", "Conti deposito e risparmio")
+CURRENT_ASSET_LINES = (N_("Liquidità"), N_("Conti deposito e risparmio"))
 
-DEBT_TYPES = ["Mutuo", "Prestito Personale", "Prestito Auto", "Carta di Credito", "Prestito Studentesco", "Altro"]
+DEBT_TYPES = [N_("Mutuo"), N_("Prestito Personale"), N_("Prestito Auto"), N_("Carta di Credito"), N_("Prestito Studentesco"), N_("Altro")]
 
 OPENING_CASH_SETTING = "balance.opening_cash"
 MAX_PLAN_MONTHS = 12 * 100  # a plan that never ends (installment below the interest) stops here
@@ -245,13 +246,13 @@ def balance_sheet(on: date | None = None) -> dict:
         if summary["balance"] <= 0:
             continue
         if debt.type == "Carta di Credito":
-            line = "Carte di credito"
+            line = N_("Carte di credito")
         elif summary["short_term"]:
-            line = "Prestiti in scadenza entro 12 mesi"
+            line = N_("Prestiti in scadenza entro 12 mesi")
         elif debt.type == "Mutuo":
-            line = "Mutui"
+            line = N_("Mutui")
         else:
-            line = "Prestiti a lungo termine"
+            line = N_("Prestiti a lungo termine")
         liabilities[line] += summary["balance"]
         debt_rows.append({"name": debt.name, "type": debt.type, "line": line, "balance": summary["balance"]})
 

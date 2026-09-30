@@ -29,28 +29,28 @@ RECURRENCES = ("weekly", "monthly", "quarterly", "yearly")
 
 def _tx_from_form(tx: Transaction) -> Transaction:
     """Fill the transaction from the form; a ValueError says which field is wrong (nothing crashes)."""
-    tx.type = form_choice("type", "Tipo", TRANSACTION_TYPES)
-    tx.date = form_date("date", "Data", required=True)
-    amount = form_decimal("amount", "Importo", required=True, allow_negative=True)
+    tx.type = form_choice("type", _("Tipo"), TRANSACTION_TYPES)
+    tx.date = form_date("date", _("Data"), required=True)
+    amount = form_decimal("amount", _("Importo"), required=True, allow_negative=True)
     if not valid_amount(amount):
         raise ValueError(_("Importo: deve essere diverso da zero."))
     tx.amount = abs(amount)
-    tx.description = form_text("description", "Descrizione", required=True)
+    tx.description = form_text("description", _("Descrizione"), required=True)
     currency = request.form.get("currency") or "EUR"
     tx.currency = currency if currency in money.CURRENCIES else "EUR"
-    tx.category = form_text("category", "Categoria")
-    tx.counterparty = form_text("counterparty", "Controparte")
+    tx.category = form_text("category", _("Categoria"))
+    tx.counterparty = form_text("counterparty", _("Controparte"))
     tx.tags = [t.strip() for t in request.form.get("tags", "").split(",") if t.strip()]
     tx.is_recurring = "is_recurring" in request.form
     # frequency and end date only mean something for a recurring transaction
     if tx.is_recurring:
-        tx.recurrence = form_choice("recurrence", "Frequenza", RECURRENCES)
-        tx.recurrence_end = form_date("recurrence_end", "Fine ricorrenza")
+        tx.recurrence = form_choice("recurrence", _("Frequenza"), RECURRENCES)
+        tx.recurrence_end = form_date("recurrence_end", _("Fine ricorrenza"))
         if tx.recurrence_end and tx.recurrence_end < tx.date:
             raise ValueError(_("Fine ricorrenza: non può essere prima della data."))
     else:
         tx.recurrence = tx.recurrence_end = None
-    tx.notes = form_text("notes", "Note")
+    tx.notes = form_text("notes", _("Note"))
     tx.account_id = _account_id("account_id")
     # a transfer between two own accounts: where the money arrives
     tx.counter_account_id = _account_id("counter_account_id") if tx.type == "transfer" else None

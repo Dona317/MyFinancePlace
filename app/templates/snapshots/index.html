@@ -11,7 +11,7 @@
   <div class="card-body">
     <form method="POST" action="{{ url_for('snapshots.create') }}" class="d-flex align-center gap-12" style="flex-wrap:wrap;">
       <div style="flex:1 1 280px;">
-        <div class="cell-title">Patrimonio netto oggi: {{ current.net_worth|money }}</div>
+        <div class="cell-title">{{ _('Patrimonio netto oggi: %(amount)s', amount=current.net_worth|money) }}</div>
         <div class="text-xs text-muted">
           {{ _("Un'istantanea fotografa liquidità, investimenti e debiti di oggi. Creane una al mese per seguire l'evoluzione del patrimonio e confrontare due momenti.") }}
         </div>
@@ -130,7 +130,7 @@
 <script>
 makeLineChart('snapshotTrend',
   {{ snapshots | map(attribute='taken_on') | map('it_date') | list | tojson }},
-  [{ label: 'Patrimonio Netto', data: {{ snapshots | map(attribute='net_worth') | map('float') | list | tojson }}, fill: true }]
+  [{ label: {{ _('Patrimonio Netto')|tojson }}, data: {{ snapshots | map(attribute='net_worth') | map('float') | list | tojson }}, fill: true }]
 );
 </script>
 {% endif %}

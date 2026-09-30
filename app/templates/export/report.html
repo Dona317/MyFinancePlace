@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Report Finanziario {{ year }} — MyFinancePlace</title>
+  <title>{{ _('Report Finanziario %(year)s', year=year) }} — MyFinancePlace</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     body { font-family: Inter, sans-serif; color: #1A2540; margin: 32px auto; max-width: 820px; padding: 0 16px; font-size: 13px; }
@@ -32,8 +32,8 @@
     <a href="{{ url_for('export.index') }}">{{ _('← Torna a Esporta') }}</a>
   </div>
 
-  <h1>Report Finanziario {{ year }}</h1>
-  <div class="meta">MyFinancePlace · generato il {{ generated_at.strftime('%d/%m/%Y %H:%M') }}</div>
+  <h1>{{ _('Report Finanziario %(year)s', year=year) }}</h1>
+  <div class="meta">MyFinancePlace · {{ _('generato il %(day)s %(time)s', day=generated_at|it_date, time=generated_at.strftime('%H:%M')) }}</div>
 
   {% set s = statement.summary %}
   <div class="kpis">

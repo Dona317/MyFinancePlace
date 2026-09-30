@@ -13,6 +13,7 @@ from dataclasses import dataclass
 
 from app.services import ai_extraction, categories as category_service, category_rules, settings_store
 from app.services.ai_extraction import AIExtractionError
+from flask_babel import gettext as _
 
 BATCH_SIZE = 40          # movements per request: keeps tiny models within their context
 CONFIDENCE = ("alta", "media", "bassa")
@@ -128,7 +129,7 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
     Returns {id: Suggestion} for the items the model classified validly (others are simply missing).
     """
     if ai_extraction.provider() is None:
-        raise AIExtractionError("La classificazione AI non è configurata: scegli un modello in Impostazioni → Modelli AI.")
+        raise AIExtractionError(_("La classificazione AI non è configurata: scegli un modello in Impostazioni → Modelli AI."))
     categories = list(dict.fromkeys(c for c in categories if c))
     if "Altro" not in categories:
         categories.append("Altro")
@@ -142,7 +143,7 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
         try:
             data = json.loads(_ask(model, batch, categories) or "")
         except (TypeError, json.JSONDecodeError):
-            raise AIExtractionError("Il modello non ha restituito una classificazione leggibile: riprova.")
+            raise AIExtractionError(_("Il modello non ha restituito una classificazione leggibile: riprova."))
         batch_ids = {item["id"] for item in batch}
         for entry in data.get("items", []) if isinstance(data, dict) else []:
             if not isinstance(entry, dict):

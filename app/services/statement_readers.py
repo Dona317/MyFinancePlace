@@ -18,6 +18,7 @@ import zipfile
 from dataclasses import dataclass, field
 from statistics import median
 from xml.etree import ElementTree
+from flask_babel import gettext as _
 
 OLE2_MAGIC = b"\xd0\xcf\x11\xe0"
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif", ".tiff", ".heic", ".webp")
@@ -67,7 +68,7 @@ class Document:
 
 def read_document(filename: str, raw: bytes) -> Document:
     if not raw:
-        raise UnsupportedFile("Il file è vuoto.")
+        raise UnsupportedFile(_("Il file è vuoto."))
     name = filename.lower()
 
     if is_pdf(raw):
@@ -79,7 +80,7 @@ def read_document(filename: str, raw: bytes) -> Document:
             return _read_doc(raw)
         return _read_xls(raw)
     if name.endswith(IMAGE_EXTENSIONS) or is_image(raw):
-        raise NeedsOCR("Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti.")
+        raise NeedsOCR(_("Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti."))
 
     text = decode_text(raw)
     if raw[:5] == b"{\\rtf":
@@ -105,7 +106,7 @@ def _read_xlsx(raw: bytes) -> Document:
     try:
         workbook = openpyxl.load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
     except Exception as exc:
-        raise UnsupportedFile(f"Impossibile leggere il file Excel: {exc}")
+        raise UnsupportedFile(_("Impossibile leggere il file Excel: %(exc)s", exc=exc))
     return Document(kind="xlsx", tables=[[list(row) for row in workbook.active.iter_rows(values_only=True)]])
 
 
@@ -114,7 +115,7 @@ def _read_xls(raw: bytes) -> Document:
     try:
         book = xlrd.open_workbook(file_contents=raw)
     except Exception as exc:
-        raise UnsupportedFile(f"Impossibile leggere il file Excel: {exc}")
+        raise UnsupportedFile(_("Impossibile leggere il file Excel: %(exc)s", exc=exc))
     sheet = book.sheet_by_index(0)
     rows = []
     for r in range(sheet.nrows):
@@ -142,7 +143,7 @@ def _read_zip_document(raw: bytes) -> Document:
                 return _read_odf(archive.read("content.xml"))
     except zipfile.BadZipFile:
         pass
-    raise UnsupportedFile("Formato non riconosciuto: carica un file Excel, CSV, TXT, PDF, Word o OpenDocument.")
+    raise UnsupportedFile(_("Formato non riconosciuto: carica un file Excel, CSV, TXT, PDF, Word o OpenDocument."))
 
 
 # ── HTML (bank "Excel" exports that are really HTML tables) ─────────────────────
@@ -176,7 +177,7 @@ def _html_rows(text: str) -> list[list[str]]:
     parser = TableParser()
     parser.feed(text)
     if not parser.rows:
-        raise UnsupportedFile("Il file non contiene tabelle leggibili.")
+        raise UnsupportedFile(_("Il file non contiene tabelle leggibili."))
     return parser.rows
 
 
@@ -240,7 +241,7 @@ def _read_docx(raw: bytes) -> Document:
     try:
         document = docx.Document(io.BytesIO(raw))
     except Exception as exc:
-        raise UnsupportedFile(f"Impossibile leggere il documento Word: {exc}")
+        raise UnsupportedFile(_("Impossibile leggere il documento Word: %(exc)s", exc=exc))
 
     paragraphs = [p.text for p in document.paragraphs]
     preamble = [[p] for p in paragraphs[:15] if p.strip()]
@@ -303,7 +304,7 @@ def doc_text_lines(raw: bytes) -> list[str]:
             raise UnsupportedFile(DOC_UNREADABLE)
         flags = struct.unpack_from("<H", word, 0x0A)[0]
         if flags & 0x0100:
-            raise UnsupportedFile("Il documento Word è protetto da password: salvalo senza password e riprova.")
+            raise UnsupportedFile(_("Il documento Word è protetto da password: salvalo senza password e riprova."))
         if struct.unpack_from("<H", word, 0x02)[0] < 101:  # Word 6/95: different structures
             raise UnsupportedFile(DOC_UNREADABLE)
         table_name = "1Table" if flags & 0x0200 else "0Table"
@@ -331,7 +332,7 @@ def _doc_pieces(word: bytes, clx: bytes, ccp_text: int) -> str:
     while pos < len(clx) and clx[pos] == 0x01:              # Prc: 0x01, cbGrpprl, grpprl
         pos += 3 + struct.unpack_from("<h", clx, pos + 1)[0]
     if pos >= len(clx) or clx[pos] != 0x02:
-        raise ValueError("no piece table")
+        raise ValueError(_("no piece table"))
     lcb = struct.unpack_from("<I", clx, pos + 1)[0]
     plc = clx[pos + 5:pos + 5 + lcb]
     count = (lcb - 4) // 12
@@ -425,7 +426,7 @@ def _read_odf(content: bytes) -> Document:
             rows.append(cells)
         tables.append(rows)
     if not tables:
-        raise UnsupportedFile("Il documento non contiene tabelle con i movimenti.")
+        raise UnsupportedFile(_("Il documento non contiene tabelle con i movimenti."))
     paragraphs = [[p] for p in ("".join(e.itertext()) for e in root.iter(q("text", "p"))) if p.strip()][:10]
     merged = [row for table in tables for row in table]
     return Document(kind="odf", tables=[paragraphs + merged] + tables)
@@ -451,12 +452,12 @@ def _read_pdf(raw: bytes) -> Document:
                 ))
                 document.text_lines.extend((page.extract_text() or "").split("\n"))
     except Exception as exc:
-        raise UnsupportedFile(f"Impossibile leggere il PDF: {exc}")
+        raise UnsupportedFile(_("Impossibile leggere il PDF: %(exc)s", exc=exc))
 
     if not any(line.strip() for line in document.text_lines):
         raise NeedsOCR(
-            "Il PDF non contiene testo (probabilmente è una scansione): scarica dall'home banking "
-            "il PDF originale oppure l'Excel/CSV dei movimenti."
+            _("Il PDF non contiene testo (probabilmente è una scansione): scarica dall'home banking "
+            "il PDF originale oppure l'Excel/CSV dei movimenti.")
         )
     document.char_width = median(widths) if widths else 4.0
     if ruled_rows:

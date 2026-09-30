@@ -131,12 +131,12 @@
     </div>
     {% if safety_copies %}
     <details class="mt-16">
-      <summary class="text-sm font-semibold" style="cursor:pointer;">Backup automatici ({{ safety_copies|length }})</summary>
+      <summary class="text-sm font-semibold" style="cursor:pointer;">{{ _('Backup automatici (%(count)s)', count=safety_copies|length) }}</summary>
       <p class="text-xs text-muted mt-8">{{ _("Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10.") }}</p>
       <ul class="backup-list">
         {% for copy in safety_copies %}
         <li>
-          <span>Prima del ripristino del {{ copy.created.strftime('%d/%m/%Y alle %H:%M') }} · {{ copy.size|filesize }}</span>
+          <span>{{ _('Prima del ripristino del %(day)s alle %(time)s', day=copy.created|it_date, time=copy.created.strftime('%H:%M')) }} · {{ copy.size|filesize }}</span>
           <a href="{{ url_for('export.download_safety_copy', name=copy.name) }}"><i class="bi bi-download"></i> {{ _('Scarica') }}</a>
         </li>
         {% endfor %}
@@ -159,7 +159,7 @@
       {% for year in years %}
       <a href="{{ url_for('export.export_tax', year=year) }}"
          class="btn btn-outline">
-        <i class="bi bi-file-earmark-ruled"></i> Fiscale {{ year }}
+        <i class="bi bi-file-earmark-ruled"></i> {{ _('Fiscale %(year)s', year=year) }}
       </a>
       {% endfor %}
     </div>
@@ -207,7 +207,7 @@
     <p style="font-size:var(--font-size-xs);margin-top:8px;display:flex;align-items:center;gap:6px;">
       <i class="bi bi-stars" style="color:var(--clr-primary);"></i>
       {% if ai_reader %}
-        <span><strong>{{ _('Lettura AI disponibile') }}</strong> ({{ ai_reader }}): se un file non si riesce a leggere, ti verrà chiesto se usarla.
+        <span><strong>{{ _('Lettura AI disponibile') }}</strong> ({{ ai_reader }}){{ _(': se un file non si riesce a leggere, ti verrà chiesto se usarla.') }}
           <a href="{{ url_for('settings.ai_models_page') }}">{{ _('Cambia modello') }}</a></span>
       {% else %}
         <span class="text-muted"><strong>{{ _('Lettura AI non attiva:') }}</strong> {{ _('scansioni e foto non sono leggibili.') }}
@@ -260,12 +260,12 @@
           {{ _('Mappa le colonne') }}
         </div>
         {% for field, label, required in [
-          ('date', 'Colonna Data', true),
-          ('amount', 'Colonna Importo', true),
-          ('description', 'Colonna Descrizione', true),
-          ('category', 'Colonna Categoria', false),
-          ('type', 'Colonna Tipo (income/expense/transfer)', false),
-          ('counterparty', 'Colonna Controparte', false),
+          ('date', _('Colonna Data'), true),
+          ('amount', _('Colonna Importo'), true),
+          ('description', _('Colonna Descrizione'), true),
+          ('category', _('Colonna Categoria'), false),
+          ('type', _('Colonna Tipo (income/expense/transfer)'), false),
+          ('counterparty', _('Colonna Controparte'), false),
         ] %}
         <div class="form-group">
           <label class="form-label">{{ label }}{% if not required %} <span class="text-muted">{{ _('(opzionale)') }}</span>{% endif %}</label>
@@ -302,7 +302,7 @@ const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').r
 function fillSelects(headers) {
   document.querySelectorAll('.import-col').forEach(select => {
     const required = select.dataset.required === 'true';
-    select.innerHTML = (required ? '' : '<option value="">— Nessuna —</option>') +
+    select.innerHTML = (required ? '' : '<option value="">' + {{ _('— Nessuna —')|tojson }} + '</option>') +
       headers.map(h => `<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('');
     const guess = headers.find(h => GUESSES[select.dataset.field].includes(h.toLowerCase().trim()));
     select.value = guess || (required ? headers[0] : '');
@@ -323,9 +323,9 @@ document.getElementById('import-file').addEventListener('change', async (e) => {
   try {
     const response = await fetch("{{ url_for('export.import_columns') }}", { method: 'POST', body });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'File non leggibile.');
+    if (!response.ok) throw new Error(data.error || {{ _('File non leggibile.')|tojson }});
     fillSelects(data.headers);
-    status.textContent = `${data.headers.length} colonne trovate (intestazione alla riga ${data.header_line}), ${data.rows} righe.`;
+    status.textContent = fmt({{ _('%(count)s colonne trovate (intestazione alla riga %(line)s), %(rows)s righe.', count='%(count)s', line='%(line)s', rows='%(rows)s')|tojson }}, {count: data.headers.length, line: data.header_line, rows: data.rows});
   } catch (error) {
     fillSelects([]);
     status.textContent = error.message;

@@ -208,7 +208,7 @@
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
           <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Rate / Reddito') }}</span>
-          <span class="text-xs text-muted">{{ ("%.0f"|format(kpis.debt_to_income) ~ '% · max 35%') if kpis.debt_to_income is not none else '—' }}</span>
+          <span class="text-xs text-muted">{{ ("%.0f"|format(kpis.debt_to_income) ~ _('%% · max 35%%')) if kpis.debt_to_income is not none else '—' }}</span>
         </div>
         <div class="progress-bar-wrap">
           <div class="progress-bar-fill {{ 'negative' if (kpis.debt_to_income or 0) > 35 else 'warning' }}" style="width:{{ [kpis.debt_to_income or 0, 100]|min }}%;"></div>

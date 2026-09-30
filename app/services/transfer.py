@@ -130,7 +130,7 @@ def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
 
     name = filename.lower()
     if not name.endswith(MAPPING_EXTENSIONS):
-        raise TableError("Formato non supportato: carica un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods).")
+        raise TableError(_("Formato non supportato: carica un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)."))
     if name.endswith((".csv", ".txt", ".tsv")):
         headers, rows = read_csv(readers.decode_text(raw))
         return headers, rows, 2
@@ -139,12 +139,12 @@ def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
     except readers.UnsupportedFile as exc:
         raise TableError(str(exc))
     if document.kind not in ("xlsx", "xls", "odf", "html") or not document.tables:
-        raise TableError("Il file non contiene un foglio di calcolo: caricalo in formato CSV, .xlsx, .xls o .ods.")
+        raise TableError(_("Il file non contiene un foglio di calcolo: caricalo in formato CSV, .xlsx, .xls o .ods."))
     # .ods: the first "table" is the text preamble plus every sheet merged; the real first sheet follows
     table = document.tables[1] if document.kind == "odf" and len(document.tables) > 1 else document.tables[0]
     cells = [[_cell_text(c) for c in row] for row in table]
     if not any(any(row) for row in cells):
-        raise TableError("Il foglio è vuoto.")
+        raise TableError(_("Il foglio è vuoto."))
     header_at = _header_index(cells)
     headers, seen = [], set()
     for position, title in enumerate(cells[header_at], start=1):

@@ -21,7 +21,7 @@
 {% if duplicate_groups %}
 <div class="alert alert-warning mb-16" style="display:flex;align-items:center;gap:8px;">
   <i class="bi bi-intersect"></i>
-  <span>{{ duplicate_groups }} {{ 'gruppo' if duplicate_groups == 1 else 'gruppi' }} di possibili duplicati da ricontrollare.</span>
+  <span>{{ ngettext('%(num)d gruppo di possibili duplicati da ricontrollare.', '%(num)d gruppi di possibili duplicati da ricontrollare.', duplicate_groups) }}</span>
   <a href="{{ url_for('transactions.duplicates_page') }}" style="font-weight:600;">{{ _('Controlla ora →') }}</a>
 </div>
 {% endif %}
@@ -32,7 +32,7 @@
     <input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="{{ _('Cerca per descrizione o controparte...') }}" style="flex:1;min-width:200px;" />
     <select name="type" class="form-select" onchange="this.form.submit()">
       <option value="">{{ _('Tipo') }}</option>
-      {% for val, lbl in [('income','Entrata'),('expense','Uscita'),('transfer','Trasferimento')] %}
+      {% for val, lbl in [('income',_('Entrata')),('expense',_('Uscita')),('transfer',_('Trasferimento'))] %}
       <option value="{{ val }}" {{ 'selected' if filters.type == val else '' }}>{{ lbl }}</option>
       {% endfor %}
     </select>
@@ -63,13 +63,13 @@
   <div class="card-header">
     <div>
       <div class="card-header-title">{{ _('Elenco Transazioni') }}</div>
-      <div class="card-header-sub">{{ transactions|length if transactions else 0 }} transazioni trovate</div>
+      <div class="card-header-sub">{{ _('%(count)s transazioni trovate', count=transactions|length if transactions else 0) }}</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       {% if transactions and ai_classifier %}
       <button type="button" class="btn btn-outline btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
               data-unclassified="{{ unclassified }}" title="Suggerisce categoria e controparte dalla causale ({{ ai_classifier }})">
-        <i class="bi bi-stars"></i> <span id="ai-classify-label">Classifica con AI{{ ' (%d senza categoria)'|format(unclassified) if unclassified else '' }}</span>
+        <i class="bi bi-stars"></i> <span id="ai-classify-label">{{ _('Classifica con AI (%(count)s senza categoria)', count=unclassified) if unclassified else _('Classifica con AI') }}</span>
       </button>
       {% endif %}
       {% if transactions %}
@@ -209,7 +209,7 @@
           <div class="form-group">
             <label class="form-label">{{ _('Tipo') }}</label>
             <div style="display:flex;gap:8px;">
-              {% for val, lbl in [('expense','Uscita'),('income','Entrata'),('transfer','Trasferimento')] %}
+              {% for val, lbl in [('expense',_('Uscita')),('income',_('Entrata')),('transfer',_('Trasferimento'))] %}
               <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;font-size:var(--font-size-sm);font-weight:500;">
                 <input type="radio" name="type" value="{{ val }}" style="display:none;"
                        {{ 'checked' if val == 'expense' else '' }} />
@@ -319,8 +319,8 @@ const refreshBulk = () => {
   if (classifyButton) {
     const unclassified = Number(classifyButton.dataset.unclassified);
     document.getElementById('ai-classify-label').textContent = count
-      ? `Classifica con AI (${count} selezionate)`
-      : `Classifica con AI${unclassified ? ` (${unclassified} senza categoria)` : ''}`;
+      ? fmt({{ _('Classifica con AI (%(count)s selezionate)', count='%(count)s')|tojson }}, {count: count})
+      : (unclassified ? fmt({{ _('Classifica con AI (%(count)s senza categoria)', count='%(count)s')|tojson }}, {count: unclassified}) : {{ _('Classifica con AI')|tojson }});
     classifyButton.disabled = !count && !unclassified;
   }
 };
@@ -329,7 +329,7 @@ const refreshBulk = () => {
 classifyButton?.addEventListener('click', () => {
   const selected = [...bulkBoxes].filter(b => b.checked).map(b => b.value);
   if (classifyButton.dataset.cloud === 'true' &&
-      !confirm('Le causali verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')) return;
+      !confirm({{ _('Le causali verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')|tojson }})) return;
   const form = document.getElementById('classify-form');
   selected.forEach(id => {
     const input = document.createElement('input');
@@ -337,7 +337,7 @@ classifyButton?.addEventListener('click', () => {
     form.appendChild(input);
   });
   classifyButton.disabled = true;
-  document.getElementById('ai-classify-label').textContent = 'Classificazione in corso…';
+  document.getElementById('ai-classify-label').textContent = {{ _('Classificazione in corso…')|tojson }};
   form.submit();
 });
 bulkBoxes.forEach(b => b.addEventListener('change', refreshBulk));

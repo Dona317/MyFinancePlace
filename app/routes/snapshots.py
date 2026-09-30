@@ -36,7 +36,7 @@ def index():
 
 @snapshots_bp.route("/create", methods=["POST"])
 def create():
-    snapshot = wealth.take_snapshot(form_text("label", "Etichetta"))
+    snapshot = wealth.take_snapshot(form_text("label", _("Etichetta")))
     net_worth = f"{float(snapshot.net_worth):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     flash(_("Istantanea del %(day)s salvata: patrimonio netto € %(net_worth)s.", day=display.day(snapshot.taken_on), net_worth=net_worth), "success")
     return redirect(url_for("snapshots.index"))

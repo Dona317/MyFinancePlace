@@ -2,31 +2,31 @@
 {% import "partials/fields.html" as f %}
 {% set is_edit = goal is not none %}
 {% set g = goal or {} %}
-{% block title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Obiettivo — MyFinancePlace{% endblock %}
-{% block page_title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Obiettivo{% endblock %}
+{% block title %}{{ _('Modifica obiettivo') if is_edit else _('Nuovo obiettivo') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Modifica obiettivo') if is_edit else _('Nuovo obiettivo') }}{% endblock %}
 {% block breadcrumb %}
   <li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di Vita') }}</a></li>
   <li><a href="{{ url_for('lifestyle.goals') }}">{{ _('Obiettivi') }}</a></li>
-  <li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>
+  <li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>
 {% endblock %}
 
 {% block content %}
 <div class="page-form">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title"><i class="bi bi-trophy"></i> {{ 'Modifica Obiettivo' if is_edit else 'Nuovo Obiettivo di Risparmio' }}</div>
+      <div class="card-header-title"><i class="bi bi-trophy"></i> {{ _('Modifica Obiettivo') if is_edit else _('Nuovo Obiettivo di Risparmio') }}</div>
     </div>
     <div class="card-body">
       <form method="POST">
-        {{ f.text(values, 'name', 'Nome', g.name, required=true, placeholder="es. Fondo d'emergenza") }}
+        {{ f.text(values, 'name', _('Nome'), g.name, required=true, placeholder=_("es. Fondo d'emergenza")) }}
         <div class="grid-2">
-          {{ f.number(values, 'target_amount', 'Importo obiettivo (€)', g.target_amount, required=true, placeholder='10.000') }}
-          {{ f.number(values, 'saved_amount', 'Già risparmiato (€)', g.saved_amount, placeholder='0') }}
+          {{ f.number(values, 'target_amount', _('Importo obiettivo (€)'), g.target_amount, required=true, placeholder='10.000') }}
+          {{ f.number(values, 'saved_amount', _('Già risparmiato (€)'), g.saved_amount, placeholder='0') }}
         </div>
-        {{ f.date(values, 'target_date', 'Entro il', g.target_date,
-                  hint='Facoltativa: con una data calcoliamo quanto mettere da parte ogni mese.') }}
-        {{ f.textarea(values, 'notes', 'Note', g.notes, placeholder='Dove tieni i soldi, perché è importante...') }}
-        {{ f.actions(url_for('lifestyle.goals'), 'Salva Modifiche' if is_edit else 'Crea Obiettivo') }}
+        {{ f.date(values, 'target_date', _('Entro il'), g.target_date,
+                  hint=_('Facoltativa: con una data calcoliamo quanto mettere da parte ogni mese.')) }}
+        {{ f.textarea(values, 'notes', _('Note'), g.notes, placeholder=_('Dove tieni i soldi, perché è importante...')) }}
+        {{ f.actions(url_for('lifestyle.goals'), _('Salva Modifiche') if is_edit else _('Crea Obiettivo')) }}
       </form>
     </div>
   </div>

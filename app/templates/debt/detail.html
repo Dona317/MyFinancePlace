@@ -21,7 +21,7 @@
     <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
     <div class="kpi-label">{{ _('Rata Mensile') }}</div>
     <div class="kpi-value">{{ summary.installment|money if summary.installment else '—' }}</div>
-    <div class="kpi-sub">{{ d.type }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}</div>
+    <div class="kpi-sub">{{ d.type|tr }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>

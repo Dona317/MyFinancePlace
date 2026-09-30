@@ -154,13 +154,13 @@ def categories_page():
 def category_save():
     """Add a category, or change one: renaming it (or merging into another) updates every transaction."""
     try:
-        name = form_text("name", "Nome", required=True)
-        kind = form_choice("kind", "Tipo", categories.KINDS)
+        name = form_text("name", _("Nome"), required=True)
+        kind = form_choice("kind", _("Tipo"), categories.KINDS)
     except ValueError as exc:
         flash(str(exc), "error")
         return redirect(url_for("settings.categories_page"))
     old = request.form.get("old_name")
-    hint = form_text("hint", "Descrizione")
+    hint = form_text("hint", _("Descrizione"))
     discretionary = "discretionary" in request.form
     if old and old != name:
         merged = categories.rename(old, name)
@@ -248,9 +248,9 @@ def currencies_page():
 @settings_bp.route("/currencies/rate", methods=["POST"])
 def currency_rate_save():
     try:
-        code = form_choice("currency", "Valuta", currency.CURRENCIES)
-        on = form_date("on", "Data", required=True)
-        rate = form_decimal("rate", "Cambio", required=True)
+        code = form_choice("currency", _("Valuta"), currency.CURRENCIES)
+        on = form_date("on", _("Data"), required=True)
+        rate = form_decimal("rate", _("Cambio"), required=True)
         currency.save_rate(code, on, rate)
     except ValueError as exc:
         flash(str(exc), "error")

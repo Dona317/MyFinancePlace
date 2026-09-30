@@ -19,7 +19,7 @@
 <table>
   <tbody>
     {% for name, amount in items.items() %}
-    <tr><td>{{ name }}</td><td class="amount text-right">{{ amount|money }}</td></tr>
+    <tr><td>{{ name|tr }}</td><td class="amount text-right">{{ amount|money }}</td></tr>
     {% else %}
     <tr><td class="text-muted text-sm">{{ _('Nessuna voce') }}</td><td></td></tr>
     {% endfor %}

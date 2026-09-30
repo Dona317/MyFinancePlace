@@ -19,18 +19,18 @@ debt_bp = APIBlueprint(
 
 
 def _debt_from_form(debt: Debt) -> Debt:
-    debt.name = form_text("name", "Istituto / descrizione", required=True)
-    debt.type = form_choice("type", "Tipo", wealth.DEBT_TYPES)
-    debt.principal = form_decimal("principal", "Capitale iniziale", required=True)
-    rate = form_decimal("annual_rate", "Tasso annuo")
+    debt.name = form_text("name", _("Istituto / descrizione"), required=True)
+    debt.type = form_choice("type", _("Tipo"), wealth.DEBT_TYPES)
+    debt.principal = form_decimal("principal", _("Capitale iniziale"), required=True)
+    rate = form_decimal("annual_rate", _("Tasso annuo"))
     if rate is not None and rate > 100:
         raise ValueError(_("Tasso annuo: al massimo 100%."))
     debt.annual_rate = rate or 0
-    debt.term_months = form_int("term_months", "Durata (mesi)", minimum=1, maximum=wealth.MAX_PLAN_MONTHS)
-    debt.start_date = form_date("start_date", "Data di inizio")
-    debt.monthly_payment = form_decimal("monthly_payment", "Rata mensile")
-    debt.balance = form_decimal("balance", "Saldo residuo")
-    debt.notes = form_text("notes", "Note")
+    debt.term_months = form_int("term_months", _("Durata (mesi)"), minimum=1, maximum=wealth.MAX_PLAN_MONTHS)
+    debt.start_date = form_date("start_date", _("Data di inizio"))
+    debt.monthly_payment = form_decimal("monthly_payment", _("Rata mensile"))
+    debt.balance = form_decimal("balance", _("Saldo residuo"))
+    debt.notes = form_text("notes", _("Note"))
     if not debt.principal:
         raise ValueError(_("Capitale iniziale: deve essere maggiore di zero."))
     return debt

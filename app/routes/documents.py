@@ -70,12 +70,12 @@ def upload():
         flash(_("Scegli almeno un file da caricare."), "error")
         return redirect(url_for("documents.index"))
     try:
-        year = form_int("fiscal_year", "Anno fiscale", minimum=1900, maximum=2999)
+        year = form_int("fiscal_year", _("Anno fiscale"), minimum=1900, maximum=2999)
     except ValueError as exc:
         flash(str(exc), "error")
         return redirect(url_for("documents.index"))
     doc_type = request.form.get("doc_type") if request.form.get("doc_type") in document_store.DOC_TYPES else None
-    category = form_text("category", "Categoria")
+    category = form_text("category", _("Categoria"))
     for upload_file in files:
         raw = upload_file.read()
         stored, mimetype = document_store.save(upload_file.filename, raw)
@@ -108,16 +108,16 @@ def edit(doc_id):
     document = db.get_or_404(Document, doc_id)
     if request.method == "POST":
         try:
-            document.filename = form_text("filename", "Nome", required=True)
-            document.fiscal_year = form_int("fiscal_year", "Anno fiscale", minimum=1900, maximum=2999)
-            tx_id = form_int("transaction_id", "Transazione collegata")
+            document.filename = form_text("filename", _("Nome"), required=True)
+            document.fiscal_year = form_int("fiscal_year", _("Anno fiscale"), minimum=1900, maximum=2999)
+            tx_id = form_int("transaction_id", _("Transazione collegata"))
         except ValueError as exc:
             db.session.rollback()
             flash(str(exc), "error")
             return redirect(url_for("documents.edit", doc_id=doc_id, next=safe_next()))
         document.doc_type = request.form.get("doc_type") if request.form.get("doc_type") in document_store.DOC_TYPES else None
-        document.category = form_text("category", "Categoria")
-        document.notes = form_text("notes", "Note")
+        document.category = form_text("category", _("Categoria"))
+        document.notes = form_text("notes", _("Note"))
         document.transaction_id = tx_id if tx_id and db.session.get(Transaction, tx_id) else None
         db.session.commit()
         flash(_("Documento «%(filename)s» aggiornato.", filename=document.filename), "success")

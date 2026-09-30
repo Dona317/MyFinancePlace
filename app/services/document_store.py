@@ -8,8 +8,9 @@ import secrets
 from pathlib import Path
 
 from flask import current_app
+from app.services.i18n import N_
 
-DOC_TYPES = ["Fattura", "Scontrino", "Estratto conto", "Contratto", "Polizza", "CU / 730", "Ricevuta", "Altro"]
+DOC_TYPES = [N_("Fattura"), N_("Scontrino"), N_("Estratto conto"), N_("Contratto"), N_("Polizza"), N_("CU / 730"), N_("Ricevuta"), N_("Altro")]
 INLINE_TYPES = {"application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp"}  # safe to show in the browser
 
 

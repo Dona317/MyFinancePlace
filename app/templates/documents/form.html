@@ -22,7 +22,7 @@
             <label class="form-label" for="f-type">{{ _('Tipo') }}</label>
             <select id="f-type" name="doc_type" class="form-select">
               <option value="">—</option>
-              {% for t in doc_types %}<option {{ 'selected' if t == document.doc_type }}>{{ t }}</option>{% endfor %}
+              {% for t in doc_types %}<option value="{{ t }}" {{ 'selected' if t == document.doc_type }}>{{ t|tr }}</option>{% endfor %}
             </select>
           </div>
           <div class="form-group">

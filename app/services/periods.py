@@ -2,7 +2,15 @@
 import calendar
 from datetime import date
 
-MONTH_LABELS = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
+from app.services.i18n import N_, tr
+
+MONTH_LABELS = [N_("Gen"), N_("Feb"), N_("Mar"), N_("Apr"), N_("Mag"), N_("Giu"),
+                N_("Lug"), N_("Ago"), N_("Set"), N_("Ott"), N_("Nov"), N_("Dic")]  # Italian, see month_labels()
+
+
+def month_labels() -> list[str]:
+    """Short month names in the interface language."""
+    return [tr(name) for name in MONTH_LABELS]
 
 
 def year_bounds(year: int) -> tuple[date, date]:
@@ -31,7 +39,7 @@ def month_start(index: int) -> date:
 
 def month_label(index: int) -> str:
     """ "Set 26" """
-    return f"{MONTH_LABELS[index % 12]} {str(index // 12)[2:]}"
+    return f"{tr(MONTH_LABELS[index % 12])} {str(index // 12)[2:]}"
 
 
 def add_months(d: date, months: int) -> date:

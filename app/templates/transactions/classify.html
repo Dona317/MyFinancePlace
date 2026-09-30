@@ -9,7 +9,7 @@
 {% set suggested = rows|selectattr(1)|list %}
 <div class="alert alert-info mb-16" style="display:block;">
   <i class="bi bi-stars"></i>
-  <strong>{{ suggested|length }} suggerimenti</strong> su {{ rows|length }} transazioni, dal modello <code>{{ model }}</code>{{ _(', basati sulla causale della banca. Sono preselezionati quelli che cambiano qualcosa e di cui il modello è abbastanza sicuro: controlla, correggi e applica.') }}
+  <strong>{{ _('%(count)s suggerimenti', count=suggested|length) }}</strong> {{ _('su %(total)s transazioni, dal modello', total=rows|length) }} <code>{{ model }}</code>{{ _(', basati sulla causale della banca. Sono preselezionati quelli che cambiano qualcosa e di cui il modello è abbastanza sicuro: controlla, correggi e applica.') }}
 </div>
 
 <form method="POST" action="{{ url_for('transactions.classify_apply') }}" id="classify-form">

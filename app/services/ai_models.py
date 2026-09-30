@@ -12,6 +12,7 @@ import threading
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from flask_babel import gettext as _
 
 TIERS = {"medio": "Medi (5–10 GB)", "piccolo": "Piccoli (2–4 GB)", "tiny": "Tiny (< 2 GB)"}
 
@@ -75,9 +76,9 @@ def _request(base_url: str, path: str, method: str = "GET", body: dict | None = 
         return urllib.request.urlopen(request, timeout=timeout)
     except urllib.error.HTTPError as exc:
         detail = exc.read()[:200].decode(errors="replace")
-        raise OllamaError(f"Ollama ha risposto con un errore ({exc.code}): {detail}")
+        raise OllamaError(_("Ollama ha risposto con un errore (%(code)s): %(detail)s", code=exc.code, detail=detail))
     except (urllib.error.URLError, ConnectionError, TimeoutError):
-        raise OllamaError(f"Ollama non è raggiungibile su {base_url}: è installato e avviato (`ollama serve`)?")
+        raise OllamaError(_("Ollama non è raggiungibile su %(base_url)s: è installato e avviato (`ollama serve`)?", base_url=base_url))
 
 
 def status(base_url: str) -> dict:

@@ -8,6 +8,7 @@ from app.extensions import db
 from app.models.wealth import InsurancePolicy
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
 from flask_babel import gettext as _
+from app.services.i18n import N_, _l
 
 insurance_bp = APIBlueprint(
     "insurance",
@@ -16,21 +17,21 @@ insurance_bp = APIBlueprint(
     tag="Insurance"
 )
 
-POLICY_TYPES = ["Vita", "Salute", "Auto", "Casa", "Infortuni", "RC Professionale", "Viaggi", "Altro"]
-FREQUENCIES = [("monthly", "Mensile"), ("quarterly", "Trimestrale"), ("biannual", "Semestrale"), ("annual", "Annuale")]
+POLICY_TYPES = [N_("Vita"), N_("Salute"), N_("Auto"), N_("Casa"), N_("Infortuni"), N_("RC Professionale"), N_("Viaggi"), N_("Altro")]
+FREQUENCIES = [("monthly", _l("Mensile")), ("quarterly", _l("Trimestrale")), ("biannual", _l("Semestrale")), ("annual", _l("Annuale"))]
 REMINDER_DAYS = 60  # expiries within this many days are highlighted
 
 
 def _policy_from_form(policy: InsurancePolicy) -> InsurancePolicy:
-    policy.type = form_choice("type", "Tipo", POLICY_TYPES)
-    policy.company = form_text("company", "Compagnia", required=True)
-    policy.policy_number = form_text("policy_number", "Numero polizza")
-    policy.frequency = form_choice("frequency", "Frequenza", dict(FREQUENCIES))
-    policy.premium = form_decimal("premium", "Premio", required=True)
-    policy.coverage_limit = form_decimal("coverage_limit", "Massimale")
-    policy.start_date = form_date("start_date", "Data di inizio")
-    policy.expiry_date = form_date("expiry_date", "Data di scadenza")
-    policy.notes = form_text("notes", "Note")
+    policy.type = form_choice("type", _("Tipo"), POLICY_TYPES)
+    policy.company = form_text("company", _("Compagnia"), required=True)
+    policy.policy_number = form_text("policy_number", _("Numero polizza"))
+    policy.frequency = form_choice("frequency", _("Frequenza"), dict(FREQUENCIES))
+    policy.premium = form_decimal("premium", _("Premio"), required=True)
+    policy.coverage_limit = form_decimal("coverage_limit", _("Massimale"))
+    policy.start_date = form_date("start_date", _("Data di inizio"))
+    policy.expiry_date = form_date("expiry_date", _("Data di scadenza"))
+    policy.notes = form_text("notes", _("Note"))
     if policy.start_date and policy.expiry_date and policy.expiry_date < policy.start_date:
         raise ValueError(_("La scadenza non può essere prima dell'inizio."))
     return policy

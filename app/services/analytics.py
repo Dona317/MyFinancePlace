@@ -11,7 +11,7 @@ from sqlalchemy import extract, func
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.services import categories, wealth
-from app.services.periods import MONTH_LABELS, month_bounds, month_index, month_label, shift_month, year_bounds
+from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
 
 UNCATEGORIZED = "Senza categoria"
 
@@ -97,7 +97,7 @@ def monthly_series(year: int) -> dict:
         target = income if tx_type == "income" else expenses
         target[int(month) - 1] = float(amount)
     net = [round(i - e, 2) for i, e in zip(income, expenses)]
-    return {"labels": MONTH_LABELS, "income": income, "expenses": expenses, "net": net}
+    return {"labels": month_labels(), "income": income, "expenses": expenses, "net": net}
 
 
 def last_12_months(today: date | None = None) -> dict:
@@ -132,7 +132,7 @@ def monthly_category_trend(year: int, top_n: int = 5) -> dict:
         name = category or UNCATEGORIZED
         if name in series:
             series[name][int(month) - 1] = float(amount)
-    return {"labels": MONTH_LABELS, "datasets": [{"label": n, "data": series[n]} for n in names]}
+    return {"labels": month_labels(), "datasets": [{"label": n, "data": series[n]} for n in names]}
 
 
 # ── Page-level reports ─────────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ def cash_flow(year: int) -> dict:
         "financing": round(buckets["financing"], 2),
         "net_change": round(sum(buckets.values()), 2),
         "linked": linked,
-        "labels": MONTH_LABELS,
+        "labels": month_labels(),
         "net_monthly": net_monthly,
         "cumulative": cumulative,
     }
@@ -291,6 +291,6 @@ def lifestyle_report(year: int, today: date | None = None) -> dict:
         "rows": rows,
         "this_month_total": this_total,
         "last_month_total": sum(last_month.values()),
-        "reference_month": MONTH_LABELS[ref_month - 1],
+        "reference_month": month_labels()[ref_month - 1],
         "trend": monthly_category_trend(year),
     }

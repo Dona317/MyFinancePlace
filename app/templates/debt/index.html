@@ -95,7 +95,7 @@
         <tr>
           <td>
             <a class="cell-title" href="{{ url_for('debt.detail', debt_id=d.id) }}">{{ d.name }}</a>
-            <div><span class="badge badge-neutral">{{ d.type }}</span></div>
+            <div><span class="badge badge-neutral">{{ d.type|tr }}</span></div>
           </td>
           <td class="amount text-right">{{ d.principal|money }}</td>
           <td class="amount negative text-right">{{ s.balance|money }}</td>

@@ -16,13 +16,13 @@
     <div class="kpi-icon"><i class="bi bi-cart3"></i></div>
     <div class="kpi-label">{{ _('Spese Totali') }}</div>
     <div class="kpi-value text-negative" data-amount="{{ report.total_expenses }}">—</div>
-    <div class="kpi-sub">Anno {{ year }}</div>
+    <div class="kpi-sub">{{ _('Anno %(year)s', year=year) }}</div>
   </div>
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-calendar3"></i></div>
     <div class="kpi-label">{{ _('Media Mensile') }}</div>
     <div class="kpi-value" data-amount="{{ report.monthly_average }}">—</div>
-    <div class="kpi-sub">Gen → {{ report.reference_month }} {{ year }}</div>
+    <div class="kpi-sub">{{ _('Gen → %(month)s %(year)s', month=report.reference_month, year=year) }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-graph-up"></i></div>
@@ -44,7 +44,7 @@
   <div class="card">
     <div class="card-header">
       <div class="card-header-title">{{ _('Spese per Categoria') }}</div>
-      <div class="card-header-sub">Anno {{ year }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s', year=year) }}</div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:280px;"><canvas id="categoryDoughnut"></canvas></div>
@@ -66,7 +66,7 @@
 <div class="card">
   <div class="card-header">
     <div class="card-header-title">{{ _('Dettaglio per Categoria') }}</div>
-    <div class="card-header-sub">{{ report.reference_month }} {{ year }} vs mese precedente</div>
+    <div class="card-header-sub">{{ _('%(month)s %(year)s vs mese precedente', month=report.reference_month, year=year) }}</div>
   </div>
   <div class="table-wrapper">
     <table>
