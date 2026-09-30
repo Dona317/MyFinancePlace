@@ -57,6 +57,8 @@ cover/
 
 # Translations
 *.mo
+# ...except the compiled interface translations, which are part of the app
+!app/translations/**/*.mo
 *.pot
 
 # Django stuff:
