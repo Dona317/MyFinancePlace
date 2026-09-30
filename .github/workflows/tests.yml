@@ -62,4 +62,7 @@ jobs:
           flask --app run db check
 
       - name: Tests
-        run: pytest -q
+        run: pytest -q --cov=app --cov-report=term:skip-covered --cov-report=json:coverage.json --cov-fail-under=94
+
+      - name: Every function of the app is run by at least one test
+        run: python scripts/untested_functions.py coverage.json

@@ -12,8 +12,9 @@ from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, Snapshot
 from app.services import accounts, settings_store
-from app.services.periods import add_months
 from app.services.i18n import N_
+from app.services.periods import add_months
+from app.services.totals import value_total
 
 # ── Asset classes and how the Balance Sheet groups them ────────────────────────
 
@@ -179,12 +180,8 @@ def monthly_installments(today: date | None = None) -> float:
 def monthly_average_income(today: date | None = None, months: int = 12) -> float:
     today = today or date.today()
     start = add_months(date(today.year, today.month, 1), -months)
-    total = (
-        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount_base)), 0))
-        .filter(Transaction.type == "income", Transaction.date >= start, Transaction.date < date(today.year, today.month, 1))
-        .scalar()
-    )
-    return float(total) / months
+    return value_total(Transaction.type == "income", Transaction.date >= start,
+                       Transaction.date < date(today.year, today.month, 1)) / months
 
 
 # ── Portfolio ──────────────────────────────────────────────────────────────────
@@ -216,13 +213,8 @@ def portfolio_summary(holdings: list[Holding]) -> dict:
 
 def dividends(start: date, end: date) -> float:
     """Income recorded under a dividend or coupon category."""
-    total = (
-        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount_base)), 0))
-        .filter(Transaction.type == "income", Transaction.date >= start, Transaction.date < end,
-                func.lower(Transaction.category).op("~")("dividend|cedol"))
-        .scalar()
-    )
-    return _money(total)
+    return _money(value_total(Transaction.type == "income", Transaction.date >= start, Transaction.date < end,
+                              func.lower(Transaction.category).op("~")("dividend|cedol")))
 
 
 # ── Balance Sheet ──────────────────────────────────────────────────────────────

@@ -6,7 +6,6 @@ from datetime import date, timedelta
 
 from sqlalchemy import func
 
-from app.extensions import db
 from app.models.transaction import Transaction
 from app.services.analytics import UNCATEGORIZED
 from app.services.i18n import _l
@@ -133,10 +132,3 @@ def previous_range(start: date, end: date) -> tuple[date, date]:
 
 def total(query, tx_type: str) -> float:
     return float(query.filter(Transaction.type == tx_type).with_entities(func.coalesce(func.sum(func.abs(Transaction.amount_base)), 0)).scalar())
-
-
-def categories(tx_type: str | None) -> list[str]:
-    query = db.session.query(Transaction.category).filter(Transaction.category.isnot(None))
-    if tx_type:
-        query = query.filter(Transaction.type == tx_type)
-    return [row[0] for row in query.distinct().order_by(Transaction.category)]

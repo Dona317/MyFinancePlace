@@ -14,6 +14,7 @@ from app.models.transaction import Transaction
 from app.services import categories, wealth
 from app.services.i18n import N_
 from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
+from app.services.totals import value_total
 
 UNCATEGORIZED = N_("Senza categoria")
 OTHER = N_("Altre")  # the categories past the top ones, added up in one series
@@ -36,12 +37,7 @@ def available_years() -> list[int]:
 # ── Aggregations ───────────────────────────────────────────────────────────────
 
 def _sum(tx_type: str, start: date, end: date) -> float:
-    total = (
-        db.session.query(func.coalesce(func.sum(func.abs(Transaction.amount_base)), 0))
-        .filter(Transaction.type == tx_type, Transaction.date >= start, Transaction.date < end)
-        .scalar()
-    )
-    return float(total)
+    return value_total(Transaction.type == tx_type, Transaction.date >= start, Transaction.date < end)
 
 
 def totals(start: date, end: date) -> dict:

@@ -18,3 +18,4 @@ fpdf2==2.8.8         # downloadable PDF report (pure Python)
 anthropic==1.8.0     # optional AI reading of scans/photos (LLM_PROVIDER=anthropic)
 gunicorn==23.0.0     # production server (wsgi.py, gunicorn.conf.py)
 pytest
+pytest-cov

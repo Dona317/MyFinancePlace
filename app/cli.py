@@ -9,8 +9,7 @@ users_cli = AppGroup("users", help="Manage who can sign in (the data is shared b
 
 
 def _find(name: str) -> User:
-    from app.extensions import db
-    user = User.query.filter(db.func.lower(User.username) == name.strip().lower()).first()
+    user = users.find(name)
     if user is None:
         raise click.ClickException(f"No user named {name!r}.")
     return user

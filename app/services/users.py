@@ -14,6 +14,11 @@ def any_user() -> bool:
     return db.session.query(User.id).limit(1).first() is not None
 
 
+def find(username: str) -> User | None:
+    """The user with this name, ignoring case and surrounding spaces."""
+    return User.query.filter(db.func.lower(User.username) == (username or "").strip().lower()).first()
+
+
 def check_password(password: str, confirm: str | None = None) -> None:
     """ValueError with a message when the new password is not acceptable."""
     if len(password or "") < MIN_PASSWORD:
@@ -26,7 +31,7 @@ def create(username: str, password: str, is_admin: bool = False, confirm: str | 
     username = (username or "").strip()
     if not username:
         raise ValueError(_("Nome utente: campo obbligatorio."))
-    if User.query.filter(db.func.lower(User.username) == username.lower()).first():
+    if find(username):
         raise ValueError(_("Esiste già un utente «%(name)s».", name=username))
     check_password(password, confirm)
     user = User(username=username, is_admin=is_admin)
@@ -37,7 +42,7 @@ def create(username: str, password: str, is_admin: bool = False, confirm: str | 
 
 
 def authenticate(username: str, password: str) -> User | None:
-    user = User.query.filter(db.func.lower(User.username) == (username or "").strip().lower()).first()
+    user = find(username)
     if user is None or not user.check_password(password):
         return None
     user.last_login = datetime.now()

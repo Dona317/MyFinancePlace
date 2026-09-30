@@ -1,5 +1,6 @@
 """Sign-in: the first user is created on the first visit, then only administrators add users. Data is shared."""
 import pytest
+from flask import g
 
 from app.models.transaction import Transaction
 from app.models.user import User
@@ -10,6 +11,13 @@ from tests.conftest import make_tx
 @pytest.fixture()
 def login_on(app):
     app.config["LOGIN_DISABLED"] = False  # the other tests run with sign-in off
+    # The fixture keeps one app context open for the whole test, so `g` (where Flask-Login caches the user)
+    # would survive between requests; forget it first thing, so every request loads the user from its session
+    # like a real one does.
+    def forget_cached_user():
+        g.pop("_login_user", None)
+
+    app.before_request_funcs.setdefault(None, []).insert(0, forget_cached_user)
     return app
 
 
