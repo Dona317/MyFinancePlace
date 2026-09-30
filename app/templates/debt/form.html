@@ -2,39 +2,39 @@
 {% import "partials/fields.html" as f %}
 {% set is_edit = debt is not none %}
 {% set d = debt or {} %}
-{% block title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Debito — MyFinancePlace{% endblock %}
-{% block page_title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Debito{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>{% endblock %}
+{% block title %}{{ _('Modifica Debito') if is_edit else _('Nuovo Debito') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Modifica Debito') if is_edit else _('Nuovo Debito') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ 'Modifica «' ~ debt.name ~ '»' if is_edit else 'Inserisci Nuovo Debito' }}</div>
+      <div class="card-header-title">{{ _('Modifica «%(name)s»', name=debt.name) if is_edit else _('Inserisci Nuovo Debito') }}</div>
     </div>
     <div class="card-body">
       <form method="POST">
         <div class="grid-2">
-          {{ f.select(values, 'type', 'Tipo', debt_types, d.type or 'Mutuo') }}
-          {{ f.text(values, 'name', 'Istituto / descrizione', d.name, required=true, placeholder='es. Mutuo casa — Intesa') }}
+          {{ f.select(values, 'type', _('Tipo'), debt_types, d.type or 'Mutuo') }}
+          {{ f.text(values, 'name', _('Istituto / descrizione'), d.name, required=true, placeholder=_('es. Mutuo casa — Intesa')) }}
         </div>
         <div class="grid-2">
-          {{ f.number(values, 'principal', 'Capitale iniziale (€)', d.principal, required=true, placeholder='0,00') }}
-          {{ f.number(values, 'annual_rate', 'Tasso annuo (%)', d.annual_rate, placeholder='es. 3,25', hint='TAN. Zero per un prestito senza interessi.') }}
+          {{ f.number(values, 'principal', _('Capitale iniziale (€)'), d.principal, required=true, placeholder='0,00') }}
+          {{ f.number(values, 'annual_rate', _('Tasso annuo (%%)'), d.annual_rate, placeholder=_('es. 3,25'), hint=_('TAN. Zero per un prestito senza interessi.')) }}
         </div>
         <div class="grid-2">
-          {{ f.date(values, 'start_date', 'Data di inizio', d.start_date, hint='La prima rata cade un mese dopo.') }}
-          {{ f.number(values, 'term_months', 'Durata (mesi)', d.term_months, placeholder='es. 300 per 25 anni') }}
+          {{ f.date(values, 'start_date', _('Data di inizio'), d.start_date, hint=_('La prima rata cade un mese dopo.')) }}
+          {{ f.number(values, 'term_months', _('Durata (mesi)'), d.term_months, placeholder=_('es. 300 per 25 anni')) }}
         </div>
         <div class="grid-2">
-          {{ f.number(values, 'monthly_payment', 'Rata mensile (€)', d.monthly_payment, placeholder='calcolata da tasso e durata',
-                      hint='Lasciala vuota per calcolarla (ammortamento alla francese).') }}
-          {{ f.number(values, 'balance', 'Saldo residuo oggi (€)', d.balance, placeholder='calcolato dal piano',
-                      hint="Solo se lo conosci dall'estratto: prevale sul piano.") }}
+          {{ f.number(values, 'monthly_payment', _('Rata mensile (€)'), d.monthly_payment, placeholder=_('calcolata da tasso e durata'),
+                      hint=_('Lasciala vuota per calcolarla (ammortamento alla francese).')) }}
+          {{ f.number(values, 'balance', _('Saldo residuo oggi (€)'), d.balance, placeholder=_('calcolato dal piano'),
+                      hint=_("Solo se lo conosci dall'estratto: prevale sul piano.")) }}
         </div>
-        {{ f.textarea(values, 'notes', 'Note', d.notes) }}
+        {{ f.textarea(values, 'notes', _('Note'), d.notes) }}
         {{ f.actions(url_for('debt.detail', debt_id=debt.id) if is_edit else url_for('debt.index'),
-                     'Salva Modifiche' if is_edit else 'Aggiungi Debito') }}
+                     _('Salva Modifiche') if is_edit else _('Aggiungi Debito')) }}
       </form>
     </div>
   </div>

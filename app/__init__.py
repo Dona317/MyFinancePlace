@@ -124,7 +124,8 @@ def create_app(config_name="default"):
     # The choices saved in the database (Settings page), over the defaults (all on).
     @app.context_processor
     def inject_settings():
-        return {"settings": current_settings(), "notification_count": notification_count, "display": display.prefs()}
+        return {"settings": current_settings(), "notification_count": notification_count, "display": display.prefs(),
+                "current_language": current_language}
 
     def notification_count() -> int:
         """Reminders not yet seen, for the bell (never breaks a page)."""

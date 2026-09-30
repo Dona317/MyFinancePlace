@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_language() }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -128,10 +128,10 @@ function checkStrength(val) {
   if (/[0-9]/.test(val)) score++;
   if (/[^A-Za-z0-9]/.test(val)) score++;
   const levels = [
-    { pct:'20%', color:'var(--clr-negative)',  text:'Debole' },
-    { pct:'40%', color:'var(--clr-warning)',   text:'Discreta' },
-    { pct:'70%', color:'var(--clr-warning)',   text:'Buona' },
-    { pct:'100%',color:'var(--clr-positive)',  text:'Ottima' },
+    { pct:'20%', color:'var(--clr-negative)',  text:{{ _('Debole')|tojson }} },
+    { pct:'40%', color:'var(--clr-warning)',   text:{{ _('Discreta')|tojson }} },
+    { pct:'70%', color:'var(--clr-warning)',   text:{{ _('Buona')|tojson }} },
+    { pct:'100%',color:'var(--clr-positive)',  text:{{ _('Ottima')|tojson }} },
   ];
   const l = levels[Math.max(0, score - 1)] || levels[0];
   bar.style.width      = val.length ? l.pct : '0%';

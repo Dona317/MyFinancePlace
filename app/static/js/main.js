@@ -59,6 +59,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Interface texts in the chosen language (set by base.html), Italian when missing
+  const text = Object.assign({
+    show_menu: "Mostra il menu", hide_menu: "Nascondi il menu",
+    expand_menu: "Espandi il menu", shrink_menu: "Riduci il menu", confirm: "Sei sicuro?",
+  }, window.MFP_TEXT || {});
+
   /* ── Sidebar ─────────────────────────────────────────────────────────── */
   const toggleBtn = document.getElementById("sidebar-toggle");
   const sidebar   = document.getElementById("sidebar");
@@ -74,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const applyHidden = (hidden) => {
     document.documentElement.classList.toggle("sidebar-hidden", hidden);
     if (!toggleBtn) return;
-    const label = hidden ? "Mostra il menu" : "Nascondi il menu";
+    const label = hidden ? text.show_menu : text.hide_menu;
     toggleBtn.setAttribute("aria-label", label);
     toggleBtn.setAttribute("aria-expanded", String(!hidden));
     toggleBtn.title = label;
@@ -125,8 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
       else item.removeAttribute("title");
     });
     if (miniToggle) {
-      miniToggle.setAttribute("aria-label", mini ? "Espandi il menu" : "Riduci il menu");
-      miniToggle.title = mini ? "Espandi il menu" : "";
+      miniToggle.setAttribute("aria-label", mini ? text.expand_menu : text.shrink_menu);
+      miniToggle.title = mini ? text.expand_menu : "";
     }
   };
   applyMini(document.documentElement.classList.contains("sidebar-mini"));
@@ -158,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ── Confirm-before-delete ───────────────────────────────────────────── */
   document.querySelectorAll("form[data-confirm]").forEach(form => {
     form.addEventListener("submit", (e) => {
-      if (!confirm(form.dataset.confirm || "Are you sure?")) {
+      if (!confirm(form.dataset.confirm || text.confirm)) {
         e.preventDefault();
       }
     });

@@ -51,7 +51,7 @@
             {% endfor %}
           </select>
           <div class="form-hint">
-            {% if document.fiscal_year %}Le transazioni del {{ document.fiscal_year }}{% else %}{{ _('Le 300 transazioni più recenti') }}{% endif %}{{ _(": cambia l'anno fiscale e salva per vederne altre.") }}
+            {% if document.fiscal_year %}{{ _("Le transazioni del %(year)s: cambia l'anno fiscale e salva per vederne altre.", year=document.fiscal_year) }}{% else %}{{ _("Le 300 transazioni più recenti: cambia l'anno fiscale e salva per vederne altre.") }}{% endif %}
           </div>
         </div>
         <div class="form-group">

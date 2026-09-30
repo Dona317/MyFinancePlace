@@ -25,8 +25,8 @@
   <div class="kpi-card {{ 'kpi-positive' if account.reconciled_on else 'kpi-warning' }}">
     <div class="kpi-icon"><i class="bi bi-check2-circle"></i></div>
     <div class="kpi-label">{{ _('Riconciliato') }}</div>
-    <div class="kpi-value">{{ account.reconciled_on|it_date if account.reconciled_on else 'Mai' }}</div>
-    <div class="kpi-sub">{{ ('saldo ' ~ (account.reconciled_balance|money)) if account.reconciled_on else "confronta con l'estratto qui sotto" }}</div>
+    <div class="kpi-value">{{ account.reconciled_on|it_date if account.reconciled_on else _('Mai') }}</div>
+    <div class="kpi-sub">{{ _('saldo %(amount)s', amount=account.reconciled_balance|money) if account.reconciled_on else _("confronta con l'estratto qui sotto") }}</div>
   </div>
 </div>
 
@@ -48,13 +48,13 @@
     </form>
     {% if result %}
       {% if result.difference == 0 %}
-      <div class="alert alert-success mt-8"><i class="bi bi-check-circle"></i> Tutto torna: al {{ result.on|it_date }} il saldo dell'app è {{ result.app_balance|money }}, come l'estratto.</div>
+      <div class="alert alert-success mt-8"><i class="bi bi-check-circle"></i> {{ _("Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto.", date=result.on|it_date, amount=result.app_balance|money) }}</div>
       {% else %}
       <div class="alert alert-warning mt-8">
         <i class="bi bi-exclamation-triangle"></i>
-        Al {{ result.on|it_date }} l'app segna <strong>{{ result.app_balance|money }}</strong>{{ _(", l'estratto") }} <strong>{{ result.statement_balance|money }}</strong>{{ _(': differenza') }} <strong>{{ result.difference|money }}</strong>
-        ({{ 'mancano entrate o ci sono uscite in più' if result.difference > 0 else 'mancano uscite o ci sono entrate in più' }} nell'app).
-        Controlla i movimenti qui sotto, quelli senza conto e il saldo iniziale.
+        {{ _("Al %(date)s l'app segna <strong>%(app)s</strong>, l'estratto <strong>%(statement)s</strong>: differenza <strong>%(difference)s</strong>", date=result.on|it_date, app=result.app_balance|money, statement=result.statement_balance|money, difference=result.difference|money) }}
+        ({{ _("mancano entrate o ci sono uscite in più nell'app") if result.difference > 0 else _("mancano uscite o ci sono entrate in più nell'app") }}).
+        {{ _('Controlla i movimenti qui sotto, quelli senza conto e il saldo iniziale.') }}
       </div>
       {% endif %}
     {% endif %}
@@ -62,7 +62,7 @@
 </div>
 
 <div class="card">
-  <div class="card-header"><div class="card-header-title">{{ 'Movimenti fino al ' ~ (result.on|it_date) if result else 'Ultimi movimenti' }}</div></div>
+  <div class="card-header"><div class="card-header-title">{{ _('Movimenti fino al %(date)s', date=result.on|it_date) if result else _('Ultimi movimenti') }}</div></div>
   {% if recent %}
   <div class="table-wrapper">
     <table>
@@ -73,7 +73,7 @@
         <tr>
           <td class="nowrap text-xs text-muted">{{ tx.date|it_date }}</td>
           <td><a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.path) }}">{{ tx.description|truncate(70) }}</a>
-            {% if tx.type == 'transfer' %}<div class="text-xs text-muted">Trasferimento {{ ('da ' ~ tx.account.name) if incoming and tx.account else ('verso ' ~ tx.counter_account.name) if tx.counter_account else '' }}</div>{% endif %}</td>
+            {% if tx.type == 'transfer' %}<div class="text-xs text-muted">{{ _('Trasferimento da %(account)s', account=tx.account.name) if incoming and tx.account else _('Trasferimento verso %(account)s', account=tx.counter_account.name) if tx.counter_account else _('Trasferimento') }}</div>{% endif %}</td>
           <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% endif %}</td>
           <td class="amount text-right {{ 'positive' if incoming else 'negative' }}">{{ '+' if incoming else '-' }}{{ tx.amount|abs|money }}</td>
         </tr>

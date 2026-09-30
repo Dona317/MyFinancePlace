@@ -53,7 +53,7 @@
     <div class="card-header">
       <div>
         <div class="card-header-title">{{ _('Entrate vs Uscite') }}</div>
-        <div class="card-header-sub">Da inizio {{ year }}</div>
+        <div class="card-header-sub">{{ _('Da inizio %(year)s', year=year) }}</div>
       </div>
     </div>
     <div class="card-body">
@@ -69,11 +69,11 @@
 {% block scripts %}
 <script>
 makeLineChart('netWorthChart', {{ trend.labels | tojson }}, [
-  { label: 'Patrimonio Netto', data: {{ trend.data | tojson }}, fill: true }
+  { label: {{ _('Patrimonio Netto')|tojson }}, data: {{ trend.data | tojson }}, fill: true }
 ]);
 makeBarChart('incomeExpChart', {{ monthly.labels[:month_count] | tojson }}, [
-  { label: 'Entrate', data: {{ monthly.income[:month_count] | tojson }} },
-  { label: 'Uscite',  data: {{ monthly.expenses[:month_count] | tojson }} },
+  { label: {{ _('Entrate')|tojson }}, data: {{ monthly.income[:month_count] | tojson }} },
+  { label: {{ _('Uscite')|tojson }},  data: {{ monthly.expenses[:month_count] | tojson }} },
 ]);
 </script>
 {% endblock %}

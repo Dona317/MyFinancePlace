@@ -15,31 +15,31 @@
     <div class="kpi-icon"><i class="bi bi-credit-card-2-back"></i></div>
     <div class="kpi-label">{{ _('Residuo Oggi') }}</div>
     <div class="kpi-value text-negative">{{ summary.balance|money }}</div>
-    <div class="kpi-sub">{{ 'saldo inserito da te' if d.balance is not none else 'dal piano di ammortamento' }}</div>
+    <div class="kpi-sub">{{ _('saldo inserito da te') if d.balance is not none else _('dal piano di ammortamento') }}</div>
   </div>
   <div class="kpi-card kpi-warning">
     <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
     <div class="kpi-label">{{ _('Rata Mensile') }}</div>
     <div class="kpi-value">{{ summary.installment|money if summary.installment else '—' }}</div>
-    <div class="kpi-sub">{{ d.type }} · tasso {{ d.annual_rate|number(3) }}%</div>
+    <div class="kpi-sub">{{ d.type }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
     <div class="kpi-label">{{ _('Rate Rimanenti') }}</div>
     <div class="kpi-value">{{ summary.months_left }}</div>
-    <div class="kpi-sub">{{ ('ultima il ' ~ (summary.end_date|it_date)) if summary.end_date else '' }}</div>
+    <div class="kpi-sub">{{ _('ultima il %(date)s', date=summary.end_date|it_date) if summary.end_date else '' }}</div>
   </div>
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-percent"></i></div>
     <div class="kpi-label">{{ _('Interessi Ancora da Pagare') }}</div>
     <div class="kpi-value">{{ summary.interest_left|money }}</div>
-    <div class="kpi-sub">{{ summary.interest_ytd|money }} pagati quest'anno</div>
+    <div class="kpi-sub">{{ _("%(amount)s pagati quest'anno", amount=summary.interest_ytd|money) }}</div>
   </div>
 </div>
 
 {% if summary.never_ends %}
 <div class="alert alert-error mb-16"><i class="bi bi-exclamation-triangle"></i>
-  La rata ({{ summary.installment|money }}) non copre nemmeno gli interessi del primo mese: così il debito non si estingue mai. Controlla rata e tasso.
+  {{ _('La rata (%(amount)s) non copre nemmeno gli interessi del primo mese: così il debito non si estingue mai. Controlla rata e tasso.', amount=summary.installment|money) }}
 </div>
 {% endif %}
 
@@ -89,7 +89,7 @@
   {% else %}
   <div class="empty-state">
     <div class="empty-state-text">
-      {{ _('Per calcolare il piano servono la') }} <strong>{{ _('data di inizio') }}</strong> {{ _('e la') }} <strong>{{ _('durata') }}</strong> {{ _('(o la rata mensile).') }}
+      {{ _('Per calcolare il piano servono la <strong>data di inizio</strong> e la <strong>durata</strong> (o la rata mensile).') }}
     </div>
     <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> {{ _('Completa i dati') }}</a>
   </div>

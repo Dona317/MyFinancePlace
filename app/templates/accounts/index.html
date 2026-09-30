@@ -19,7 +19,7 @@
     <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
     <div class="kpi-label">{{ _('Conti') }}</div>
     <div class="kpi-value">{{ rows|length }}</div>
-    <div class="kpi-sub">{{ rows|selectattr('account.active')|list|length }} attivi</div>
+    <div class="kpi-sub">{{ _('%(count)s attivi', count=rows|selectattr('account.active')|list|length) }}</div>
   </div>
   <div class="kpi-card {{ 'kpi-warning' if unassigned else 'kpi-positive' }}">
     <div class="kpi-icon"><i class="bi bi-question-circle"></i></div>
@@ -45,14 +45,14 @@
           </td>
           <td>{{ kinds.get(a.kind, a.kind) }}{% if a.currency != 'EUR' %} · {{ a.currency }}{% endif %}</td>
           <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money }}</td>
-          <td class="text-xs">{% if a.reconciled_on %}<i class="bi bi-check2-circle text-positive"></i> al {{ a.reconciled_on|it_date }}{% else %}<span class="text-muted">{{ _('mai') }}</span>{% endif %}</td>
+          <td class="text-xs">{% if a.reconciled_on %}<i class="bi bi-check2-circle text-positive"></i> {{ _('al %(date)s', date=a.reconciled_on|it_date) }}{% else %}<span class="text-muted">{{ _('mai') }}</span>{% endif %}</td>
           <td class="text-right"><a href="{{ url_for('transactions.index', account=a.id) }}">{{ row.count }}</a></td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('accounts.detail', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Riconcilia') }}" aria-label="Riconcilia {{ a.name }}"><i class="bi bi-check2-square"></i></a>
-              <a href="{{ url_for('accounts.edit', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica {{ a.name }}"><i class="bi bi-pencil"></i></a>
-              <form method="POST" action="{{ url_for('accounts.delete', account_id=a.id) }}" data-confirm="Eliminare il conto «{{ a.name }}»? Le transazioni restano, senza conto.">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ a.name }}"><i class="bi bi-trash3"></i></button>
+              <a href="{{ url_for('accounts.detail', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Riconcilia') }}" aria-label="{{ _('Riconcilia %(name)s', name=a.name) }}"><i class="bi bi-check2-square"></i></a>
+              <a href="{{ url_for('accounts.edit', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="{{ _('Modifica %(name)s', name=a.name) }}"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{{ url_for('accounts.delete', account_id=a.id) }}" data-confirm="{{ _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name) }}">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina %(name)s', name=a.name) }}"><i class="bi bi-trash3"></i></button>
               </form>
             </div>
           </td>

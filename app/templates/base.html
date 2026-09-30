@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
+<html lang="{{ current_language() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -211,7 +211,7 @@
         </div>
         <div class="sidebar-user-info">
           <div class="sidebar-user-name">
-            {{ current_user.username if current_user is defined and current_user.is_authenticated else 'User' }}
+            {{ current_user.username if current_user is defined and current_user.is_authenticated else _('User') }}
           </div>
           <div class="sidebar-user-role">{{ _('Account Personale') }}</div>
         </div>
@@ -258,7 +258,7 @@
         <!-- Reminders -->
         {% set reminder_count = notification_count() %}
         <a href="{{ url_for('notifications.index') }}" class="btn btn-ghost btn-icon topbar-bell"
-           title="{{ _('Promemoria') }}" aria-label="Promemoria{{ ' (%d)'|format(reminder_count) if reminder_count }}"
+           title="{{ _('Promemoria') }}" aria-label="{{ _('Promemoria') }}{{ ' (%d)'|format(reminder_count) if reminder_count }}"
            {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
           <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
         </a>
@@ -298,6 +298,11 @@
   </div><!-- /main-content -->
 </div><!-- /app-wrapper -->
 
+<!-- Texts used by main.js -->
+<script>window.MFP_TEXT = {{ {
+  "show_menu": _("Mostra il menu"), "hide_menu": _("Nascondi il menu"),
+  "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
+}|tojson }};</script>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <!-- App JS -->

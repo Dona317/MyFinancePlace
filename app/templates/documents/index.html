@@ -79,7 +79,7 @@
 <div class="card">
   <div class="card-header">
     <div class="card-header-title">{{ _('Documenti') }}</div>
-    <span class="text-xs text-muted">{{ documents|length }} di {{ total }}</span>
+    <span class="text-xs text-muted">{{ _('%(shown)s di %(total)s', shown=documents|length, total=total) }}</span>
   </div>
   {% if documents %}
   <div class="table-wrapper">
@@ -102,7 +102,7 @@
               <i class="doc-icon bi bi-{{ 'file-earmark-pdf' if doc.is_pdf else 'file-earmark-image' if doc.is_image else 'file-earmark' }}"></i>
               <div style="min-width:0;">
                 <a class="cell-title" href="{{ url_for('documents.file', doc_id=doc.id) }}" target="_blank" rel="noopener">{{ doc.filename }}</a>
-                <div class="text-xs text-muted">{{ doc.size|filesize }} · caricato il {{ doc.uploaded_at|it_date }}</div>
+                <div class="text-xs text-muted">{{ doc.size|filesize }} · {{ _('caricato il %(date)s', date=doc.uploaded_at|it_date) }}</div>
                 {% if doc.notes %}<div class="text-xs text-muted">{{ doc.notes }}</div>{% endif %}
               </div>
             </div>
@@ -118,10 +118,10 @@
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('documents.file', doc_id=doc.id, download=1) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Scarica') }}" aria-label="Scarica {{ doc.filename }}"><i class="bi bi-download"></i></a>
-              <a href="{{ url_for('documents.edit', doc_id=doc.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica e collega') }}" aria-label="Modifica {{ doc.filename }}"><i class="bi bi-pencil"></i></a>
-              <form method="POST" action="{{ url_for('documents.delete', doc_id=doc.id) }}" data-confirm="Eliminare «{{ doc.filename }}»? Il file verrà cancellato.">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ doc.filename }}"><i class="bi bi-trash3"></i></button>
+              <a href="{{ url_for('documents.file', doc_id=doc.id, download=1) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Scarica') }}" aria-label="{{ _('Scarica %(name)s', name=doc.filename) }}"><i class="bi bi-download"></i></a>
+              <a href="{{ url_for('documents.edit', doc_id=doc.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica e collega') }}" aria-label="{{ _('Modifica %(name)s', name=doc.filename) }}"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{{ url_for('documents.delete', doc_id=doc.id) }}" data-confirm="{{ _('Eliminare «%(name)s»? Il file verrà cancellato.', name=doc.filename) }}">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina %(name)s', name=doc.filename) }}"><i class="bi bi-trash3"></i></button>
               </form>
             </div>
           </td>
@@ -156,8 +156,9 @@
   const text = document.getElementById('drop-text');
   const show = () => {
     const n = input.files.length;
-    text.textContent = n ? (n === 1 ? `Pronto: ${input.files[0].name}` : `Pronti ${n} file`) + ' — premi «Carica»'
-                         : 'Trascina qui i file, oppure sceglili con il campo «File»';
+    text.textContent = n ? (n === 1 ? {{ _('Pronto: {name}')|tojson }}.replace('{name}', input.files[0].name)
+                                    : {{ _('Pronti {count} file')|tojson }}.replace('{count}', n)) + {{ _(' — premi «Carica»')|tojson }}
+                         : {{ _('Trascina qui i file, oppure sceglili con il campo «File»')|tojson }};
   };
   input.addEventListener('change', show);
   ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('over'); }));

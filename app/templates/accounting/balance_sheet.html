@@ -8,7 +8,7 @@
   <form method="GET" class="inline-filter">
     <select name="date" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Data dello stato patrimoniale') }}">
       {% for d in choices %}
-      <option value="{{ d.isoformat() }}" {{ 'selected' if d == sheet.date }}>{{ 'Oggi' if d == today else 'Al ' ~ (d|it_date) }}</option>
+      <option value="{{ d.isoformat() }}" {{ 'selected' if d == sheet.date }}>{{ _('Oggi') if d == today else _('Al %(date)s', date=d|it_date) }}</option>
       {% endfor %}
     </select>
     <noscript><button class="btn btn-ghost btn-sm">{{ _('Vai') }}</button></noscript>
@@ -45,7 +45,7 @@
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
     <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
     <div class="kpi-value">{{ sheet.net_worth|money }}</div>
-    <div class="kpi-sub">al {{ sheet.date|it_date }}</div>
+    <div class="kpi-sub">{{ _('al %(date)s', date=sheet.date|it_date) }}</div>
   </div>
 </div>
 
@@ -140,8 +140,8 @@
 
 {% block scripts %}
 <script>
-makeBarChart('assetLiabChart', ['Attività', 'Passività', 'Patrimonio Netto'], [
-  { label: 'Importo', data: [{{ sheet.total_assets }}, {{ sheet.total_liabilities }}, {{ sheet.net_worth }}],
+makeBarChart('assetLiabChart', [{{ _('Attività')|tojson }}, {{ _('Passività')|tojson }}, {{ _('Patrimonio Netto')|tojson }}], [
+  { label: {{ _('Importo')|tojson }}, data: [{{ sheet.total_assets }}, {{ sheet.total_liabilities }}, {{ sheet.net_worth }}],
     colors: ['positive', 'negative', 'primary'] }
 ]);
 </script>
