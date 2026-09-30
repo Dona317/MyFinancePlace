@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 22:05+0000\n"
+"POT-Creation-Date: 2026-09-30 22:25+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -953,6 +953,14 @@ msgstr "Top Category"
 msgid "Categoria attuale"
 msgstr "Current category"
 
+#, python-format
+msgid "Categoria principale di %(name)s"
+msgstr "Main category of %(name)s"
+
+#, python-format
+msgid "Categoria principale «%(name)s» inesistente."
+msgstr "Main category “%(name)s” does not exist."
+
 msgid "Categoria proposta dall'AI e accettata senza modifiche: controllala e confermala."
 msgstr "Category suggested by the AI and accepted unchanged: check it and confirm it."
 
@@ -1890,6 +1898,9 @@ msgstr "Chart by category"
 
 msgid "Guadagno"
 msgstr "Gain"
+
+msgid "Ha delle sottocategorie: resta principale"
+msgstr "It has subcategories: it stays a main category"
 
 msgid "Hanno la precedenza sulle regole predefinite. «Imparata» = nata quando hai corretto la categoria di una transazione"
 msgstr "They take precedence over the default rules. «Learned» = created when you corrected the category of a transaction"
@@ -3942,6 +3953,9 @@ msgstr "Transactions only, can be re-imported"
 msgid "Somma di tutti i debiti in corso"
 msgstr "Sum of all active debts"
 
+msgid "Sottocategoria di"
+msgstr "Subcategory of"
+
 msgid "Spesa maggiore"
 msgstr "Largest expense"
 
@@ -4332,6 +4346,9 @@ msgid ""
 msgstr ""
 "A snapshot captures today's cash, investments and debts. Take one a month to follow how your wealth changes and "
 "compare two moments."
+
+msgid "Una categoria non può essere sottocategoria di sé stessa."
+msgstr "A category cannot be a subcategory of itself."
 
 msgid "Una transazione del file non ha data, descrizione o importo."
 msgstr "A transaction in the file has no date, description or amount."
@@ -4877,6 +4894,14 @@ msgid "«%(description)s» è ora una transazione ricorrente (%(value)s)."
 msgstr "«%(description)s» is now a recurring transaction (%(value)s)."
 
 #, python-format
+msgid "«%(name)s» ha delle sottocategorie: non può diventarlo a sua volta."
+msgstr "“%(name)s” has subcategories: it cannot become one itself."
+
+#, python-format
+msgid "«%(name)s» è già una sottocategoria: scegli una categoria principale."
+msgstr "“%(name)s” is already a subcategory: choose a main category."
+
+#, python-format
 msgid "«%(name)s»: aggiunti %(amount)s."
 msgstr "«%(name)s»: %(amount)s added."
 
@@ -4963,6 +4988,9 @@ msgstr "— no account —"
 
 msgid "— nessuna —"
 msgstr "— none —"
+
+msgid "— è una categoria principale —"
+msgstr "— it is a main category —"
 
 msgid "← Torna a Esporta"
 msgstr "← Back to Export"

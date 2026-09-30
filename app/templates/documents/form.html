@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "partials/fields.html" as f %}
 {% block title %}{{ _('Modifica Documento') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Modifica Documento') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('documents.index') }}">{{ _('Documenti') }}</a></li><li>{{ _('Modifica') }}</li>{% endblock %}
@@ -36,7 +37,7 @@
             <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
             <select id="f-category" name="category" class="form-select">
               <option value="">—</option>
-              {% for c in categories %}<option {{ 'selected' if c == document.category }}>{{ c }}</option>{% endfor %}
+              {{ f.category_options(categories, document.category) }}
             </select>
           </div>
         </div>

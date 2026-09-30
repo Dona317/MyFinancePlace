@@ -63,3 +63,26 @@
   <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ label }}</button>
 </div>
 {% endmacro %}
+
+{# Category <option>s grouped by main category: "Bollette", then "Bollette › Luce"… (value = the name). #}
+{% macro category_options(names, selected=none, value_attr=true) %}
+{%- for main, subs in category_groups(names) %}
+  {%- if subs %}
+<optgroup label="{{ main }}">
+  <option value="{{ main }}" {{ 'selected' if selected == main }}>{{ main }}</option>
+  {%- for sub in subs %}
+  <option value="{{ sub }}" {{ 'selected' if selected == sub }}>{{ main }} › {{ sub }}</option>
+  {%- endfor %}
+</optgroup>
+  {%- else %}
+<option value="{{ main }}" {{ 'selected' if selected == main }}>{{ main }}</option>
+  {%- endif %}
+{%- endfor %}
+{% endmacro %}
+
+{# The same for a <datalist> (no groups there: the label says where a subcategory belongs). #}
+{% macro category_datalist(id, names) %}
+<datalist id="{{ id }}">
+  {%- for name in names %}<option value="{{ name }}" label="{{ name|category_label }}">{% endfor %}
+</datalist>
+{% endmacro %}

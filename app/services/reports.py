@@ -7,6 +7,7 @@ from datetime import date, timedelta
 from sqlalchemy import func
 
 from app.models.transaction import Transaction
+from app.services import categories
 from app.services.analytics import UNCATEGORIZED
 from app.services.i18n import _l
 from app.services.periods import add_months, month_index, month_label, month_start, year_bounds
@@ -52,14 +53,23 @@ def base_query(start: date, end: date, account: str = ""):
     return query
 
 
-def breakdown(query, tx_type: str) -> list[dict]:
-    """Total per category of one type, biggest first, with its share (%) of the total."""
-    rows = (query.filter(Transaction.type == tx_type)
-            .with_entities(Transaction.category, func.sum(func.abs(Transaction.amount_base)), func.count())
+def breakdown(query, tx_type: str, within: str | None = None) -> list[dict]:
+    """Total per main category of one type (subcategories added to theirs), biggest first, with its share (%).
+    `within` a main category: its own split, by subcategory."""
+    query = query.filter(Transaction.type == tx_type)
+    if within:
+        query = query.filter(Transaction.category.in_(categories.with_children(within)))
+    rows = (query.with_entities(Transaction.category, func.sum(func.abs(Transaction.amount_base)), func.count())
             .group_by(Transaction.category).all())
-    total = sum(float(amount or 0) for _, amount, _ in rows)
-    items = [{"category": category or UNCATEGORIZED, "amount": float(amount or 0), "count": count,
-              "share": round(float(amount or 0) / total * 100, 1) if total else 0.0} for category, amount, count in rows]
+    grouped: dict[str, list] = {}
+    for category, amount, count in rows:
+        key = category if within else categories.top(category)
+        entry = grouped.setdefault(key or UNCATEGORIZED, [0.0, 0])
+        entry[0] += float(amount or 0)
+        entry[1] += count
+    total = sum(amount for amount, _ in grouped.values())
+    items = [{"category": name, "amount": amount, "count": count, "share": round(amount / total * 100, 1) if total else 0.0}
+             for name, (amount, count) in grouped.items()]
     return sorted(items, key=lambda item: item["amount"], reverse=True)
 
 
@@ -73,8 +83,9 @@ def transactions(query, tx_type: str | None, category: str | None, sort: str = "
         query = query.filter(Transaction.type == tx_type)
     else:
         query = query.filter(Transaction.type.in_(("income", "expense")))
-    if category:
-        query = query.filter(Transaction.category.is_(None) if category == UNCATEGORIZED else Transaction.category == category)
+    if category:  # a main category covers its subcategories too
+        query = query.filter(Transaction.category.is_(None) if category == UNCATEGORIZED
+                             else Transaction.category.in_(categories.with_children(category)))
     if sort == "amount":
         return query.order_by(func.abs(Transaction.amount_base).desc(), Transaction.date.desc()).all()
     return query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()

@@ -148,9 +148,18 @@ def reset():
 
 @settings_bp.route("/categories")
 def categories_page():
-    return render_template("settings/categories.html", categories=categories.all_categories(),
+    rows = categories.all_categories()
+    by_id = {c.id: c for c in rows}
+    mains = [c for c in rows if c.parent_id is None]
+    ordered = []  # each main category followed by its subcategories
+    for main in mains:
+        ordered.append(main)
+        ordered.extend(c for c in rows if c.parent_id == main.id)
+    ordered.extend(c for c in rows if c not in ordered)
+    return render_template("settings/categories.html", categories=ordered, by_id=by_id,
+                           mains=[c.name for c in mains], has_children={c.parent_id for c in rows},
                            usage=categories.usage(), kinds=categories.KINDS,
-                           unmanaged=sorted(categories.used_names() - {c.name for c in categories.all_categories()}))
+                           unmanaged=sorted(categories.used_names() - {c.name for c in rows}))
 
 
 @settings_bp.route("/categories/save", methods=["POST"])
@@ -178,7 +187,13 @@ def category_save():
     elif not old:
         flash(_("La categoria «%(name)s» esiste già: aggiornata.", name=name), "success")
     category.kind, category.hint, category.discretionary = kind, hint, discretionary
+    db.session.flush()
+    try:
+        categories.set_parent(category, request.form.get("parent") or None)
+    except ValueError as exc:
+        flash(str(exc), "error")
     db.session.commit()
+    categories.forget()
     if old == name:
         flash(_("Categoria «%(name)s» aggiornata.", name=name), "success")
     return redirect(url_for("settings.categories_page"))

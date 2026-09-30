@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "partials/fields.html" as f %}
 
 {% block title %}{{ _('Anteprima Importazione') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Anteprima Importazione') }}{% endblock %}
@@ -224,9 +225,7 @@
     </tr>
   </template>
 
-  <datalist id="category-options">
-    {% for cat in categories %}<option value="{{ cat }}">{% endfor %}
-  </datalist>
+  {{ f.category_datalist("category-options", categories) }}
 
   <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
     <a href="{{ url_for('export.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>

@@ -10,6 +10,7 @@ from sqlalchemy import func
 from app.extensions import db
 from app.models.budget import Budget
 from app.models.transaction import Transaction
+from app.services import categories
 from app.services.periods import month_bounds
 
 WARNING_SHARE = 80  # percent of the budget spent that raises a warning
@@ -48,7 +49,7 @@ def status(month: date, today: date | None = None) -> list[dict]:
     lines = []
     for category, budget in sorted(budgets_for(month).items(), key=lambda item: item[0].casefold()):
         planned = float(budget.amount)
-        used = spent.get(category, 0.0)
+        used = sum(spent.get(name, 0.0) for name in categories.with_children(category))  # a main one: with its subcategories
         share = round(used / planned * 100, 1) if planned else 0.0
         lines.append({
             "category": category, "budget": budget, "planned": planned, "spent": round(used, 2),

@@ -53,6 +53,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Performance and lighter AI**: paged transaction list, duplicate candidates found by the database, no eager
   account joins; scans read by a light OCR (RapidOCR, ~16 MB models) with the AI as backup; categories learned
   from the user's history before asking a model; repeated causali asked once
+- **Subcategories** (migration `270b797b5daf`): `categories.parent_id`, one level; a starting set added once
+  (Casa, Bollette, Trasporto, Ristoranti, Salute, Abbonamenti); grouped lists, roll-up in dashboard/budgets,
+  report drill-down, `main_category` in the CSV/JSON export, hierarchy in the AI prompt
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 

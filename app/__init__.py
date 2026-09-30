@@ -119,6 +119,12 @@ def create_app(config_name="default"):
                 return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}".replace(".", ",")
             size /= 1024
 
+    from .services import categories as category_service
+
+    app.jinja_env.globals["category_groups"] = category_service.grouped
+    app.add_template_filter(category_service.label, "category_label")
+    app.add_template_filter(category_service.top, "category_top")
+
     @app.template_filter("tr")
     def translate_stored(value):
         """A word stored in Italian (policy type, asset class…) shown in the interface language."""

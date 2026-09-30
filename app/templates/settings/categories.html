@@ -16,6 +16,11 @@
     <form method="POST" action="{{ url_for('settings.category_save') }}" class="grid-4" style="align-items:end;">
       <div class="form-group"><label class="form-label" for="new-name">{{ _('Nome *') }}</label>
         <input id="new-name" name="name" class="form-control" required placeholder="{{ _('es. Animali') }}" /></div>
+      <div class="form-group"><label class="form-label" for="new-parent">{{ _('Sottocategoria di') }}</label>
+        <select id="new-parent" name="parent" class="form-select">
+          <option value="">{{ _('— è una categoria principale —') }}</option>
+          {% for m in mains %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select></div>
       <div class="form-group"><label class="form-label" for="new-kind">{{ _('Tipo') }}</label>
         <select id="new-kind" name="kind" class="form-select">{% for k, label in kinds.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select></div>
       <div class="form-group"><label class="form-label" for="new-hint">{{ _('Cosa comprende') }}</label>
@@ -38,14 +43,19 @@
   <div class="table-wrapper">
     <table>
       <thead>
-        <tr><th>{{ _('Categoria') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Cosa comprende') }}</th><th class="text-center">{{ _('Non essenziale') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr>
+        <tr><th>{{ _('Categoria') }}</th><th>{{ _('Sottocategoria di') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Cosa comprende') }}</th><th class="text-center">{{ _('Non essenziale') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr>
       </thead>
       <tbody>
         {% for c in categories %}
         {% set form_id = 'cat-' ~ c.id %}
-        <tr>
-          <td><input form="{{ form_id }}" name="name" class="form-control" value="{{ c.name }}" required aria-label="Nome di {{ c.name }}" /></td>
-          <td><select form="{{ form_id }}" name="kind" class="form-select" aria-label="Tipo di {{ c.name }}">
+        <tr {% if c.parent_id %}class="subcategory-row"{% endif %}>
+          <td>{% if c.parent_id %}<span class="subcategory-mark" aria-hidden="true">↳</span>{% endif %}<input form="{{ form_id }}" name="name" class="form-control" value="{{ c.name }}" required aria-label="Nome di {{ c.name }}" /></td>
+          <td><select form="{{ form_id }}" name="parent" class="form-select" aria-label="{{ _('Categoria principale di %(name)s', name=c.name) }}"
+                      {% if c.id in has_children %}disabled title="{{ _('Ha delle sottocategorie: resta principale') }}"{% endif %}>
+            <option value="">—</option>
+            {% for m in mains if m != c.name %}<option value="{{ m }}" {{ 'selected' if c.parent_id and by_id[c.parent_id].name == m }}>{{ m }}</option>{% endfor %}
+          </select></td>
+          <td><select form="{{ form_id }}" name="kind" class="form-select" style="min-width:110px;" aria-label="Tipo di {{ c.name }}">
             {% for k, label in kinds.items() %}<option value="{{ k }}" {{ 'selected' if c.kind == k }}>{{ label }}</option>{% endfor %}
           </select></td>
           <td><input form="{{ form_id }}" name="hint" class="form-control" value="{{ c.hint or '' }}" aria-label="Cosa comprende {{ c.name }}" /></td>

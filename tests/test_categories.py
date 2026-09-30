@@ -11,7 +11,8 @@ def test_defaults_are_created_once_and_deletions_stick(db):
     assert "Alimentari" in names and "Altro" in names
     categories.delete("Freelance", None)
     assert "Freelance" not in categories.known_categories()  # not recreated
-    assert Category.query.count() == len(categories.DEFAULTS) - 1
+    subcategories = sum(len(subs) for subs in categories.SUBCATEGORY_DEFAULTS.values())
+    assert Category.query.count() == len(categories.DEFAULTS) - 1 + subcategories
 
 
 def test_a_database_seeded_with_the_first_list_gets_the_new_categories_once(db):

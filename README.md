@@ -11,6 +11,7 @@ Personal finance management app — from household budgeting to investment portf
 | **Accounting** | Balance Sheet, Income Statement, Cash Flow Statement |
 | **Lifestyle** | Expenses by category, trends, personal goals |
 | **Forecast** | Cash-flow forecast: recurring entries + variable spending over a rolling window, six methods compared |
+| **Categories** | 33 editable main categories and **subcategories** (e.g. Bollette › Luce, Gas…; one level): a transaction stores the most specific one; dashboard, pies and budgets add subcategories to their main category, reports drill down into them, filters on a main category include its subcategories, the AI and your history suggest them too |
 | **Transactions** | Signed amounts (−45,20 expense, 1.200 income), categories (a full editable base set), tags picked from the ones already used (the counterparty is the first tag), recurring entries, AI-suggested categories marked «da confermare (AI)» until confirmed |
 | **Portfolio** | Stocks, ETFs, crypto, bonds, savings accounts |
 | **Debt** | Mortgages and loans with amortization schedules |

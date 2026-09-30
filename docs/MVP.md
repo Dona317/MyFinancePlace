@@ -14,10 +14,10 @@ What the first complete version must do, and where each item stands. Details and
 | Area | Cosa |
 |---|---|
 | Transazioni | Inserimento con importo con segno (il segno dà entrata/uscita, giroconti a parte), controparte come primo tag, selettore dei tag già usati, tag «da confermare (AI)» confermabile con un clic, ricerca e filtri, duplicati, API REST |
-| Categorie | 33 categorie di base (entrate e uscite) tutte modificabili, regole di categorizzazione scritte o imparate dalle correzioni |
+| Categorie | 33 categorie di base (entrate e uscite) tutte modificabili, con **sottocategorie** (es. Bollette › Luce); regole scritte o imparate dalle correzioni; suggerimenti dal tuo storico prima dell'AI |
 | Dashboard | KPI, torte di entrate e uscite, linee mese per mese per categoria (entrate e uscite), istogramma mensile con le cumulate, per anno |
 | Report | Spese, entrate, cash flow per periodo e conto, dettaglio per categoria, CSV |
-| Import | Estratti conto di 8 banche + formato generico (Excel, CSV, PDF, Word, ODF, RTF), anteprima modificabile, lettura AI opzionale di scansioni con conferma |
+| Import | Estratti conto di 8 banche + formato generico (Excel, CSV, PDF, Word, ODF, RTF), anteprima modificabile; scansioni e foto lette da un **OCR leggero** con l'AI come riserva |
 | Patrimonio | Conti e carte, più valute, portafoglio, debiti, assicurazioni, documenti, obiettivi, snapshot, stato patrimoniale |
 | Dati | Backup completo (.zip) e ripristino; dati di esempio in `samples/dati_fittizi` |
 | Interfaccia | Italiano / inglese, tema chiaro / scuro, menu laterale comprimibile, uso da telefono |

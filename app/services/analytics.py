@@ -59,21 +59,21 @@ def savings_rate(income: float, expenses: float) -> float:
 
 
 def category_breakdown(start: date, end: date, tx_type: str = "expense") -> list[dict]:
-    """Totals per category, sorted by amount descending, with share of total (%)."""
+    """Totals per main category (subcategories added to theirs), sorted by amount descending, with share (%)."""
     rows = (
         db.session.query(Transaction.category, func.sum(func.abs(Transaction.amount_base)))
         .filter(Transaction.type == tx_type, Transaction.date >= start, Transaction.date < end)
         .group_by(Transaction.category)
         .all()
     )
-    grand_total = sum(float(amount) for _, amount in rows)
+    totals_by_main: dict[str, float] = {}
+    for category, amount in rows:
+        main = categories.top(category) or UNCATEGORIZED
+        totals_by_main[main] = totals_by_main.get(main, 0.0) + float(amount)
+    grand_total = sum(totals_by_main.values())
     items = [
-        {
-            "category": category or UNCATEGORIZED,
-            "amount": float(amount),
-            "share": round(float(amount) / grand_total * 100, 1) if grand_total else 0.0,
-        }
-        for category, amount in rows
+        {"category": name, "amount": amount, "share": round(amount / grand_total * 100, 1) if grand_total else 0.0}
+        for name, amount in totals_by_main.items()
     ]
     return sorted(items, key=lambda i: i["amount"], reverse=True)
 
@@ -136,10 +136,10 @@ def monthly_category_trend(year: int, top_n: int = 5, tx_type: str = "expense", 
         index = int(month) - 1
         if index >= months:
             continue
-        name = category or UNCATEGORIZED
+        name = categories.top(category) or UNCATEGORIZED
         target = series.get(name)
         if target is not None:
-            target[index] = round(float(amount), 2)
+            target[index] = round(target[index] + float(amount), 2)
         else:
             rest[index] = round(rest[index] + float(amount), 2)
     datasets = [{"label": n, "data": series[n]} for n in names]

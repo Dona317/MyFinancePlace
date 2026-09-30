@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "partials/fields.html" as f %}
 
 {% block title %}{{ _('Documenti') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Archivio Documenti') }}{% endblock %}
@@ -39,7 +40,7 @@
           <label class="form-label" for="up-category">{{ _('Categoria') }}</label>
           <select id="up-category" name="category" class="form-select">
             <option value="">—</option>
-            {% for c in categories %}<option>{{ c }}</option>{% endfor %}
+            {{ f.category_options(categories) }}
           </select>
         </div>
       </div>
@@ -68,7 +69,7 @@
     </select>
     <select name="category" class="form-select" aria-label="{{ _('Categoria') }}">
       <option value="">{{ _('Tutte le categorie') }}</option>
-      {% for c in categories %}<option {{ 'selected' if c == filters.category }}>{{ c }}</option>{% endfor %}
+      {{ f.category_options(categories, filters.category) }}
     </select>
     <button type="submit" class="btn btn-outline"><i class="bi bi-funnel"></i> {{ _('Filtra') }}</button>
     {% if filters.values()|select|list %}<a href="{{ url_for('documents.index') }}" class="btn btn-ghost">{{ _('Azzera') }}</a>{% endif %}

@@ -1381,3 +1381,8 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 
 /* Pages of a long list */
 .pager { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px; flex-wrap: wrap; }
+
+/* Subcategories: indented under their main category */
+.subcategory-row td:first-child { padding-left: 28px; position: relative; }
+.subcategory-mark { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--clr-text-muted); }
+.category-main { color: var(--clr-text-muted); font-weight: 400; }

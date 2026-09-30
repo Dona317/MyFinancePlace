@@ -10,6 +10,7 @@ from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
 from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates
 from app.services.ai_classification import AI_TAG
+from app.services import categories as category_service
 from app.services.categories import known_categories
 from app.services.parsing import valid_amount
 from app.services.periods import month_bounds
@@ -163,8 +164,8 @@ def _filtered_query(filters: dict):
         ))
     if filters["type"]:
         query = query.filter(Transaction.type == filters["type"])
-    if filters["category"]:
-        query = query.filter(Transaction.category == filters["category"])
+    if filters["category"]:  # a main category shows its subcategories too
+        query = query.filter(Transaction.category.in_(category_service.with_children(filters["category"])))
     if filters.get("account") == "none":
         query = query.filter(Transaction.account_id.is_(None), Transaction.counter_account_id.is_(None))
     elif (filters.get("account") or "").isdigit():

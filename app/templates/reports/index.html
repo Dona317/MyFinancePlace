@@ -73,7 +73,7 @@
       <div>
         {% if f.category %}
         <div class="report-chip mb-16">
-          <span>{{ _('Categoria') }}: <strong>{{ f.category }}</strong></span>
+          <span>{{ _('Categoria') }}: <strong>{{ f.category|category_label }}</strong></span>
           <a href="{{ link({'category': ''}) }}" aria-label="{{ _('Mostra tutte le categorie') }}"><i class="bi bi-x-lg"></i></a>
         </div>
         {% endif %}
@@ -81,7 +81,7 @@
           {% for c in items %}
           {% if loop.index0 == legend_shown %}</ul><details class="report-more"><summary>{{ _('Mostra tutte le categorie (%(count)s)', count=items|length) }} <i class="bi bi-chevron-down"></i></summary><ul class="report-legend">{% endif %}
           <li>
-            <a href="{{ link({'category': '' if f.category == c.category else c.category}) }}"
+            <a href="{{ link({'category': (within or '') if f.category == c.category else c.category}) }}"
                class="{{ 'selected' if f.category == c.category }}">
               <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
               <span class="report-legend-name">{{ c.category }}</span>

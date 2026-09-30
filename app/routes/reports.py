@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from flask import Blueprint, Response, render_template, request
 
-from app.services import accounts, reports, transfer
+from app.services import accounts, categories, reports, transfer
 from app.services.analytics import UNCATEGORIZED
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/reports")
@@ -48,10 +48,13 @@ def index():
     context = {"filters": filters, "rows": rows, "days": reports.by_day(rows) if filters["sort"] == "date" else None,
                "summary": reports.summary(rows) if tx_type else None}
     if tx_type:
-        items = reports.breakdown(query, tx_type)
+        chosen = filters["category"]
+        # a main category with subcategories (or one of them) chosen: the split by subcategory
+        within = (chosen if categories.children(chosen) else categories.parents().get(chosen)) if chosen else None
+        items = reports.breakdown(query, tx_type, within)
         prev_start, prev_end = reports.previous_range(filters["start"], filters["end"])
         previous = reports.total(reports.base_query(prev_start, prev_end, filters["account"]), tx_type)
-        context.update(items=items, previous=previous, legend_shown=LEGEND_SHOWN,
+        context.update(items=items, previous=previous, legend_shown=LEGEND_SHOWN, within=within,
                        total=sum(item["amount"] for item in items))
     else:
         context["flow"] = reports.cash_flow(query, filters["start"], filters["end"])

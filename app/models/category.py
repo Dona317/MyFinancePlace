@@ -13,6 +13,8 @@ class Category(db.Model):
     hint          = db.Column(db.Text)       # what it covers: shown to the user and given to the AI classifier
     discretionary = db.Column(db.Boolean, nullable=False, default=False)  # non-essential spending (Lifestyle)
     position      = db.Column(db.Integer, nullable=False, default=0)
+    # A subcategory's main category (Bollette → Luce); one level only. Transactions store the most specific name.
+    parent_id     = db.Column(db.Integer, db.ForeignKey("categories.id", ondelete="SET NULL"), index=True)
 
 
 class CategoryRule(db.Model):

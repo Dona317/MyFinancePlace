@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "partials/fields.html" as f %}
 
 {% set is_edit = transaction is not none %}
 {# `v`: what the fields show — the stored transaction, or what was typed when saving failed #}
@@ -77,9 +78,7 @@
           <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
           <select id="f-category" name="category" class="form-select">
             <option value="">{{ _('— Seleziona —') }}</option>
-            {% for cat in categories %}
-            <option value="{{ cat }}" {{ 'selected' if v.category == cat else '' }}>{{ cat }}</option>
-            {% endfor %}
+            {{ f.category_options(categories, v.category) }}
           </select>
         </div>
 

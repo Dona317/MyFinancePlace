@@ -6,12 +6,13 @@ import io
 from datetime import date, datetime
 
 from app.models.transaction import Transaction
+from app.services import categories
 from app.services.parsing import TRANSACTION_TYPES, parse_amount, parse_date
 from app.services.periods import month_bounds, year_bounds
 from flask_babel import gettext as _
 
 EXPORT_FIELDS = [
-    "id", "date", "description", "amount", "currency", "type", "category",
+    "id", "date", "description", "amount", "currency", "type", "category", "main_category",
     "counterparty", "tags", "is_recurring", "recurrence", "recurrence_end", "notes", "bank_description",
 ]
 
@@ -49,6 +50,7 @@ def tx_to_dict(tx: Transaction) -> dict:
         "currency": tx.currency,
         "type": tx.type,
         "category": tx.category,
+        "main_category": categories.top(tx.category),  # the same as category unless it is a subcategory
         "counterparty": tx.counterparty,
         "tags": list(tx.tags or []),
         "is_recurring": bool(tx.is_recurring),
