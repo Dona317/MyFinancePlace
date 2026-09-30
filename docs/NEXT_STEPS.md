@@ -36,6 +36,11 @@ Current status and roadmap. Update this file as items are completed.
   `app/translations/en` complete; words stored as data (policy types, asset classes…) stay Italian in the database
   and are translated when shown. After changing texts: `python scripts/translations.py update`, translate the new
   entries in `messages.po`, then `python scripts/translations.py compile` (a test fails if the catalog is incomplete)
+- **Dashboard by year**: expense and income doughnuts with their month-by-month lines per category, monthly bars
+  with the running totals; **Reports** page (spending, income, cash flow by period and account)
+- **Transactions**: signed amount in the form (the type follows the sign, transfers have their own box), the
+  counterparty shown as the first tag (migration `b7c1d2e3f4a5`), tag picker with the tags already used, AI tag
+  «da confermare (AI)» with one-click confirmation; a base set of 33 editable categories
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 

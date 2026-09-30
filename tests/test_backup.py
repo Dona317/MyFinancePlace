@@ -159,3 +159,14 @@ def test_restore_keeps_transactions_linked_to_debts_and_holdings(client, db, eve
     assert "Backup ripristinato" in html
     assert Transaction.query.filter(Transaction.debt_id.isnot(None)).count() == 1
     assert Transaction.query.filter(Transaction.holding_id.isnot(None)).count() == 1
+
+
+def test_restoring_an_old_backup_moves_the_counterparty_into_the_tags(client, db, everything):
+    """Backups made before the counterparty became a tag, or with the old AI tag, come back in the new form."""
+    first = Transaction.query.order_by(Transaction.id).first()
+    first.counterparty, first.tags = "Esselunga", ["spesa", "categoria-ai"]
+    db.session.commit()
+    archive = client.get("/export/backup").data
+    assert "Backup ripristinato" in upload(client, archive).get_data(as_text=True)
+    restored = Transaction.query.order_by(Transaction.id).first()
+    assert restored.tags == ["Esselunga", "spesa", "da confermare (AI)"]

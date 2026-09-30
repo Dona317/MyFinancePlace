@@ -181,6 +181,7 @@ def rows_to_transactions(rows: list[dict], mapping: dict, first_line: int = 2) -
             if tx_type not in TRANSACTION_TYPES:
                 tx_type = "expense" if amount < 0 else "income"
 
+            counterparty = (row.get(mapping.get("counterparty") or "") or "").strip() or None
             transactions.append(Transaction(
                 date=parse_date(row.get(mapping["date"]) or ""),
                 description=description,
@@ -188,8 +189,8 @@ def rows_to_transactions(rows: list[dict], mapping: dict, first_line: int = 2) -
                 currency="EUR",
                 type=tx_type,
                 category=(row.get(mapping.get("category") or "") or "").strip() or None,
-                counterparty=(row.get(mapping.get("counterparty") or "") or "").strip() or None,
-                tags=[],
+                counterparty=counterparty,
+                tags=[counterparty] if counterparty else [],  # the counterparty is shown as the first tag
                 is_recurring=False,
             ))
         except ValueError as exc:

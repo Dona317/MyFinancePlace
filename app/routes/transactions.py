@@ -1,18 +1,19 @@
 from flask import render_template, request, redirect, url_for, flash
 from apiflask import APIBlueprint
-from sqlalchemy import or_
+from sqlalchemy import func, or_, text
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
 from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates
+from app.services.ai_classification import AI_TAG
 from app.services.categories import known_categories
-from app.services.parsing import TRANSACTION_TYPES, valid_amount
+from app.services.parsing import valid_amount
 from app.services.periods import month_bounds
 from app.schemas.transaction import TransactionIn, TransactionOut, TransactionListOut
 from app.schemas.common import DeleteOut
-from flask_babel import gettext as _
+from flask_babel import gettext as _, ngettext
 
 transactions_bp = APIBlueprint(
     "transactions",
@@ -29,18 +30,19 @@ RECURRENCES = ("weekly", "monthly", "quarterly", "yearly")
 
 def _tx_from_form(tx: Transaction) -> Transaction:
     """Fill the transaction from the form; a ValueError says which field is wrong (nothing crashes)."""
-    tx.type = form_choice("type", _("Tipo"), TRANSACTION_TYPES)
     tx.date = form_date("date", _("Data"), required=True)
     amount = form_decimal("amount", _("Importo"), required=True, allow_negative=True)
     if not valid_amount(amount):
         raise ValueError(_("Importo: deve essere diverso da zero."))
+    tx.type = _type_from(amount)
     tx.amount = abs(amount)
     tx.description = form_text("description", _("Descrizione"), required=True)
     currency = request.form.get("currency") or "EUR"
     tx.currency = currency if currency in money.CURRENCIES else "EUR"
     tx.category = form_text("category", _("Categoria"))
-    tx.counterparty = form_text("counterparty", _("Controparte"))
-    tx.tags = [t.strip() for t in request.form.get("tags", "").split(",") if t.strip()]
+    tx.tags = parse_tags(request.form.get("tags", ""))
+    # the counterparty is now the first tag (kept in its own column for rules, search and the AI)
+    tx.counterparty = next((t for t in tx.tags if t != AI_TAG), None)
     tx.is_recurring = "is_recurring" in request.form
     # frequency and end date only mean something for a recurring transaction
     if tx.is_recurring:
@@ -62,6 +64,34 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     return tx
 
 
+def _type_from(amount) -> str:
+    """Minus = expense, no sign = income; the «transfer» box (or an explicit type=transfer) makes it a transfer.
+    An explicit type=expense with a positive amount (older forms) stays an expense."""
+    if "transfer" in request.form or request.form.get("type") == "transfer":
+        return "transfer"
+    if amount < 0 or request.form.get("type") == "expense":
+        return "expense"
+    return "income"
+
+
+def parse_tags(raw: str) -> list[str]:
+    """Comma-separated tags, trimmed, without repeats (case-insensitive), in the order given."""
+    tags, seen = [], set()
+    for tag in (t.strip() for t in (raw or "").split(",")):
+        if tag and tag.casefold() not in seen:
+            seen.add(tag.casefold())
+            tags.append(tag)
+    return tags
+
+
+def all_tags() -> list[str]:
+    """Every tag already used, to pick from (most used first, then alphabetical)."""
+    rows = db.session.execute(text(
+        "SELECT tag, count(*) FROM (SELECT unnest(tags) AS tag FROM transactions) t "
+        "GROUP BY tag ORDER BY count(*) DESC, lower(tag)")).all()
+    return [tag for tag, _count in rows]
+
+
 def _linked_id(field: str, model) -> int | None:
     value = request.form.get(field, type=int)
     return value if value and db.session.get(model, value) else None
@@ -77,15 +107,17 @@ def _form_values(tx: Transaction | None = None) -> dict:
     if request.method == "POST":
         form = request.form
         return {key: form.get(key, "") for key in (
-            "type", "date", "amount", "currency", "description", "category", "counterparty", "tags",
-            "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id")} | {"is_recurring": "is_recurring" in form}
+            "date", "amount", "currency", "description", "category", "tags",
+            "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id")} | {
+            "is_recurring": "is_recurring" in form, "transfer": "transfer" in form}
     if tx is None:
-        return {"type": "expense", "currency": "EUR", "is_recurring": False,
+        return {"currency": "EUR", "is_recurring": False, "transfer": False,
                 "account_id": request.args.get("account", "")}
+    sign = "-" if tx.type == "expense" else ""
     return {
-        "type": tx.type, "date": tx.date.isoformat() if tx.date else "",
-        "amount": f"{abs(tx.amount):.2f}".replace(".", ","), "currency": tx.currency or "EUR",
-        "description": tx.description, "category": tx.category or "", "counterparty": tx.counterparty or "",
+        "transfer": tx.type == "transfer", "date": tx.date.isoformat() if tx.date else "",
+        "amount": sign + f"{abs(tx.amount):.2f}".replace(".", ","), "currency": tx.currency or "EUR",
+        "description": tx.description, "category": tx.category or "",
         "tags": ", ".join(tx.tags or []), "is_recurring": bool(tx.is_recurring), "recurrence": tx.recurrence or "",
         "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else "", "notes": tx.notes or "",
         "account_id": str(tx.account_id or ""), "counter_account_id": str(tx.counter_account_id or ""),
@@ -103,6 +135,7 @@ def _filtered_query(filters: dict):
         query = query.filter(or_(
             Transaction.description.ilike(pattern),
             Transaction.counterparty.ilike(pattern),
+            func.array_to_string(Transaction.tags, " ").ilike(pattern),
             Transaction.notes.ilike(pattern),
         ))
     if filters["type"]:
@@ -114,6 +147,8 @@ def _filtered_query(filters: dict):
     elif (filters.get("account") or "").isdigit():
         account_id = int(filters["account"])
         query = query.filter((Transaction.account_id == account_id) | (Transaction.counter_account_id == account_id))
+    if filters.get("tag"):
+        query = query.filter(Transaction.tags.any(filters["tag"]))
     if filters.get("recurring"):
         query = query.filter(Transaction.is_recurring.is_(True))
     if filters["month"]:
@@ -128,7 +163,7 @@ def _filtered_query(filters: dict):
 
 @transactions_bp.route("/")
 def index():
-    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring", "account")}
+    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring", "account", "tag")}
     transactions = _filtered_query(filters).order_by(Transaction.date.desc(), Transaction.id.desc()).all()
     categories = [
         row[0] for row in
@@ -143,6 +178,7 @@ def index():
         all_categories=known_categories(),
         accounts=accounts.active(),
         duplicate_groups=len(duplicates.find_groups()),
+        ai_tag=AI_TAG, to_confirm=Transaction.query.filter(Transaction.tags.any(AI_TAG)).count(),
         unclassified=_unclassified_query().count(),
         **ai_classification.template_context(),
     )
@@ -180,7 +216,7 @@ def _render_form(tx: Transaction | None):
     return render_template(
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=_form_values(tx),
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
-        currencies=money.CURRENCIES,
+        currencies=money.CURRENCIES, tag_pool=all_tags(),
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )
@@ -233,6 +269,21 @@ def assign_account():
         flash(_("%(changed)s transazioni messe sul conto «%(name)s».", changed=changed, name=account.name), "success")
     else:
         flash(_("%(changed)s transazioni messe senza conto.", changed=changed), "success")
+    return redirect(safe_next() or url_for("transactions.index"))
+
+
+@transactions_bp.route("/confirm-ai", methods=["POST"])
+def confirm_ai():
+    """The AI's category is right: take away the «da confermare (AI)» tag (one transaction or the selected ones)."""
+    changed = 0
+    for tx in Transaction.query.filter(Transaction.id.in_(form_ids()), Transaction.tags.any(AI_TAG)).all():
+        tx.tags = [t for t in tx.tags if t != AI_TAG]
+        changed += 1
+    db.session.commit()
+    if changed:
+        flash(ngettext("%(num)d categoria confermata.", "%(num)d categorie confermate.", changed), "success")
+    else:
+        flash(_("Nessuna transazione da confermare tra quelle selezionate."), "warning")
     return redirect(safe_next() or url_for("transactions.index"))
 
 
@@ -371,11 +422,13 @@ def classify_apply():
         if not category:
             continue
         tx.category = category
+        tags = [t for t in (tx.tags or []) if t != AI_TAG]
         if counterparty:
+            # the counterparty goes first among the tags (replacing the previous one), as in the form
+            tags = [counterparty] + [t for t in tags if t.casefold() not in (counterparty.casefold(), (tx.counterparty or "").casefold())]
             tx.counterparty = counterparty
-        tags = [t for t in (tx.tags or []) if t != "categoria-ai"]
         if category == request.form.get(f"suggested-{tx.id}"):
-            tags.append("categoria-ai")  # accepted as suggested: easy to find and double-check later
+            tags.append(AI_TAG)  # accepted as suggested: easy to find and double-check later
         tx.tags = tags
         updated += 1
     db.session.commit()

@@ -22,45 +22,39 @@
     <div class="card-body">
       <form method="POST" id="edit-form" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
 
-        <!-- Tipo e Data ───────────────────────────────────────────────── -->
+        <!-- Importo (con segno) e Data ──────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">{{ _('Tipo') }}</label>
-            <div style="display:flex;gap:8px;">
-              {% for val, label, color in [('expense',_('Uscita'),'negative'), ('income',_('Entrata'),'positive'), ('transfer',_('Trasferimento'),'neutral')] %}
-              <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;transition:background .2s,border-color .2s;font-size:var(--font-size-sm);font-weight:500;">
-                <input type="radio" name="type" value="{{ val }}" style="display:none;"
-                       {{ 'checked' if v.type == val else '' }}
-                       onchange="const g = document.getElementById('counter-account-group'); if (g) g.hidden = this.value !== 'transfer';" />
-                <span style="color:var(--clr-{{ color }}-text if color != 'neutral' else 'var(--clr-neutral)');">{{ label }}</span>
-              </label>
-              {% endfor %}
+            <label class="form-label" for="f-amount">{{ _('Importo') }}
+              <span class="amount-kind" id="amount-kind" data-expense="{{ _('Uscita') }}" data-income="{{ _('Entrata') }}"
+                    data-transfer="{{ _('Trasferimento') }}"></span></label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
+              <input id="f-amount" type="text" inputmode="decimal" name="amount" class="form-control" style="padding-left:28px;"
+                     placeholder="-45,20" autocomplete="off" value="{{ v.amount }}" required />
             </div>
+            <div class="form-hint">{{ _("Con il segno meno è un'uscita (-45,20), senza è un'entrata (1.200).") }}</div>
           </div>
           <div class="form-group">
-            <label class="form-label">{{ _('Data') }}</label>
-            <input type="date" name="date" class="form-control"
-                   value="{{ v.date }}" required />
+            <label class="form-label" for="f-date">{{ _('Data') }}</label>
+            <input id="f-date" type="date" name="date" class="form-control" value="{{ v.date }}" required />
           </div>
         </div>
 
-        <!-- Importo e Valuta ─────────────────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">{{ _('Importo') }}</label>
-            <div style="position:relative;">
-              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
-              <input type="text" inputmode="decimal" name="amount" class="form-control" style="padding-left:28px;"
-                     placeholder="0,00" autocomplete="off" value="{{ v.amount }}" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">{{ _('Valuta') }}</label>
-            <select name="currency" class="form-select">
+            <label class="form-label" for="f-currency">{{ _('Valuta') }}</label>
+            <select id="f-currency" name="currency" class="form-select">
               {% for code, (sym, name) in currencies.items() %}
               <option value="{{ code }}" {{ 'selected' if v.currency == code }}>{{ code }} — {{ name|tr }}</option>
               {% endfor %}
             </select>
+          </div>
+          <div class="form-group" style="align-self:end;">
+            <label class="d-flex align-center gap-8 text-sm" style="min-height:40px;">
+              <input type="checkbox" name="transfer" value="1" class="check" id="f-transfer" {{ 'checked' if v.transfer }} />
+              <span>{{ _('Trasferimento tra i miei conti') }} <span class="text-muted">{{ _('(non conta come entrata né come uscita)') }}</span></span>
+            </label>
           </div>
         </div>
 
@@ -78,23 +72,15 @@
           {% endif %}
         </div>
 
-        <!-- Categoria e Controparte ──────────────────────────────────── -->
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">{{ _('Categoria') }}</label>
-            <select name="category" class="form-select">
-              <option value="">{{ _('— Seleziona —') }}</option>
-              {% for cat in categories %}
-              <option value="{{ cat }}" {{ 'selected' if v.category == cat else '' }}>{{ cat }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">{{ _('Controparte') }}</label>
-            <input type="text" name="counterparty" class="form-control"
-                   placeholder="{{ _('es. Esselunga, Datore di lavoro...') }}"
-                   value="{{ v.counterparty }}" />
-          </div>
+        <!-- Categoria ───────────────────────────────────────────────── -->
+        <div class="form-group">
+          <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
+          <select id="f-category" name="category" class="form-select">
+            <option value="">{{ _('— Seleziona —') }}</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {{ 'selected' if v.category == cat else '' }}>{{ cat }}</option>
+            {% endfor %}
+          </select>
         </div>
 
         {% if accounts %}
@@ -106,7 +92,7 @@
               {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if v.account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
             </select>
           </div>
-          <div class="form-group" id="counter-account-group" {% if v.type != 'transfer' %}hidden{% endif %}>
+          <div class="form-group" id="counter-account-group" {% if not v.transfer %}hidden{% endif %}>
             <label class="form-label" for="f-counter">{{ _('Verso il conto') }} <span class="text-muted" style="font-weight:400;">{{ _('(trasferimenti)') }}</span></label>
             <select id="f-counter" name="counter_account_id" class="form-select">
               <option value="">{{ _('— Fuori dai miei conti —') }}</option>
@@ -146,11 +132,12 @@
 
         <!-- Tag ─────────────────────────────────────────────────────── -->
         <div class="form-group">
-          <label class="form-label">{{ _('Tag') }} <span style="font-weight:400;color:var(--clr-text-muted);">{{ _('(separati da virgola)') }}</span></label>
-          <input type="text" name="tags" class="form-control"
-                 placeholder="{{ _('es. deducibile, lavoro, vacanza') }}"
+          <label class="form-label" for="f-tags">{{ _('Tag') }}</label>
+          <input id="f-tags" type="text" name="tags" class="form-control" data-tag-input
+                 data-suggestions="{{ tag_pool|tojson|forceescape }}"
+                 placeholder="{{ _('es. Esselunga, deducibile, vacanza') }}"
                  value="{{ v.tags }}" />
-          <div class="form-hint">{{ _('I tag facilitano la ricerca e il raggruppamento delle transazioni.') }}</div>
+          <div class="form-hint">{{ _('Scegli dai tag già usati o scrivine uno nuovo e premi Invio. La controparte (es. il negozio) va nei tag.') }}</div>
         </div>
 
         <!-- Ricorrente ───────────────────────────────────────────────── -->
@@ -242,4 +229,27 @@
   {% endif %}
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+// The sign of the amount says what it is: minus = expense, no sign = income; "transfer" overrides both
+(function () {
+  const amount = document.getElementById('f-amount');
+  const transfer = document.getElementById('f-transfer');
+  const kind = document.getElementById('amount-kind');
+  const counter = document.getElementById('counter-account-group');
+  const update = () => {
+    const isTransfer = transfer && transfer.checked;
+    const value = (amount.value || '').trim();
+    const type = isTransfer ? 'transfer' : value.startsWith('-') ? 'expense' : value ? 'income' : '';
+    kind.textContent = type ? kind.dataset[type] : '';
+    kind.className = 'amount-kind' + (type ? ' ' + type : '');
+    if (counter) counter.hidden = !isTransfer;
+  };
+  amount.addEventListener('input', update);
+  transfer && transfer.addEventListener('change', update);
+  update();
+}());
+</script>
 {% endblock %}

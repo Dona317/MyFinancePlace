@@ -30,6 +30,66 @@ function fmt(message, values) {
   return String(message).replace(/%\((\w+)\)s/g, (all, key) => (key in values ? values[key] : all));
 }
 
+/* A comma-separated tags field shown as chips; the suggestions come from data-suggestions (JSON list) */
+function initTagInput(input, text) {
+  const pool = JSON.parse(input.dataset.suggestions || "[]");
+  const same = (a, b) => a.toLocaleLowerCase() === b.toLocaleLowerCase();
+  let tags = input.value.split(",").map(t => t.trim()).filter(Boolean);
+  const wrap = document.createElement("div");
+  wrap.className = "tag-picker form-control";
+  const typing = document.createElement("input");
+  typing.type = "text";
+  typing.className = "tag-picker-input";
+  typing.placeholder = input.placeholder;
+  typing.autocomplete = "off";
+  const list = document.createElement("datalist");
+  list.id = (input.id || input.name) + "-pool";
+  typing.setAttribute("list", list.id);
+  if (input.id) { typing.id = input.id; input.id = input.id + "-value"; }  // the <label for> now points to the text box
+  input.type = "hidden";
+  input.after(wrap, list);
+
+  const render = () => {
+    wrap.querySelectorAll(".tag-chip").forEach(chip => chip.remove());
+    tags.forEach((tag, i) => {
+      const chip = document.createElement("span");
+      chip.className = "tag-chip";
+      chip.textContent = tag;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.innerHTML = '<i class="bi bi-x"></i>';
+      remove.setAttribute("aria-label", (text.remove_tag || "Togli") + " " + tag);
+      remove.addEventListener("click", () => { tags.splice(i, 1); render(); typing.focus(); });
+      chip.appendChild(remove);
+      wrap.insertBefore(chip, typing);
+    });
+    input.value = tags.join(", ");
+    list.replaceChildren(...pool.filter(p => !tags.some(t => same(t, p))).map(p => Object.assign(document.createElement("option"), { value: p })));
+  };
+  const add = (value) => {
+    value.split(",").map(v => v.trim()).filter(Boolean).forEach(tag => {
+      if (!tags.some(t => same(t, tag))) tags.push(pool.find(p => same(p, tag)) || tag);
+    });
+    typing.value = "";
+    render();
+  };
+  typing.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      add(typing.value);
+    } else if (e.key === "Backspace" && !typing.value && tags.length) {
+      tags.pop();
+      render();
+    }
+  });
+  // a suggestion picked from the list arrives as the whole value: take it at once
+  typing.addEventListener("input", () => { if (pool.some(p => same(p, typing.value.trim()))) add(typing.value); });
+  typing.addEventListener("blur", () => { if (typing.value.trim()) add(typing.value); });
+  wrap.addEventListener("click", e => { if (e.target === wrap) typing.focus(); });
+  wrap.appendChild(typing);
+  render();
+}
+
 /* ── Light / dark mode ─────────────────────────────────────────────────── */
 // The user's choice is remembered; until they choose, the app follows the operating system.
 function currentTheme() {
@@ -135,6 +195,9 @@ document.addEventListener("DOMContentLoaded", () => {
       saveCollapsed();
     });
   });
+
+  /* ── Tags: chips picked from the tags already used, or new ones (Enter or comma) ── */
+  document.querySelectorAll("input[data-tag-input]").forEach(input => initTagInput(input, text));
 
   /* ── Auto-dismiss flash alerts ──────────────────────────────────────── */
   document.querySelectorAll(".alert[data-autohide]").forEach(el => {

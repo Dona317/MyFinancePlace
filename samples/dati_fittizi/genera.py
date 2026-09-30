@@ -89,7 +89,7 @@ def fill(today: date) -> None:
     ])
     db.session.add_all([
         Budget(category="Alimentari", amount=Decimal("420")), Budget(category="Ristoranti", amount=Decimal("150")),
-        Budget(category="Svago", amount=Decimal("120")), Budget(category="Trasporti", amount=Decimal("180")),
+        Budget(category="Svago", amount=Decimal("120")), Budget(category="Trasporto", amount=Decimal("180")),
         Budget(category="Abbonamenti", amount=Decimal("45")), Budget(category="Shopping", amount=Decimal("150")),
     ])
     db.session.flush()
@@ -99,8 +99,10 @@ def fill(today: date) -> None:
     def add(day, description, amount, kind, category, counterparty=None, account=conto, **extra):
         if day > today:
             return
+        counterparty = counterparty or description
         txs.append(Transaction(date=day, description=description, amount=Decimal(amount), currency="EUR", type=kind,
-                               category=category, counterparty=counterparty or description, tags=extra.pop("tags", []),
+                               category=category, counterparty=counterparty,
+                               tags=[counterparty] + extra.pop("tags", []),  # the counterparty is the first tag
                                account_id=account.id, **extra))
 
     for start in month_starts(today):
@@ -108,7 +110,7 @@ def fill(today: date) -> None:
         add(start.replace(day=27), "Stipendio ACME S.p.A.", "2450.00" if m != 12 else "4900.00", "income", "Stipendio",
             "ACME S.p.A.", is_recurring=True, recurrence="monthly")
         if m in (3, 9):
-            add(start.replace(day=15), "Fattura consulenza", money(600, 1200), "income", "Lavoro autonomo", "Studio Rossi",
+            add(start.replace(day=15), "Fattura consulenza", money(600, 1200), "income", "Freelance", "Studio Rossi",
                 tags=["lavoro"])
         add(start.replace(day=1), "Rata mutuo", "858.40", "expense", "Casa", "Intesa Sanpaolo", debt_id=mutuo.id,
             is_recurring=True, recurrence="monthly")
@@ -123,7 +125,7 @@ def fill(today: date) -> None:
             is_recurring=True, recurrence="monthly")
         add(start.replace(day=20), "Palestra FitActive", "34.90", "expense", "Salute", "FitActive",
             is_recurring=True, recurrence="monthly")
-        add(start.replace(day=2), "Giroconto conto deposito", "300.00", "transfer", "Risparmio", "Illimity",
+        add(start.replace(day=2), "Giroconto conto deposito", "300.00", "transfer", "Giroconto", "Illimity",
             counter_account_id=deposito.id)
         add(start.replace(day=10), "Versamento fondo pensione", "100.00", "expense", "Investimenti", "Cometa",
             holding_id=holdings[5].id)
@@ -137,7 +139,7 @@ def fill(today: date) -> None:
                     money(12, 70), "expense", "Ristoranti", account=carta)
             if rng.random() < 0.5:
                 add(day + timedelta(days=2), rng.choice(["Eni carburante", "Q8", "IP Station"]), money(40, 75),
-                    "expense", "Trasporti")
+                    "expense", "Trasporto")
         if rng.random() < 0.7:
             add(start.replace(day=rng.randint(6, 26)), rng.choice(["Amazon", "Zalando", "Decathlon", "IKEA"]),
                 money(20, 160), "expense", "Shopping", account=carta)
@@ -147,14 +149,14 @@ def fill(today: date) -> None:
         if rng.random() < 0.35:
             add(start.replace(day=rng.randint(6, 26)), rng.choice(["Farmacia", "Visita dentista", "Ottico"]),
                 money(15, 180), "expense", "Salute", tags=["detraibile"])
-        add(start.replace(day=rng.randint(3, 25)), "Prelievo bancomat", "100.00", "transfer", "Contanti", "Bancomat",
+        add(start.replace(day=rng.randint(3, 25)), "Prelievo bancomat", "100.00", "transfer", "Giroconto", "Bancomat",
             counter_account_id=contanti.id)
         if m == 8:
             add(start.replace(day=9), "Volo e hotel vacanze", money(900, 1400), "expense", "Viaggi", "Booking.com", account=carta)
         if m == 12:
             add(start.replace(day=15), "Regali di Natale", money(250, 450), "expense", "Shopping", "Vari", account=carta)
         if m == 4:
-            add(start.replace(day=11), "Dividendo VWCE", money(35, 60), "income", "Dividendi", "Vanguard", account=deposito)
+            add(start.replace(day=11), "Dividendo VWCE", money(35, 60), "income", "Dividendi e cedole", "Vanguard", account=deposito)
         if m in (1, 7):
             add(start.replace(day=25), "Premio polizza vita", "180.00", "expense", "Assicurazioni", "Generali")
         add(start.replace(day=1), "Premio assicurazione casa", "24.50", "expense", "Assicurazioni", "UnipolSai",
@@ -165,7 +167,7 @@ def fill(today: date) -> None:
         prev_end = start
         prev_start = (start - timedelta(days=1)).replace(day=1)
         spent = sum(t.amount for t in txs if t.account_id == carta.id and prev_start <= t.date < prev_end)
-        add(start.replace(day=15), "Addebito estratto carta Visa", f"{spent:.2f}", "transfer", "Carta di credito", "Visa",
+        add(start.replace(day=15), "Addebito estratto carta Visa", f"{spent:.2f}", "transfer", "Giroconto", "Visa",
             counter_account_id=carta.id)
 
     db.session.add_all(txs)

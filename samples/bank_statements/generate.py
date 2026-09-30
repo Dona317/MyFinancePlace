@@ -409,14 +409,19 @@ def fineco_pdf(path: Path, start: date, end: date, seed: int):
             pdf.set_xy(10, 287)
             pdf.cell(0, 4, f"Pagina {pdf.page_no()}", align="C")
             y = header()
-        pdf.set_xy(10, y); pdf.cell(26, 4, f"{r['date']:%d/%m/%Y}")
-        pdf.set_xy(37, y); pdf.cell(22, 4, f"{r['date']:%d/%m/%Y}")
-        pdf.set_xy(62, y); pdf.cell(88, 4, lines[0])
+        pdf.set_xy(10, y)
+        pdf.cell(26, 4, f"{r['date']:%d/%m/%Y}")
+        pdf.set_xy(37, y)
+        pdf.cell(22, 4, f"{r['date']:%d/%m/%Y}")
+        pdf.set_xy(62, y)
+        pdf.cell(88, 4, lines[0])
         amount_x = 152 if r["amount"] > 0 else 176
-        pdf.set_xy(amount_x, y); pdf.cell(22, 4, _it(r["amount"]), align="R")
+        pdf.set_xy(amount_x, y)
+        pdf.cell(22, 4, _it(r["amount"]), align="R")
         for extra in lines[1:]:
             y += 4
-            pdf.set_xy(62, y); pdf.cell(88, 4, extra)
+            pdf.set_xy(62, y)
+            pdf.cell(88, 4, extra)
         y += 6
     pdf.set_font("Helvetica", "B", 8)
     pdf.set_xy(62, y + 2)

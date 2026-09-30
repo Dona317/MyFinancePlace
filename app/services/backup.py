@@ -165,6 +165,16 @@ def restore(data: dict, files: dict[str, bytes]) -> dict:
         _reset_sequences()
         # backups made before multi-currency have no value in euro: compute it
         db.session.execute(text("UPDATE transactions SET amount_base = amount WHERE amount_base IS NULL"))
+        # backups made before the counterparty became a tag: the same conversion as the migration b7c1d2e3f4a5
+        db.session.execute(text("""
+            UPDATE transactions SET tags = array_replace(tags, 'categoria-ai', 'da confermare (AI)')
+            WHERE 'categoria-ai' = ANY(tags)"""))
+        db.session.execute(text("""
+            UPDATE transactions
+            SET tags = ARRAY[btrim(counterparty)]::varchar[] || COALESCE(tags, ARRAY[]::varchar[])
+            WHERE counterparty IS NOT NULL AND btrim(counterparty) <> ''
+              AND NOT EXISTS (SELECT 1 FROM unnest(COALESCE(tags, ARRAY[]::varchar[])) AS t(tag)
+                              WHERE lower(t.tag) = lower(btrim(counterparty)))"""))
         db.session.commit()
         currency.recompute()
     except BackupError:

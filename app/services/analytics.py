@@ -5,15 +5,18 @@ Amounts are stored as positive numbers; the direction comes from `type`
 ("income" | "expense" | "transfer").
 """
 from datetime import date
+from itertools import accumulate
 
 from sqlalchemy import extract, func
 
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.services import categories, wealth
+from app.services.i18n import N_
 from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
 
-UNCATEGORIZED = "Senza categoria"
+UNCATEGORIZED = N_("Senza categoria")
+OTHER = N_("Altre")  # the categories past the top ones, added up in one series
 
 
 # Keywords used to classify "transfer" transactions in the cash-flow statement
@@ -113,26 +116,59 @@ def last_12_months(today: date | None = None) -> dict:
     return {"labels": labels, "income": income, "expenses": expenses}
 
 
-def monthly_category_trend(year: int, top_n: int = 5) -> dict:
-    """Monthly expense series for the top `top_n` expense categories of `year`."""
-    top = category_breakdown(*year_bounds(year))[:top_n]
-    names = [item["category"] for item in top]
-    series = {name: [0.0] * 12 for name in names}
+def monthly_category_trend(year: int, top_n: int = 5, tx_type: str = "expense", months: int = 12,
+                           other: bool = False) -> dict:
+    """
+    Monthly series of the top `top_n` categories of `tx_type` in `year` (first `months` months); with `other`,
+    one more series "Altre" adds up the remaining categories, so the lines account for the whole total.
+    """
+    breakdown = category_breakdown(*year_bounds(year), tx_type=tx_type)
+    names = [item["category"] for item in breakdown[:top_n]]
+    series = {name: [0.0] * months for name in names}
+    rest = [0.0] * months
     rows = (
         db.session.query(
             extract("month", Transaction.date),
             Transaction.category,
             func.sum(func.abs(Transaction.amount_base)),
         )
-        .filter(extract("year", Transaction.date) == year, Transaction.type == "expense")
+        .filter(extract("year", Transaction.date) == year, Transaction.type == tx_type)
         .group_by(extract("month", Transaction.date), Transaction.category)
         .all()
     )
     for month, category, amount in rows:
+        index = int(month) - 1
+        if index >= months:
+            continue
         name = category or UNCATEGORIZED
-        if name in series:
-            series[name][int(month) - 1] = float(amount)
-    return {"labels": month_labels(), "datasets": [{"label": n, "data": series[n]} for n in names]}
+        target = series.get(name)
+        if target is not None:
+            target[index] = round(float(amount), 2)
+        else:
+            rest[index] = round(rest[index] + float(amount), 2)
+    datasets = [{"label": n, "data": series[n]} for n in names]
+    if other and len(breakdown) > top_n:
+        datasets.append({"label": OTHER, "data": rest, "other": True})
+    return {"labels": month_labels()[:months], "datasets": datasets}
+
+
+def cumulative_series(year: int, months: int = 12) -> dict:
+    """Income and expenses month by month and their running totals since January (first `months` months)."""
+    series = monthly_series(year)
+    income, expenses = series["income"][:months], series["expenses"][:months]
+    return {
+        "labels": series["labels"][:months],
+        "income": income, "expenses": expenses,
+        "income_cumulative": [round(v, 2) for v in accumulate(income)],
+        "expenses_cumulative": [round(v, 2) for v in accumulate(expenses)],
+        "total_income": sum(income), "total_expenses": sum(expenses),
+    }
+
+
+def months_to_show(year: int, today: date | None = None) -> int:
+    """12 for a past year; for the current year only the months so far (no flat future months)."""
+    today = today or date.today()
+    return today.month if year == today.year else 12
 
 
 # ── Page-level reports ─────────────────────────────────────────────────────────

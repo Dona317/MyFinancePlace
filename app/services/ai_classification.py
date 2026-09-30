@@ -15,6 +15,10 @@ from app.services import ai_extraction, categories as category_service, category
 from app.services.ai_extraction import AIExtractionError
 from flask_babel import gettext as _
 
+# Tag of a transaction whose category was suggested by the AI and accepted unchanged: easy to find, to check it
+AI_TAG = "da confermare (AI)"
+OLD_AI_TAG = "categoria-ai"  # the same, before it was renamed
+
 BATCH_SIZE = 40          # movements per request: keeps tiny models within their context
 CONFIDENCE = ("alta", "media", "bassa")
 

@@ -11,9 +11,9 @@
   <a href="{{ url_for('export.index', _anchor='bank-import') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-bank2"></i> {{ _('Importa estratto conto') }}
   </a>
-  <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-tx')">
+  <a href="{{ url_for('transactions.new', next=request.full_path) }}" class="btn btn-primary btn-sm">
     <i class="bi bi-plus-lg"></i> {{ _('Nuova Transazione') }}
-  </button>
+  </a>
 {% endblock %}
 
 {% block content %}
@@ -29,7 +29,12 @@
 <!-- Filtri ──────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
   <form class="filter-bar" method="GET" action="{{ url_for('transactions.index') }}">
-    <input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="{{ _('Cerca per descrizione o controparte...') }}" style="flex:1;min-width:200px;" />
+    <input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="{{ _('Cerca per descrizione o tag...') }}" style="flex:1;min-width:200px;" />
+    {% if filters.tag %}
+    <input type="hidden" name="tag" value="{{ filters.tag }}" />
+    <a class="tag-chip tag-filter" href="{{ url_for('transactions.index', **dict(request.args.to_dict(), tag='')) }}"
+       title="{{ _('Togli il filtro') }}"><i class="bi bi-tag"></i> {{ filters.tag }} <i class="bi bi-x"></i></a>
+    {% endif %}
     <select name="type" class="form-select" onchange="this.form.submit()">
       <option value="">{{ _('Tipo') }}</option>
       {% for val, lbl in [('income',_('Entrata')),('expense',_('Uscita')),('transfer',_('Trasferimento'))] %}
@@ -78,6 +83,16 @@
         <i class="bi bi-trash3"></i> {{ _('Elimina selezionate (') }}<span id="bulk-count">0</span>)
       </button>
       {% endif %}
+      {% if to_confirm %}
+      <a href="{{ url_for('transactions.index', tag=ai_tag) if filters.tag != ai_tag else url_for('transactions.index') }}"
+         class="btn btn-sm {{ 'btn-primary' if filters.tag == ai_tag else 'btn-outline' }}">
+        <i class="bi bi-stars"></i> {{ _('Da confermare (AI): %(count)s', count=to_confirm) }}
+      </a>
+      <form method="POST" action="{{ url_for('transactions.confirm_ai') }}" id="confirm-form" class="inline-filter">
+        <input type="hidden" name="next" value="{{ request.full_path }}" />
+        <button type="submit" class="btn btn-ghost btn-sm" id="bulk-confirm" disabled><i class="bi bi-check2-all"></i> {{ _('Conferma selezionate') }}</button>
+      </form>
+      {% endif %}
       {% if transactions and accounts %}
       <form method="POST" action="{{ url_for('transactions.assign_account') }}" id="assign-form" class="inline-filter">
         <input type="hidden" name="next" value="{{ request.full_path }}" />
@@ -103,7 +118,6 @@
           <th>{{ _('Data') }}</th>
           <th>{{ _('Descrizione') }}</th>
           <th>{{ _('Categoria') }}</th>
-          <th>{{ _('Controparte') }}</th>
           <th>{{ _('Tag') }}</th>
           <th class="text-right">{{ _('Importo') }}</th>
           <th class="text-center">{{ _('Azioni') }}</th>
@@ -124,10 +138,18 @@
             {% endif %}
           </td>
           <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
-          <td class="text-muted">{{ tx.counterparty or '—' }}</td>
-          <td>
+          <td class="tag-cell">
             {% for tag in tx.tags %}
-            <span class="badge badge-muted">{{ tag }}</span>
+            {% if tag == ai_tag %}
+            <form method="POST" action="{{ url_for('transactions.confirm_ai') }}" class="tag-chip tag-ai"
+                  title="{{ _("Categoria proposta dall'AI e accettata senza modifiche: controllala e confermala.") }}">
+              <input type="hidden" name="ids" value="{{ tx.id }}" /><input type="hidden" name="next" value="{{ request.full_path }}" />
+              <i class="bi bi-stars"></i> {{ _('da confermare (AI)') }}
+              <button type="submit" aria-label="{{ _('Conferma la categoria') }}" title="{{ _('Conferma la categoria') }}"><i class="bi bi-check2"></i></button>
+            </form>
+            {% else %}
+            <a class="tag-chip" href="{{ url_for('transactions.index', tag=tag) }}" title="{{ _('Mostra le transazioni con questo tag') }}">{{ tag }}</a>
+            {% endif %}
             {% endfor %}
           </td>
           <td class="text-right">
@@ -136,7 +158,7 @@
             <span class="amount" style="color:var(--clr-text-muted);white-space:nowrap;" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money(symbol) }}</span>
             {% else %}
             {% set original = -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs %}
-            <span class="amount {{ tx.type|tone }}">{{ original|money(symbol) }}</span>
+            <span class="amount {{ tx.type|tone }}">{{ '+' if tx.type == 'income' }}{{ original|money(symbol) }}</span>
             {% if (tx.currency or 'EUR') != display.currency %}<div class="text-xs text-muted nowrap" title="{{ _('Controvalore nella valuta dei totali al cambio del giorno') }}">≈ {{ tx.signed_amount|money }}</div>{% endif %}
             {% endif %}
           </td>
@@ -193,102 +215,6 @@
   {% endif %}
 </div>
 
-<!-- Modal: Nuova Transazione ─────────────────────────────────────────────── -->
-<div class="modal-overlay" id="modal-new-tx">
-  <div class="modal" style="max-width:680px;">
-    <div class="modal-header">
-      <h3 class="modal-title"><i class="bi bi-plus-circle"></i> {{ _('Nuova Transazione') }}</h3>
-      <button class="modal-close" onclick="closeModal('modal-new-tx')">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <form method="POST" action="{{ url_for('transactions.new') }}" id="form-new-tx">
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">{{ _('Tipo') }}</label>
-            <div style="display:flex;gap:8px;">
-              {% for val, lbl in [('expense',_('Uscita')),('income',_('Entrata')),('transfer',_('Trasferimento'))] %}
-              <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;font-size:var(--font-size-sm);font-weight:500;">
-                <input type="radio" name="type" value="{{ val }}" style="display:none;"
-                       {{ 'checked' if val == 'expense' else '' }} />
-                {{ lbl }}
-              </label>
-              {% endfor %}
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">{{ _('Data') }}</label>
-            <input type="date" name="date" class="form-control" required />
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">{{ _('Importo') }}</label>
-            <div style="position:relative;">
-              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
-              <input type="number" name="amount" class="form-control" style="padding-left:28px;"
-                     placeholder="0,00" step="0.01" min="0" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">{{ _('Valuta') }}</label>
-            <select name="currency" class="form-select">
-              <option value="EUR" selected>{{ _('EUR — Euro') }}</option>
-              <option value="USD">{{ _('USD — Dollaro') }}</option>
-              <option value="GBP">{{ _('GBP — Sterlina') }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">{{ _('Descrizione') }}</label>
-          <input type="text" name="description" class="form-control"
-                 placeholder="{{ _('es. Spesa al supermercato') }}" required />
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">{{ _('Categoria') }}</label>
-            <select name="category" class="form-select">
-              <option value="">{{ _('— Seleziona —') }}</option>
-              {% for cat in all_categories %}
-              <option>{{ cat }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">{{ _('Controparte') }}</label>
-            <input type="text" name="counterparty" class="form-control"
-                   placeholder="{{ _('es. Esselunga, Datore di lavoro...') }}" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">{{ _('Tag') }} <span style="font-weight:400;color:var(--clr-text-muted);">{{ _('(separati da virgola)') }}</span></label>
-          <input type="text" name="tags" class="form-control" placeholder="{{ _('es. deducibile, lavoro') }}" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">{{ _('Note') }}</label>
-          <textarea name="notes" class="form-control" rows="2" placeholder="{{ _('Note facoltative...') }}"></textarea>
-        </div>
-
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-new-tx')">
-        <i class="bi bi-x"></i> {{ _('Annulla') }}
-      </button>
-      <button type="submit" form="form-new-tx" class="btn btn-primary">
-        <i class="bi bi-check-lg"></i> {{ _('Aggiungi Transazione') }}
-      </button>
-    </div>
-  </div>
-</div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -296,17 +222,17 @@
 const bulkBoxes = document.querySelectorAll('.bulk-select');
 const bulkButton = document.getElementById('bulk-delete');
 // "Assegna" sends the same selection as the bulk delete: copy the ticked ids into its form
-const assignForm = document.getElementById('assign-form');
-if (assignForm) {
-  assignForm.addEventListener('submit', () => {
-    assignForm.querySelectorAll('input[name=ids]').forEach(el => el.remove());
+// "Assegna" and "Conferma selezionate" send the same selection as the bulk delete: copy the ticked ids into them
+['assign-form', 'confirm-form'].map(id => document.getElementById(id)).filter(Boolean).forEach(form => {
+  form.addEventListener('submit', () => {
+    form.querySelectorAll('input[name=ids]').forEach(el => el.remove());
     document.querySelectorAll('.bulk-select:checked').forEach(box => {
       const hidden = document.createElement('input');
       hidden.type = 'hidden'; hidden.name = 'ids'; hidden.value = box.value;
-      assignForm.appendChild(hidden);
+      form.appendChild(hidden);
     });
   });
-}
+});
 const classifyButton = document.getElementById('ai-classify');
 const refreshBulk = () => {
   const count = [...bulkBoxes].filter(b => b.checked).length;
@@ -314,8 +240,7 @@ const refreshBulk = () => {
     bulkButton.disabled = count === 0;
     document.getElementById('bulk-count').textContent = count;
   }
-  const assignButton = document.getElementById('bulk-assign');
-  if (assignButton) assignButton.disabled = count === 0;
+  ['bulk-assign', 'bulk-confirm'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = count === 0; });
   if (classifyButton) {
     const unclassified = Number(classifyButton.dataset.unclassified);
     document.getElementById('ai-classify-label').textContent = count

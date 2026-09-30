@@ -36,7 +36,7 @@ def test_english_everywhere_once_chosen(client, db):
     assert "Settings saved successfully." in html  # the flash message, too
     assert '<html lang="en"' in html and 'value="en" lang="en" selected' in html
     dashboard = client.get("/dashboard").get_data(as_text=True)
-    assert "Recent Transactions" in dashboard and "Spending by Category" in dashboard
+    assert "Recent Transactions" in dashboard and "Income by category" in dashboard
     assert "Transazioni Recenti" not in dashboard
     # texts used by the scripts, and the theme button
     assert '"to_dark": "Switch to dark mode"' in dashboard and 'aria-label="Switch to dark mode"' in dashboard

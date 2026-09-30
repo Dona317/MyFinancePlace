@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 11:25+0000\n"
+"POT-Creation-Date: 2026-09-30 13:47+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -232,6 +232,12 @@ msgid "%(name)s non è un modello per questo provider: scegli %(which)s."
 msgstr "%(name)s is not a model for this provider: choose %(which)s."
 
 #, python-format
+msgid "%(num)d categoria confermata."
+msgid_plural "%(num)d categorie confermate."
+msgstr[0] "%(num)d category confirmed."
+msgstr[1] "%(num)d categories confirmed."
+
+#, python-format
 msgid "%(num)d debito"
 msgid_plural "%(num)d debiti"
 msgstr[0] "%(num)d debt"
@@ -310,14 +316,14 @@ msgstr "(e.g. from an import):"
 msgid "(facoltativo)"
 msgstr "(optional)"
 
+msgid "(non conta come entrata né come uscita)"
+msgstr "(counts as neither income nor expense)"
+
 msgid "(opzionale)"
 msgstr "(optional)"
 
 msgid "(rata, erogazione)"
 msgstr "(installment, disbursement)"
-
-msgid "(separati da virgola)"
-msgstr "(comma separated)"
 
 msgid "(servizio cloud) per essere letto. Se preferisci che i dati restino sul tuo computer,"
 msgstr "(cloud service) to be read. If you prefer the data to stay on your computer,"
@@ -551,6 +557,9 @@ msgstr "Allocation by Class"
 
 msgid "Alta — descrizioni anche poco simili"
 msgstr "High — even loosely similar descriptions"
+
+msgid "Altre"
+msgstr "Others"
 
 msgid "Altre banche:"
 msgstr "Other banks:"
@@ -914,6 +923,9 @@ msgstr "Top Category"
 msgid "Categoria attuale"
 msgstr "Current category"
 
+msgid "Categoria proposta dall'AI e accettata senza modifiche: controllala e confermala."
+msgstr "Category suggested by the AI and accepted unchanged: check it and confirm it."
+
 #, python-format
 msgid "Categoria «%(name)s» aggiornata."
 msgstr "Category «%(name)s» updated."
@@ -940,6 +952,9 @@ msgstr "Category: choose one."
 msgid "Categorie"
 msgstr "Categories"
 
+msgid "Categorie nel tempo"
+msgstr "Categories over time"
+
 msgid "Causale della banca"
 msgstr "Bank description"
 
@@ -952,8 +967,8 @@ msgstr "Search document"
 msgid "Cerca duplicati"
 msgstr "Find duplicates"
 
-msgid "Cerca per descrizione o controparte..."
-msgstr "Search by description or counterparty..."
+msgid "Cerca per descrizione o tag..."
+msgstr "Search by description or tag..."
 
 msgid "Cerca per nome o note..."
 msgstr "Search by name or notes..."
@@ -1011,8 +1026,8 @@ msgstr "Last name"
 msgid "Colonna Categoria"
 msgstr "Category column"
 
-msgid "Colonna Controparte"
-msgstr "Counterparty column"
+msgid "Colonna Controparte (diventa un tag)"
+msgstr "Counterparty column (becomes a tag)"
 
 msgid "Colonna Data"
 msgstr "Date column"
@@ -1048,6 +1063,9 @@ msgstr "Complete the details"
 msgid "Con Claude serve la variabile"
 msgstr "With Claude you need the variable"
 
+msgid "Con il segno meno è un'uscita (-45,20), senza è un'entrata (1.200)."
+msgstr "With a minus sign it is an expense (-45.20), without it is income (1,200)."
+
 msgid "Con quale importo proiettare le transazioni ricorrenti, in entrata e in uscita"
 msgstr "Which amount to project the recurring transactions with, incoming and outgoing"
 
@@ -1069,6 +1087,12 @@ msgstr "Confirm"
 
 msgid "Conferma Password"
 msgstr "Confirm Password"
+
+msgid "Conferma la categoria"
+msgstr "Confirm the category"
+
+msgid "Conferma selezionate"
+msgstr "Confirm selected"
 
 msgid "Confidenza"
 msgstr "Confidence"
@@ -1192,8 +1216,8 @@ msgstr "Check now →"
 msgid "Controlla se sono lo stesso movimento (es. importato da due file diversi) o movimenti distinti."
 msgstr "Check whether they are the same movement (e.g. imported from two different files) or different ones."
 
-msgid "Controparte"
-msgstr "Counterparty"
+msgid "Controparte (tag)"
+msgstr "Counterparty (tag)"
 
 msgid "Controvalore nella valuta dei totali al cambio del giorno"
 msgstr "Value in the totals currency at the rate of the day"
@@ -1260,6 +1284,10 @@ msgstr "From"
 
 msgid "Da Mettere da Parte"
 msgstr "To Set Aside"
+
+#, python-format
+msgid "Da confermare (AI): %(count)s"
+msgstr "To confirm (AI): %(count)s"
 
 msgid "Da dove vengono i numeri"
 msgstr "Where the numbers come from"
@@ -1506,14 +1534,29 @@ msgstr "Income %(month)s"
 msgid "Entrate Mensili"
 msgstr "Monthly Income"
 
+msgid "Entrate cumulate"
+msgstr "Cumulative income"
+
+msgid "Entrate del mese"
+msgstr "Income of the month"
+
 msgid "Entrate e spese con tag"
 msgstr "Tagged income and expenses"
+
+msgid "Entrate e uscite cumulate"
+msgstr "Cumulative income and expenses"
 
 msgid "Entrate e uscite per mese"
 msgstr "Income and expenses by month"
 
+msgid "Entrate e uscite: mese per mese e cumulate"
+msgstr "Income and expenses: month by month and cumulative"
+
 msgid "Entrate per categoria"
 msgstr "Income by category"
+
+msgid "Entrate per categoria nel tempo"
+msgstr "Income by category over time"
 
 msgid "Entrate previste"
 msgstr "Expected income"
@@ -1760,9 +1803,6 @@ msgstr "Outside Budget"
 msgid "GBP — British Pound"
 msgstr "GBP — British Pound"
 
-msgid "GBP — Sterlina"
-msgstr "GBP — Pound sterling"
-
 msgid "Gen"
 msgstr "Jan"
 
@@ -1806,6 +1846,9 @@ msgstr "Already expired"
 #, python-format
 msgid "Già visti (%(count)s)"
 msgstr "Already seen (%(count)s)"
+
+msgid "Grafico Entrate per Categoria"
+msgstr "Income by Category Chart"
 
 msgid "Grafico Flusso di Cassa"
 msgstr "Cash Flow Chart"
@@ -1853,11 +1896,12 @@ msgstr ""
 "The movements don't add up with the document's balances: opening balance %(opening)s + movements %(movements)s ≠ "
 "closing balance %(closing)s (difference %(difference)s). Some row is probably missing or wrong."
 
-msgid "I tag facilitano la ricerca e il raggruppamento delle transazioni."
-msgstr "Tags make it easier to search and group transactions."
-
 msgid "Identici"
 msgstr "Identical"
+
+#, python-format
+msgid "Il %(year)s per categoria"
+msgstr "%(year)s by category"
 
 msgid ""
 "Il PDF non contiene testo (probabilmente è una scansione): scarica dall'home banking il PDF originale oppure "
@@ -2180,6 +2224,9 @@ msgstr "Financial Snapshots"
 msgid "Istituto / descrizione"
 msgstr "Lender / description"
 
+msgid "Istogramma mese per mese con i totali progressivi dell'anno"
+msgstr "Month-by-month bars with the year's running totals"
+
 msgid "Istruzione"
 msgstr "Education"
 
@@ -2337,6 +2384,9 @@ msgstr "Leu"
 msgid "Linea: quanto del mese è passato"
 msgstr "Line: how much of the month has gone by"
 
+msgid "Linee mese per mese per ogni categoria di entrata e di uscita"
+msgstr "Month-by-month lines for each income and expense category"
+
 msgid "Lingua"
 msgstr "Language"
 
@@ -2451,6 +2501,9 @@ msgstr "This month"
 msgid "Mese per mese"
 msgstr "Month by month"
 
+msgid "Mese per mese, in euro, per categoria"
+msgstr "Month by month, in euro, by category"
+
 msgid "Mese precedente"
 msgstr "Previous month"
 
@@ -2560,6 +2613,9 @@ msgstr "Modules"
 
 msgid "Moduli — Visibilità nella Navigazione"
 msgstr "Modules — Visibility in the Navigation"
+
+msgid "Mostra le transazioni con questo tag"
+msgstr "Show the transactions with this tag"
 
 msgid "Mostra tutte"
 msgstr "Show all"
@@ -2711,9 +2767,6 @@ msgstr "No recurring series to confirm."
 msgid "Nessuna spesa in questo periodo."
 msgstr "No spending in this period."
 
-msgid "Nessuna spesa questo mese."
-msgstr "No spending this month."
-
 msgid "Nessuna spesa registrata"
 msgstr "No spending recorded"
 
@@ -2731,6 +2784,9 @@ msgstr "No transaction matches the selected filters."
 
 msgid "Nessuna transazione da classificare."
 msgstr "No transactions to classify."
+
+msgid "Nessuna transazione da confermare tra quelle selezionate."
+msgstr "No transaction to confirm among the selected ones."
 
 msgid "Nessuna transazione ricorrente programmata. Segna come ricorrenti affitto, stipendio, abbonamenti"
 msgstr "No recurring transactions scheduled. Mark rent, salary and subscriptions as recurring"
@@ -3667,6 +3723,9 @@ msgstr "Downloaded %(count)s ECB reference rates of the last 90 days; transactio
 msgid "Scegli almeno un file da caricare."
 msgstr "Choose at least one file to upload."
 
+msgid "Scegli dai tag già usati o scrivine uno nuovo e premi Invio. La controparte (es. il negozio) va nei tag."
+msgstr "Pick from the tags already used or type a new one and press Enter. The counterparty (e.g. the shop) goes in the tags."
+
 msgid "Scegli il file di backup da ripristinare."
 msgstr "Choose the backup file to restore."
 
@@ -3739,6 +3798,9 @@ msgstr "Sensitivity"
 
 msgid "Senza Conto"
 msgstr "No Account"
+
+msgid "Senza categoria"
+msgstr "Uncategorized"
 
 msgid "Senza scadenza"
 msgstr "No expiry"
@@ -3956,17 +4018,30 @@ msgstr "Policy type"
 msgid "Tipo di report"
 msgstr "Report type"
 
+msgid "Togli il filtro"
+msgstr "Remove the filter"
+
+msgid "Togli il tag"
+msgstr "Remove the tag"
+
 msgid "Torna alle Istantanee"
 msgstr "Back to Snapshots"
 
 msgid "Torna alle transazioni"
 msgstr "Back to transactions"
 
-msgid "Torta con la distribuzione delle spese del mese"
-msgstr "Pie with this month's spending split"
+msgid "Torta con la distribuzione delle entrate dell'anno"
+msgstr "Pie with the year's income split"
+
+msgid "Torta con la distribuzione delle spese dell'anno"
+msgstr "Pie with the year's spending split"
 
 msgid "Totale"
 msgstr "Total"
+
+#, python-format
+msgid "Totale %(year)s: %(amount)s"
+msgstr "Total %(year)s: %(amount)s"
 
 msgid "Totale Attività"
 msgstr "Total Assets"
@@ -4059,6 +4134,9 @@ msgstr "Transfer from %(account)s"
 msgid "Trasferimento tra conti"
 msgstr "Transfer between accounts"
 
+msgid "Trasferimento tra i miei conti"
+msgstr "Transfer between my accounts"
+
 #, python-format
 msgid "Trasferimento verso %(account)s"
 msgstr "Transfer to %(account)s"
@@ -4117,9 +4195,6 @@ msgstr "Everything matches: on %(date)s the app balance is %(amount)s, as on the
 
 msgid "Tutto vale allo stesso modo per le"
 msgstr "The same applies to"
-
-msgid "USD — Dollaro"
-msgstr "USD — Dollar"
 
 msgid "USD — US Dollar"
 msgstr "USD — US Dollar"
@@ -4190,6 +4265,18 @@ msgstr "Expenses %(month)s"
 
 msgid "Uscite Mensili"
 msgstr "Monthly Expenses"
+
+msgid "Uscite cumulate"
+msgstr "Cumulative expenses"
+
+msgid "Uscite del mese"
+msgstr "Expenses of the month"
+
+msgid "Uscite per categoria"
+msgstr "Expenses by category"
+
+msgid "Uscite per categoria nel tempo"
+msgstr "Expenses by category over time"
 
 msgid "Uscite previste"
 msgstr "Expected expenses"
@@ -4367,6 +4454,9 @@ msgstr "value in euro"
 msgid "curl -fsSL https://ollama.com/install.sh | sh"
 msgstr "curl -fsSL https://ollama.com/install.sh | sh"
 
+msgid "da confermare (AI)"
+msgstr "to confirm (AI)"
+
 msgid "da conservare fuori da questo computer (chiavetta, cloud). Fallo almeno una volta al mese e prima di aggiornare l'app."
 msgstr "to keep outside this computer (USB stick, cloud). Do it at least once a month and before updating the app."
 
@@ -4426,8 +4516,8 @@ msgstr "e.g. 4821"
 msgid "es. Animali"
 msgstr "e.g. Pets"
 
-msgid "es. Esselunga, Datore di lavoro..."
-msgstr "e.g. Supermarket, Employer..."
+msgid "es. Esselunga, deducibile, vacanza"
+msgstr "e.g. Tesco, deductible, holiday"
 
 msgid "es. Fineco, Carta Amex, Contanti"
 msgstr "e.g. Fineco, Amex Card, Cash"
@@ -4455,12 +4545,6 @@ msgstr "e.g. Vanguard FTSE All-World"
 
 msgid "es. decathlon"
 msgstr "e.g. decathlon"
-
-msgid "es. deducibile, lavoro"
-msgstr "e.g. deductible, work"
-
-msgid "es. deducibile, lavoro, vacanza"
-msgstr "e.g. deductible, work, holiday"
 
 msgid "es. qwen2.5vl:7b"
 msgstr "e.g. qwen2.5vl:7b"

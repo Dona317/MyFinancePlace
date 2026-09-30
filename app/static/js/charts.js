@@ -133,6 +133,8 @@ function buildBarChart(ctx, labels, datasets, opts) {
                        : ds.color ? hexAlpha(themeColor(ds.color, Theme.primary), ds.type === "line" ? 0.2 : 0.85)
                        : hexAlpha(Theme.chart[i % Theme.chart.length], 0.85),
         borderColor: ds.color ? themeColor(ds.color, Theme.primary) : undefined,
+        yAxisID: ds.axis === "right" ? "y1" : undefined,   // e.g. running totals next to monthly bars
+        borderDash: ds.dash || [],
         borderWidth: ds.type === "line" ? 2 : 0,
         tension: 0.3,
         borderRadius: 4,
@@ -147,6 +149,8 @@ function buildBarChart(ctx, labels, datasets, opts) {
       scales: {
         [labelAxis]: { grid: { display: false }, stacked: opts.stacked || false },
         [valueAxis]: { grid: { color: Theme.border }, stacked: opts.stacked || false },
+        ...(datasets.some(ds => ds.axis === "right")
+          ? { y1: { position: "right", grid: { display: false }, ticks: { color: Theme.textMuted } } } : {}),
       },
     },
   });

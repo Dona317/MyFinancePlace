@@ -14,10 +14,25 @@ def test_defaults_are_created_once_and_deletions_stick(db):
     assert Category.query.count() == len(categories.DEFAULTS) - 1
 
 
+def test_a_database_seeded_with_the_first_list_gets_the_new_categories_once(db):
+    """Before v2 only the first 13 were created: the new ones are added, the ones the user deleted stay deleted."""
+    from app.services import settings_store
+    for name, kind, hint, discretionary in categories.DEFAULTS:
+        if name in categories.FIRST_DEFAULTS and name != "Freelance":  # the user had deleted Freelance
+            db.session.add(Category(name=name, kind=kind, hint=categories.OLD_HINTS.get(name, hint)))
+    settings_store.set(categories.SEEDED_SETTING, "1")
+    names = {c.name for c in categories.all_categories()}
+    assert {"Bollette", "Ristoranti", "Pensione", "Dividendi e cedole", "Tasse e imposte"} <= names
+    assert "Freelance" not in names
+    assert "bollette" not in Category.query.filter_by(name="Casa").one().hint  # narrowed, it was never edited
+    categories.delete("Bollette", None)
+    assert "Bollette" not in {c.name for c in categories.all_categories()}  # seeded once only
+
+
 def test_used_categories_are_offered_too(db):
-    db.session.add(make_tx(category="Animali"))
+    db.session.add(make_tx(category="Hobby modellismo"))
     db.session.commit()
-    assert "Animali" in categories.known_categories()
+    assert "Hobby modellismo" in categories.known_categories()
 
 
 def test_rename_updates_everything_and_merge(client, db):
@@ -101,8 +116,8 @@ def test_correcting_a_category_teaches_a_rule(client, db):
     tx = make_tx(description="POS 1234 BOTTEGA VERDE", counterparty="Bottega Verde", category="Altro")
     db.session.add(tx)
     db.session.commit()
-    client.post(f"/transactions/{tx.id}/edit", data={"type": "expense", "date": "2026-06-01", "amount": "10",
-                                                     "description": "POS 1234 BOTTEGA VERDE", "counterparty": "Bottega Verde",
+    client.post(f"/transactions/{tx.id}/edit", data={"date": "2026-06-01", "amount": "-10",
+                                                     "description": "POS 1234 BOTTEGA VERDE", "tags": "Bottega Verde, cura",
                                                      "category": "Salute", "learn_rule": "1"})
     rule = CategoryRule.query.one()
     assert (rule.keyword, rule.category, rule.source) == ("bottega verde", "Salute", "learned")

@@ -42,6 +42,7 @@ from statistics import median
 
 from app.models.transaction import Transaction
 from app.services import category_rules
+from app.services.ai_classification import AI_TAG
 from app.services import ai_extraction, duplicates
 from app.services import statement_readers as readers
 from app.services.parsing import TRANSACTION_TYPES, clean_text, normalize, to_date, to_decimal, valid_amount
@@ -859,9 +860,11 @@ def build_transaction(base: dict, bank_key: str, fields: dict | None = None, ai:
     tx_type = fields.get("type")
     if tx_date is None or not valid_amount(amount) or not description or tx_type not in TRANSACTION_TYPES:
         raise ValueError("incomplete row")
-    tags = ["importato", bank_key] + (["ai"] if ai else []) + ([] if base else ["manuale"])
+    counterparty = clean_text(fields.get("counterparty"))
+    # the counterparty is the first tag (as in the transaction form)
+    tags = ([counterparty] if counterparty else []) + ["importato", bank_key] + (["ai"] if ai else []) + ([] if base else ["manuale"])
     if fields.get("aicat"):
-        tags.append("categoria-ai")  # category suggested by the AI and accepted unchanged: worth a later review
+        tags.append(AI_TAG)  # category suggested by the AI and accepted unchanged: worth a later review
     return Transaction(
         date=tx_date,
         description=description,
@@ -869,7 +872,7 @@ def build_transaction(base: dict, bank_key: str, fields: dict | None = None, ai:
         currency=base.get("currency") or "EUR",
         type=tx_type,
         category=clean_text(fields.get("category")) or "Altro",
-        counterparty=clean_text(fields.get("counterparty")),
+        counterparty=counterparty,
         tags=tags,
         is_recurring=False,
         notes=base.get("details"),

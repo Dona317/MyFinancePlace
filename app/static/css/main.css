@@ -1338,3 +1338,35 @@ td.amount { white-space: nowrap; }
 }
 .report-list { max-height: 640px; overflow-y: auto; }
 .report-summary { position: sticky; top: calc(var(--topbar-height) + 16px); }
+
+/* Dashboard: the year by category — a doughnut next to its monthly lines */
+.dash-year-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 12px; }
+.dash-year-head h2 { font-size: var(--font-size-lg); margin: 0; }
+.dash-year-head .form-select { width: auto; }
+.dash-pair { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.dash-pair.single { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 1100px) { .dash-pair { grid-template-columns: minmax(0, 1fr); } }
+
+/* The kind of a transaction, read from the sign of its amount */
+.amount-kind { margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: var(--font-size-xs); font-weight: 600; }
+.amount-kind:empty { display: none; }
+.amount-kind.expense { background: var(--clr-negative-bg); color: var(--clr-negative-text); }
+.amount-kind.income { background: var(--clr-positive-bg); color: var(--clr-positive-text); }
+.amount-kind.transfer { background: var(--clr-neutral-bg); color: var(--clr-neutral); }
+
+/* Tags as chips; the AI one ("da confermare") dashed, with its confirm button */
+.tag-cell .tag-chip { margin: 2px 4px 2px 0; }
+.tag-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: var(--font-size-xs);
+            background: var(--clr-bg-input); border: 1px solid var(--clr-border); color: var(--clr-text-secondary);
+            text-decoration: none; white-space: nowrap; margin: 0; }
+a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); text-decoration: none; }
+.tag-chip.tag-ai { border-style: dashed; border-color: var(--clr-warning); color: var(--clr-warning); background: var(--clr-warning-bg); }
+.tag-chip.tag-ai button { border: none; background: none; color: inherit; padding: 0 0 0 2px; cursor: pointer; font-size: 14px; line-height: 1; }
+.tag-chip.tag-ai button:hover { color: var(--clr-positive); }
+.tag-chip.tag-filter { align-self: center; background: var(--clr-primary-light); color: var(--clr-primary); border-color: var(--clr-primary); }
+.tag-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 42px; height: auto; padding: 6px 8px; cursor: text; }
+.tag-picker .tag-chip button { border: none; background: none; color: inherit; padding: 0; cursor: pointer; line-height: 1; }
+.tag-picker .tag-chip button:hover { color: var(--clr-negative); }
+.tag-picker-input { flex: 1; min-width: 140px; border: none; outline: none; background: transparent; color: var(--clr-text-primary);
+                    font-family: inherit; font-size: var(--font-size-sm); padding: 2px; }
+.tag-picker:focus-within { border-color: var(--clr-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--clr-primary) 18%, transparent); }

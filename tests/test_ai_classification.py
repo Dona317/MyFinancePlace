@@ -15,6 +15,7 @@ import pytest
 from app.extensions import db as _db
 from app.models.transaction import Transaction
 from app.services import ai_classification, ai_extraction, settings_store
+from app.services.ai_classification import AI_TAG
 from tests.conftest import make_tx
 from tests.form_helper import form_data
 from tests.statements import fineco_xlsx
@@ -199,8 +200,8 @@ def test_saved_rows_keep_counterparty_ai_tag_and_bank_causale(client, ollama, db
     first, second = Transaction.query.order_by(Transaction.date, Transaction.id).all()
     assert first.description == "Spesa settimanale"
     assert first.bank_description == "Pagamento Visa Debit presso ESSELUNGA MILANO"  # the bank's text is kept
-    assert first.counterparty == "Esselunga" and "categoria-ai" in first.tags
-    assert "categoria-ai" not in second.tags and second.bank_description.startswith("NETFLIX.COM")
+    assert first.counterparty == "Esselunga" and AI_TAG in first.tags and first.tags[0] == "Esselunga"  # counterparty = 1st tag
+    assert AI_TAG not in second.tags and second.bank_description.startswith("NETFLIX.COM")
 
 
 # ── Saved transactions ─────────────────────────────────────────────────────────
@@ -233,8 +234,8 @@ def test_classify_uncategorized_then_apply(client, ollama, saved):
     client.post("/transactions/classify/apply", data=form_data(page, "classify-form", **{f"category-{saved[1].id}": "Svago"}))
 
     spesa, netflix, bonifico, casa = (_db.session.get(Transaction, t.id) for t in saved)
-    assert (spesa.category, spesa.counterparty) == ("Alimentari", "Esselunga") and "categoria-ai" in spesa.tags
-    assert netflix.category == "Svago" and "categoria-ai" not in (netflix.tags or [])  # corrected by the user
+    assert (spesa.category, spesa.counterparty) == ("Alimentari", "Esselunga") and AI_TAG in spesa.tags
+    assert netflix.category == "Svago" and AI_TAG not in (netflix.tags or [])  # corrected by the user
     assert bonifico.category == "Altro" and casa.category == "Casa"  # not applied / not asked
 
 

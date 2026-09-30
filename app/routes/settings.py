@@ -32,6 +32,9 @@ DEFAULT_SETTINGS = {
     # ── Dashboard sections ───────────────────────────────────────────────
     "dashboard_cashflow_chart": True,
     "dashboard_expense_pie":    True,
+    "dashboard_income_pie":     True,
+    "dashboard_category_trends": True,
+    "dashboard_cumulative":     True,
     "dashboard_recent_tx":      True,
     "dashboard_health":         True,
     # ── Modules (sidebar visibility + route access) ──────────────────────
@@ -159,6 +162,7 @@ def category_save():
     except ValueError as exc:
         flash(str(exc), "error")
         return redirect(url_for("settings.categories_page"))
+    categories.ensure_defaults()  # before looking the name up: the defaults may not exist yet
     old = request.form.get("old_name")
     hint = form_text("hint", _("Descrizione"))
     discretionary = "discretionary" in request.form

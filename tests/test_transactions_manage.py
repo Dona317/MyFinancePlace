@@ -52,11 +52,12 @@ def test_no_limits_on_text_length_or_amount_size(client, db):
     long_text = "Bonifico " + "molto lungo " * 200  # ~2,400 characters (old limit: 255)
     page = client.get("/transactions/new").get_data(as_text=True)
     client.post("/transactions/new", data=form_data(page, "edit-form", date="2026-06-01", description=long_text,
-                                                    amount="12345678901.50", type="income",
-                                                    category="C" * 300, counterparty="P" * 400))
+                                                    amount="12345678901.50",
+                                                    category="C" * 300, tags="P" * 400))
     tx = Transaction.query.one()
     assert (tx.description, float(tx.amount)) == (long_text.strip(), 12345678901.50)
-    assert len(tx.category) == 300 and len(tx.counterparty) == 400
+    assert tx.type == "income"  # no sign: income
+    assert len(tx.category) == 300 and len(tx.counterparty) == 400 and tx.tags == ["P" * 400]
 
 
 def test_edit_page_can_delete_and_return_to_where_you_were(client, db):
@@ -211,7 +212,6 @@ def test_non_recurring_transactions_store_no_frequency(client, db):
     ({"amount": "dieci"}, "Importo: «dieci» non è un numero valido."),
     ({"amount": "0"}, "Importo: deve essere diverso da zero."),
     ({"description": "  "}, "Descrizione: campo obbligatorio."),
-    ({"type": "regalo"}, "Tipo: scelta non valida."),
     ({"is_recurring": "on", "recurrence": "daily"}, "Frequenza: scelta non valida."),
     ({"is_recurring": "on", "recurrence": "monthly", "recurrence_end": "2020-01-01"}, "Fine ricorrenza"),
 ])

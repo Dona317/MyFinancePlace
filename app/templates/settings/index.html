@@ -94,7 +94,10 @@
       </div>
       <div class="settings-section-body">
         {{ toggle('dashboard_cashflow_chart', _('Grafico Flusso di Cassa'),   _('Grafico entrate/uscite degli ultimi 12 mesi')) }}
-        {{ toggle('dashboard_expense_pie',    _('Grafico Spese per Categoria'),_('Torta con la distribuzione delle spese del mese')) }}
+        {{ toggle('dashboard_expense_pie',    _('Grafico Spese per Categoria'),_("Torta con la distribuzione delle spese dell'anno")) }}
+        {{ toggle('dashboard_income_pie',     _('Grafico Entrate per Categoria'),_("Torta con la distribuzione delle entrate dell'anno")) }}
+        {{ toggle('dashboard_category_trends', _('Categorie nel tempo'), _('Linee mese per mese per ogni categoria di entrata e di uscita')) }}
+        {{ toggle('dashboard_cumulative',     _('Entrate e uscite cumulate'), _("Istogramma mese per mese con i totali progressivi dell'anno")) }}
         {{ toggle('dashboard_recent_tx',      _('Transazioni Recenti'),        _('Tabella con le ultime transazioni registrate')) }}
         {{ toggle('dashboard_health',         _('Salute Finanziaria'),         _('Barre di progresso per risparmio, debito e fondo emergenza')) }}
       </div>
