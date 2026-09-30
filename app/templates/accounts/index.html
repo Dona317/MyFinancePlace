@@ -44,7 +44,7 @@
             {% if not a.active %}<span class="badge badge-muted">{{ _('chiuso') }}</span>{% endif %}
           </td>
           <td>{{ kinds.get(a.kind, a.kind) }}{% if a.currency != 'EUR' %} · {{ a.currency }}{% endif %}</td>
-          <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money }}</td>
+          <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money(row.symbol) }}</td>
           <td class="text-xs">{% if a.reconciled_on %}<i class="bi bi-check2-circle text-positive"></i> {{ _('al %(date)s', date=a.reconciled_on|it_date) }}{% else %}<span class="text-muted">{{ _('mai') }}</span>{% endif %}</td>
           <td class="text-right"><a href="{{ url_for('transactions.index', account=a.id) }}">{{ row.count }}</a></td>
           <td>

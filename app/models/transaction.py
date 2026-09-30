@@ -25,6 +25,10 @@ class Transaction(db.Model):
     # two own accounts, counter_account is where it arrives
     account_id         = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)
     counter_account_id = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)
+    # When the transaction's currency is not the account's: what the bank actually charged (or credited, on the
+    # counter account of a transfer) in the account's currency. Empty = estimated with the day's exchange rate.
+    account_amount     = db.Column(db.Numeric(38, 2))
+    counter_amount     = db.Column(db.Numeric(38, 2))
 
     # What the money is for, when it matters to the cash-flow statement: buying/selling an investment
     # (investing) or receiving/repaying a loan (financing)

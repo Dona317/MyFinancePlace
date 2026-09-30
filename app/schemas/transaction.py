@@ -19,6 +19,13 @@ class TransactionIn(Schema):
     recurrence      = String(load_default=None, allow_none=True, validate=OneOf(RECURRENCES))
     recurrence_end  = Date(load_default=None, allow_none=True)
     notes           = String(load_default=None, allow_none=True)
+    # optional: left out of an update, they keep their stored value
+    account_id      = Integer(allow_none=True)
+    counter_account_id = Integer(allow_none=True, metadata={"description": "Conto d'arrivo (giroconti)"})
+    account_amount  = Float(allow_none=True, validate=Range(min=0),
+                            metadata={"description": "Importo nella valuta del conto, se diversa da `currency`"})
+    counter_amount  = Float(allow_none=True, validate=Range(min=0),
+                            metadata={"description": "Importo nella valuta del conto d'arrivo, se diversa"})
 
 
 class TransactionOut(Schema):
@@ -35,6 +42,10 @@ class TransactionOut(Schema):
     recurrence      = String()
     recurrence_end  = Date()
     notes           = String()
+    account_id      = Integer()
+    counter_account_id = Integer()
+    account_amount  = Float()
+    counter_amount  = Float()
     bank_description = String(metadata={"description": "Causale originale della banca (solo lettura)"})
 
 

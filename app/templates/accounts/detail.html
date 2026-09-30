@@ -13,23 +13,29 @@
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
     <div class="kpi-label">{{ _('Saldo Oggi') }}</div>
-    <div class="kpi-value {{ 'text-negative' if balance < 0 }}">{{ balance|money }}</div>
+    <div class="kpi-value {{ 'text-negative' if balance < 0 }}">{{ balance|money(symbol) }}</div>
     <div class="kpi-sub">{{ kinds.get(account.kind, account.kind) }}{% if account.iban_tail %} · …{{ account.iban_tail }}{% endif %}</div>
   </div>
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-flag"></i></div>
     <div class="kpi-label">{{ _('Saldo Iniziale') }}</div>
-    <div class="kpi-value">{{ account.opening_balance|money }}</div>
+    <div class="kpi-value">{{ account.opening_balance|money(symbol) }}</div>
     <div class="kpi-sub">{{ _('prima della prima transazione') }}</div>
   </div>
   <div class="kpi-card {{ 'kpi-positive' if account.reconciled_on else 'kpi-warning' }}">
     <div class="kpi-icon"><i class="bi bi-check2-circle"></i></div>
     <div class="kpi-label">{{ _('Riconciliato') }}</div>
     <div class="kpi-value">{{ account.reconciled_on|it_date if account.reconciled_on else _('Mai') }}</div>
-    <div class="kpi-sub">{{ _('saldo %(amount)s', amount=account.reconciled_balance|money) if account.reconciled_on else _("confronta con l'estratto qui sotto") }}</div>
+    <div class="kpi-sub">{{ _('saldo %(amount)s', amount=account.reconciled_balance|money(symbol)) if account.reconciled_on else _("confronta con l'estratto qui sotto") }}</div>
   </div>
 </div>
 
+{% if estimated %}
+<div class="alert alert-info mb-16"><i class="bi bi-currency-exchange"></i>
+  {{ ngettext("%(num)s movimento in un'altra valuta è contato al cambio del giorno: inserisci l'importo addebitato dalla banca per un saldo esatto.", "%(num)s movimenti in un'altra valuta sono contati al cambio del giorno: inserisci l'importo addebitato dalla banca per un saldo esatto.", estimated) }}
+  <a href="{{ url_for('transactions.index', account=account.id) }}">{{ _('Vedi le transazioni') }}</a>
+</div>
+{% endif %}
 <div class="card mb-16">
   <div class="card-header">
     <div>
@@ -41,18 +47,18 @@
     <form method="POST" action="{{ url_for('accounts.reconcile', account_id=account.id) }}" class="grid-3" style="align-items:end;">
       <div class="form-group"><label class="form-label" for="rc-on">{{ _("Data dell'estratto") }}</label>
         <input type="date" id="rc-on" name="on" class="form-control" value="{{ (result.on if result else today).isoformat() }}" required /></div>
-      <div class="form-group"><label class="form-label" for="rc-bal">{{ _("Saldo dell'estratto (€)") }}</label>
+      <div class="form-group"><label class="form-label" for="rc-bal">{{ _("Saldo dell'estratto") }} ({{ symbol }})</label>
         <input type="text" inputmode="decimal" id="rc-bal" name="statement_balance" class="form-control" autocomplete="off"
                value="{{ result.statement_balance|plain if result else '' }}" placeholder="{{ _('es. 2.345,67') }}" required /></div>
       <div class="form-group"><button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> {{ _('Verifica') }}</button></div>
     </form>
     {% if result %}
       {% if result.difference == 0 %}
-      <div class="alert alert-success mt-8"><i class="bi bi-check-circle"></i> {{ _("Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto.", date=result.on|it_date, amount=result.app_balance|money) }}</div>
+      <div class="alert alert-success mt-8"><i class="bi bi-check-circle"></i> {{ _("Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto.", date=result.on|it_date, amount=result.app_balance|money(symbol)) }}</div>
       {% else %}
       <div class="alert alert-warning mt-8">
         <i class="bi bi-exclamation-triangle"></i>
-        {{ _("Al %(date)s l'app segna <strong>%(app)s</strong>, l'estratto <strong>%(statement)s</strong>: differenza <strong>%(difference)s</strong>", date=result.on|it_date, app=result.app_balance|money, statement=result.statement_balance|money, difference=result.difference|money) }}
+        {{ _("Al %(date)s l'app segna <strong>%(app)s</strong>, l'estratto <strong>%(statement)s</strong>: differenza <strong>%(difference)s</strong>", date=result.on|it_date, app=result.app_balance|money(symbol), statement=result.statement_balance|money(symbol), difference=result.difference|money(symbol)) }}
         ({{ _("mancano entrate o ci sono uscite in più nell'app") if result.difference > 0 else _("mancano uscite o ci sono entrate in più nell'app") }}).
         {{ _('Controlla i movimenti qui sotto, quelli senza conto e il saldo iniziale.') }}
       </div>
@@ -75,7 +81,8 @@
           <td><a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.path) }}">{{ tx.description|truncate(70) }}</a>
             {% if tx.type == 'transfer' %}<div class="text-xs text-muted">{{ _('Trasferimento da %(account)s', account=tx.account.name) if incoming and tx.account else _('Trasferimento verso %(account)s', account=tx.counter_account.name) if tx.counter_account else _('Trasferimento') }}</div>{% endif %}</td>
           <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% endif %}</td>
-          <td class="amount text-right {{ 'positive' if incoming else 'negative' }}">{{ '+' if incoming else '-' }}{{ tx.amount|abs|money }}</td>
+          <td class="amount text-right {{ 'positive' if incoming else 'negative' }}">{{ '+' if incoming else '-' }}{{ in_account(tx)|money(symbol) }}
+            {% if (tx.currency or 'EUR') != (account.currency or 'EUR') %}<div class="text-xs text-muted">{{ tx.amount|abs|money(tx.currency) }}{% if (tx.account_amount if tx.account_id == account.id else tx.counter_amount) is none %} · {{ _('al cambio') }}{% endif %}</div>{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 14:59+0000\n"
+"POT-Creation-Date: 2026-09-30 19:55+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -180,6 +180,10 @@ msgid "%(deleted)s transazioni eliminate."
 msgstr "%(deleted)s transactions deleted."
 
 #, python-format
+msgid "%(field)s: il conto %(id)s non esiste."
+msgstr "%(field)s: account %(id)s does not exist."
+
+#, python-format
 msgid "%(label)s: campo obbligatorio."
 msgstr "%(label)s: required field."
 
@@ -272,6 +276,20 @@ msgid "%(num)s documento caricato."
 msgid_plural "%(num)s documenti caricati."
 msgstr[0] "%(num)s document uploaded."
 msgstr[1] "%(num)s documents uploaded."
+
+#, python-format
+msgid ""
+"%(num)s movimento in un'altra valuta è contato al cambio del giorno: inserisci l'importo addebitato dalla banca per "
+"un saldo esatto."
+msgid_plural ""
+"%(num)s movimenti in un'altra valuta sono contati al cambio del giorno: inserisci l'importo addebitato dalla banca "
+"per un saldo esatto."
+msgstr[0] ""
+"%(num)s transaction in another currency is counted at the day's exchange rate: enter the amount the bank charged for "
+"an exact balance."
+msgstr[1] ""
+"%(num)s transactions in another currency are counted at the day's exchange rate: enter the amount the bank charged "
+"for an exact balance."
 
 #, python-format
 msgid "%(pct)s%% rispetto al periodo precedente (%(amount)s)"
@@ -2064,6 +2082,12 @@ msgstr "Amount"
 msgid "Importo (più alti prima)"
 msgstr "Amount (largest first)"
 
+msgid "Importo accreditato sul conto d'arrivo"
+msgstr "Amount credited to the receiving account"
+
+msgid "Importo addebitato sul conto"
+msgstr "Amount charged to the account"
+
 msgid "Importo obiettivo"
 msgstr "Target amount"
 
@@ -2075,6 +2099,12 @@ msgstr "Target amount: must be greater than zero."
 
 msgid "Importo ricorrenti"
 msgstr "Recurring amount"
+
+msgid "Importo sul conto"
+msgstr "Amount on the account"
+
+msgid "Importo sul conto d'arrivo"
+msgstr "Amount on the receiving account"
 
 msgid "Importo tipico"
 msgstr "Typical amount"
@@ -3630,9 +3660,6 @@ msgstr "Total Balance"
 msgid "Saldo dell'estratto"
 msgstr "Statement balance"
 
-msgid "Saldo dell'estratto (€)"
-msgstr "Statement balance (€)"
-
 msgid "Saldo di cassa previsto"
 msgstr "Expected cash balance"
 
@@ -4400,6 +4427,9 @@ msgstr "Net change in cash (A+B+C)"
 msgid "Vedi i budget"
 msgstr "See the budgets"
 
+msgid "Vedi le transazioni"
+msgstr "See the transactions"
+
 msgid "Vedi tutto"
 msgstr "See all"
 
@@ -4433,6 +4463,9 @@ msgstr "Item"
 msgid "Vuota per polizze senza scadenza fissa."
 msgstr "Empty for policies without a fixed expiry."
 
+msgid "Vuoto: si usa il cambio del giorno."
+msgstr "Empty: the day's exchange rate is used."
+
 msgid "YYYY-MM-DD (ISO)"
 msgstr "YYYY-MM-DD (ISO)"
 
@@ -4448,6 +4481,9 @@ msgstr "at the latest prices"
 #, python-format
 msgid "al %(date)s"
 msgstr "on %(date)s"
+
+msgid "al cambio"
+msgstr "at the exchange rate"
 
 msgid "al cambio del suo giorno (o del giorno più vicino prima)."
 msgstr "at the rate of its day (or the closest day before)."
@@ -4503,6 +4539,9 @@ msgstr "to keep outside this computer (USB stick, cloud). Do it at least once a 
 
 msgid "dal piano di ammortamento"
 msgstr "from the amortization plan"
+
+msgid "dal tuo estratto conto"
+msgstr "from your bank statement"
 
 #, python-format
 msgid "data non riconosciuta: '%(value)s'"

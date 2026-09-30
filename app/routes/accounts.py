@@ -45,7 +45,7 @@ def index():
     rows = accounts.summary()
     return render_template(
         "accounts/index.html", rows=rows, kinds=accounts.KINDS, icons=accounts.ICONS,
-        total=sum(r["balance"] for r in rows if r["account"].active), unassigned=accounts.unassigned_count(),
+        total=sum(r["balance_base"] for r in rows if r["account"].active), unassigned=accounts.unassigned_count(),
     )
 
 
@@ -55,8 +55,14 @@ def detail(account_id):
     recent = (Transaction.query
               .filter((Transaction.account_id == account.id) | (Transaction.counter_account_id == account.id))
               .order_by(Transaction.date.desc(), Transaction.id.desc()).limit(50).all())
+    return _render_detail(account, recent, None)
+
+
+def _render_detail(account: Account, recent: list[Transaction], result: dict | None):
     return render_template("accounts/detail.html", account=account, balance=accounts.balance(account),
-                           recent=recent, kinds=accounts.KINDS, today=date.today(), result=None)
+                           recent=recent, kinds=accounts.KINDS, today=date.today(), result=result,
+                           symbol=currency_service.symbol(account.currency), estimated=accounts.estimated(account),
+                           in_account=lambda tx: accounts.amount_in(tx, account))
 
 
 @accounts_bp.route("/<int:account_id>/reconcile", methods=["POST"])
@@ -73,8 +79,7 @@ def reconcile(account_id):
         flash(_("Conto riconciliato al %(on)s: il saldo coincide con l'estratto.", on=display.day(on)), "success")
     recent = (Transaction.query.filter(Transaction.account_id == account.id, Transaction.date <= on)
               .order_by(Transaction.date.desc(), Transaction.id.desc()).limit(50).all())
-    return render_template("accounts/detail.html", account=account, balance=accounts.balance(account),
-                           recent=recent, kinds=accounts.KINDS, today=date.today(), result=result)
+    return _render_detail(account, recent, result)
 
 
 @accounts_bp.route("/new", methods=["GET", "POST"])

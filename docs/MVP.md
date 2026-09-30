@@ -22,18 +22,13 @@ What the first complete version must do, and where each item stands. Details and
 | Dati | Backup completo (.zip) e ripristino; dati di esempio in `samples/dati_fittizi` |
 | Interfaccia | Italiano / inglese, tema chiaro / scuro, menu laterale comprimibile, uso da telefono |
 | **Login** | Primo utente = amministratore creato al primo avvio; poi utenti aggiunti solo da un amministratore; dati condivisi da tutti; cambio password; comandi `flask users` per recuperare l'accesso |
+| **Saldi in valuta** | Ogni conto somma nella propria valuta: per i movimenti in un'altra valuta vale l'importo addebitato dalla banca (campo nel modulo, anche per il conto d'arrivo dei giroconti) oppure, finché manca, il cambio del giorno, con un avviso nel dettaglio del conto; totali dei conti e saldi iniziali convertiti nella valuta base |
+| **Qualità** | Ogni funzione dell'app è eseguita da almeno un test (controllo in CI con `scripts/untested_functions.py`, copertura ≥ 94%) |
 | **Docker** | Dati nel volume `db` (sistemato il refuso `PGDARE`), immagine fissata a `postgres:16`, procedura per spostare i dati di un'installazione esistente in [DEPLOY.md](DEPLOY.md) |
 
 ## 🔜 Da fare
 
-### 2. Saldi dei conti nella valuta del conto
-
-Oggi il saldo di un conto somma gli importi originali delle transazioni: un pagamento in USD con una carta in EUR
-conta in USD finché non si inserisce l'importo in EUR addebitato dalla banca. Serve:
-- per ogni transazione in valuta diversa da quella del conto, l'importo nella valuta del conto (quello
-  addebitato dalla banca, oppure calcolato con il cambio del giorno finché manca);
-- saldi, riconciliazione e stato patrimoniale calcolati con quell'importo;
-- nell'import da banca, leggere entrambi gli importi quando l'estratto li riporta.
+Niente: tutti i punti decisi sono fatti. Resta il punto 4, da definire.
 
 ## ❓ TBD
 

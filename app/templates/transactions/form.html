@@ -89,15 +89,30 @@
             <label class="form-label" for="f-account">{{ _('Conto') }}</label>
             <select id="f-account" name="account_id" class="form-select">
               <option value="">{{ _('— Nessuno —') }}</option>
-              {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if v.account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
+              {% for a in accounts %}<option value="{{ a.id }}" data-currency="{{ a.currency or 'EUR' }}" {{ 'selected' if v.account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
             </select>
           </div>
           <div class="form-group" id="counter-account-group" {% if not v.transfer %}hidden{% endif %}>
             <label class="form-label" for="f-counter">{{ _('Verso il conto') }} <span class="text-muted" style="font-weight:400;">{{ _('(trasferimenti)') }}</span></label>
             <select id="f-counter" name="counter_account_id" class="form-select">
               <option value="">{{ _('— Fuori dai miei conti —') }}</option>
-              {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if v.counter_account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
+              {% for a in accounts %}<option value="{{ a.id }}" data-currency="{{ a.currency or 'EUR' }}" {{ 'selected' if v.counter_account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
             </select>
+          </div>
+        </div>
+        <!-- Shown when the transaction's currency is not the account's: what the bank charged / credited -->
+        <div class="grid-2">
+          <div class="form-group" id="account-amount-group" hidden>
+            <label class="form-label" for="f-account-amount">{{ _('Importo addebitato sul conto') }} (<span data-currency-of="f-account"></span>)</label>
+            <input type="text" inputmode="decimal" id="f-account-amount" name="account_amount" class="form-control"
+                   value="{{ v.account_amount }}" autocomplete="off" placeholder="{{ _('dal tuo estratto conto') }}" />
+            <div class="form-hint">{{ _('Vuoto: si usa il cambio del giorno.') }}</div>
+          </div>
+          <div class="form-group" id="counter-amount-group" hidden>
+            <label class="form-label" for="f-counter-amount">{{ _("Importo accreditato sul conto d'arrivo") }} (<span data-currency-of="f-counter"></span>)</label>
+            <input type="text" inputmode="decimal" id="f-counter-amount" name="counter_amount" class="form-control"
+                   value="{{ v.counter_amount }}" autocomplete="off" placeholder="{{ _('dal tuo estratto conto') }}" />
+            <div class="form-hint">{{ _('Vuoto: si usa il cambio del giorno.') }}</div>
           </div>
         </div>
         {% endif %}
@@ -249,6 +264,28 @@
   };
   amount.addEventListener('input', update);
   transfer && transfer.addEventListener('change', update);
+  update();
+}());
+
+// An account in another currency than the transaction's: ask what the bank charged in the account's currency
+(function () {
+  const cur = document.getElementById('f-currency');
+  const transfer = document.getElementById('f-transfer');
+  const pairs = [['f-account', 'account-amount-group'], ['f-counter', 'counter-amount-group']];
+  const update = () => {
+    pairs.forEach(([selectId, groupId]) => {
+      const select = document.getElementById(selectId);
+      const group = document.getElementById(groupId);
+      if (!select || !group) return;
+      const option = select.options[select.selectedIndex];
+      const accountCurrency = option && option.dataset.currency;
+      const counterHidden = selectId === 'f-counter' && !(transfer && transfer.checked);
+      group.hidden = counterHidden || !accountCurrency || accountCurrency === cur.value;
+      group.querySelector('[data-currency-of]').textContent = accountCurrency || '';
+    });
+  };
+  [cur, transfer, document.getElementById('f-account'), document.getElementById('f-counter')]
+    .forEach(el => el && el.addEventListener('change', update));
   update();
 }());
 </script>

@@ -1,5 +1,7 @@
+from decimal import Decimal
+
 from flask import render_template, request, redirect, url_for, flash
-from apiflask import APIBlueprint
+from apiflask import APIBlueprint, abort
 from sqlalchemy import func, or_, text
 from app.extensions import db
 from app.models.account import Account
@@ -58,6 +60,9 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     tx.counter_account_id = _account_id("counter_account_id") if tx.type == "transfer" else None
     if tx.counter_account_id and tx.counter_account_id == tx.account_id:
         raise ValueError(_("Verso il conto: deve essere diverso dal conto di partenza."))
+    # in another currency than the account's: what the bank charged / credited in the account's currency
+    tx.account_amount = _bank_amount("account_amount", _("Importo sul conto"), tx.account_id, tx.currency)
+    tx.counter_amount = _bank_amount("counter_amount", _("Importo sul conto d'arrivo"), tx.counter_account_id, tx.currency)
     # what the money is for, in the cash-flow statement: an investment or a debt (one of the two)
     tx.holding_id = _linked_id("holding_id", Holding)
     tx.debt_id = _linked_id("debt_id", Debt) if not tx.holding_id else None
@@ -102,13 +107,23 @@ def _account_id(field: str) -> int | None:
     return value if value and db.session.get(Account, value) else None
 
 
+def _bank_amount(field: str, label: str, account_id: int | None, tx_currency: str) -> Decimal | None:
+    """The amount typed for the account's currency; nothing when the account is in the transaction's currency."""
+    account = db.session.get(Account, account_id) if account_id else None
+    if account is None or (account.currency or "EUR") == tx_currency:
+        return None
+    value = form_decimal(field, label, allow_negative=True)
+    return abs(value) if value else None
+
+
 def _form_values(tx: Transaction | None = None) -> dict:
     """What the form fields show: the stored transaction, what was typed (after an error), or a blank form."""
     if request.method == "POST":
         form = request.form
         return {key: form.get(key, "") for key in (
             "date", "amount", "currency", "description", "category", "tags",
-            "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id")} | {
+            "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
+            "account_amount", "counter_amount")} | {
             "is_recurring": "is_recurring" in form, "transfer": "transfer" in form}
     if tx is None:
         return {"currency": "EUR", "is_recurring": False, "transfer": False,
@@ -122,7 +137,12 @@ def _form_values(tx: Transaction | None = None) -> dict:
         "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else "", "notes": tx.notes or "",
         "account_id": str(tx.account_id or ""), "counter_account_id": str(tx.counter_account_id or ""),
         "holding_id": str(tx.holding_id or ""), "debt_id": str(tx.debt_id or ""),
+        "account_amount": _plain(tx.account_amount), "counter_amount": _plain(tx.counter_amount),
     }
+
+
+def _plain(value) -> str:
+    return f"{value:.2f}".replace(".", ",") if value is not None else ""
 
 
 # ── HTML routes ────────────────────────────────────────────────────────────────
@@ -341,10 +361,17 @@ def api_list():
 @transactions_bp.input(TransactionIn, arg_name="body")
 @transactions_bp.output(TransactionOut, status_code=201)
 def api_create(body):
+    _check_accounts(body)
     tx = Transaction(**body)
     db.session.add(tx)
     db.session.commit()
     return tx
+
+
+def _check_accounts(body: dict) -> None:
+    for field in ("account_id", "counter_account_id"):
+        if body.get(field) is not None and db.session.get(Account, body[field]) is None:
+            abort(422, message=_("%(field)s: il conto %(id)s non esiste.", field=field, id=body[field]))
 
 
 @transactions_bp.get("/api/<int:tx_id>")
@@ -358,6 +385,7 @@ def api_get(tx_id):
 @transactions_bp.output(TransactionOut)
 def api_update(tx_id, body):
     tx = db.get_or_404(Transaction, tx_id)
+    _check_accounts(body)
     for key, value in body.items():
         setattr(tx, key, value)
     db.session.commit()

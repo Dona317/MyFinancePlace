@@ -46,18 +46,22 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   the API answers 401; `flask users create|reset-password|list`; users are not part of backups
 - **Docker**: the `db` volume now holds the data (`PGDARE` typo fixed) and the image is pinned to `postgres:16`;
   moving an older installation is described in `docs/DEPLOY.md`
+- **Balances in the account's currency**: a transaction in another currency counts with what the bank charged
+  (`account_amount`, `counter_amount` for the arriving side of a transfer) or, until entered, with the day's rate;
+  opening balances and account totals are converted to the base currency; every app function is run by a test
+  (`scripts/untested_functions.py` in CI)
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 
 ## 🔜 To do
 
-### 2. Price history
+### 1. Price history
 
 Holdings are valued at their latest price, also in the balance sheet of past months (the app keeps no price
 history). Snapshots record the value at that moment; an optional price feed (ETFs, crypto) would make past
 balance sheets exact.
 
-### 3. Bank import improvements
+### 2. Bank import improvements (MVP point 4, TBD)
 
 - Check the new layouts (UniCredit, BPER, BancoPosta, ING, Revolut, N26) against real anonymized exports: they
   follow the published column names, but the samples in `samples/bank_statements` are generated. Banca Sella,
@@ -70,7 +74,3 @@ balance sheets exact.
   It runs in a background thread (`app/services/ai_jobs.py`) with a waiting page showing progress per page;
   job state is in memory plus a JSON next to the upload, so it assumes one gunicorn process (the default)
 
-### 4. Smaller clean-ups
-
-- Account balances use the transactions' original amounts: a card payment in USD on a EUR account counts in USD
-  until the bank's EUR amount is entered
