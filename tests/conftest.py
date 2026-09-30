@@ -24,6 +24,20 @@ def app():
         _db.drop_all()
 
 
+@pytest.fixture(autouse=True)
+def no_ocr(monkeypatch, request):
+    """The light OCR is off unless a test asks for it (`ocr_on`): the AI-reading tests expect scans to need AI,
+    and reading a scan takes seconds."""
+    if "ocr_on" not in request.fixturenames:
+        from app.services import ocr
+        monkeypatch.setattr(ocr, "available", lambda: False)
+
+
+@pytest.fixture()
+def ocr_on():
+    pytest.importorskip("rapidocr_onnxruntime")
+
+
 @pytest.fixture()
 def client(app):
     return app.test_client()

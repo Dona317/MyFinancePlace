@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 from flask import current_app
 
-from app.services import ai_extraction, categories as category_service, category_rules, settings_store
+from app.services import ai_extraction, categories as category_service, category_rules, history_classifier, settings_store
 from app.services.ai_extraction import AIExtractionError
 from flask_babel import gettext as _
 
@@ -50,9 +50,11 @@ class Suggestion:
     category: str
     counterparty: str
     confidence: str
+    from_history: bool = False  # learned from the user's own transactions, not asked to the model
 
     def to_dict(self) -> dict:
-        return {"category": self.category, "counterparty": self.counterparty, "confidence": self.confidence}
+        found = {"category": self.category, "counterparty": self.counterparty, "confidence": self.confidence}
+        return found | {"from_history": True} if self.from_history else found
 
 
 # ── Configuration ──────────────────────────────────────────────────────────────
@@ -170,9 +172,16 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
         categories.append("Altro")
     model = model or model_name()
 
+    # the user's history first: the model only gets what it cannot place
+    history, known = history_classifier.index(), {}
     groups: dict[tuple, list[dict]] = {}
     for item in items:
-        if (item.get("text") or "").strip():
+        if not (item.get("text") or "").strip():
+            continue
+        guessed = history_classifier.guess(item["text"], float(item["amount"]) > 0, history)
+        if guessed and guessed.category in categories:
+            known[item["id"]] = Suggestion(guessed.category, guessed.counterparty, guessed.confidence, from_history=True)
+        else:
             groups.setdefault(same_causale(item), []).append(item)
     asked = [group[0] for group in groups.values()]  # one representative per distinct causale
     batches = [asked[start:start + BATCH_SIZE] for start in range(0, len(asked), BATCH_SIZE)]
@@ -191,5 +200,5 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
         answers = [run(batch) for batch in batches]
 
     by_id = {k: v for answer in answers for k, v in answer.items()}
-    return {item["id"]: by_id[group[0]["id"]] for group in groups.values() if group[0]["id"] in by_id
-            for item in group}
+    return known | {item["id"]: by_id[group[0]["id"]] for group in groups.values() if group[0]["id"] in by_id
+                    for item in group}

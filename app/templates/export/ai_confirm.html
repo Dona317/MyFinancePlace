@@ -17,7 +17,8 @@
       <div>
         <div style="font-weight:700;color:var(--clr-text-primary);">{{ meta.filename }} <span style="font-weight:400;color:var(--clr-text-muted);">· {{ _('%(size)s KB', size=size_kb) }}</span></div>
         <p style="margin:6px 0 0;color:var(--clr-text-muted);font-size:var(--font-size-sm);">
-          {% if meta.kind == 'scan' %}{{ _('È un PDF scansionato: contiene solo immagini delle pagine, senza testo leggibile.') }}
+          {% if meta.ocr_rows is defined %}{{ _("L'OCR ha letto %(count)s movimenti ma sembra averne persi o uniti alcuni.", count=meta.ocr_rows) }}
+          {% elif meta.kind == 'scan' %}{{ _('È un PDF scansionato: contiene solo immagini delle pagine, senza testo leggibile.') }}
           {% elif meta.kind == 'photo' %}{{ _("È una foto: il testo va riconosciuto dall'immagine.") }}
           {% else %}{{ _('Il formato non è stato riconosciuto: %(reason)s', reason=meta.reason) }}{% endif %}
         </p>

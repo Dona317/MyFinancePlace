@@ -11,7 +11,7 @@ from app.services.parsing import to_decimal
 from app.routes.helpers import form_ids
 from app.services import (
     accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_jobs, ai_models, upload_store, backup,
-    pdf_report,
+    pdf_report, statement_readers,
 )
 from app.routes.transactions import all_tags
 from app.services.categories import known_categories
@@ -207,7 +207,7 @@ def import_csv():
 #          "Read it with AI?" (user decides, picks the model) ──yes──▶ waiting page ──▶ editable preview ──▶ confirm
 #                                                                     (background job, see ai_jobs)
 
-def _render_preview(preview, filename: str):
+def _render_preview(preview, filename: str, ai_retry: str | None = None):
     payload = _preview_serializer().dumps({
         "bank": preview.bank.key,
         "ai": bool(preview.ai_model),
@@ -222,6 +222,7 @@ def _render_preview(preview, filename: str):
         tag_pool=all_tags(),
         accounts=accounts.active(),
         suggested_account=_suggested_account(preview.bank.name),
+        ai_retry=ai_retry,
         **ai_classification.template_context(),
     )
 
@@ -250,7 +251,15 @@ def bank_preview():
     except bank_import.StatementImportError as exc:
         flash(str(exc), "error")
         return redirect(url_for("export.index"))
-    return _render_preview(preview, upload.filename)
+    retry = None
+    if preview.ocr and ai_extraction.provider():
+        # read by the light OCR: the AI is the backup, offered on the preview or straight away when OCR missed rows
+        kind = "scan" if statement_readers.is_pdf(raw) else "photo"
+        retry = upload_store.save(upload.filename, raw, bank=bank, kind=kind, ocr_rows=len(preview.rows),
+                                  reason=_("La lettura OCR sembra incompleta."))
+        if preview.ocr_doubtful:
+            return redirect(url_for("export.bank_ai", token=retry))
+    return _render_preview(preview, upload.filename, ai_retry=retry)
 
 
 def _ai_choices(needs_vision: bool) -> dict:

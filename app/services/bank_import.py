@@ -43,7 +43,7 @@ from statistics import median
 from app.models.transaction import Transaction
 from app.services import category_rules
 from app.services.ai_classification import AI_TAG
-from app.services import ai_extraction, duplicates
+from app.services import ai_extraction, duplicates, history_classifier, ocr
 from app.services import statement_readers as readers
 from app.services.parsing import TRANSACTION_TYPES, clean_text, normalize, to_date, to_decimal, valid_amount
 from app.services.statement_readers import Word
@@ -264,11 +264,17 @@ def _search_text(*parts: str | None) -> str:
     return f" {normalize(' '.join(p for p in parts if p))} "
 
 
-def categorize(description: str, details: str | None = None, bank_category: str | None = None) -> str:
-    """App category for a statement row: the user's rules, the built-in keyword rules, the bank's category, "Altro"."""
+def categorize(description: str, details: str | None = None, bank_category: str | None = None,
+               income: bool | None = None, history=None) -> str:
+    """App category for a statement row: the user's rules, what the user's history says (when the direction is
+    known), the built-in keyword rules, the bank's category, "Altro"."""
     learned = category_rules.match(description, details)
     if learned:
         return learned
+    if income is not None:
+        guessed = history_classifier.guess(" ".join(filter(None, (description, details))), income, history)
+        if guessed:
+            return guessed.category
     text = _search_text(description, details)
     for category, pattern in _RULE_PATTERNS:
         if pattern.search(text):
@@ -644,12 +650,13 @@ def already_imported(refs: list[str]) -> set[str]:
 def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
     """Assign type, category and import_ref, and flag rows that were already imported."""
     seen: dict[str, int] = {}
+    history = history_classifier.index()  # read once for the whole statement
     for row in rows:
         if is_transfer(row.description, row.details):
             row.type, row.category = "transfer", "Giroconto"
         else:
             row.type = "expense" if row.amount < 0 else "income"
-            row.category = categorize(row.description, row.details, row.bank_category)
+            row.category = categorize(row.description, row.details, row.bank_category, row.amount > 0, history)
 
         base = fingerprint(row, 0, bank_key)
         occurrence = seen.get(base, 0)
@@ -685,6 +692,8 @@ class StatementPreview:
     rows: list[StatementRow]
     pending_skipped: int
     ai_model: str | None = None              # set when the movements were read by an AI model
+    ocr: bool = False                        # read from a scan or photo by the light OCR
+    ocr_doubtful: bool = False               # fewer rows than dated lines: something was probably missed
     balance_check: BalanceCheck | None = None
     discarded: int = 0                       # AI rows dropped because the date/amount was invalid
 
@@ -735,6 +744,9 @@ def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementP
     try:
         document = readers.read_document(filename, raw)
     except readers.NeedsOCR as exc:
+        preview = _read_with_ocr(filename, raw, bank)
+        if preview:
+            return preview
         raise AIRequired(str(exc), "scan" if readers.is_pdf(raw) else "photo") from exc
     except readers.UnsupportedFile as exc:
         raise StatementImportError(str(exc))
@@ -745,6 +757,26 @@ def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementP
         raise AIRequired(str(exc), "layout")
     rows.sort(key=lambda r: r.date)
     return StatementPreview(bank=layout_bank, rows=enrich(rows, layout_bank.key), pending_skipped=pending)
+
+
+_DATED_LINE = re.compile(r"^\s*\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}")
+
+
+def _read_with_ocr(filename: str, raw: bytes, bank: str) -> StatementPreview | None:
+    """A scan or photo read by the light OCR and the usual column rebuilding; None → ask about the AI reader."""
+    if not ocr.available():
+        return None
+    try:
+        document = ocr.read(raw)
+        if document is None:
+            return None
+        rows, pending, layout_bank = _extract_rows(document, filename, bank)
+    except (StatementImportError, readers.UnsupportedFile, OSError, ValueError):
+        return None
+    dated = sum(1 for line in document.text_lines if _DATED_LINE.match(line))
+    rows.sort(key=lambda r: r.date)
+    return StatementPreview(bank=layout_bank, rows=enrich(rows, layout_bank.key), pending_skipped=pending,
+                            ocr=True, ocr_doubtful=len(rows) < 0.9 * dated)
 
 
 def text_for_ai(filename: str, raw: bytes) -> str | None:

@@ -49,6 +49,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0  # OpenCV, used by the OCR
           python -m pip install --upgrade pip
           pip install -r requirements.txt ruff==0.16.9
 

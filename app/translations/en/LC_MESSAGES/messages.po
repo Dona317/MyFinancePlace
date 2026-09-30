@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 21:36+0000\n"
+"POT-Creation-Date: 2026-09-30 22:05+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -576,6 +576,9 @@ msgstr ""
 "On %(date)s the app shows <strong>%(app)s</strong>, the statement <strong>%(statement)s</strong>: difference "
 "<strong>%(difference)s</strong>"
 
+msgid "Alcune righe potrebbero mancare o essere unite: confronta con il documento."
+msgstr "Some rows may be missing or merged: compare with the document."
+
 msgid "Alcuni movimenti risultano già importati: ricarica il file e riprova."
 msgstr "Some movements were already imported: reload the file and try again."
 
@@ -1072,6 +1075,9 @@ msgstr "Required columns not mapped: %(value)s."
 msgid "Come funziona"
 msgstr "How it works"
 
+msgid "Come hai già categorizzato transazioni simili: il modello AI non è stato interpellato"
+msgstr "How you already categorized similar transactions: the AI model was not asked"
+
 msgid "Compagnia"
 msgstr "Company"
 
@@ -1225,6 +1231,9 @@ msgstr "Contract"
 msgid "Contribuzione mensile"
 msgstr "Monthly contribution"
 
+msgid "Controlla date, importi e descrizioni prima di confermare."
+msgstr "Check dates, amounts and descriptions before confirming."
+
 msgid "Controlla e correggi i movimenti"
 msgstr "Check and correct the movements"
 
@@ -1329,6 +1338,9 @@ msgstr "From all snapshots"
 
 msgid "Dal"
 msgstr "From"
+
+msgid "Dal tuo storico: come hai categorizzato transazioni simili"
+msgstr "From your history: how you categorized similar transactions"
 
 msgid "Dalle istantanee"
 msgstr "From the snapshots"
@@ -2259,6 +2271,10 @@ msgstr "Education"
 msgid "Item"
 msgstr "Item"
 
+#, python-format
+msgid "L'OCR ha letto %(count)s movimenti ma sembra averne persi o uniti alcuni."
+msgstr "The OCR read %(count)s movements but seems to have missed or merged some."
+
 msgid "L'accesso con password è disattivato in questa installazione."
 msgstr "Password sign-in is turned off in this installation."
 
@@ -2293,6 +2309,9 @@ msgstr "AI reading is not set up yet"
 
 msgid "La lettura AI non è configurata."
 msgstr "AI reading is not set up."
+
+msgid "La lettura OCR sembra incompleta."
+msgstr "The OCR reading looks incomplete."
 
 msgid "La lettura con intelligenza artificiale non è attiva (LLM_PROVIDER)."
 msgstr "Reading with artificial intelligence is not active (LLM_PROVIDER)."
@@ -2665,6 +2684,9 @@ msgstr "Show all"
 #, python-format
 msgid "Movimenti fino al %(date)s"
 msgstr "Movements up to %(date)s"
+
+msgid "Movimenti letti con OCR dalla scansione"
+msgstr "Movements read from the scan with OCR"
 
 msgid "Movimenti letti con intelligenza artificiale"
 msgstr "Movements read with artificial intelligence"
@@ -3587,6 +3609,9 @@ msgstr "Summary"
 #, python-format
 msgid "Righe non salvate perché incomplete o non valide: %(value)s."
 msgstr "Rows not saved because incomplete or invalid: %(value)s."
+
+msgid "Rileggi con l'AI"
+msgstr "Read again with AI"
 
 msgid "Rilevamento automatico"
 msgstr "Automatic detection"
@@ -4551,6 +4576,9 @@ msgstr "from the amortization plan"
 
 msgid "dal tuo estratto conto"
 msgstr "from your bank statement"
+
+msgid "dal tuo storico"
+msgstr "from your history"
 
 #, python-format
 msgid "data non riconosciuta: '%(value)s'"

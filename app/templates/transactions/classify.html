@@ -60,6 +60,7 @@
             <td>
               <span class="badge {{ 'badge-positive' if s.confidence == 'alta' else ('badge-negative' if s.confidence == 'bassa' else 'badge-muted') }}">
                 {{ s.confidence }}</span>
+              {% if s.from_history %}<div class="text-xs text-muted" title="{{ _('Come hai già categorizzato transazioni simili: il modello AI non è stato interpellato') }}"><i class="bi bi-clock-history"></i> {{ _('dal tuo storico') }}</div>{% endif %}
             </td>
             {% else %}
             <td class="text-xs text-muted" colspan="3">{{ _('Nessun suggerimento') }}</td>

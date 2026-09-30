@@ -50,6 +50,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   (`account_amount`, `counter_amount` for the arriving side of a transfer) or, until entered, with the day's rate;
   opening balances and account totals are converted to the base currency; every app function is run by a test
   (`scripts/untested_functions.py` in CI)
+- **Performance and lighter AI**: paged transaction list, duplicate candidates found by the database, no eager
+  account joins; scans read by a light OCR (RapidOCR, ~16 MB models) with the AI as backup; categories learned
+  from the user's history before asking a model; repeated causali asked once
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 

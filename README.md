@@ -49,7 +49,7 @@ python run.py
 
 1. Upload the file downloaded from home banking: Excel (`.xlsx`, `.xls`), `.csv`, `.pdf`, `.txt`,
    Word (`.docx` and 97-2003 `.doc`), LibreOffice (`.ods`, `.odt`) or `.rtf`.
-   PDFs must be the original text PDFs from home banking — scanned images would need OCR and are rejected with a message.
+   Scanned PDFs and photos are read by the built-in light OCR (below); the AI is the backup.
 2. The bank and the header row are detected automatically (or pick the bank by hand):
    Fineco, Intesa Sanpaolo, UniCredit, BPER Banca, Poste Italiane (BancoPosta), ING, Revolut, N26, or any
    statement with Date / Description / Amount (or Credit/Debit) columns (Banca Sella, Mediolanum, BCC…).
@@ -88,9 +88,18 @@ which columns are date, amount, description, category, type and counterparty.
 **Report PDF**: *Scarica PDF* downloads the yearly report (key figures, income statement by category, monthly table,
 cash flow) generated on the server with `fpdf2` (pure Python); *Stampa dal browser* opens the same report as a page to print.
 
+### Scans and photos: light OCR first, AI as the backup
+
+A scanned PDF or a photo is first read by a **light OCR** (RapidOCR: ONNX models of ~16 MB, CPU only, offline,
+about 5 s per page): the recognised words keep their positions, so the same column rebuilding used for text PDFs
+reads the table — no language model. On the sample scan it gets 50 of 53 movements exactly right. The preview
+says the rows come from OCR and, when an AI model is configured, offers **Rileggi con l'AI**; when the OCR
+clearly missed rows (fewer movements than dated lines, e.g. a skewed photo) the app goes straight to the AI
+question below. Without the `rapidocr-onnxruntime` package, scans go to the AI question as before.
+
 ### AI reading of scans, photos and non-standard documents (optional)
 
-When the rule-based reader cannot read a file — a scanned PDF, a phone photo, a document with an unknown layout —
+When neither the rule-based reader nor the OCR can read a file — a skewed photo, a document with an unknown layout —
 the app **stops and asks**: "Read it with AI?", with the model to use. Nothing is sent to a model without that
 confirmation. After reading, the movements open in the **editable preview** (below) before anything is saved.
 
@@ -133,6 +142,11 @@ How AI results are kept honest: JSON constrained to a schema; invalid rows disca
   - in the import preview (suggestions highlighted, uncertain ones in orange, all editable before saving);
   - in Transazioni, for the selected transactions or all those without a category (a review page lists current
     vs suggested; only confident changes are preselected).
+- **Your history comes first**: categories you already gave to similar transactions (same merchant words, the
+  rarer words weighing more) are suggested without asking any model — "dal tuo storico" — and only the causali
+  it cannot place clearly go to the AI. It also categorizes imported rows. On the demo data it places 93% of the
+  last six months from the first twelve, with no wrong guesses. Repeated causali (the same shop every week, with
+  different dates or card numbers) are sent to the model once; with Claude, batches go out 4 at a time.
 - It never makes things worse: a specific category is not replaced by "Altro" or by an unsure suggestion.
 - Rows saved with an AI category accepted unchanged get the `categoria-ai` tag, to double-check later.
 - It is a text-only task: a small or tiny model is enough and much faster. Choose it in Modelli AI →

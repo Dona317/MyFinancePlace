@@ -8,9 +8,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000
 
 # Every requirement ships a manylinux wheel with its native parts bundled (psycopg2-binary with libpq,
-# pdfplumber's pypdfium2, Pillow, lxml for python-docx), so no apt packages, build tools or -dev headers
-# are needed. The base image already ships tzdata: "today" and the current month follow TZ (override in .env).
+# pdfplumber's pypdfium2, Pillow, lxml for python-docx); the OCR's OpenCV only needs the two system
+# libraries below. The base image already ships tzdata: "today" and the current month follow TZ (override in .env).
 ENV TZ=Europe/Rome
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1000 app \
     && useradd --system --uid 1000 --gid app --home-dir /app --shell /usr/sbin/nologin app

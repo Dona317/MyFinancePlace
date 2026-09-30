@@ -447,7 +447,7 @@ def _read_pdf(raw: bytes) -> Document:
                 words = page.extract_words(x_tolerance=1.5, y_tolerance=2, keep_blank_chars=False)
                 for w in words:
                     widths.append((w["x1"] - w["x0"]) / max(len(w["text"]), 1))
-                document.lines.extend(_group_lines(
+                document.lines.extend(group_lines(
                     [Word(w["text"], w["x0"], w["x1"], w["top"], page_number) for w in words]
                 ))
                 document.text_lines.extend((page.extract_text() or "").split("\n"))
@@ -466,7 +466,7 @@ def _read_pdf(raw: bytes) -> Document:
     return document
 
 
-def _group_lines(words: list[Word], tolerance: float = 2.5) -> list[list[Word]]:
+def group_lines(words: list[Word], tolerance: float = 2.5) -> list[list[Word]]:
     """Cluster words of one page into lines by their vertical position."""
     lines: list[list[Word]] = []
     for word in sorted(words, key=lambda w: (w.top, w.x0)):
