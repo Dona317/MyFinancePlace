@@ -158,7 +158,7 @@ Fake statements to try it with, in every supported format, are in
 
 After pulling this change run `flask --app run db upgrade` to add the `import_ref` column.
 
-See [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md) for the roadmap.
+See [`docs/MVP.md`](docs/MVP.md) for the MVP checklist and [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md) for the roadmap.
 
 ## Size limits
 
@@ -190,7 +190,8 @@ cp .env.example .env    # optional
 docker compose up -d
 ```
 
-**There is no login yet**: keep it on your machine/LAN or behind a VPN, or add a password at the reverse proxy.
+On the first visit the app asks to create the first user (an administrator); more users are added in
+*Impostazioni → Account e utenti* and everyone sees the same data.
 HTTPS with Caddy or nginx, production settings, backups (`pg_dump` and Esporta → Backup Completo) and updates
 are described in [docs/DEPLOY.md](docs/DEPLOY.md).
 
@@ -209,7 +210,7 @@ are described in [docs/DEPLOY.md](docs/DEPLOY.md).
 | Insurance | ✅ Policies, annual premium, expiry reminders (60 days) |
 | Documents | ✅ File archive (any format), filters, link to a transaction, included in the backup |
 | Snapshots | ✅ Net worth over time, compare two snapshots or a snapshot with today |
-| Auth | ⏳ UI only — no login yet |
+| Auth | ✅ Sign-in with username and password, first administrator on the first visit, users managed by administrators (shared data), `flask users` commands |
 
 ### Backup and restore
 

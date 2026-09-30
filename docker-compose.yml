@@ -3,14 +3,14 @@
 services:
   db:
     container_name: postgres-myfinanceplace
-    image: postgres:latest
+    # Pinned: a new major version cannot open an older data directory (same version as the CI).
+    image: postgres:16
     environment:
       POSTGRES_DB: myfinanceplace
       POSTGRES_USER: sa
       POSTGRES_PASSWORD: Pa55w0rd
-      PGDARE: /data/postgres
     volumes:
-      - db:/data/postgres
+      - db:/var/lib/postgresql/data   # where postgres:16 keeps its data: survives `docker compose down`
     ports:
       - "5332:5432"
     networks:

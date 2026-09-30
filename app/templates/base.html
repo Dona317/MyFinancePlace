@@ -204,19 +204,21 @@
 
     <!-- User footer -->
     <div class="sidebar-footer">
+      {% set signed_in = current_user is defined and current_user.is_authenticated %}
       <div class="sidebar-user">
-        <div class="sidebar-user-avatar">
-          {{ current_user.username[0]|upper if current_user is defined and current_user.is_authenticated else 'U' }}
-        </div>
+        <div class="sidebar-user-avatar">{{ current_user.username[0]|upper if signed_in else 'U' }}</div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name">
-            {{ current_user.username if current_user is defined and current_user.is_authenticated else _('User') }}
+          <div class="sidebar-user-name">{{ current_user.username if signed_in else _('Utente') }}</div>
+          <div class="sidebar-user-role">
+            {% if signed_in %}{{ _('Amministratore') if current_user.is_admin else _('Utente') }}{% else %}{{ _('Account Personale') }}{% endif %}
           </div>
-          <div class="sidebar-user-role">{{ _('Account Personale') }}</div>
         </div>
-        <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="{{ _('Logout') }}">
-          <i class="bi bi-box-arrow-right"></i>
-        </a>
+        {% if signed_in %}
+        <a href="{{ url_for('settings.account') }}" class="sidebar-logout" title="{{ _('Il tuo account') }}"><i class="bi bi-person-gear"></i></a>
+        <form method="POST" action="{{ url_for('auth.logout') }}" style="margin:0;">
+          <button type="submit" class="sidebar-logout" title="{{ _('Esci') }}" aria-label="{{ _('Esci') }}"><i class="bi bi-box-arrow-right"></i></button>
+        </form>
+        {% endif %}
       </div>
     </div>
 

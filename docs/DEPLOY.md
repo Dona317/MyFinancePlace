@@ -2,9 +2,9 @@
 
 How to run MyFinancePlace as a service: Docker, HTTPS behind a reverse proxy, backups, updates.
 
-> **The app has no login yet** (Auth is "UI only"). Whoever reaches the URL sees and changes all the data.
-> Never publish it on the internet as is: keep it on your machine / LAN, reach it through a VPN
-> (Tailscale, WireGuard), or put a password in front of it at the reverse proxy (examples below).
+> **Sign-in.** On the first visit the app asks to create the first user, an administrator; more users are added
+> in *Impostazioni → Account e utenti*, and they all see the same data. Serve it over HTTPS (below) if it is
+> reachable from outside your network; a VPN (Tailscale, WireGuard) or the proxy's own password is an extra layer.
 
 ## What runs
 
@@ -82,7 +82,7 @@ Raise the proxy's timeouts and body size too: uploads have no size limit and an 
 
 ```caddyfile
 finanze.example.com {
-    # No login in the app yet: protect it here. Hash: caddy hash-password
+    # Optional extra layer in front of the app's own sign-in. Hash: caddy hash-password
     basic_auth {
         me $2a$14$REPLACE_WITH_THE_HASH
     }
@@ -116,7 +116,7 @@ server {
     ssl_certificate     /etc/letsencrypt/live/finanze.example.com/fullchain.pem;   # certbot --nginx
     ssl_certificate_key /etc/letsencrypt/live/finanze.example.com/privkey.pem;
 
-    # No login in the app yet: protect it here (htpasswd -c /etc/nginx/.htpasswd me)
+    # Optional extra layer in front of the app's own sign-in (htpasswd -c /etc/nginx/.htpasswd me)
     auth_basic           "MyFinancePlace";
     auth_basic_user_file /etc/nginx/.htpasswd;
 
@@ -176,10 +176,35 @@ error is in `docker compose logs app`; the old data is untouched (each migration
 
 ## Notes
 
-- The `db` service keeps the original `PGDARE` variable name (a typo of `PGDATA`), so PostgreSQL stores its
-  data in the image's default location (an anonymous volume of the container), not in the named volume `db`.
-  The data survives `docker compose restart` and `up`, but after `docker compose down` the next `up` starts with
-  an empty database (the old anonymous volume is left behind, detached). Use `docker compose stop` rather than
-  `down`, keep the backups above, or fix it deliberately (dump, set `PGDATA`, restore).
-- `postgres:latest` changes major version over time; a new major version cannot open an older data directory.
-  Pin it (e.g. `postgres:16`) for a long-running installation, and dump/restore when upgrading.
+- The database lives in the named volume `db` (`/var/lib/postgresql/data`), so it survives `docker compose down`
+  and `up`; only `docker compose down -v` deletes it. The image is pinned to `postgres:16`: a new major version
+  cannot open an older data directory, so upgrading PostgreSQL means dump and restore.
+- Installations started before this fix kept the data in an anonymous volume (the variable was misspelled
+  `PGDARE` and the image was `postgres:latest`): see the next section.
+- Users are not part of the backups: restoring one never locks you out. Lost every administrator password?
+  `docker compose exec app flask users reset-password <name>` (or `flask users create <name> --admin`).
+
+## Moving the data of an older installation
+
+Until September 2026 `docker-compose.yml` set `PGDARE` (a typo of `PGDATA`) and used `postgres:latest`, so the
+data sat in an anonymous volume, not in `db`. After `git pull` the next `docker compose up` starts a new, empty
+database in the right place. Move the data once, **before** pulling:
+
+**With the app (simplest).**
+1. *Esporta → Scarica backup completo* (a `.zip` with every table and the documents).
+2. `git pull`, then `docker compose up -d --build`.
+3. Open the app: it asks you to create the first user (the administrator).
+4. *Esporta → Ripristina* the `.zip`. Users are not part of backups, so the one you just created stays.
+
+**With `pg_dump`** (the app stopped, so its migrations run after the restore):
+```bash
+docker compose exec db pg_dump -U sa --no-owner myfinanceplace > myfinanceplace.sql   # old container, before git pull
+docker compose down
+git pull
+docker compose up -d db                      # only PostgreSQL 16, empty
+docker compose exec -T db psql -U sa -d myfinanceplace < myfinanceplace.sql
+docker compose up -d --build                 # migrations bring the schema up to date; then create the first user
+```
+A dump made by a newer PostgreSQL may print a few errors for settings 16 does not know (e.g.
+`transaction_timeout`); they are harmless. When everything is there, `docker volume prune` removes the old
+anonymous volume (check with `docker volume ls` first: it deletes every unused volume).

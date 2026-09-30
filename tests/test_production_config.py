@@ -45,6 +45,7 @@ def test_proxy_fix_when_behind_proxy(strong_key, monkeypatch):
     monkeypatch.setenv("BEHIND_PROXY", "1")
     app = create_app("production")
     assert isinstance(app.wsgi_app, ProxyFix)
+    app.config["LOGIN_DISABLED"] = True  # no database here: only the proxy headers are under test
 
     @app.get("/_scheme")
     def scheme():

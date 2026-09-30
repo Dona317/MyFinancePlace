@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 13:47+0000\n"
+"POT-Creation-Date: 2026-09-30 14:59+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -441,6 +441,12 @@ msgstr "Account"
 msgid "Account Personale"
 msgstr "Personal Account"
 
+msgid "Account e Utenti"
+msgstr "Account and Users"
+
+msgid "Account e utenti"
+msgstr "Account and users"
+
 msgid "Acquisti (−) e vendite (+) di investimenti"
 msgstr "Purchases (−) and sales (+) of investments"
 
@@ -525,6 +531,9 @@ msgstr "Add row"
 msgid "Aggiungi un cambio"
 msgstr "Add an exchange rate"
 
+msgid "Aggiungi un utente"
+msgstr "Add a user"
+
 msgid "Aggiungi una posizione per vedere come è ripartito il patrimonio."
 msgstr "Add a holding to see how your wealth is split."
 
@@ -572,6 +581,9 @@ msgstr "Other"
 
 msgid "Altro modello Ollama"
 msgstr "Other Ollama model"
+
+msgid "Amministratore"
+msgstr "Administrator"
 
 msgid "Amount"
 msgstr "Amount"
@@ -779,6 +791,9 @@ msgstr "Low — almost identical"
 msgid "Bentornato"
 msgstr "Welcome back"
 
+msgid "Benvenuto! Il tuo account amministratore è pronto."
+msgstr "Welcome! Your administrator account is ready."
+
 msgid "Broker, conto titoli, note facoltative..."
 msgstr "Broker, securities account, optional notes..."
 
@@ -813,9 +828,6 @@ msgstr "Budget by category"
 msgid "Budget salvati."
 msgstr "Budgets saved."
 
-msgid "Buona"
-msgstr "Good"
-
 msgid "C — Attività Finanziarie"
 msgstr "C — Financing Activities"
 
@@ -830,9 +842,6 @@ msgstr "Investing CF"
 
 msgid "CF Operativo"
 msgstr "Operating CF"
-
-msgid "CHF — Swiss Franc"
-msgstr "CHF — Swiss Franc"
 
 msgid "CSV, JSON, PDF ed esportazione fiscale"
 msgstr "CSV, JSON, PDF and tax export"
@@ -849,11 +858,11 @@ msgstr "Saved rates"
 msgid "Cambi ufficiali BCE"
 msgstr "Official ECB rates"
 
-msgid "Cambia Password"
-msgstr "Change Password"
-
 msgid "Cambia modello"
 msgstr "Change model"
+
+msgid "Cambia password"
+msgstr "Change password"
 
 msgid "Cambio"
 msgstr "Rate"
@@ -1020,9 +1029,6 @@ msgstr "Click to start from a template: you can change name and amount"
 msgid "Clicca per scegliere un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)"
 msgstr "Click to choose a CSV, Excel (.xlsx, .xls) or LibreOffice (.ods) file"
 
-msgid "Cognome"
-msgstr "Last name"
-
 msgid "Colonna Categoria"
 msgstr "Category column"
 
@@ -1084,9 +1090,6 @@ msgstr "Special conditions, deductibles, exclusions..."
 
 msgid "Conferma"
 msgstr "Confirm"
-
-msgid "Conferma Password"
-msgstr "Confirm Password"
 
 msgid "Conferma la categoria"
 msgstr "Confirm the category"
@@ -1243,14 +1246,14 @@ msgstr "Courses and training"
 msgid "Cosa comprende"
 msgstr "What it includes"
 
-msgid "Crea Account"
-msgstr "Create Account"
-
 msgid "Crea Istantanea"
 msgstr "Take Snapshot"
 
 msgid "Crea Obiettivo"
 msgstr "Create Goal"
+
+msgid "Crea account e entra"
+msgstr "Create account and sign in"
 
 msgid "Crea almeno un'istantanea: potrai confrontarla con la situazione di oggi."
 msgstr "Take at least one snapshot: you can compare it with today's situation."
@@ -1264,8 +1267,8 @@ msgstr "Create your first financial goal, or start from one of the suggestions b
 msgid "Crea la prima istantanea per iniziare a tracciare l'evoluzione del tuo patrimonio nel tempo."
 msgstr "Take your first snapshot to start tracking how your wealth changes over time."
 
-msgid "Creane uno"
-msgstr "Create one"
+msgid "Crea utente"
+msgstr "Create user"
 
 msgid "Criptovaluta"
 msgstr "Crypto"
@@ -1375,9 +1378,6 @@ msgstr "Debt «%(name)s» added."
 msgid "Debito «%(name)s» eliminato."
 msgstr "Debt «%(name)s» deleted."
 
-msgid "Debole"
-msgstr "Weak"
-
 msgid ""
 "Dei fogli Excel si legge il primo; le righe di intestazione della banca sopra i titoli delle colonne vengono saltate."
 " Senza colonna Tipo, gli importi negativi diventano uscite e quelli positivi entrate. Date accettate: AAAA-MM-GG o "
@@ -1410,9 +1410,6 @@ msgstr "Turning a module off hides it from the sidebar and the navigation"
 
 msgid "Disattivata"
 msgstr "Off"
-
-msgid "Discreta"
-msgstr "Fair"
 
 msgid "Distanza date"
 msgstr "Date distance"
@@ -1468,9 +1465,6 @@ msgstr "Term (months)"
 msgid "ETF"
 msgstr "ETF"
 
-msgid "EUR — Euro"
-msgstr "EUR — Euro"
-
 msgid "Elenco Transazioni"
 msgstr "Transaction List"
 
@@ -1504,15 +1498,16 @@ msgstr "Delete the account «%(name)s»? Its transactions remain, without an acc
 msgid "Eliminare il debito «%(name)s»?"
 msgstr "Delete the debt «%(name)s»?"
 
+#, python-format
+msgid "Eliminare l’utente «%(name)s»? I dati restano."
+msgstr "Delete the user “%(name)s”? The data stays."
+
 msgid "Eliminare questa transazione?"
 msgstr "Delete this transaction?"
 
 #, python-format
 msgid "Eliminare «%(name)s»? Il file verrà cancellato."
 msgstr "Delete «%(name)s»? The file will be removed."
-
-msgid "Email"
-msgstr "Email"
 
 msgid "Entrambe"
 msgstr "Both"
@@ -1610,9 +1605,16 @@ msgstr "Average error on income"
 msgid "Errore medio sulle uscite"
 msgstr "Average error on expenses"
 
+msgid "Esci"
+msgstr "Sign out"
+
 #, python-format
 msgid "Esiste già un conto chiamato «%(name)s»."
 msgstr "An account called «%(name)s» already exists."
+
+#, python-format
+msgid "Esiste già un utente «%(name)s»."
+msgstr "A user “%(name)s” already exists."
 
 msgid "Espandi il menu"
 msgstr "Expand the menu"
@@ -1800,9 +1802,6 @@ msgstr "Invalid frequency."
 msgid "Fuori Budget"
 msgstr "Outside Budget"
 
-msgid "GBP — British Pound"
-msgstr "GBP — British Pound"
-
 msgid "Gen"
 msgstr "Jan"
 
@@ -1821,9 +1820,6 @@ msgstr "Debt Management"
 
 msgid "Gestione Finanze Personali"
 msgstr "Personal Finance Management"
-
-msgid "Gestisci le tue finanze con la visione di un economista."
-msgstr "Manage your finances with an economist's eye."
 
 msgid "Giu"
 msgstr "Jun"
@@ -2019,11 +2015,8 @@ msgstr "The account balance and reconciliation will include these movements."
 msgid "Il saldo prima della prima transazione registrata su questo conto."
 msgstr "The balance before the first transaction recorded on this account."
 
-msgid "Il tuo cognome"
-msgstr "Your last name"
-
-msgid "Il tuo nome"
-msgstr "Your first name"
+msgid "Il tuo account"
+msgstr "Your account"
 
 msgid "Il valore nel tempo viene dalle istantanee: creane una ogni mese da"
 msgstr "The value over time comes from the snapshots: take one every month from"
@@ -2109,6 +2102,9 @@ msgstr "Cannot read the Word document: %(exc)s"
 #, python-format
 msgid "Impossibile leggere il file Excel: %(exc)s"
 msgstr "Cannot read the Excel file: %(exc)s"
+
+msgid "Imposta"
+msgstr "Set"
 
 msgid "Impostazioni"
 msgstr "Settings"
@@ -2233,6 +2229,9 @@ msgstr "Education"
 msgid "Item"
 msgstr "Item"
 
+msgid "L'accesso con password è disattivato in questa installazione."
+msgstr "Password sign-in is turned off in this installation."
+
 msgid "L'hai nascosta nelle Impostazioni: riattivala per usarla di nuovo. I dati non sono stati toccati."
 msgstr "You hid it in Settings: turn it back on to use it again. Your data has not been touched."
 
@@ -2271,6 +2270,9 @@ msgstr "Reading with artificial intelligence is not active (LLM_PROVIDER)."
 msgid "La lettura si è interrotta prima di finire (l'applicazione è stata riavviata)."
 msgstr "The reading stopped before finishing (the application was restarted)."
 
+msgid "La password attuale non è corretta."
+msgstr "The current password is not correct."
+
 msgid "La più alta"
 msgstr "Largest"
 
@@ -2307,6 +2309,9 @@ msgstr "The descriptions of the movements will be sent to Anthropic (cloud) for 
 
 msgid "Le causali verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?"
 msgstr "The descriptions will be sent to Anthropic (cloud) for classification. Continue?"
+
+msgid "Le due password non coincidono."
+msgstr "The two passwords do not match."
 
 msgid "Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti."
 msgstr "Images are not supported: download the PDF, Excel or CSV of the movements from online banking."
@@ -2409,9 +2414,6 @@ msgstr ""
 msgid "Locale (Ollama) — i dati restano sul computer"
 msgstr "Local (Ollama) — the data stays on the computer"
 
-msgid "Logout"
-msgstr "Logout"
-
 msgid "Lug"
 msgstr "Jul"
 
@@ -2443,9 +2445,6 @@ msgstr "Map the columns"
 
 msgid "Mar"
 msgstr "Mar"
-
-msgid "Mario"
-msgstr "John"
 
 msgid "Massima precisione: servono almeno 12–16 GB di RAM"
 msgstr "Best accuracy: needs at least 12–16 GB of RAM"
@@ -2518,9 +2517,6 @@ msgstr "Method"
 
 msgid "Mezza riga / riga intera"
 msgstr "Half row / full row"
-
-msgid "Minimo 8 caratteri"
-msgstr "At least 8 characters"
 
 msgid "Minimo tra i metodi"
 msgstr "Lowest across methods"
@@ -2613,6 +2609,9 @@ msgstr "Modules"
 
 msgid "Moduli — Visibilità nella Navigazione"
 msgstr "Modules — Visibility in the Navigation"
+
+msgid "Mostra la password"
+msgstr "Show the password"
 
 msgid "Mostra le transazioni con questo tag"
 msgstr "Show the transactions with this tag"
@@ -2828,14 +2827,23 @@ msgstr "Name *"
 msgid "Nome del modello non valido."
 msgstr "Invalid model name."
 
+msgid "Nome utente"
+msgstr "Username"
+
+msgid "Nome utente o password non corretti."
+msgstr "Wrong username or password."
+
+msgid "Nome utente: campo obbligatorio."
+msgstr "Username: required field."
+
 msgid "Non essenziale"
 msgstr "Non-essential"
 
-msgid "Non hai un account?"
-msgstr "Don't have an account?"
-
 msgid "Non installato"
 msgstr "Not installed"
+
+msgid "Non puoi eliminare il tuo stesso utente."
+msgstr "You cannot delete your own user."
 
 #, python-format
 msgid "Non riesco a scaricare i cambi della BCE (%(exc)s). Controlla la connessione o inseriscili a mano."
@@ -2865,9 +2873,6 @@ msgstr "Policy number"
 msgid "Nuova"
 msgstr "New"
 
-msgid "Nuova Password"
-msgstr "New Password"
-
 msgid "Nuova Polizza"
 msgstr "New Policy"
 
@@ -2879,6 +2884,17 @@ msgstr "New Transaction"
 
 msgid "Nuova categoria"
 msgstr "New category"
+
+msgid "Nuova password"
+msgstr "New password"
+
+#, python-format
+msgid "Nuova password impostata per «%(name)s»."
+msgstr "New password set for “%(name)s”."
+
+#, python-format
+msgid "Nuova password per %(name)s"
+msgstr "New password for %(name)s"
 
 msgid "Nuova polizza"
 msgstr "New policy"
@@ -3010,9 +3026,6 @@ msgstr "Horizon"
 msgid "Ott"
 msgstr "Oct"
 
-msgid "Ottima"
-msgstr "Excellent"
-
 msgid "Page"
 msgstr "Page"
 
@@ -3056,11 +3069,28 @@ msgstr "Current liabilities (within 12 months)"
 msgid "Password"
 msgstr "Password"
 
-msgid "Password Attuale"
-msgstr "Current Password"
+#, python-format
+msgid "Password (almeno %(count)s caratteri)"
+msgstr "Password (at least %(count)s characters)"
 
-msgid "Password dimenticata?"
-msgstr "Forgot your password?"
+msgid "Password (almeno 8 caratteri)"
+msgstr "Password (at least 8 characters)"
+
+msgid "Password attuale"
+msgstr "Current password"
+
+msgid "Password cambiata."
+msgstr "Password changed."
+
+msgid "Password dimenticata? Chiedi a un amministratore di reimpostarla (Impostazioni → Account e utenti)."
+msgstr "Forgot your password? Ask an administrator to reset it (Settings → Account and users)."
+
+msgid "Password persa da tutti gli amministratori? Dal server:"
+msgstr "Every administrator lost their password? On the server:"
+
+#, python-format
+msgid "Password: almeno %(count)s caratteri."
+msgstr "Password: at least %(count)s characters."
 
 msgid "Patrimonio Netto"
 msgstr "Net Worth"
@@ -3290,6 +3320,9 @@ msgstr "Before importing you can check and edit every movement."
 msgid "Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10."
 msgstr "Before every restore the app saves the data about to be replaced. The last 10 are kept."
 
+msgid "Primo avvio"
+msgstr "First start"
+
 msgid "Profit & Loss"
 msgstr "Profit & Loss"
 
@@ -3393,9 +3426,6 @@ msgstr "Real"
 msgid "Registrato fino al %(day)s + previsto"
 msgstr "Recorded up to %(day)s + expected"
 
-msgid "Registrazione"
-msgstr "Sign up"
-
 #, python-format
 msgid "Regola salvata: «%(keyword)s» → %(category)s."
 msgstr "Rule saved: «%(keyword)s» → %(category)s."
@@ -3419,6 +3449,9 @@ msgstr "Category rules"
 
 msgid "Regole predefinite"
 msgstr "Default rules"
+
+msgid "Reimposta password"
+msgstr "Reset password"
 
 msgid "Rendiconto Finanziario"
 msgstr "Cash Flow Statement"
@@ -3490,8 +3523,8 @@ msgstr "Review"
 msgid "Ricorda: usa questa categoria anche per le prossime transazioni di questa controparte ("
 msgstr "Remember: use this category also for the next transactions of this counterparty ("
 
-msgid "Ricordami"
-msgstr "Remember me"
+msgid "Ricordami su questo dispositivo"
+msgstr "Remember me on this device"
 
 msgid "Ricorrenti"
 msgstr "Recurring"
@@ -3538,6 +3571,9 @@ msgstr "Remove row"
 msgid "Rinominare una categoria aggiorna tutte le sue transazioni; dare il nome di un'altra le unisce"
 msgstr "Renaming a category updates all its transactions; giving it the name of another one merges them"
 
+msgid "Ripeti la nuova password"
+msgstr "Repeat the new password"
+
 msgid "Ripeti la password"
 msgstr "Repeat the password"
 
@@ -3570,8 +3606,8 @@ msgstr "Saving for travel"
 msgid "Risposta di Ollama non valida."
 msgstr "Invalid response from Ollama."
 
-msgid "Rossi"
-msgstr "Smith"
+msgid "Ruolo"
+msgstr "Role"
 
 msgid "Rupia"
 msgstr "Rupee"
@@ -3649,9 +3685,6 @@ msgstr "Save"
 
 msgid "Salva Modifiche"
 msgstr "Save Changes"
-
-msgid "Salva Modifiche Account"
-msgstr "Save Account Changes"
 
 msgid "Salva budget"
 msgstr "Save budgets"
@@ -3804,6 +3837,9 @@ msgstr "Uncategorized"
 
 msgid "Senza scadenza"
 msgstr "No expiry"
+
+msgid "Serve almeno un amministratore."
+msgstr "At least one administrator is needed."
 
 msgid "Serve almeno un'altra istantanea per disegnare l'andamento."
 msgstr "At least one more snapshot is needed to draw the trend."
@@ -4176,6 +4212,9 @@ msgstr "All transactions in structured JSON. Re-import it from «Restore» below
 msgid "Tutti gli anni"
 msgstr "All years"
 
+msgid "Tutti gli utenti vedono e modificano gli stessi dati. Gli amministratori possono anche gestire gli utenti."
+msgstr "Every user sees and edits the same data. Administrators can also manage users."
+
 msgid "Tutti i conti"
 msgstr "All accounts"
 
@@ -4196,9 +4235,6 @@ msgstr "Everything matches: on %(date)s the app balance is %(amount)s, as on the
 msgid "Tutto vale allo stesso modo per le"
 msgstr "The same applies to"
 
-msgid "USD — US Dollar"
-msgstr "USD — US Dollar"
-
 msgid "Ultime cifre IBAN / carta"
 msgstr "Last digits of IBAN / card"
 
@@ -4216,6 +4252,9 @@ msgstr "Last 6 months"
 
 msgid "Ultimi movimenti"
 msgstr "Latest movements"
+
+msgid "Ultimo accesso"
+msgstr "Last sign-in"
 
 msgid "Ultimo importo"
 msgstr "Latest amount"
@@ -4287,14 +4326,19 @@ msgstr "Past expenses"
 msgid "Uscite: storico e previsione"
 msgstr "Expenses: history and forecast"
 
-msgid "User"
+msgid "Utente"
 msgstr "User"
 
-msgid "Username"
-msgstr "Username"
+#, python-format
+msgid "Utente «%(name)s» creato: vede gli stessi dati di tutti."
+msgstr "User “%(name)s” created: they see the same data as everyone."
 
-msgid "Username o Email"
-msgstr "Username or Email"
+#, python-format
+msgid "Utente «%(name)s» eliminato."
+msgstr "User “%(name)s” deleted."
+
+msgid "Utenti"
+msgstr "Users"
 
 msgid "VARIAZIONE NETTA CASSA (A+B+C)"
 msgstr "NET CHANGE IN CASH (A+B+C)"
@@ -4322,9 +4366,6 @@ msgstr "Total value of the investment portfolio"
 
 msgid "Valuta"
 msgstr "Currency"
-
-msgid "Valuta Predefinita"
-msgstr "Default Currency"
 
 msgid "Valuta dei totali"
 msgstr "Totals currency"
@@ -4489,9 +4530,6 @@ msgstr "details"
 msgid "di cui ricorrenti %(amount)s"
 msgstr "of which recurring %(amount)s"
 
-msgid "email@esempio.com"
-msgstr "email@example.com"
-
 msgid "entrate"
 msgstr "income"
 
@@ -4559,9 +4597,6 @@ msgstr "tax"
 msgid "generato il %(day)s %(time)s"
 msgstr "generated on %(day)s %(time)s"
 
-msgid "hai già un account?"
-msgstr "already have an account?"
-
 #, python-format
 msgid "il %(day)s"
 msgstr "on %(day)s"
@@ -4575,12 +4610,6 @@ msgstr "in progress"
 
 msgid "inserita a mano"
 msgstr "entered by hand"
-
-msgid "john@example.com"
-msgstr "john@example.com"
-
-msgid "johndoe"
-msgstr "johndoe"
 
 msgid "llama3.2:3b"
 msgstr "llama3.2:3b"
@@ -4621,14 +4650,17 @@ msgstr "no rates in the ECB file"
 msgid "no piece table"
 msgstr "no piece table"
 
+msgid "nome"
+msgstr "name"
+
 msgid "nome:tag"
 msgstr "name:tag"
 
-msgid "nome@email.com"
-msgstr "name@email.com"
-
 msgid "non scadute"
 msgstr "not expired"
+
+msgid "nuova password"
+msgstr "new password"
 
 msgid "o aggiungine di nuove."
 msgstr "or add new ones."
@@ -4641,9 +4673,6 @@ msgstr "ollama serve"
 
 msgid "ollama.com/download"
 msgstr "ollama.com/download"
-
-msgid "oppure"
-msgstr "or"
 
 #, python-format
 msgid "patrimonio netto al %(day)s"
@@ -4735,6 +4764,9 @@ msgstr "out of %(total)s transactions, from the model"
 msgid "tasso %(rate)s%%"
 msgstr "rate %(rate)s%%"
 
+msgid "tu"
+msgstr "you"
+
 msgid "tutte assegnate"
 msgstr "all assigned"
 
@@ -4747,6 +4779,9 @@ msgstr "last on %(date)s"
 
 msgid "ultimi 300"
 msgstr "last 300"
+
+msgid "ultimo accesso"
+msgstr "last sign-in"
 
 msgid "usa un modello locale"
 msgstr "use a local model"
@@ -4805,6 +4840,13 @@ msgstr "· no exchange rate!"
 
 msgid "· superato"
 msgstr "· exceeded"
+
+msgid ""
+"È il primo avvio: questo sarà l'amministratore. Potrai aggiungere altri utenti da Impostazioni → Account e utenti; "
+"tutti vedranno gli stessi dati."
+msgstr ""
+"This is the first start: this will be the administrator. You can add more users in Settings → Account and users; "
+"everyone will see the same data."
 
 msgid "È un PDF scansionato: contiene solo immagini delle pagine, senza testo leggibile."
 msgstr "It is a scanned PDF: it only contains images of the pages, with no readable text."

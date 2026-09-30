@@ -51,8 +51,8 @@
     <a href="#visualizza"  class="settings-nav-item" onclick="scrollTo(this)">
       <i class="bi bi-palette"></i> {{ _('Visualizzazione') }}
     </a>
-    <a href="#account"     class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-person-circle"></i> {{ _('Account') }}
+    <a href="{{ url_for('settings.account') }}" class="settings-nav-item">
+      <i class="bi bi-person-circle"></i> {{ _('Account e utenti') }}
     </a>
     <a href="{{ url_for('settings.categories_page') }}" class="settings-nav-item">
       <i class="bi bi-tags"></i> {{ _('Categorie') }}
@@ -210,57 +210,6 @@
           </label>
         </div>
 
-      </div>
-    </div>
-
-    <!-- ── ACCOUNT ─────────────────────────────────────────────────────── -->
-    <div class="settings-section" id="account">
-      <div class="settings-section-header">
-        <i class="bi bi-person-circle" style="color:var(--clr-primary);"></i>
-        {{ _('Account') }}
-      </div>
-      <div class="settings-section-body" style="padding-top:16px;padding-bottom:16px;">
-        <div class="grid-2" style="gap:16px;margin-bottom:16px;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">{{ _('Nome') }}</label>
-            <input type="text" class="form-control" placeholder="{{ _('Il tuo nome') }}"
-                   value="{{ current_user.first_name if current_user is defined and current_user.is_authenticated else '' }}" />
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">{{ _('Cognome') }}</label>
-            <input type="text" class="form-control" placeholder="{{ _('Il tuo cognome') }}"
-                   value="{{ current_user.last_name if current_user is defined and current_user.is_authenticated else '' }}" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">{{ _('Email') }}</label>
-          <input type="email" class="form-control" placeholder="{{ _('email@esempio.com') }}"
-                 value="{{ current_user.email if current_user is defined and current_user.is_authenticated else '' }}" />
-        </div>
-        <div style="border-top:1px solid var(--clr-border-light);padding-top:16px;margin-top:8px;">
-          <div style="font-weight:600;font-size:var(--font-size-sm);color:var(--clr-text-primary);margin-bottom:12px;">
-            {{ _('Cambia Password') }}
-          </div>
-          <div class="form-group">
-            <label class="form-label">{{ _('Password Attuale') }}</label>
-            <input type="password" class="form-control" placeholder="••••••••" />
-          </div>
-          <div class="grid-2" style="gap:16px;">
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">{{ _('Nuova Password') }}</label>
-              <input type="password" class="form-control" placeholder="••••••••" />
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">{{ _('Conferma Password') }}</label>
-              <input type="password" class="form-control" placeholder="••••••••" />
-            </div>
-          </div>
-        </div>
-        <div style="margin-top:20px;display:flex;justify-content:flex-end;">
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> {{ _('Salva Modifiche Account') }}
-          </button>
-        </div>
       </div>
     </div>
 

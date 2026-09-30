@@ -1,11 +1,12 @@
 import os
 
 from apiflask import APIFlask
-from flask import render_template, request
+from flask import jsonify, redirect, render_template, request, url_for
+from flask_login import current_user
 from jinja2 import Undefined
 from config import config
 from .routes.settings import current_language, current_settings, module_setting
-from .extensions import babel, db, migrate
+from .extensions import babel, db, login_manager, migrate
 
 
 def create_app(config_name="default"):
@@ -31,6 +32,7 @@ def create_app(config_name="default"):
     # Interface language (Settings → Visualizzazione): Italian is the source, English the translation
     app.config.setdefault("BABEL_DEFAULT_LOCALE", "it")
     babel.init_app(app, locale_selector=current_language)
+    login_manager.init_app(app)
 
     from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
     from .services import currency  # noqa: F401 — fills transactions.amount_base on save
@@ -85,6 +87,9 @@ def create_app(config_name="default"):
     app.register_blueprint(accounts_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(reports_bp)
+
+    from app.cli import users_cli
+    app.cli.add_command(users_cli)
 
     # ── Template filters ───────────────────────────────────────────────────────
     # Amounts, numbers and dates follow Settings → Visualizzazione (services.display)
@@ -154,6 +159,28 @@ def create_app(config_name="default"):
             app.logger.exception("reminders unavailable")
             db.session.rollback()
             return 0
+
+    # ── Sign-in: every page needs a user, except the login and first-setup pages ──
+    from .models.user import User
+    from .services import users
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return db.session.get(User, int(user_id)) if str(user_id).isdigit() else None
+
+    public_endpoints = {"static", "auth.login", "auth.setup"}
+
+    @app.before_request
+    def require_login():
+        if app.config.get("LOGIN_DISABLED") or request.endpoint in public_endpoints or request.endpoint is None:
+            return None
+        if current_user.is_authenticated:
+            return None
+        if not users.any_user():  # first visit: create the administrator
+            return redirect(url_for("auth.setup"))
+        if request.blueprint == "openapi" or "/api" in request.path or request.is_json or request.accept_mimetypes.best == "application/json":
+            return jsonify({"message": "Accesso richiesto."}), 401
+        return redirect(url_for("auth.login", next=request.full_path.rstrip("?")))
 
     # A module switched off in Settings disappears from the menu and its pages answer "not found"
     @app.before_request

@@ -1,6 +1,6 @@
 # Next Steps — MyFinancePlace
 
-Current status and roadmap. Update this file as items are completed.
+Current status and roadmap. Update this file as items are completed. The MVP checklist is in [MVP.md](MVP.md).
 
 ## ✅ Done
 
@@ -41,15 +41,15 @@ Current status and roadmap. Update this file as items are completed.
 - **Transactions**: signed amount in the form (the type follows the sign, transfers have their own box), the
   counterparty shown as the first tag (migration `b7c1d2e3f4a5`), tag picker with the tags already used, AI tag
   «da confermare (AI)» with one-click confirmation; a base set of 33 editable categories
+- **Sign-in** (Flask-Login): the first user, an administrator, is created on the first visit; then only
+  administrators add users (Impostazioni → Account e utenti); the data is shared; pages redirect to the login,
+  the API answers 401; `flask users create|reset-password|list`; users are not part of backups
+- **Docker**: the `db` volume now holds the data (`PGDARE` typo fixed) and the image is pinned to `postgres:16`;
+  moving an older installation is described in `docs/DEPLOY.md`
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 
 ## 🔜 To do
-
-### 1. Login
-
-`User` + Flask-Login (already in `requirements.txt`), then `user_id` on every table. Until then anyone who
-can reach the server sees all the data: run it only on your own computer or local network.
 
 ### 2. Price history
 
@@ -72,8 +72,5 @@ balance sheets exact.
 
 ### 4. Smaller clean-ups
 
-- `docker-compose.yml`: the `db` service sets `PGDARE` (typo for `PGDATA`), so Postgres keeps its data in an
-  anonymous volume and `docker compose down` + `up` starts empty. Fixing it moves where the data lives: dump
-  first (`pg_dump`), fix `PGDATA`, restore. `image: postgres:latest` should be pinned too
 - Account balances use the transactions' original amounts: a card payment in USD on a EUR account counts in USD
   until the bank's EUR amount is entered

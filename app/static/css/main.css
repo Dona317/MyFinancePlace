@@ -210,6 +210,9 @@ a:hover { color: var(--clr-primary-hover); }
 }
 
 .sidebar-logout {
+  background: none;
+  border: none;
+  cursor: pointer;
   color: var(--clr-sidebar-text);
   font-size: 16px;
   padding: 4px;
@@ -1370,3 +1373,8 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .tag-picker-input { flex: 1; min-width: 140px; border: none; outline: none; background: transparent; color: var(--clr-text-primary);
                     font-family: inherit; font-size: var(--font-size-sm); padding: 2px; }
 .tag-picker:focus-within { border-color: var(--clr-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--clr-primary) 18%, transparent); }
+
+/* Sign-in pages */
+.auth-hint { margin-top: 16px; text-align: center; font-size: var(--font-size-xs); color: var(--clr-text-muted); }
+.password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none;
+                   cursor: pointer; color: var(--clr-text-muted); }

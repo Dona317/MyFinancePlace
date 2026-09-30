@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -22,6 +23,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = None  # no limit on uploaded statements
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)  # «Ricordami» on the login page
 
     # AI reading of scanned/photographed/non-standard statements (app/services/ai_extraction.py)
     # LLM_PROVIDER: "ollama" (local, private) | "anthropic" (Claude API) | empty = disabled
@@ -93,6 +95,7 @@ class TestingConfig(Config):
     AI_JOBS_SYNC = True  # tests of the background thread turn it off explicitly
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test"
     WTF_CSRF_ENABLED = False
+    LOGIN_DISABLED = True  # the pages are tested without signing in; tests/test_auth.py turns it back on
 
 
 config = {
