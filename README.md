@@ -201,6 +201,10 @@ TEST_DATABASE_URL=postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test py
 GitHub Actions (`.github/workflows/tests.yml`) runs on every push and pull request: `ruff check app tests migrations`,
 `flask db upgrade` on a fresh PostgreSQL 16 database followed by `flask db check`, then the whole suite.
 
+**Live test** (not in CI, about 25 minutes): `sh scripts/live/run.sh` drives the whole app in a real browser —
+production server with login, fresh database, fake Ollama, every page in light/dark on desktop and phone.
+See [scripts/live/README.md](scripts/live/README.md).
+
 ## Deploy
 
 One command runs everything — PostgreSQL, migrations and the app under gunicorn — on `http://localhost:8000`:
