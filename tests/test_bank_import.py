@@ -129,7 +129,9 @@ def test_preview_then_confirm_imports_selected_rows(client, db):
         ("Pagamento Visa Debit", "Spesa casa", 87.5, "expense"),
         ("NETFLIX.COM Amsterda", "Abbonamenti", 17.99, "expense"),
     ]
-    assert txs[0].tags == ["importato", "fineco"] and txs[0].import_ref
+    # the merchant read from the causale is the counterparty and the first tag
+    assert txs[0].counterparty == "Esselunga" and txs[1].counterparty == "Netflix"
+    assert txs[0].tags == ["Esselunga", "importato", "fineco"] and txs[0].import_ref
 
 
 def test_every_field_of_the_preview_can_be_edited(client, db):

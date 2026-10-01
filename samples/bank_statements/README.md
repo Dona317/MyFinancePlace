@@ -26,6 +26,11 @@ by hand: **Esporta → Importa Estratto Conto Bancario**, pick a file, keep "Ril
 | `SCANSIONE_fineco_2026-07_2026-08.pdf` | **Scanned** PDF: page images only, no text layer | Jul–Aug 2026 | Needs the AI reader (`LLM_PROVIDER`); without it, a clear error |
 | `FOTO_estratto_conto_intesa_2026-09.jpg` | **Phone photo** (JPEG, slightly rotated) | Sep 2026 | Needs the AI reader |
 
+Every movement that names a merchant gets it as its counterparty (and first tag), read from the causale
+without any model: "PAGAMENTO POS ESSELUNGA MILANO" → *Esselunga*, "Bonifico a IMMOBILIARE CASA BELLA SRL per
+AFFITTO 07/2026" → *Immobiliare Casa Bella*, "NETFLIX.COM AMSTERDAM" → *Netflix* (`tests/test_merchant.py` checks
+every file here). Bank fees and cash withdrawals stay without one.
+
 Suggested demo:
 
 1. `python seed.py` (optional) and start the app.

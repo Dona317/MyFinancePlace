@@ -43,7 +43,7 @@ from statistics import median
 from app.models.transaction import Transaction
 from app.services import category_rules
 from app.services.ai_classification import AI_TAG
-from app.services import ai_extraction, column_guess, duplicates, history_classifier, ocr
+from app.services import ai_extraction, column_guess, duplicates, history_classifier, merchant, ocr
 from app.services import statement_readers as readers
 from app.services.parsing import TRANSACTION_TYPES, clean_text, normalize, to_date, to_decimal, valid_amount
 from app.services.statement_readers import Word
@@ -541,7 +541,7 @@ class StatementRow:
     import_ref: str = ""
     duplicate: bool = False
     similar_to: str | None = None   # description of an existing transaction this row may duplicate
-    counterparty: str | None = None  # from a mapped "controparte" column (becomes the first tag)
+    counterparty: str | None = None  # merchant / payee: from a column, else read from the causale (first tag)
 
     @property
     def causale(self) -> str | None:
@@ -659,6 +659,8 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
         else:
             row.type = "expense" if row.amount < 0 else "income"
             row.category = categorize(row.description, row.details, row.bank_category, row.amount > 0, history)
+            # the merchant named in the causale, unless a column of the file already gave it
+            row.counterparty = row.counterparty or merchant.extract(row.description, row.details)
 
         base = fingerprint(row, 0, bank_key)
         occurrence = seen.get(base, 0)

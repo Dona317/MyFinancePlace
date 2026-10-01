@@ -218,8 +218,9 @@ def test_new_samples_through_the_web_flow(client, db, filename, bank, count):
     assert response.status_code == 200 and bank in html
     client.post("/export/bank/confirm", data=form_data(html, "preview-form"))
     assert Transaction.query.count() == count
-    tags = Transaction.query.first().tags
-    assert tags[:2] == ["importato", bank_import.analyze_statement(filename, (SAMPLES / filename).read_bytes()).bank.key]
+    key = bank_import.analyze_statement(filename, (SAMPLES / filename).read_bytes()).bank.key
+    for tx in Transaction.query.all():  # [merchant,] "importato", the bank
+        assert tx.tags[-2:] == ["importato", key] and tx.tags[:1] == ([tx.counterparty] if tx.counterparty else ["importato"])
 
 
 # ── Word 97-2003 (.doc) ────────────────────────────────────────────────────────

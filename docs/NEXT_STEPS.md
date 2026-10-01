@@ -58,6 +58,8 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   report drill-down, `main_category` in the CSV/JSON export, hierarchy in the AI prompt
 - **Mapped import without errors**: `services/column_guess.py` recognises the columns from the values, fixes a
   wrong choice with a note, and can ask the AI on a 10-row sample; the rows open in the editable preview
+- **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
+  controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
 
@@ -76,7 +78,6 @@ balance sheets exact.
   Mediolanum and BCC are read by the generic layout until a real export shows distinctive columns
 - Files imported as "generic" before a bank got its own layout (e.g. a Revolut CSV) get a different fingerprint
   when imported again, so they are shown as *possible* duplicates (similar amount/date) rather than skipped
-- Extract the counterparty (merchant name) from the description
 - Test against real exported files (anonymized) from each bank, especially PDFs, whose layouts vary the most
 - AI reading (done, optional): measure accuracy of `qwen2.5vl:7b` vs Claude on real anonymized scans.
   It runs in a background thread (`app/services/ai_jobs.py`) with a waiting page showing progress per page;

@@ -8,7 +8,7 @@ from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
-from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates
+from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates, merchant
 from app.services.ai_classification import AI_TAG
 from app.services import categories as category_service
 from app.services.categories import known_categories
@@ -211,6 +211,7 @@ def index():
         duplicate_groups=len(duplicates.find_groups()),
         ai_tag=AI_TAG, to_confirm=Transaction.query.filter(Transaction.tags.any(AI_TAG)).count(),
         unclassified=_unclassified_query().count(),
+        without_counterparty=Transaction.query.filter(Transaction.counterparty.is_(None), Transaction.type != "transfer").count(),
         **ai_classification.template_context(),
     )
 
@@ -411,6 +412,27 @@ def api_delete(tx_id):
     db.session.commit()
     return {"success": True, "deleted_id": tx_id}
 
+
+
+# ── Counterparties of saved transactions, read from the causale ────────────────
+
+@transactions_bp.route("/fill-counterparties", methods=["POST"])
+def fill_counterparties():
+    """Give a counterparty (and its first tag) to the transactions without one, from the bank's causale."""
+    filled = 0
+    for tx in Transaction.query.filter(Transaction.counterparty.is_(None), Transaction.type != "transfer"):
+        name = merchant.extract(tx.bank_description or tx.description, None if tx.bank_description else tx.notes)
+        if not name:
+            continue
+        tx.counterparty = name
+        if name.casefold() not in {t.casefold() for t in tx.tags or []}:
+            tx.tags = [name, *(tx.tags or [])]
+        filled += 1
+    db.session.commit()
+    flash(ngettext("%(num)s transazione ha ora la controparte, letta dalla causale.",
+                   "%(num)s transazioni hanno ora la controparte, letta dalla causale.", filled) if filled
+          else _("Nessuna controparte da aggiungere: le causali non nominano un esercente."), "success" if filled else "info")
+    return redirect(safe_next() or url_for("transactions.index"))
 
 
 # ── AI classification of saved transactions ──────────────────────────────────

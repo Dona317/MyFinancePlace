@@ -28,16 +28,18 @@ What the first complete version must do, and where each item stands. Details and
 
 ## 🔜 Da fare
 
-Niente: tutti i punti decisi sono fatti. Resta il punto 4, da definire.
+Niente: tutti i punti dell'MVP sono fatti.
 
-## ❓ TBD
+## ✅ Punto 4 — import sui file di esempio + nome dell'esercente
 
-### 4. Import bancari su file reali + nome dell'esercente
-
-Da definire quando saranno disponibili estratti conto **reali anonimizzati** delle banche supportate:
-- verificare i layout (UniCredit, BPER, BancoPosta, ING, Revolut, N26, e i PDF in generale) su file veri: oggi
-  seguono i nomi di colonna pubblicati, ma i campioni in `samples/bank_statements` sono generati;
-- estrarre il nome dell'esercente (controparte) dalla causale, che diventa il primo tag della transazione.
+- **Esercente dalla causale** (`app/services/merchant.py`, senza modelli): "Pagamento carta - PAGAMENTO POS ESSELUNGA
+  MILANO" → *Esselunga*, "Bonifico a IMMOBILIARE CASA BELLA SRL per AFFITTO" → *Immobiliare Casa Bella*,
+  "Addebito SDD - ENEL ENERGIA SPA bolletta luce" → *Enel Energia*. Diventa la controparte e il primo tag, già
+  nell'anteprima dell'import; per le transazioni già salvate c'è **Compila controparti** in Transazioni.
+- **Verificato su tutti i file di `samples/bank_statements`** (8 banche + formati generici): l'esercente c'è in
+  tutti i movimenti che ne nominano uno; restano senza solo commissioni e prelievi.
+- Quando arriveranno estratti **reali anonimizzati**, da ricontrollare: i layout (seguono i nomi di colonna
+  pubblicati dalle banche) e le causali con formati che i campioni non hanno.
 
 ## Dopo l'MVP
 

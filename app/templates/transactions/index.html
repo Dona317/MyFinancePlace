@@ -76,6 +76,14 @@
         <i class="bi bi-stars"></i> <span id="ai-classify-label">{{ _('Classifica con AI (%(count)s senza categoria)', count=unclassified) if unclassified else _('Classifica con AI') }}</span>
       </button>
       {% endif %}
+      {% if without_counterparty %}
+      <form method="POST" action="{{ url_for('transactions.fill_counterparties') }}" class="inline-filter">
+        <input type="hidden" name="next" value="{{ request.full_path }}" />
+        <button type="submit" class="btn btn-ghost btn-sm" title="{{ _("Legge il nome dell'esercente dalla causale e lo aggiunge come primo tag") }}">
+          <i class="bi bi-shop"></i> {{ _('Compila controparti (%(count)s)', count=without_counterparty) }}
+        </button>
+      </form>
+      {% endif %}
       {% if transactions %}
       <button type="submit" form="bulk-form" class="btn btn-ghost btn-sm" id="bulk-delete" disabled
               style="color:var(--clr-negative);">
