@@ -5,7 +5,7 @@
 > Le pagine restano raggiungibili, ma non sono ancora considerate "finite".
 >
 > **Stato al 1° ottobre 2026**: spuntato ciò che nell'app c'è e funziona (verificato nel codice e dai test).
-> Resta aperto un punto (partita doppia), in fondo a [Restano aperti](#restano-aperti).
+> L'MVP è completo; la partita doppia è stata scartata (vedi [Scartato](#scartato)).
 
 | Legenda | Significato |
 |---|---|
@@ -22,7 +22,7 @@ Il ciclo base: registro i movimenti, li confronto con un budget, vedo dove sto a
 
 | Sezione | Sidebar | Obiettivo |
 |---|---|---|
-| **Transazioni** | Gestione → Transazioni | Inserimento, modifica, categorie, filtri; partita doppia sempre bilanciata |
+| **Transazioni** | Gestione → Transazioni | Inserimento, modifica, categorie, filtri |
 | **Spese e Tendenze** | Stile di Vita → Spese e Tendenze | Dove vanno i soldi: spese per categoria e andamento nel tempo |
 | **Budget** | Stile di Vita → Budget | Budget mensile per categoria, speso vs previsto |
 | **Obiettivi** | Stile di Vita → Obiettivi | Obiettivi di risparmio con avanzamento |
@@ -32,7 +32,6 @@ Il ciclo base: registro i movimenti, li confronto con un budget, vedo dove sto a
 🧱 Di supporto all'MVP (senza badge): **Conti e Carte** (le transazioni ne hanno bisogno), **Impostazioni**.
 
 - [x] Transazioni — inserimento/modifica, categorie e sottocategorie, tag, filtri, ricerca duplicati, import estratti conto
-  - [ ] partita doppia sempre bilanciata: oggi ci sono giroconti tra conti e riconciliazione col saldo della banca, non una vera partita doppia
 - [x] Spese e Tendenze — spese per categoria (principale), andamento mensile, confronto mese su mese
 - [x] Budget — per categoria e per mese, speso vs previsto, avvisi all'80% e al superamento; un budget sulla categoria principale conta anche le sottocategorie
 - [x] Obiettivi — obiettivi di risparmio con versamenti e quota mensile necessaria
@@ -146,9 +145,10 @@ il badge `TBD` indica la priorità, non che manchino.
 - **Report** (spese, entrate, cash flow per periodo e conto), **login** con utenti gestiti dall'amministratore,
   **saldi nella valuta del conto**, **backup completo**, interfaccia italiano/inglese, Docker
 
-## Restano aperti
+## Scartato
 
-1. Transazioni: **partita doppia** sempre bilanciata (da definire cosa si intende: oggi i giroconti spostano tra conti)
+- ~~Transazioni: **partita doppia** sempre bilanciata~~ — idea scartata per non complicare l'app: bastano i giroconti
+  tra conti e la riconciliazione col saldo della banca
 
 ---
 
