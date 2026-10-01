@@ -5,7 +5,7 @@
 > Le pagine restano raggiungibili, ma non sono ancora considerate "finite".
 >
 > **Stato al 1° ottobre 2026**: spuntato ciò che nell'app c'è e funziona (verificato nel codice e dai test).
-> Restano aperti 4 punti, riassunti in fondo a [Restano aperti](#restano-aperti).
+> Resta aperto un punto (partita doppia), in fondo a [Restano aperti](#restano-aperti).
 
 | Legenda | Significato |
 |---|---|
@@ -52,9 +52,10 @@ Quattro grafici in coppia, entrate a sinistra e uscite a destra:
 
 Più due istogrammi di riepilogo:
 
-- [ ] **Totale per mese**: una barra per mese con il netto (entrate − uscite); negativo sotto lo zero
-  — oggi c'è "Entrate e uscite: mese per mese e cumulate" (barre affiancate + linee cumulate), non la barra del netto
-- [ ] **Totale complessivo annuo**: tre barre per entrate annue, uscite annue e netto annuo — non ancora presente
+- [x] **Totale per mese**: una barra per mese con il netto (entrate − uscite); negativo sotto lo zero (rosso)
+- [x] **Totale complessivo annuo**: tre barre per entrate annue, uscite annue e netto annuo
+- [x] **In più: diagramma Sankey** "Dove va il denaro": categorie di entrata → entrate totali → categorie di uscita
+  e risparmio (o "Dai risparmi" se l'anno chiude in perdita); disegnato dal server, funziona anche offline
 - [x] Torta delle entrate
 - [x] Linee mensili per categoria (entrate)
 - [x] Linee mensili per categoria (uscite)
@@ -82,9 +83,9 @@ Da seminare come categorie di default. Si possono rinominare, unire, aggiungere 
 | | Palestra |
 | | Altro |
 
-- [ ] Seed delle categorie di base (senza duplicare quelle già presenti)
-  — l'app semina già **33 categorie generiche** (+ sottocategorie, es. Bollette › Luce), tutte modificabili;
-  **la tua lista personale qui sopra non è ancora stata aggiunta**
+- [x] Seed delle categorie di base (senza duplicare quelle già presenti) — aggiunte una sola volta le 15 nuove;
+  le 7 già presenti con lo stesso nome o quasi (Altro, Salute, Ristorante~Ristoranti, Shopping, Trasporti~Trasporto,
+  Viaggi, Abbonamenti) non sono state duplicate
 
 #### 3. Transazioni — form e lista semplificati
 
@@ -147,10 +148,7 @@ il badge `TBD` indica la priorità, non che manchino.
 
 ## Restano aperti
 
-1. Dashboard: istogramma del **netto mensile** (barre sopra/sotto lo zero)
-2. Dashboard: **totale annuo a tre barre** (entrate, uscite, netto)
-3. Categorie: aggiungere **la tua lista personale** (Lavoro ISolutions, Lezioni private, Calcetto…) senza duplicati
-4. Transazioni: **partita doppia** sempre bilanciata (da definire cosa si intende: oggi i giroconti spostano tra conti)
+1. Transazioni: **partita doppia** sempre bilanciata (da definire cosa si intende: oggi i giroconti spostano tra conti)
 
 ---
 

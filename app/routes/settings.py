@@ -35,6 +35,8 @@ DEFAULT_SETTINGS = {
     "dashboard_income_pie":     True,
     "dashboard_category_trends": True,
     "dashboard_cumulative":     True,
+    "dashboard_net":            True,
+    "dashboard_sankey":         True,
     "dashboard_recent_tx":      True,
     "dashboard_health":         True,
     # ── Modules (sidebar visibility + route access) ──────────────────────

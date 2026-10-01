@@ -12,7 +12,8 @@ def test_defaults_are_created_once_and_deletions_stick(db):
     categories.delete("Freelance", None)
     assert "Freelance" not in categories.known_categories()  # not recreated
     subcategories = sum(len(subs) for subs in categories.SUBCATEGORY_DEFAULTS.values())
-    assert Category.query.count() == len(categories.DEFAULTS) - 1 + subcategories
+    personal = 15  # the owner's 22, without the 7 already there (Altro, Salute, Ristorante~Ristoranti, …)
+    assert Category.query.count() == len(categories.DEFAULTS) - 1 + subcategories + personal
 
 
 def test_a_database_seeded_with_the_first_list_gets_the_new_categories_once(db):
@@ -140,3 +141,14 @@ def test_ai_prompt_uses_hints_and_learned_examples(db):
     category_rules.save("bottega verde", "Salute")
     prompt = ai_classification._prompt([{"id": 1, "amount": -10, "text": "x"}], ["Salute", "Altro"])
     assert "Salute: farmacia" in prompt and "bottega verde → Salute" in prompt
+
+
+def test_personal_list_is_added_once_without_duplicates(db):
+    names = {c.name for c in categories.all_categories()}
+    assert {"Lavoro ISolutions", "Lavoro lezioni private", "Calcetto", "Piccole consumazioni", "Palestra", "Gift"} <= names
+    assert "Ristorante" not in names and "Trasporti" not in names  # Ristoranti and Trasporto were already there
+    assert Category.query.filter_by(name="Lavoro ISolutions").one().kind == "income"
+    categories.delete("Calcetto", None)
+    categories.ensure_defaults()
+    assert "Calcetto" not in {c.name for c in categories.all_categories()}  # deleted stays deleted
+    assert categories._stem("Ristoranti") == categories._stem("ristorante")

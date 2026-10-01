@@ -51,6 +51,7 @@ def dashboard():
         expense_trend=_translated(analytics.monthly_category_trend(year, TREND_LINES, "expense", months, other=True)),
         income_trend=_translated(analytics.monthly_category_trend(year, TREND_LINES, "income", months, other=True)),
         cumulative=analytics.cumulative_series(year, months),
+        sankey=analytics.sankey(year_start, year_end),
         recent_transactions=recent,
         budget_alerts=budgets.alerts(today),
     )

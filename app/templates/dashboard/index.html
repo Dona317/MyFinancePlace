@@ -189,6 +189,56 @@
 {% endif %}
 {% endif %}
 
+{% if settings.dashboard_sankey and sankey %}
+<div class="card mb-16">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Dove va il denaro — %(year)s', year=year) }}</div>
+    <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio (o quanto preso dai risparmi)') }}</div>
+  </div></div>
+  <div class="card-body">
+    {% set s = sankey %}
+    <svg class="sankey" viewBox="-260 -34 {{ s.width + 520 }} {{ s.height + 44 }}" role="img"
+         aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
+      {% for b in s.bands %}
+      <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
+        <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
+      {% endfor %}
+      {% for n in s.nodes %}
+      <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
+            style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
+        <title>{{ n.label|tr }}: {{ n.amount|money }}</title></rect>
+      {% set right = n.kind == 'expense' %}
+      {% set middle = n.kind == 'total' %}
+      <text x="{{ n.x + s.node_width / 2 if middle else (n.x + s.node_width + 8 if right else n.x - 8) }}"
+            y="{{ n.y - 12 if middle else n.y + n.h / 2 }}"
+            text-anchor="{{ 'middle' if middle else ('start' if right else 'end') }}" dominant-baseline="middle"
+            class="sankey-label{{ ' sankey-special' if n.special }}">
+        <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" dx="6">{{ n.amount|money }}</tspan></text>
+      {% endfor %}
+    </svg>
+  </div>
+</div>
+{% endif %}
+
+{% if settings.dashboard_net %}
+<div class="row-2-1 mb-16 net-row">
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Netto mese per mese') }}</div>
+      <div class="card-header-sub">{{ _('Entrate − uscite di ogni mese del %(year)s: sotto lo zero i mesi in perdita', year=year) }}</div>
+    </div></div>
+    <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="netChart"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Totale dell\'anno %(year)s', year=year) }}</div>
+      <div class="card-header-sub">{{ _('Entrate, uscite e netto') }}</div>
+    </div></div>
+    <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="yearChart"></canvas></div></div>
+  </div>
+</div>
+{% endif %}
+
 <!-- Bottom Row ───────────────────────────────────────────────────────────── -->
 {% if settings.dashboard_recent_tx or settings.dashboard_health %}
 <div style="display:grid;grid-template-columns:{% if settings.dashboard_recent_tx and settings.dashboard_health %}1fr 1fr 1fr{% else %}1fr{% endif %};gap:16px;">
@@ -317,6 +367,19 @@ const trendLines = (trend) => trend.datasets.map(ds => (
     makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend));
     {% endif %}
   });
+
+{% if settings.dashboard_net %}
+const netSeries = {{ cumulative|tojson }};
+const monthlyNet = netSeries.income.map((v, i) => Math.round((v - netSeries.expenses[i]) * 100) / 100);
+makeBarChart('netChart', netSeries.labels,
+  [{ label: {{ _('Netto')|tojson }}, data: monthlyNet, colors: monthlyNet.map(v => v < 0 ? 'negative' : 'positive') }],
+  { legend: false });
+const yearNet = Math.round((netSeries.total_income - netSeries.total_expenses) * 100) / 100;
+makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, {{ _('Netto')|tojson }}],
+  [{ label: {{ year|tojson }}, data: [netSeries.total_income, netSeries.total_expenses, yearNet],
+     colors: ['positive', 'negative', yearNet < 0 ? 'negative' : 'primary'] }],
+  { legend: false });
+{% endif %}
 
 {% if settings.dashboard_cumulative %}
 const cumulative = {{ cumulative|tojson }};

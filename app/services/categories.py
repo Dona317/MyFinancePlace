@@ -83,6 +83,40 @@ SUBCATEGORY_DEFAULTS = {
     "Abbonamenti": [("Streaming", "Netflix, Spotify, Disney+, DAZN"), ("Software", "app, cloud, programmi")],
 }
 SEEDED_V3_SETTING = "categories.seeded_v3"
+
+# The owner's own list (ROADMAP.md, "Categorie di base"): added once, skipping any already there under the same
+# or almost the same name (Ristorante ~ Ristoranti, Trasporti ~ Trasporto). (name, kind, hint, discretionary)
+PERSONAL_DEFAULTS = [
+    ("Lavoro ISolutions", "income", "stipendio e compensi da ISolutions", False),
+    ("Lavoro lezioni private", "income", "lezioni private, ripetizioni", False),
+    ("Vendita tra privati", "income", "vendite di oggetti usati (Vinted, Subito…)", False),
+    ("Regali", "income", "regali e contributi ricevuti", False),
+    ("Lavoro da freelancer", "income", "compensi e fatture da lavoro autonomo", False),
+    ("Trovati", "income", "soldi trovati, entrate occasionali", False),
+    ("Altro", "both", "quando nessuna categoria è adatta", False),
+    ("Salute", "expense", "farmacia, visite mediche, dentista", False),
+    ("Ristorante", "expense", "ristoranti, pizzerie, cene fuori", True),
+    ("Piccole consumazioni", "expense", "caffè, bar, snack, distributori", True),
+    ("Spesa", "expense", "supermercato e alimentari", False),
+    ("Cultura", "expense", "libri, musei, mostre, teatro, corsi", True),
+    ("Shopping", "expense", "vestiti, cosmetici, accessori", True),
+    ("Trasporti", "expense", "mezzi pubblici, treni, carburante, parcheggi", False),
+    ("Giochi / svago", "expense", "giochi, videogiochi, uscite, tempo libero", True),
+    ("Viaggi", "expense", "voli, hotel, vacanze", True),
+    ("Gift", "expense", "regali fatti ad altri", True),
+    ("Calcetto", "expense", "campo, quote, attrezzatura", True),
+    ("Abbonamenti", "expense", "streaming, musica, software", True),
+    ("Elettronica", "expense", "computer, telefoni, accessori elettronici", True),
+    ("Macchina", "expense", "assicurazione, bollo, manutenzione, tagliando dell'auto", False),
+    ("Palestra", "expense", "abbonamento e corsi in palestra", True),
+]
+SEEDED_PERSONAL_SETTING = "categories.seeded_personal"
+
+
+def _stem(name: str) -> str:
+    """ "Ristoranti" and "Ristorante", "Trasporto" and "Trasporti" are the same category."""
+    word = " ".join(name.casefold().split())
+    return word[:-1] if len(word) > 4 and word[-1] in "aeio" else word
 SEPARATOR = " › "  # how a subcategory is shown: "Bollette › Luce"
 
 
@@ -95,6 +129,23 @@ def ensure_defaults() -> None:
         _seed_v2()
     if not settings_store.get(SEEDED_V3_SETTING):
         _seed_subcategories()
+    if not settings_store.get(SEEDED_PERSONAL_SETTING):
+        _seed_personal()
+
+
+def _seed_personal() -> None:
+    """The owner's list, once; names already there (or nearly the same) are not duplicated."""
+    rows = Category.query.all()
+    known = {_stem(c.name) for c in rows}
+    position = max((c.position for c in rows), default=-1) + 1
+    for name, kind, hint, discretionary in PERSONAL_DEFAULTS:
+        if _stem(name) in known:
+            continue
+        db.session.add(Category(name=name, kind=kind, hint=hint, discretionary=discretionary, position=position))
+        known.add(_stem(name))
+        position += 1
+    settings_store.set(SEEDED_PERSONAL_SETTING, "1")  # commits the categories too
+    forget()
 
 
 def _seed_v2() -> None:

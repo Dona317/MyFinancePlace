@@ -1418,3 +1418,11 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .subcategory-row td:first-child { padding-left: 28px; position: relative; }
 .subcategory-mark { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--clr-text-muted); }
 .category-main { color: var(--clr-text-muted); font-weight: 400; }
+
+/* Sankey diagram (dashboard): drawn on the server as SVG, colours from the theme */
+.sankey { width: 100%; height: auto; display: block; }
+.sankey-band { opacity: .28; transition: opacity .15s; }
+.sankey-band:hover { opacity: .55; }
+.sankey-label { font-size: 15px; fill: var(--clr-text-primary); }
+.sankey-amount { fill: var(--clr-text-muted); font-size: 13px; }
+.sankey-special { font-weight: 600; fill: var(--clr-positive-text, var(--clr-positive)); }
