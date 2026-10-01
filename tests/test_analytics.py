@@ -58,7 +58,7 @@ def test_cash_flow_classifies_investment_transfers(sample_data):
 def test_income_statement_lines(sample_data):
     report = analytics.income_statement(2026)
     assert report["income_lines"][0] == {
-        "category": "Stipendio", "amount": 5800.0, "share": 100.0, "share_of_income": 100.0,
+        "category": "Stipendio", "amount": 5800.0, "count": 2, "share": 100.0, "share_of_income": 100.0,
     }
     assert {line["category"] for line in report["expense_lines"]} == {"Casa", "Alimentari", "Abbonamenti"}
 

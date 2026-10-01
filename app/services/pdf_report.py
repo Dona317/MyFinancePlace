@@ -8,21 +8,16 @@ from datetime import datetime
 from fpdf import FPDF
 from fpdf.fonts import FontFace
 
+from app.services.display import money, number
+
 INK = (26, 37, 64)
 MUTED = (107, 122, 153)
 LINE = (221, 227, 238)
 SECTION_BG = (244, 246, 250)
 
 
-def money(value, symbol: str = "€") -> str:
-    """Italian format, same as the `money` template filter: -1234.5 → '-€ 1.234,50'."""
-    number = float(value or 0)
-    formatted = f"{abs(number):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    return f"{'-' if number < 0 else ''}{symbol} {formatted}"
-
-
 def percent(value) -> str:
-    return "—" if value is None else f"{float(value):.1f}%".replace(".", ",")
+    return "—" if value is None else f"{number(value, 1)}%"
 
 
 class _ReportPDF(FPDF):

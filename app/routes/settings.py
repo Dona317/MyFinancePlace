@@ -8,7 +8,7 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.category import Category, CategoryRule
 from app.models.currency import ExchangeRate
-from app.routes.helpers import form_choice, form_date, form_decimal, form_text
+from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text
 from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, display, settings_store
 from app.services.bank_import import CATEGORY_RULES
 from flask_babel import gettext as _
@@ -243,10 +243,7 @@ def rule_save():
 @settings_bp.route("/rules/<int:rule_id>/delete", methods=["POST"])
 def rule_delete(rule_id):
     rule = db.get_or_404(CategoryRule, rule_id)
-    db.session.delete(rule)
-    db.session.commit()
-    flash(_("Regola «%(keyword)s» eliminata.", keyword=rule.keyword), "success")
-    return redirect(url_for("settings.rules_page"))
+    return delete_and_redirect(rule, _("Regola «%(keyword)s» eliminata.", keyword=rule.keyword), url_for("settings.rules_page"))
 
 
 @settings_bp.route("/rules/apply", methods=["POST"])

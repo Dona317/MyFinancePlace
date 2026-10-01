@@ -110,6 +110,18 @@ function applyTheme(theme, remember) {
   document.dispatchEvent(new CustomEvent("mfp:themechange", { detail: { theme } }));
 }
 
+/* "-€ 1.234,56" like the money filter on the server: sign, symbol, number in the format chosen in Settings
+   (on <html>), unless the caller says otherwise */
+function formatMoney(value, currency, locale) {
+  locale = locale || document.documentElement.dataset.locale || "it-IT";
+  currency = currency || document.documentElement.dataset.currency || "EUR";
+  const symbol = new Intl.NumberFormat(locale, { style: "currency", currency }).formatToParts(0)
+    .find(part => part.type === "currency").value;
+  const number = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(value));
+  return (value < 0 ? "-" : "") + symbol + " " + number;
+}
+window.formatMoney = formatMoney;
+
 document.addEventListener("DOMContentLoaded", () => {
 
   // Theme switch: show the theme applied in <head>, change it on click
@@ -211,14 +223,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── Amount formatter (tabular display) ─────────────────────────────── */
   document.querySelectorAll("[data-amount]").forEach(el => {
-    const raw    = parseFloat(el.dataset.amount);
-    // number format and currency chosen in Settings (on <html>), unless the element says otherwise
-    const locale = el.dataset.locale || document.documentElement.dataset.locale || "it-IT";
-    const currency = el.dataset.currency || document.documentElement.dataset.currency || "EUR";
-    el.textContent = new Intl.NumberFormat(locale, {
-      style: "currency", currency,
-      minimumFractionDigits: 2, maximumFractionDigits: 2,
-    }).format(raw);
+    const raw = parseFloat(el.dataset.amount);
+    el.textContent = formatMoney(raw, el.dataset.currency, el.dataset.locale);
     if (raw > 0) el.classList.add("positive");
     else if (raw < 0) el.classList.add("negative");
   });

@@ -14,7 +14,7 @@ from app.models.transaction import Transaction
 from app.services import categories, wealth
 from app.services.i18n import N_
 from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
-from app.services.totals import value_total
+from app.services.totals import VALUE, value_total
 
 UNCATEGORIZED = N_("Senza categoria")
 OTHER = N_("Altre")  # the categories past the top ones, added up in one series
@@ -59,23 +59,28 @@ def savings_rate(income: float, expenses: float) -> float:
 
 
 def category_breakdown(start: date, end: date, tx_type: str = "expense") -> list[dict]:
-    """Totals per main category (subcategories added to theirs), sorted by amount descending, with share (%)."""
-    rows = (
-        db.session.query(Transaction.category, func.sum(func.abs(Transaction.amount_base)))
-        .filter(Transaction.type == tx_type, Transaction.date >= start, Transaction.date < end)
-        .group_by(Transaction.category)
-        .all()
-    )
-    totals_by_main: dict[str, float] = {}
-    for category, amount in rows:
-        main = categories.top(category) or UNCATEGORIZED
-        totals_by_main[main] = totals_by_main.get(main, 0.0) + float(amount)
-    grand_total = sum(totals_by_main.values())
-    items = [
-        {"category": name, "amount": amount, "share": round(amount / grand_total * 100, 1) if grand_total else 0.0}
-        for name, amount in totals_by_main.items()
-    ]
-    return sorted(items, key=lambda i: i["amount"], reverse=True)
+    """Totals per main category of the period (subcategories added to theirs), biggest first, with share (%)."""
+    return breakdown(Transaction.query.filter(Transaction.date >= start, Transaction.date < end), tx_type)
+
+
+def breakdown(query, tx_type: str, within: str | None = None) -> list[dict]:
+    """Total per main category of one type (subcategories added to theirs), biggest first, with its share (%).
+    `within` a main category: its own split, by subcategory."""
+    query = query.filter(Transaction.type == tx_type)
+    if within:
+        query = query.filter(Transaction.category.in_(categories.with_children(within)))
+    rows = (query.with_entities(Transaction.category, func.sum(VALUE), func.count())
+            .group_by(Transaction.category).all())
+    grouped: dict[str, list] = {}
+    for category, amount, count in rows:
+        key = category if within else categories.top(category)
+        entry = grouped.setdefault(key or UNCATEGORIZED, [0.0, 0])
+        entry[0] += float(amount or 0)
+        entry[1] += count
+    total = sum(amount for amount, _ in grouped.values())
+    items = [{"category": name, "amount": amount, "count": count, "share": round(amount / total * 100, 1) if total else 0.0}
+             for name, (amount, count) in grouped.items()]
+    return sorted(items, key=lambda item: item["amount"], reverse=True)
 
 
 def monthly_series(year: int) -> dict:
@@ -296,7 +301,8 @@ def lifestyle_report(year: int, today: date | None = None) -> dict:
     this_month = {i["category"]: i["amount"] for i in category_breakdown(this_start, this_end)}
     last_month = {i["category"]: i["amount"] for i in category_breakdown(prev_start, prev_end)}
 
-    names = sorted(set(this_month) | set(last_month), key=lambda n: this_month.get(n, 0), reverse=True)
+    # biggest this month first; ties (often nothing yet this month) by last month, then by name: a stable order
+    names = sorted(set(this_month) | set(last_month), key=lambda n: (-this_month.get(n, 0), -last_month.get(n, 0), n))
     this_total = sum(this_month.values())
     rows = []
     for name in names:

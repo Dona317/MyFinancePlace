@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Obiettivi') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Obiettivi Personali') }}{% endblock %}
@@ -14,30 +15,10 @@
 
 <!-- Riepilogo obiettivi ─────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24">
-  <div class="kpi-card kpi-primary">
-    <div class="kpi-icon"><i class="bi bi-trophy"></i></div>
-    <div class="kpi-label">{{ _('Obiettivi Attivi') }}</div>
-    <div class="kpi-value">{{ active_count }}</div>
-    <div class="kpi-sub">{{ _('%(count)s completati', count=completed_count) }}</div>
-  </div>
-  <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-    <div class="kpi-label">{{ _('Totale Risparmiato') }}</div>
-    <div class="kpi-value text-positive">{{ saved_total|money }}</div>
-    <div class="kpi-sub">{{ _('su %(amount)s di obiettivi', amount=target_total|money) }}</div>
-  </div>
-  <div class="kpi-card kpi-warning">
-    <div class="kpi-icon"><i class="bi bi-calendar2-week"></i></div>
-    <div class="kpi-label">{{ _('Da Mettere da Parte') }}</div>
-    <div class="kpi-value">{{ monthly_total|money }}</div>
-    <div class="kpi-sub">{{ _('al mese, per rispettare le date') }}</div>
-  </div>
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-flag"></i></div>
-    <div class="kpi-label">{{ _('Mancano') }}</div>
-    <div class="kpi-value">{{ [target_total - saved_total, 0]|max|money }}</div>
-    <div class="kpi-sub">{{ _('per completarli tutti') }}</div>
-  </div>
+  {{ kpi('trophy', _('Obiettivi Attivi'), value=active_count, cls='kpi-primary', sub=(_('%(count)s completati', count=completed_count))) }}
+  {{ kpi('wallet2', _('Totale Risparmiato'), value=saved_total|money, cls='kpi-positive', value_class='text-positive', sub=(_('su %(amount)s di obiettivi', amount=target_total|money))) }}
+  {{ kpi('calendar2-week', _('Da Mettere da Parte'), value=monthly_total|money, cls='kpi-warning', sub=(_('al mese, per rispettare le date'))) }}
+  {{ kpi('flag', _('Mancano'), value=([target_total - saved_total, 0]|max|money), sub=(_('per completarli tutti'))) }}
 </div>
 
 <!-- Griglia obiettivi ───────────────────────────────────────────────── -->

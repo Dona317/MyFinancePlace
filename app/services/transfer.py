@@ -79,15 +79,19 @@ def is_tax_relevant(tx: Transaction) -> bool:
 
 # ── Import ─────────────────────────────────────────────────────────────────────
 
-def read_csv(content: str) -> tuple[list[str], list[dict]]:
-    """Parse CSV text, sniffing the delimiter. Returns (headers, rows)."""
+def csv_cells(content: str) -> list[list[str]]:
+    """CSV text as rows of cells. The delimiter that splits every line alike wins over the sniffer, which takes
+    the decimal comma of "-45,20" for the separator when there is no header."""
+    from app.services.statement_readers import common_delimiter
+
     content = content.lstrip("\ufeff")
-    try:
-        dialect = csv.Sniffer().sniff(content[:4096], delimiters=";,\t")
-    except csv.Error:
-        dialect = csv.excel
-    reader = csv.DictReader(io.StringIO(content), dialect=dialect)
-    return list(reader.fieldnames or []), list(reader)
+    delimiter = common_delimiter(content[:8192])
+    if not delimiter:
+        try:
+            delimiter = csv.Sniffer().sniff(content[:4096], delimiters=";,\t").delimiter
+        except csv.Error:
+            delimiter = ","
+    return [[" ".join(cell.split()) for cell in row] for row in csv.reader(io.StringIO(content), delimiter=delimiter)]
 
 
 MAPPING_EXTENSIONS = (".csv", ".txt", ".tsv", ".xlsx", ".xlsm", ".xls", ".ods")
@@ -121,6 +125,13 @@ def _header_index(rows: list[list[str]]) -> int:
     return 0
 
 
+def _is_data_row(row: list[str]) -> bool:
+    """A row holding a date and an amount is a movement, not a header."""
+    from app.services.column_guess import is_amount, is_date
+
+    return any(is_date(c) for c in row if c) and any(is_amount(c) for c in row if c)
+
+
 def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
     """
     Read a CSV or spreadsheet (.xlsx, .xls, .ods) for the manual column mapping.
@@ -133,22 +144,25 @@ def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
     if not name.endswith(MAPPING_EXTENSIONS):
         raise TableError(_("Formato non supportato: carica un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)."))
     if name.endswith((".csv", ".txt", ".tsv")):
-        headers, rows = read_csv(readers.decode_text(raw))
-        return headers, rows, 2
-    try:
-        document = readers.read_document(filename, raw)
-    except readers.UnsupportedFile as exc:
-        raise TableError(str(exc))
-    if document.kind not in ("xlsx", "xls", "odf", "html") or not document.tables:
-        raise TableError(_("Il file non contiene un foglio di calcolo: caricalo in formato CSV, .xlsx, .xls o .ods."))
-    # .ods: the first "table" is the text preamble plus every sheet merged; the real first sheet follows
-    table = document.tables[1] if document.kind == "odf" and len(document.tables) > 1 else document.tables[0]
-    cells = [[_cell_text(c) for c in row] for row in table]
+        cells = csv_cells(readers.decode_text(raw))
+    else:
+        try:
+            document = readers.read_document(filename, raw)
+        except readers.UnsupportedFile as exc:
+            raise TableError(str(exc))
+        if document.kind not in ("xlsx", "xls", "odf", "html") or not document.tables:
+            raise TableError(_("Il file non contiene un foglio di calcolo: caricalo in formato CSV, .xlsx, .xls o .ods."))
+        # .ods: the first "table" is the text preamble plus every sheet merged; the real first sheet follows
+        table = document.tables[1] if document.kind == "odf" and len(document.tables) > 1 else document.tables[0]
+        cells = [[_cell_text(c) for c in row] for row in table]
     if not any(any(row) for row in cells):
         raise TableError(_("Il foglio è vuoto."))
     header_at = _header_index(cells)
+    titles = cells[header_at]
+    if _is_data_row(titles):  # no header at all: the first row is a movement, the columns get numbered
+        titles, header_at = [""] * max(len(row) for row in cells), header_at - 1
     headers, seen = [], set()
-    for position, title in enumerate(cells[header_at], start=1):
+    for position, title in enumerate(titles, start=1):
         title = title or f"Colonna {position}"
         while title in seen:
             title = f"{title} ({position})"

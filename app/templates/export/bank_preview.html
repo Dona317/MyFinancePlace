@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 {% import "partials/fields.html" as f %}
 
 {% block title %}{{ _('Anteprima Importazione') }} — MyFinancePlace{% endblock %}
@@ -24,16 +25,8 @@
       {% if preview.period %}{{ (preview.period[0]|it_date) }} → {{ (preview.period[1]|it_date) }}{% endif %}
     </div>
   </div>
-  <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
-    <div class="kpi-label">{{ _('Entrate') }}</div>
-    <div class="kpi-value text-positive">{{ preview.total_income|money }}</div>
-  </div>
-  <div class="kpi-card kpi-negative">
-    <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
-    <div class="kpi-label">{{ _('Uscite') }}</div>
-    <div class="kpi-value text-negative">{{ preview.total_expenses|money }}</div>
-  </div>
+  {{ kpi('arrow-down-circle', _('Entrate'), value=preview.total_income|money, cls='kpi-positive', value_class='text-positive') }}
+  {{ kpi('arrow-up-circle', _('Uscite'), value=preview.total_expenses|money, cls='kpi-negative', value_class='text-negative') }}
 </div>
 
 {% if preview.notes or preview.unread %}
@@ -262,7 +255,7 @@ const importButton = document.getElementById('import-button');
 const balance = document.getElementById('balance-check');
 let nextIndex = {{ preview.rows|length }};
 
-const euro = (v) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(v);
+const euro = (v) => formatMoney(v, 'EUR');
 
 function setRowEnabled(row, enabled) {
   row.classList.toggle('row-off', !enabled);

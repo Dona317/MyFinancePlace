@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 {% block title %}{{ _('Confronta Istantanee') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Confronto Istantanee') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('snapshots.index') }}">{{ _('Istantanee') }}</a></li><li>{{ _('Confronto') }}</li>{% endblock %}
@@ -35,18 +36,8 @@
 </div>
 
 <div class="kpi-grid mb-24">
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-clock-history"></i></div>
-    <div class="kpi-label">{{ left.title }}</div>
-    <div class="kpi-value">{{ left.net_worth|money }}</div>
-    <div class="kpi-sub">{{ _('patrimonio netto al %(day)s', day=left.date|it_date) }}</div>
-  </div>
-  <div class="kpi-card kpi-primary">
-    <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
-    <div class="kpi-label">{{ right.title }}</div>
-    <div class="kpi-value">{{ right.net_worth|money }}</div>
-    <div class="kpi-sub">{{ _('patrimonio netto al %(day)s', day=right.date|it_date) }}</div>
-  </div>
+  {{ kpi('clock-history', left.title, value=left.net_worth|money, sub=(_('patrimonio netto al %(day)s', day=left.date|it_date))) }}
+  {{ kpi('calendar-check', right.title, value=right.net_worth|money, cls='kpi-primary', sub=(_('patrimonio netto al %(day)s', day=right.date|it_date))) }}
   {% set change = right.net_worth - left.net_worth %}
   <div class="kpi-card {{ 'kpi-positive' if change >= 0 else 'kpi-negative' }}">
     <div class="kpi-icon"><i class="bi bi-graph-{{ 'up' if change >= 0 else 'down' }}-arrow"></i></div>

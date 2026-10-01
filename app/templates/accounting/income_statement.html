@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Conto Economico') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Conto Economico') }}{% endblock %}
@@ -15,21 +16,9 @@
 
 <!-- Summary KPIs ──────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
-    <div class="kpi-label">{{ _('Totale Entrate') }}</div>
-    <div class="kpi-value text-positive">{{ report.summary.income|money }}</div>
-  </div>
-  <div class="kpi-card kpi-negative">
-    <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
-    <div class="kpi-label">{{ _('Totale Uscite') }}</div>
-    <div class="kpi-value text-negative">{{ report.summary.expenses|money }}</div>
-  </div>
-  <div class="kpi-card kpi-primary">
-    <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">{{ _('Risparmio Netto') }}</div>
-    <div class="kpi-value {{ 'text-negative' if report.summary.net < 0 else '' }}">{{ report.summary.net|money }}</div>
-  </div>
+  {{ kpi('arrow-down-circle', _('Totale Entrate'), value=report.summary.income|money, cls='kpi-positive', value_class='text-positive') }}
+  {{ kpi('arrow-up-circle', _('Totale Uscite'), value=report.summary.expenses|money, cls='kpi-negative', value_class='text-negative') }}
+  {{ kpi('piggy-bank', _('Risparmio Netto'), value=report.summary.net|money, cls='kpi-primary', value_class=('text-negative' if report.summary.net < 0 else '')) }}
   <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-percent"></i></div>
     <div class="kpi-label">{{ _('Tasso di Risparmio') }}</div>

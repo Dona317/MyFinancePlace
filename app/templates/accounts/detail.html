@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 {% block title %}{{ account.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ account.name }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ account.name }}</li>{% endblock %}
@@ -10,24 +11,9 @@
 
 {% block content %}
 <div class="kpi-grid mb-24">
-  <div class="kpi-card kpi-primary">
-    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
-    <div class="kpi-label">{{ _('Saldo Oggi') }}</div>
-    <div class="kpi-value {{ 'text-negative' if balance < 0 }}">{{ balance|money(symbol) }}</div>
-    <div class="kpi-sub">{{ kinds.get(account.kind, account.kind) }}{% if account.iban_tail %} · …{{ account.iban_tail }}{% endif %}</div>
-  </div>
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-flag"></i></div>
-    <div class="kpi-label">{{ _('Saldo Iniziale') }}</div>
-    <div class="kpi-value">{{ account.opening_balance|money(symbol) }}</div>
-    <div class="kpi-sub">{{ _('prima della prima transazione') }}</div>
-  </div>
-  <div class="kpi-card {{ 'kpi-positive' if account.reconciled_on else 'kpi-warning' }}">
-    <div class="kpi-icon"><i class="bi bi-check2-circle"></i></div>
-    <div class="kpi-label">{{ _('Riconciliato') }}</div>
-    <div class="kpi-value">{{ account.reconciled_on|it_date if account.reconciled_on else _('Mai') }}</div>
-    <div class="kpi-sub">{{ _('saldo %(amount)s', amount=account.reconciled_balance|money(symbol)) if account.reconciled_on else _("confronta con l'estratto qui sotto") }}</div>
-  </div>
+  {% call kpi('bank', _('Saldo Oggi'), value=balance|money(symbol), cls='kpi-primary', value_class=('text-negative' if balance < 0)) %}{{ kinds.get(account.kind, account.kind) }}{% if account.iban_tail %} · …{{ account.iban_tail }}{% endif %}{% endcall %}
+  {{ kpi('flag', _('Saldo Iniziale'), value=account.opening_balance|money(symbol), sub=(_('prima della prima transazione'))) }}
+  {{ kpi('check2-circle', _('Riconciliato'), value=(account.reconciled_on|it_date if account.reconciled_on else _('Mai')), cls=('kpi-positive' if account.reconciled_on else 'kpi-warning'), sub=(_('saldo %(amount)s', amount=account.reconciled_balance|money(symbol)) if account.reconciled_on else _("confronta con l'estratto qui sotto"))) }}
 </div>
 
 {% if estimated %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Flusso di Cassa') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Rendiconto Finanziario') }}{% endblock %}
@@ -15,30 +16,10 @@
 
 <!-- KPIs ─────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
-    <div class="kpi-label">{{ _('CF Operativo') }}</div>
-    <div class="kpi-value {{ 'text-negative' if report.operating < 0 else 'text-positive' }}">{{ report.operating|money }}</div>
-    <div class="kpi-sub">{{ _('Entrate − Uscite') }}</div>
-  </div>
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-graph-up"></i></div>
-    <div class="kpi-label">{{ _('CF Investimenti') }}</div>
-    <div class="kpi-value">{{ report.investing|money }}</div>
-    <div class="kpi-sub">{{ _('Investimenti netti') }}</div>
-  </div>
-  <div class="kpi-card kpi-warning">
-    <div class="kpi-icon"><i class="bi bi-bank2"></i></div>
-    <div class="kpi-label">{{ _('CF Finanziario') }}</div>
-    <div class="kpi-value">{{ report.financing|money }}</div>
-    <div class="kpi-sub">{{ _('Prestiti e rimborsi') }}</div>
-  </div>
-  <div class="kpi-card kpi-primary">
-    <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-    <div class="kpi-label">{{ _('Variazione Netta Cassa') }}</div>
-    <div class="kpi-value">{{ report.net_change|money }}</div>
-    <div class="kpi-sub">{{ _('Apertura → Chiusura') }}</div>
-  </div>
+  {{ kpi('cash-stack', _('CF Operativo'), value=report.operating|money, cls='kpi-positive', value_class=('text-negative' if report.operating < 0 else 'text-positive'), sub=(_('Entrate − Uscite'))) }}
+  {{ kpi('graph-up', _('CF Investimenti'), value=report.investing|money, sub=(_('Investimenti netti'))) }}
+  {{ kpi('bank2', _('CF Finanziario'), value=report.financing|money, cls='kpi-warning', sub=(_('Prestiti e rimborsi'))) }}
+  {{ kpi('wallet2', _('Variazione Netta Cassa'), value=report.net_change|money, cls='kpi-primary', sub=(_('Apertura → Chiusura'))) }}
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">

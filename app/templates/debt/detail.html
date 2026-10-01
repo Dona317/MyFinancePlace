@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 {% set d = summary.debt %}
 {% block title %}{{ d.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ d.name }}{% endblock %}
@@ -11,30 +12,10 @@
 {% block content %}
 
 <div class="kpi-grid mb-24">
-  <div class="kpi-card kpi-negative">
-    <div class="kpi-icon"><i class="bi bi-credit-card-2-back"></i></div>
-    <div class="kpi-label">{{ _('Residuo Oggi') }}</div>
-    <div class="kpi-value text-negative">{{ summary.balance|money }}</div>
-    <div class="kpi-sub">{{ _('saldo inserito da te') if d.balance is not none else _('dal piano di ammortamento') }}</div>
-  </div>
-  <div class="kpi-card kpi-warning">
-    <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
-    <div class="kpi-label">{{ _('Rata Mensile') }}</div>
-    <div class="kpi-value">{{ summary.installment|money if summary.installment else '—' }}</div>
-    <div class="kpi-sub">{{ d.type|tr }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}</div>
-  </div>
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
-    <div class="kpi-label">{{ _('Rate Rimanenti') }}</div>
-    <div class="kpi-value">{{ summary.months_left }}</div>
-    <div class="kpi-sub">{{ _('ultima il %(date)s', date=summary.end_date|it_date) if summary.end_date else '' }}</div>
-  </div>
-  <div class="kpi-card kpi-primary">
-    <div class="kpi-icon"><i class="bi bi-percent"></i></div>
-    <div class="kpi-label">{{ _('Interessi Ancora da Pagare') }}</div>
-    <div class="kpi-value">{{ summary.interest_left|money }}</div>
-    <div class="kpi-sub">{{ _("%(amount)s pagati quest'anno", amount=summary.interest_ytd|money) }}</div>
-  </div>
+  {{ kpi('credit-card-2-back', _('Residuo Oggi'), value=summary.balance|money, cls='kpi-negative', value_class='text-negative', sub=(_('saldo inserito da te') if d.balance is not none else _('dal piano di ammortamento'))) }}
+  {% call kpi('calendar-check', _('Rata Mensile'), value=(summary.installment|money if summary.installment else '—'), cls='kpi-warning') %}{{ d.type|tr }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}{% endcall %}
+  {{ kpi('hourglass-split', _('Rate Rimanenti'), value=summary.months_left, sub=(_('ultima il %(date)s', date=summary.end_date|it_date) if summary.end_date else '')) }}
+  {{ kpi('percent', _('Interessi Ancora da Pagare'), value=summary.interest_left|money, cls='kpi-primary', sub=(_("%(amount)s pagati quest'anno", amount=summary.interest_ytd|money))) }}
 </div>
 
 {% if summary.never_ends %}

@@ -178,10 +178,9 @@ def monthly_installments(today: date | None = None) -> float:
 
 
 def monthly_average_income(today: date | None = None, months: int = 12) -> float:
-    today = today or date.today()
-    start = add_months(date(today.year, today.month, 1), -months)
-    return value_total(Transaction.type == "income", Transaction.date >= start,
-                       Transaction.date < date(today.year, today.month, 1)) / months
+    this_month = (today or date.today()).replace(day=1)
+    return value_total(Transaction.type == "income", Transaction.date >= add_months(this_month, -months),
+                       Transaction.date < this_month) / months
 
 
 # ── Portfolio ──────────────────────────────────────────────────────────────────
@@ -274,11 +273,7 @@ def balance_sheet(on: date | None = None) -> dict:
 def month_ends(count: int = 12, today: date | None = None) -> list[date]:
     """Today and the last day of each of the previous `count - 1` months (choices for the Balance Sheet)."""
     today = today or date.today()
-    ends = [today]
-    first = date(today.year, today.month, 1)
-    for i in range(count - 1):
-        ends.append(add_months(first, -i) - timedelta(days=1))
-    return ends
+    return [today] + [add_months(today.replace(day=1), -i) - timedelta(days=1) for i in range(count - 1)]
 
 
 # ── Snapshots ──────────────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.routes.helpers import form_choice, form_date, form_decimal, form_text
+from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from app.services import accounts, currency as currency_service, display
 from flask_babel import gettext as _
 
@@ -85,15 +85,8 @@ def reconcile(account_id):
 @accounts_bp.route("/new", methods=["GET", "POST"])
 def new():
     if request.method == "POST":
-        try:
-            account = _account_from_form(Account())
-        except ValueError as exc:
-            flash(str(exc), "error")
-            return _render_form(None, request.form)
-        db.session.add(account)
-        db.session.commit()
-        flash(_("Conto «%(name)s» aggiunto.", name=account.name), "success")
-        return redirect(url_for("accounts.index"))
+        return save_form(Account(), _account_from_form, _render_form,
+                         lambda a: _("Conto «%(name)s» aggiunto.", name=a.name), lambda a: url_for("accounts.index"))
     return _render_form(None, {})
 
 
@@ -101,22 +94,14 @@ def new():
 def edit(account_id):
     account = db.get_or_404(Account, account_id)
     if request.method == "POST":
-        try:
-            _account_from_form(account)
-        except ValueError as exc:
-            db.session.rollback()
-            flash(str(exc), "error")
-            return _render_form(account, request.form)
-        db.session.commit()
-        flash(_("Conto «%(name)s» aggiornato.", name=account.name), "success")
-        return redirect(url_for("accounts.detail", account_id=account.id))
+        return save_form(account, _account_from_form, _render_form,
+                         lambda a: _("Conto «%(name)s» aggiornato.", name=a.name),
+                         lambda a: url_for("accounts.detail", account_id=a.id))
     return _render_form(account, {})
 
 
 @accounts_bp.route("/<int:account_id>/delete", methods=["POST"])
 def delete(account_id):
     account = db.get_or_404(Account, account_id)
-    db.session.delete(account)
-    db.session.commit()
-    flash(_("Conto «%(name)s» eliminato: le sue transazioni restano, senza conto.", name=account.name), "success")
-    return redirect(url_for("accounts.index"))
+    return delete_and_redirect(account, _("Conto «%(name)s» eliminato: le sue transazioni restano, senza conto.",
+                                          name=account.name), url_for("accounts.index"))

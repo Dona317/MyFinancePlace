@@ -5,7 +5,7 @@ from apiflask import APIBlueprint
 
 from app.extensions import db
 from app.models.wealth import Holding, Snapshot
-from app.routes.helpers import form_choice, form_date, form_decimal, form_text
+from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from app.services import wealth
 from flask_babel import gettext as _
 
@@ -32,6 +32,10 @@ def _holding_from_form(holding: Holding) -> Holding:
     return holding
 
 
+def _render_form(holding, values):
+    return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values)
+
+
 @portfolio_bp.route("/")
 def index():
     selected = request.args.get("asset_class", "")
@@ -53,34 +57,18 @@ def index():
 @portfolio_bp.route("/new", methods=["GET", "POST"])
 def new():
     if request.method == "POST":
-        try:
-            holding = _holding_from_form(Holding())
-        except ValueError as exc:
-            flash(str(exc), "error")
-            return render_template("portfolio/form.html", holding=None, asset_classes=wealth.ASSET_CLASSES,
-                                   values=request.form)
-        db.session.add(holding)
-        db.session.commit()
-        flash(_("Posizione «%(name)s» aggiunta.", name=holding.name), "success")
-        return redirect(url_for("portfolio.index"))
-    return render_template("portfolio/form.html", holding=None, asset_classes=wealth.ASSET_CLASSES, values={})
+        return save_form(Holding(), _holding_from_form, _render_form,
+                         lambda h: _("Posizione «%(name)s» aggiunta.", name=h.name), lambda h: url_for("portfolio.index"))
+    return _render_form(None, {})
 
 
 @portfolio_bp.route("/<int:holding_id>/edit", methods=["GET", "POST"])
 def edit(holding_id):
     holding = db.get_or_404(Holding, holding_id)
     if request.method == "POST":
-        try:
-            _holding_from_form(holding)
-        except ValueError as exc:
-            db.session.rollback()
-            flash(str(exc), "error")
-            return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES,
-                                   values=request.form)
-        db.session.commit()
-        flash(_("Posizione «%(name)s» aggiornata.", name=holding.name), "success")
-        return redirect(url_for("portfolio.index"))
-    return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values={})
+        return save_form(holding, _holding_from_form, _render_form,
+                         lambda h: _("Posizione «%(name)s» aggiornata.", name=h.name), lambda h: url_for("portfolio.index"))
+    return _render_form(holding, {})
 
 
 @portfolio_bp.route("/prices", methods=["GET", "POST"])
@@ -109,7 +97,4 @@ def prices():
 @portfolio_bp.route("/<int:holding_id>/delete", methods=["POST"])
 def delete(holding_id):
     holding = db.get_or_404(Holding, holding_id)
-    db.session.delete(holding)
-    db.session.commit()
-    flash(_("Posizione «%(name)s» eliminata.", name=holding.name), "success")
-    return redirect(url_for("portfolio.index"))
+    return delete_and_redirect(holding, _("Posizione «%(name)s» eliminata.", name=holding.name), url_for("portfolio.index"))

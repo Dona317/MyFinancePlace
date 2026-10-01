@@ -512,7 +512,7 @@ def build(transactions, method: str, window: int, horizon: int, today: date, rec
                 "type": key[0], "category": key[1], "average": round(avg, 2),
                 "scheduled": round(sched, 2), "variable": round(var, 2), "total": round(sched + var, 2),
             })
-        fc.categories = sorted(rows, key=lambda r: (r["type"] != "expense", -r["total"]))
+        fc.categories = sorted(rows, key=lambda r: (r["type"] != "expense", -r["total"], -r["average"], r["category"]))
 
     # Scheduled occurrences still to come, up to the end of next month
     soon_end = month_start(current + 2)

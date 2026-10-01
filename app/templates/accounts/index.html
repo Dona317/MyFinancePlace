@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 {% block title %}{{ _('Conti e Carte') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Conti e Carte') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Conti e Carte') }}</li>{% endblock %}
@@ -9,24 +10,9 @@
 
 {% block content %}
 <div class="kpi-grid mb-24">
-  <div class="kpi-card kpi-primary">
-    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
-    <div class="kpi-label">{{ _('Saldo Totale') }}</div>
-    <div class="kpi-value">{{ total|money }}</div>
-    <div class="kpi-sub">{{ _('conti attivi') }}</div>
-  </div>
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-    <div class="kpi-label">{{ _('Conti') }}</div>
-    <div class="kpi-value">{{ rows|length }}</div>
-    <div class="kpi-sub">{{ _('%(count)s attivi', count=rows|selectattr('account.active')|list|length) }}</div>
-  </div>
-  <div class="kpi-card {{ 'kpi-warning' if unassigned else 'kpi-positive' }}">
-    <div class="kpi-icon"><i class="bi bi-question-circle"></i></div>
-    <div class="kpi-label">{{ _('Senza Conto') }}</div>
-    <div class="kpi-value">{{ unassigned }}</div>
-    <div class="kpi-sub">{% if unassigned %}<a href="{{ url_for('transactions.index', account='none') }}">{{ _('assegnale') }}</a>{% else %}{{ _('tutte assegnate') }}{% endif %}</div>
-  </div>
+  {{ kpi('bank', _('Saldo Totale'), value=total|money, cls='kpi-primary', sub=(_('conti attivi'))) }}
+  {{ kpi('wallet2', _('Conti'), value=rows|length, sub=(_('%(count)s attivi', count=rows|selectattr('account.active')|list|length))) }}
+  {% call kpi('question-circle', _('Senza Conto'), value=unassigned, cls=('kpi-warning' if unassigned else 'kpi-positive')) %}{% if unassigned %}<a href="{{ url_for('transactions.index', account='none') }}">{{ _('assegnale') }}</a>{% else %}{{ _('tutte assegnate') }}{% endif %}{% endcall %}
 </div>
 
 <div class="card">

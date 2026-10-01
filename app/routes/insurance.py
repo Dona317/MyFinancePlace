@@ -1,12 +1,12 @@
 from collections import defaultdict
 from datetime import date, timedelta
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import render_template, request, url_for
 from apiflask import APIBlueprint
 
 from app.extensions import db
 from app.models.wealth import InsurancePolicy
-from app.routes.helpers import form_choice, form_date, form_decimal, form_text
+from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from flask_babel import gettext as _
 from app.services.i18n import N_, _l
 
@@ -73,15 +73,9 @@ def index():
 @insurance_bp.route("/new", methods=["GET", "POST"])
 def new():
     if request.method == "POST":
-        try:
-            policy = _policy_from_form(InsurancePolicy())
-        except ValueError as exc:
-            flash(str(exc), "error")
-            return _render_form(None, request.form)
-        db.session.add(policy)
-        db.session.commit()
-        flash(_("Polizza %(type)s di %(company)s aggiunta.", type=policy.type, company=policy.company), "success")
-        return redirect(url_for("insurance.index"))
+        return save_form(InsurancePolicy(), _policy_from_form, _render_form,
+                         lambda p: _("Polizza %(type)s di %(company)s aggiunta.", type=p.type, company=p.company),
+                         lambda p: url_for("insurance.index"))
     return _render_form(None, {})
 
 
@@ -89,22 +83,14 @@ def new():
 def edit(policy_id):
     policy = db.get_or_404(InsurancePolicy, policy_id)
     if request.method == "POST":
-        try:
-            _policy_from_form(policy)
-        except ValueError as exc:
-            db.session.rollback()
-            flash(str(exc), "error")
-            return _render_form(policy, request.form)
-        db.session.commit()
-        flash(_("Polizza %(type)s di %(company)s aggiornata.", type=policy.type, company=policy.company), "success")
-        return redirect(url_for("insurance.index"))
+        return save_form(policy, _policy_from_form, _render_form,
+                         lambda p: _("Polizza %(type)s di %(company)s aggiornata.", type=p.type, company=p.company),
+                         lambda p: url_for("insurance.index"))
     return _render_form(policy, {})
 
 
 @insurance_bp.route("/<int:policy_id>/delete", methods=["POST"])
 def delete(policy_id):
     policy = db.get_or_404(InsurancePolicy, policy_id)
-    db.session.delete(policy)
-    db.session.commit()
-    flash(_("Polizza %(type)s di %(company)s eliminata.", type=policy.type, company=policy.company), "success")
-    return redirect(url_for("insurance.index"))
+    return delete_and_redirect(policy, _("Polizza %(type)s di %(company)s eliminata.", type=policy.type, company=policy.company),
+                               url_for("insurance.index"))

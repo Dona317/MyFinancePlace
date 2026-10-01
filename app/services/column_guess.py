@@ -50,12 +50,12 @@ def _share(values: list[str], test) -> float:
     return sum(1 for v in values if test(v)) / len(values) if values else 0.0
 
 
-def _is_date(value: str) -> bool:
+def is_date(value: str) -> bool:
     return to_date(value) is not None
 
 
-def _is_amount(value: str) -> bool:
-    return not _is_date(value) and to_decimal(value) is not None and bool(re.search(r"\d", value))
+def is_amount(value: str) -> bool:
+    return not is_date(value) and to_decimal(value) is not None and bool(re.search(r"\d", value))
 
 
 def _hint(header: str, name: str) -> int:
@@ -70,8 +70,8 @@ class _Columns:
         self.headers, self.rows = headers, rows[:SAMPLE]
         self.values = {h: _values(rows, h) for h in headers}
         self.filled = {h: len(self.values[h]) / max(len(self.rows), 1) for h in headers}
-        self.dates = {h: _share(self.values[h], _is_date) for h in headers}
-        self.amounts = {h: _share(self.values[h], _is_amount) for h in headers}
+        self.dates = {h: _share(self.values[h], is_date) for h in headers}
+        self.amounts = {h: _share(self.values[h], is_amount) for h in headers}
 
     def best(self, name: str, candidates) -> str | None:
         """Among `candidates`, the one whose title says `name` most, else the fullest (then the leftmost)."""

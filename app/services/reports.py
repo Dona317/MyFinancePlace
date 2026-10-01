@@ -8,9 +8,10 @@ from sqlalchemy import func
 
 from app.models.transaction import Transaction
 from app.services import categories
-from app.services.analytics import UNCATEGORIZED
+from app.services.analytics import UNCATEGORIZED, breakdown  # noqa: F401  (reports.breakdown)
 from app.services.i18n import _l
 from app.services.periods import add_months, month_index, month_label, month_start, year_bounds
+from app.services.totals import VALUE
 
 TABS = {"spending": _l("Spese"), "income": _l("Entrate"), "cashflow": _l("Flusso di cassa")}
 TAB_TYPE = {"spending": "expense", "income": "income"}
@@ -51,26 +52,6 @@ def base_query(start: date, end: date, account: str = ""):
     elif account.isdigit():
         query = query.filter((Transaction.account_id == int(account)) | (Transaction.counter_account_id == int(account)))
     return query
-
-
-def breakdown(query, tx_type: str, within: str | None = None) -> list[dict]:
-    """Total per main category of one type (subcategories added to theirs), biggest first, with its share (%).
-    `within` a main category: its own split, by subcategory."""
-    query = query.filter(Transaction.type == tx_type)
-    if within:
-        query = query.filter(Transaction.category.in_(categories.with_children(within)))
-    rows = (query.with_entities(Transaction.category, func.sum(func.abs(Transaction.amount_base)), func.count())
-            .group_by(Transaction.category).all())
-    grouped: dict[str, list] = {}
-    for category, amount, count in rows:
-        key = category if within else categories.top(category)
-        entry = grouped.setdefault(key or UNCATEGORIZED, [0.0, 0])
-        entry[0] += float(amount or 0)
-        entry[1] += count
-    total = sum(amount for amount, _ in grouped.values())
-    items = [{"category": name, "amount": amount, "count": count, "share": round(amount / total * 100, 1) if total else 0.0}
-             for name, (amount, count) in grouped.items()]
-    return sorted(items, key=lambda item: item["amount"], reverse=True)
 
 
 def signed(tx: Transaction) -> float:
@@ -142,4 +123,4 @@ def previous_range(start: date, end: date) -> tuple[date, date]:
 
 
 def total(query, tx_type: str) -> float:
-    return float(query.filter(Transaction.type == tx_type).with_entities(func.coalesce(func.sum(func.abs(Transaction.amount_base)), 0)).scalar())
+    return float(query.filter(Transaction.type == tx_type).with_entities(func.coalesce(func.sum(VALUE), 0)).scalar())

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Stato Patrimoniale') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Stato Patrimoniale') }}{% endblock %}
@@ -31,22 +32,9 @@
 {% block content %}
 
 <div class="kpi-grid mb-24">
-  <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-    <div class="kpi-label">{{ _('Totale Attività') }}</div>
-    <div class="kpi-value text-positive">{{ sheet.total_assets|money }}</div>
-  </div>
-  <div class="kpi-card kpi-negative">
-    <div class="kpi-icon"><i class="bi bi-exclamation-circle"></i></div>
-    <div class="kpi-label">{{ _('Totale Passività') }}</div>
-    <div class="kpi-value text-negative">{{ sheet.total_liabilities|money }}</div>
-  </div>
-  <div class="kpi-card kpi-primary">
-    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
-    <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
-    <div class="kpi-value">{{ sheet.net_worth|money }}</div>
-    <div class="kpi-sub">{{ _('al %(date)s', date=sheet.date|it_date) }}</div>
-  </div>
+  {{ kpi('wallet2', _('Totale Attività'), value=sheet.total_assets|money, cls='kpi-positive', value_class='text-positive') }}
+  {{ kpi('exclamation-circle', _('Totale Passività'), value=sheet.total_liabilities|money, cls='kpi-negative', value_class='text-negative') }}
+  {{ kpi('bank', _('Patrimonio Netto'), value=sheet.net_worth|money, cls='kpi-primary', sub=(_('al %(date)s', date=sheet.date|it_date))) }}
 </div>
 
 <div class="row-2">

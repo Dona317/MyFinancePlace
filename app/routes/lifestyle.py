@@ -7,7 +7,7 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.budget import Budget
 from app.models.wealth import Goal
-from app.routes.helpers import form_date, form_decimal, form_text
+from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form
 from app.services import analytics, budgets, categories, display
 from app.services.periods import add_months
 from flask_babel import gettext as _
@@ -127,15 +127,8 @@ def goals():
 @lifestyle_bp.route("/goals/new", methods=["GET", "POST"])
 def goal_new():
     if request.method == "POST":
-        try:
-            goal = _goal_from_form(Goal())
-        except ValueError as exc:
-            flash(str(exc), "error")
-            return _render_goal_form(None, request.form)
-        db.session.add(goal)
-        db.session.commit()
-        flash(_("Obiettivo «%(name)s» creato.", name=goal.name), "success")
-        return redirect(url_for("lifestyle.goals"))
+        return save_form(Goal(), _goal_from_form, _render_goal_form,
+                         lambda g: _("Obiettivo «%(name)s» creato.", name=g.name), lambda g: url_for("lifestyle.goals"))
     # a suggestion pre-fills name and amount
     prefill = {k: request.args[k] for k in ("name", "target_amount") if request.args.get(k)}
     return _render_goal_form(None, prefill)
@@ -145,15 +138,8 @@ def goal_new():
 def goal_edit(goal_id):
     goal = db.get_or_404(Goal, goal_id)
     if request.method == "POST":
-        try:
-            _goal_from_form(goal)
-        except ValueError as exc:
-            db.session.rollback()
-            flash(str(exc), "error")
-            return _render_goal_form(goal, request.form)
-        db.session.commit()
-        flash(_("Obiettivo «%(name)s» aggiornato.", name=goal.name), "success")
-        return redirect(url_for("lifestyle.goals"))
+        return save_form(goal, _goal_from_form, _render_goal_form,
+                         lambda g: _("Obiettivo «%(name)s» aggiornato.", name=g.name), lambda g: url_for("lifestyle.goals"))
     return _render_goal_form(goal, {})
 
 
@@ -181,7 +167,4 @@ def goal_contribute(goal_id):
 @lifestyle_bp.route("/goals/<int:goal_id>/delete", methods=["POST"])
 def goal_delete(goal_id):
     goal = db.get_or_404(Goal, goal_id)
-    db.session.delete(goal)
-    db.session.commit()
-    flash(_("Obiettivo «%(name)s» eliminato.", name=goal.name), "success")
-    return redirect(url_for("lifestyle.goals"))
+    return delete_and_redirect(goal, _("Obiettivo «%(name)s» eliminato.", name=goal.name), url_for("lifestyle.goals"))

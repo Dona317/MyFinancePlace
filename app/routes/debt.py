@@ -1,12 +1,12 @@
 from collections import defaultdict
 from datetime import date
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import render_template, request, url_for
 from apiflask import APIBlueprint
 
 from app.extensions import db
 from app.models.wealth import Debt
-from app.routes.helpers import form_choice, form_date, form_decimal, form_int, form_text
+from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_int, form_text, save_form
 from app.services import wealth
 from flask_babel import gettext as _
 
@@ -77,15 +77,8 @@ def detail(debt_id):
 @debt_bp.route("/new", methods=["GET", "POST"])
 def new():
     if request.method == "POST":
-        try:
-            debt = _debt_from_form(Debt())
-        except ValueError as exc:
-            flash(str(exc), "error")
-            return _render_form(None, request.form)
-        db.session.add(debt)
-        db.session.commit()
-        flash(_("Debito «%(name)s» aggiunto.", name=debt.name), "success")
-        return redirect(url_for("debt.detail", debt_id=debt.id))
+        return save_form(Debt(), _debt_from_form, _render_form, lambda d: _("Debito «%(name)s» aggiunto.", name=d.name),
+                         lambda d: url_for("debt.detail", debt_id=d.id))
     return _render_form(None, {})
 
 
@@ -93,22 +86,12 @@ def new():
 def edit(debt_id):
     debt = db.get_or_404(Debt, debt_id)
     if request.method == "POST":
-        try:
-            _debt_from_form(debt)
-        except ValueError as exc:
-            db.session.rollback()
-            flash(str(exc), "error")
-            return _render_form(debt, request.form)
-        db.session.commit()
-        flash(_("Debito «%(name)s» aggiornato.", name=debt.name), "success")
-        return redirect(url_for("debt.detail", debt_id=debt.id))
+        return save_form(debt, _debt_from_form, _render_form, lambda d: _("Debito «%(name)s» aggiornato.", name=d.name),
+                         lambda d: url_for("debt.detail", debt_id=d.id))
     return _render_form(debt, {})
 
 
 @debt_bp.route("/<int:debt_id>/delete", methods=["POST"])
 def delete(debt_id):
     debt = db.get_or_404(Debt, debt_id)
-    db.session.delete(debt)
-    db.session.commit()
-    flash(_("Debito «%(name)s» eliminato.", name=debt.name), "success")
-    return redirect(url_for("debt.index"))
+    return delete_and_redirect(debt, _("Debito «%(name)s» eliminato.", name=debt.name), url_for("debt.index"))

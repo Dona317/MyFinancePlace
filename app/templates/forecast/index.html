@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Previsioni') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Previsioni') }}{% endblock %}
@@ -89,32 +90,12 @@
   </div>
   {% if w.id == 'kpi' %}
   <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));">
-    <div class="kpi-card kpi-primary">
-      <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
-      <div class="kpi-label">{{ _('Chiusura %(month)s', month=cur.label) }}</div>
-      <div class="kpi-value {{ 'positive' if cur.net >= 0 else 'negative' }}" data-amount="{{ cur.net }}">—</div>
-      <div class="kpi-sub">{{ _('Registrato fino al %(day)s + previsto', day=fc.cutoff|it_date) }}</div>
-    </div>
+    {{ kpi('calendar-check', _('Chiusura %(month)s', month=cur.label), amount=cur.net, cls='kpi-primary', value_class=('positive' if cur.net >= 0 else 'negative'), sub=(_('Registrato fino al %(day)s + previsto', day=fc.cutoff|it_date))) }}
     {% if nxt %}
-    <div class="kpi-card kpi-positive">
-      <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
-      <div class="kpi-label">{{ _('Entrate %(month)s', month=nxt.label) }}</div>
-      <div class="kpi-value" data-amount="{{ nxt.income }}">—</div>
-      <div class="kpi-sub">{{ _('di cui ricorrenti %(amount)s', amount=nxt.scheduled_income|money) }}</div>
-    </div>
-    <div class="kpi-card kpi-negative">
-      <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
-      <div class="kpi-label">{{ _('Uscite %(month)s', month=nxt.label) }}</div>
-      <div class="kpi-value" data-amount="{{ nxt.expenses }}">—</div>
-      <div class="kpi-sub">{{ _('di cui ricorrenti %(amount)s', amount=nxt.scheduled_expenses|money) }}</div>
-    </div>
+    {{ kpi('arrow-down-circle', _('Entrate %(month)s', month=nxt.label), amount=nxt.income, cls='kpi-positive', sub=(_('di cui ricorrenti %(amount)s', amount=nxt.scheduled_income|money))) }}
+    {{ kpi('arrow-up-circle', _('Uscite %(month)s', month=nxt.label), amount=nxt.expenses, cls='kpi-negative', sub=(_('di cui ricorrenti %(amount)s', amount=nxt.scheduled_expenses|money))) }}
     {% endif %}
-    <div class="kpi-card kpi-neutral">
-      <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-      <div class="kpi-label">{{ _('Saldo tra %(n)s mesi', n=fc.horizon) }}</div>
-      <div class="kpi-value" data-amount="{{ fc.final_balance }}">—</div>
-      <div class="kpi-sub">{{ _('Oggi %(amount)s', amount=fc.balance_now|money) }}</div>
-    </div>
+    {{ kpi('wallet2', _('Saldo tra %(n)s mesi', n=fc.horizon), amount=fc.final_balance, sub=(_('Oggi %(amount)s', amount=fc.balance_now|money))) }}
     <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
       <div class="kpi-icon"><i class="bi bi-arrow-repeat"></i></div>
       <div class="kpi-label">{{ _('Ricorrenti al mese') }}</div>

@@ -37,6 +37,21 @@ def test_untitled_columns_and_type_words(app):
     assert _mapped(guessed) == {"date": "A", "amount": "C", "description": "B", "type": "D"}
 
 
+def test_csv_without_header_and_with_decimal_commas(app):
+    raw = "01/09/2026;Pagamento POS ESSELUNGA MILANO;-45,20\n02/09/2026;Stipendio ACME;1800,00\n".encode()
+    headers, rows, first_line = transfer.read_table("movimenti.csv", raw)
+    assert headers == ["Colonna 1", "Colonna 2", "Colonna 3"] and first_line == 1  # no row taken as the header
+    assert [r["Colonna 3"] for r in rows] == ["-45,20", "1800,00"]  # ";" splits, not the decimal comma
+    assert _mapped(column_guess.guess(headers, rows)) == {"date": "Colonna 1", "amount": "Colonna 3", "description": "Colonna 2"}
+
+
+def test_csv_preamble_above_the_header_is_skipped(app):
+    raw = "Banca Esempio\nConto 123\nData;Descrizione;Importo\n01/09/2026;Lidl;-9,90\n".encode()
+    headers, rows, first_line = transfer.read_table("m.csv", raw)
+    assert headers == ["Data", "Descrizione", "Importo"] and rows == [{"Data": "01/09/2026", "Descrizione": "Lidl", "Importo": "-9,90"}]
+    assert first_line == 4
+
+
 def test_nothing_recognisable_is_not_sure(app):
     guessed = column_guess.guess(["x", "y"], [{"x": "ciao", "y": "mondo"}])
     assert not guessed.sure and guessed.mapping["date"] is None

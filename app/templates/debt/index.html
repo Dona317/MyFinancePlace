@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Debiti') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Gestione Debiti') }}{% endblock %}
@@ -14,24 +15,9 @@
 
 <!-- KPI ──────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24">
-  <div class="kpi-card kpi-negative">
-    <div class="kpi-icon"><i class="bi bi-credit-card-2-back"></i></div>
-    <div class="kpi-label">{{ _('Debito Residuo') }}</div>
-    <div class="kpi-value text-negative">{{ total_balance|money }}</div>
-    <div class="kpi-sub">{{ ngettext('%(num)d debito', '%(num)d debiti', summaries|length) }}</div>
-  </div>
-  <div class="kpi-card kpi-warning">
-    <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
-    <div class="kpi-label">{{ _('Rate Mensili') }}</div>
-    <div class="kpi-value">{{ monthly_total|money }}</div>
-    <div class="kpi-sub">{{ _('somma delle rate in corso') }}</div>
-  </div>
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-percent"></i></div>
-    <div class="kpi-label">{{ _('Interessi (anno)') }}</div>
-    <div class="kpi-value">{{ interest_ytd|money }}</div>
-    <div class="kpi-sub">{{ _('dal piano di ammortamento') }}</div>
-  </div>
+  {{ kpi('credit-card-2-back', _('Debito Residuo'), value=total_balance|money, cls='kpi-negative', value_class='text-negative', sub=(ngettext('%(num)d debito', '%(num)d debiti', summaries|length))) }}
+  {{ kpi('calendar-check', _('Rate Mensili'), value=monthly_total|money, cls='kpi-warning', sub=(_('somma delle rate in corso'))) }}
+  {{ kpi('percent', _('Interessi (anno)'), value=interest_ytd|money, sub=(_('dal piano di ammortamento'))) }}
   <div class="kpi-card {{ 'kpi-negative' if debt_to_income and debt_to_income > 35 else 'kpi-positive' }}">
     <div class="kpi-icon"><i class="bi bi-speedometer2"></i></div>
     <div class="kpi-label">{{ _('Rate / Reddito') }}</div>

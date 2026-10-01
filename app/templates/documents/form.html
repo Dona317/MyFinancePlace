@@ -14,25 +14,10 @@
     <div class="card-body">
       <form method="POST">
         {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
-        <div class="form-group">
-          <label class="form-label" for="f-filename">{{ _('Nome *') }}</label>
-          <input type="text" id="f-filename" name="filename" class="form-control" value="{{ document.filename }}" required />
-        </div>
+        {{ f.text({}, 'filename', _('Nome'), document.filename, required=true) }}
         <div class="grid-3">
-          <div class="form-group">
-            <label class="form-label" for="f-type">{{ _('Tipo') }}</label>
-            <select id="f-type" name="doc_type" class="form-select">
-              <option value="">—</option>
-              {% for t in doc_types %}<option value="{{ t }}" {{ 'selected' if t == document.doc_type }}>{{ t|tr }}</option>{% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="f-year">{{ _('Anno fiscale') }}</label>
-            <select id="f-year" name="fiscal_year" class="form-select">
-              <option value="">—</option>
-              {% for y in years %}<option {{ 'selected' if y == document.fiscal_year }}>{{ y }}</option>{% endfor %}
-            </select>
-          </div>
+          {{ f.select({}, 'doc_type', _('Tipo'), doc_types, document.doc_type, blank='—') }}
+          {{ f.select({}, 'fiscal_year', _('Anno fiscale'), years|map('string')|list, document.fiscal_year, blank='—') }}
           <div class="form-group">
             <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
             <select id="f-category" name="category" class="form-select">
@@ -55,14 +40,8 @@
             {% if document.fiscal_year %}{{ _("Le transazioni del %(year)s: cambia l'anno fiscale e salva per vederne altre.", year=document.fiscal_year) }}{% else %}{{ _("Le 300 transazioni più recenti: cambia l'anno fiscale e salva per vederne altre.") }}{% endif %}
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="f-notes">{{ _('Note') }}</label>
-          <textarea id="f-notes" name="notes" class="form-control" rows="2">{{ document.notes or '' }}</textarea>
-        </div>
-        <div class="form-actions">
-          <a href="{{ next_url or url_for('documents.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
-          <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
-        </div>
+        {{ f.textarea({}, 'notes', _('Note'), document.notes) }}
+        {{ f.actions(next_url or url_for('documents.index'), _('Salva')) }}
       </form>
     </div>
   </div>

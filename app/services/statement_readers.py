@@ -194,7 +194,7 @@ def text_document(kind: str, text: str) -> Document:
         rows = [row for row in csv.reader(io.StringIO(text), dialect)]
     except csv.Error:
         # The sniffer gives up on short files with a preamble ("BPER Banca" above the header)
-        delimiter = _common_delimiter(sample)
+        delimiter = common_delimiter(sample)
         rows = list(csv.reader(io.StringIO(text), delimiter=delimiter)) if delimiter else []
     if sum(1 for row in rows if len(row) >= 3) >= 2:
         document.tables.append(rows)
@@ -208,12 +208,13 @@ def text_document(kind: str, text: str) -> Document:
     return document
 
 
-def _common_delimiter(sample: str) -> str | None:
-    """The delimiter that splits the most lines into the same number (≥ 2) of separators."""
+def common_delimiter(sample: str) -> str | None:
+    """The delimiter that splits the most lines into the same number (≥ 2) of separators; lines without it
+    (a title above the table) do not count."""
     lines = [line for line in sample.split("\n")[:50] if line.strip()]
     best, best_score = None, 1
     for delimiter in ";,\t|":
-        counts = [line.count(delimiter) for line in lines]
+        counts = [n for line in lines if (n := line.count(delimiter))]
         common = max(set(counts), key=counts.count) if counts else 0
         score = counts.count(common) if common >= 2 else 0
         if score > best_score:

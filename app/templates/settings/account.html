@@ -65,7 +65,7 @@
 {% if current_user.is_admin %}
 <div class="card mt-16">
   <div class="card-header"><div class="card-header-title"><i class="bi bi-people"></i> {{ _('Utenti') }}</div></div>
-  <div class="table-responsive">
+  <div class="table-wrapper">
     <table class="table">
       <thead><tr><th>{{ _('Nome utente') }}</th><th>{{ _('Ruolo') }}</th><th>{{ _('Ultimo accesso') }}</th><th>{{ _('Reimposta password') }}</th><th></th></tr></thead>
       <tbody>

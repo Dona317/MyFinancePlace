@@ -3,7 +3,7 @@ from apiflask import APIBlueprint
 
 from app.extensions import db
 from app.models.wealth import Snapshot
-from app.routes.helpers import form_text
+from app.routes.helpers import delete_and_redirect, form_text
 from app.services import display, wealth
 from flask_babel import gettext as _
 
@@ -37,18 +37,14 @@ def index():
 @snapshots_bp.route("/create", methods=["POST"])
 def create():
     snapshot = wealth.take_snapshot(form_text("label", _("Etichetta")))
-    net_worth = f"{float(snapshot.net_worth):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    flash(_("Istantanea del %(day)s salvata: patrimonio netto € %(net_worth)s.", day=display.day(snapshot.taken_on), net_worth=net_worth), "success")
+    flash(_("Istantanea del %(day)s salvata: patrimonio netto %(net_worth)s.", day=display.day(snapshot.taken_on),
+            net_worth=display.money(snapshot.net_worth)), "success")
     return redirect(url_for("snapshots.index"))
 
 
 @snapshots_bp.route("/<int:snapshot_id>/delete", methods=["POST"])
 def delete(snapshot_id):
-    snapshot = db.get_or_404(Snapshot, snapshot_id)
-    db.session.delete(snapshot)
-    db.session.commit()
-    flash(_("Istantanea eliminata."), "success")
-    return redirect(url_for("snapshots.index"))
+    return delete_and_redirect(db.get_or_404(Snapshot, snapshot_id), _("Istantanea eliminata."), url_for("snapshots.index"))
 
 
 @snapshots_bp.route("/compare")
