@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_language() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,151 +20,205 @@
   {% block head %}{% endblock %}
 
   <!-- Apply saved theme before paint to avoid flash -->
-  <script>(function(){var t=localStorage.getItem('mfp-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}());</script>
+  <!-- Apply the theme before paint: the user's choice, else the operating system's preference -->
+  <script>(function(){var t=null;try{t=localStorage.getItem('mfp-theme');}catch(e){}
+    if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+    document.documentElement.setAttribute('data-theme',t);}());</script>
+  <!-- Apply the saved sidebar layout before paint (icons-only sidebar) -->
+  <script>(function(){try{
+    if(localStorage.getItem('mfp-sidebar-mini')==='1')document.documentElement.classList.add('sidebar-mini');
+  }catch(e){}}());</script>
 </head>
 <body>
 
 <!-- Mobile overlay -->
-<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;"
-     onclick="document.getElementById('sidebar').classList.remove('open');this.style.display='none'"></div>
+<div id="sidebar-overlay"></div>
 
 <div class="app-wrapper">
 
   <!-- ══ Sidebar ═══════════════════════════════════════════════════════════ -->
   <aside class="sidebar" id="sidebar">
 
-    <a class="sidebar-brand" href="{{ url_for('dashboard.dashboard') }}">
-      <div class="sidebar-brand-icon"><i class="bi bi-graph-up-arrow"></i></div>
-      <div class="sidebar-brand-text">
-        <span class="sidebar-brand-name">MyFinancePlace</span>
-        <span class="sidebar-brand-sub">Personal Finance</span>
-      </div>
-    </a>
+    <div class="sidebar-head">
+      <!-- Desktop: switches the menu between icons + names and icons only; phones: closes it -->
+      <button id="sidebar-toggle" type="button" class="sidebar-toggle-btn"
+              aria-controls="sidebar" aria-expanded="true" aria-label="{{ _('Riduci il menu') }}" title="{{ _('Riduci il menu') }}">
+        <i class="bi bi-layout-sidebar"></i>
+      </button>
+    </div>
 
     <nav class="sidebar-nav">
 
       <!-- PANORAMICA -->
-      <div class="nav-section">
-        <div class="nav-section-title">Panoramica</div>
+      <div class="nav-section" data-section="panoramica">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-panoramica">
+          <span class="nav-label">{{ _('Panoramica') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-panoramica"><div>
         <a href="{{ url_for('dashboard.dashboard') }}"
            class="nav-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
-          <i class="bi bi-speedometer2"></i> Dashboard
+          <i class="bi bi-speedometer2"></i> <span class="nav-label">{{ _('Dashboard') }}</span>
         </a>
+        <a href="{{ url_for('reports.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
+          <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Report') }}</span>
+        </a>
+        </div></div>
       </div>
 
       <!-- CONTABILITÀ -->
-      <div class="nav-section">
-        <div class="nav-section-title">Contabilità</div>
+      <div class="nav-section" data-section="contabilita">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-contabilita">
+          <span class="nav-label">{{ _('Contabilità') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-contabilita"><div>
         <a href="{{ url_for('accounting.index') }}"
            class="nav-item {% if request.endpoint == 'accounting.index' %}active{% endif %}">
-          <i class="bi bi-bar-chart-line"></i> Panoramica
+          <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Panoramica') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% if settings.accounting_balance_sheet %}
         <a href="{{ url_for('accounting.balance_sheet') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.balance_sheet' %}active{% endif %}">
-          <i class="bi bi-clipboard-data"></i> Stato Patrimoniale
+          <i class="bi bi-clipboard-data"></i> <span class="nav-label">{{ _('Stato Patrimoniale') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% endif %}
         {% if settings.accounting_income_statement %}
         <a href="{{ url_for('accounting.income_statement') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.income_statement' %}active{% endif %}">
-          <i class="bi bi-receipt"></i> Conto Economico
+          <i class="bi bi-receipt"></i> <span class="nav-label">{{ _('Conto Economico') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% endif %}
         {% if settings.accounting_cash_flow %}
         <a href="{{ url_for('accounting.cash_flow') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.cash_flow' %}active{% endif %}">
-          <i class="bi bi-arrow-left-right"></i> Flusso di Cassa
+          <i class="bi bi-arrow-left-right"></i> <span class="nav-label">{{ _('Flusso di Cassa') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% endif %}
+        <a href="{{ url_for('forecast.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">{{ _('Previsioni') }}</span>
+        </a>
+        </div></div>
       </div>
 
       <!-- STILE DI VITA -->
-      <div class="nav-section">
-        <div class="nav-section-title">Stile di Vita</div>
+      <div class="nav-section" data-section="stiledivita">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-stiledivita">
+          <span class="nav-label">{{ _('Stile di Vita') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-stiledivita"><div>
         <a href="{{ url_for('lifestyle.index') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
-          <i class="bi bi-pie-chart"></i> Spese e Tendenze
+          <i class="bi bi-pie-chart"></i> <span class="nav-label">{{ _('Spese e Tendenze') }}</span>
+        </a>
+        <a href="{{ url_for('lifestyle.budget') }}"
+           class="nav-item {% if request.endpoint in ('lifestyle.budget', 'lifestyle.budget_save') %}active{% endif %}">
+          <i class="bi bi-clipboard-check"></i> <span class="nav-label">{{ _('Budget') }}</span>
         </a>
         {% if settings.lifestyle_goals %}
         <a href="{{ url_for('lifestyle.goals') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
-          <i class="bi bi-trophy"></i> Obiettivi
+          <i class="bi bi-trophy"></i> <span class="nav-label">{{ _('Obiettivi') }}</span>
         </a>
         {% endif %}
+        </div></div>
       </div>
 
       <!-- GESTIONE -->
-      <div class="nav-section">
-        <div class="nav-section-title">Gestione</div>
+      <div class="nav-section" data-section="gestione">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-gestione">
+          <span class="nav-label">{{ _('Gestione') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-gestione"><div>
         <a href="{{ url_for('transactions.index') }}"
            class="nav-item {% if 'transactions' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-list-ul"></i> Transazioni
+          <i class="bi bi-list-ul"></i> <span class="nav-label">{{ _('Transazioni') }}</span>
+        </a>
+        <a href="{{ url_for('accounts.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
+          <i class="bi bi-bank"></i> <span class="nav-label">{{ _('Conti e Carte') }}</span>
         </a>
         {% if settings.module_portfolio %}
         <a href="{{ url_for('portfolio.index') }}"
            class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-briefcase"></i> Portafoglio
+          <i class="bi bi-briefcase"></i> <span class="nav-label">{{ _('Portafoglio') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.module_debt %}
         <a href="{{ url_for('debt.index') }}"
            class="nav-item {% if 'debt' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-credit-card"></i> Debiti
+          <i class="bi bi-credit-card"></i> <span class="nav-label">{{ _('Debiti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.module_insurance %}
         <a href="{{ url_for('insurance.index') }}"
            class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-shield-check"></i> Assicurazioni
+          <i class="bi bi-shield-check"></i> <span class="nav-label">{{ _('Assicurazioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.module_documents %}
         <a href="{{ url_for('documents.index') }}"
            class="nav-item {% if 'documents' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-folder2-open"></i> Documenti
+          <i class="bi bi-folder2-open"></i> <span class="nav-label">{{ _('Documenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
+        </div></div>
       </div>
 
       <!-- STRUMENTI -->
-      <div class="nav-section">
-        <div class="nav-section-title">Strumenti</div>
+      <div class="nav-section" data-section="strumenti">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-strumenti">
+          <span class="nav-label">{{ _('Strumenti') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-strumenti"><div>
         {% if settings.module_snapshots %}
         <a href="{{ url_for('snapshots.index') }}"
            class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-camera"></i> Istantanee
+          <i class="bi bi-camera"></i> <span class="nav-label">{{ _('Istantanee') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.module_export %}
         <a href="{{ url_for('export.index') }}"
            class="nav-item {% if 'export' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-box-arrow-up"></i> Esporta
+          <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         <a href="{{ url_for('settings.index') }}"
            class="nav-item {% if 'settings' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-gear"></i> Impostazioni
+          <i class="bi bi-gear"></i> <span class="nav-label">{{ _('Impostazioni') }}</span>
         </a>
+        </div></div>
       </div>
 
     </nav>
+    <script>(function(){
+      var closed = [];
+      try { closed = JSON.parse(localStorage.getItem('mfp-nav-collapsed') || '[]'); } catch (e) {}
+      document.querySelectorAll('.nav-section').forEach(function (section) {
+        if (closed.indexOf(section.dataset.section) >= 0 && !section.querySelector('.nav-item.active')) {
+          section.classList.add('collapsed');
+          section.querySelector('.nav-section-title').setAttribute('aria-expanded', 'false');
+        }
+      });
+    }());</script>
 
     <!-- User footer -->
     <div class="sidebar-footer">
+      {% set signed_in = current_user is defined and current_user.is_authenticated %}
       <div class="sidebar-user">
-        <div class="sidebar-user-avatar">
-          {{ current_user.username[0]|upper if current_user is defined and current_user.is_authenticated else 'U' }}
-        </div>
+        <div class="sidebar-user-avatar">{{ current_user.username[0]|upper if signed_in else 'U' }}</div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name">
-            {{ current_user.username if current_user is defined and current_user.is_authenticated else 'User' }}
+          <div class="sidebar-user-name">{{ current_user.username if signed_in else _('Utente') }}</div>
+          <div class="sidebar-user-role">
+            {% if signed_in %}{{ _('Amministratore') if current_user.is_admin else _('Utente') }}{% else %}{{ _('Account Personale') }}{% endif %}
           </div>
-          <div class="sidebar-user-role">Account Personale</div>
         </div>
-        <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="Logout">
-          <i class="bi bi-box-arrow-right"></i>
-        </a>
+        {% if signed_in %}
+        <a href="{{ url_for('settings.account') }}" class="sidebar-logout" title="{{ _('Il tuo account') }}"><i class="bi bi-person-gear"></i></a>
+        <form method="POST" action="{{ url_for('auth.logout') }}" style="margin:0;">
+          <button type="submit" class="sidebar-logout" title="{{ _('Esci') }}" aria-label="{{ _('Esci') }}"><i class="bi bi-box-arrow-right"></i></button>
+        </form>
+        {% endif %}
       </div>
     </div>
 
@@ -175,14 +229,16 @@
 
     <!-- Topbar -->
     <header class="topbar">
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" style="display:none;">
+      <!-- Phones and tablets only: the sidebar is hidden there, this opens it over the page -->
+      <button id="sidebar-open" type="button" class="btn btn-ghost btn-icon sidebar-open-btn"
+              aria-controls="sidebar" aria-label="{{ _('Espandi il menu') }}" title="{{ _('Espandi il menu') }}">
         <i class="bi bi-list" style="font-size:20px;"></i>
       </button>
 
       <div class="topbar-title">
-        <h1>{% block page_title %}Page{% endblock %}</h1>
+        <h1>{% block page_title %}{{ _('Page') }}{% endblock %}</h1>
         <ul class="breadcrumb">
-          <li><a href="{{ url_for('dashboard.dashboard') }}">Home</a></li>
+          <li><a href="{{ url_for('dashboard.dashboard') }}">{{ _('Home') }}</a></li>
           {% block breadcrumb %}{% endblock %}
         </ul>
       </div>
@@ -190,14 +246,29 @@
       <div class="topbar-actions">
         {% block topbar_actions %}{% endblock %}
 
-        <!-- Dark / Light mode toggle -->
-        <button id="theme-toggle" class="btn btn-ghost btn-icon" title="Cambia tema"
-                style="font-size:18px;">
-          <i class="bi bi-moon-stars" id="theme-icon-dark"></i>
-          <i class="bi bi-sun" id="theme-icon-light" style="display:none;"></i>
+        <!-- Light / dark mode -->
+        <button type="button" id="theme-toggle" class="btn btn-ghost btn-icon theme-toggle"
+                aria-label="{{ _('Passa alla modalità scura') }}" title="{{ _('Passa alla modalità scura') }}">
+          <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
+          <i class="bi bi-moon-stars-fill theme-icon-dark" aria-hidden="true"></i>
         </button>
 
-        <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">
+        <!-- Reminders -->
+        {% set reminder_count = notification_count() %}
+        <a href="{{ url_for('notifications.index') }}" class="btn btn-ghost btn-icon topbar-bell"
+           title="{{ _('Promemoria') }}" aria-label="{{ _('Promemoria') }}{{ ' (%d)'|format(reminder_count) if reminder_count }}"
+           {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
+          <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
+        </a>
+
+        <!-- Settings -->
+        <a href="{{ url_for('settings.index') }}" class="btn btn-ghost btn-icon topbar-settings"
+           title="{{ _('Impostazioni') }}" aria-label="{{ _('Impostazioni') }}"
+           {% if request.endpoint and request.endpoint.startswith('settings.') %}aria-current="page"{% endif %}>
+          <i class="bi bi-gear"></i>
+        </a>
+
+        <span class="text-xs text-muted">
           {{ moment().format('D MMM YYYY') if moment is defined else '' }}
         </span>
       </div>
@@ -225,6 +296,11 @@
   </div><!-- /main-content -->
 </div><!-- /app-wrapper -->
 
+<!-- Texts used by main.js -->
+<script>window.MFP_TEXT = {{ {
+  "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
+  "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
+}|tojson }};</script>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <!-- App JS -->

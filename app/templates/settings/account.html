@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Account e utenti') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Account e Utenti') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Account') }}</li>{% endblock %}
+
+{% block content %}
+{% if not current_user.is_authenticated %}
+<div class="alert alert-info mb-16">
+  <i class="bi bi-info-circle"></i> {{ _("L'accesso con password è disattivato in questa installazione.") }}
+</div>
+{% else %}
+<div class="row-2">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-person-circle"></i> {{ _('Il tuo account') }}</div></div>
+    <div class="card-body">
+      <p class="text-sm mb-16">
+        <strong>{{ current_user.username }}</strong> ·
+        {{ _('Amministratore') if current_user.is_admin else _('Utente') }}
+        {% if current_user.last_login %}· {{ _('ultimo accesso') }} {{ current_user.last_login.strftime('%d/%m/%Y %H:%M') }}{% endif %}
+      </p>
+      <form method="POST" action="{{ url_for('settings.account_password') }}">
+        <div class="form-group">
+          <label class="form-label" for="pw-current">{{ _('Password attuale') }}</label>
+          <input type="password" id="pw-current" name="current" class="form-control" required autocomplete="current-password" />
+        </div>
+        <div class="grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label" for="pw-new">{{ _('Nuova password') }}</label>
+            <input type="password" id="pw-new" name="password" class="form-control" required minlength="{{ min_password }}" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pw-confirm">{{ _('Ripeti la nuova password') }}</label>
+            <input type="password" id="pw-confirm" name="confirm" class="form-control" required minlength="{{ min_password }}" autocomplete="new-password" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-key"></i> {{ _('Cambia password') }}</button>
+      </form>
+    </div>
+  </div>
+
+  {% if current_user.is_admin %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-person-plus"></i> {{ _('Aggiungi un utente') }}</div></div>
+    <div class="card-body">
+      <p class="text-sm text-muted mb-16">{{ _('Tutti gli utenti vedono e modificano gli stessi dati. Gli amministratori possono anche gestire gli utenti.') }}</p>
+      <form method="POST" action="{{ url_for('settings.user_add') }}">
+        <div class="grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label" for="u-name">{{ _('Nome utente') }}</label>
+            <input type="text" id="u-name" name="username" class="form-control" required autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="u-pw">{{ _('Password (almeno %(count)s caratteri)', count=min_password) }}</label>
+            <input type="password" id="u-pw" name="password" class="form-control" required minlength="{{ min_password }}" autocomplete="new-password" />
+          </div>
+        </div>
+        <label class="d-flex align-center gap-8 text-sm mb-16"><input class="check" type="checkbox" name="is_admin" /> {{ _('Amministratore') }}</label>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea utente') }}</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% if current_user.is_admin %}
+<div class="card mt-16">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-people"></i> {{ _('Utenti') }}</div></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>{{ _('Nome utente') }}</th><th>{{ _('Ruolo') }}</th><th>{{ _('Ultimo accesso') }}</th><th>{{ _('Reimposta password') }}</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td><strong>{{ u.username }}</strong>{% if u.id == current_user.id %} <span class="badge badge-neutral">{{ _('tu') }}</span>{% endif %}</td>
+          <td>{{ _('Amministratore') if u.is_admin else _('Utente') }}</td>
+          <td class="text-sm text-muted">{{ u.last_login.strftime('%d/%m/%Y %H:%M') if u.last_login else '—' }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('settings.user_reset_password', user_id=u.id) }}" class="d-flex gap-8" style="flex-wrap:wrap;">
+              <input type="password" name="password" class="form-control" style="max-width:200px;" placeholder="{{ _('nuova password') }}"
+                     aria-label="{{ _('Nuova password per %(name)s', name=u.username) }}" required minlength="{{ min_password }}" autocomplete="new-password" />
+              <button type="submit" class="btn btn-secondary btn-sm">{{ _('Imposta') }}</button>
+            </form>
+          </td>
+          <td class="text-right">
+            {% if u.id != current_user.id %}
+            <form method="POST" action="{{ url_for('settings.user_delete', user_id=u.id) }}"
+                  onsubmit='return confirm({{ _("Eliminare l’utente «%(name)s»? I dati restano.", name=u.username)|tojson }});'>
+              <button type="submit" class="btn btn-danger btn-sm" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina') }}"><i class="bi bi-trash"></i></button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+<p class="text-sm text-muted mt-16">
+  <i class="bi bi-terminal"></i>
+  {{ _('Password persa da tutti gli amministratori? Dal server:') }} <code>flask users reset-password &lt;{{ _('nome') }}&gt;</code>
+</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="{{ current_language() }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{% endblock %} — MyFinancePlace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  <!-- the same light / dark theme as the app, before paint -->
+  <script>(function(){var t=null;try{t=localStorage.getItem('mfp-theme');}catch(e){}
+    if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+    document.documentElement.setAttribute('data-theme',t);}());</script>
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="auth-logo-text">
+        <h2>MyFinancePlace</h2>
+        <span>{{ _('Gestione Finanze Personali') }}</span>
+      </div>
+    </div>
+
+    {% block intro %}{% endblock %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert"><i class="bi bi-exclamation-circle"></i> {{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+
+<script>
+document.querySelectorAll('.password-toggle').forEach(btn => btn.addEventListener('click', () => {
+  const input = document.getElementById(btn.dataset.target);
+  const hidden = input.type === 'password';
+  input.type = hidden ? 'text' : 'password';
+  btn.querySelector('i').className = hidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+}));
+</script>
+</body>
+</html>

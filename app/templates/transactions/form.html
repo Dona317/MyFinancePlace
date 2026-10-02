@@ -1,11 +1,13 @@
 {% extends "base.html" %}
+{% import "partials/fields.html" as f %}
 
 {% set is_edit = transaction is not none %}
-{% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione — MyFinancePlace{% endblock %}
-{% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Transazione{% endblock %}
+{# `v`: what the fields show — the stored transaction, or what was typed when saving failed #}
+{% block title %}{{ _('Modifica transazione') if is_edit else _('Nuova transazione') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Modifica transazione') if is_edit else _('Nuova transazione') }}{% endblock %}
 {% block breadcrumb %}
-  <li><a href="{{ url_for('transactions.index') }}">Transazioni</a></li>
-  <li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>
+  <li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li>
+  <li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>
 {% endblock %}
 
 {% block content %}
@@ -15,116 +17,169 @@
     <div class="card-header">
       <div class="card-header-title">
         <i class="bi bi-{{ 'pencil' if is_edit else 'plus-circle' }}"></i>
-        {{ 'Modifica Transazione' if is_edit else 'Inserisci Nuova Transazione' }}
+        {{ _('Modifica Transazione') if is_edit else _('Inserisci Nuova Transazione') }}
       </div>
     </div>
     <div class="card-body">
-      <form method="POST" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
+      <form method="POST" id="edit-form" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
 
-        <!-- Tipo e Data ───────────────────────────────────────────────── -->
+        <!-- Importo (con segno) e Data ──────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Tipo</label>
-            <div style="display:flex;gap:8px;">
-              {% for val, label, color in [('expense','Uscita','negative'), ('income','Entrata','positive'), ('transfer','Trasferimento','neutral')] %}
-              <label style="flex:1;text-align:center;padding:9px 8px;border:1px solid var(--clr-border);border-radius:var(--border-radius-sm);cursor:pointer;transition:background .2s,border-color .2s;font-size:var(--font-size-sm);font-weight:500;">
-                <input type="radio" name="type" value="{{ val }}" style="display:none;"
-                       {{ 'checked' if (transaction and transaction.type == val) or (not is_edit and val == 'expense') else '' }}
-                       onchange="this.closest('form').querySelectorAll('[data-type-label]').forEach(el => el.style.outline='');" />
-                <span style="color:var(--clr-{{ color }}-text if color != 'neutral' else 'var(--clr-neutral)');">{{ label }}</span>
-              </label>
-              {% endfor %}
+            <label class="form-label" for="f-amount">{{ _('Importo') }}
+              <span class="amount-kind" id="amount-kind" data-expense="{{ _('Uscita') }}" data-income="{{ _('Entrata') }}"
+                    data-transfer="{{ _('Trasferimento') }}"></span></label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
+              <input id="f-amount" type="text" inputmode="decimal" name="amount" class="form-control" style="padding-left:28px;"
+                     placeholder="-45,20" autocomplete="off" value="{{ v.amount }}" required />
             </div>
+            <div class="form-hint">{{ _("Con il segno meno è un'uscita (-45,20), senza è un'entrata (1.200).") }}</div>
           </div>
           <div class="form-group">
-            <label class="form-label">Data</label>
-            <input type="date" name="date" class="form-control"
-                   value="{{ transaction.date if is_edit else '' }}" required />
+            <label class="form-label" for="f-date">{{ _('Data') }}</label>
+            <input id="f-date" type="date" name="date" class="form-control" value="{{ v.date }}" required />
           </div>
         </div>
 
-        <!-- Importo e Valuta ─────────────────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Importo</label>
-            <div style="position:relative;">
-              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
-              <input type="number" name="amount" class="form-control" style="padding-left:28px;"
-                     placeholder="0,00" step="0.01" min="0"
-                     value="{{ '%.2f'|format(transaction.amount|abs) if is_edit else '' }}" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Valuta</label>
-            <select name="currency" class="form-select">
-              <option value="EUR" {{ 'selected' if not is_edit or transaction.currency == 'EUR' }}>EUR — Euro</option>
-              <option value="USD" {{ 'selected' if is_edit and transaction.currency == 'USD' }}>USD — Dollaro</option>
-              <option value="GBP" {{ 'selected' if is_edit and transaction.currency == 'GBP' }}>GBP — Sterlina</option>
+            <label class="form-label" for="f-currency">{{ _('Valuta') }}</label>
+            <select id="f-currency" name="currency" class="form-select">
+              {% for code, (sym, name) in currencies.items() %}
+              <option value="{{ code }}" {{ 'selected' if v.currency == code }}>{{ code }} — {{ name|tr }}</option>
+              {% endfor %}
             </select>
+          </div>
+          <div class="form-group" style="align-self:end;">
+            <label class="d-flex align-center gap-8 text-sm" style="min-height:40px;">
+              <input type="checkbox" name="transfer" value="1" class="check" id="f-transfer" {{ 'checked' if v.transfer }} />
+              <span>{{ _('Trasferimento tra i miei conti') }} <span class="text-muted">{{ _('(non conta come entrata né come uscita)') }}</span></span>
+            </label>
           </div>
         </div>
 
         <!-- Descrizione ──────────────────────────────────────────────── -->
         <div class="form-group">
-          <label class="form-label">Descrizione</label>
+          <label class="form-label">{{ _('Descrizione') }}</label>
           <input type="text" name="description" class="form-control"
-                 placeholder="es. Spesa al supermercato"
-                 value="{{ transaction.description if is_edit else '' }}" required />
+                 placeholder="{{ _('es. Spesa al supermercato') }}"
+                 value="{{ v.description }}" required />
+          {% if is_edit and transaction.bank_description %}
+          <div style="margin-top:6px;font-size:var(--font-size-xs);color:var(--clr-text-muted);">
+            <i class="bi bi-bank"></i> <strong>{{ _('Causale della banca') }}</strong> {{ _('(conservata così come importata, non modificabile):') }}
+            <div style="font-family:monospace;background:var(--clr-bg-input);padding:6px 8px;border-radius:6px;margin-top:4px;">{{ transaction.bank_description }}</div>
+          </div>
+          {% endif %}
         </div>
 
-        <!-- Categoria e Controparte ──────────────────────────────────── -->
+        <!-- Categoria ───────────────────────────────────────────────── -->
+        <div class="form-group">
+          <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
+          <select id="f-category" name="category" class="form-select">
+            <option value="">{{ _('— Seleziona —') }}</option>
+            {{ f.category_options(categories, v.category) }}
+          </select>
+        </div>
+
+        {% if accounts %}
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Categoria</label>
-            <select name="category" class="form-select">
-              <option value="">— Seleziona —</option>
-              {% for cat in ['Casa','Alimentari','Trasporto','Salute','Svago','Abbonamenti','Stipendio','Freelance','Investimenti','Rimborsi','Altro'] %}
-              <option value="{{ cat }}" {{ 'selected' if is_edit and transaction.category == cat else '' }}>{{ cat }}</option>
-              {% endfor %}
+            <label class="form-label" for="f-account">{{ _('Conto') }}</label>
+            <select id="f-account" name="account_id" class="form-select">
+              <option value="">{{ _('— Nessuno —') }}</option>
+              {% for a in accounts %}<option value="{{ a.id }}" data-currency="{{ a.currency or 'EUR' }}" {{ 'selected' if v.account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">Controparte</label>
-            <input type="text" name="counterparty" class="form-control"
-                   placeholder="es. Esselunga, Datore di lavoro..."
-                   value="{{ transaction.counterparty if is_edit else '' }}" />
+          <div class="form-group" id="counter-account-group" {% if not v.transfer %}hidden{% endif %}>
+            <label class="form-label" for="f-counter">{{ _('Verso il conto') }} <span class="text-muted" style="font-weight:400;">{{ _('(trasferimenti)') }}</span></label>
+            <select id="f-counter" name="counter_account_id" class="form-select">
+              <option value="">{{ _('— Fuori dai miei conti —') }}</option>
+              {% for a in accounts %}<option value="{{ a.id }}" data-currency="{{ a.currency or 'EUR' }}" {{ 'selected' if v.counter_account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
+            </select>
           </div>
         </div>
+        <!-- Shown when the transaction's currency is not the account's: what the bank charged / credited -->
+        <div class="grid-2">
+          <div class="form-group" id="account-amount-group" hidden>
+            <label class="form-label" for="f-account-amount">{{ _('Importo addebitato sul conto') }} (<span data-currency-of="f-account"></span>)</label>
+            <input type="text" inputmode="decimal" id="f-account-amount" name="account_amount" class="form-control"
+                   value="{{ v.account_amount }}" autocomplete="off" placeholder="{{ _('dal tuo estratto conto') }}" />
+            <div class="form-hint">{{ _('Vuoto: si usa il cambio del giorno.') }}</div>
+          </div>
+          <div class="form-group" id="counter-amount-group" hidden>
+            <label class="form-label" for="f-counter-amount">{{ _("Importo accreditato sul conto d'arrivo") }} (<span data-currency-of="f-counter"></span>)</label>
+            <input type="text" inputmode="decimal" id="f-counter-amount" name="counter_amount" class="form-control"
+                   value="{{ v.counter_amount }}" autocomplete="off" placeholder="{{ _('dal tuo estratto conto') }}" />
+            <div class="form-hint">{{ _('Vuoto: si usa il cambio del giorno.') }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if holdings or debts %}
+        <div class="grid-2">
+          {% if holdings %}
+          <div class="form-group">
+            <label class="form-label" for="f-holding">{{ _('Investimento') }} <span class="text-muted" style="font-weight:400;">{{ _('(acquisto, vendita, dividendo)') }}</span></label>
+            <select id="f-holding" name="holding_id" class="form-select">
+              <option value="">{{ _('— Nessuno —') }}</option>
+              {% for h in holdings %}<option value="{{ h.id }}" {{ 'selected' if v.holding_id == h.id|string }}>{{ h.name }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          {% if debts %}
+          <div class="form-group">
+            <label class="form-label" for="f-debt">{{ _('Debito') }} <span class="text-muted" style="font-weight:400;">{{ _('(rata, erogazione)') }}</span></label>
+            <select id="f-debt" name="debt_id" class="form-select">
+              <option value="">{{ _('— Nessuno —') }}</option>
+              {% for d in debts %}<option value="{{ d.id }}" {{ 'selected' if v.debt_id == d.id|string }}>{{ d.name }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <label class="d-flex align-center gap-8 text-sm mb-16" style="margin-top:-8px;">
+          <input type="checkbox" name="learn_rule" value="1" class="check" />
+          <span>{{ _('Ricorda: usa questa categoria anche per le prossime transazioni di questa controparte (') }}<a href="{{ url_for('settings.rules_page') }}">{{ _('regole') }}</a>)</span>
+        </label>
 
         <!-- Tag ─────────────────────────────────────────────────────── -->
         <div class="form-group">
-          <label class="form-label">Tag <span style="font-weight:400;color:var(--clr-text-muted);">(separati da virgola)</span></label>
-          <input type="text" name="tags" class="form-control"
-                 placeholder="es. deducibile, lavoro, vacanza"
-                 value="{{ transaction.tags|join(', ') if is_edit and transaction.tags else '' }}" />
-          <div class="form-hint">I tag facilitano la ricerca e il raggruppamento delle transazioni.</div>
+          <label class="form-label" for="f-tags">{{ _('Tag') }}</label>
+          <input id="f-tags" type="text" name="tags" class="form-control" data-tag-input
+                 data-suggestions="{{ tag_pool|tojson|forceescape }}"
+                 placeholder="{{ _('es. Esselunga, deducibile, vacanza') }}"
+                 value="{{ v.tags }}" />
+          <div class="form-hint">{{ _('Scegli dai tag già usati o scrivine uno nuovo e premi Invio. La controparte (es. il negozio) va nei tag.') }}</div>
         </div>
 
         <!-- Ricorrente ───────────────────────────────────────────────── -->
         <div class="card" style="background:var(--clr-bg-input);margin-bottom:18px;">
           <div class="card-body-sm">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-              <input type="checkbox" id="is_recurring" name="is_recurring" style="width:16px;height:16px;accent-color:var(--clr-primary);"
-                     {{ 'checked' if is_edit and transaction.is_recurring else '' }}
+              <input class="check" type="checkbox" id="is_recurring" name="is_recurring"
+                     {{ 'checked' if v.is_recurring else '' }}
                      onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
               <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">
-                Transazione Ricorrente
+                {{ _('Transazione Ricorrente') }}
               </label>
             </div>
-            <div id="recurring-opts" style="display:{{ 'block' if is_edit and transaction.is_recurring else 'none' }};">
+            <div id="recurring-opts" style="display:{{ 'block' if v.is_recurring else 'none' }};">
               <div class="grid-2">
                 <div class="form-group" style="margin-bottom:0;">
-                  <label class="form-label">Frequenza</label>
+                  <label class="form-label">{{ _('Frequenza') }}</label>
                   <select name="recurrence" class="form-select">
-                    <option value="weekly">Settimanale</option>
-                    <option value="monthly" selected>Mensile</option>
-                    <option value="quarterly">Trimestrale</option>
-                    <option value="yearly">Annuale</option>
+                    {% set current = v.recurrence or 'monthly' %}
+                    {% for val, lbl in [('weekly',_('Settimanale')),('monthly',_('Mensile')),('quarterly',_('Trimestrale')),('yearly',_('Annuale'))] %}
+                    <option value="{{ val }}" {{ 'selected' if current == val else '' }}>{{ lbl }}</option>
+                    {% endfor %}
                   </select>
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
-                  <label class="form-label">Fine Ricorrenza</label>
-                  <input type="date" name="recurrence_end" class="form-control" />
+                  <label class="form-label">{{ _('Fine Ricorrenza') }}</label>
+                  <input type="date" name="recurrence_end" class="form-control"
+                         value="{{ v.recurrence_end }}" />
                 </div>
               </div>
             </div>
@@ -133,24 +188,104 @@
 
         <!-- Note ─────────────────────────────────────────────────────── -->
         <div class="form-group">
-          <label class="form-label">Note</label>
+          <label class="form-label">{{ _('Note') }}</label>
           <textarea name="notes" class="form-control" rows="2"
-                    placeholder="Note facoltative...">{{ transaction.notes if is_edit else '' }}</textarea>
+                    placeholder="{{ _('Note facoltative...') }}">{{ v.notes }}</textarea>
         </div>
 
         <!-- Azioni ──────────────────────────────────────────────────── -->
-        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
-          <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost">
-            <i class="bi bi-x"></i> Annulla
+        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
+        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
+          {% if is_edit %}
+          <button type="submit" form="delete-form" class="btn btn-ghost" style="margin-right:auto;color:var(--clr-negative);">
+            <i class="bi bi-trash3"></i> {{ _('Elimina') }}
+          </button>
+          {% endif %}
+          <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost">
+            <i class="bi bi-x"></i> {{ _('Annulla') }}
           </a>
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if is_edit else 'Aggiungi Transazione' }}
+            <i class="bi bi-check-lg"></i> {{ _('Salva Modifiche') if is_edit else _('Aggiungi Transazione') }}
           </button>
         </div>
 
       </form>
+      {% if is_edit %}
+      <form method="POST" action="{{ url_for('transactions.delete', tx_id=transaction.id) }}" id="delete-form"
+            data-confirm="{{ _('Eliminare definitivamente questa transazione?') }}">
+        <input type="hidden" name="next" value="{{ next_url or url_for('transactions.index') }}" />
+      </form>
+      {% endif %}
     </div>
   </div>
+
+  {% if is_edit %}
+  <div class="card mt-16">
+    <div class="card-header">
+      <div class="card-header-title"><i class="bi bi-paperclip"></i> {{ _('Documenti collegati') }}</div>
+      <a href="{{ url_for('documents.index') }}" class="btn btn-ghost btn-sm">{{ _('Archivio') }} <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="card-body">
+      {% if documents %}
+      <ul class="backup-list">
+        {% for doc in documents %}
+        <li>
+          <a href="{{ url_for('documents.file', doc_id=doc.id) }}" target="_blank" rel="noopener"><i class="bi bi-file-earmark"></i> {{ doc.filename }}</a>
+          <span class="text-xs text-muted">{{ doc.doc_type or '' }} {{ doc.size|filesize }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-muted">{{ _('Nessun documento. Carica la fattura o lo scontrino in Documenti e collegalo a questa transazione.') }}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+// The sign of the amount says what it is: minus = expense, no sign = income; "transfer" overrides both
+(function () {
+  const amount = document.getElementById('f-amount');
+  const transfer = document.getElementById('f-transfer');
+  const kind = document.getElementById('amount-kind');
+  const counter = document.getElementById('counter-account-group');
+  const update = () => {
+    const isTransfer = transfer && transfer.checked;
+    const value = (amount.value || '').trim();
+    const type = isTransfer ? 'transfer' : value.startsWith('-') ? 'expense' : value ? 'income' : '';
+    kind.textContent = type ? kind.dataset[type] : '';
+    kind.className = 'amount-kind' + (type ? ' ' + type : '');
+    if (counter) counter.hidden = !isTransfer;
+  };
+  amount.addEventListener('input', update);
+  transfer && transfer.addEventListener('change', update);
+  update();
+}());
+
+// An account in another currency than the transaction's: ask what the bank charged in the account's currency
+(function () {
+  const cur = document.getElementById('f-currency');
+  const transfer = document.getElementById('f-transfer');
+  const pairs = [['f-account', 'account-amount-group'], ['f-counter', 'counter-amount-group']];
+  const update = () => {
+    pairs.forEach(([selectId, groupId]) => {
+      const select = document.getElementById(selectId);
+      const group = document.getElementById(groupId);
+      if (!select || !group) return;
+      const option = select.options[select.selectedIndex];
+      const accountCurrency = option && option.dataset.currency;
+      const counterHidden = selectId === 'f-counter' && !(transfer && transfer.checked);
+      group.hidden = counterHidden || !accountCurrency || accountCurrency === cur.value;
+      group.querySelector('[data-currency-of]').textContent = accountCurrency || '';
+    });
+  };
+  [cur, transfer, document.getElementById('f-account'), document.getElementById('f-counter')]
+    .forEach(el => el && el.addEventListener('change', update));
+  update();
+}());
+</script>
 {% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block title %}{{ account.name }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ account.name }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ account.name }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('transactions.index', account=account.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-list-ul"></i> {{ _('Transazioni') }}</a>
+  <a href="{{ url_for('accounts.edit', account_id=account.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid mb-24">
+  {% call kpi('bank', _('Saldo Oggi'), value=balance|money(symbol), cls='kpi-primary', value_class=('text-negative' if balance < 0)) %}{{ kinds.get(account.kind, account.kind) }}{% if account.iban_tail %} · …{{ account.iban_tail }}{% endif %}{% endcall %}
+  {{ kpi('flag', _('Saldo Iniziale'), value=account.opening_balance|money(symbol), sub=(_('prima della prima transazione'))) }}
+  {{ kpi('check2-circle', _('Riconciliato'), value=(account.reconciled_on|it_date if account.reconciled_on else _('Mai')), cls=('kpi-positive' if account.reconciled_on else 'kpi-warning'), sub=(_('saldo %(amount)s', amount=account.reconciled_balance|money(symbol)) if account.reconciled_on else _("confronta con l'estratto qui sotto"))) }}
+</div>
+
+{% if estimated %}
+<div class="alert alert-info mb-16"><i class="bi bi-currency-exchange"></i>
+  {{ ngettext("%(num)s movimento in un'altra valuta è contato al cambio del giorno: inserisci l'importo addebitato dalla banca per un saldo esatto.", "%(num)s movimenti in un'altra valuta sono contati al cambio del giorno: inserisci l'importo addebitato dalla banca per un saldo esatto.", estimated) }}
+  <a href="{{ url_for('transactions.index', account=account.id) }}">{{ _('Vedi le transazioni') }}</a>
+</div>
+{% endif %}
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-check2-square"></i> {{ _("Riconcilia con l'estratto conto") }}</div>
+      <div class="card-header-sub">{{ _("Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna") }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('accounts.reconcile', account_id=account.id) }}" class="grid-3" style="align-items:end;">
+      <div class="form-group"><label class="form-label" for="rc-on">{{ _("Data dell'estratto") }}</label>
+        <input type="date" id="rc-on" name="on" class="form-control" value="{{ (result.on if result else today).isoformat() }}" required /></div>
+      <div class="form-group"><label class="form-label" for="rc-bal">{{ _("Saldo dell'estratto") }} ({{ symbol }})</label>
+        <input type="text" inputmode="decimal" id="rc-bal" name="statement_balance" class="form-control" autocomplete="off"
+               value="{{ result.statement_balance|plain if result else '' }}" placeholder="{{ _('es. 2.345,67') }}" required /></div>
+      <div class="form-group"><button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> {{ _('Verifica') }}</button></div>
+    </form>
+    {% if result %}
+      {% if result.difference == 0 %}
+      <div class="alert alert-success mt-8"><i class="bi bi-check-circle"></i> {{ _("Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto.", date=result.on|it_date, amount=result.app_balance|money(symbol)) }}</div>
+      {% else %}
+      <div class="alert alert-warning mt-8">
+        <i class="bi bi-exclamation-triangle"></i>
+        {{ _("Al %(date)s l'app segna <strong>%(app)s</strong>, l'estratto <strong>%(statement)s</strong>: differenza <strong>%(difference)s</strong>", date=result.on|it_date, app=result.app_balance|money(symbol), statement=result.statement_balance|money(symbol), difference=result.difference|money(symbol)) }}
+        ({{ _("mancano entrate o ci sono uscite in più nell'app") if result.difference > 0 else _("mancano uscite o ci sono entrate in più nell'app") }}).
+        {{ _('Controlla i movimenti qui sotto, quelli senza conto e il saldo iniziale.') }}
+      </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="card-header-title">{{ _('Movimenti fino al %(date)s', date=result.on|it_date) if result else _('Ultimi movimenti') }}</div></div>
+  {% if recent %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th></tr></thead>
+      <tbody>
+        {% for tx in recent %}
+        {% set incoming = tx.type == 'income' or (tx.type == 'transfer' and tx.counter_account_id == account.id) %}
+        <tr>
+          <td class="nowrap text-xs text-muted">{{ tx.date|it_date }}</td>
+          <td><a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.path) }}">{{ tx.description|truncate(70) }}</a>
+            {% if tx.type == 'transfer' %}<div class="text-xs text-muted">{{ _('Trasferimento da %(account)s', account=tx.account.name) if incoming and tx.account else _('Trasferimento verso %(account)s', account=tx.counter_account.name) if tx.counter_account else _('Trasferimento') }}</div>{% endif %}</td>
+          <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% endif %}</td>
+          <td class="amount text-right {{ 'positive' if incoming else 'negative' }}">{{ '+' if incoming else '-' }}{{ in_account(tx)|money(symbol) }}
+            {% if (tx.currency or 'EUR') != (account.currency or 'EUR') %}<div class="text-xs text-muted">{{ tx.amount|abs|money(tx.currency) }}{% if (tx.account_amount if tx.account_id == account.id else tx.counter_amount) is none %} · {{ _('al cambio') }}{% endif %}</div>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="empty-state-text">{{ _('Nessun movimento su questo conto. Assegnalo alle transazioni o scegli il conto quando importi un estratto.') }}</div></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "partials/fields.html" as f %}
+{% set is_edit = policy is not none %}
+{% set p = policy or {} %}
+{% block title %}{{ _('Modifica polizza') if is_edit else _('Nuova polizza') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Modifica polizza') if is_edit else _('Nuova polizza') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('insurance.index') }}">{{ _('Assicurazioni') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title"><i class="bi bi-shield-plus"></i> {{ _('Modifica Polizza') if is_edit else _('Nuova Polizza Assicurativa') }}</div>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="grid-2">
+          {{ f.select(values, 'type', _('Tipo di polizza'), policy_types, p.type or 'Auto') }}
+          {{ f.text(values, 'company', _('Compagnia'), p.company, required=true, placeholder=_('es. Generali, UnipolSai...')) }}
+        </div>
+        <div class="grid-2">
+          {{ f.text(values, 'policy_number', _('Numero polizza'), p.policy_number, placeholder=_('es. POL-2024-001234')) }}
+          {{ f.select(values, 'frequency', _('Frequenza di pagamento'), frequencies, p.frequency or 'annual') }}
+        </div>
+        <div class="grid-2">
+          {{ f.number(values, 'premium', _('Premio per rata (€)'), p.premium, required=true, placeholder='0,00',
+                      hint=_("L'importo di ogni pagamento: il premio annuo si calcola dalla frequenza.")) }}
+          {{ f.number(values, 'coverage_limit', _('Massimale / copertura (€)'), p.coverage_limit, placeholder='0,00') }}
+        </div>
+        <div class="grid-2">
+          {{ f.date(values, 'start_date', _('Data di inizio'), p.start_date) }}
+          {{ f.date(values, 'expiry_date', _('Data di scadenza'), p.expiry_date, hint=_('Vuota per polizze senza scadenza fissa.')) }}
+        </div>
+        {{ f.textarea(values, 'notes', _('Note'), p.notes, placeholder=_('Condizioni particolari, franchigie, esclusioni...')) }}
+        {{ f.actions(url_for('insurance.index'), _('Salva Modifiche') if is_edit else _('Aggiungi Polizza')) }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

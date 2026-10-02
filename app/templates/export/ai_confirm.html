@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Lettura con AI') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _("Leggere il file con l'intelligenza artificiale?") }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('export.index') }}">{{ _('Esporta') }}</a></li><li>{{ _('Lettura AI') }}</li>{% endblock %}
+
+{% block content %}
+<div style="max-width:820px;">
+
+  <!-- Perché ────────────────────────────────────────────────────────── -->
+  <div class="card mb-16">
+    <div class="card-body" style="display:flex;gap:16px;align-items:flex-start;">
+      <div style="width:44px;height:44px;border-radius:var(--border-radius-sm);background:var(--clr-warning-bg);color:var(--clr-warning);
+                  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
+        <i class="bi bi-{{ 'image' if meta.kind == 'photo' else ('file-earmark-pdf' if meta.kind == 'scan' else 'file-earmark-text') }}"></i>
+      </div>
+      <div>
+        <div style="font-weight:700;color:var(--clr-text-primary);">{{ meta.filename }} <span style="font-weight:400;color:var(--clr-text-muted);">· {{ _('%(size)s KB', size=size_kb) }}</span></div>
+        <p style="margin:6px 0 0;color:var(--clr-text-muted);font-size:var(--font-size-sm);">
+          {% if meta.ocr_rows is defined %}{{ _("L'OCR ha letto %(count)s movimenti ma sembra averne persi o uniti alcuni.", count=meta.ocr_rows) }}
+          {% elif meta.kind == 'scan' %}{{ _('È un PDF scansionato: contiene solo immagini delle pagine, senza testo leggibile.') }}
+          {% elif meta.kind == 'photo' %}{{ _("È una foto: il testo va riconosciuto dall'immagine.") }}
+          {% else %}{{ _('Il formato non è stato riconosciuto: %(reason)s', reason=meta.reason) }}{% endif %}
+        </p>
+        <p style="margin:6px 0 0;font-size:var(--font-size-sm);">
+          {{ _('Un modello AI può provare a leggere i movimenti. Prima di salvare potrai') }} <strong>{{ _('controllare e correggere ogni riga') }}</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-error mb-16"><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>
+  {% endif %}
+
+  {% set usable = choices.models|selectattr('usable')|list %}
+  {% if not choices.provider %}
+  <!-- AI non configurata ─────────────────────────────────────────────── -->
+  <div class="card mb-16">
+    <div class="card-body">
+      <div style="font-weight:700;margin-bottom:6px;">{{ _('La lettura AI non è ancora configurata') }}</div>
+      <p style="color:var(--clr-text-muted);font-size:var(--font-size-sm);margin:0 0 12px;">
+        {{ _('Installa un modello locale (i dati restano sul tuo computer) oppure collega Claude. Il file resta in attesa per 2 ore: dopo la configurazione torna a questa pagina.') }}
+      </p>
+      <a href="{{ url_for('settings.ai_models_page') }}" class="btn btn-primary"><i class="bi bi-stars"></i> {{ _('Configura i modelli AI') }}</a>
+      <a href="{{ url_for('export.bank_ai', token=token) }}" class="btn btn-ghost">{{ _('Ricontrolla') }}</a>
+    </div>
+  </div>
+  {% elif choices.provider == 'ollama' and choices.ollama and not choices.ollama.running %}
+  <div class="alert alert-error mb-16">
+    <i class="bi bi-exclamation-triangle"></i> {{ choices.ollama.error }}
+    <a href="{{ url_for('export.bank_ai', token=token) }}">{{ _('Riprova') }}</a>
+  </div>
+  {% elif not usable %}
+  <div class="card mb-16">
+    <div class="card-body">
+      <div style="font-weight:700;margin-bottom:6px;">{{ _('Nessun modello installato può leggere questo file') }}</div>
+      <p style="color:var(--clr-text-muted);font-size:var(--font-size-sm);margin:0 0 12px;">
+        {% if needs_vision %}{{ _('Per scansioni e foto serve un modello "vision" (es.') }} <code>{{ _('qwen2.5vl:7b') }}</code> {{ _('o, più leggero,') }} <code>{{ _('qwen2.5vl:3b') }}</code>).
+        {% else %}{{ _('Installa almeno un modello dal catalogo.') }}{% endif %}
+      </p>
+      <a href="{{ url_for('settings.ai_models_page') }}" class="btn btn-primary"><i class="bi bi-download"></i> {{ _('Installa un modello') }}</a>
+      <a href="{{ url_for('export.bank_ai', token=token) }}" class="btn btn-ghost">{{ _('Ricontrolla') }}</a>
+    </div>
+  </div>
+  {% else %}
+  <!-- Conferma ───────────────────────────────────────────────────────── -->
+  <form method="POST" action="{{ url_for('export.bank_ai', token=token) }}" class="card mb-16" id="ai-form">
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">{{ _('Modello') }}</label>
+        <select name="model" class="form-select">
+          {% for m in choices.models %}
+          <option value="{{ m.name }}" {{ 'disabled' if not m.usable else '' }}
+                  {{ 'selected' if m.name == choices.current and m.usable else '' }}>
+            {{ m.name }}{{ _(' — solo testo, non legge immagini') if not m.usable else '' }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if choices.provider == 'anthropic' %}
+      <div class="alert alert-warning" style="display:block;">
+        <i class="bi bi-cloud-upload"></i> <strong>{{ _('Il documento verrà inviato ad Anthropic') }}</strong> {{ _('(servizio cloud) per essere letto. Se preferisci che i dati restino sul tuo computer,') }} <a href="{{ url_for('settings.ai_models_page') }}">{{ _('usa un modello locale') }}</a>.
+      </div>
+      {% else %}
+      <p style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
+        <i class="bi bi-shield-check" style="color:var(--clr-positive);"></i>
+        {{ _('Modello locale: il documento non lascia il tuo computer. Senza scheda video può servire circa un minuto per pagina.') }}
+      </p>
+      {% endif %}
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" id="ai-submit"><i class="bi bi-stars"></i> {{ _("Sì, leggi con l'AI") }}</button>
+        <button type="submit" form="cancel-form" class="btn btn-ghost">{{ _('No, annulla') }}</button>
+      </div>
+      <div id="ai-wait" style="display:none;margin-top:14px;font-size:var(--font-size-sm);color:var(--clr-text-muted);">
+        <i class="bi bi-hourglass-split"></i> {{ _('Avvio della lettura…') }}
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('export.bank_ai_cancel', token=token) }}" id="cancel-form">
+    {% if not choices.provider or not usable %}
+    <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-x"></i> {{ _("Annulla l'importazione") }}</button>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('ai-form')?.addEventListener('submit', () => {
+  document.getElementById('ai-submit').disabled = true;
+  document.getElementById('ai-wait').style.display = 'block';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "auth/_layout.html" %}
+{% from "auth/_fields.html" import password_field %}
+{% block title %}{{ _('Primo avvio') }}{% endblock %}
+{% block intro %}
+<h2 class="auth-title">{{ _('Crea il tuo account') }}</h2>
+<p class="auth-subtitle">{{ _("È il primo avvio: questo sarà l'amministratore. Potrai aggiungere altri utenti da Impostazioni → Account e utenti; tutti vedranno gli stessi dati.") }}</p>
+{% endblock %}
+{% block content %}
+<form method="POST" action="{{ url_for('auth.setup') }}">
+  <div class="form-group">
+    <label class="form-label" for="username">{{ _('Nome utente') }}</label>
+    <input type="text" id="username" name="username" class="form-control" value="{{ username }}"
+           required autofocus autocomplete="username" />
+  </div>
+  {{ password_field('password', 'password', _('Password (almeno 8 caratteri)'), 'new-password') }}
+  {{ password_field('confirm', 'confirm', _('Ripeti la password'), 'new-password') }}
+  <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">
+    <i class="bi bi-person-check"></i> {{ _('Crea account e entra') }}
+  </button>
+</form>
+{% endblock %}

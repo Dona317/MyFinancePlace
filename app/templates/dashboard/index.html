@@ -1,115 +1,222 @@
 {% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
 
-{% block title %}Dashboard — MyFinancePlace{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
-{% block breadcrumb %}<li>Cruscotto</li>{% endblock %}
+{% block title %}{{ _('Dashboard') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Dashboard') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('transactions.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> Nuova Transazione
+    <i class="bi bi-plus-lg"></i> {{ _('Nuova Transazione') }}
   </a>
 {% endblock %}
 
 {% block content %}
 
+{% if budget_alerts %}
+<div class="alert {{ 'alert-error' if budget_alerts|selectattr('state', 'equalto', 'over')|list else 'alert-warning' }} mb-16">
+  <i class="bi bi-clipboard-x"></i>
+  <span>{{ _('Budget del mese:') }}
+  {% for a in budget_alerts %}<strong>{{ a.category }}</strong> {{ a.share|number(0) }}%{{ _(' (superato)') if a.state == 'over' }}{{ ', ' if not loop.last }}{% endfor %}.
+  <a href="{{ url_for('lifestyle.budget') }}">{{ _('Vedi i budget') }}</a></span>
+</div>
+{% endif %}
+
 <!-- KPI Row ─────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24">
 
   {% if settings.dashboard_net_worth %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
-    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
-    <div class="kpi-label">Patrimonio Netto</div>
-    <div class="kpi-value" data-amount="{{ kpis.net_worth }}" data-currency="EUR">—</div>
-    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> 2,4% vs mese scorso</div>
-  </div>
+  {% call kpi('bank', _('Patrimonio Netto'), amount=kpis.net_worth, cls='kpi-primary') %}{{ _('Attività − passività') }} (<a href="{{ url_for('accounting.balance_sheet') }}">{{ _('dettaglio') }}</a>){% endcall %}
   {% endif %}
 
   {% if settings.dashboard_income %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
-    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
-    <div class="kpi-label">Entrate Mensili</div>
-    <div class="kpi-value" data-amount="{{ kpis.monthly_income }}" data-currency="EUR">—</div>
-    <div class="kpi-sub">Questo mese</div>
-  </div>
+  {{ kpi('arrow-down-circle', _('Entrate Mensili'), amount=kpis.monthly_income, cls='kpi-positive', sub=(_('Questo mese'))) }}
   {% endif %}
 
   {% if settings.dashboard_expenses %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
-    <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
-    <div class="kpi-label">Uscite Mensili</div>
-    <div class="kpi-value" data-amount="{{ kpis.monthly_expenses }}" data-currency="EUR">—</div>
-    <div class="kpi-sub">Questo mese</div>
-  </div>
+  {{ kpi('arrow-up-circle', _('Uscite Mensili'), amount=kpis.monthly_expenses, cls='kpi-negative', sub=(_('Questo mese'))) }}
   {% endif %}
 
   {% if settings.dashboard_savings_rate %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
+  <div class="kpi-card kpi-neutral">
     <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">Tasso di Risparmio</div>
+    <div class="kpi-label">{{ _('Tasso di Risparmio') }}</div>
     <div class="kpi-value">{{ "%.1f"|format(kpis.savings_rate) }}%</div>
-    <div class="kpi-sub">del reddito lordo</div>
+    <div class="kpi-sub">{{ _('del reddito di questo mese') }}</div>
   </div>
   {% endif %}
 
   {% if settings.dashboard_investments %}
-  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:#F3EFFF;">
-    <div class="kpi-icon" style="background:#F3EFFF;color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
-    <div class="kpi-label">Investimenti</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_investments }}" data-currency="EUR">—</div>
-    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> Portafoglio</div>
+  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
+    <div class="kpi-icon" style="background:var(--clr-purple-bg);color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
+    <div class="kpi-label">{{ _('Investimenti') }}</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_investments }}">—</div>
+    <div class="kpi-sub">{% if settings.module_portfolio %}<a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a>{% else %}{{ _('Portafoglio') }}{% endif %}</div>
   </div>
   {% endif %}
 
   {% if settings.dashboard_debt %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
-    <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
-    <div class="kpi-label">Debito Totale</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_debt }}" data-currency="EUR">—</div>
-    <div class="kpi-sub">In corso</div>
-  </div>
+  {{ kpi('credit-card', _('Debito Totale'), amount=kpis.total_debt, cls='kpi-warning', sub=(_('In corso'))) }}
   {% endif %}
 
 </div>
 
 <!-- Charts Row ──────────────────────────────────────────────────────────── -->
-{% if settings.dashboard_cashflow_chart or settings.dashboard_expense_pie %}
-<div style="display:grid;grid-template-columns:{% if settings.dashboard_cashflow_chart and settings.dashboard_expense_pie %}2fr 1fr{% else %}1fr{% endif %};gap:16px;margin-bottom:16px;">
+{% if settings.dashboard_cashflow_chart %}
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Flusso di Cassa — Ultimi 12 Mesi') }}</div>
+      <div class="card-header-sub">{{ _('Entrate vs Uscite') }}</div>
+    </div>
+    <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">
+      {{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:240px;">
+      <canvas id="cashFlowChart"></canvas>
+    </div>
+  </div>
+</div>
+{% endif %}
 
-  {% if settings.dashboard_cashflow_chart %}
+{% set show_pies = settings.dashboard_expense_pie or settings.dashboard_income_pie %}
+{% if show_pies or settings.dashboard_category_trends or settings.dashboard_cumulative %}
+<!-- The year by category: totals (doughnut), month by month (lines), running totals ─────────── -->
+<div class="dash-year-head">
+  <h2>{{ _('Il %(year)s per categoria', year=year) }}</h2>
+  <form method="GET">
+    <label class="sr-only" for="dash-year">{{ _('Anno') }}</label>
+    <select id="dash-year" name="year" class="form-select" onchange="this.form.submit()">
+      {% for y in ([year] + years)|unique|sort(reverse=true) %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+{% macro category_pair(kind, title, trend_title, breakdown, show_pie) %}
+{% set show_trend = settings.dashboard_category_trends %}
+{% if show_pie or show_trend %}
+<div class="dash-pair{{ ' single' if not (show_pie and show_trend) }} mb-16">
+  {% if show_pie %}
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">Flusso di Cassa — Ultimi 12 Mesi</div>
-        <div class="card-header-sub">Entrate vs Uscite</div>
+        <div class="card-header-title">{{ title }}</div>
+        <div class="card-header-sub">{{ _('Totale %(year)s: %(amount)s', year=year, amount=(breakdown|sum(attribute='amount'))|money) }}</div>
       </div>
-      <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">
-        Vedi tutto <i class="bi bi-arrow-right"></i>
+    </div>
+    <div class="card-body">
+      {% if breakdown %}
+      <div class="chart-container" style="height:200px;"><canvas id="{{ kind }}PieChart"></canvas></div>
+      {# legend as a grid: colour, category, amount and share, like the chart slices (8 colours, repeating) #}
+      <ul class="category-legend">
+        {% for c in breakdown %}
+        <li>
+          <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
+          <span class="category-legend-name">{{ c.category|tr }}</span>
+          <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty-state" style="padding:32px;"><div class="empty-state-text">
+        {{ _('Nessuna spesa in questo periodo.') if kind == 'expense' else _('Nessuna entrata in questo periodo.') }}
+      </div></div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% if show_trend %}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ trend_title }}</div>
+        <div class="card-header-sub">{{ _('Mese per mese, in euro, per categoria') }}</div>
+      </div>
+      <a href="{{ url_for('reports.index', tab='spending' if kind == 'expense' else 'income', period='custom', start='%d-01-01' % year, end='%d-12-31' % year) }}" class="btn btn-ghost btn-sm">
+        {{ _('Report') }} <i class="bi bi-arrow-right"></i>
       </a>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:240px;">
-        <canvas id="cashFlowChart"></canvas>
-      </div>
+      <div class="chart-container" style="height:{{ 360 if show_pie else 280 }}px;"><canvas id="{{ kind }}TrendChart"></canvas></div>
     </div>
   </div>
   {% endif %}
+</div>
+{% endif %}
+{% endmacro %}
 
-  {% if settings.dashboard_expense_pie %}
+{{ category_pair('expense', _('Uscite per categoria'), _('Uscite per categoria nel tempo'), expense_breakdown, settings.dashboard_expense_pie) }}
+{{ category_pair('income', _('Entrate per categoria'), _('Entrate per categoria nel tempo'), income_breakdown, settings.dashboard_income_pie) }}
+
+{% if settings.dashboard_cumulative %}
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Entrate e uscite: mese per mese e cumulate') }}</div>
+      <div class="card-header-sub">
+        {{ _('Anno %(year)s', year=year) }} ·
+        <span class="text-positive">{{ _('Entrate') }} {{ cumulative.total_income|money }}</span> ·
+        <span class="text-negative">{{ _('Uscite') }} {{ cumulative.total_expenses|money }}</span> ·
+        {{ _('Netto') }} {{ (cumulative.total_income - cumulative.total_expenses)|money }}
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:300px;"><canvas id="cumulativeChart"></canvas></div>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if settings.dashboard_sankey and sankey %}
+<div class="card mb-16">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Dove va il denaro — %(year)s', year=year) }}</div>
+    <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio (o quanto preso dai risparmi)') }}</div>
+  </div></div>
+  <div class="card-body">
+    {% set s = sankey %}
+    <svg class="sankey" viewBox="-260 -34 {{ s.width + 520 }} {{ s.height + 44 }}" role="img"
+         aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
+      {% for b in s.bands %}
+      <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
+        <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
+      {% endfor %}
+      {% for n in s.nodes %}
+      <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
+            style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
+        <title>{{ n.label|tr }}: {{ n.amount|money }}</title></rect>
+      {% set right = n.kind == 'expense' %}
+      {% set middle = n.kind == 'total' %}
+      <text x="{{ n.x + s.node_width / 2 if middle else (n.x + s.node_width + 8 if right else n.x - 8) }}"
+            y="{{ n.y - 12 if middle else n.y + n.h / 2 }}"
+            text-anchor="{{ 'middle' if middle else ('start' if right else 'end') }}" dominant-baseline="middle"
+            class="sankey-label{{ ' sankey-special' if n.special }}">
+        <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" dx="6">{{ n.amount|money }}</tspan></text>
+      {% endfor %}
+    </svg>
+  </div>
+</div>
+{% endif %}
+
+{% if settings.dashboard_net %}
+<div class="row-2-1 mb-16 net-row">
   <div class="card">
-    <div class="card-header">
-      <div>
-        <div class="card-header-title">Spese per Categoria</div>
-        <div class="card-header-sub">Questo mese</div>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="chart-container" style="height:240px;">
-        <canvas id="expensePieChart"></canvas>
-      </div>
-    </div>
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Netto mese per mese') }}</div>
+      <div class="card-header-sub">{{ _('Entrate − uscite di ogni mese del %(year)s: sotto lo zero i mesi in perdita', year=year) }}</div>
+    </div></div>
+    <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="netChart"></canvas></div></div>
   </div>
-  {% endif %}
-
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Totale dell\'anno %(year)s', year=year) }}</div>
+      <div class="card-header-sub">{{ _('Entrate, uscite e netto') }}</div>
+    </div></div>
+    <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="yearChart"></canvas></div></div>
+  </div>
 </div>
 {% endif %}
 
@@ -120,33 +227,47 @@
   {% if settings.dashboard_recent_tx %}
   <div class="card" style="{% if settings.dashboard_health %}grid-column:span 2;{% endif %}">
     <div class="card-header">
-      <div class="card-header-title">Transazioni Recenti</div>
+      <div class="card-header-title">{{ _('Transazioni Recenti') }}</div>
       <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">
-        Tutte <i class="bi bi-arrow-right"></i>
+        {{ _('Tutte') }} <i class="bi bi-arrow-right"></i>
       </a>
     </div>
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Data</th>
-            <th>Descrizione</th>
-            <th>Categoria</th>
-            <th style="text-align:right;">Importo</th>
+            <th>{{ _('Data') }}</th>
+            <th>{{ _('Descrizione') }}</th>
+            <th>{{ _('Categoria') }}</th>
+            <th class="text-right">{{ _('Importo') }}</th>
           </tr>
         </thead>
         <tbody id="recent-tx-body">
+          {% for tx in recent_transactions %}
+          <tr>
+            <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ (tx.date|it_date) }}</td>
+            <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
+            <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
+            {% if tx.type == 'transfer' %}
+            <td class="amount" style="text-align:right;color:var(--clr-text-muted);white-space:nowrap;" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money }}</td>
+            {% else %}
+            <td class="amount text-right"
+                data-amount="{{ tx.signed_amount }}">—</td>
+            {% endif %}
+          </tr>
+          {% else %}
           <tr>
             <td colspan="4">
               <div class="empty-state" style="padding:32px;">
                 <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-                <div class="empty-state-text">Nessuna transazione. Aggiungi la prima!</div>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-transaction')">
-                  <i class="bi bi-plus"></i> Aggiungi Transazione
-                </button>
+                <div class="empty-state-text">{{ _('Nessuna transazione. Aggiungi la prima!') }}</div>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('transactions.new') }}">
+                  <i class="bi bi-plus"></i> {{ _('Aggiungi Transazione') }}
+                </a>
               </div>
             </td>
           </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -156,42 +277,42 @@
   {% if settings.dashboard_health %}
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Salute Finanziaria</div>
+      <div class="card-header-title">{{ _('Salute Finanziaria') }}</div>
     </div>
     <div class="card-body">
 
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Tasso di Risparmio</span>
-          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ "%.0f"|format(kpis.savings_rate) }}%</span>
+          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Tasso di Risparmio') }}</span>
+          <span class="text-xs text-muted">{{ "%.0f"|format(kpis.savings_rate) }}%</span>
         </div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar-fill positive" style="width:{{ kpis.savings_rate }}%;"></div>
+          <div class="progress-bar-fill positive" style="width:{{ [kpis.savings_rate, 100]|min }}%;"></div>
         </div>
       </div>
 
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Debito/Reddito</span>
-          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">—</span>
+          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Rate / Reddito') }}</span>
+          <span class="text-xs text-muted">{{ ("%.0f"|format(kpis.debt_to_income) ~ _('%% · max 35%%')) if kpis.debt_to_income is not none else '—' }}</span>
         </div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar-fill warning" style="width:30%;"></div>
+          <div class="progress-bar-fill {{ 'negative' if (kpis.debt_to_income or 0) > 35 else 'warning' }}" style="width:{{ [kpis.debt_to_income or 0, 100]|min }}%;"></div>
         </div>
       </div>
 
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Fondo d'Emergenza</span>
-          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">—</span>
+          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _("Fondo d'Emergenza") }}</span>
+          <span class="text-xs text-muted">{{ _('%(months)s / 6 mesi', months="%.1f"|format(kpis.emergency_months)) }}</span>
         </div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" style="width:0%;"></div>
+          <div class="progress-bar-fill" style="width:{{ [kpis.emergency_months / 6 * 100, 100]|min }}%;"></div>
         </div>
       </div>
 
       <a href="{{ url_for('snapshots.index') }}" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px;">
-        <i class="bi bi-camera"></i> Crea Istantanea
+        <i class="bi bi-camera"></i> {{ _('Crea Istantanea') }}
       </a>
     </div>
   </div>
@@ -204,22 +325,51 @@
 
 {% block scripts %}
 <script>
-const months = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-const income   = [3200,3200,3400,3200,3200,3500,3200,3200,3200,3400,3200,3200];
-const expenses = [2100,2400,1900,2200,2600,1800,2300,2100,2000,2400,1900,2200];
+const cashFlow = {{ cash_flow|tojson }};
 
 {% if settings.dashboard_cashflow_chart %}
-makeLineChart('cashFlowChart', months, [
-  { label: 'Entrate',  data: income,   color: 'var(--clr-positive)', fill: false },
-  { label: 'Uscite',   data: expenses, color: 'var(--clr-negative)', fill: false },
+makeLineChart('cashFlowChart', cashFlow.labels, [
+  { label: {{ _('Entrate')|tojson }},  data: cashFlow.income,   color: 'positive', fill: false },
+  { label: {{ _('Uscite')|tojson }},   data: cashFlow.expenses, color: 'negative', fill: false },
 ]);
 {% endif %}
 
-{% if settings.dashboard_expense_pie %}
-makeDoughnutChart('expensePieChart',
-  ['Casa','Alimentari','Trasporto','Salute','Svago','Altro'],
-  [35, 20, 12, 8, 15, 10]
-);
+// Doughnuts and monthly lines share the colours: the n-th category has the n-th palette colour in both
+const trendLines = (trend) => trend.datasets.map(ds => (
+  { label: ds.label, data: ds.data, fill: false, pointRadius: 3, ...(ds.other ? { color: 'neutral', dash: [5, 4] } : {}) }
+));
+[['expense', {{ expense_breakdown|tojson }}, {{ expense_breakdown|map(attribute='category')|map('tr')|list|tojson }}, {{ expense_trend|tojson }}, {{ settings.dashboard_expense_pie|tojson }}],
+ ['income',  {{ income_breakdown|tojson }},  {{ income_breakdown|map(attribute='category')|map('tr')|list|tojson }},  {{ income_trend|tojson }},  {{ settings.dashboard_income_pie|tojson }}]]
+  .forEach(([kind, breakdown, labels, trend, showPie]) => {
+    if (showPie && breakdown.length) {
+      makeDoughnutChart(kind + 'PieChart', labels, breakdown.map(c => c.amount), { legend: false });
+    }
+    {% if settings.dashboard_category_trends %}
+    makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend));
+    {% endif %}
+  });
+
+{% if settings.dashboard_net %}
+const netSeries = {{ cumulative|tojson }};
+const monthlyNet = netSeries.income.map((v, i) => Math.round((v - netSeries.expenses[i]) * 100) / 100);
+makeBarChart('netChart', netSeries.labels,
+  [{ label: {{ _('Netto')|tojson }}, data: monthlyNet, colors: monthlyNet.map(v => v < 0 ? 'negative' : 'positive') }],
+  { legend: false });
+const yearNet = Math.round((netSeries.total_income - netSeries.total_expenses) * 100) / 100;
+makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, {{ _('Netto')|tojson }}],
+  [{ label: {{ year|tojson }}, data: [netSeries.total_income, netSeries.total_expenses, yearNet],
+     colors: ['positive', 'negative', yearNet < 0 ? 'negative' : 'primary'] }],
+  { legend: false });
+{% endif %}
+
+{% if settings.dashboard_cumulative %}
+const cumulative = {{ cumulative|tojson }};
+makeBarChart('cumulativeChart', cumulative.labels, [
+  { label: {{ _('Entrate del mese')|tojson }}, data: cumulative.income, color: 'positive' },
+  { label: {{ _('Uscite del mese')|tojson }}, data: cumulative.expenses, color: 'negative' },
+  { label: {{ _('Entrate cumulate')|tojson }}, data: cumulative.income_cumulative, color: 'positive', type: 'line', axis: 'right' },
+  { label: {{ _('Uscite cumulate')|tojson }}, data: cumulative.expenses_cumulative, color: 'negative', type: 'line', axis: 'right', dash: [6, 4] },
+], { legend: true });
 {% endif %}
 </script>
 {% endblock %}

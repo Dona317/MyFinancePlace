@@ -1,0 +1,1 @@
+# Metti qui i tuoi file di prova (estratti conto, CSV, backup) per caricarli dall'app.

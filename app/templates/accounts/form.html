@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% import "partials/fields.html" as f %}
+{% set is_edit = account is not none %}
+{% set a = account or {} %}
+{% block title %}{{ _('Modifica Conto') if is_edit else _('Nuovo Conto') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Modifica Conto') if is_edit else _('Nuovo Conto') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-bank"></i> {{ _('Modifica «%(name)s»', name=account.name) if is_edit else _('Nuovo conto o carta') }}</div></div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="grid-2">
+          {{ f.text(values, 'name', _('Nome'), a.name, required=true, placeholder=_('es. Fineco, Carta Amex, Contanti')) }}
+          {{ f.select(values, 'kind', _('Tipo'), kinds.items()|list, a.kind or 'current') }}
+        </div>
+        <div class="grid-2">
+          {{ f.select(values, 'currency', _('Valuta'), currencies, a.currency or 'EUR') }}
+          {{ f.number(values, 'opening_balance', _('Saldo iniziale (nella valuta del conto)'), a.opening_balance, placeholder='0,00',
+                      hint=_('Il saldo prima della prima transazione registrata su questo conto.')) }}
+        </div>
+        {{ f.text(values, 'iban_tail', _('Ultime cifre IBAN o carta'), a.iban_tail, placeholder=_('es. 4821')) }}
+        {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
+        {% set is_active = ('active' in values) if values else (a.active if is_edit else true) %}
+        <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" class="check" {{ 'checked' if is_active }} /> {{ _("Conto attivo (togli la spunta se l'hai chiuso)") }}</label>
+        {{ f.actions(url_for('accounts.detail', account_id=account.id) if is_edit else url_for('accounts.index'),
+                     _('Salva Modifiche') if is_edit else _('Aggiungi Conto')) }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

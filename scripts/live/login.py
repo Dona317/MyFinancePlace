@@ -1,0 +1,57 @@
+"""Live, first: first-admin setup, login, a second user, protected pages. Saves the session for the other scripts."""
+
+import sys
+
+from playwright.sync_api import sync_playwright
+
+from common import AUTH, BASE as B, check, launch, summary
+
+with sync_playwright() as p:
+    br = launch(p)
+    ctx = br.new_context(locale="it-IT")
+    pg = ctx.new_page()
+    r = pg.goto(B + "/dashboard")
+    check("anonymous → setup page", "/auth/setup" in pg.url, pg.url)
+    api = pg.request.get(B + "/transactions/api")
+    check("API refused without login", api.status == 401 or "/auth/" in api.url, api.status)
+    pg.fill("#username", "anna")
+    pg.fill("#password", "password-1")
+    pg.fill("#confirm", "password-2")
+    pg.click("button[type=submit]")
+    pg.wait_for_load_state()
+    check("setup: passwords must match", "/auth/setup" in pg.url and pg.locator(".alert").count() > 0)
+    pg.fill("#username", "anna")
+    pg.fill("#password", "password-1")
+    pg.fill("#confirm", "password-1")
+    pg.click("button[type=submit]")
+    check("setup creates admin and logs in", "/dashboard" in pg.url or pg.url.rstrip("/") == B, pg.url)
+    check("setup page closed afterwards", "/auth/setup" not in (pg.goto(B + "/auth/setup") and pg.url))
+    pg.goto(B + "/settings/account")
+    pg.fill("#u-name", "bruno")
+    pg.fill("#u-pw", "password-2")
+    pg.click("text=Crea utente")
+    pg.wait_for_load_state()
+    check("admin creates a user", "bruno" in pg.content())
+    ctx.storage_state(path=AUTH)
+    # second user in a separate browser
+    c2 = br.new_context(locale="it-IT")
+    p2 = c2.new_page()
+    p2.goto(B + "/auth/login")
+    p2.fill("#username", "bruno")
+    p2.fill("#password", "sbagliata")
+    p2.click("button[type=submit]")
+    p2.wait_for_load_state()
+    check("wrong password refused", "/auth/login" in p2.url and p2.locator(".alert").count() > 0)
+    p2.fill("#username", "bruno")
+    p2.fill("#password", "password-2")
+    p2.click("button[type=submit]")
+    check("user logs in", "/auth/login" not in p2.url, p2.url)
+    p2.goto(B + "/settings/account")
+    check("non-admin does not see user management", p2.locator("text=Aggiungi un utente").count() == 0)
+    p2.goto(B + "/dashboard")
+    p2.click(".sidebar-footer button[type=submit]")
+    p2.wait_for_load_state()
+    check("logout", "/auth/login" in p2.url, p2.url)
+    c2.close()
+    br.close()
+sys.exit(summary("login"))

@@ -1,115 +1,173 @@
 {% extends "base.html" %}
+{% import "partials/fields.html" as f %}
 
-{% block title %}Documenti — MyFinancePlace{% endblock %}
-{% block page_title %}Archivio Documenti{% endblock %}
-{% block breadcrumb %}<li>Documenti</li>{% endblock %}
-
-{% block topbar_actions %}
-  <label class="btn btn-primary btn-sm" style="cursor:pointer;">
-    <i class="bi bi-upload"></i> Carica Documento
-    <input type="file" style="display:none;" multiple accept=".pdf,.jpg,.jpeg,.png,.xml"
-           onchange="handleUpload(this)" />
-  </label>
-{% endblock %}
+{% block title %}{{ _('Documenti') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Archivio Documenti') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Documenti') }}</li>{% endblock %}
 
 {% block content %}
 
+<!-- Caricamento ───────────────────────────────────────────────────────── -->
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-upload"></i> {{ _('Carica Documenti') }}</div>
+      <div class="card-header-sub">{{ _('Fatture, scontrini, estratti conto, contratti: qualsiasi formato, nessun limite di dimensione') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('documents.upload') }}" enctype="multipart/form-data" id="upload-form">
+      <div class="grid-4">
+        <div class="form-group">
+          <label class="form-label" for="up-files">{{ _('File') }}</label>
+          <input type="file" id="up-files" name="files" class="form-control" multiple required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="up-type">{{ _('Tipo') }}</label>
+          <select id="up-type" name="doc_type" class="form-select">
+            <option value="">—</option>
+            {% for t in doc_types %}<option value="{{ t }}">{{ t|tr }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="up-year">{{ _('Anno fiscale') }}</label>
+          <select id="up-year" name="fiscal_year" class="form-select">
+            <option value="">—</option>
+            {% for y in years %}<option {{ 'selected' if y == this_year }}>{{ y }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="up-category">{{ _('Categoria') }}</label>
+          <select id="up-category" name="category" class="form-select">
+            <option value="">—</option>
+            {{ f.category_options(categories) }}
+          </select>
+        </div>
+      </div>
+      <div id="drop-zone" class="drop-zone">
+        <i class="bi bi-cloud-upload"></i>
+        <span id="drop-text">{{ _('Trascina qui i file, oppure sceglili con il campo «File»') }}</span>
+      </div>
+      <div class="form-actions mt-16">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> {{ _('Carica') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Filtri ────────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
-  <div class="filter-bar">
-    <input type="text" class="form-control" placeholder="Cerca documento..." style="flex:1;" />
-    <select class="form-select">
-      <option value="">Tipo</option>
-      <option>Fattura</option>
-      <option>Scontrino</option>
-      <option>Estratto Conto</option>
-      <option>Contratto</option>
-      <option>CU / 730</option>
-      <option>Altro</option>
+  <form method="GET" class="filter-bar">
+    <input type="search" name="q" value="{{ filters.q }}" class="form-control" placeholder="{{ _('Cerca per nome o note...') }}" style="flex:1;" aria-label="{{ _('Cerca documento') }}" />
+    <select name="doc_type" class="form-select" aria-label="{{ _('Tipo') }}">
+      <option value="">{{ _('Tutti i tipi') }}</option>
+      {% for t in doc_types %}<option value="{{ t }}" {{ 'selected' if t == filters.doc_type }}>{{ t|tr }}</option>{% endfor %}
     </select>
-    <select class="form-select">
-      <option value="">Anno Fiscale</option>
-      <option>2024</option>
-      <option>2023</option>
-      <option>2022</option>
+    <select name="year" class="form-select" aria-label="{{ _('Anno fiscale') }}">
+      <option value="">{{ _('Tutti gli anni') }}</option>
+      {% for y in years %}<option {{ 'selected' if y|string == filters.year }}>{{ y }}</option>{% endfor %}
     </select>
-    <select class="form-select">
-      <option value="">Categoria</option>
-      <option>Casa</option>
-      <option>Salute</option>
-      <option>Lavoro</option>
-      <option>Investimenti</option>
+    <select name="category" class="form-select" aria-label="{{ _('Categoria') }}">
+      <option value="">{{ _('Tutte le categorie') }}</option>
+      {{ f.category_options(categories, filters.category) }}
     </select>
-  </div>
+    <button type="submit" class="btn btn-outline"><i class="bi bi-funnel"></i> {{ _('Filtra') }}</button>
+    {% if filters.values()|select|list %}<a href="{{ url_for('documents.index') }}" class="btn btn-ghost">{{ _('Azzera') }}</a>{% endif %}
+  </form>
 </div>
 
 <!-- Archivio ──────────────────────────────────────────────────────────── -->
-{% if documents %}
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
-  {% for doc in documents %}
-  <div class="card" style="cursor:pointer;transition:box-shadow .2s;"
-       onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
-    <div style="padding:20px;text-align:center;">
-      <div style="font-size:40px;margin-bottom:10px;color:var(--clr-primary);">
-        <i class="bi bi-{{ 'file-earmark-pdf' if doc.mime == 'pdf' else 'file-earmark-image' }}"></i>
-      </div>
-      <div style="font-weight:600;font-size:var(--font-size-sm);color:var(--clr-text-primary);
-                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-        {{ doc.filename }}
-      </div>
-      <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:4px;">
-        {{ doc.date }} · {{ doc.size }}
-      </div>
-      {% if doc.category %}
-      <span class="badge badge-primary" style="margin-top:8px;">{{ doc.category }}</span>
-      {% endif %}
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% else %}
 <div class="card">
+  <div class="card-header">
+    <div class="card-header-title">{{ _('Documenti') }}</div>
+    <span class="text-xs text-muted">{{ _('%(shown)s di %(total)s', shown=documents|length, total=total) }}</span>
+  </div>
+  {% if documents %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Documento') }}</th>
+          <th>{{ _('Tipo') }}</th>
+          <th>{{ _('Anno') }}</th>
+          <th>{{ _('Categoria') }}</th>
+          <th>{{ _('Transazione') }}</th>
+          <th class="text-right">{{ _('Azioni') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in documents %}
+        <tr>
+          <td>
+            <div class="d-flex align-center gap-12">
+              <i class="doc-icon bi bi-{{ 'file-earmark-pdf' if doc.is_pdf else 'file-earmark-image' if doc.is_image else 'file-earmark' }}"></i>
+              <div style="min-width:0;">
+                <a class="cell-title" href="{{ url_for('documents.file', doc_id=doc.id) }}" target="_blank" rel="noopener">{{ doc.filename }}</a>
+                <div class="text-xs text-muted">{{ doc.size|filesize }} · {{ _('caricato il %(date)s', date=doc.uploaded_at|it_date) }}</div>
+                {% if doc.notes %}<div class="text-xs text-muted">{{ doc.notes }}</div>{% endif %}
+              </div>
+            </div>
+          </td>
+          <td>{% if doc.doc_type %}<span class="badge badge-primary">{{ doc.doc_type|tr }}</span>{% else %}—{% endif %}</td>
+          <td>{{ doc.fiscal_year or '—' }}</td>
+          <td>{{ doc.category or '—' }}</td>
+          <td class="text-xs">
+            {% if doc.transaction %}
+            <a href="{{ url_for('transactions.edit', tx_id=doc.transaction.id, next=request.full_path) }}">{{ doc.transaction.date|it_date }} · {{ doc.transaction.description|truncate(30) }}</a>
+            <div class="text-muted">{{ doc.transaction.signed_amount|money }}</div>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <div class="cell-actions">
+              <a href="{{ url_for('documents.file', doc_id=doc.id, download=1) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Scarica') }}" aria-label="{{ _('Scarica %(name)s', name=doc.filename) }}"><i class="bi bi-download"></i></a>
+              <a href="{{ url_for('documents.edit', doc_id=doc.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica e collega') }}" aria-label="{{ _('Modifica %(name)s', name=doc.filename) }}"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{{ url_for('documents.delete', doc_id=doc.id) }}" data-confirm="{{ _('Eliminare «%(name)s»? Il file verrà cancellato.', name=doc.filename) }}">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina %(name)s', name=doc.filename) }}"><i class="bi bi-trash3"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif total %}
+  <div class="empty-state">
+    <div class="empty-state-text">{{ _('Nessun documento corrisponde ai filtri.') }}</div>
+    <a href="{{ url_for('documents.index') }}" class="btn btn-ghost">{{ _('Mostra tutti') }}</a>
+  </div>
+  {% else %}
   <div class="empty-state">
     <div class="empty-state-icon"><i class="bi bi-folder2-open"></i></div>
-    <div class="empty-state-title">Archivio vuoto</div>
+    <div class="empty-state-title">{{ _('Archivio vuoto') }}</div>
     <div class="empty-state-text">
-      Carica fatture, scontrini, estratti conto e contratti per tenerli sempre a portata di mano,
-      collegati alle tue transazioni e categorizzati per anno fiscale.
+      {{ _('Carica fatture, scontrini, estratti conto e contratti per tenerli a portata di mano, collegati alle transazioni e ordinati per anno fiscale. Sono inclusi nel backup.') }}
     </div>
-    <label class="btn btn-primary" style="cursor:pointer;">
-      <i class="bi bi-upload"></i> Carica il primo documento
-      <input type="file" style="display:none;" multiple accept=".pdf,.jpg,.jpeg,.png" />
-    </label>
   </div>
-</div>
-{% endif %}
-
-<!-- Area drag & drop ─────────────────────────────────────────────────── -->
-<div id="drop-zone" style="margin-top:16px;border:2px dashed var(--clr-border);border-radius:var(--border-radius);
-     padding:32px;text-align:center;color:var(--clr-text-muted);font-size:var(--font-size-sm);
-     transition:border-color .2s,background .2s;"
-     ondragover="this.style.borderColor='var(--clr-primary)';this.style.background='var(--clr-primary-light)';event.preventDefault();"
-     ondragleave="this.style.borderColor='var(--clr-border)';this.style.background='';"
-     ondrop="handleDrop(event)">
-  <i class="bi bi-cloud-upload" style="font-size:28px;margin-bottom:8px;display:block;"></i>
-  Trascina i file qui per caricarli · PDF, JPG, PNG, XML
+  {% endif %}
 </div>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-function handleUpload(input) {
-  // TODO: implement file upload to backend
-  console.log('Files selected:', input.files);
-}
-function handleDrop(e) {
-  e.preventDefault();
+(() => {
   const zone = document.getElementById('drop-zone');
-  zone.style.borderColor = 'var(--clr-border)';
-  zone.style.background  = '';
-  // TODO: implement drag-and-drop upload
-  console.log('Files dropped:', e.dataTransfer.files);
-}
+  const input = document.getElementById('up-files');
+  const text = document.getElementById('drop-text');
+  const show = () => {
+    const n = input.files.length;
+    text.textContent = n ? (n === 1 ? {{ _('Pronto: {name}')|tojson }}.replace('{name}', input.files[0].name)
+                                    : {{ _('Pronti {count} file')|tojson }}.replace('{count}', n)) + {{ _(' — premi «Carica»')|tojson }}
+                         : {{ _('Trascina qui i file, oppure sceglili con il campo «File»')|tojson }};
+  };
+  input.addEventListener('change', show);
+  ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, () => zone.classList.remove('over')));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; show(); }
+  });
+})();
 </script>
 {% endblock %}

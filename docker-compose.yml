@@ -1,16 +1,48 @@
+# Local development: `docker compose up -d db` starts only PostgreSQL on localhost:5332 (python run.py on the host).
+# Everything:        `docker compose up` also builds and starts the app on http://localhost:8000 (docs/DEPLOY.md).
 services:
   db:
     container_name: postgres-myfinanceplace
-    image: postgres:latest
+    # Pinned: a new major version cannot open an older data directory (same version as the CI).
+    image: postgres:16
     environment:
       POSTGRES_DB: myfinanceplace
       POSTGRES_USER: sa
       POSTGRES_PASSWORD: Pa55w0rd
-      PGDARE: /data/postgres
     volumes:
-      - db:/data/postgres
+      - db:/var/lib/postgresql/data   # where postgres:16 keeps its data: survives `docker compose down`
     ports:
       - "5332:5432"
+    networks:
+      - db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sa -d myfinanceplace"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build: .
+    image: myfinanceplace:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Inside the compose network the database is `db:5432`, whatever DATABASE_URL says in .env (that one is for the host).
+      DATABASE_URL: postgresql://sa:Pa55w0rd@db:5432/myfinanceplace
+      # Ollama running on the host machine (Impostazioni → Modelli AI can override it).
+      OLLAMA_URL: ${DOCKER_OLLAMA_URL:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - instance:/app/instance   # uploaded documents, backups, pending imports, generated SECRET_KEY
+    ports:
+      - "${APP_PORT:-8000}:8000"
     networks:
       - db
     restart: unless-stopped
@@ -21,3 +53,4 @@ networks:
 
 volumes:
   db:
+  instance:

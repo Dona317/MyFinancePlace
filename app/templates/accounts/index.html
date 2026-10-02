@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block title %}{{ _('Conti e Carte') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Conti e Carte') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Conti e Carte') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo Conto') }}</a>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid mb-24">
+  {{ kpi('bank', _('Saldo Totale'), value=total|money, cls='kpi-primary', sub=(_('conti attivi'))) }}
+  {{ kpi('wallet2', _('Conti'), value=rows|length, sub=(_('%(count)s attivi', count=rows|selectattr('account.active')|list|length))) }}
+  {% call kpi('question-circle', _('Senza Conto'), value=unassigned, cls=('kpi-warning' if unassigned else 'kpi-positive')) %}{% if unassigned %}<a href="{{ url_for('transactions.index', account='none') }}">{{ _('assegnale') }}</a>{% else %}{{ _('tutte assegnate') }}{% endif %}{% endcall %}
+</div>
+
+<div class="card">
+  {% if rows %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Conto') }}</th><th>{{ _('Tipo') }}</th><th class="text-right">{{ _('Saldo') }}</th><th>{{ _('Riconciliato') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+        {% set a = row.account %}
+        <tr {% if not a.active %}class="text-muted"{% endif %}>
+          <td>
+            <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>
+            {% if a.iban_tail %}<div class="text-xs text-muted font-mono">…{{ a.iban_tail }}</div>{% endif %}
+            {% if not a.active %}<span class="badge badge-muted">{{ _('chiuso') }}</span>{% endif %}
+          </td>
+          <td>{{ kinds.get(a.kind, a.kind) }}{% if a.currency != 'EUR' %} · {{ a.currency }}{% endif %}</td>
+          <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money(row.symbol) }}</td>
+          <td class="text-xs">{% if a.reconciled_on %}<i class="bi bi-check2-circle text-positive"></i> {{ _('al %(date)s', date=a.reconciled_on|it_date) }}{% else %}<span class="text-muted">{{ _('mai') }}</span>{% endif %}</td>
+          <td class="text-right"><a href="{{ url_for('transactions.index', account=a.id) }}">{{ row.count }}</a></td>
+          <td>
+            <div class="cell-actions">
+              <a href="{{ url_for('accounts.detail', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Riconcilia') }}" aria-label="{{ _('Riconcilia %(name)s', name=a.name) }}"><i class="bi bi-check2-square"></i></a>
+              <a href="{{ url_for('accounts.edit', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="{{ _('Modifica %(name)s', name=a.name) }}"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{{ url_for('accounts.delete', account_id=a.id) }}" data-confirm="{{ _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name) }}">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina %(name)s', name=a.name) }}"><i class="bi bi-trash3"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-bank"></i></div>
+    <div class="empty-state-title">{{ _('Nessun conto') }}</div>
+    <div class="empty-state-text">
+      {{ _('Aggiungi conti correnti, carte, conti deposito e contanti: vedrai il saldo di ognuno, potrai importare gli estratti sul conto giusto e riconciliarli con la banca.') }}
+    </div>
+    <a href="{{ url_for('accounts.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Conto') }}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
