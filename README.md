@@ -1,6 +1,6 @@
 # MyFinancePlace
 
-Personal finance management app — from household budgeting to investment portfolios.
+Personal finance management app.
 
 ## Features
 
