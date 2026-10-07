@@ -1,0 +1,125 @@
+# Piano e TODO — MyFinancePlace
+
+Unico punto di controllo di cosa fare dopo. Complementa (non sostituisce) [ROADMAP](../ROADMAP.md) (stato
+delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMPETITOR](ANALISI_COMPETITOR.md).
+
+**Ultimo aggiornamento**: 7 ottobre 2026 · **Ramo**: `test-Cloud` (76 commit avanti a `main`, PR #8) ·
+**MVP**: completo · **Test**: 560, copertura 95% (dato da CI; non rieseguito in questa scansione)
+
+| Stato | Significato |
+|---|---|
+| ⬜ | da fare |
+| 🔄 | in corso |
+| ✅ | fatto |
+| ⏸ | in attesa di una decisione |
+| ❌ | scartato |
+
+---
+
+## 1. Scansione dello stato (7 ott 2026)
+
+- `test-Cloud` ha tutto l'MVP: dati reali, report, import 8 banche + generico, AI locale/Claude, conti e valute,
+  budget, obiettivi, portafoglio, debiti, assicurazioni, backup, login, IT/EN, Docker, CI. 17 migrazioni.
+- `main` è ancora lo scheletro con numeri finti: **finché la PR #8 non è unita, `main` non rappresenta l'app**.
+- `origin/Mapping-Excel` non ha commit che `test-Cloud` non abbia già (0 avanti) → le "misure più compatte"
+  vanno recuperate a mano, se servono (vedi D2).
+- Nessun file `LICENSE` nel repo.
+- I dati sono condivisi tra utenti (nessun `user_id` nei modelli).
+- Scoperti documenti disallineati, da correggere (vedi sezione 4):
+  - `ANALISI_COMPETITOR.md` mette il Sankey tra le cose mancanti: **è già fatto**; la decisione 1 (partita
+    doppia) è **già presa** (scartata).
+  - `MVP.md` / `NEXT_STEPS.md`: coerenti con il codice, ma "Da fare: niente" non cita i punti di questo file.
+
+---
+
+## 2. Decisioni aperte (servono a te)
+
+| # | Decisione | Stato | Perché blocca |
+|---|---|---|---|
+| D1 | Unire la PR [#8](https://github.com/Dona317/MyFinancePlace/pull/8) su `main` (verde, senza conflitti; è in bozza) | ⏸ | `main` resta finto finché non si unisce; ogni nuovo ramo parte da qui |
+| D2 | Applicare le misure compatte di `Mapping-Excel`? (ramo senza commit propri: da rifare a mano) | ⏸ | solo estetica, non blocca |
+| D3 | Forma dell'app: web con login (oggi) **o** desktop leggero (exe)? | ⏸ | cambia packaging, auth, aggiornamenti, storage documenti |
+| D4 | Licenza: MIT **o** AGPL | ⏸ | serve prima di rendere pubblico; AGPL impedisce fork chiusi |
+| D5 | Fisco italiano (730, capital gain): puntarci o lasciare ad altri? | ⏸ | decide se il lavoro F-fisco entra nel piano |
+| D6 | ❌ Partita doppia | ❌ | già scartata (ROADMAP → Scartato) |
+
+Suggerimento di ordine: D1 e D4 sono rapide; D3 va decisa prima di toccare packaging, multi-utente (F10) e PWA (F12).
+
+---
+
+## 3. Backlog funzionalità
+
+Priorità: **A** = alta (poco lavoro, grande effetto, ce l'hanno tutti i concorrenti) · **M** = media · **B** = bassa/dopo.
+Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
+
+### Prossimo giro (candidati naturali)
+
+| ID | Pri | Sforzo | Stato | Funzione | Note |
+|---|---|---|---|---|---|
+| F1 | A | L | ⬜ | **Transazioni suddivise** su più categorie | Tocca modello, migrazione, form, budget, report, import, export, backup. Decidere se una riga = N "quote" (`transaction_splits`) |
+| F2 | A | M | ⬜ | **Tabella Riepilogo** categoria × mese con heatmap | È l'Excel dentro l'app; i dati ci sono già in `analytics.py` |
+| F3 | A | S | ⬜ | **Tasso di risparmio** mese per mese + confronto anno precedente | Oggi solo KPI; grafico + riga nel Riepilogo |
+
+### Dati e qualità
+
+| ID | Pri | Sforzo | Stato | Funzione | Note |
+|---|---|---|---|---|---|
+| F4 | A | M | ⬜ | **Prova con estratti conto reali anonimizzati** (8 banche) | Campioni oggi generati; PDF a maggior rischio. Serve che tu fornisca i file |
+| F5 | M | M | ⬜ | **Storico prezzi investimenti** (+ prezzi automatici ETF/cripto) | Oggi gli stati patrimoniali passati usano l'ultimo prezzo |
+| F6 | M | M | ⬜ | **Import OFX / QIF / CAMT.053** | Quasi tutte le banche li esportano; si innesta in `statement_readers.py` |
+
+### Budget e analisi
+
+| ID | Pri | Sforzo | Stato | Funzione | Note |
+|---|---|---|---|---|---|
+| F7 | M | M | ⬜ | **Riporto del budget** al mese dopo + accantonamento per spese annuali | Lo fanno quasi tutti i concorrenti |
+| F8 | M | S | ⬜ | **Categorie fisse / non mensili / variabili** | Un attributo sulla categoria; abilita "quanto è comprimibile" |
+| F9 | M | S | ⬜ | **Pagina Abbonamenti** | I ricorrenti sono già riconosciuti in Previsioni |
+| F10a | M | S | ⬜ | **Mesi di autonomia** (liquidità ÷ spesa media) | |
+| F10b | B | S | ⬜ | **Stabilità delle entrate per fonte** | |
+| F10c | B | M | ⬜ | Heatmap giornaliera a calendario; analisi libera per tag | |
+
+### Piattaforma e usabilità
+
+| ID | Pri | Sforzo | Stato | Funzione | Note |
+|---|---|---|---|---|---|
+| F11 | M | L | ⏸ (D3) | **Dati separati per utente** | Oggi tutti vedono tutto; richiede `user_id` o DB per profilo |
+| F12 | B | M | ⏸ (D3) | PWA installabile sul telefono | |
+| F13 | B | M | ⬜ | Inserimento rapido da tastiera, annulla/ripeti | |
+| F14 | B | M | ⬜ | Notifiche email (scadenze, budget superati) | Serve SMTP configurabile |
+| F15 | B | L | ⏸ (D5) | Fisco italiano (730, capital gain) | Solo se D5 = sì |
+
+Esclusi per scelta: collegamento automatico alle banche, budget "a buste", partita doppia.
+
+---
+
+## 4. Manutenzione documenti e igiene
+
+| ID | Stato | Cosa |
+|---|---|---|
+| M1 | ⬜ | Aggiornare `ANALISI_COMPETITOR.md`: Sankey fatto; decisione 1 chiusa (scartata) |
+| M2 | ⬜ | Aggiungere un `LICENSE` appena presa D4 |
+| M3 | ⬜ | Rimandare da `MVP.md` ("Dopo l'MVP") e `NEXT_STEPS.md` ("To do") a questo file, per non avere tre liste |
+| M4 | ⬜ | Rendere `.claude/` e `.vscode/` ignorati o committati (oggi non tracciati) |
+| M5 | ⬜ | Ripetere la prova di test e copertura in locale (nel venv del progetto; l'interprete usato in questa scansione non ha pytest) |
+
+---
+
+## 5. Come tenerlo in check
+
+1. **Una voce = un ID** (D*, F*, M*). Nei commit e nelle PR si cita l'ID (`F2: tabella Riepilogo`).
+2. **Quando una voce cambia stato**, si aggiorna qui **nello stesso commit** del codice, e si aggiunge la riga
+   in [NEXT_STEPS.md](NEXT_STEPS.md) → ✅ Done e, se è una sezione dell'app, in [ROADMAP.md](../ROADMAP.md).
+3. **Definition of Done** di una funzione: migrazione (se serve) + test + traduzione EN (`scripts/translations.py`)
+   + `scripts/untested_functions.py` pulito + CI verde.
+4. **Una decisione presa** si sposta da §2 a ROADMAP → Scartato / NEXT_STEPS, con la data.
+5. **Revisione**: a ogni merge su `test-Cloud` si rilegge §2 e §3; si cambia la data in testa.
+6. Max 1–2 voci 🔄 alla volta.
+
+## 6. Proposta di ordine
+
+1. D1 (unire PR #8) e D4 (licenza) → M2.
+2. D3 (forma dell'app).
+3. F3 → F2 (riusano gli stessi dati: tasso di risparmio dentro il Riepilogo) → F1 (il più grosso, da solo).
+4. F4 non appena hai i file reali; F6 e F5 dopo.
+5. F7–F10 a blocchi piccoli; F11/F12/F14/F15 solo dopo D3/D5.
