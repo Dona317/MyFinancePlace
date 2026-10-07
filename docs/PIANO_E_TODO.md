@@ -132,6 +132,8 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 4. **Una decisione presa** si sposta da §2 a ROADMAP → Scartato / NEXT_STEPS, con la data.
 5. **Revisione**: a ogni merge su `test-Cloud` si rilegge §2 e §3; si cambia la data in testa.
 6. Max 1–2 voci 🔄 alla volta.
+7. **Controllo automatico**: la routine `myfinanceplace-weekly-plan-check` gira ogni domenica alle 00:00
+   (app aperta), confronta il piano con i commit della settimana e segnala le divergenze.
 
 ## 6. Proposta di ordine (aggiornata l'8 ott 2026)
 
