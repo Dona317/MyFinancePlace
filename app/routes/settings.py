@@ -161,7 +161,7 @@ def categories_page():
     ordered.extend(c for c in rows if c not in ordered)
     return render_template("settings/categories.html", categories=ordered, by_id=by_id,
                            mains=[c.name for c in mains], has_children={c.parent_id for c in rows},
-                           usage=categories.usage(), kinds=categories.KINDS,
+                           usage=categories.usage(), kinds=categories.KINDS, natures=categories.NATURES,
                            unmanaged=sorted(categories.used_names() - {c.name for c in rows}))
 
 
@@ -178,6 +178,8 @@ def category_save():
     old = request.form.get("old_name")
     hint = form_text("hint", _("Descrizione"))
     discretionary = "discretionary" in request.form
+    nature = request.form.get("nature")
+    nature = nature if nature in categories.NATURES else None  # empty: the main category's, else variable
     if old and old != name:
         merged = categories.rename(old, name)
         flash(_("«%(old)s» unita a «%(name)s».", old=old, name=name) if merged else _("«%(old)s» rinominata in «%(name)s».", old=old, name=name), "success")
@@ -189,7 +191,7 @@ def category_save():
             flash(_("Categoria «%(name)s» aggiunta.", name=name), "success")
     elif not old:
         flash(_("La categoria «%(name)s» esiste già: aggiornata.", name=name), "success")
-    category.kind, category.hint, category.discretionary = kind, hint, discretionary
+    category.kind, category.hint, category.discretionary, category.nature = kind, hint, discretionary, nature
     db.session.flush()
     try:
         categories.set_parent(category, request.form.get("parent") or None)

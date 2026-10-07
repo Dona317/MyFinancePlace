@@ -377,6 +377,22 @@ def cash_flow(year: int) -> dict:
     }
 
 
+def nature_split(start: date, end: date) -> dict:
+    """Expenses of [start, end) by the nature of their category (Settings → Categorie): fixed, not monthly, variable."""
+    rows = (lines_query(LINE_CATEGORY, func.sum(LINE_VALUE))
+            .filter(Transaction.date >= start, Transaction.date < end, Transaction.type == "expense")
+            .group_by(LINE_CATEGORY).all())
+    nature_of = categories.natures()
+    amounts = dict.fromkeys(categories.NATURES, 0.0)
+    for category, amount in rows:
+        amounts[nature_of.get(category, "variable")] += float(amount or 0)
+    total = sum(amounts.values())
+    return {"total": total, "amounts": amounts,
+            "parts": [{"key": key, "label": str(label), "amount": amounts[key],
+                       "share": round(amounts[key] / total * 100, 1) if total else 0.0}
+                      for key, label in categories.NATURES.items()]}
+
+
 def lifestyle_report(year: int, today: date | None = None) -> dict:
     today = today or date.today()
     start, end = year_bounds(year)
@@ -420,6 +436,8 @@ def lifestyle_report(year: int, today: date | None = None) -> dict:
         "last_month_total": sum(last_month.values()),
         "reference_month": month_labels()[ref_month - 1],
         "trend": monthly_category_trend(year),
+        "natures": nature_split(start, end),
+        "months_elapsed": months_elapsed,
     }
 
 

@@ -7,8 +7,9 @@
 {# One table row: name, the month cells shaded by their share of the row's busiest month (links to the
    transactions of that category and month), total, average, change on the year before. #}
 {% macro line(item, kind, label, level='', link_category=none, previous=true) %}
+{% set nature = natures.get(item.name) if kind == 'expense' and item.name else none %}
 <tr class="summary-row {{ level }}">
-  <th scope="row" class="summary-name">{{ label }}</th>
+  <th scope="row" class="summary-name">{% if nature %}<span class="nature-dot nature-{{ nature }} summary-nature" title="{{ nature_labels[nature] }}" aria-label="{{ nature_labels[nature] }}"></span>{% endif %}{{ label }}</th>
   {% for value in item.months %}
   {% set share = (value / item.max) if item.max else 0 %}
   <td class="summary-cell {{ kind }}" style="--heat: {{ '%.2f'|format(share) }};">

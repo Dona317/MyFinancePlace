@@ -71,6 +71,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Savings rate month by month** (F3): dashboard lines for every year with income, each with its yearly rate;
   chips choose the years compared (by default the year shown and the one before, remembered in the browser);
   months without income are a gap, not 0%
+- **Nature of a category** (F8, migration `b2d4f6a8c0e1`): `categories.nature` fixed / not monthly / variable,
+  chosen in Settings → Categorie (a subcategory without one takes its main category's; defaults seeded by name).
+  Spese e tendenze shows the split of the year's spending and what can be cut; the Riepilogo marks each expense row
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

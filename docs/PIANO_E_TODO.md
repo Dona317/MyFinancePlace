@@ -73,7 +73,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 | ID | Pri | Sforzo | Stato | Funzione | Note |
 |---|---|---|---|---|---|
 | F7 | M | M | ⬜ | **Riporto del budget** al mese dopo + accantonamento per spese annuali | Lo fanno quasi tutti i concorrenti |
-| F8 | M | S | ⬜ | **Categorie fisse / non mensili / variabili** | Un attributo sulla categoria; abilita "quanto è comprimibile" |
+| F8 | M | S | ✅ | **Categorie fisse / non mensili / variabili** | Natura in Impostazioni → Categorie (le sottocategorie ereditano); Spese e tendenze: barra fisse/non mensili/variabili e quota comprimibile; pallino nel Riepilogo |
 | F9 | M | S | ⬜ | **Pagina Abbonamenti** | I ricorrenti sono già riconosciuti in Previsioni |
 | F10a | M | S | ⬜ | **Mesi di autonomia** (liquidità ÷ spesa media) | |
 | F10b | B | S | ⬜ | **Stabilità delle entrate per fonte** | |

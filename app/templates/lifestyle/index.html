@@ -48,6 +48,38 @@
 
 </div>
 
+<!-- Fisse / non mensili / variabili (F8) ─────────────────────────────── -->
+{% set nat = report.natures %}
+<div class="card mb-16 nature-card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Natura delle spese') }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s · la natura si sceglie in Impostazioni → Categorie', year=year) }}</div>
+    </div>
+    <a href="{{ url_for('settings.categories_page') }}" class="btn btn-ghost btn-sm">{{ _('Categorie') }}</a>
+  </div>
+  <div class="card-body">
+    {% if nat.total %}
+    <div class="nature-bar" role="img" aria-label="{% for p in nat.parts %}{{ p.label }} {{ '%.0f'|format(p.share) }}%{{ ', ' if not loop.last }}{% endfor %}">
+      {% for p in nat.parts if p.amount %}<span class="nature-{{ p.key }}" style="width:{{ p.share }}%;"></span>{% endfor %}
+    </div>
+    <div class="nature-legend">
+      {% for p in nat.parts %}
+      <div class="nature-item">
+        <span class="nature-dot nature-{{ p.key }}"></span>
+        <span class="nature-label">{{ p.label }}</span>
+        <span class="amount">{{ p.amount|money }}</span>
+        <span class="text-muted text-xs">{{ '%.0f'|format(p.share) }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="text-sm text-muted mt-8 mb-0">{{ _('Comprimibile: le spese variabili, %(amount)s in media al mese.', amount=(nat.amounts.variable / report.months_elapsed)|money) }}</p>
+    {% else %}
+    <p class="text-sm text-muted mb-0">{{ _('Nessuna spesa registrata in questo periodo.') }}</p>
+    {% endif %}
+  </div>
+</div>
+
 <!-- Tabella dettaglio categorie ─────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">

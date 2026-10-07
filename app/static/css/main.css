@@ -1462,3 +1462,14 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .year-chip[aria-pressed="true"] { color: var(--clr-text-primary); border-color: var(--clr-text-muted); background: var(--clr-bg-input); }
 .year-chip-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--clr-border); opacity: .35; }
 .year-chip[aria-pressed="true"] .year-chip-dot { opacity: 1; }
+
+/* ── Nature of spending (Spese e tendenze): fixed / not monthly / variable ─────────────────────────── */
+.nature-bar { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--clr-bg-input); margin-bottom: 12px; }
+.nature-fixed { background: var(--clr-neutral); }
+.nature-periodic { background: var(--clr-warning); }
+.nature-variable { background: var(--clr-positive); }
+.nature-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px 16px; }
+.nature-item { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm); }
+.nature-label { flex: 1; }
+.nature-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.summary-nature { display: inline-block; width: 8px; height: 8px; margin-right: 6px; vertical-align: middle; }

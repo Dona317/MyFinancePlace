@@ -92,7 +92,8 @@ def summary():
     year = _summary_year()
     table = analytics.summary_table(year, analytics.months_to_show(year))
     return render_template("reports/summary.html", table=table, year=year, years=analytics.available_years(),
-                           tabs=reports.TABS, uncategorized=UNCATEGORIZED)
+                           tabs=reports.TABS, uncategorized=UNCATEGORIZED,
+                           natures=categories.natures(), nature_labels=categories.NATURES)
 
 
 @reports_bp.route("/summary.csv")

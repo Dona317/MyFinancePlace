@@ -112,6 +112,20 @@ PERSONAL_DEFAULTS = [
 ]
 SEEDED_PERSONAL_SETTING = "categories.seeded_personal"
 
+# How the spending of a category recurs (F8): a fixed cost every month, a cost that comes a few times a year,
+# or variable spending — the part that can be cut. Unlisted categories are variable.
+NATURES = {"fixed": _l("Fissa"), "periodic": _l("Non mensile"), "variable": _l("Variabile")}
+NATURE_DEFAULTS = {
+    **dict.fromkeys(("Casa", "Affitto", "Mutuo", "Condominio", "Bollette", "Luce", "Gas", "Acqua", "Internet e telefono",
+                     "Prestiti", "Abbonamenti", "Streaming", "Software", "Palestra", "Commissioni"), "fixed"),
+    **dict.fromkeys(("Manutenzione", "Auto", "Macchina", "Assicurazioni", "Tasse e imposte", "Istruzione", "Viaggi",
+                     "Regali e donazioni", "Gift"), "periodic"),
+}
+
+
+def default_nature(name: str, kind: str) -> str | None:
+    return None if kind == "income" else NATURE_DEFAULTS.get(name)
+
 
 def _stem(name: str) -> str:
     """ "Ristoranti" and "Ristorante", "Trasporto" and "Trasporti" are the same category."""
@@ -141,7 +155,8 @@ def _seed_personal() -> None:
     for name, kind, hint, discretionary in PERSONAL_DEFAULTS:
         if _stem(name) in known:
             continue
-        db.session.add(Category(name=name, kind=kind, hint=hint, discretionary=discretionary, position=position))
+        db.session.add(Category(name=name, kind=kind, hint=hint, discretionary=discretionary, position=position,
+                                nature=default_nature(name, kind)))
         known.add(_stem(name))
         position += 1
     settings_store.set(SEEDED_PERSONAL_SETTING, "1")  # commits the categories too
@@ -160,7 +175,7 @@ def _seed_v2() -> None:
         if not first_time and name in FIRST_DEFAULTS:
             continue  # the user deleted it: it stays deleted
         db.session.add(Category(name=name, kind=kind, hint=hint, discretionary=discretionary,
-                                position=index if first_time else position))
+                                nature=default_nature(name, kind), position=index if first_time else position))
         position += 1
     settings_store.set(SEEDED_SETTING, "1")
     settings_store.set(SEEDED_V2_SETTING, "1")  # commits the categories too
@@ -177,7 +192,8 @@ def _seed_subcategories() -> None:
         for name, hint in subcategories:
             if name not in rows:
                 db.session.add(Category(name=name, kind=parent.kind, hint=hint, parent_id=parent.id,
-                                        discretionary=parent.discretionary, position=position))
+                                        discretionary=parent.discretionary, nature=NATURE_DEFAULTS.get(name),
+                                        position=position))
                 position += 1
     settings_store.set(SEEDED_V3_SETTING, "1")
     forget()
@@ -272,6 +288,13 @@ def hints() -> dict[str, str]:
 
 def discretionary() -> set[str]:
     return {c.name for c in all_categories() if c.discretionary}
+
+
+def natures() -> dict[str, str]:
+    """{category: "fixed" | "periodic" | "variable"}; a subcategory without its own takes its main category's."""
+    rows = all_categories()
+    own = {c.id: c.nature for c in rows}
+    return {c.name: c.nature or own.get(c.parent_id) or "variable" for c in rows}
 
 
 def usage() -> dict[str, int]:

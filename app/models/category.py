@@ -12,6 +12,9 @@ class Category(db.Model):
     kind          = db.Column(db.String(10), nullable=False, default="expense")  # "expense" | "income" | "both"
     hint          = db.Column(db.Text)       # what it covers: shown to the user and given to the AI classifier
     discretionary = db.Column(db.Boolean, nullable=False, default=False)  # non-essential spending (Lifestyle)
+    # How the spending recurs: "fixed" (every month, rent), "periodic" (not monthly: taxes, insurance), "variable";
+    # empty: the main category's, else variable
+    nature        = db.Column(db.String(10))
     position      = db.Column(db.Integer, nullable=False, default=0)
     # A subcategory's main category (Bollette → Luce); one level only. Transactions store the most specific name.
     parent_id     = db.Column(db.Integer, db.ForeignKey("categories.id", ondelete="SET NULL"), index=True)

@@ -3,6 +3,11 @@
 {% block page_title %}{{ _('Categorie') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Categorie') }}</li>{% endblock %}
 
+{% macro nature_options(selected) %}
+<option value="">{{ _('— come la principale / variabile —') }}</option>
+{% for k, label in natures.items() %}<option value="{{ k }}" {{ 'selected' if selected == k }}>{{ label }}</option>{% endfor %}
+{% endmacro %}
+
 {% block content %}
 
 <div class="card mb-16">
@@ -25,6 +30,8 @@
         <select id="new-kind" name="kind" class="form-select">{% for k, label in kinds.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select></div>
       <div class="form-group"><label class="form-label" for="new-hint">{{ _('Cosa comprende') }}</label>
         <input id="new-hint" name="hint" class="form-control" placeholder="{{ _('es. veterinario, cibo, toelettatura') }}" /></div>
+      <div class="form-group"><label class="form-label" for="new-nature">{{ _('Natura della spesa') }}</label>
+        <select id="new-nature" name="nature" class="form-select">{{ nature_options(none) }}</select></div>
       <div class="form-group">
         <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="discretionary" /> {{ _('Spesa non essenziale') }}</label>
         <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
@@ -43,7 +50,7 @@
   <div class="table-wrapper">
     <table>
       <thead>
-        <tr><th>{{ _('Categoria') }}</th><th>{{ _('Sottocategoria di') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Cosa comprende') }}</th><th class="text-center">{{ _('Non essenziale') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr>
+        <tr><th>{{ _('Categoria') }}</th><th>{{ _('Sottocategoria di') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Cosa comprende') }}</th><th title="{{ _('Fissa: ogni mese (affitto, bollette) · Non mensile: poche volte all’anno (tasse, assicurazioni) · Variabile: la parte comprimibile') }}">{{ _('Natura') }}</th><th class="text-center">{{ _('Non essenziale') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr>
       </thead>
       <tbody>
         {% for c in categories %}
@@ -59,6 +66,7 @@
             {% for k, label in kinds.items() %}<option value="{{ k }}" {{ 'selected' if c.kind == k }}>{{ label }}</option>{% endfor %}
           </select></td>
           <td><input form="{{ form_id }}" name="hint" class="form-control" value="{{ c.hint or '' }}" aria-label="Cosa comprende {{ c.name }}" /></td>
+          <td>{% if c.kind != 'income' %}<select form="{{ form_id }}" name="nature" class="form-select" style="min-width:120px;" aria-label="{{ _('Natura di %(name)s', name=c.name) }}">{{ nature_options(c.nature) }}</select>{% endif %}</td>
           <td class="text-center"><input form="{{ form_id }}" type="checkbox" name="discretionary" class="check" {{ 'checked' if c.discretionary }} aria-label="{{ c.name }} non essenziale" /></td>
           <td class="text-right">
             {% if usage.get(c.name) %}<a href="{{ url_for('transactions.index', category=c.name) }}">{{ usage.get(c.name) }}</a>{% else %}0{% endif %}
