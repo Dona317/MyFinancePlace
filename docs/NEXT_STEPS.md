@@ -83,6 +83,11 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   and 2 (XML), QIF (day/month order from the file, `L` category kept when it is one of ours, `L[Account]` = transfer),
   CAMT.053/052 (booked entries only, debtor/creditor as counterparty, opening/closing balance check; DOCTYPE/ENTITY
   refused); same preview, categories, merchants and duplicates as the other statements
+- **Complete demo dataset** (`samples/dati_fittizi/genera_completo.py`, `tests/test_demo_dataset.py`): three years
+  on four accounts linked by transfers (current, credit card paid off monthly, savings, broker with a monthly ETF
+  plan), restorable backup + the last weeks of each account as CSV / OFX / CAMT.053 / QIF statements to import.
+  It showed that buying an investment with a transfer left the money in the balance sheet's cash as well as in
+  the portfolio: `wealth.cash_balance` now takes it out (and a sale brings it back)
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

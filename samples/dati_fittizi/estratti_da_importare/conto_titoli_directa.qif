@@ -1,0 +1,21 @@
+!Type:Bank
+D10/09/2026
+T250.00
+PGiroconto verso conto titoli
+L[Conto corrente Fineco]
+^
+D12/09/2026
+T-240.00
+PAcquisto ETF VWCE (PAC)
+LInvestimenti
+^
+D12/09/2026
+T-1.50
+PCommissione ordine Directa
+LCommissioni
+^
+D15/09/2026
+T49.77
+PDividendo VWCE
+LDividendi e cedole
+^

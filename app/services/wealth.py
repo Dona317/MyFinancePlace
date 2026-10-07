@@ -55,12 +55,16 @@ def opening_cash() -> float:
 
 def cash_balance(on: date | None = None) -> float:
     """
-    Opening balance (general + each account's) + income − expenses up to and including `on`
-    (transfers move money between own accounts).
+    Opening balance (general + each account's) + income − expenses up to and including `on`. Transfers move money
+    between own accounts, except those linked to an investment: buying one (from an account, to no account) takes
+    the money out of the cash — it is counted in the portfolio — and selling one (to an account) brings it back.
     """
-    signed = func.sum(case((Transaction.type == "expense", -func.abs(Transaction.amount_base)),
-                           else_=func.abs(Transaction.amount_base)))
-    query = db.session.query(func.coalesce(signed, 0)).filter(Transaction.type.in_(["income", "expense"]))
+    value = func.abs(Transaction.amount_base)
+    investing = (Transaction.type == "transfer") & Transaction.holding_id.isnot(None)
+    bought = investing & Transaction.counter_account_id.is_(None)
+    sold = investing & Transaction.account_id.is_(None) & Transaction.counter_account_id.isnot(None)
+    signed = func.sum(case((Transaction.type == "expense", -value), (bought, -value), (sold, value), else_=value))
+    query = db.session.query(func.coalesce(signed, 0)).filter(Transaction.type.in_(["income", "expense"]) | bought | sold)
     if on is not None:
         query = query.filter(Transaction.date <= on)
     return _money(opening_cash() + accounts.opening_total() + float(query.scalar()))
