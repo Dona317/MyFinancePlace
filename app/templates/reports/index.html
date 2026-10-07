@@ -17,6 +17,7 @@
     <a href="{{ link({'tab': key, 'category': ''}) }}" class="report-tab{{ ' active' if f.tab == key }}"
        {% if f.tab == key %}aria-current="page"{% endif %}>{{ label }}</a>
     {% endfor %}
+    <a href="{{ url_for('reports.summary') }}" class="report-tab">{{ _('Riepilogo') }}</a>
   </nav>
   <form method="GET" class="report-controls" id="report-form">
     <input type="hidden" name="tab" value="{{ f.tab }}">

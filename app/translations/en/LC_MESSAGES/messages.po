@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 16:44+0000\n"
+"POT-Creation-Date: 2026-10-07 16:52+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -659,6 +659,13 @@ msgstr "This year"
 msgid "Anno fiscale"
 msgstr "Tax year"
 
+msgid "Anno prima"
+msgstr "Year before"
+
+#, python-format
+msgid "Anno prima: %(amount)s"
+msgstr "Year before: %(amount)s"
+
 msgid "Anno scorso"
 msgstr "Last year"
 
@@ -883,6 +890,9 @@ msgstr "Investing CF"
 msgid "CF Operativo"
 msgstr "Operating CF"
 
+msgid "CSV"
+msgstr "CSV"
+
 msgid "CSV, JSON, PDF ed esportazione fiscale"
 msgstr "CSV, JSON, PDF and tax export"
 
@@ -1011,6 +1021,10 @@ msgstr "Category: choose one."
 
 msgid "Categorie"
 msgstr "Categories"
+
+#, python-format
+msgid "Categorie mese per mese — %(year)s"
+msgstr "Categories month by month — %(year)s"
 
 msgid "Categorie nel tempo"
 msgstr "Categories over time"
@@ -1612,6 +1626,10 @@ msgstr "Income %(income)s, expenses %(expenses)s"
 #, python-format
 msgid "Entrate %(month)s"
 msgstr "Income %(month)s"
+
+#, python-format
+msgid "Entrate %(year)s"
+msgstr "Income %(year)s"
 
 msgid "Entrate Mensili"
 msgstr "Monthly Income"
@@ -2613,6 +2631,9 @@ msgstr "Window average"
 msgid "Media esponenziale"
 msgstr "Exponential average"
 
+msgid "Media mensile"
+msgstr "Monthly average"
+
 msgid "Media mobile"
 msgstr "Moving average"
 
@@ -2869,6 +2890,10 @@ msgstr "No income"
 
 msgid "Nessuna entrata in questo periodo."
 msgstr "No income in this period."
+
+#, python-format
+msgid "Nessuna entrata o uscita nel %(year)s."
+msgstr "No income or expenses in %(year)s."
 
 msgid "Nessuna entrata registrata"
 msgstr "No income recorded"
@@ -3335,6 +3360,13 @@ msgstr "Amortization plan"
 msgid "Più recenti"
 msgstr "Newer"
 
+msgid ""
+"Più scura la cella, più alta la spesa (o l'entrata) rispetto agli altri mesi della stessa categoria. Clicca un "
+"importo per vedere le transazioni."
+msgstr ""
+"The darker the cell, the higher the expense (or income) compared with the other months of the same category. Click an"
+" amount to see its transactions."
+
 msgid "Polizza"
 msgstr "Policy"
 
@@ -3716,6 +3748,10 @@ msgid "Riepilogo"
 msgstr "Summary"
 
 #, python-format
+msgid "Riepilogo %(year)s"
+msgstr "Summary %(year)s"
+
+#, python-format
 msgid "Riga %(line)s: data non riconosciuta («%(value)s»)"
 msgstr "Row %(line)s: date not recognised (“%(value)s”)"
 
@@ -3790,6 +3826,10 @@ msgstr "Net savings"
 
 msgid "Risparmio per viaggi"
 msgstr "Saving for travel"
+
+#, python-format
+msgid "Rispetto agli stessi mesi del %(year)s"
+msgstr "Compared with the same months of %(year)s"
 
 msgid "Risposta di Ollama non valida."
 msgstr "Invalid response from Ollama."
@@ -4038,6 +4078,9 @@ msgstr "Sep"
 msgid "Settimanale"
 msgstr "Weekly"
 
+msgid "Sezione"
+msgstr "Section"
+
 msgid "Sezione disattivata"
 msgstr "Section turned off"
 
@@ -4265,6 +4308,10 @@ msgstr "Pie with the year's spending split"
 
 msgid "Totale"
 msgstr "Total"
+
+#, python-format
+msgid "Totale %(section)s"
+msgstr "Total %(section)s"
 
 #, python-format
 msgid "Totale %(year)s: %(amount)s"
@@ -4506,6 +4553,10 @@ msgstr "Expenses"
 msgid "Uscite %(month)s"
 msgstr "Expenses %(month)s"
 
+#, python-format
+msgid "Uscite %(year)s"
+msgstr "Expenses %(year)s"
+
 msgid "Uscite Mensili"
 msgstr "Monthly Expenses"
 
@@ -4594,6 +4645,9 @@ msgstr "Variable"
 
 msgid "Variazione"
 msgstr "Change"
+
+msgid "Variazione %"
+msgstr "Change %"
 
 msgid "Variazione Netta Cassa"
 msgstr "Net Change in Cash"
@@ -5023,6 +5077,10 @@ msgstr "use a local model"
 
 msgid "uscite"
 msgstr "expenses"
+
+#, python-format
+msgid "vs %(year)s"
+msgstr "vs %(year)s"
 
 msgid "vuoto = lo stesso"
 msgstr "empty = unchanged"

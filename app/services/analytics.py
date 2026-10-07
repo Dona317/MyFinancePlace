@@ -122,6 +122,80 @@ def savings_rates(year: int, months: int = 12) -> dict:
             "previous": previous if previous_rate is not None else None, "previous_rate": previous_rate}
 
 
+def _by_month_and_category(year: int) -> list[tuple[int, str, str | None, float]]:
+    """(month 0-11, type, category, value) of the income and expenses of `year`."""
+    rows = (
+        db.session.query(extract("month", Transaction.date), Transaction.type, Transaction.category, func.sum(VALUE))
+        .filter(extract("year", Transaction.date) == year, Transaction.type.in_(["income", "expense"]))
+        .group_by(extract("month", Transaction.date), Transaction.type, Transaction.category)
+        .all()
+    )
+    return [(int(month) - 1, tx_type, category, float(amount or 0)) for month, tx_type, category, amount in rows]
+
+
+def _change(current: float, previous: float) -> float | None:
+    """Change on the year before in %; None when the year before had nothing to compare with."""
+    return round((current - previous) / previous * 100, 1) if previous else None
+
+
+def summary_table(year: int, months: int = 12) -> dict:
+    """
+    The year as a category × month table (the spreadsheet inside the app): for income and expenses, one row per
+    main category (subcategories added to it, and listed as child rows), the month columns, total, monthly average
+    and change on the same months of the year before; then net and savings rate per month. `months`: the
+    columns shown (the months so far, for the current year).
+    """
+    previous_totals: dict[tuple[str, str], float] = {}
+    for month, tx_type, category, amount in _by_month_and_category(year - 1):
+        if month < months:
+            for name in {categories.top(category) or UNCATEGORIZED, category or UNCATEGORIZED}:
+                key = (tx_type, name)
+                previous_totals[key] = previous_totals.get(key, 0.0) + amount
+
+    def row(tx_type: str, name: str) -> dict:
+        return {"name": name, "months": [0.0] * months, "children": {}, "type": tx_type}
+
+    sections = {"income": {}, "expense": {}}
+    for month, tx_type, category, amount in _by_month_and_category(year):
+        if month >= months:
+            continue
+        main = categories.top(category) or UNCATEGORIZED
+        parent = sections[tx_type].setdefault(main, row(tx_type, main))
+        parent["months"][month] += amount
+        if category and category != main:
+            child = parent["children"].setdefault(category, row(tx_type, category))
+            child["months"][month] += amount
+
+    def finish(item: dict) -> dict:
+        item["months"] = [round(v, 2) for v in item["months"]]
+        item["total"] = round(sum(item["months"]), 2)
+        item["average"] = round(item["total"] / months, 2) if months else 0.0
+        item["max"] = max(item["months"], default=0.0)
+        item["previous"] = round(previous_totals.get((item["type"], item["name"]), 0.0), 2)
+        item["change"] = _change(item["total"], item["previous"])
+        item["children"] = sorted((finish(c) for c in item["children"].values()), key=lambda c: -c["total"])
+        return item
+
+    blocks = {}
+    for tx_type, rows in sections.items():
+        items = sorted((finish(item) for item in rows.values()), key=lambda r: (-r["total"], r["name"]))
+        total = finish({**row(tx_type, ""), "months": [sum(r["months"][m] for r in items) for m in range(months)]})
+        total["previous"] = round(sum(v for (t, name), v in previous_totals.items()
+                                      if t == tx_type and categories.top(name) in (None, name)), 2)
+        total["change"] = _change(total["total"], total["previous"])
+        blocks[tx_type] = {"rows": items, "total": total}
+    income, expenses = blocks["income"]["total"], blocks["expense"]["total"]
+    net = [round(i - e, 2) for i, e in zip(income["months"], expenses["months"])]
+    return {
+        "year": year, "labels": month_labels()[:months], "months": months,
+        "income": blocks["income"], "expense": blocks["expense"],
+        "net": {"months": net, "total": round(income["total"] - expenses["total"], 2),
+                "average": round((income["total"] - expenses["total"]) / months, 2) if months else 0.0},
+        "savings": {"months": [savings_rate(i, e) if i > 0 else None for i, e in zip(income["months"], expenses["months"])],
+                    "total": savings_rate(income["total"], expenses["total"]) if income["total"] > 0 else None},
+    }
+
+
 def last_12_months(today: date | None = None) -> dict:
     """Income / expenses for the 12 months ending with the month of `today`."""
     today = today or date.today()

@@ -58,6 +58,10 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   report drill-down, `main_category` in the CSV/JSON export, hierarchy in the AI prompt
 - **Mapped import without errors**: `services/column_guess.py` recognises the columns from the values, fixes a
   wrong choice with a note, and can ask the AI on a 10-row sample; the rows open in the editable preview
+- **Summary table** (F2, Report → Riepilogo, `analytics.summary_table`): the year as a category × month table, the
+  spreadsheet inside the app — subcategories under their main category, total, monthly average, change on the
+  same months of the year before, net and savings rate rows; cells shaded by their share of the row's busiest
+  month and linked to their transactions; CSV export
 - **Savings rate month by month** (F3): dashboard line for the year and the year before (same months), the
   year's rate next to the title; months without income are a gap, not 0%
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila

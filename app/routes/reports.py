@@ -1,9 +1,13 @@
+import csv as csv_module
+import io
 from datetime import date, timedelta
 
 from flask import Blueprint, Response, render_template, request
+from flask_babel import gettext as _
 
-from app.services import accounts, categories, reports, transfer
+from app.services import accounts, analytics, categories, i18n, reports, transfer
 from app.services.analytics import UNCATEGORIZED
+from app.services.display import number
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/reports")
 
@@ -74,3 +78,47 @@ def csv():
     name = f"report_{filters['tab']}_{filters['start']:%Y-%m-%d}_{filters['last_day']:%Y-%m-%d}.csv"
     return Response("\ufeff" + transfer.to_csv(rows), mimetype="text/csv",
                     headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
+def _summary_year() -> int:
+    years = analytics.available_years()
+    year = request.args.get("year", type=int)
+    return year if year in years else max(years)
+
+
+@reports_bp.route("/summary")
+def summary():
+    """The year as a category × month table, each cell shaded by its share of the row's busiest month."""
+    year = _summary_year()
+    table = analytics.summary_table(year, analytics.months_to_show(year))
+    return render_template("reports/summary.html", table=table, year=year, years=analytics.available_years(),
+                           tabs=reports.TABS, uncategorized=UNCATEGORIZED)
+
+
+@reports_bp.route("/summary.csv")
+def summary_csv():
+    """The same table as a spreadsheet: one line per category (subcategories after their main one)."""
+    year = _summary_year()
+    table = analytics.summary_table(year, analytics.months_to_show(year))
+    buffer = io.StringIO()
+    writer = csv_module.writer(buffer, delimiter=";")
+    writer.writerow([_("Sezione"), _("Categoria"), *table["labels"], _("Totale"), _("Media mensile"),
+                     _("Anno prima"), _("Variazione %")])
+
+    def line(section, name, item, previous=True):
+        writer.writerow([section, name, *(number(v) for v in item["months"]), number(item["total"]),
+                         number(item["average"]), number(item["previous"]) if previous else "",
+                         number(item["change"], 1) if previous and item["change"] is not None else ""])
+
+    for key, section in (("income", _("Entrate")), ("expense", _("Uscite"))):
+        for item in table[key]["rows"]:
+            line(section, i18n.tr(item["name"]), item)
+            for child in item["children"]:
+                line(section, f"{item['name']}{categories.SEPARATOR}{child['name']}", child)
+        line(section, _("Totale"), table[key]["total"])
+    line(_("Netto"), _("Netto"), table["net"] | {"previous": 0, "change": None}, previous=False)
+    writer.writerow([_("Tasso di risparmio"), _("Tasso di risparmio"),
+                     *("" if v is None else number(v, 1) for v in table["savings"]["months"]),
+                     "" if table["savings"]["total"] is None else number(table["savings"]["total"], 1)])
+    return Response("\ufeff" + buffer.getvalue(), mimetype="text/csv",
+                    headers={"Content-Disposition": f'attachment; filename="riepilogo_{year}.csv"'})
