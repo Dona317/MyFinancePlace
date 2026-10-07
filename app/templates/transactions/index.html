@@ -12,9 +12,6 @@
   <a href="{{ url_for('export.index', _anchor='bank-import') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-bank2"></i> {{ _('Importa estratto conto') }}
   </a>
-  <a href="{{ url_for('transactions.new', next=request.full_path) }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> {{ _('Nuova Transazione') }}
-  </a>
 {% endblock %}
 
 {% block content %}

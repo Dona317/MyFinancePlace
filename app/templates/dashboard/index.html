@@ -5,12 +5,6 @@
 {% block page_title %}{{ _('Dashboard') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
 
-{% block topbar_actions %}
-  <a href="{{ url_for('transactions.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> {{ _('Nuova Transazione') }}
-  </a>
-{% endblock %}
-
 {% block content %}
 
 {% if budget_alerts %}

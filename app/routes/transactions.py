@@ -216,6 +216,12 @@ def index():
     )
 
 
+@transactions_bp.route("/add")
+def add():
+    """Entry point of the sidebar button: single transaction or file import."""
+    return render_template("transactions/add.html")
+
+
 @transactions_bp.route("/new", methods=["GET", "POST"])
 def new():
     if request.method == "POST":
