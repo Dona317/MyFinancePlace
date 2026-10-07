@@ -13,7 +13,7 @@
 
 {% block content %}
 <div class="kpi-grid mb-24">
-  {{ kpi('clipboard-check', _('Previsto'), value=planned|money, cls='kpi-primary', sub=(_('somma dei budget del mese'))) }}
+  {{ kpi('clipboard-check', _('Previsto'), value=planned|money, cls='kpi-primary', sub=(_('budget del mese + %(amount)s riportati', amount=carried|money) if carried else _('somma dei budget del mese'))) }}
   {{ kpi('cart', _('Speso'), value=spent_total|money, cls=('kpi-negative' if spent_total > planned and planned else 'kpi-positive'), sub=(((spent_total / planned * 100)|number(0) ~ _('%% del previsto')) if planned else _('nelle categorie con budget'))) }}
   {{ kpi('piggy-bank', _('Rimane'), value=((planned - spent_total)|money), value_class=('text-negative' if planned - spent_total < 0)) }}
   {{ kpi('question-diamond', _('Fuori Budget'), value=unbudgeted|money, cls='kpi-warning', sub=(_('spese in categorie senza budget'))) }}
@@ -35,6 +35,7 @@
       <table>
         <thead>
           <tr><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Ogni mese (€)') }}</th><th class="text-right">{{ _('Solo %(month)s (€)', month=month|dateformat('MMMM')) }}</th>
+              <th class="text-center" title="{{ _('Quello che avanza, o che sfori, passa al mese dopo') }}">{{ _('Riporta') }}</th>
               <th class="text-right">{{ _('Speso') }}</th><th style="min-width:180px;">{{ _('Andamento') }}</th><th class="text-right">{{ _('Rimane') }}</th></tr>
         </thead>
         <tbody>
@@ -46,6 +47,8 @@
                    value="{{ row.every_month|plain }}" placeholder="—" aria-label="Budget mensile di {{ row.category }}" autocomplete="off" /></td>
             <td class="text-right"><input type="text" inputmode="decimal" name="month-{{ row.category }}" class="form-control" style="max-width:120px;margin-left:auto;"
                    value="{{ row.this_month|plain }}" placeholder="—" aria-label="Budget di questo mese per {{ row.category }}" autocomplete="off" /></td>
+            <td class="text-center"><input type="checkbox" class="check" name="rollover-{{ row.category }}" {{ 'checked' if row.rollover }}
+                   aria-label="{{ _('Riporta al mese dopo il budget di %(name)s', name=row.category) }}" /></td>
             <td class="amount text-right">{{ row.spent|money }}</td>
             <td>
               {% if line %}
@@ -56,7 +59,8 @@
               <span class="text-xs {{ 'text-negative' if line.state == 'over' else 'text-muted' }}">{{ line.share|number(0) }}%{% if line.state == 'over' %} {{ _('· superato') }}{% elif line.state == 'warning' %} {{ _('· attenzione') }}{% endif %}</span>
               {% else %}<span class="text-xs text-muted">{{ _('nessun budget') }}</span>{% endif %}
             </td>
-            <td class="amount text-right {{ 'negative' if line and line.left < 0 }}">{{ line.left|money if line else '—' }}</td>
+            <td class="amount text-right {{ 'negative' if line and line.left < 0 }}">{{ line.left|money if line else '—' }}
+              {% if line and line.carried %}<div class="text-xs text-muted budget-carried">{{ _('di cui riportati: %(amount)s', amount=line.carried|money) }}</div>{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -65,4 +69,40 @@
     <div class="card-body"><div class="form-actions"><button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva budget') }}</button></div></div>
   </div>
 </form>
+
+{% if set_asides %}
+<div class="card mt-16 set-asides">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Da accantonare per le spese non mensili') }}</div>
+      <div class="card-header-sub">{{ _('Tasse, assicurazioni, auto, viaggi: un dodicesimo di quanto sono costate negli ultimi 12 mesi, da mettere da parte ogni mese. Con il riporto la cifra si accumula fino alla spesa.') }}</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Ultimi 12 mesi') }}</th><th class="text-right">{{ _('Al mese') }}</th>
+          <th class="text-right">{{ _('Budget') }}</th><th class="text-right">{{ _('Accumulato') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+        {% for item in set_asides %}
+        <tr>
+          <td class="cell-title">{{ item.category }}</td>
+          <td class="amount text-right">{{ item.yearly|money }}</td>
+          <td class="amount text-right">{{ item.monthly|money }}</td>
+          <td class="amount text-right">{{ item.budget|money if item.budget else '—' }}{% if item.rollover %} <span class="badge badge-muted">{{ _('riporto') }}</span>{% endif %}</td>
+          <td class="amount text-right {{ 'negative' if item.saved and item.saved < 0 }}">{{ item.saved|money if item.saved is not none else '—' }}</td>
+          <td class="text-right">
+            {% if not (item.rollover and item.budget == item.monthly) %}
+            <form method="POST" action="{{ url_for('lifestyle.budget_set_aside', month=month.strftime('%Y-%m')) }}">
+              <input type="hidden" name="category" value="{{ item.category }}" />
+              <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-piggy-bank"></i> {{ _('Accantona %(amount)s al mese', amount=item.monthly|money) }}</button>
+            </form>
+            {% else %}<span class="text-xs text-muted">{{ _('già accantonato') }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

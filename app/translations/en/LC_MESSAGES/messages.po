@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 18:48+0000\n"
+"POT-Creation-Date: 2026-10-07 21:54+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -476,6 +476,10 @@ msgstr "Subscriptions"
 msgid "Abbonamenti e spese fisse"
 msgstr "Subscriptions and fixed costs"
 
+#, python-format
+msgid "Accantona %(amount)s al mese"
+msgstr "Set aside %(amount)s a month"
+
 msgid "Accedi"
 msgstr "Sign in"
 
@@ -493,6 +497,9 @@ msgstr "Account and Users"
 
 msgid "Account e utenti"
 msgstr "Account and users"
+
+msgid "Accumulato"
+msgstr "Accumulated"
 
 msgid "Acquisti (−) e vendite (+) di investimenti"
 msgstr "Purchases (−) and sales (+) of investments"
@@ -1408,6 +1415,9 @@ msgstr "From"
 
 msgid "Da Mettere da Parte"
 msgstr "To Set Aside"
+
+msgid "Da accantonare per le spese non mensili"
+msgstr "To set aside for non-monthly costs"
 
 #, python-brace-format
 msgid "Da assegnare: {amount}"
@@ -3699,6 +3709,9 @@ msgstr "Quantity"
 msgid "Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata."
 msgstr "How much of each month's income is left. Choose the years to compare: the choice is remembered."
 
+msgid "Quello che avanza, o che sfori, passa al mese dopo"
+msgstr "What is left, or overspent, moves to the next month"
+
 msgid "Quest'anno"
 msgstr "This year"
 
@@ -3934,6 +3947,13 @@ msgstr "Repeat the new password"
 
 msgid "Ripeti la password"
 msgstr "Repeat the password"
+
+msgid "Riporta"
+msgstr "Roll over"
+
+#, python-format
+msgid "Riporta al mese dopo il budget di %(name)s"
+msgstr "Roll the %(name)s budget over to the next month"
 
 msgid "Ripristina"
 msgstr "Restore"
@@ -4403,6 +4423,13 @@ msgstr "Table with the latest recorded transactions"
 
 msgid "Tag"
 msgstr "Tag"
+
+msgid ""
+"Tasse, assicurazioni, auto, viaggi: un dodicesimo di quanto sono costate negli ultimi 12 mesi, da mettere da parte "
+"ogni mese. Con il riporto la cifra si accumula fino alla spesa."
+msgstr ""
+"Taxes, insurance, car, holidays: a twelfth of what they cost in the last 12 months, to put aside every month. With "
+"rollover the amount piles up until the bill comes."
 
 msgid "Tasso"
 msgstr "Rate"
@@ -4919,6 +4946,10 @@ msgstr "a month, to meet the dates"
 msgid "assegnale"
 msgstr "assign them"
 
+#, python-format
+msgid "budget del mese + %(amount)s riportati"
+msgstr "month's budgets + %(amount)s rolled over"
+
 msgid "calcolata da tasso e durata"
 msgstr "worked out from rate and term"
 
@@ -5004,6 +5035,10 @@ msgstr "of %(total)s"
 msgid "di cui ricorrenti %(amount)s"
 msgstr "of which recurring %(amount)s"
 
+#, python-format
+msgid "di cui riportati: %(amount)s"
+msgstr "of which rolled over: %(amount)s"
+
 msgid "e Colonna Entrate / Avere"
 msgstr "and Money in / Credit column"
 
@@ -5076,6 +5111,9 @@ msgstr "tax"
 #, python-format
 msgid "generato il %(day)s %(time)s"
 msgstr "generated on %(day)s %(time)s"
+
+msgid "già accantonato"
+msgstr "already set aside"
 
 #, python-format
 msgid "il %(day)s"
@@ -5210,6 +5248,9 @@ msgstr "qwen3:1.7b"
 msgid "regole"
 msgstr "rules"
 
+msgid "riporto"
+msgstr "rollover"
+
 #, python-format
 msgid "saldo %(amount)s"
 msgstr "balance %(amount)s"
@@ -5326,8 +5367,16 @@ msgid "«%(name)s» ha delle sottocategorie: non può diventarlo a sua volta."
 msgstr "“%(name)s” has subcategories: it cannot become one itself."
 
 #, python-format
+msgid "«%(name)s» non è una categoria di spese non mensili con spese nell'ultimo anno."
+msgstr "«%(name)s» is not a non-monthly category with spending in the last year."
+
+#, python-format
 msgid "«%(name)s» è già una sottocategoria: scegli una categoria principale."
 msgstr "“%(name)s” is already a subcategory: choose a main category."
+
+#, python-format
+msgid "«%(name)s»: %(amount)s al mese accantonati, con riporto."
+msgstr "«%(name)s»: %(amount)s a month set aside, with rollover."
 
 #, python-format
 msgid "«%(name)s»: aggiunti %(amount)s."

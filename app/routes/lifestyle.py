@@ -49,9 +49,13 @@ def budget():
     this_month = {b.category: b.amount for b in Budget.query.filter(Budget.month == month)}
     rows = [{"category": n, "line": lines.get(n), "spent": spent.get(n, 0.0),
              "every_month": every_month.get(n), "this_month": this_month.get(n)} for n in names]
-    planned = sum(line["planned"] for line in lines.values())
+    rollover = {b.category for b in Budget.query.filter(Budget.month.is_(None), Budget.rollover_since.isnot(None))}
+    for row in rows:
+        row["rollover"] = row["category"] in rollover
+    planned = sum(line["available"] for line in lines.values())
     return render_template(
         "lifestyle/budget.html", month=month, rows=rows, planned=planned,
+        carried=sum(line["carried"] for line in lines.values()), set_asides=budgets.set_asides(),
         spent_total=sum(line["spent"] for line in lines.values()),
         unbudgeted=sum(v for k, v in spent.items() if k not in lines),
         prev=add_months(month, -1), next=add_months(month, 1), warning=budgets.WARNING_SHARE,
@@ -63,7 +67,8 @@ def budget_save():
     month = _month_arg()
     try:
         for name in request.form.getlist("category"):
-            budgets.save(name, form_decimal(f"every-{name}", _("Budget mensile di %(name)s", name=name)), None)
+            budgets.save(name, form_decimal(f"every-{name}", _("Budget mensile di %(name)s", name=name)), None,
+                         rollover=f"rollover-{name}" in request.form, since=month)
             budgets.save(name, form_decimal(f"month-{name}", _("Budget di questo mese per %(name)s", name=name)), month)
     except ValueError as exc:
         db.session.rollback()
@@ -71,6 +76,21 @@ def budget_save():
         return redirect(url_for("lifestyle.budget", month=f"{month:%Y-%m}"))
     db.session.commit()
     flash(_("Budget salvati."), "success")
+    return redirect(url_for("lifestyle.budget", month=f"{month:%Y-%m}"))
+
+
+@lifestyle_bp.route("/budget/set-aside", methods=["POST"])
+def budget_set_aside():
+    """Budget the monthly quota of a not-monthly category, carried over month after month until it is spent."""
+    month = _month_arg()
+    category = request.form.get("category") or ""
+    quota = next((item["monthly"] for item in budgets.set_asides() if item["category"] == category), None)
+    if quota is None:
+        flash(_("«%(name)s» non è una categoria di spese non mensili con spese nell'ultimo anno.", name=category), "error")
+    else:
+        budgets.set_aside(category, Decimal(str(quota)), month)
+        db.session.commit()
+        flash(_("«%(name)s»: %(amount)s al mese accantonati, con riporto.", name=category, amount=display.money(quota)), "success")
     return redirect(url_for("lifestyle.budget", month=f"{month:%Y-%m}"))
 
 

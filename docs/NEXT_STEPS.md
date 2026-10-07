@@ -90,6 +90,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   quarterly snapshots; restorable backup + the last weeks of each account as CSV / OFX / CAMT.053 / QIF statements.
   It showed that buying an investment with a transfer left the money in the balance sheet's cash as well as in
   the portfolio: `wealth.cash_balance` now takes it out (and a sale brings it back)
+- **Budget rollover and set-asides** (F7, migration `c3e5a7b9d1f2`): «Riporta» on an every-month budget carries what
+  is left (or overspent) to the next month from the month it was switched on (`budgets.carried`); «Da accantonare»
+  lists the not-monthly categories (F8) with 1/12 of their last 12 months, and budgets that quota with rollover
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

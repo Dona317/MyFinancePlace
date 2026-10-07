@@ -38,12 +38,13 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
 |---|---|---|---|
 | D1 | Unire la PR [#8](https://github.com/Dona317/MyFinancePlace/pull/8) su `main` (verde, senza conflitti; è in bozza) | ⏸ | `main` resta finto finché non si unisce; ogni nuovo ramo parte da qui |
 | D2 | Applicare le misure compatte di `Mapping-Excel`? (ramo senza commit propri: da rifare a mano) | ⏸ | solo estetica, non blocca |
-| D3 | Forma dell'app: web con login (oggi) **o** desktop leggero (exe)? | ⏸ | cambia packaging, auth, aggiornamenti, storage documenti |
+| D3 | ✅ Forma dell'app: **eseguibile desktop** (deciso il 7 ott 2026) | ✅ | apre F16 (confezionamento); F12 (PWA) cade; F11 (dati per utente) poco utile su un PC personale |
 | D4 | Licenza: MIT **o** AGPL | ⏸ | serve prima di rendere pubblico; AGPL impedisce fork chiusi |
 | D5 | Fisco italiano (730, capital gain): puntarci o lasciare ad altri? | ⏸ | decide se il lavoro F-fisco entra nel piano |
+| D7 | Database dell'eseguibile: PostgreSQL incorporato (nessuna modifica al codice, installer più pesante) **o** SQLite (installer leggero, da riscrivere le parti solo Postgres) | ⏸ | decide il lavoro di F16 |
 | D6 | ❌ Partita doppia | ❌ | già scartata (ROADMAP → Scartato) |
 
-Suggerimento di ordine: D1 e D4 sono rapide; D3 va decisa prima di toccare packaging, multi-utente (F10) e PWA (F12).
+Suggerimento di ordine: D1 e D4 sono rapide. D3 è decisa (desktop): F16 parte dalla scelta del database (D7).
 
 ---
 
@@ -72,7 +73,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 
 | ID | Pri | Sforzo | Stato | Funzione | Note |
 |---|---|---|---|---|---|
-| F7 | M | M | ⬜ | **Riporto del budget** al mese dopo + accantonamento per spese annuali | Lo fanno quasi tutti i concorrenti |
+| F7 | M | M | ✅ | **Riporto del budget** al mese dopo + accantonamento per spese annuali | Budget → «Riporta»: avanzo o sforamento passano al mese dopo, dal mese in cui lo accendi; «Da accantonare»: per le categorie non mensili (F8) 1/12 degli ultimi 12 mesi, un clic lo imposta come budget con riporto |
 | F8 | M | S | ✅ | **Categorie fisse / non mensili / variabili** | Natura in Impostazioni → Categorie (le sottocategorie ereditano); Spese e tendenze: barra fisse/non mensili/variabili e quota comprimibile; pallino nel Riepilogo |
 | F9 | M | S | ✅ | **Pagina Abbonamenti** | Previsioni → Abbonamenti: confermati e rilevati, costo mensile/annuo, prossimo addebito, aumenti di prezzo; Conferma, «Non più attivo» / Riattiva; scheda entrate ricorrenti |
 | F10a | M | S | ✅ | **Mesi di autonomia** (liquidità ÷ spesa media) | Dashboard → Salute finanziaria: media degli ultimi 12 mesi completi (almeno 3), anche solo spese fisse e non mensili (F8); obiettivo 3/6/9/12 mesi in Impostazioni |
@@ -83,8 +84,9 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 
 | ID | Pri | Sforzo | Stato | Funzione | Note |
 |---|---|---|---|---|---|
-| F11 | M | L | ⏸ (D3) | **Dati separati per utente** | Oggi tutti vedono tutto; richiede `user_id` o DB per profilo |
-| F12 | B | M | ⏸ (D3) | PWA installabile sul telefono | |
+| F11 | B | L | ⏸ | **Dati separati per utente** | Con D3 = desktop serve solo per più persone sullo stesso PC: per ora no |
+| F12 | — | — | ❌ | PWA installabile sul telefono | Scartata con D3 = desktop |
+| F16 | A | L | ⬜ | **Eseguibile desktop** (D3) | Finestra nativa (pywebview) sul server locale, PyInstaller per Windows/macOS/Linux; il nodo è il database: PostgreSQL incorporato (binari portabili avviati dall'app) **oppure** passaggio a SQLite (da togliere gli `ARRAY`/funzioni solo Postgres). Login facoltativo, dati e documenti nella cartella utente, aggiornamenti |
 | F13 | B | M | ⬜ | Inserimento rapido da tastiera, annulla/ripeti | |
 | F14 | B | M | ⬜ | Notifiche email (scadenze, budget superati) | Serve SMTP configurabile |
 | F15 | B | L | ⏸ (D5) | Fisco italiano (730, capital gain) | Solo se D5 = sì |

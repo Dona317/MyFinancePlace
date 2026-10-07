@@ -9,3 +9,5 @@ class Budget(db.Model):
     category = db.Column(db.Text, nullable=False, index=True)
     month    = db.Column(db.Date)                              # first day of the month; empty = every month
     amount   = db.Column(db.Numeric(38, 2), nullable=False)
+    # Every-month budgets only: from this month on, what is left (or overspent) moves to the next month (F7)
+    rollover_since = db.Column(db.Date)
