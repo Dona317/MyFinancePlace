@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-01 15:00+0000\n"
+"POT-Creation-Date: 2026-10-07 12:08+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -944,6 +944,9 @@ msgstr ""
 
 msgid "Carica il file"
 msgstr "Upload the file"
+
+msgid "Carica un file"
+msgstr "Upload a file"
 
 msgid "Carta di Credito"
 msgstr "Credit Card"
@@ -2142,6 +2145,9 @@ msgstr "Learned"
 msgid "Importa CSV o Excel con mappatura manuale"
 msgstr "Import CSV or Excel with manual mapping"
 
+msgid "Importa CSV, Excel o estratto conto dalla tua banca."
+msgstr "Import a CSV, Excel file or statement from your bank."
+
 msgid "Importa Estratto Conto Bancario"
 msgstr "Import Bank Statement"
 
@@ -2253,6 +2259,9 @@ msgstr "Enter New Transaction"
 
 msgid "Inserisci Nuovo Debito"
 msgstr "Enter New Debt"
+
+msgid "Inserisci a mano una entrata o una spesa."
+msgstr "Enter an income or an expense by hand."
 
 msgid "Installa"
 msgstr "Install"
@@ -4310,6 +4319,9 @@ msgstr "Transaction added."
 
 msgid "Transazione collegata"
 msgstr "Linked transaction"
+
+msgid "Transazione singola"
+msgstr "Single transaction"
 
 #, python-format
 msgid "Transazione «%(description)s» eliminata."

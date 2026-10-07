@@ -87,7 +87,15 @@ def test_sidebar_sections_are_collapsible(client, app):
     assert 'id="sidebar-toggle"' in sidebar and 'class="sidebar-toggle-btn"' in sidebar
     assert 'id="sidebar-open"' in html and 'id="sidebar-open"' not in sidebar
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
-    assert len(re.findall(r'class="nav-item', html)) == len(re.findall(r'<span class="nav-label">', html)) - len(sections)
+    # (the links and the New transaction button; section titles have one too)
+    links = len(re.findall(r'class="nav-item', html)) + len(re.findall(r'class="btn btn-primary nav-new"', html))
+    assert links == len(re.findall(r'<span class="nav-label">', html)) - len(sections)
+    assert 'href="/transactions/add"' in sidebar
+
+
+def test_new_transaction_chooser(client, app):
+    html = client.get("/transactions/add").get_data(as_text=True)
+    assert 'href="/transactions/new"' in html and 'href="/export/#bank-import"' in html
 
 
 def test_theme_toggle_in_topbar(client, app):

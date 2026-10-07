@@ -1093,6 +1093,9 @@ tfoot td {
   /* 68px wide: 12px margin + 12px padding puts the 20px icon box centred at 34px */
   html.sidebar-mini .nav-sub { padding-left: 12px; }
   html.sidebar-mini .sidebar-footer { padding-left: 18px; padding-right: 18px; }
+  /* the New transaction button keeps only its + */
+  html.sidebar-mini .nav-new { padding-left: 0; padding-right: 0; gap: 0; }
+  html.sidebar-mini .nav-new .nav-label { display: none; }
   /* sections become thin separators and are always open: every icon stays reachable */
   html.sidebar-mini .nav-section-title { pointer-events: none; height: 13px; padding-top: 6px; padding-bottom: 6px; border-top-color: var(--clr-sidebar-border); }
   html.sidebar-mini .nav-section.collapsed .nav-section-items { grid-template-rows: 1fr; }
