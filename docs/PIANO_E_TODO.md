@@ -74,7 +74,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 |---|---|---|---|---|---|
 | F7 | M | M | ⬜ | **Riporto del budget** al mese dopo + accantonamento per spese annuali | Lo fanno quasi tutti i concorrenti |
 | F8 | M | S | ✅ | **Categorie fisse / non mensili / variabili** | Natura in Impostazioni → Categorie (le sottocategorie ereditano); Spese e tendenze: barra fisse/non mensili/variabili e quota comprimibile; pallino nel Riepilogo |
-| F9 | M | S | ⬜ | **Pagina Abbonamenti** | I ricorrenti sono già riconosciuti in Previsioni |
+| F9 | M | S | ✅ | **Pagina Abbonamenti** | Previsioni → Abbonamenti: confermati e rilevati, costo mensile/annuo, prossimo addebito, aumenti di prezzo; Conferma, «Non più attivo» / Riattiva; scheda entrate ricorrenti |
 | F10a | M | S | ✅ | **Mesi di autonomia** (liquidità ÷ spesa media) | Dashboard → Salute finanziaria: media degli ultimi 12 mesi completi (almeno 3), anche solo spese fisse e non mensili (F8); obiettivo 3/6/9/12 mesi in Impostazioni |
 | F10b | B | S | ⬜ | **Stabilità delle entrate per fonte** | |
 | F10c | B | M | ⬜ | Heatmap giornaliera a calendario; analisi libera per tag | |

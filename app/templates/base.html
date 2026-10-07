@@ -98,6 +98,10 @@
            class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
           <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">{{ _('Previsioni') }}</span>
         </a>
+        <a href="{{ url_for('subscriptions.index') }}"
+           class="nav-item nav-sub {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
+          <i class="bi bi-arrow-repeat"></i> <span class="nav-label">{{ _('Abbonamenti') }}</span>
+        </a>
         </div></div>
       </div>
 

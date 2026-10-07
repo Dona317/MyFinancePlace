@@ -67,4 +67,5 @@ def mark_recurring(tx_id):
     tx.is_recurring, tx.recurrence = True, frequency
     db.session.commit()
     flash(_("«%(description)s» è ora una transazione ricorrente (%(value)s).", description=tx.description, value=forecast.FREQUENCIES[frequency][0].lower()), "success")
-    return redirect(url_for("forecast.index"))
+    back = request.form.get("next") or ""
+    return redirect(back if back.startswith("/") and not back.startswith("//") else url_for("forecast.index"))

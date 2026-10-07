@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 18:29+0000\n"
+"POT-Creation-Date: 2026-10-07 18:38+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -86,6 +86,10 @@ msgid "%(count)s attivi"
 msgstr "%(count)s active"
 
 #, python-format
+msgid "%(count)s aumenti di prezzo"
+msgstr "%(count)s price increases"
+
+#, python-format
 msgid "%(count)s colonne trovate (intestazione alla riga %(line)s), %(rows)s righe."
 msgstr "%(count)s columns found (header on row %(line)s), %(rows)s rows."
 
@@ -137,6 +141,10 @@ msgid ""
 msgstr ""
 "%(count)s unbooked movements (pending or cancelled) were left out: import the pending ones once the bank has booked "
 "them."
+
+#, python-format
+msgid "%(count)s pagamenti, ultimo il %(last)s"
+msgstr "%(count)s payments, last on %(last)s"
 
 #, python-format
 msgid "%(count)s programmate"
@@ -462,6 +470,12 @@ msgstr "A — Operating cash flow"
 msgid "ANTHROPIC_API_KEY"
 msgstr "ANTHROPIC_API_KEY"
 
+msgid "Abbonamenti"
+msgstr "Subscriptions"
+
+msgid "Abbonamenti e spese fisse"
+msgstr "Subscriptions and fixed costs"
+
 msgid "Accedi"
 msgstr "Sign in"
 
@@ -594,6 +608,9 @@ msgstr ""
 "On %(date)s the app shows <strong>%(app)s</strong>, the statement <strong>%(statement)s</strong>: difference "
 "<strong>%(difference)s</strong>"
 
+msgid "Al mese"
+msgstr "A month"
+
 #, python-format
 msgid "Al modello vanno solo le intestazioni e le prime %(count)s righe"
 msgstr "Only the headers and the first %(count)s rows are sent to the model"
@@ -603,6 +620,9 @@ msgstr "Some rows may be missing or merged: compare with the document."
 
 msgid "Alcuni movimenti risultano già importati: ricarica il file e riprova."
 msgstr "Some movements were already imported: reload the file and try again."
+
+msgid "All'anno"
+msgstr "A year"
 
 msgid "Allocazione per Classe"
 msgstr "Allocation by Class"
@@ -750,6 +770,9 @@ msgstr "Active"
 
 msgid "Attiva la classificazione AI"
 msgstr "Turn on AI classification"
+
+msgid "Attivi"
+msgstr "Active"
 
 msgid "Attività"
 msgstr "Assets"
@@ -1525,6 +1548,9 @@ msgstr "Turning a module off hides it from the sidebar and the navigation"
 msgid "Disattivata"
 msgstr "Off"
 
+msgid "Disdetto: non compare più nelle previsioni"
+msgstr "Cancelled: no longer in the forecast"
+
 msgid "Distanza date"
 msgstr "Date distance"
 
@@ -1681,6 +1707,9 @@ msgstr "Income by category over time"
 
 msgid "Entrate previste"
 msgstr "Expected income"
+
+msgid "Entrate ricorrenti"
+msgstr "Recurring income"
 
 msgid "Entrate storiche"
 msgstr "Past income"
@@ -2510,6 +2539,9 @@ msgstr ""
 msgid "Le scelte vengono ricordate"
 msgstr "Your choices are remembered"
 
+msgid "Le serie segnate come ricorrenti e quelle che lo sembrano (stessa descrizione, ritmo regolare, importo stabile)"
+msgstr "Series flagged as recurring and those that look recurring (same description, regular rhythm, stable amount)"
+
 #, python-format
 msgid "Le transazioni del %(year)s: cambia l'anno fiscale e salva per vederne altre."
 msgstr "The transactions of %(year)s: change the tax year and save to see others."
@@ -2992,6 +3024,13 @@ msgstr "No expiry"
 msgid "Nessuna serie ricorrente da confermare."
 msgstr "No recurring series to confirm."
 
+msgid ""
+"Nessuna serie ricorrente. Segna come ricorrente una transazione (affitto, Netflix, stipendio) o importa qualche mese "
+"di movimenti: le serie regolari compaiono qui da sole."
+msgstr ""
+"No recurring series. Flag a transaction as recurring (rent, Netflix, salary) or import a few months of transactions: "
+"regular series show up here by themselves."
+
 msgid "Nessuna spesa in questo periodo."
 msgstr "No spending in this period."
 
@@ -3079,6 +3118,9 @@ msgstr "Not installed"
 
 msgid "Non mensile"
 msgstr "Not monthly"
+
+msgid "Non più attivo"
+msgstr "No longer active"
 
 msgid "Non puoi eliminare il tuo stesso utente."
 msgstr "You cannot delete your own user."
@@ -3578,6 +3620,10 @@ msgstr "Before importing you can check and edit every movement."
 msgid "Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10."
 msgstr "Before every restore the app saves the data about to be replaced. The last 10 are kept."
 
+#, python-format
+msgid "Prima: %(amount)s"
+msgstr "Before: %(amount)s"
+
 msgid "Primo avvio"
 msgstr "First start"
 
@@ -3604,6 +3650,13 @@ msgstr "Next Expiry"
 
 msgid "Prossime ricorrenti"
 msgstr "Upcoming recurring"
+
+#, python-format
+msgid "Prossimi %(days)s giorni"
+msgstr "Next %(days)s days"
+
+msgid "Prossimo"
+msgstr "Next"
 
 msgid "Provider"
 msgstr "Provider"
@@ -3744,6 +3797,9 @@ msgstr "Regression line over the last N months, projected forward: catches risin
 
 msgid "Revolut:"
 msgstr "Revolut:"
+
+msgid "Riattiva"
+msgstr "Resume"
 
 msgid "Ricarica questa pagina e installa un modello dal catalogo, oppure da terminale:"
 msgstr "Reload this page and install a model from the catalog, or from a terminal:"
@@ -4358,6 +4414,10 @@ msgstr "Dark theme for the whole interface — coming soon"
 msgid "Tenuta 1 transazione, eliminati %(count)s duplicati."
 msgstr "Kept 1 transaction, deleted %(count)s duplicates."
 
+#, python-format
+msgid "Terminati (%(count)s)"
+msgstr "Ended (%(count)s)"
+
 msgid "Ticker"
 msgstr "Ticker"
 
@@ -4607,6 +4667,9 @@ msgstr "Last sign-in"
 msgid "Ultimo importo"
 msgstr "Latest amount"
 
+msgid "Ultimo pagamento"
+msgstr "Last payment"
+
 msgid "Un file"
 msgstr "One file"
 
@@ -4668,6 +4731,9 @@ msgstr "Cumulative expenses"
 
 msgid "Uscite del mese"
 msgstr "Expenses of the month"
+
+msgid "Uscite o entrate ricorrenti"
+msgstr "Recurring expenses or income"
 
 msgid "Uscite per categoria"
 msgstr "Expenses by category"
@@ -4812,6 +4878,9 @@ msgstr "Yen"
 msgid "Złoty"
 msgstr "Złoty"
 
+msgid "ai prezzi attuali"
+msgstr "at current prices"
+
 msgid "ai prezzi più recenti"
 msgstr "at the latest prices"
 
@@ -4868,6 +4937,9 @@ msgstr "value in euro"
 msgid "curl -fsSL https://ollama.com/install.sh | sh"
 msgstr "curl -fsSL https://ollama.com/install.sh | sh"
 
+msgid "da confermare"
+msgstr "to confirm"
+
 msgid "da confermare (AI)"
 msgstr "to confirm (AI)"
 
@@ -4921,6 +4993,9 @@ msgstr "income"
 
 msgid "entrate con categoria «Dividendi» o «Cedole»"
 msgstr "income with category «Dividendi» or «Cedole»"
+
+msgid "equivalente mensile"
+msgstr "monthly equivalent"
 
 msgid "es. 0,92"
 msgstr "e.g. 0.92"
@@ -5029,6 +5104,9 @@ msgstr "in the file"
 
 msgid "nelle categorie con budget"
 msgstr "in the categories with a budget"
+
+msgid "nessun aumento di prezzo"
+msgstr "no price increases"
 
 msgid "nessun budget"
 msgstr "no budget"
@@ -5170,11 +5248,17 @@ msgstr "rate %(rate)s%%"
 msgid "testo"
 msgstr "text"
 
+msgid "transazioni"
+msgstr "transactions"
+
 msgid "tu"
 msgstr "you"
 
 msgid "tutte assegnate"
 msgstr "all assigned"
+
+msgid "tutti confermati"
+msgstr "all confirmed"
 
 msgid "uguale al prezzo di acquisto"
 msgstr "same as the purchase price"
@@ -5201,6 +5285,18 @@ msgstr "vs %(year)s"
 
 msgid "vuoto = lo stesso"
 msgstr "empty = unchanged"
+
+#, python-format
+msgid "«%(description)s» di nuovo attivo."
+msgstr "«%(description)s» active again."
+
+#, python-format
+msgid "«%(description)s» non è più attivo?"
+msgstr "Is «%(description)s» no longer active?"
+
+#, python-format
+msgid "«%(description)s» segnato come non più attivo: non compare più nelle previsioni."
+msgstr "«%(description)s» marked as no longer active: it is no longer in the forecast."
 
 #, python-format
 msgid "«%(description)s» è ora una transazione ricorrente (%(value)s)."

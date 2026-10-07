@@ -76,6 +76,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   Spese e tendenze shows the split of the year's spending and what can be cut; the Riepilogo marks each expense row
 - **Months of autonomy** (F10a, `analytics.autonomy`): liquid money ÷ average spending of the last 12 complete
   months (at least 3), also for fixed and not monthly costs only; the target (3/6/9/12 months) is a setting
+- **Subscriptions page** (F9, `/subscriptions`, `services/subscriptions.py`): flagged and detected recurring
+  series with monthly/yearly cost, next charge, last payment and price change; confirm a detected one, end a
+  series on its last payment («Non più attivo», `recurrence_end`) or resume it; recurring income on its own tab
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
