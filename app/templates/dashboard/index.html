@@ -214,6 +214,20 @@
 </div>
 {% endif %}
 
+{% if settings.dashboard_savings_trend and savings.year_rate is not none %}
+<div class="card mb-16 savings-trend">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Tasso di risparmio mese per mese') }}</div>
+    <div class="card-header-sub">
+      {{ _('Quanto resta delle entrate di ogni mese') }} ·
+      <strong>{{ year }}: {{ savings.year_rate|number(1) }}%</strong>
+      {% if savings.previous_rate is not none %} · {{ year - 1 }}: {{ savings.previous_rate|number(1) }}%{% endif %}
+    </div>
+  </div></div>
+  <div class="card-body"><div class="chart-container" style="height:240px;"><canvas id="savingsChart"></canvas></div></div>
+</div>
+{% endif %}
+
 <!-- Bottom Row ───────────────────────────────────────────────────────────── -->
 {% if settings.dashboard_recent_tx or settings.dashboard_health %}
 <div style="display:grid;grid-template-columns:{% if settings.dashboard_recent_tx and settings.dashboard_health %}1fr 1fr 1fr{% else %}1fr{% endif %};gap:16px;">
@@ -354,6 +368,14 @@ makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, 
   [{ label: {{ year|tojson }}, data: [netSeries.total_income, netSeries.total_expenses, yearNet],
      colors: ['positive', 'negative', yearNet < 0 ? 'negative' : 'primary'] }],
   { legend: false });
+{% endif %}
+
+{% if settings.dashboard_savings_trend and savings.year_rate is not none %}
+const savings = {{ savings|tojson }};
+makeLineChart('savingsChart', savings.labels, [
+  { label: {{ year|string|tojson }}, data: savings.current, color: 'primary', fill: false },
+  ...(savings.previous ? [{ label: {{ (year - 1)|string|tojson }}, data: savings.previous, color: 'neutral', fill: false, dash: [6, 4], pointRadius: 2 }] : []),
+], { percent: true });
 {% endif %}
 
 {% if settings.dashboard_cumulative %}

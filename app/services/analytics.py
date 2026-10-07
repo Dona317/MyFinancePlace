@@ -104,6 +104,24 @@ def monthly_series(year: int) -> dict:
     return {"labels": month_labels(), "income": income, "expenses": expenses, "net": net}
 
 
+def savings_rates(year: int, months: int = 12) -> dict:
+    """
+    Savings rate of each month of `year` (first `months` months) and of the same months of the year before;
+    None where a month had no income (a gap in the line, not a misleading 0%). `previous` is None when the year
+    before has no income at all. `year_rate` / `previous_rate`: on the totals of those same months.
+    """
+    def rates(series):
+        pairs = list(zip(series["income"][:months], series["expenses"][:months]))
+        monthly = [savings_rate(i, e) if i > 0 else None for i, e in pairs]
+        income, expenses = sum(i for i, _ in pairs), sum(e for _, e in pairs)
+        return monthly, (savings_rate(income, expenses) if income > 0 else None)
+
+    current, year_rate = rates(monthly_series(year))
+    previous, previous_rate = rates(monthly_series(year - 1))
+    return {"labels": month_labels()[:months], "current": current, "year_rate": year_rate,
+            "previous": previous if previous_rate is not None else None, "previous_rate": previous_rate}
+
+
 def last_12_months(today: date | None = None) -> dict:
     """Income / expenses for the 12 months ending with the month of `today`."""
     today = today or date.today()

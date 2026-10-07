@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 12:08+0000\n"
+"POT-Creation-Date: 2026-10-07 16:44+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2404,6 +2404,9 @@ msgstr "Reading with artificial intelligence is not active (LLM_PROVIDER)."
 msgid "La lettura si è interrotta prima di finire (l'applicazione è stata riavviata)."
 msgstr "The reading stopped before finishing (the application was restarted)."
 
+msgid "La parte delle entrate di ogni mese che resta, confrontata con l'anno prima"
+msgstr "The share of each month's income left over, compared with the year before"
+
 msgid "La password attuale non è corretta."
 msgstr "The current password is not correct."
 
@@ -3527,6 +3530,9 @@ msgstr "How many recent full months to use to estimate variable spending and inc
 msgid "Quantità"
 msgstr "Quantity"
 
+msgid "Quanto resta delle entrate di ogni mese"
+msgstr "How much of each month's income is left"
+
 msgid "Quest'anno"
 msgstr "This year"
 
@@ -4204,6 +4210,9 @@ msgstr "Savings Rate"
 
 msgid "Tasso di risparmio"
 msgstr "Savings rate"
+
+msgid "Tasso di risparmio mese per mese"
+msgstr "Savings rate month by month"
 
 msgid "Tema scuro per l'intera interfaccia — disponibile prossimamente"
 msgstr "Dark theme for the whole interface — coming soon"

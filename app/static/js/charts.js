@@ -70,13 +70,15 @@ document.addEventListener("mfp:themechange", () => {
  * @param {string[]} labels
  * @param {Array<{label, data, color?}>} datasets
  */
-function makeLineChart(canvasId, labels, datasets) {
+function makeLineChart(canvasId, labels, datasets, opts = {}) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return null;
-  return registerChart(buildLineChart(ctx, labels, datasets), () => buildLineChart(ctx, labels, datasets));
+  return registerChart(buildLineChart(ctx, labels, datasets, opts), () => buildLineChart(ctx, labels, datasets, opts));
 }
 
-function buildLineChart(ctx, labels, datasets) {
+function buildLineChart(ctx, labels, datasets, opts = {}) {
+  // opts.percent: values are percentages (axis and tooltip with %)
+  const percent = (v) => (v === null || v === undefined) ? "—" : `${Number(v).toLocaleString(document.documentElement.dataset.locale || "it-IT", { maximumFractionDigits: 1 })}%`;
   return new Chart(ctx, {
     type: "line",
     data: {
@@ -98,10 +100,14 @@ function buildLineChart(ctx, labels, datasets) {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: "index", intersect: false },
-      plugins: { legend: { labels: { filter: item => !datasets[item.datasetIndex].noLegend } } },
+      plugins: {
+        legend: { labels: { filter: item => !datasets[item.datasetIndex].noLegend } },
+        ...(opts.percent ? { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${percent(c.raw)}` } } } : {}),
+      },
+      spanGaps: false,
       scales: {
         x: { grid: { color: Theme.border }, ticks: { color: Theme.textMuted } },
-        y: { grid: { color: Theme.border }, ticks: { color: Theme.textMuted } },
+        y: { grid: { color: Theme.border }, ticks: { color: Theme.textMuted, ...(opts.percent ? { callback: percent } : {}) } },
       },
     },
   });

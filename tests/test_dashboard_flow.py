@@ -63,3 +63,26 @@ def test_dashboard_shows_the_new_charts_and_they_can_be_hidden(client, db):
     client.post("/settings/save", data={})  # every checkbox unticked
     html = client.get("/dashboard?year=2026").get_data(as_text=True)
     assert 'class="sankey"' not in html and 'id="netChart"' not in html
+
+
+def test_savings_rate_month_by_month(app, db):
+    _year(db)
+    with app.test_request_context():
+        rates = analytics.savings_rates(2026, 3)
+    assert rates["current"] == [60.0, 40.0, None]  # January 2000 − 800, February 500 − 300, March no income
+    assert rates["year_rate"] == 56.0 and rates["previous"] is None and rates["previous_rate"] is None
+    db.session.add_all([make_tx(date=date(2025, 1, 10), category="Stipendio", type="income", amount=1000),
+                        make_tx(date=date(2025, 1, 12), category="Casa", amount=900)])
+    db.session.commit()
+    with app.test_request_context():
+        rates = analytics.savings_rates(2026, 3)
+    assert rates["previous"] == [10.0, None, None] and rates["previous_rate"] == 10.0
+
+
+def test_savings_rate_card_and_its_switch(client, db):
+    _year(db)
+    html = client.get("/dashboard?year=2026").get_data(as_text=True)
+    assert 'id="savingsChart"' in html and "2026: 56%" in html
+    client.post("/settings/save", data={"dashboard_net": "on"})
+    html = client.get("/dashboard?year=2026").get_data(as_text=True)
+    assert 'id="savingsChart"' not in html and 'id="netChart"' in html

@@ -36,6 +36,7 @@ DEFAULT_SETTINGS = {
     "dashboard_category_trends": True,
     "dashboard_cumulative":     True,
     "dashboard_net":            True,
+    "dashboard_savings_trend":  True,
     "dashboard_sankey":         True,
     "dashboard_recent_tx":      True,
     "dashboard_health":         True,
