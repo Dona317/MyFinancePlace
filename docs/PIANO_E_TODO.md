@@ -56,7 +56,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 
 | ID | Pri | Sforzo | Stato | Funzione | Note |
 |---|---|---|---|---|---|
-| F1 | A | L | ⬜ | **Transazioni suddivise** su più categorie | Tocca modello, migrazione, form, budget, report, import, export, backup. Decidere se una riga = N "quote" (`transaction_splits`) |
+| F1 | A | L | ✅ | **Transazioni suddivise** su più categorie | «Suddividi» nel modulo; tabella `transaction_splits`; ogni somma per categoria conta le parti; API, export e backup inclusi |
 | F2 | A | M | ✅ | **Tabella Riepilogo** categoria × mese con heatmap | Report → Riepilogo: sottocategorie, totale, media, Δ% sull'anno prima, netto e tasso di risparmio; ogni cella apre le transazioni; CSV |
 | F3 | A | S | ✅ | **Tasso di risparmio** mese per mese + confronto anno precedente | Dashboard: card «Tasso di risparmio mese per mese» (interruttore in Impostazioni); riga nel Riepilogo con F2 |
 

@@ -5,8 +5,9 @@ category, the transactions grouped by day and a summary. Amounts are in the base
 from datetime import date, timedelta
 
 from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 
-from app.models.transaction import Transaction
+from app.models.transaction import Transaction, TransactionSplit
 from app.services import categories
 from app.services.analytics import UNCATEGORIZED, breakdown  # noqa: F401  (reports.breakdown)
 from app.services.i18n import _l
@@ -54,9 +55,14 @@ def base_query(start: date, end: date, account: str = ""):
     return query
 
 
+def value(tx: Transaction) -> float:
+    """What the transaction counts for in the list: with a category filter, only its parts in that category."""
+    return getattr(tx, "shown_value", tx.magnitude)
+
+
 def signed(tx: Transaction) -> float:
     """Value with its direction: income positive, expense negative, transfer counted as zero."""
-    return {"income": 1, "expense": -1}.get(tx.type, 0) * tx.magnitude
+    return {"income": 1, "expense": -1}.get(tx.type, 0) * value(tx)
 
 
 def transactions(query, tx_type: str | None, category: str | None, sort: str = "date") -> list[Transaction]:
@@ -64,12 +70,20 @@ def transactions(query, tx_type: str | None, category: str | None, sort: str = "
         query = query.filter(Transaction.type == tx_type)
     else:
         query = query.filter(Transaction.type.in_(("income", "expense")))
-    if category:  # a main category covers its subcategories too
-        query = query.filter(Transaction.category.is_(None) if category == UNCATEGORIZED
-                             else Transaction.category.in_(categories.with_children(category)))
+    query = query.options(selectinload(Transaction.splits))
+    if category:  # a main category covers its subcategories too; a split transaction matches by any of its parts
+        names = None if category == UNCATEGORIZED else categories.with_children(category)
+        in_names = (lambda column: column.is_(None)) if names is None else (lambda column: column.in_(names))
+        query = query.filter(in_names(Transaction.category)
+                             | Transaction.splits.any(in_names(TransactionSplit.category)))
     if sort == "amount":
-        return query.order_by(func.abs(Transaction.amount_base).desc(), Transaction.date.desc()).all()
-    return query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
+        rows = query.order_by(func.abs(Transaction.amount_base).desc(), Transaction.date.desc()).all()
+    else:
+        rows = query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
+    if category:
+        for tx in rows:
+            tx.shown_value = sum(v for c, v in tx.parts() if (c is None if names is None else c in names))
+    return rows
 
 
 def by_day(rows: list[Transaction]) -> list[dict]:
@@ -84,8 +98,8 @@ def by_day(rows: list[Transaction]) -> list[dict]:
 
 def summary(rows: list[Transaction]) -> dict:
     """Count, largest, average and total of the transactions (magnitudes: they are all of one kind)."""
-    values = [tx.magnitude for tx in rows]
-    largest = max(rows, key=lambda tx: tx.magnitude) if rows else None
+    values = [value(tx) for tx in rows]
+    largest = max(rows, key=value) if rows else None
     return {"count": len(rows), "largest": largest, "average": sum(values) / len(values) if values else 0.0,
             "total": sum(values)}
 

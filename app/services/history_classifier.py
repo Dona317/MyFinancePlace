@@ -84,7 +84,7 @@ def index() -> _Index | None:
         rows = (db.session.query(Transaction.description, Transaction.counterparty, Transaction.bank_description,
                                  Transaction.category, Transaction.type)
                 .filter(Transaction.type.in_(("income", "expense")), Transaction.category.isnot(None),
-                        Transaction.category.notin_(IGNORED))
+                        Transaction.category.notin_(IGNORED), ~Transaction.splits.any())  # one causale, one category
                 .all())
         store["history_index"] = _Index(rows)
     return store["history_index"]

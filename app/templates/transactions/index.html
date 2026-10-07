@@ -141,7 +141,9 @@
               <i class="bi bi-bank"></i> {{ tx.bank_description|truncate(90) }}</div>
             {% endif %}
           </td>
-          <td>{% if tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}</td>
+          <td>{% if tx.splits %}<span class="badge badge-primary" title="{% for s in tx.splits %}{{ s.category }} {{ s.amount|number }}{{ '; ' if not loop.last }}{% endfor %}">{{ tx.splits|map(attribute='category')|join(' + ') }}</span>
+              <span class="badge badge-neutral">{{ _('suddivisa') }}</span>
+            {% elif tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}</td>
           <td class="tag-cell">
             {% for tag in tx.tags %}
             {% if tag == ai_tag %}

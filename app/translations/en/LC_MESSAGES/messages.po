@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 16:52+0000\n"
+"POT-Creation-Date: 2026-10-07 17:07+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -567,6 +567,9 @@ msgstr "Add an exchange rate"
 msgid "Aggiungi un utente"
 msgstr "Add a user"
 
+msgid "Aggiungi una parte"
+msgstr "Add a part"
+
 msgid "Aggiungi una posizione per vedere come è ripartito il patrimonio."
 msgstr "Add a holding to see how your wealth is split."
 
@@ -985,6 +988,9 @@ msgstr "Top Category"
 msgid "Categoria attuale"
 msgstr "Current category"
 
+msgid "Categoria della parte"
+msgstr "Category of the part"
+
 #, python-format
 msgid "Categoria principale di %(name)s"
 msgstr "Main category of %(name)s"
@@ -1368,6 +1374,10 @@ msgstr "From"
 
 msgid "Da Mettere da Parte"
 msgstr "To Set Aside"
+
+#, python-brace-format
+msgid "Da assegnare: {amount}"
+msgstr "Left to assign: {amount}"
 
 #, python-format
 msgid "Da confermare (AI): %(count)s"
@@ -2192,6 +2202,9 @@ msgstr "Amount credited to the receiving account"
 
 msgid "Importo addebitato sul conto"
 msgstr "Amount charged to the account"
+
+msgid "Importo della parte"
+msgstr "Amount of the part"
 
 msgid "Importo obiettivo"
 msgstr "Target amount"
@@ -3199,6 +3212,10 @@ msgstr "Ollama is not reachable at %(base_url)s: is it installed and running (`o
 #, python-format
 msgid "Oltre il 20%% sopra la media"
 msgstr "More than 20%% above the average"
+
+#, python-brace-format
+msgid "Oltre l'importo: {amount}"
+msgstr "Over the amount: {amount}"
 
 msgid "Ordina"
 msgstr "Sort"
@@ -4209,6 +4226,31 @@ msgstr "Instrument"
 msgid "Subtotale"
 msgstr "Subtotal"
 
+msgid "Suddividi"
+msgstr "Split"
+
+msgid "Suddivisione su più categorie"
+msgstr "Split across categories"
+
+#, python-format
+msgid "Suddivisione, riga %(n)s: l'importo deve essere positivo."
+msgstr "Split, row %(n)s: the amount must be positive."
+
+#, python-format
+msgid "Suddivisione, riga %(n)s: scegli una categoria."
+msgstr "Split, row %(n)s: choose a category."
+
+#, python-format
+msgid "Suddivisione, riga %(n)s: «%(raw)s» non è un importo."
+msgstr "Split, row %(n)s: “%(raw)s” is not an amount."
+
+#, python-format
+msgid "Suddivisione: le parti fanno %(parts)s ma l'importo è %(total)s."
+msgstr "Split: the parts add up to %(parts)s but the amount is %(total)s."
+
+msgid "Suddivisione: un trasferimento tra conti non si suddivide in categorie."
+msgstr "Split: a transfer between accounts is not split into categories."
+
 #, python-format
 msgid "Suggerito dall'AI (confidenza %(level)s)"
 msgstr "Suggested by AI (confidence %(level)s)"
@@ -4293,6 +4335,9 @@ msgstr "Remove the filter"
 
 msgid "Togli il tag"
 msgstr "Remove the tag"
+
+msgid "Togli questa parte"
+msgstr "Remove this part"
 
 msgid "Torna alle Istantanee"
 msgstr "Back to Snapshots"
@@ -4476,6 +4521,9 @@ msgstr ""
 msgid "Tutti i tipi"
 msgstr "All types"
 
+msgid "Tutto assegnato"
+msgstr "All assigned"
+
 #, python-format
 msgid "Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto."
 msgstr "Everything matches: on %(date)s the app balance is %(amount)s, as on the statement."
@@ -4522,6 +4570,9 @@ msgstr ""
 
 msgid "Una categoria non può essere sottocategoria di sé stessa."
 msgstr "A category cannot be a subcategory of itself."
+
+msgid "Una sola categoria"
+msgstr "One category only"
 
 msgid "Una transazione del file non ha data, descrizione o importo."
 msgstr "A transaction in the file has no date, description or amount."
@@ -4800,6 +4851,10 @@ msgid "dettaglio"
 msgstr "details"
 
 #, python-format
+msgid "di %(total)s"
+msgstr "of %(total)s"
+
+#, python-format
 msgid "di cui ricorrenti %(amount)s"
 msgstr "of which recurring %(amount)s"
 
@@ -5045,6 +5100,9 @@ msgstr "out of %(amount)s of goals"
 #, python-format
 msgid "su %(total)s transazioni, dal modello"
 msgstr "out of %(total)s transactions, from the model"
+
+msgid "suddivisa"
+msgstr "split"
 
 #, python-format
 msgid "tasso %(rate)s%%"

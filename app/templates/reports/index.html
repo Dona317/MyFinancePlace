@@ -140,7 +140,9 @@
         <span class="report-row-desc">{{ tx.description }}</span>
         <span class="report-row-cat">{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% endif %}</span>
         <span class="report-row-account">{{ account_names.get(tx.account_id, '') }}</span>
-        <span class="amount {{ tx.type|tone }}">{{ ('+' if tx.type == 'income' else '−') }}{{ tx.magnitude|money }}</span>
+        {% set part = tx.shown_value if tx.shown_value is defined else tx.magnitude %}
+        <span class="amount {{ tx.type|tone }}">{{ ('+' if tx.type == 'income' else '−') }}{{ part|money }}{% if part|round(2) != tx.magnitude|round(2) %}
+          <small class="text-muted">{{ _('di %(total)s', total=tx.magnitude|money) }}</small>{% endif %}</span>
       </a>
       {% endmacro %}
       {% if days %}
@@ -163,7 +165,7 @@
       <dl>
         {% if summary %}
         <div><dt>{{ _('Transazioni') }}</dt><dd>{{ summary.count }}</dd></div>
-        <div><dt>{{ _('La più alta') }}</dt><dd>{{ summary.largest.magnitude|money if summary.largest else '—' }}</dd></div>
+        <div><dt>{{ _('La più alta') }}</dt><dd>{{ (summary.largest.shown_value if summary.largest.shown_value is defined else summary.largest.magnitude)|money if summary.largest else '—' }}</dd></div>
         {% if summary.largest %}<div class="report-summary-note">{{ summary.largest.description }} · {{ summary.largest.date|it_date }}</div>{% endif %}
         <div><dt>{{ _('Media') }}</dt><dd>{{ summary.average|money }}</dd></div>
         <div class="report-summary-total"><dt>{{ _('Totale spese') if f.tab == 'spending' else _('Totale entrate') }}</dt><dd>{{ summary.total|money }}</dd></div>

@@ -23,6 +23,8 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from statistics import mean, median
 
+from sqlalchemy.orm import selectinload
+
 from app.models.transaction import Transaction
 from app.services import settings_store
 from app.services.analytics import UNCATEGORIZED
@@ -338,7 +340,8 @@ def _variable_series(transactions, first: int, last: int, excluded_keys: set) ->
             continue
         i = month_index(tx.date)
         if first <= i <= last:
-            series[(tx.type, tx.category or UNCATEGORIZED)][i - first] += tx.magnitude
+            for category, amount in tx.parts():  # a split transaction counts in each of its categories
+                series[(tx.type, category or UNCATEGORIZED)][i - first] += amount
     return series
 
 
@@ -497,7 +500,8 @@ def build(transactions, method: str, window: int, horizon: int, today: date, rec
         averages = defaultdict(float)
         for tx in real:
             if month_index(tx.date) in window_months:
-                averages[(tx.type, tx.category or UNCATEGORIZED)] += tx.magnitude
+                for category, amount in tx.parts():
+                    averages[(tx.type, category or UNCATEGORIZED)] += amount
         n_months = max(len(window_months), 1)
         var_next = {key: predict(method, values, 2, window)[1] for key, values in variable.items()}
         keys = set(averages) | set(var_next) | set(scheduled.get(nxt, {}))
@@ -524,5 +528,6 @@ def build(transactions, method: str, window: int, horizon: int, today: date, rec
 
 def load(method: str, window: int, horizon: int, recurring: str = DEFAULT_RECURRING, today: date | None = None) -> Forecast:
     today = today or date.today()
-    transactions = Transaction.query.filter(Transaction.type.in_(["income", "expense"])).all()
+    transactions = (Transaction.query.filter(Transaction.type.in_(["income", "expense"]))
+                    .options(selectinload(Transaction.splits)).all())
     return build(transactions, method, window, horizon, today, recurring)

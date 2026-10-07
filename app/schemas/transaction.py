@@ -6,6 +6,16 @@ TRANSACTION_TYPES = ["income", "expense", "transfer"]
 RECURRENCES       = ["weekly", "monthly", "quarterly", "yearly"]
 
 
+class SplitIn(Schema):
+    category = String(required=True, validate=Length(min=1), metadata={"example": "Spesa"})
+    amount   = Float(required=True, validate=Range(min=0.01), metadata={"example": 70})
+
+
+class SplitOut(Schema):
+    category = String()
+    amount   = Float()
+
+
 class TransactionIn(Schema):
     description     = String(required=True,  validate=Length(min=1), metadata={"example": "Grocery shopping"})
     amount          = Float(required=True,   validate=Range(min=0.01), metadata={"example": 49.99})
@@ -26,6 +36,8 @@ class TransactionIn(Schema):
                             metadata={"description": "Importo nella valuta del conto, se diversa da `currency`"})
     counter_amount  = Float(allow_none=True, validate=Range(min=0),
                             metadata={"description": "Importo nella valuta del conto d'arrivo, se diversa"})
+    splits          = List(Nested(SplitIn), metadata={
+        "description": "Suddivisione su più categorie (≥ 2 parti che sommano all'importo); lista vuota = nessuna"})
 
 
 class TransactionOut(Schema):
@@ -47,6 +59,7 @@ class TransactionOut(Schema):
     account_amount  = Float()
     counter_amount  = Float()
     bank_description = String(metadata={"description": "Causale originale della banca (solo lettura)"})
+    splits          = List(Nested(SplitOut))
 
 
 class TransactionListOut(Schema):

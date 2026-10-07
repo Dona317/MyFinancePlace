@@ -5,14 +5,16 @@ import csv
 import io
 from datetime import date, datetime
 
+from sqlalchemy.orm import selectinload
+
 from app.models.transaction import Transaction
-from app.services import categories
+from app.services import categories, display
 from app.services.periods import month_bounds, year_bounds
 from flask_babel import gettext as _
 
 EXPORT_FIELDS = [
     "id", "date", "description", "amount", "currency", "type", "category", "main_category",
-    "counterparty", "tags", "is_recurring", "recurrence", "recurrence_end", "notes", "bank_description",
+    "counterparty", "tags", "is_recurring", "recurrence", "recurrence_end", "notes", "bank_description", "splits",
 ]
 
 TAX_TAGS = {"deducibile", "detraibile", "fiscale"}
@@ -32,7 +34,7 @@ def period_bounds(period: str, today: date | None = None) -> tuple[date | None, 
 
 
 def query_transactions(start: date | None = None, end: date | None = None):
-    query = Transaction.query
+    query = Transaction.query.options(selectinload(Transaction.splits))
     if start:
         query = query.filter(Transaction.date >= start)
     if end:
@@ -57,6 +59,8 @@ def tx_to_dict(tx: Transaction) -> dict:
         "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else None,
         "notes": tx.notes,
         "bank_description": tx.bank_description,
+        # a split transaction: its parts (category, amount); [] for the others
+        "splits": [{"category": s.category, "amount": float(s.amount)} for s in tx.splits],
     }
 
 
@@ -67,6 +71,7 @@ def to_csv(transactions) -> str:
     for tx in transactions:
         row = tx_to_dict(tx)
         row["tags"] = ", ".join(row["tags"])
+        row["splits"] = "; ".join(f"{s['category']} {display.number(s['amount'])}" for s in row["splits"])
         writer.writerow(row)
     return buffer.getvalue()
 

@@ -39,6 +39,17 @@ class Transaction(db.Model):
     # the pages that read the whole history
     account         = db.relationship("Account", foreign_keys=[account_id])
     counter_account = db.relationship("Account", foreign_keys=[counter_account_id])
+    # A split transaction: its amount divided across categories (70 Spesa + 30 Casa); `category` is then the
+    # category of the largest part, so lists and filters keep working
+    splits = db.relationship("TransactionSplit", back_populates="transaction", cascade="all, delete-orphan",
+                             passive_deletes=True, order_by="TransactionSplit.id")
+
+    def parts(self) -> list[tuple[str | None, float]]:
+        """(category, value in euro) of each part: the splits, or the whole transaction under its category."""
+        if not self.splits:
+            return [(self.category, self.magnitude)]
+        whole = abs(float(self.amount or 0))
+        return [(s.category, self.magnitude * abs(float(s.amount)) / whole if whole else 0.0) for s in self.splits]
 
     @property
     def magnitude(self) -> float:
@@ -52,3 +63,15 @@ class Transaction(db.Model):
 
     def __repr__(self):
         return f"<Transaction {self.id} {self.description}>"
+
+
+class TransactionSplit(db.Model):
+    """One part of a split transaction: a category and its amount (positive, in the transaction's currency)."""
+    __tablename__ = "transaction_splits"
+
+    id             = db.Column(db.Integer, primary_key=True)
+    transaction_id = db.Column(db.Integer, db.ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True)
+    category       = db.Column(db.Text)
+    amount         = db.Column(db.Numeric(38, 2), nullable=False)
+
+    transaction = db.relationship("Transaction", back_populates="splits")

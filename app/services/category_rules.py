@@ -79,7 +79,7 @@ def learn(counterparty: str | None, category: str | None) -> CategoryRule | None
 
 def apply(only_uncategorized: bool = True) -> int:
     """Categorize existing transactions with the rules (by default only those without a category or in "Altro")."""
-    query = Transaction.query
+    query = Transaction.query.filter(~Transaction.splits.any())  # a split made by hand is never overwritten
     if only_uncategorized:
         query = query.filter((Transaction.category.is_(None)) | (Transaction.category == "Altro"))
     changed = 0

@@ -73,14 +73,42 @@
           {% endif %}
         </div>
 
-        <!-- Categoria ───────────────────────────────────────────────── -->
-        <div class="form-group">
-          <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
-          <select id="f-category" name="category" class="form-select">
+        <!-- Categoria (or split across several) ─────────────────────── -->
+        {% macro split_row(category='', amount='') %}
+        <div class="split-row">
+          <select name="split_category" class="form-select" aria-label="{{ _('Categoria della parte') }}">
+            <option value="">{{ _('— Seleziona —') }}</option>
+            {{ f.category_options(categories, category) }}
+          </select>
+          <input type="text" inputmode="decimal" name="split_amount" class="form-control split-amount" value="{{ amount }}"
+                 placeholder="0,00" autocomplete="off" aria-label="{{ _('Importo della parte') }}" />
+          <button type="button" class="btn btn-ghost btn-icon btn-sm split-remove" title="{{ _('Togli questa parte') }}"
+                  aria-label="{{ _('Togli questa parte') }}"><i class="bi bi-x-lg"></i></button>
+        </div>
+        {% endmacro %}
+        {% set split_open = v.splits|length >= 2 %}
+        <div class="form-group" id="category-single" {% if split_open %}hidden{% endif %}>
+          <div class="d-flex align-center" style="justify-content:space-between;gap:8px;">
+            <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
+            <button type="button" class="btn btn-ghost btn-sm" id="split-open"><i class="bi bi-diagram-2"></i> {{ _('Suddividi') }}</button>
+          </div>
+          <select id="f-category" name="category" class="form-select" {% if split_open %}disabled{% endif %}>
             <option value="">{{ _('— Seleziona —') }}</option>
             {{ f.category_options(categories, v.category) }}
           </select>
         </div>
+        <fieldset class="form-group split-box" id="split-box" {% if not split_open %}hidden disabled{% endif %}>
+          <legend class="form-label">{{ _('Suddivisione su più categorie') }}</legend>
+          <div id="split-rows">
+            {% for category, amount in (v.splits if split_open else [('', ''), ('', '')]) %}{{ split_row(category, amount) }}{% endfor %}
+          </div>
+          <template id="split-template">{{ split_row() }}</template>
+          <div class="d-flex align-center" style="justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-ghost btn-sm" id="split-add"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi una parte') }}</button>
+            <span class="text-sm" id="split-left" data-left="{{ _('Da assegnare: {amount}') }}" data-over="{{ _('Oltre l\'importo: {amount}') }}" data-ok="{{ _('Tutto assegnato') }}"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="split-close"><i class="bi bi-x"></i> {{ _('Una sola categoria') }}</button>
+          </div>
+        </fieldset>
 
         {% if accounts %}
         <div class="grid-2">
@@ -264,6 +292,54 @@
   amount.addEventListener('input', update);
   transfer && transfer.addEventListener('change', update);
   update();
+}());
+
+// «Suddividi»: the amount across several categories; what is left to assign is shown as you type
+(function () {
+  const single = document.getElementById('category-single'), box = document.getElementById('split-box');
+  const rows = document.getElementById('split-rows'), left = document.getElementById('split-left');
+  const amount = document.getElementById('f-amount'), select = document.getElementById('f-category');
+  const parse = (text) => {
+    text = (text || '').replace(/[€\s]/g, '').replace(/^[-+]/, '');
+    if (/,\d{1,2}$/.test(text) || (text.includes(',') && !text.includes('.'))) text = text.replace(/\./g, '').replace(',', '.');
+    else text = text.replace(/,/g, '');
+    const value = parseFloat(text);
+    return isFinite(value) ? value : 0;
+  };
+  const refresh = () => {
+    if (box.hidden) return;
+    const total = parse(amount.value);
+    const assigned = [...rows.querySelectorAll('.split-amount')].reduce((sum, input) => sum + parse(input.value), 0);
+    const rest = Math.round((total - assigned) * 100) / 100;
+    const text = formatMoney(Math.abs(rest));
+    left.textContent = rest === 0 ? left.dataset.ok : (rest > 0 ? left.dataset.left : left.dataset.over).replace('{amount}', text);
+    left.className = 'text-sm ' + (rest === 0 ? 'text-positive' : 'text-negative');
+  };
+  const toggle = (open) => {
+    single.hidden = open; select.disabled = open;
+    box.hidden = !open; box.disabled = !open;
+    if (open && select.value) {  // the chosen category becomes the first part, with the whole amount
+      const first = rows.querySelector('.split-row select');
+      if (first && !first.value) { first.value = select.value; rows.querySelector('.split-amount').value = (amount.value || '').replace(/^[-+]/, ''); }
+    }
+    refresh();
+  };
+  document.getElementById('split-open').addEventListener('click', () => toggle(true));
+  document.getElementById('split-close').addEventListener('click', () => toggle(false));
+  document.getElementById('split-add').addEventListener('click', () => {
+    rows.appendChild(document.getElementById('split-template').content.cloneNode(true));
+    refresh();
+  });
+  rows.addEventListener('click', (e) => {
+    const remove = e.target.closest('.split-remove');
+    if (!remove) return;
+    remove.closest('.split-row').remove();
+    if (rows.querySelectorAll('.split-row').length < 2) toggle(false);
+    refresh();
+  });
+  rows.addEventListener('input', refresh);
+  amount.addEventListener('input', refresh);
+  refresh();
 }());
 
 // An account in another currency than the transaction's: ask what the bank charged in the account's currency

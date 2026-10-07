@@ -14,7 +14,7 @@ from app.models.wealth import Debt, Holding, Snapshot
 from app.services import accounts, settings_store
 from app.services.i18n import N_
 from app.services.periods import add_months
-from app.services.totals import value_total
+from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total
 
 # ── Asset classes and how the Balance Sheet groups them ────────────────────────
 
@@ -212,8 +212,10 @@ def portfolio_summary(holdings: list[Holding]) -> dict:
 
 def dividends(start: date, end: date) -> float:
     """Income recorded under a dividend or coupon category."""
-    return _money(value_total(Transaction.type == "income", Transaction.date >= start, Transaction.date < end,
-                              func.lower(Transaction.category).op("~")("dividend|cedol")))
+    total = (lines_query(func.coalesce(func.sum(LINE_VALUE), 0))
+             .filter(Transaction.type == "income", Transaction.date >= start, Transaction.date < end,
+                     func.lower(LINE_CATEGORY).op("~")("dividend|cedol")).scalar())
+    return _money(float(total))
 
 
 # ── Balance Sheet ──────────────────────────────────────────────────────────────

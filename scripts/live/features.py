@@ -98,6 +98,30 @@ with sync_playwright() as p:
 
     run("B. Signed amounts, tags, subcategories", signed_tags_subcategories)
 
+    def split():
+        pg.goto(B + "/transactions/new")
+        pg.fill("#f-date", "2026-09-14")
+        pg.fill("#f-amount", "-100")
+        pg.fill("[name=description]", "Supermercato spesa e casa")
+        pg.select_option("#f-category", "Alimentari")
+        pg.click("#split-open")
+        rows = pg.locator(".split-row")
+        rows.nth(0).locator(".split-amount").fill("70")
+        rows.nth(1).locator("select").select_option("Casa")
+        check("left to assign shown as you type", "30" in pg.inner_text("#split-left"))
+        rows.nth(1).locator(".split-amount").fill("30")
+        submit()
+        parts = sql("select string_agg(s.category || ' ' || s.amount, ', ' order by s.id) from transaction_splits s "
+                    "join transactions t on t.id = s.transaction_id where t.description = 'Supermercato spesa e casa'")
+        check("split transaction saved with its parts", parts == "Alimentari 70.00, Casa 30.00", parts)
+        pg.goto(B + "/transactions/?q=Supermercato spesa")
+        check("list shows both categories", "Alimentari + Casa" in pg.inner_text("tbody"))
+        pg.goto(B + "/reports/?tab=spending&period=custom&start=2026-09-14&end=2026-09-14&category=Casa")
+        check("report filtered by category shows the part", "di" in pg.inner_text(".report-list"))
+        pg.goto(B + "/reports/summary?year=2026")
+        check("summary page", pg.locator(".summary-table").count() == 1)
+    run("B2. Split transaction", split)
+
     def transfer():
         pg.goto(B + "/transactions/new")
         pg.fill("#f-date", "2026-09-15")

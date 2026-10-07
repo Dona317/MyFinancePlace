@@ -14,7 +14,7 @@ from app.models.transaction import Transaction
 from app.services import categories, wealth
 from app.services.i18n import N_
 from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
-from app.services.totals import VALUE, value_total
+from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total, with_lines
 
 UNCATEGORIZED = N_("Senza categoria")
 OTHER = N_("Altre")  # the categories past the top ones, added up in one series
@@ -66,11 +66,10 @@ def category_breakdown(start: date, end: date, tx_type: str = "expense") -> list
 def breakdown(query, tx_type: str, within: str | None = None) -> list[dict]:
     """Total per main category of one type (subcategories added to theirs), biggest first, with its share (%).
     `within` a main category: its own split, by subcategory."""
-    query = query.filter(Transaction.type == tx_type)
+    query = with_lines(query.filter(Transaction.type == tx_type))
     if within:
-        query = query.filter(Transaction.category.in_(categories.with_children(within)))
-    rows = (query.with_entities(Transaction.category, func.sum(VALUE), func.count())
-            .group_by(Transaction.category).all())
+        query = query.filter(LINE_CATEGORY.in_(categories.with_children(within)))
+    rows = query.with_entities(LINE_CATEGORY, func.sum(LINE_VALUE), func.count()).group_by(LINE_CATEGORY).all()
     grouped: dict[str, list] = {}
     for category, amount, count in rows:
         key = category if within else categories.top(category)
@@ -125,9 +124,9 @@ def savings_rates(year: int, months: int = 12) -> dict:
 def _by_month_and_category(year: int) -> list[tuple[int, str, str | None, float]]:
     """(month 0-11, type, category, value) of the income and expenses of `year`."""
     rows = (
-        db.session.query(extract("month", Transaction.date), Transaction.type, Transaction.category, func.sum(VALUE))
+        lines_query(extract("month", Transaction.date), Transaction.type, LINE_CATEGORY, func.sum(LINE_VALUE))
         .filter(extract("year", Transaction.date) == year, Transaction.type.in_(["income", "expense"]))
-        .group_by(extract("month", Transaction.date), Transaction.type, Transaction.category)
+        .group_by(extract("month", Transaction.date), Transaction.type, LINE_CATEGORY)
         .all()
     )
     return [(int(month) - 1, tx_type, category, float(amount or 0)) for month, tx_type, category, amount in rows]
@@ -220,13 +219,9 @@ def monthly_category_trend(year: int, top_n: int = 5, tx_type: str = "expense", 
     series = {name: [0.0] * months for name in names}
     rest = [0.0] * months
     rows = (
-        db.session.query(
-            extract("month", Transaction.date),
-            Transaction.category,
-            func.sum(func.abs(Transaction.amount_base)),
-        )
+        lines_query(extract("month", Transaction.date), LINE_CATEGORY, func.sum(LINE_VALUE))
         .filter(extract("year", Transaction.date) == year, Transaction.type == tx_type)
-        .group_by(extract("month", Transaction.date), Transaction.category)
+        .group_by(extract("month", Transaction.date), LINE_CATEGORY)
         .all()
     )
     for month, category, amount in rows:

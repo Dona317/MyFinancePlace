@@ -3,16 +3,17 @@ from decimal import Decimal
 from flask import render_template, request, redirect, url_for, flash
 from apiflask import APIBlueprint, abort
 from sqlalchemy import func, or_, text
+from sqlalchemy.orm import selectinload
 from app.extensions import db
 from app.models.account import Account
-from app.models.transaction import Transaction
+from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
-from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates, merchant
+from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates, merchant, splits
 from app.services.ai_classification import AI_TAG
 from app.services import categories as category_service
 from app.services.categories import known_categories
-from app.services.parsing import valid_amount
+from app.services.parsing import to_decimal, valid_amount
 from app.services.periods import month_bounds
 from app.schemas.transaction import TransactionIn, TransactionOut, TransactionListOut
 from app.schemas.common import DeleteOut
@@ -67,7 +68,25 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     # what the money is for, in the cash-flow statement: an investment or a debt (one of the two)
     tx.holding_id = _linked_id("holding_id", Holding)
     tx.debt_id = _linked_id("debt_id", Debt) if not tx.holding_id else None
+    _splits_from_form(tx)
     return tx
+
+
+def _split_rows() -> list[tuple[str, str]]:
+    """The (category, amount) rows of the «Suddividi» box as typed, empty rows left out."""
+    rows = zip(request.form.getlist("split_category"), request.form.getlist("split_amount"))
+    return [(c.strip(), a.strip()) for c, a in rows if c.strip() or a.strip()]
+
+
+def _splits_from_form(tx: Transaction) -> None:
+    """The «Suddividi» rows; one row or none: an ordinary transaction (the box was opened and closed again)."""
+    parts = []
+    for number, (category, raw) in enumerate(_split_rows(), start=1):
+        amount = to_decimal(raw)
+        if raw and amount is None:
+            raise ValueError(_("Suddivisione, riga %(n)s: «%(raw)s» non è un importo.", n=number, raw=raw))
+        parts.append((category, amount))
+    splits.apply(tx, parts)
 
 
 def _type_from(amount) -> str:
@@ -125,9 +144,9 @@ def _form_values(tx: Transaction | None = None) -> dict:
             "date", "amount", "currency", "description", "category", "tags",
             "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
             "account_amount", "counter_amount")} | {
-            "is_recurring": "is_recurring" in form, "transfer": "transfer" in form}
+            "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows()}
     if tx is None:
-        return {"currency": "EUR", "is_recurring": False, "transfer": False,
+        return {"currency": "EUR", "is_recurring": False, "transfer": False, "splits": [],
                 "account_id": request.args.get("account", "")}
     sign = "-" if tx.type == "expense" else ""
     return {
@@ -139,6 +158,7 @@ def _form_values(tx: Transaction | None = None) -> dict:
         "account_id": str(tx.account_id or ""), "counter_account_id": str(tx.counter_account_id or ""),
         "holding_id": str(tx.holding_id or ""), "debt_id": str(tx.debt_id or ""),
         "account_amount": _plain(tx.account_amount), "counter_amount": _plain(tx.counter_amount),
+        "splits": [(s.category or "", _plain(s.amount)) for s in tx.splits],
     }
 
 
@@ -164,8 +184,9 @@ def _filtered_query(filters: dict):
         ))
     if filters["type"]:
         query = query.filter(Transaction.type == filters["type"])
-    if filters["category"]:  # a main category shows its subcategories too
-        query = query.filter(Transaction.category.in_(category_service.with_children(filters["category"])))
+    if filters["category"]:  # a main category shows its subcategories too; a split transaction, any of its parts
+        names = category_service.with_children(filters["category"])
+        query = query.filter(Transaction.category.in_(names) | Transaction.splits.any(TransactionSplit.category.in_(names)))
     if filters.get("account") == "none":
         query = query.filter(Transaction.account_id.is_(None), Transaction.counter_account_id.is_(None))
     elif (filters.get("account") or "").isdigit():
@@ -192,7 +213,8 @@ def index():
     total = query.count()
     pages = max(1, -(-total // PAGE_SIZE))
     page = min(max(request.args.get("page", 1, type=int), 1), pages)
-    transactions = (query.order_by(Transaction.date.desc(), Transaction.id.desc())
+    transactions = (query.options(selectinload(Transaction.splits))
+                    .order_by(Transaction.date.desc(), Transaction.id.desc())
                     .offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all())
     categories = [
         row[0] for row in
@@ -380,10 +402,23 @@ def api_list():
 @transactions_bp.output(TransactionOut, status_code=201)
 def api_create(body):
     _check_accounts(body)
+    parts = body.pop("splits", None)
     tx = Transaction(**body)
+    _api_splits(tx, parts)
     db.session.add(tx)
     db.session.commit()
     return tx
+
+
+def _api_splits(tx: Transaction, parts: list[dict] | None) -> None:
+    """`splits` sent: set them (an empty list makes it an ordinary transaction again); left out: unchanged."""
+    if parts is None:
+        return
+    try:
+        splits.apply(tx, [(p.get("category"), Decimal(str(p["amount"]))) for p in parts])
+    except ValueError as exc:
+        db.session.rollback()
+        abort(422, message=str(exc))
 
 
 def _check_accounts(body: dict) -> None:
@@ -404,8 +439,10 @@ def api_get(tx_id):
 def api_update(tx_id, body):
     tx = db.get_or_404(Transaction, tx_id)
     _check_accounts(body)
+    parts = body.pop("splits", None)
     for key, value in body.items():
         setattr(tx, key, value)
+    _api_splits(tx, parts)
     db.session.commit()
     return tx
 
@@ -444,7 +481,8 @@ def fill_counterparties():
 # ── AI classification of saved transactions ──────────────────────────────────
 
 def _unclassified_query():
-    return Transaction.query.filter(or_(Transaction.category.is_(None), Transaction.category.in_(["", "Altro"])))
+    return Transaction.query.filter(or_(Transaction.category.is_(None), Transaction.category.in_(["", "Altro"])),
+                                    ~Transaction.splits.any())
 
 
 def _classification_text(tx: Transaction) -> str:
@@ -486,7 +524,7 @@ def classify_apply():
     for tx in Transaction.query.filter(Transaction.id.in_(ids)).all() if ids else []:
         category = (request.form.get(f"category-{tx.id}") or "").strip()
         counterparty = (request.form.get(f"counterparty-{tx.id}") or "").strip()
-        if not category:
+        if not category or tx.splits:  # a split made by hand is not overwritten
             continue
         tx.category = category
         tags = [t for t in (tx.tags or []) if t != AI_TAG]

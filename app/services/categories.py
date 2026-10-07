@@ -9,7 +9,7 @@ from sqlalchemy.orm import aliased
 from app.extensions import db
 from app.models.budget import Budget
 from app.models.category import Category, CategoryRule
-from app.models.transaction import Transaction
+from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Document
 from app.services import request_cache, settings_store
 from app.services.i18n import _l
@@ -256,7 +256,8 @@ def all_categories() -> list[Category]:
 
 
 def used_names() -> set[str]:
-    return {c for (c,) in db.session.query(Transaction.category).filter(Transaction.category.isnot(None)).distinct()}
+    names = {c for (c,) in db.session.query(Transaction.category).filter(Transaction.category.isnot(None)).distinct()}
+    return names | {c for (c,) in db.session.query(TransactionSplit.category).filter(TransactionSplit.category.isnot(None)).distinct()}
 
 
 def known_categories(*extra: str | None) -> list[str]:
@@ -274,7 +275,11 @@ def discretionary() -> set[str]:
 
 
 def usage() -> dict[str, int]:
-    rows = db.session.query(Transaction.category, func.count()).filter(Transaction.category.isnot(None)).group_by(Transaction.category)
+    """How many transactions use each category (a split transaction counts for each of its categories)."""
+    from app.services.totals import LINE_CATEGORY, lines_query
+
+    rows = (lines_query(LINE_CATEGORY, func.count(func.distinct(Transaction.id)))
+            .filter(LINE_CATEGORY.isnot(None)).group_by(LINE_CATEGORY))
     return dict(rows.all())
 
 
@@ -291,6 +296,7 @@ def rename(old: str, new: str) -> bool:
         Category.query.filter_by(parent_id=source.id).update(
             {"parent_id": target.id if target.parent_id is None else None}, synchronize_session=False)
     Transaction.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
+    TransactionSplit.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
     Document.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
     CategoryRule.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
     _move_budgets(old, new)
@@ -321,6 +327,7 @@ def delete(name: str, replacement: str | None) -> int:
     """Remove a category; its transactions move to `replacement` (or become uncategorized). Returns how many."""
     ensure_defaults()
     moved = Transaction.query.filter_by(category=name).update({"category": replacement or None}, synchronize_session=False)
+    TransactionSplit.query.filter_by(category=name).update({"category": replacement or None}, synchronize_session=False)
     Document.query.filter_by(category=name).update({"category": replacement or None}, synchronize_session=False)
     CategoryRule.query.filter_by(category=name).delete(synchronize_session=False)
     Budget.query.filter_by(category=name).delete(synchronize_session=False)

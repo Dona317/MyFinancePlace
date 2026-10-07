@@ -12,6 +12,7 @@ from app.models.budget import Budget
 from app.models.transaction import Transaction
 from app.services import categories
 from app.services.periods import month_bounds
+from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query
 
 WARNING_SHARE = 80  # percent of the budget spent that raises a warning
 
@@ -32,9 +33,9 @@ def budgets_for(month: date) -> dict[str, Budget]:
 
 def spent_by_category(month: date) -> dict[str, float]:
     start, end = month_bounds(month.year, month.month)
-    rows = (db.session.query(Transaction.category, func.sum(func.abs(Transaction.amount_base)))
+    rows = (lines_query(LINE_CATEGORY, func.sum(LINE_VALUE))
             .filter(Transaction.type == "expense", Transaction.date >= start, Transaction.date < end)
-            .group_by(Transaction.category).all())
+            .group_by(LINE_CATEGORY).all())
     return {category or "Senza categoria": float(total or 0) for category, total in rows}
 
 
