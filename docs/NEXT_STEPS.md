@@ -68,8 +68,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   spreadsheet inside the app — subcategories under their main category, total, monthly average, change on the
   same months of the year before, net and savings rate rows; cells shaded by their share of the row's busiest
   month and linked to their transactions; CSV export
-- **Savings rate month by month** (F3): dashboard line for the year and the year before (same months), the
-  year's rate next to the title; months without income are a gap, not 0%
+- **Savings rate month by month** (F3): dashboard lines for every year with income, each with its yearly rate;
+  chips choose the years compared (by default the year shown and the one before, remembered in the browser);
+  months without income are a gap, not 0%
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

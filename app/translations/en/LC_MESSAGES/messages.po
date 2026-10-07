@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 17:07+0000\n"
+"POT-Creation-Date: 2026-10-07 17:24+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -648,6 +648,9 @@ msgstr "Net Worth Trend"
 
 msgid "Andamento del Portafoglio"
 msgstr "Portfolio Trend"
+
+msgid "Anni da confrontare"
+msgstr "Years to compare"
 
 msgid "Anno"
 msgstr "Year"
@@ -3579,8 +3582,8 @@ msgstr "How many recent full months to use to estimate variable spending and inc
 msgid "Quantità"
 msgstr "Quantity"
 
-msgid "Quanto resta delle entrate di ogni mese"
-msgstr "How much of each month's income is left"
+msgid "Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata."
+msgstr "How much of each month's income is left. Choose the years to compare: the choice is remembered."
 
 msgid "Quest'anno"
 msgstr "This year"

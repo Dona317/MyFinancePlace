@@ -94,6 +94,7 @@ function buildLineChart(ctx, labels, datasets, opts = {}) {
         pointHoverRadius: 6,
         borderWidth: ds.borderWidth ?? 2,
         borderDash: ds.dash || [],                       // e.g. [6, 4] for forecast values
+        hidden: ds.hidden || false,
       })),
     },
     options: {
@@ -101,7 +102,7 @@ function buildLineChart(ctx, labels, datasets, opts = {}) {
       maintainAspectRatio: false,
       interaction: { mode: "index", intersect: false },
       plugins: {
-        legend: { labels: { filter: item => !datasets[item.datasetIndex].noLegend } },
+        legend: { display: opts.legend !== false, labels: { filter: item => !datasets[item.datasetIndex].noLegend } },
         ...(opts.percent ? { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${percent(c.raw)}` } } } : {}),
       },
       spanGaps: false,

@@ -1453,3 +1453,12 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .split-box legend { padding: 0 6px; margin-bottom: 0; }
 .split-row { display: grid; grid-template-columns: minmax(0, 1fr) 130px auto; gap: 8px; align-items: center; margin-bottom: 8px; }
 @media (max-width: 480px) { .split-row { grid-template-columns: minmax(0, 1fr) 96px auto; } }
+
+/* ── Year chips: which years a chart compares (dashboard savings rate) ─────────────────────────────── */
+.year-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.year-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; cursor: pointer;
+             border: 1px solid var(--clr-border); background: var(--clr-bg-card); color: var(--clr-text-muted);
+             font-size: var(--font-size-sm); font-weight: 600; }
+.year-chip[aria-pressed="true"] { color: var(--clr-text-primary); border-color: var(--clr-text-muted); background: var(--clr-bg-input); }
+.year-chip-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--clr-border); opacity: .35; }
+.year-chip[aria-pressed="true"] .year-chip-dot { opacity: 1; }

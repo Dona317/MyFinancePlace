@@ -65,24 +65,29 @@ def test_dashboard_shows_the_new_charts_and_they_can_be_hidden(client, db):
     assert 'class="sankey"' not in html and 'id="netChart"' not in html
 
 
-def test_savings_rate_month_by_month(app, db):
+def test_savings_rate_of_every_year(app, db):
     _year(db)
-    with app.test_request_context():
-        rates = analytics.savings_rates(2026, 3)
-    assert rates["current"] == [60.0, 40.0, None]  # January 2000 − 800, February 500 − 300, March no income
-    assert rates["year_rate"] == 56.0 and rates["previous"] is None and rates["previous_rate"] is None
     db.session.add_all([make_tx(date=date(2025, 1, 10), category="Stipendio", type="income", amount=1000),
-                        make_tx(date=date(2025, 1, 12), category="Casa", amount=900)])
+                        make_tx(date=date(2025, 1, 12), category="Casa", amount=900),
+                        make_tx(date=date(2024, 5, 1), category="Casa", amount=50)])  # a year without income
     db.session.commit()
     with app.test_request_context():
-        rates = analytics.savings_rates(2026, 3)
-    assert rates["previous"] == [10.0, None, None] and rates["previous_rate"] == 10.0
+        rates = analytics.savings_rates_by_year(date(2026, 3, 15))
+    assert rates["labels"][0] == "Gen" and len(rates["labels"]) == 12
+    assert [y["year"] for y in rates["years"]] == [2026, 2025]  # newest first, 2024 left out
+    current, before = rates["years"]
+    assert current["rates"] == [60.0, 40.0, None] + [None] * 9  # March so far no income, then months to come
+    assert current["rate"] == 56.0
+    assert before["rates"][0] == 10.0 and before["rates"][1:] == [None] * 11 and before["rate"] == 10.0
 
 
-def test_savings_rate_card_and_its_switch(client, db):
+def test_savings_rate_card_lets_you_choose_the_years(client, db):
     _year(db)
+    db.session.add(make_tx(date=date(2025, 1, 10), category="Stipendio", type="income", amount=1000))
+    db.session.commit()
     html = client.get("/dashboard?year=2026").get_data(as_text=True)
-    assert 'id="savingsChart"' in html and "2026: 56%" in html
+    assert 'id="savingsChart"' in html and 'data-year="2026"' in html and 'data-year="2025"' in html
+    assert "56%" in html and "mfp-savings-years" in html
     client.post("/settings/save", data={"dashboard_net": "on"})
     html = client.get("/dashboard?year=2026").get_data(as_text=True)
     assert 'id="savingsChart"' not in html and 'id="netChart"' in html

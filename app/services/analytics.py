@@ -103,22 +103,24 @@ def monthly_series(year: int) -> dict:
     return {"labels": month_labels(), "income": income, "expenses": expenses, "net": net}
 
 
-def savings_rates(year: int, months: int = 12) -> dict:
+def savings_rates_by_year(today: date | None = None) -> dict:
     """
-    Savings rate of each month of `year` (first `months` months) and of the same months of the year before;
-    None where a month had no income (a gap in the line, not a misleading 0%). `previous` is None when the year
-    before has no income at all. `year_rate` / `previous_rate`: on the totals of those same months.
+    The savings rate of each month, one line per year with income (newest first), to compare any years: None where
+    a month had no income (a gap, not a misleading 0%) and for the months still to come. `rate`: the whole year's
+    (so far, for the current year).
     """
-    def rates(series):
-        pairs = list(zip(series["income"][:months], series["expenses"][:months]))
-        monthly = [savings_rate(i, e) if i > 0 else None for i, e in pairs]
-        income, expenses = sum(i for i, _ in pairs), sum(e for _, e in pairs)
-        return monthly, (savings_rate(income, expenses) if income > 0 else None)
-
-    current, year_rate = rates(monthly_series(year))
-    previous, previous_rate = rates(monthly_series(year - 1))
-    return {"labels": month_labels()[:months], "current": current, "year_rate": year_rate,
-            "previous": previous if previous_rate is not None else None, "previous_rate": previous_rate}
+    today = today or date.today()
+    years = []
+    for year in available_years():
+        series = monthly_series(year)
+        months = months_to_show(year, today)
+        income, expenses = series["income"][:months], series["expenses"][:months]
+        if sum(income) <= 0:
+            continue
+        rates = [savings_rate(i, e) if i > 0 else None for i, e in zip(income, expenses)]
+        years.append({"year": year, "rates": rates + [None] * (12 - months),
+                      "rate": savings_rate(sum(income), sum(expenses))})
+    return {"labels": month_labels(), "years": years}
 
 
 def _by_month_and_category(year: int) -> list[tuple[int, str, str | None, float]]:

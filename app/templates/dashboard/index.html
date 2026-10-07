@@ -214,17 +214,22 @@
 </div>
 {% endif %}
 
-{% if settings.dashboard_savings_trend and savings.year_rate is not none %}
+{% if settings.dashboard_savings_trend and savings.years %}
 <div class="card mb-16 savings-trend">
   <div class="card-header"><div>
     <div class="card-header-title">{{ _('Tasso di risparmio mese per mese') }}</div>
-    <div class="card-header-sub">
-      {{ _('Quanto resta delle entrate di ogni mese') }} ·
-      <strong>{{ year }}: {{ savings.year_rate|number(1) }}%</strong>
-      {% if savings.previous_rate is not none %} · {{ year - 1 }}: {{ savings.previous_rate|number(1) }}%{% endif %}
-    </div>
+    <div class="card-header-sub">{{ _('Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata.') }}</div>
   </div></div>
-  <div class="card-body"><div class="chart-container" style="height:240px;"><canvas id="savingsChart"></canvas></div></div>
+  <div class="card-body">
+    <div class="year-chips" id="savings-years" role="group" aria-label="{{ _('Anni da confrontare') }}">
+      {% for y in savings.years %}
+      <button type="button" class="year-chip" data-year="{{ y.year }}" aria-pressed="false">
+        <span class="year-chip-dot"></span>{{ y.year }} <span class="text-muted">{{ y.rate|number(1) }}%</span>
+      </button>
+      {% endfor %}
+    </div>
+    <div class="chart-container" style="height:240px;"><canvas id="savingsChart"></canvas></div>
+  </div>
 </div>
 {% endif %}
 
@@ -370,12 +375,43 @@ makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, 
   { legend: false });
 {% endif %}
 
-{% if settings.dashboard_savings_trend and savings.year_rate is not none %}
-const savings = {{ savings|tojson }};
-makeLineChart('savingsChart', savings.labels, [
-  { label: {{ year|string|tojson }}, data: savings.current, color: 'primary', fill: false },
-  ...(savings.previous ? [{ label: {{ (year - 1)|string|tojson }}, data: savings.previous, color: 'neutral', fill: false, dash: [6, 4], pointRadius: 2 }] : []),
-], { percent: true });
+{% if settings.dashboard_savings_trend and savings.years %}
+// One line per year with income; the chips choose which ones are drawn (remembered in this browser).
+// By default the year shown on the dashboard and the one before.
+(function () {
+  const savings = {{ savings|tojson }};
+  const KEY = 'mfp-savings-years';
+  const available = savings.years.map(y => y.year);
+  let chosen = null;
+  try { chosen = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { chosen = null; }
+  chosen = (Array.isArray(chosen) ? chosen : [{{ year }}, {{ year - 1 }}]).filter(y => available.includes(y));
+  if (!chosen.length) chosen = available.slice(0, 2);
+  // the datasets are kept: a theme switch rebuilds the chart from them, with the years chosen so far
+  const datasets = savings.years.map((y, i) => ({
+    label: String(y.year), data: y.rates, fill: false, pointRadius: 3,
+    hidden: !chosen.includes(y.year), ...(i ? { dash: [6, 4] } : {}),
+  }));
+  makeLineChart('savingsChart', savings.labels, datasets, { percent: true, legend: false });
+  const chips = [...document.querySelectorAll('#savings-years .year-chip')];
+  const paint = () => {
+    const chart = Chart.getChart('savingsChart');
+    chips.forEach((chip, i) => {
+      chip.setAttribute('aria-pressed', String(!datasets[i].hidden));
+      chip.querySelector('.year-chip-dot').style.background = chart.data.datasets[i].borderColor;
+    });
+  };
+  chips.forEach((chip, i) => chip.addEventListener('click', () => {
+    datasets[i].hidden = !datasets[i].hidden;
+    const chart = Chart.getChart('savingsChart');
+    chart.setDatasetVisibility(i, !datasets[i].hidden);
+    chart.update();
+    paint();
+    const years = savings.years.filter((y, j) => !datasets[j].hidden).map(y => y.year);
+    try { localStorage.setItem(KEY, JSON.stringify(years)); } catch (e) { /* private window: not remembered */ }
+  }));
+  document.addEventListener('mfp:themechange', () => setTimeout(paint));
+  paint();
+}());
 {% endif %}
 
 {% if settings.dashboard_cumulative %}
