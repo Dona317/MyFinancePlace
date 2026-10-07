@@ -74,6 +74,8 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Nature of a category** (F8, migration `b2d4f6a8c0e1`): `categories.nature` fixed / not monthly / variable,
   chosen in Settings → Categorie (a subcategory without one takes its main category's; defaults seeded by name).
   Spese e tendenze shows the split of the year's spending and what can be cut; the Riepilogo marks each expense row
+- **Months of autonomy** (F10a, `analytics.autonomy`): liquid money ÷ average spending of the last 12 complete
+  months (at least 3), also for fixed and not monthly costs only; the target (3/6/9/12 months) is a setting
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

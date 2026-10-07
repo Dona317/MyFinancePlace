@@ -314,13 +314,22 @@
         </div>
       </div>
 
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _("Fondo d'Emergenza") }}</span>
-          <span class="text-xs text-muted">{{ _('%(months)s / 6 mesi', months="%.1f"|format(kpis.emergency_months)) }}</span>
+      {% set run = kpis.autonomy %}
+      <div style="margin-bottom:16px;" class="autonomy"
+           title="{{ _('Liquidità (%(liquid)s) divisa per la spesa media degli ultimi %(n)s mesi completi', liquid=run.liquid|money, n=run.basis) }}">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;gap:8px;">
+          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Mesi di autonomia') }}</span>
+          <span class="text-xs text-muted">{% if run.months_all is not none %}{{ _('%(months)s / %(target)s mesi', months=run.months_all|number(1), target=autonomy_target) }}{% else %}—{% endif %}</span>
         </div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" style="width:{{ [kpis.emergency_months / 6 * 100, 100]|min }}%;"></div>
+          <div class="progress-bar-fill {{ 'positive' if (run.months_all or 0) >= autonomy_target }}" style="width:{{ [(run.months_all or 0) / autonomy_target * 100, 100]|min }}%;"></div>
+        </div>
+        <div class="text-xs text-muted" style="margin-top:6px;">
+          {% if run.avg_expenses is none %}
+            {{ _('Servono almeno 3 mesi completi di spese per la media.') }}
+          {% else %}
+            {{ _('Spesa media %(amount)s al mese', amount=run.avg_expenses|money) }}{% if run.months_essential is not none %} · {{ _('solo spese fisse e non mensili: %(months)s mesi', months=run.months_essential|number(1)) }}{% endif %}
+          {% endif %}
         </div>
       </div>
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 18:22+0000\n"
+"POT-Creation-Date: 2026-10-07 18:29+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -227,8 +227,8 @@ msgid "%(month)s per categoria"
 msgstr "%(month)s by category"
 
 #, python-format
-msgid "%(months)s / 6 mesi"
-msgstr "%(months)s / 6 months"
+msgid "%(months)s / %(target)s mesi"
+msgstr "%(months)s / %(target)s months"
 
 #, python-format
 msgid "%(n)s mesi"
@@ -839,8 +839,8 @@ msgstr "Bank not supported: %(bank)s"
 msgid "Barre"
 msgstr "Bars"
 
-msgid "Barre di progresso per risparmio, debito e fondo emergenza"
-msgstr "Progress bars for savings, debt and emergency fund"
+msgid "Barre di progresso per risparmio, debito e mesi di autonomia"
+msgstr "Progress bars for savings, debt and months of autonomy"
 
 msgid "Bassa — quasi identiche"
 msgstr "Low — almost identical"
@@ -1904,9 +1904,6 @@ msgstr "Fund"
 msgid "Fondo Pensione"
 msgstr "Pension Fund"
 
-msgid "Fondo d'Emergenza"
-msgstr "Emergency Fund"
-
 msgid "Fondo d'emergenza"
 msgstr "Emergency fund"
 
@@ -2588,6 +2585,10 @@ msgstr "Language"
 msgid "Liquidità"
 msgstr "Cash"
 
+#, python-format
+msgid "Liquidità (%(liquid)s) divisa per la spesa media degli ultimi %(n)s mesi completi"
+msgstr "Liquid money (%(liquid)s) divided by the average spending of the last %(n)s complete months"
+
 msgid "Lira turca"
 msgstr "Turkish lira"
 
@@ -2707,6 +2708,9 @@ msgstr "Last month"
 
 msgid "Mese successivo"
 msgstr "Next month"
+
+msgid "Mesi di autonomia"
+msgstr "Months of autonomy"
 
 msgid "Metodo"
 msgstr "Method"
@@ -3184,6 +3188,9 @@ msgstr "Personal Goals"
 msgid "Obiettivi Suggeriti"
 msgstr "Suggested Goals"
 
+msgid "Obiettivo di mesi di autonomia"
+msgstr "Months of autonomy target"
+
 #, python-format
 msgid "Obiettivo «%(name)s» aggiornato."
 msgstr "Goal «%(name)s» updated."
@@ -3610,6 +3617,9 @@ msgstr "Balance check passed: opening balance %(opening)s + movements %(movement
 
 msgid "Quanti mesi completi recenti usare per stimare le spese e le entrate variabili"
 msgstr "How many recent full months to use to estimate variable spending and income"
+
+msgid "Quanti mesi di spese vuoi coprire con la liquidità (di solito da 3 a 12)"
+msgstr "How many months of spending your liquid money should cover (usually 3 to 12)"
 
 msgid "Quantità"
 msgstr "Quantity"
@@ -4121,6 +4131,9 @@ msgstr "At least one administrator is needed."
 msgid "Serve almeno un'altra istantanea per disegnare l'andamento."
 msgstr "At least one more snapshot is needed to draw the trend."
 
+msgid "Servono almeno 3 mesi completi di spese per la media."
+msgstr "At least 3 complete months of spending are needed for the average."
+
 msgid "Servono dei movimenti per fare una previsione"
 msgstr "Some movements are needed to make a forecast"
 
@@ -4166,6 +4179,10 @@ msgstr "Subcategory of"
 
 msgid "Spesa maggiore"
 msgstr "Largest expense"
+
+#, python-format
+msgid "Spesa media %(amount)s al mese"
+msgstr "Average spending %(amount)s a month"
 
 msgid "Spesa non essenziale"
 msgstr "Non-essential spending"
@@ -5111,6 +5128,10 @@ msgstr "scans and photos cannot be read."
 
 msgid "servono le entrate degli ultimi 12 mesi"
 msgstr "the income of the last 12 months is needed"
+
+#, python-format
+msgid "solo spese fisse e non mensili: %(months)s mesi"
+msgstr "fixed and non-monthly costs only: %(months)s months"
 
 msgid "somma dei budget del mese"
 msgstr "sum of this month's budgets"

@@ -263,17 +263,42 @@ def months_to_show(year: int, today: date | None = None) -> int:
 
 # ── Page-level reports ─────────────────────────────────────────────────────────
 
+AUTONOMY_MIN_MONTHS = 3  # fewer complete months of spending: no average to trust
+
+
+def autonomy(today: date | None = None, sheet: dict | None = None) -> dict:
+    """
+    Months of autonomy: how long the liquid money (cash, current and savings accounts) would pay the average monthly
+    spending — all of it, or only the fixed and not monthly costs (category nature, F8). The average is over the
+    last 12 complete months (fewer when the data starts later; None below AUTONOMY_MIN_MONTHS).
+    """
+    today = today or date.today()
+    sheet = sheet or wealth.balance_sheet(today)
+    liquid = float(sum(sheet["current_assets"].values()))
+    end = date(today.year, today.month, 1)
+    first = db.session.query(func.min(Transaction.date)).filter(Transaction.type == "expense",
+                                                                Transaction.date < end).scalar()
+    months = min(12, (end.year - first.year) * 12 + end.month - first.month) if first else 0
+    result = {"liquid": liquid, "basis": months, "avg_expenses": None, "avg_essential": None,
+              "months_all": None, "months_essential": None}
+    if months < AUTONOMY_MIN_MONTHS:
+        return result
+    start = date(*shift_month(end.year, end.month, -months), 1)
+    natures = nature_split(start, end)["amounts"]
+    result["avg_expenses"] = _sum("expense", start, end) / months
+    result["avg_essential"] = (natures["fixed"] + natures["periodic"]) / months
+    for key, average in (("months_all", "avg_expenses"), ("months_essential", "avg_essential")):
+        if result[average] > 0:
+            result[key] = round(max(liquid, 0.0) / result[average], 1)
+    return result
+
+
 def dashboard_kpis(today: date | None = None) -> dict:
     today = today or date.today()
     month_start, month_end = month_bounds(today.year, today.month)
     month = totals(month_start, month_end)
     sheet = wealth.balance_sheet(today)
-
-    # Emergency fund: months of average expenses covered by cash and savings accounts
-    trailing = last_12_months(today)
-    avg_expenses = sum(trailing["expenses"]) / 12
-    liquid = sum(sheet["current_assets"].values())
-    emergency_months = round(liquid / avg_expenses, 1) if avg_expenses > 0 else 0.0
+    runway = autonomy(today, sheet)
     income = wealth.monthly_average_income(today)
     installments = wealth.monthly_installments(today)
 
@@ -284,7 +309,7 @@ def dashboard_kpis(today: date | None = None) -> dict:
         "savings_rate": max(month["savings_rate"], 0.0),
         "total_investments": sheet["investments"],
         "total_debt": sheet["total_liabilities"],
-        "emergency_months": max(emergency_months, 0.0),
+        "autonomy": runway,
         "debt_to_income": round(installments / income * 100, 1) if income else None,
     }
 

@@ -43,7 +43,7 @@ def test_dashboard_kpis(sample_data):
     assert kpis["monthly_income"] == 3000
     assert kpis["monthly_expenses"] == 800
     assert kpis["net_worth"] == 3000 + 2800 + 1000 - 800 - 600
-    assert kpis["emergency_months"] > 0
+    assert kpis["autonomy"]["basis"] == 1 and kpis["autonomy"]["months_all"] is None  # only May is complete
 
 
 def test_cash_flow_classifies_investment_transfers(sample_data):

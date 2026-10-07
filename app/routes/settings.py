@@ -40,6 +40,7 @@ DEFAULT_SETTINGS = {
     "dashboard_sankey":         True,
     "dashboard_recent_tx":      True,
     "dashboard_health":         True,
+    "autonomy_target":          "6",   # months of spending the liquid money should cover (Salute Finanziaria)
     # ── Modules (sidebar visibility + route access) ──────────────────────
     "module_portfolio":         True,
     "module_debt":              True,
@@ -61,6 +62,12 @@ DEFAULT_SETTINGS = {
 }
 
 LANGUAGES = {"it": "Italiano", "en": "English"}  # interface languages (translations/<code>/LC_MESSAGES)
+AUTONOMY_TARGETS = (3, 6, 9, 12)
+
+
+def autonomy_target() -> int:
+    value = current_settings()["autonomy_target"]
+    return int(value) if value.isdigit() and int(value) in AUTONOMY_TARGETS else 6
 
 
 # Which setting switches off which pages: a whole blueprint, or single endpoints inside one
@@ -117,7 +124,8 @@ def current_language() -> str:
 @settings_bp.route("/")
 def index():
     return render_template("settings/index.html", settings=current_settings(), defaults=DEFAULT_SETTINGS,
-                           currencies=currency.CURRENCIES, locales=display.LOCALES, languages=LANGUAGES, preview_date=date(2026, 5, 25))
+                           currencies=currency.CURRENCIES, locales=display.LOCALES, languages=LANGUAGES, preview_date=date(2026, 5, 25),
+                           autonomy_targets=AUTONOMY_TARGETS)
 
 
 @settings_bp.route("/save", methods=["POST"])

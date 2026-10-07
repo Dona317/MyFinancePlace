@@ -102,7 +102,16 @@
         {{ toggle('dashboard_savings_trend', _('Tasso di risparmio mese per mese'), _("La parte delle entrate di ogni mese che resta, confrontata con l'anno prima")) }}
         {{ toggle('dashboard_sankey',         _('Flusso del denaro (Sankey)'), _("Da dove arrivano le entrate e dove vanno: categorie di entrata → uscite e risparmio")) }}
         {{ toggle('dashboard_recent_tx',      _('Transazioni Recenti'),        _('Tabella con le ultime transazioni registrate')) }}
-        {{ toggle('dashboard_health',         _('Salute Finanziaria'),         _('Barre di progresso per risparmio, debito e fondo emergenza')) }}
+        {{ toggle('dashboard_health',         _('Salute Finanziaria'),         _('Barre di progresso per risparmio, debito e mesi di autonomia')) }}
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <label class="toggle-label" for="s-autonomy">{{ _('Obiettivo di mesi di autonomia') }}</label>
+            <div class="toggle-hint">{{ _('Quanti mesi di spese vuoi coprire con la liquidità (di solito da 3 a 12)') }}</div>
+          </div>
+          <select id="s-autonomy" name="autonomy_target" class="form-select" style="width:auto;" onchange="this.form.submit()">
+            {% for n in autonomy_targets %}<option value="{{ n }}" {{ 'selected' if settings.autonomy_target == n|string }}>{{ _('%(n)s mesi', n=n) }}</option>{% endfor %}
+          </select>
+        </div>
       </div>
     </div>
 
