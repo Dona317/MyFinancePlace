@@ -436,7 +436,7 @@ def bank_confirm():
         flash(_("Alcuni movimenti risultano già importati: ricarica il file e riprova."), "error")
         return redirect(url_for("export.index"))
 
-    bank_name = bank_import.BANKS[data['bank']].name
+    bank_name = bank_import.layout_named(data['bank']).name
     if account:
         message = _("%(count)s movimenti importati da %(bank)s sul conto «%(account)s».",
                     count=len(created), bank=bank_name, account=account.name)

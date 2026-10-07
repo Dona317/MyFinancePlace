@@ -668,6 +668,95 @@ def statement_photo(path: Path, source: Path):
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
+# ── Interchange formats: OFX, QIF, CAMT.053 ────────────────────────────────────
+
+def _xml(text: str) -> str:
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def ofx_sgml(path: Path, start: date, end: date, seed: int):
+    """OFX 1.02 (SGML, the "Money / Quicken" download): leaf tags are never closed."""
+    rows = movements(start, end, seed, salary=2050.00, rent=690.00)
+    lines = ["OFXHEADER:100", "DATA:OFXSGML", "VERSION:102", "SECURITY:NONE", "ENCODING:USASCII", "CHARSET:1252",
+             "COMPRESSION:NONE", "OLDFILEUID:NONE", "NEWFILEUID:NONE", "",
+             "<OFX>", "<BANKMSGSRSV1>", "<STMTTRNRS>", "<STMTRS>", "<CURDEF>EUR",
+             "<BANKACCTFROM>", "<BANKID>03069", "<ACCTID>IT60X0542811101000000123456", "<ACCTTYPE>CHECKING",
+             "</BANKACCTFROM>", "<BANKTRANLIST>", f"<DTSTART>{start:%Y%m%d}", f"<DTEND>{end:%Y%m%d}"]
+    for i, r in enumerate(rows, 1):
+        lines += ["<STMTTRN>", f"<TRNTYPE>{'CREDIT' if r['amount'] > 0 else 'DEBIT'}", f"<DTPOSTED>{r['date']:%Y%m%d}120000",
+                  f"<TRNAMT>{r['amount']:.2f}", f"<FITID>{seed}{i:05d}", f"<NAME>{_xml(r['full'][:32])}",
+                  f"<MEMO>{_xml(r['full'])}", "</STMTTRN>"]
+    total = sum(r["amount"] for r in rows)
+    lines += ["</BANKTRANLIST>", "<LEDGERBAL>", f"<BALAMT>{5000 + total:.2f}", f"<DTASOF>{end:%Y%m%d}", "</LEDGERBAL>",
+              "</STMTRS>", "</STMTTRNRS>", "</BANKMSGSRSV1>", "</OFX>"]
+    path.write_text("\r\n".join(lines) + "\r\n", encoding="cp1252")
+    return len(rows)
+
+
+def ofx_xml_card(path: Path, start: date, end: date, seed: int):
+    """OFX 2 (XML) of a credit card: Revolut-like card payments only."""
+    rows = [r for r in revolut_movements(start, end, seed) if r["type"] == "CARD_PAYMENT" and r.get("state", "COMPLETED") == "COMPLETED"]
+    body = "".join(
+        f"<STMTTRN><TRNTYPE>DEBIT</TRNTYPE><DTPOSTED>{r['date']:%Y%m%d}</DTPOSTED><TRNAMT>{r['amount']:.2f}</TRNAMT>"
+        f"<FITID>C{seed}{i:04d}</FITID><NAME>{_xml(r['description'])}</NAME></STMTTRN>\n"
+        for i, r in enumerate(rows, 1))
+    path.write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n<?OFX OFXHEADER="200" VERSION="220" SECURITY="NONE" OLDFILEUID="NONE" NEWFILEUID="NONE"?>\n'
+        "<OFX><CREDITCARDMSGSRSV1><CCSTMTTRNRS><CCSTMTRS><CURDEF>EUR</CURDEF>"
+        "<CCACCTFROM><ACCTID>4111XXXXXXXX1111</ACCTID></CCACCTFROM>\n"
+        f"<BANKTRANLIST><DTSTART>{start:%Y%m%d}</DTSTART><DTEND>{end:%Y%m%d}</DTEND>\n{body}</BANKTRANLIST>"
+        "</CCSTMTRS></CCSTMTTRNRS></CREDITCARDMSGSRSV1></OFX>\n", encoding="utf-8")
+    return len(rows)
+
+
+def qif_bank(path: Path, start: date, end: date, seed: int):
+    """QIF with day-first dates, a category per line and a transfer to another account ("L[...]")."""
+    rows = movements(start, end, seed, salary=1890.00, rent=610.00)
+    categories = {"rent": "Casa:Affitto", "salary": "Stipendio", "grocery": "Alimentari", "fuel": "Trasporto:Carburante",
+                  "utility": "Bollette", "leisure": "Svago"}
+    out = ["!Type:Bank"]
+    for r in rows:
+        out += [f"D{r['date']:%d/%m/%Y}", f"T{r['amount']:,.2f}", f"P{r['full'][:40]}", f"M{r['short']}"]
+        if r["kind"] in categories:
+            out.append(f"L{categories[r['kind']]}")
+        out.append("^")
+    out += [f"D{end:%d/%m/%Y}", "T-300.00", "PGiroconto verso conto deposito", "L[Conto deposito]", "^"]
+    path.write_text("\n".join(out) + "\n", encoding="utf-8")
+    return len(rows) + 1
+
+
+def camt053(path: Path, start: date, end: date, seed: int):
+    """ISO 20022 camt.053.001.02: booked entries with debtor/creditor names and remittance text, one pending
+    entry (left out by the import) and the opening and closing balances for the balance check."""
+    rows = movements(start, end, seed, salary=2210.00, rent=720.00)
+    opening = 3200.00
+    closing = opening + sum(r["amount"] for r in rows)
+
+    def entry(r, status="BOOK"):
+        credit = r["amount"] > 0
+        party = "Dbtr" if credit else "Cdtr"
+        name = r["full"].split(" per ")[0].replace("Bonifico a ", "").replace("Bonifico da ", "").replace("PAGAMENTO POS ", "")[:60]
+        return (f"<Ntry><Amt Ccy=\"EUR\">{abs(r['amount']):.2f}</Amt><CdtDbtInd>{'CRDT' if credit else 'DBIT'}</CdtDbtInd>"
+                f"<Sts>{status}</Sts><BookgDt><Dt>{r['date']:%Y-%m-%d}</Dt></BookgDt><ValDt><Dt>{r['date']:%Y-%m-%d}</Dt></ValDt>"
+                f"<BkTxCd/><NtryDtls><TxDtls><RltdPties><{party}><Nm>{_xml(name)}</Nm></{party}></RltdPties>"
+                f"<RmtInf><Ustrd>{_xml(r['full'])}</Ustrd></RmtInf></TxDtls></NtryDtls></Ntry>\n")
+
+    def balance(code, amount, day):
+        return (f"<Bal><Tp><CdOrPrtry><Cd>{code}</Cd></CdOrPrtry></Tp><Amt Ccy=\"EUR\">{abs(amount):.2f}</Amt>"
+                f"<CdtDbtInd>{'CRDT' if amount >= 0 else 'DBIT'}</CdtDbtInd><Dt><Dt>{day:%Y-%m-%d}</Dt></Dt></Bal>\n")
+
+    pending = {"date": end, "amount": -49.90, "full": "Pagamento POS ZALANDO SE in attesa", "short": "POS"}
+    path.write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02"><BkToCstmrStmt>'
+        f"<GrpHdr><MsgId>MFP{seed}</MsgId><CreDtTm>{end:%Y-%m-%d}T18:00:00</CreDtTm></GrpHdr>\n"
+        f"<Stmt><Id>STMT{seed}</Id><Acct><Id><IBAN>IT02A0301503200000003517230</IBAN></Id><Ccy>EUR</Ccy></Acct>\n"
+        + balance("OPBD", opening, start) + balance("CLBD", closing, end)
+        + "".join(entry(r) for r in rows) + entry(pending, "PDNG")
+        + "</Stmt></BkToCstmrStmt></Document>\n", encoding="utf-8")
+    return len(rows)
+
+
 def main():
     files = [
         ("fineco_2026-06_2026-07.xlsx", fineco, (date(2026, 6, 1), date(2026, 7, 31), 11)),
@@ -689,6 +778,10 @@ def main():
         ("estratto_conto_word97_2025-10.doc", generic_doc, (date(2025, 10, 1), date(2025, 10, 31), 188)),
         ("estratto_conto_libreoffice_2025-12.ods", generic_ods, (date(2025, 12, 1), date(2025, 12, 31), 122)),
         ("estratto_conto_2025-11.rtf", generic_rtf, (date(2025, 11, 1), date(2025, 11, 30), 133)),
+        ("conto_ofx_2026-04_2026-05.ofx", ofx_sgml, (date(2026, 4, 1), date(2026, 5, 31), 199)),
+        ("carta_credito_ofx2_2026-08.qfx", ofx_xml_card, (date(2026, 8, 1), date(2026, 8, 31), 211)),
+        ("conto_quicken_2026-03.qif", qif_bank, (date(2026, 3, 1), date(2026, 3, 31), 222)),
+        ("camt053_2026-09.xml", camt053, (date(2026, 9, 1), date(2026, 9, 24), 233)),
     ]
     files += [
         # Built from the PDFs above: need fpdf2 only through them

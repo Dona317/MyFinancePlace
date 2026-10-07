@@ -171,16 +171,16 @@
   <div class="card-header">
     <div>
       <div class="card-header-title"><i class="bi bi-bank2"></i> {{ _('Importa Estratto Conto Bancario') }}</div>
-      <div class="card-header-sub">{{ _("Excel, CSV, PDF, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati automaticamente, duplicati ignorati") }}</div>
+      <div class="card-header-sub">{{ _("Excel, CSV, PDF, OFX, QIF, CAMT.053, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati automaticamente, duplicati ignorati") }}</div>
     </div>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"
           style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end;">
       <div class="form-group" style="margin:0;">
-        <label class="form-label">{{ _('File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF, foto)') }}</label>
+        <label class="form-label">{{ _('File dei movimenti (Excel, CSV, PDF, OFX/QFX, QIF, CAMT.053 XML, TXT, Word, ODS/ODT, RTF, foto)') }}</label>
         <input type="file" name="file" class="form-control"
-               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.doc,.ods,.odt,.rtf,.tsv,.jpg,.jpeg,.png,.webp" required />
+               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.doc,.ods,.odt,.rtf,.tsv,.jpg,.jpeg,.png,.webp,.ofx,.qfx,.qif,.xml" required />
       </div>
       <div class="form-group" style="margin:0;">
         <label class="form-label">{{ _('Banca') }}</label>

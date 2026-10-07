@@ -66,7 +66,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 |---|---|---|---|---|---|
 | F4 | A | M | ⬜ | **Prova con estratti conto reali anonimizzati** (8 banche) | Campioni oggi generati; PDF a maggior rischio. Serve che tu fornisca i file |
 | F5 | M | M | ⬜ | **Storico prezzi investimenti** (+ prezzi automatici ETF/cripto) | Oggi gli stati patrimoniali passati usano l'ultimo prezzo |
-| F6 | M | M | ⬜ | **Import OFX / QIF / CAMT.053** | Quasi tutte le banche li esportano; si innesta in `statement_readers.py` |
+| F6 | M | M | ✅ | **Import OFX / QIF / CAMT.053** | `structured_statements.py` (solo libreria standard): OFX 1 SGML e 2 XML, QIF con categorie e giroconti, CAMT.053/052 con quadratura dei saldi e movimenti in attesa esclusi; stessa anteprima, categorie e duplicati degli altri estratti; 4 campioni |
 
 ### Budget e analisi
 

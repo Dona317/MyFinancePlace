@@ -143,7 +143,7 @@ def _read_zip_document(raw: bytes) -> Document:
                 return _read_odf(archive.read("content.xml"))
     except zipfile.BadZipFile:
         pass
-    raise UnsupportedFile(_("Formato non riconosciuto: carica un file Excel, CSV, TXT, PDF, Word o OpenDocument."))
+    raise UnsupportedFile(_("Formato non riconosciuto: carica un file Excel, CSV, TXT, PDF, Word, OpenDocument, OFX, QIF o CAMT.053."))
 
 
 # ── HTML (bank "Excel" exports that are really HTML tables) ─────────────────────

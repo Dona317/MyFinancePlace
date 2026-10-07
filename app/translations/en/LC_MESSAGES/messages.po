@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 18:38+0000\n"
+"POT-Creation-Date: 2026-10-07 18:48+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1806,11 +1806,11 @@ msgid "Euro"
 msgstr "Euro"
 
 msgid ""
-"Excel, CSV, PDF, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati automaticamente, "
-"duplicati ignorati"
+"Excel, CSV, PDF, OFX, QIF, CAMT.053, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati "
+"automaticamente, duplicati ignorati"
 msgstr ""
-"Excel, CSV, PDF, TXT, Word or LibreOffice file downloaded from online banking: movements categorized automatically, "
-"duplicates skipped"
+"Excel, CSV, PDF, OFX, QIF, CAMT.053, TXT, Word or LibreOffice downloaded from online banking: transactions "
+"categorized automatically, duplicates skipped"
 
 #, python-format
 msgid "Export JSON importato: %(added)s transazioni aggiunte, %(skipped)s già presenti ignorate."
@@ -1840,8 +1840,8 @@ msgstr "Feb"
 msgid "File"
 msgstr "File"
 
-msgid "File dei movimenti (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF, foto)"
-msgstr "Movements file (Excel, CSV, PDF, TXT, Word, ODS/ODT, RTF, photo)"
+msgid "File dei movimenti (Excel, CSV, PDF, OFX/QFX, QIF, CAMT.053 XML, TXT, Word, ODS/ODT, RTF, foto)"
+msgstr "Transactions file (Excel, CSV, PDF, OFX/QFX, QIF, CAMT.053 XML, TXT, Word, ODS/ODT, RTF, photo)"
 
 msgid "File di backup"
 msgstr "Backup file"
@@ -1945,8 +1945,8 @@ msgstr "Date format"
 msgid "Formato non leggibile dal modello: carica un PDF, un'immagine (JPG/PNG) o un documento di testo."
 msgstr "Format the model cannot read: upload a PDF, an image (JPG/PNG) or a text document."
 
-msgid "Formato non riconosciuto: carica un file Excel, CSV, TXT, PDF, Word o OpenDocument."
-msgstr "Format not recognized: upload an Excel, CSV, TXT, PDF, Word or OpenDocument file."
+msgid "Formato non riconosciuto: carica un file Excel, CSV, TXT, PDF, Word, OpenDocument, OFX, QIF o CAMT.053."
+msgstr "Unrecognized format: upload an Excel, CSV, TXT, PDF, Word, OpenDocument, OFX, QIF or CAMT.053 file."
 
 msgid "Formato non supportato: carica un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)."
 msgstr "Format not supported: upload a CSV, Excel (.xlsx, .xls) or LibreOffice (.ods) file."
@@ -2106,8 +2106,23 @@ msgstr "The document will be sent to Anthropic"
 msgid "Il download di %(name)s è già in corso."
 msgstr "The download of %(name)s is already in progress."
 
+#, python-format
+msgid "Il file %(format)s non contiene movimenti contabilizzati."
+msgstr "The %(format)s file contains no booked transactions."
+
 msgid "Il file .zip è danneggiato o non è un backup di MyFinancePlace."
 msgstr "The .zip file is damaged or is not a MyFinancePlace backup."
+
+#, python-format
+msgid "Il file CAMT non è un XML valido: %(exc)s"
+msgstr "The CAMT file is not valid XML: %(exc)s"
+
+#, python-format
+msgid "Il file QIF è di tipo «%(kind)s»: si importano solo conti, carte e contanti."
+msgstr "The QIF file is of type «%(kind)s»: only bank, card and cash accounts are imported."
+
+msgid "Il file XML contiene una dichiarazione DOCTYPE o ENTITY: non viene letto."
+msgstr "The XML file contains a DOCTYPE or ENTITY declaration: it is not read."
 
 #, python-format
 msgid "Il file contiene un valore non valido (%(exc)s)."
@@ -2873,6 +2888,10 @@ msgstr "Movements read with artificial intelligence"
 
 msgid "Movimenti nuovi"
 msgstr "New movements"
+
+#, python-format
+msgid "Movimento %(number)s: data o importo non validi"
+msgstr "Transaction %(number)s: invalid date or amount"
 
 msgid "Mutui"
 msgstr "Mortgages"

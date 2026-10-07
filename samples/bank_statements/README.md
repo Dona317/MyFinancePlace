@@ -23,6 +23,10 @@ by hand: **Esporta → Importa Estratto Conto Bancario**, pick a file, keep "Ril
 | `estratto_conto_word97_2025-10.doc` | Word 97-2003 binary `.doc` with a table (written by the generator: OLE2 container, FIB, piece table) | Oct 2025 | Legacy Word, 8-bit and UTF-16 text pieces |
 | `estratto_conto_libreoffice_2025-12.ods` | LibreOffice Calc spreadsheet | Dec 2025 | OpenDocument, typed date cells |
 | `estratto_conto_2025-11.rtf` | RTF with tab-separated columns | Nov 2025 | Rich Text Format |
+| `conto_ofx_2026-04_2026-05.ofx` | OFX 1.02 (SGML, unclosed tags), current account | Apr–May 2026 | Money/Quicken download |
+| `carta_credito_ofx2_2026-08.qfx` | OFX 2.2 (XML), credit card | Aug 2026 | `CREDITCARDMSGSRSV1` |
+| `conto_quicken_2026-03.qif` | QIF with categories (`L`) and a transfer (`L[Conto deposito]`) | Mar 2026 | day-first dates |
+| `camt053_2026-09.xml` | ISO 20022 camt.053.001.02 with opening/closing balances | Sep 2026 | one pending entry (excluded), balance check |
 | `SCANSIONE_fineco_2026-07_2026-08.pdf` | **Scanned** PDF: page images only, no text layer | Jul–Aug 2026 | Needs the AI reader (`LLM_PROVIDER`); without it, a clear error |
 | `FOTO_estratto_conto_intesa_2026-09.jpg` | **Phone photo** (JPEG, slightly rotated) | Sep 2026 | Needs the AI reader |
 

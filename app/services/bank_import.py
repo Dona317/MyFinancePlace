@@ -41,10 +41,11 @@ from decimal import Decimal
 from statistics import median
 
 from app.models.transaction import Transaction
-from app.services import category_rules
+from app.services import categories, category_rules
 from app.services.ai_classification import AI_TAG
 from app.services import ai_extraction, column_guess, duplicates, history_classifier, merchant, ocr
 from app.services import statement_readers as readers
+from app.services import structured_statements as structured
 from app.services.parsing import TRANSACTION_TYPES, clean_text, normalize, to_date, to_decimal, valid_amount
 from app.services.statement_readers import Word
 from flask_babel import gettext as _
@@ -218,6 +219,16 @@ BANKS = {
         },
     ),
 }
+
+# Interchange formats (structured_statements): no columns to find, any bank
+FORMAT_LAYOUTS = {key: BankLayout(key=key, name=name, markers=(), signature=(), columns={})
+                  for key, name in structured.FORMATS.items()}
+
+
+def layout_named(key: str) -> BankLayout:
+    """The bank or file format a preview was read with (saved in the preview payload)."""
+    return BANKS.get(key) or FORMAT_LAYOUTS.get(key) or BANKS["generic"]
+
 
 AUTO = "auto"
 DETECTION_ORDER = ("fineco", "intesa", "unicredit", "bper", "poste", "ing", "revolut", "n26", "generic")
@@ -748,6 +759,12 @@ def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementP
     automatic AI call): the user decides whether to read them with an AI model (analyze_with_ai).
     """
     try:
+        statement = structured.parse(filename, raw)
+    except structured.StructuredFileError as exc:
+        raise StatementImportError(str(exc))
+    if statement is not None:
+        return _structured_preview(statement)
+    try:
         document = readers.read_document(filename, raw)
     except readers.NeedsOCR as exc:
         preview = _read_with_ocr(filename, raw, bank)
@@ -763,6 +780,28 @@ def analyze_statement(filename: str, raw: bytes, bank: str = AUTO) -> StatementP
         raise AIRequired(str(exc), "layout")
     rows.sort(key=lambda r: r.date)
     return StatementPreview(bank=layout_bank, rows=enrich(rows, layout_bank.key), pending_skipped=pending)
+
+
+def _structured_preview(statement: structured.Statement) -> StatementPreview:
+    """An OFX / QIF / CAMT statement as the usual preview: types, categories, merchants and duplicates as for any bank."""
+    rows = [StatementRow(date=m.date, description=m.description, amount=m.amount, details=m.details,
+                         currency=m.currency, counterparty=m.counterparty) for m in statement.movements]
+    layout = FORMAT_LAYOUTS[statement.format]
+    enrich(rows, layout.key)
+    known = {name.casefold(): name for name in categories.known_categories()}
+    for row, movement in zip(rows, statement.movements):
+        if movement.transfer:
+            row.type, row.category = "transfer", "Giroconto"
+        elif movement.category and row.type != "transfer":  # the file's own category, when it is one of ours
+            parts = [movement.category, *reversed(movement.category.split(":"))]
+            match = next((known[p.strip().casefold()] for p in parts if p.strip().casefold() in known), None)
+            row.category = match or row.category
+    check = None
+    if statement.opening is not None and statement.closing is not None:
+        check = BalanceCheck(opening=statement.opening, closing=statement.closing,
+                             movements_total=sum((r.amount for r in rows), Decimal(0)))
+    return StatementPreview(bank=layout, rows=rows, pending_skipped=statement.skipped, unread=statement.unread,
+                            balance_check=check)
 
 
 _DATED_LINE = re.compile(r"^\s*\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}")

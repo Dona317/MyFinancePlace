@@ -79,6 +79,10 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Subscriptions page** (F9, `/subscriptions`, `services/subscriptions.py`): flagged and detected recurring
   series with monthly/yearly cost, next charge, last payment and price change; confirm a detected one, end a
   series on its last payment («Non più attivo», `recurrence_end`) or resume it; recurring income on its own tab
+- **OFX / QIF / CAMT.053 import** (F6, `services/structured_statements.py`, standard library only): OFX 1 (SGML)
+  and 2 (XML), QIF (day/month order from the file, `L` category kept when it is one of ours, `L[Account]` = transfer),
+  CAMT.053/052 (booked entries only, debtor/creditor as counterparty, opening/closing balance check; DOCTYPE/ENTITY
+  refused); same preview, categories, merchants and duplicates as the other statements
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
