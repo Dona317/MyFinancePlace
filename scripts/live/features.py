@@ -6,10 +6,13 @@ desktop and phone (screenshots in LIVE_SHOTS when set).
 """
 
 import sys
+from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
 from common import AUTH, BASE as B, OUT, SHOTS, check, launch, local_assets, run, sql, summary
+
+SAMPLES = Path(__file__).resolve().parents[2] / "samples" / "bank_statements"
 
 with sync_playwright() as p:
     br = launch(p)
@@ -318,6 +321,58 @@ with sync_playwright() as p:
 
     run("L. Password change", password)
 
+    def plan_features():
+        # F8: the nature of a category, and the split of the year's spending by nature
+        pg.goto(B + "/settings/categories")
+        row = pg.locator("tr:has(input[name=name][value='Bollette'])")
+        row.locator("select[name=nature]").select_option("periodic")
+        row.locator("button[title='Salva']").click()
+        pg.wait_for_load_state()
+        check("category nature saved", sql("select nature from categories where name='Bollette'") == "periodic", alert())
+        pg.goto(B + "/lifestyle/?year=2026")
+        check("spending by nature shown", pg.locator(".nature-card .nature-item").count() == 3)
+        # F10a: months of autonomy on the dashboard, target from the settings
+        pg.goto(B + "/settings/")
+        with pg.expect_navigation():  # the select saves the settings by itself
+            pg.select_option("#s-autonomy", "12")
+        pg.goto(B + "/dashboard")
+        check("months of autonomy with the chosen target", "/ 12 mesi" in pg.inner_text(".autonomy") or "—" in pg.inner_text(".autonomy"),
+              pg.inner_text(".autonomy"))
+        # F9: subscriptions — confirm a detected series, end one, resume it
+        for month in (6, 7, 8, 9):
+            sql(f"insert into transactions (date, description, amount, amount_base, currency, type, category, tags, is_recurring)"
+                f" values ('2026-{month:02d}-03', 'Live Disney Plus', 8.99, 8.99, 'EUR', 'expense', 'Abbonamenti', '{{}}', false)")
+        pg.goto(B + "/subscriptions/")
+        row = pg.locator("tr:has-text('Live Disney Plus')")
+        check("detected series offered for confirmation", row.locator("text=da confermare").count() == 1)
+        row.locator("button:has-text('Conferma')").click()
+        pg.wait_for_load_state()
+        check("confirmed from the subscriptions page", "/subscriptions/" in pg.url and sql(
+            "select count(*) from transactions where description='Live Disney Plus' and is_recurring") == "1", alert())
+        pg.locator("tr:has-text('Live Disney Plus') button:has-text('Non più attivo')").click()
+        pg.wait_for_load_state()
+        check("series ended", pg.locator("details:has-text('Live Disney Plus')").count() == 1, alert())
+        pg.locator("details").evaluate("d => d.open = true")
+        pg.locator("tr:has-text('Live Disney Plus') button:has-text('Riattiva')").click()
+        pg.wait_for_load_state()
+        check("series resumed", sql("select count(*) from transactions where description='Live Disney Plus'"
+                                    " and recurrence_end is not null") == "0", alert())
+        # F6: OFX and CAMT.053 statements through the usual preview
+        for name, kind in (("conto_ofx_2026-04_2026-05.ofx", "OFX"), ("camt053_2026-09.xml", "CAMT.053")):
+            pg.goto(B + "/export/")
+            pg.set_input_files("input[type=file][accept*='.ofx']", str(SAMPLES / name))
+            pg.locator("form:has(input[accept*='.ofx']) button[type=submit]").first.click()
+            pg.wait_for_load_state()
+            check(f"{kind} statement previewed", kind in pg.inner_text(".kpi-grid") and pg.locator(".row-include").count() > 3,
+                  alert())
+        check("CAMT balance check", "Quadratura verificata" in pg.inner_text("#balance-check"))
+        before = int(sql("select count(*) from transactions"))
+        pg.click("#import-button")
+        pg.wait_for_load_state()
+        check("CAMT statement imported", int(sql("select count(*) from transactions")) > before, alert())
+
+    run("N. Category nature, autonomy, subscriptions, OFX/CAMT import", plan_features)
+
     def crawl():
         urls = set()
         for u in [
@@ -335,6 +390,7 @@ with sync_playwright() as p:
             "/snapshots/",
             "/accounts/",
             "/forecast/",
+            "/subscriptions/",
         ]:
             pg.goto(B + u)
             for h in pg.eval_on_selector_all("a[href^='/']", "els => els.map(e => e.getAttribute('href'))"):
