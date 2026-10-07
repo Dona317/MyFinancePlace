@@ -5,8 +5,8 @@ PGiroconto verso conto titoli
 L[Conto corrente Fineco]
 ^
 D12/09/2026
-T-240.00
-PAcquisto ETF VWCE (PAC)
+T-240.01
+PAcquisto VWCE 1.8387 quote a 130.53 (PAC)
 LInvestimenti
 ^
 D12/09/2026
@@ -14,8 +14,8 @@ T-1.50
 PCommissione ordine Directa
 LCommissioni
 ^
-D15/09/2026
-T49.77
+D26/09/2026
+T22.17
 PDividendo VWCE
 LDividendi e cedole
 ^

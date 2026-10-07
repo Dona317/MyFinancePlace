@@ -15,8 +15,8 @@ import pytest
 
 from app.models.account import Account
 from app.models.transaction import Transaction, TransactionSplit
-from app.models.wealth import Holding
-from app.services import accounts, analytics, backup, bank_import, categories, subscriptions, wealth
+from app.models.wealth import Document, Holding, InsurancePolicy
+from app.services import accounts, analytics, backup, bank_import, categories, document_store, notifications, subscriptions, wealth
 from tests.conftest import make_tx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
@@ -26,7 +26,8 @@ TODAY = date(2026, 10, 7)
 
 
 @pytest.fixture()
-def demo_data(app, db):
+def demo_data(app, db, tmp_path):
+    app.instance_path = str(tmp_path)  # the documents' files
     with app.test_request_context():
         categories.ensure_defaults()
         result = demo.fill(TODAY)
@@ -85,7 +86,7 @@ def test_every_page_has_data(client, demo_data):
         rates = analytics.savings_rates_by_year(TODAY)
         assert [y["year"] for y in rates["years"]] == [2026, 2025, 2024, 2023]
         subs = subscriptions.overview("expense", TODAY)
-        assert [s.template.description for s in subs["ended"]] == ["Disney Plus"]
+        assert {s.template.description for s in subs["ended"]} == {"Disney Plus", "Rata finanziamento TV Findomestic"}
         netflix = next(s for s in subs["series"] if s.template.description == "Netflix abbonamento")
         assert netflix.amount == 15.99 and netflix.confirmed
         assert analytics.nature_split(date(2025, 1, 1), date(2026, 1, 1))["amounts"]["fixed"] > 0
@@ -113,3 +114,36 @@ def test_the_backup_restores(app, demo_data):
             data = json.loads(archive.read("backup.json"))
         backup.restore(data, {})
         assert (Transaction.query.count(), _balances()) == before
+
+
+def test_the_portfolio_comes_from_its_trades(app, demo_data):
+    owned = demo.portfolio(demo_data["moves"], demo_data["cutoff"])
+    holdings = {h.ticker or h.name: h for h in Holding.query}
+    assert holdings["ENEL"].quantity == 125 and holdings["IT0005497000"].quantity == 100
+    assert holdings["VWCE"].quantity == owned["vwce"]["quantity"] > 70 and holdings["VWCE"].gain > 0
+    assert holdings["BTC"].quantity == Decimal("0.01776")
+    trades = Transaction.query.filter(Transaction.holding_id.isnot(None), Transaction.type == "transfer")
+    sale = trades.filter(Transaction.account_id.is_(None)).one()
+    assert sale.description.startswith("Vendita 125 azioni Enel") and sale.counter_account_id is not None
+    income = Transaction.query.filter(Transaction.holding_id.isnot(None), Transaction.type == "income")
+    assert {t.description for t in income} == {"Cedola BTP Italia 2030", "Dividendo Enel", "Dividendo VWCE"}
+    with app.test_request_context():
+        flow = analytics.cash_flow(2025)
+        assert flow["investing"] < 0  # the monthly plan, the pension fund and a crypto purchase, less the sale
+        sheet = wealth.balance_sheet()
+        assert sheet["investments"] == pytest.approx(sum(h.value for h in Holding.query if h.asset_class in (
+            "ETF", "Obbligazione", "Azione", "Criptovaluta")), abs=0.05)
+
+
+def test_policies_reminders_and_documents(client, demo_data):
+    policies = InsurancePolicy.query.all()
+    assert len(policies) == 6 and sum(not p.is_active(TODAY) for p in policies) == 1
+    with client.application.test_request_context():
+        reminders = [n.title for n in notifications._policies(TODAY)]
+    assert any("Reale Mutua" in title for title in reminders)  # renews on 15 November: within 60 days
+    documents = Document.query.all()
+    assert len(documents) == 5 and all(document_store.read(d.stored_name).startswith(b"%PDF") for d in documents)
+    receipt = next(d for d in documents if d.doc_type == "Ricevuta")
+    assert receipt.transaction is not None and receipt.transaction.description == "Visita dentista"
+    for url in ("/insurance/", "/documents/", f"/documents/{receipt.id}/file", "/notifications/"):
+        assert client.get(url).status_code == 200, url
