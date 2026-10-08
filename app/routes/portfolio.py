@@ -6,7 +6,8 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import wealth
+from app.routes.settings import current_settings
+from app.services import display, price_feed, wealth
 from flask_babel import gettext as _
 
 portfolio_bp = APIBlueprint(
@@ -91,11 +92,32 @@ def prices():
         except ValueError as exc:
             db.session.rollback()
             flash(str(exc), "error")
-            return render_template("portfolio/prices.html", holdings=holdings, values=request.form, today=date.today())
+            return render_template("portfolio/prices.html", holdings=holdings, values=request.form, today=date.today(),
+                                   online=current_settings()["prices_online"], supported=price_feed.supported)
         db.session.commit()
         flash(_("Prezzi aggiornati: %(changed)s.", changed=changed) if changed else _("Nessun prezzo cambiato."), "success")
         return redirect(url_for("portfolio.index"))
-    return render_template("portfolio/prices.html", holdings=holdings, values={}, today=date.today())
+    return render_template("portfolio/prices.html", holdings=holdings, values={}, today=date.today(),
+                           online=current_settings()["prices_online"], supported=price_feed.supported)
+
+
+@portfolio_bp.route("/prices/online", methods=["POST"])
+def prices_online():
+    """Read today's prices from the internet (when turned on in Settings) and record them."""
+    if not current_settings()["prices_online"]:
+        flash(_("I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."), "warning")
+        return redirect(url_for("portfolio.prices"))
+    results = price_feed.update_all(wealth.holdings_on())
+    db.session.commit()
+    updated = [r for r in results if r.error is None]
+    if updated:
+        flash(_("Prezzi aggiornati da internet: %(names)s.", names=", ".join(
+            f"{r.holding.name} {display.money(r.price)}" for r in updated)), "success")
+    for r in (r for r in results if r.error):
+        flash(_("%(name)s: %(error)s", name=r.holding.name, error=r.error), "warning")
+    if not results:
+        flash(_("Nessuna posizione con un ticker da cercare: ETF, azioni, obbligazioni, fondi o cripto con il ticker compilato."), "warning")
+    return redirect(url_for("portfolio.prices"))
 
 
 @portfolio_bp.route("/<int:holding_id>/history", methods=["GET", "POST"])

@@ -108,6 +108,10 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   expense linked to the trade (`fee_for_id`, deleted with it); the holding's quantity and average price (commission
   included) follow the trade and its price goes into the history. A trade is a transfer to/from the investment, so
   the savings rate is not touched. Without rules or confirmation everything stays manual
+- **Prices from the internet** (F5b, `services/price_feed.py`, off by default: Settings → Dati da internet): «Aggiorna
+  da internet» in Aggiorna prezzi reads Yahoo Finance (ETFs, shares, bonds, funds; ticker with the exchange suffix,
+  other currencies converted with the saved rates, London pence handled) and CoinGecko (crypto, symbol or id), free
+  and without a key; only the tickers are sent; errors are reported per holding; prices go into the F5 history
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

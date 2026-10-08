@@ -115,6 +115,16 @@
       </div>
     </div>
 
+    <div class="settings-section" id="online">
+      <div class="settings-section-header">
+        <i class="bi bi-globe" style="color:var(--clr-primary);"></i>
+        {{ _('Dati da internet') }}
+      </div>
+      <div class="settings-section-body">
+        {{ toggle('prices_online', _('Prezzi degli investimenti da internet'), _('Aggiunge «Aggiorna da internet» in Portafoglio → Aggiorna prezzi: legge i prezzi da Yahoo Finance (ETF, azioni) e CoinGecko (cripto), gratis e senza chiave. Invia solo i ticker, e solo quando premi il pulsante.')) }}
+      </div>
+    </div>
+
     <!-- ── MODULI ──────────────────────────────────────────────────────── -->
     <div class="settings-section" id="moduli">
       <div class="settings-section-header">

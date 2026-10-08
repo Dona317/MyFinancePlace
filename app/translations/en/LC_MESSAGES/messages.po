@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 05:31+0000\n"
+"POT-Creation-Date: 2026-10-08 05:40+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -245,6 +245,10 @@ msgstr "%(n)s months"
 #, python-format
 msgid "%(name)s non è un modello per questo provider: scegli %(which)s."
 msgstr "%(name)s is not a model for this provider: choose %(which)s."
+
+#, python-format
+msgid "%(name)s: %(error)s"
+msgstr "%(name)s: %(error)s"
 
 #, python-format
 msgid "%(num)d categoria confermata."
@@ -523,6 +527,9 @@ msgstr "Update"
 msgid "Aggiorna Prezzi"
 msgstr "Update Prices"
 
+msgid "Aggiorna da internet"
+msgstr "Update from the internet"
+
 msgid "Aggiorna prezzi"
 msgstr "Update prices"
 
@@ -534,6 +541,13 @@ msgstr "Update it whenever you like (also all at once from «Update prices»): e
 
 msgid "Aggiornato"
 msgstr "Updated"
+
+msgid ""
+"Aggiunge «Aggiorna da internet» in Portafoglio → Aggiorna prezzi: legge i prezzi da Yahoo Finance (ETF, azioni) e "
+"CoinGecko (cripto), gratis e senza chiave. Invia solo i ticker, e solo quando premi il pulsante."
+msgstr ""
+"Adds «Update from the internet» in Portfolio → Update prices: reads prices from Yahoo Finance (ETFs, shares) and "
+"CoinGecko (crypto), free and without a key. It sends only the tickers, and only when you press the button."
 
 msgid "Aggiungi"
 msgstr "Add"
@@ -1177,6 +1191,10 @@ msgstr "Classification failed."
 msgid "Clicca per partire da un modello: potrai cambiare nome e importo"
 msgstr "Click to start from a template: you can change name and amount"
 
+#, python-format
+msgid "CoinGecko non risponde (%(exc)s)"
+msgstr "CoinGecko does not answer (%(exc)s)"
+
 msgid "Colonna Categoria"
 msgstr "Category column"
 
@@ -1571,6 +1589,9 @@ msgstr "Expiry date"
 
 msgid "Data obiettivo"
 msgstr "Target date"
+
+msgid "Dati da internet"
+msgstr "Data from the internet"
 
 msgid "Debiti"
 msgstr "Debts"
@@ -2164,6 +2185,9 @@ msgid ""
 msgstr ""
 "The movements don't add up with the document's balances: opening balance %(opening)s + movements %(movements)s ≠ "
 "closing balance %(closing)s (difference %(difference)s). Some row is probably missing or wrong."
+
+msgid "I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."
+msgstr "Prices from the internet are off: turn them on in Settings → Data from the internet."
 
 msgid "Identici"
 msgstr "Identical"
@@ -3147,6 +3171,9 @@ msgstr "No policies of type «%(type)s»."
 msgid "Nessuna polizza registrata. Aggiungi la prima copertura: ti ricorderemo le scadenze."
 msgstr "No policies recorded. Add your first cover: we will remind you of the expiry dates."
 
+msgid "Nessuna posizione con un ticker da cercare: ETF, azioni, obbligazioni, fondi o cripto con il ticker compilato."
+msgstr "No holding with a ticker to look up: ETFs, shares, bonds, funds or crypto with their ticker filled in."
+
 msgid "Nessuna posizione da aggiornare."
 msgstr "No holdings to update."
 
@@ -3763,11 +3790,21 @@ msgid "Prezzi"
 msgstr "Prices"
 
 #, python-format
+msgid "Prezzi aggiornati da internet: %(names)s."
+msgstr "Prices updated from the internet: %(names)s."
+
+#, python-format
 msgid "Prezzi aggiornati: %(changed)s."
 msgstr "Prices updated: %(changed)s."
 
 msgid "Prezzi attuali"
 msgstr "Current prices"
+
+msgid "Prezzi da internet: spenti"
+msgstr "Prices from the internet: off"
+
+msgid "Prezzi degli investimenti da internet"
+msgstr "Investment prices from the internet"
 
 #, python-format
 msgid "Prezzi registrati (%(count)s)"
@@ -3794,6 +3831,9 @@ msgstr "Current price"
 
 msgid "Prezzo attuale (€)"
 msgstr "Current price (€)"
+
+msgid "Prezzo da internet"
+msgstr "Price from the internet"
 
 #, python-format
 msgid "Prezzo di %(name)s"
@@ -5149,6 +5189,9 @@ msgstr "Empty: the day's exchange rate is used."
 msgid "YYYY-MM-DD (ISO)"
 msgstr "YYYY-MM-DD (ISO)"
 
+msgid "Yahoo Finance e CoinGecko: invia solo i ticker"
+msgstr "Yahoo Finance and CoinGecko: sends only the tickers"
+
 msgid "Yen"
 msgstr "Yen"
 
@@ -5217,6 +5260,10 @@ msgstr "check and correct every row"
 
 msgid "controvalore in euro"
 msgstr "value in euro"
+
+#, python-format
+msgid "criptovaluta «%(coin)s» non trovata su CoinGecko (usa il suo id, es. bitcoin)"
+msgstr "crypto «%(coin)s» not found on CoinGecko (use its id, e.g. bitcoin)"
 
 msgid "curl -fsSL https://ollama.com/install.sh | sh"
 msgstr "curl -fsSL https://ollama.com/install.sh | sh"
@@ -5405,6 +5452,10 @@ msgstr "no budget"
 msgid "nessun cambio nel file della BCE"
 msgstr "no rates in the ECB file"
 
+#, python-format
+msgid "nessun prezzo per «%(ticker)s»"
+msgstr "no price for «%(ticker)s»"
+
 msgid "nessuna regola sul conto: scrivila a mano, se c’è"
 msgstr "no rule on the account: type it, if there is one"
 
@@ -5460,6 +5511,10 @@ msgstr "current price"
 
 msgid "prezzo di acquisto"
 msgstr "purchase price"
+
+#, python-format
+msgid "prezzo in %(code)s: manca il cambio (Impostazioni → Valute)"
+msgstr "price in %(code)s: the exchange rate is missing (Settings → Currencies)"
 
 msgid "prima"
 msgstr "before"
@@ -5547,6 +5602,10 @@ msgstr "rate %(rate)s%%"
 
 msgid "testo"
 msgstr "text"
+
+#, python-format
+msgid "ticker «%(ticker)s» non trovato (per Borsa Italiana aggiungi .MI, per Xetra .DE)"
+msgstr "ticker «%(ticker)s» not found (add .MI for Borsa Italiana, .DE for Xetra)"
 
 msgid "transazioni"
 msgstr "transactions"

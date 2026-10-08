@@ -10,6 +10,13 @@
       <div class="card-header-title">{{ _('Prezzi attuali') }}</div>
       <div class="card-header-sub">{{ _('Scrivi solo quelli cambiati: gli altri restano come sono.') }}</div>
     </div>
+    {% if online %}
+    <form method="POST" action="{{ url_for('portfolio.prices_online') }}">
+      <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Yahoo Finance e CoinGecko: invia solo i ticker') }}"><i class="bi bi-cloud-download"></i> {{ _('Aggiorna da internet') }}</button>
+    </form>
+    {% else %}
+    <a href="{{ url_for('settings.index', _anchor='online') }}" class="text-xs text-muted">{{ _('Prezzi da internet: spenti') }}</a>
+    {% endif %}
   </div>
   {% if holdings %}
   <form method="POST">
@@ -35,7 +42,7 @@
           {% for h in holdings %}
           {% set field = 'price-' ~ h.id %}
           <tr>
-            <td><div class="cell-title">{{ h.name }}</div><div class="text-xs text-muted">{{ h.ticker or h.asset_class|tr }}</div></td>
+            <td><div class="cell-title">{{ h.name }}</div><div class="text-xs text-muted">{{ h.ticker or h.asset_class|tr }}{% if online and supported(h) %} · <i class="bi bi-cloud-check" title="{{ _('Prezzo da internet') }}"></i>{% endif %}</div></td>
             <td class="amount text-right">{{ h.quantity|number(8) }}</td>
             <td class="amount text-right">{{ h.price|money }}</td>
             <td class="text-xs text-muted nowrap">{{ h.price_date|it_date }}</td>

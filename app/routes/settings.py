@@ -41,6 +41,8 @@ DEFAULT_SETTINGS = {
     "dashboard_recent_tx":      True,
     "dashboard_health":         True,
     "autonomy_target":          "6",   # months of spending the liquid money should cover (Salute Finanziaria)
+    # ── Data from the internet ───────────────────────────────────────────
+    "prices_online":            False,  # «Aggiorna da internet» in Portafoglio → Aggiorna prezzi (F5b)
     # ── Modules (sidebar visibility + route access) ──────────────────────
     "module_portfolio":         True,
     "module_debt":              True,
