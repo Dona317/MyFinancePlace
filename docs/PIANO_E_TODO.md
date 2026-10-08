@@ -4,7 +4,7 @@ Unico punto di controllo di cosa fare dopo. Complementa (non sostituisce) [ROADM
 delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMPETITOR](ANALISI_COMPETITOR.md).
 
 **Ultimo aggiornamento**: 8 ottobre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
-**MVP**: completo · **Test**: 643, copertura 95,6% · **Migrazioni**: 20
+**MVP**: completo · **Test**: 666, copertura 95,9% · **Migrazioni**: 20
 
 | Stato | Significato |
 |---|---|
@@ -36,15 +36,15 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
 
 | # | Decisione | Stato | Perché blocca |
 |---|---|---|---|
-| D1 | Unire la PR [#8](https://github.com/Dona317/MyFinancePlace/pull/8) su `main` (verde, senza conflitti; è in bozza) | ⏸ | `main` resta finto finché non si unisce; ogni nuovo ramo parte da qui |
+| D1 | Unire la PR [#8](https://github.com/Dona317/MyFinancePlace/pull/8) su `main` (verde, senza conflitti; è in bozza) | ⏸ se ne parla a novembre 2026 | `main` resta finto finché non si unisce; ogni nuovo ramo parte da qui |
 | D2 | Applicare le misure compatte di `Mapping-Excel`? (ramo senza commit propri: da rifare a mano) | ⏸ | solo estetica, non blocca |
 | D3 | ✅ Forma dell'app: **eseguibile desktop** (deciso il 7 ott 2026) | ✅ | apre F16 (confezionamento); F12 (PWA) cade; F11 (dati per utente) poco utile su un PC personale |
-| D4 | Licenza: MIT **o** AGPL | ⏸ | serve prima di rendere pubblico; AGPL impedisce fork chiusi |
-| D5 | Fisco italiano (730, capital gain): puntarci o lasciare ad altri? | ⏸ | decide se il lavoro F-fisco entra nel piano |
-| D7 | Database dell'eseguibile: PostgreSQL incorporato (nessuna modifica al codice, installer più pesante) **o** SQLite (installer leggero, da riscrivere le parti solo Postgres) | ⏸ | decide il lavoro di F16 |
+| D4 | ✅ Licenza: **proprietaria**, tutti i diritti riservati (deciso l'8 ott 2026) | ✅ | file `LICENSE` (M2) |
+| D5 | ✅ Fisco italiano: **sì, completo** (deciso l'8 ott 2026) | ✅ | F15 entra nel piano |
+| D7 | ✅ Database dell'eseguibile: **PostgreSQL incorporato** (deciso l'8 ott 2026) | ✅ | F16 parte; nessuna riscrittura per SQLite |
 | D6 | ❌ Partita doppia | ❌ | già scartata (ROADMAP → Scartato) |
 
-Suggerimento di ordine: D1 e D4 sono rapide. D3 è decisa (desktop): F16 parte dalla scelta del database (D7).
+Resta aperta solo D1 (novembre). Uso deciso l'8 ott 2026: **l'app la usa una persona sola per gestire più clienti, ognuno con il proprio archivio** (F11).
 
 ---
 
@@ -86,12 +86,12 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 
 | ID | Pri | Sforzo | Stato | Funzione | Note |
 |---|---|---|---|---|---|
-| F11 | B | L | ⏸ | **Dati separati per utente** | Con D3 = desktop serve solo per più persone sullo stesso PC: per ora no |
+| F11 | A | L | ⬜ | **Studio: più clienti, un archivio per cliente** | Un database «studio» (utenti, elenco clienti) + un database PostgreSQL per cliente, con i suoi documenti e backup; cliente attivo scelto dopo l'accesso e sempre visibile in alto; nuovo / apri / esporta / elimina (con backup prima). I clienti non accedono. Il database di oggi diventa il primo cliente |
 | F12 | — | — | ❌ | PWA installabile sul telefono | Scartata con D3 = desktop |
 | F16 | A | L | ⬜ | **Eseguibile desktop** (D3) | Finestra nativa (pywebview) sul server locale, PyInstaller per Windows/macOS/Linux; il nodo è il database: PostgreSQL incorporato (binari portabili avviati dall'app) **oppure** passaggio a SQLite (da togliere gli `ARRAY`/funzioni solo Postgres). Login facoltativo, dati e documenti nella cartella utente, aggiornamenti |
 | F13 | B | M | ✅ | Inserimento rapido da tastiera, annulla/ripeti | Transazioni: riga d'inserimento rapido («n» per andarci, Invio per salvare; categoria e controparte indovinate); barra Annulla/Ripeti (Ctrl+Z / Ctrl+Y) per l'ultima aggiunta o eliminazione, anche multipla, per 30 minuti |
 | F14 | B | M | ⬜ | Notifiche email (scadenze, budget superati) | Serve SMTP configurabile |
-| F15 | B | L | ⏸ (D5) | Fisco italiano (730, capital gain) | Solo se D5 = sì |
+| F15 | A | L | ⬜ | **Fisco italiano completo** (D5) | A sotto-passi: spese detraibili/deducibili per il 730; plus/minusvalenze del portafoglio (costo medio, commissioni F17); compensazione delle minusvalenze nei 4 anni; regime amministrato vs dichiarativo (quadro RT); imposta di bollo titoli e conti; IVAFE per l'estero; riepilogo annuo esportabile per il commercialista. Aliquote e soglie in tabella per anno |
 
 Esclusi per scelta: collegamento automatico alle banche, budget "a buste", partita doppia.
 
@@ -102,7 +102,7 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 | ID | Stato | Cosa |
 |---|---|---|
 | M1 | ✅ | Aggiornare `ANALISI_COMPETITOR.md`: Sankey fatto; decisione 1 chiusa (scartata) — aggiornato l'8 ott 2026 con tutte le F fatte |
-| M2 | ⬜ | Aggiungere un `LICENSE` appena presa D4 |
+| M2 | ✅ | `LICENSE` proprietario (D4) |
 | M3 | ✅ | Rimandare da `MVP.md` ("Dopo l'MVP") e `NEXT_STEPS.md` ("To do") a questo file, per non avere tre liste |
 | M4 | ⬜ | Rendere `.claude/` e `.vscode/` ignorati o committati (oggi non tracciati) |
 | M6 | ✅ | Collaudo con input impropri (8 ott 2026): ~6.000 invii ostili su tutti i moduli (testi enormi, XSS, SQL, NUL, numeri e date assurde, id inesistenti) + API JSON + file ostili (binari, XXE, zip bomb, backup corrotti). Corretti: CSV illeggibile → messaggio invece di errore 500; caratteri NUL rifiutati/tolti; richieste da altri siti (CSRF) rifiutate controllando Origin/Referer. Nessun XSS, nessuna risposta lenta. Regressioni in `tests/test_robustness.py` |
@@ -121,10 +121,10 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 5. **Revisione**: a ogni merge su `test-Cloud` si rilegge §2 e §3; si cambia la data in testa.
 6. Max 1–2 voci 🔄 alla volta.
 
-## 6. Proposta di ordine
+## 6. Proposta di ordine (aggiornata l'8 ott 2026)
 
-1. D1 (unire PR #8) e D4 (licenza) → M2.
-2. D3 (forma dell'app).
-3. F3 → F2 (riusano gli stessi dati: tasso di risparmio dentro il Riepilogo) → F1 (il più grosso, da solo).
-4. F4 non appena hai i file reali; F6 e F5 dopo.
-5. F7–F10 a blocchi piccoli; F11/F12/F14/F15 solo dopo D3/D5.
+1. **F11** studio con più clienti (cambia dove stanno dati, documenti e backup: va prima del pacchetto).
+2. **F16** eseguibile desktop con PostgreSQL incorporato.
+3. **F15** fisco completo, a sotto-passi.
+4. F10c (heatmap a calendario, analisi per tag), F14.
+5. D1 (unire su `main`) a novembre 2026.

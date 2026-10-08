@@ -328,3 +328,7 @@ python scripts/translations.py compile   # rebuild messages.mo (committed; a tes
 - **Icons**: Bootstrap Icons (CDN)
 - **Fonts**: Inter (Google Fonts)
 - **CSS**: Custom (no frameworks — pure CSS variables)
+
+## License
+
+Proprietary — all rights reserved. See [LICENSE](LICENSE).
