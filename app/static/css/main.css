@@ -1516,3 +1516,11 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .client-color input:checked + span { border-color: var(--clr-text-primary); box-shadow: 0 0 0 2px var(--clr-surface, #fff) inset; }
 .client-color input:focus-visible + span { outline: 2px solid var(--clr-primary); outline-offset: 2px; }
 @media (max-width: 640px) { .client-chip span.client-name { display: none; } .client-chip { padding: 2px; } }
+
+/* ── Fisco (F15) ─────────────────────────────────────────────────────────── */
+.tax-map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.tax-map-item { border: 1px solid var(--clr-border); border-radius: 10px; padding: 10px 12px; }
+.tax-map-item summary { cursor: pointer; }
+.tax-map-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; margin-top: 8px; }
+.tax-entries { margin: 0; padding-left: 18px; max-height: 240px; overflow-y: auto; }
+.rt-summary { max-width: 520px; }

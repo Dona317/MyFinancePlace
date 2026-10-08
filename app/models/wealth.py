@@ -25,6 +25,10 @@ class Holding(db.Model):
     price_date    = db.Column(db.Date)                            # when the current price was last updated
     purchase_date = db.Column(db.Date)
     notes         = db.Column(db.Text)
+    # Taxes (F15): the rate on its capital gains when not the usual one for its class (12.5 for government bonds),
+    # and whether it is held abroad (IVAFE instead of the stamp duty)
+    tax_rate      = db.Column(db.Numeric(5, 2))
+    abroad        = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
 
     @property
     def price(self) -> float:

@@ -31,6 +31,15 @@
         </div>
         {{ f.number(values, 'current_price', _('Prezzo attuale (€)'), h.current_price, placeholder=_('uguale al prezzo di acquisto'),
                     hint=_("Aggiornalo quando vuoi (anche tutti insieme da «Aggiorna prezzi»): vuoto = vale quanto l'hai pagato.")) }}
+        <div class="grid-2" style="gap:16px;">
+          {{ f.number(values, 'tax_rate', _('Aliquota sulle plusvalenze (%%)'), h.tax_rate, placeholder=_('26 (12,5 per i titoli di Stato)'),
+                      hint=_('Vuoto = quella della classe: 26%%, cripto 33%% dal 2026.')) }}
+          <div class="form-group">
+            <span class="form-label">{{ _('Dove è detenuto') }}</span>
+            {% set is_abroad = ('abroad' in values) if values else h.abroad %}
+            <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="abroad" class="check" {{ 'checked' if is_abroad }} /> {{ _("All'estero o in un wallet privato (IVAFE / IC invece del bollo)") }}</label>
+          </div>
+        </div>
         {{ f.textarea(values, 'notes', _('Note'), h.notes, placeholder=_('Broker, conto titoli, note facoltative...')) }}
         {{ f.actions(url_for('portfolio.index'), _('Salva Modifiche') if is_edit else _('Aggiungi al Portafoglio')) }}
       </form>

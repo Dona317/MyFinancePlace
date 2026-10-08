@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block title %}{{ _('Plusvalenze') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Fisco') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('tax.index') }}">{{ _('Fisco') }}</a></li><li>{{ _('Plusvalenze') }}</li>{% endblock %}
+
+{% set kinds = {'capitale': _('reddito di capitale (ETF, fondi)'), 'diversi': _('reddito diverso'), 'cripto': _('cripto-attività')} %}
+
+{% block content %}
+{% include "tax/_tabs.html" %}
+
+{% set gains = data.boxes|sum(attribute='gains') %}
+{% set losses = data.boxes|sum(attribute='losses') %}
+<div class="kpi-grid mb-16">
+  {{ kpi('graph-up-arrow', _('Plusvalenze'), amount=gains, cls='kpi-positive', sub=_('vendite in guadagno nel %(year)s', year=year)) }}
+  {{ kpi('graph-down-arrow', _('Minusvalenze'), amount=-losses, cls='kpi-negative', sub=_('vendite in perdita nel %(year)s', year=year)) }}
+  {{ kpi('arrow-left-right', _('Compensate'), amount=data.boxes|sum(attribute='offset'), cls='kpi-primary', sub=_('plusvalenze annullate da minus precedenti')) }}
+  {{ kpi('bank', _('Imposta stimata'), amount=-data.tax, cls='kpi-warning', sub=_('26%%, titoli di Stato 12,5%%, cripto 33%% dal 2026')) }}
+</div>
+
+{% if data.estimated or data.oversold %}
+<div class="alert alert-warning mb-16">
+  <i class="bi bi-exclamation-triangle"></i>
+  {% if data.estimated %}{{ _('Alcune quote erano in portafoglio prima della prima operazione registrata: il loro costo è il prezzo medio della posizione.') }}{% endif %}
+  {% if data.oversold %}{{ _('In %(count)s vendite le quote vendute sono più di quelle registrate: controlla gli acquisti.', count=data.oversold|length) }}{% endif %}
+</div>
+{% endif %}
+
+{% for b in data.boxes %}
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ b.box.label }}</div>
+      <div class="card-header-sub">{{ _('Regime dichiarativo: da riportare nel quadro RT') if b.box.regime == 'dichiarativo' else _('Regime amministrato: il broker trattiene le imposte e tiene le minusvalenze') }}</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table class="table-compact tax-sales">
+      <thead><tr>
+        <th>{{ _('Data') }}</th><th>{{ _('Titolo') }}</th><th class="text-right col-optional">{{ _('Quote') }}</th>
+        <th class="text-right col-optional">{{ _('Incasso netto') }}</th><th class="text-right col-optional">{{ _('Costo medio') }}</th>
+        <th class="text-right">{{ _('Risultato') }}</th><th class="text-right col-optional">{{ _('Compensato') }}</th><th class="text-right">{{ _('Imposta') }}</th>
+      </tr></thead>
+      <tbody>
+      {% for s in b.sales %}
+        <tr>
+          <td class="nowrap text-xs">{{ s.on|it_date }}</td>
+          <td>{{ s.holding.name }} <div class="text-xs text-muted">{{ kinds[s.kind] }} · {{ s.rate|number }}%</div></td>
+          <td class="text-right col-optional">{{ s.units|number(4) }}</td>
+          <td class="amount text-right col-optional">{{ s.proceeds|money }}</td>
+          <td class="amount text-right col-optional">{{ s.cost|money }}</td>
+          <td class="amount text-right {{ 'positive' if s.result > 0 else 'negative' }}">{{ s.result|money }}</td>
+          <td class="amount text-right col-optional">{{ s.offset|money if s.offset else '—' }}</td>
+          <td class="amount text-right">{{ s.tax|money }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="text-sm text-muted">{{ _('Nessuna vendita in questo anno.') }}</td></tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr>
+        <th colspan="5">{{ _('Totale') }}</th>
+        <th class="amount text-right">{{ (b.gains - b.losses)|money }}</th>
+        <th class="amount text-right col-optional">{{ b.offset|money }}</th>
+        <th class="amount text-right">{{ b.tax|money }}</th>
+      </tr></tfoot>
+    </table>
+  </div>
+  <div class="card-body">
+    {% if b.box.regime == 'dichiarativo' %}
+    <h4 class="text-sm mb-8">{{ _('Quadro RT (sezione II, 26%%) — riepilogo') }}</h4>
+    <table class="table-compact text-sm rt-summary">
+      <tr><td>{{ _('Totale dei corrispettivi') }}</td><td class="amount text-right">{{ b.proceeds|money }}</td></tr>
+      <tr><td>{{ _('Totale dei costi o valori di acquisto') }}</td><td class="amount text-right">{{ b.costs|money }}</td></tr>
+      <tr><td>{{ _('Plusvalenze') }}</td><td class="amount text-right">{{ b.gains|money }}</td></tr>
+      <tr><td>{{ _('Minusvalenze') }}</td><td class="amount text-right">{{ b.losses|money }}</td></tr>
+      <tr><td>{{ _('Minusvalenze di anni precedenti compensate') }}</td><td class="amount text-right">{{ b.offset|money }}</td></tr>
+      <tr><td><strong>{{ _('Imposta sostitutiva') }}</strong></td><td class="amount text-right"><strong>{{ b.tax|money }}</strong></td></tr>
+    </table>
+    <p class="text-xs text-muted">{{ _('I guadagni di ETF e fondi esteri vanno nel quadro RM; le cripto in una sezione a parte del quadro RT.') }}</p>
+    {% endif %}
+    {% if b.carried %}
+    <h4 class="text-sm mt-16 mb-8">{{ _('Minusvalenze ancora utilizzabili') }}</h4>
+    <ul class="text-sm">
+      {% for loss in b.carried %}
+      <li>{{ _('dal %(year)s: %(left)s su %(amount)s, fino al 31/12/%(until)s', year=loss.year, left=loss.left|money, amount=loss.amount|money, until=loss.expires) }}{% if loss.crypto %} · {{ _('solo con cripto') }}{% endif %}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="card"><div class="empty-state">
+  <div class="empty-state-icon"><i class="bi bi-graph-up"></i></div>
+  <div class="empty-state-title">{{ _('Nessuna vendita registrata') }}</div>
+  <div class="empty-state-text">{{ _('Le plusvalenze si calcolano dalle operazioni inserite in quote (Transazioni → Operazione su investimento). Il regime fiscale si sceglie sul conto del broker.') }}</div>
+</div></div>
+{% endfor %}
+{% endblock %}

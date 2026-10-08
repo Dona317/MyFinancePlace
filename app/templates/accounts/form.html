@@ -33,6 +33,12 @@
             {{ f.number(values, 'fee_max', _('Massimo (€)'), a.fee_max, placeholder='19,00') }}
           </div>
         </fieldset>
+        <fieldset class="fee-rules mb-16">
+          <legend class="form-label">{{ _('Fisco') }}</legend>
+          {{ f.select(values, 'tax_regime', _('Regime delle plusvalenze'), tax_regimes.items(), a.tax_regime or 'amministrato') }}
+          {% set is_abroad = ('abroad' in values) if values else a.abroad %}
+          <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="abroad" class="check" {{ 'checked' if is_abroad }} /> {{ _("Conto all'estero (IVAFE al posto dell'imposta di bollo)") }}</label>
+        </fieldset>
         {% set is_active = ('active' in values) if values else (a.active if is_edit else true) %}
         <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" class="check" {{ 'checked' if is_active }} /> {{ _("Conto attivo (togli la spunta se l'hai chiuso)") }}</label>
         {{ f.actions(url_for('accounts.detail', account_id=account.id) if is_edit else url_for('accounts.index'),

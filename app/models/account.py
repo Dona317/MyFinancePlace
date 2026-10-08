@@ -21,6 +21,10 @@ class Account(db.Model):
     fee_percent      = db.Column(db.Numeric(9, 4))   # e.g. 0.19 = 0,19%
     fee_min          = db.Column(db.Numeric(38, 2))
     fee_max          = db.Column(db.Numeric(38, 2))
+    # Taxes (F15): how the capital gains of trades on this account are taxed, and whether it is held abroad (IVAFE
+    # instead of the Italian stamp duty)
+    tax_regime       = db.Column(db.String(20), nullable=False, default="amministrato", server_default="amministrato")
+    abroad           = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
 
     @property
     def has_fee_rule(self) -> bool:

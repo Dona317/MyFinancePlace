@@ -1,0 +1,10 @@
+{# The Fisco tabs and the year picker; expects `tab`, `year`, `years`. #}
+<div class="report-bar mb-16">
+  <nav class="report-tabs" aria-label="{{ _('Sezioni del fisco') }}">
+    {% for key, endpoint, label in [('730', 'tax.deductions', _('730: spese detraibili')), ('investments', 'tax.investments', _('Plusvalenze')), ('duties', 'tax.duties', _('Bollo e IVAFE'))] %}
+    <a href="{{ url_for(endpoint, year=year) }}" class="report-tab{{ ' active' if tab == key }}" {% if tab == key %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+  {% include "partials/year_select.html" %}
+</div>
+<p class="text-xs text-muted mb-16"><i class="bi bi-info-circle"></i> {{ _("Stime per pianificare, con le regole dell'anno scelto: la dichiarazione la verifica il CAF o il commercialista.") }}</p>

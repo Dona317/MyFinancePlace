@@ -8,6 +8,7 @@ from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from app.services import accounts, currency as currency_service, display
+from app.services.tax_rules import REGIMES as TAX_REGIMES
 from flask_babel import gettext as _
 
 accounts_bp = APIBlueprint(
@@ -33,6 +34,9 @@ def _account_from_form(account: Account) -> Account:
     account.fee_percent = form_decimal("fee_percent", _("Commissione percentuale"))
     account.fee_min = form_decimal("fee_min", _("Commissione minima"))
     account.fee_max = form_decimal("fee_max", _("Commissione massima"))
+    account.tax_regime = form_choice("tax_regime", _("Regime fiscale"), TAX_REGIMES) if request.form.get("tax_regime") \
+        else "amministrato"
+    account.abroad = "abroad" in request.form
     if account.fee_min is not None and account.fee_max is not None and account.fee_min > account.fee_max:
         raise ValueError(_("Commissioni: il minimo non può superare il massimo."))
     duplicate = Account.query.filter(Account.name == account.name, Account.id != account.id).first()
@@ -42,7 +46,7 @@ def _account_from_form(account: Account) -> Account:
 
 
 def _render_form(account, values):
-    return render_template("accounts/form.html", account=account, kinds=accounts.KINDS, currencies=CURRENCIES,
+    return render_template("accounts/form.html", tax_regimes=TAX_REGIMES, account=account, kinds=accounts.KINDS, currencies=CURRENCIES,
                            values=values)
 
 

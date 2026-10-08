@@ -50,6 +50,7 @@ DEFAULT_SETTINGS = {
     "module_documents":         True,
     "module_snapshots":         True,
     "module_export":            True,
+    "module_tax":               True,
     # ── Accounting sub-sections ──────────────────────────────────────────
     "accounting_balance_sheet":     True,
     "accounting_income_statement":  True,
@@ -76,6 +77,7 @@ def autonomy_target() -> int:
 MODULE_BLUEPRINTS = {
     "portfolio": "module_portfolio", "debt": "module_debt", "insurance": "module_insurance",
     "documents": "module_documents", "snapshots": "module_snapshots", "export": "module_export",
+    "tax": "module_tax",
 }
 MODULE_ENDPOINTS = {
     "accounting.balance_sheet": "accounting_balance_sheet", "accounting.opening_cash": "accounting_balance_sheet",

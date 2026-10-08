@@ -4,7 +4,7 @@ Unico punto di controllo di cosa fare dopo. Complementa (non sostituisce) [ROADM
 delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMPETITOR](ANALISI_COMPETITOR.md).
 
 **Ultimo aggiornamento**: 8 ottobre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
-**MVP**: completo · **Test**: 666, copertura 95,9% · **Migrazioni**: 20
+**MVP**: completo · **Test**: 698, copertura 96,1% · **Migrazioni**: 22
 
 | Stato | Significato |
 |---|---|
@@ -91,7 +91,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 | F16 | A | L | ✅ | **Eseguibile desktop** (D3, D7) | Finestra pywebview sul server locale (waitress), PostgreSQL 16 portabile incluso e avviato dall'app, dati nella cartella utente, migrazioni all'avvio, login con password. Build Windows/macOS/Linux su GitHub Actions con prova di avvio. Vedi [DESKTOP](DESKTOP.md). Da fare poi: icona, firma del codice, installer, aggiornamento automatico |
 | F13 | B | M | ✅ | Inserimento rapido da tastiera, annulla/ripeti | Transazioni: riga d'inserimento rapido («n» per andarci, Invio per salvare; categoria e controparte indovinate); barra Annulla/Ripeti (Ctrl+Z / Ctrl+Y) per l'ultima aggiunta o eliminazione, anche multipla, per 30 minuti |
 | F14 | B | M | ⬜ | Notifiche email (scadenze, budget superati) | Serve SMTP configurabile |
-| F15 | A | L | ⬜ | **Fisco italiano completo** (D5) | A sotto-passi: spese detraibili/deducibili per il 730; plus/minusvalenze del portafoglio (costo medio, commissioni F17); compensazione delle minusvalenze nei 4 anni; regime amministrato vs dichiarativo (quadro RT); imposta di bollo titoli e conti; IVAFE per l'estero; riepilogo annuo esportabile per il commercialista. Aliquote e soglie in tabella per anno |
+| F15 | A | L | ✅ | **Fisco italiano** (D5) | Modulo *Fisco* con tre schede. **730**: le spese delle categorie collegate a ogni voce del quadro E (sanitarie, veterinarie, istruzione, università, interessi mutuo, assicurazioni, sport, trasporto, asilo, affitti studenti, funebri, erogazioni, previdenza complementare, colf) con franchigie, massimali per anno (istruzione 800 → 1.000 € dal 2025), detrazione stimata, pagamenti in contanti segnalati, spese con tag «detraibile» da assegnare, CSV. **Plusvalenze**: costo medio ponderato con commissioni, redditi di capitale (ETF, fondi) e diversi, minusvalenze compensate per 4 anni (titoli di Stato 12,5% con peso 48,08%, cripto a parte), 26%/12,5%/cripto 33% dal 2026, per broker (amministrato) o in dichiarazione (riepilogo quadro RT). **Bollo e IVAFE**: conti correnti 34,20 € oltre 5.000 € di giacenza media (calcolata giorno per giorno), conti deposito e titoli 2‰ a fine anno, IVAFE all'estero, IC per le cripto in wallet. Da fare poi: tetto detrazioni per redditi > 75.000 €, quadro RM, pro rata del bollo |
 
 Esclusi per scelta: collegamento automatico alle banche, budget "a buste", partita doppia.
 
@@ -125,6 +125,6 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 
 1. ✅ **F11** studio con più clienti (pagina Clienti, `flask clients list|create|migrate`).
 2. ✅ **F16** eseguibile desktop con PostgreSQL incorporato ([DESKTOP](DESKTOP.md)).
-3. **F15** fisco completo, a sotto-passi.
+3. ✅ **F15** fisco: 730, plusvalenze, bollo e IVAFE.
 4. F10c (heatmap a calendario, analisi per tag), F14.
 5. D1 (unire su `main`) a novembre 2026.

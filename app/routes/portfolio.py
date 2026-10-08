@@ -32,6 +32,11 @@ def _holding_from_form(holding: Holding) -> Holding:
     holding.current_price = price
     holding.purchase_date = form_date("purchase_date", _("Data di acquisto"))
     holding.notes = form_text("notes", _("Note"))
+    rate = form_decimal("tax_rate", _("Aliquota sulle plusvalenze"))
+    if rate is not None and not 0 < rate <= 100:
+        raise ValueError(_("Aliquota sulle plusvalenze: indica una percentuale tra 0 e 100 (es. 12,5)."))
+    holding.tax_rate = rate
+    holding.abroad = "abroad" in request.form
     return holding
 
 

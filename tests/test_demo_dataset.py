@@ -16,7 +16,7 @@ import pytest
 from app.models.account import Account
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Document, Holding, InsurancePolicy
-from app.services import accounts, analytics, backup, bank_import, categories, document_store, notifications, subscriptions, wealth
+from app.services import capital_gains, accounts, analytics, backup, bank_import, categories, document_store, notifications, subscriptions, wealth
 from tests.conftest import make_tx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
@@ -120,11 +120,16 @@ def test_the_portfolio_comes_from_its_trades(app, demo_data):
     owned = demo.portfolio(demo_data["moves"], demo_data["cutoff"])
     holdings = {h.ticker or h.name: h for h in Holding.query}
     assert holdings["ENEL"].quantity == 125 and holdings["IT0005497000"].quantity == 100
-    assert holdings["VWCE"].quantity == owned["vwce"]["quantity"] > 70 and holdings["VWCE"].gain > 0
+    assert holdings["VWCE"].quantity == owned["vwce"]["quantity"] > 60 and holdings["VWCE"].gain > 0
     assert holdings["BTC"].quantity == Decimal("0.01776")
     trades = Transaction.query.filter(Transaction.holding_id.isnot(None), Transaction.type == "transfer")
-    sale = trades.filter(Transaction.account_id.is_(None)).one()
-    assert sale.description.startswith("Vendita 125 azioni Enel") and sale.counter_account_id is not None
+    sales = trades.filter(Transaction.account_id.is_(None)).order_by(Transaction.date).all()
+    assert [s.description[:22] for s in sales] == ["Vendita 125 azioni Ene", "Vendita VWCE 10 quote "]
+    assert all(s.counter_account_id is not None and s.units < 0 and s.unit_price > 0 for s in sales)
+    with app.test_request_context():  # F15: the sales' gains, by kind
+        gains = capital_gains.year_summary(2025)
+    assert [(s.kind, s.result.quantize(Decimal("0.01"))) for s in gains["sales"]][0] == ("diversi", Decimal("137.50"))
+    assert gains["sales"][1].kind == "capitale" and gains["tax"] > 0
     income = Transaction.query.filter(Transaction.holding_id.isnot(None), Transaction.type == "income")
     assert {t.description for t in income} == {"Cedola BTP Italia 2030", "Dividendo Enel", "Dividendo VWCE"}
     with app.test_request_context():

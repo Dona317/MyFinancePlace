@@ -77,6 +77,7 @@ def create_app(config_name="default"):
     from .routes.reports import reports_bp
     from .routes.subscriptions import subscriptions_bp
     from .routes.clients import clients_bp
+    from .routes.tax import tax_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -96,6 +97,7 @@ def create_app(config_name="default"):
     app.register_blueprint(reports_bp)
     app.register_blueprint(subscriptions_bp)
     app.register_blueprint(clients_bp)
+    app.register_blueprint(tax_bp)
 
     from app.cli import clients_cli, users_cli
     app.cli.add_command(users_cli)

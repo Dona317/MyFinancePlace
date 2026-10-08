@@ -323,6 +323,10 @@ def investments(first: date, today: date, add) -> None:
                 "Dividendi e cedole", "titoli", counterparty="Enel", holding="enel")
     trade(at(20, 16), "Vendita 125 azioni Enel a 7,10", "887.50", "enel", -125, account=None, to="titoli",
           counterparty="Borsa Italiana", tags=["plusvalenza"])
+    # part of the ETF sold to pay for the holiday: a gain (reddito di capitale, taxed by the broker)
+    sale_units = Decimal(10)
+    trade(at(22, 19), f"Vendita VWCE {sale_units} quote a {vwce_price(22)}", (sale_units * vwce_price(22)).quantize(
+        Decimal("0.01")), "vwce", -sale_units, account=None, to="titoli", counterparty="Vanguard")
     # crypto bought straight from the current account, twice
     trade(at(4, 5), "Acquisto Bitcoin su Young Platform", "500.00", "btc", "0.0125", account="conto", counterparty="Young Platform")
     trade(at(15, 20), "Acquisto Bitcoin su Young Platform", "500.00", "btc", "0.00526", account="conto",
@@ -430,6 +434,8 @@ def fill(today: date) -> dict:
                          account_id=accounts[mv.account].id if mv.account else None,
                          counter_account_id=accounts[mv.to].id if mv.to else None,
                          holding_id=holdings[mv.holding].id if mv.holding else None,
+                         units=mv.units, unit_price=(Decimal(mv.amount) / abs(mv.units)).quantize(Decimal("0.000001"))
+                         if mv.units else None,
                          debt_id=debts[mv.debt].id if mv.debt else None)
         tx.splits = [TransactionSplit(category=c, amount=a) for c, a in mv.splits]
         rows.append(tx)

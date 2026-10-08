@@ -6,7 +6,8 @@ Balance of an account on a date = opening balance + income − expenses − tran
 a transaction in another currency counts with the amount the bank charged (`account_amount`, or
 `counter_amount` on the arriving side of a transfer) or, until that is entered, with the day's exchange rate.
 """
-from datetime import date
+from collections import defaultdict
+from datetime import date, timedelta
 from decimal import Decimal
 
 from sqlalchemy import case, func
@@ -58,9 +59,35 @@ def balance(account: Account, on: date | None = None) -> float:
     total += db.session.query(func.coalesce(func.sum(amount), 0)).filter(arriving, ~_foreign(account), *dated).scalar()
     # in another currency (few): one by one, with the bank's amount or the exchange rate
     for tx in Transaction.query.filter(leaving | arriving, _foreign(account), *dated):
-        value = amount_in(tx, account)
-        total += value if tx.type == "income" or (tx.counter_account_id == account.id and tx.account_id != account.id) else -value
+        total += change(tx, account)
     return round(float(total), 2)
+
+
+def change(tx: Transaction, account: Account) -> Decimal:
+    """How `tx` moves the balance of `account` (positive: money in), in the account's currency."""
+    if tx.type == "transfer" and tx.account_id == tx.counter_account_id == account.id:
+        return Decimal(0)  # from the account to itself
+    value = amount_in(tx, account)
+    arriving = tx.counter_account_id == account.id and tx.account_id != account.id
+    return value if tx.type == "income" or arriving else -value
+
+
+def average_balance(account: Account, start: date, end: date) -> float:
+    """The average of the balance at the end of each day from `start` to `end` (the stamp duty's giacenza media)."""
+    days = (end - start).days + 1
+    if days <= 0:
+        return 0.0
+    running = Decimal(str(balance(account, start - timedelta(days=1))))
+    moves = defaultdict(Decimal)
+    touching = (Transaction.account_id == account.id) | (
+        (Transaction.counter_account_id == account.id) & (Transaction.type == "transfer"))
+    for tx in Transaction.query.filter(touching, Transaction.date >= start, Transaction.date <= end):
+        moves[tx.date] += change(tx, account)
+    total = Decimal(0)
+    for offset in range(days):
+        running += moves.get(start + timedelta(days=offset), Decimal(0))
+        total += running
+    return round(float(total / days), 2)
 
 
 def estimated(account: Account) -> int:
