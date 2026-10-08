@@ -99,6 +99,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Price history of the holdings** (F5, migration `d4f6b8c0e2a3`, `holding_prices`): Portafoglio → Storico prezzi
   (one price or pasted «date;price» lines, chart, delete), «Aggiorna prezzi» on a chosen date; balance sheets, the
   net worth trend and snapshots value each holding at the latest price known on that date (`wealth.prices_on`)
+- **Quick entry and undo/redo** (F13, `services/undo.py`): a quick-entry row on the transactions list («n» to
+  focus it, Enter to save; category and counterparty guessed as on import); the last addition or deletion (also of
+  many rows, splits included) can be undone and redone for 30 minutes, with Ctrl+Z / Ctrl+Y; kept in `app_settings`
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

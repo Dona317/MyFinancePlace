@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from flask import render_template, request, redirect, url_for, flash
@@ -9,7 +10,7 @@ from app.models.account import Account
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
-from app.services import accounts, ai_classification, currency as money, ai_extraction, category_rules, duplicates, merchant, splits
+from app.services import accounts, ai_classification, bank_import, currency as money, ai_extraction, category_rules, duplicates, merchant, splits, undo
 from app.services.ai_classification import AI_TAG
 from app.services import categories as category_service
 from app.services.categories import known_categories
@@ -234,6 +235,7 @@ def index():
         ai_tag=AI_TAG, to_confirm=Transaction.query.filter(Transaction.tags.any(AI_TAG)).count(),
         unclassified=_unclassified_query().count(),
         without_counterparty=Transaction.query.filter(Transaction.counterparty.is_(None), Transaction.type != "transfer").count(),
+        undo=undo.available(), today=date.today(),
         **ai_classification.template_context(),
     )
 
@@ -254,10 +256,58 @@ def new():
             return _render_form(None)
         db.session.add(tx)
         db.session.commit()
+        undo.remember_created([tx])
         flash(_("Transazione aggiunta."), "success")
         _learn_from(tx)
         return redirect(url_for("transactions.index"))
     return _render_form(None)
+
+
+@transactions_bp.route("/quick", methods=["POST"])
+def quick_add():
+    """The quick-entry row of the list: date, description, signed amount and (optional) category; the category and
+    the counterparty, when missing, are guessed as for an imported statement row."""
+    try:
+        when = form_date("date", _("Data"), required=True)
+        description = form_text("description", _("Descrizione"), required=True)
+        amount = form_decimal("amount", _("Importo"), required=True, allow_negative=True)
+        if not valid_amount(amount):
+            raise ValueError(_("Importo: deve essere diverso da zero."))
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("transactions.index"))
+    kind = _type_from(amount)
+    counterparty = merchant.extract(description, None)
+    category = form_text("category", _("Categoria")) or (
+        None if kind == "transfer" else bank_import.categorize(description, None, None, kind == "income"))
+    tx = Transaction(date=when, description=description, amount=abs(amount), currency="EUR", type=kind,
+                     category=category, counterparty=counterparty, tags=[counterparty] if counterparty else [],
+                     account_id=_account_id("account_id"))
+    db.session.add(tx)
+    db.session.commit()
+    undo.remember_created([tx])
+    flash(_("«%(description)s» aggiunta in %(category)s.", description=description, category=category or "—"), "success")
+    return redirect(url_for("transactions.index"))
+
+
+@transactions_bp.route("/undo", methods=["POST"])
+def undo_last():
+    step = undo.undo()
+    if step is None:
+        flash(_("Niente da annullare."), "warning")
+    elif step["kind"] == "created":
+        flash(ngettext("Annullato: tolta la transazione aggiunta.", "Annullato: tolte le %(num)d transazioni aggiunte.",
+                       step.get("count", 1)), "success")
+    else:
+        flash(ngettext("Annullato: rimessa la transazione eliminata.", "Annullato: rimesse le %(num)d transazioni eliminate.",
+                       step.get("count", 1)), "success")
+    return redirect(safe_next() or url_for("transactions.index"))
+
+
+@transactions_bp.route("/redo", methods=["POST"])
+def redo_last():
+    flash(_("Ripetuto.") if undo.redo() else _("Niente da ripetere."), "success")
+    return redirect(safe_next() or url_for("transactions.index"))
 
 
 def _learn_from(tx: Transaction) -> None:
@@ -302,6 +352,7 @@ def edit(tx_id):
 @transactions_bp.route("/<int:tx_id>/delete", methods=["POST"])
 def delete(tx_id):
     tx = db.get_or_404(Transaction, tx_id)
+    undo.remember_deleted([tx])
     db.session.delete(tx)
     db.session.commit()
     flash(_("Transazione «%(description)s» eliminata.", description=tx.description), "success")
@@ -311,6 +362,8 @@ def delete(tx_id):
 @transactions_bp.route("/delete-selected", methods=["POST"])
 def delete_selected():
     ids = form_ids()
+    if ids:
+        undo.remember_deleted(Transaction.query.filter(Transaction.id.in_(ids)).all())
     deleted = Transaction.query.filter(Transaction.id.in_(ids)).delete(synchronize_session=False) if ids else 0
     db.session.commit()
     flash(_("%(deleted)s transazioni eliminate.", deleted=deleted) if deleted else _("Nessuna transazione selezionata."),

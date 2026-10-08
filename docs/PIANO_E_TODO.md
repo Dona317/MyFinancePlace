@@ -87,7 +87,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 | F11 | B | L | ⏸ | **Dati separati per utente** | Con D3 = desktop serve solo per più persone sullo stesso PC: per ora no |
 | F12 | — | — | ❌ | PWA installabile sul telefono | Scartata con D3 = desktop |
 | F16 | A | L | ⬜ | **Eseguibile desktop** (D3) | Finestra nativa (pywebview) sul server locale, PyInstaller per Windows/macOS/Linux; il nodo è il database: PostgreSQL incorporato (binari portabili avviati dall'app) **oppure** passaggio a SQLite (da togliere gli `ARRAY`/funzioni solo Postgres). Login facoltativo, dati e documenti nella cartella utente, aggiornamenti |
-| F13 | B | M | ⬜ | Inserimento rapido da tastiera, annulla/ripeti | |
+| F13 | B | M | ✅ | Inserimento rapido da tastiera, annulla/ripeti | Transazioni: riga d'inserimento rapido («n» per andarci, Invio per salvare; categoria e controparte indovinate); barra Annulla/Ripeti (Ctrl+Z / Ctrl+Y) per l'ultima aggiunta o eliminazione, anche multipla, per 30 minuti |
 | F14 | B | M | ⬜ | Notifiche email (scadenze, budget superati) | Serve SMTP configurabile |
 | F15 | B | L | ⏸ (D5) | Fisco italiano (730, capital gain) | Solo se D5 = sì |
 

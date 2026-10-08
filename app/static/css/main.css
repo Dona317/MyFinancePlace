@@ -1480,3 +1480,13 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .history-table { max-height: 520px; overflow-y: auto; }
 @media (max-width: 900px) { .history-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 480px) { .history-one { grid-template-columns: 1fr; } }
+
+/* ── Quick entry and undo bar (Transazioni, F13) ──────────────────────────────────────────────────── */
+.quick-add { display: grid; grid-template-columns: 150px minmax(0, 2fr) 130px minmax(0, 1fr) minmax(0, 1fr) auto;
+             gap: 8px; padding: 10px 12px; align-items: center; }
+.quick-add:not(:has(select[name=account_id])) { grid-template-columns: 150px minmax(0, 2fr) 130px minmax(0, 1fr) auto; }
+.undo-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 14px; border-radius: var(--border-radius);
+            background: var(--clr-bg-input); border: 1px solid var(--clr-border); font-size: var(--font-size-sm); }
+.undo-bar form { margin: 0; }
+@media (max-width: 900px) { .quick-add, .quick-add:not(:has(select[name=account_id])) { grid-template-columns: 1fr 1fr; }
+                            .quick-add #quick-description { grid-column: 1 / -1; order: -1; } }

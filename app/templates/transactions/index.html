@@ -24,6 +24,43 @@
 </div>
 {% endif %}
 
+{% if undo.undo or undo.redo %}
+<div class="undo-bar mb-16" role="status">
+  {% set step = undo.undo or undo.redo %}
+  <i class="bi bi-arrow-counterclockwise"></i>
+  <span>
+    {% if undo.undo %}
+      {% if undo.undo.kind == 'created' %}{{ ngettext('Aggiunta «%(label)s».', 'Aggiunte %(num)d transazioni.', undo.undo.count or 1, label=undo.undo.label) }}
+      {% else %}{{ ngettext('Eliminata «%(label)s».', 'Eliminate %(num)d transazioni.', undo.undo.count or 1, label=undo.undo.label) }}{% endif %}
+    {% else %}{{ _('Modifica annullata.') }}{% endif %}
+  </span>
+  {% if undo.undo %}
+  <form method="POST" action="{{ url_for('transactions.undo_last') }}"><button type="submit" class="btn btn-ghost btn-sm" id="undo-button" title="{{ _('Annulla (Ctrl+Z)') }}"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Annulla') }}</button></form>
+  {% endif %}
+  {% if undo.redo %}
+  <form method="POST" action="{{ url_for('transactions.redo_last') }}"><button type="submit" class="btn btn-ghost btn-sm" id="redo-button" title="{{ _('Ripeti (Ctrl+Y)') }}"><i class="bi bi-arrow-clockwise"></i> {{ _('Ripeti') }}</button></form>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Inserimento rapido ───────────────────────────────────────────────── -->
+<form method="POST" action="{{ url_for('transactions.quick_add') }}" class="card mb-16 quick-add" id="quick-add" autocomplete="off">
+  <input type="date" name="date" class="form-control" value="{{ today.isoformat() }}" required aria-label="{{ _('Data') }}" />
+  <input type="text" name="description" class="form-control" required placeholder="{{ _('Nuova transazione: descrizione (premi «n»)') }}" aria-label="{{ _('Descrizione') }}" id="quick-description" />
+  <input type="text" inputmode="decimal" name="amount" class="form-control" required placeholder="{{ _('-12,50 o 1500') }}" aria-label="{{ _('Importo (negativo = uscita)') }}" />
+  <select name="category" class="form-select" aria-label="{{ _('Categoria') }}">
+    <option value="">{{ _('Categoria automatica') }}</option>
+    {{ f.category_options(all_categories, '') }}
+  </select>
+  {% if accounts %}
+  <select name="account_id" class="form-select" aria-label="{{ _('Conto') }}">
+    <option value="">{{ _('— Conto —') }}</option>
+    {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <button type="submit" class="btn btn-primary btn-sm" title="{{ _('Salva (Invio)') }}"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+</form>
+
 <!-- Filtri ──────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
   <form class="filter-bar" method="GET" action="{{ url_for('transactions.index') }}">
@@ -232,6 +269,23 @@
 
 {% block scripts %}
 <script>
+// Keyboard (F13): «n» goes to the quick entry, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Y (or Shift+Z) redoes — not while typing
+document.addEventListener('keydown', (event) => {
+  const typing = event.target.closest('input, textarea, select, [contenteditable]');
+  if (typing) {
+    if (event.key === 'Escape' && event.target.closest('#quick-add')) { event.target.blur(); }
+    return;
+  }
+  const mod = event.ctrlKey || event.metaKey;
+  if (!mod && !event.altKey && event.key === 'n') {
+    event.preventDefault();
+    document.getElementById('quick-description')?.focus();
+  } else if (mod && event.key.toLowerCase() === 'z' && !event.shiftKey) {
+    document.getElementById('undo-button')?.click();
+  } else if (mod && (event.key.toLowerCase() === 'y' || (event.key.toLowerCase() === 'z' && event.shiftKey))) {
+    document.getElementById('redo-button')?.click();
+  }
+});
 const bulkBoxes = document.querySelectorAll('.bulk-select');
 const bulkButton = document.getElementById('bulk-delete');
 // "Assegna" sends the same selection as the bulk delete: copy the ticked ids into its form

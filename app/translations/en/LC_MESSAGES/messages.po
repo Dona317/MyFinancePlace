@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 04:57+0000\n"
+"POT-Creation-Date: 2026-10-08 05:20+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -407,6 +407,9 @@ msgstr ""
 ", based on the bank description. The ones that change something and that the model is fairly sure about are "
 "preselected: check, correct and apply."
 
+msgid "-12,50 o 1500"
+msgstr "-12.50 or 1500"
+
 msgid ". Controllali prima di salvare."
 msgstr ". Check them before saving."
 
@@ -604,6 +607,12 @@ msgstr "Add a holding to see how your wealth is split."
 msgid "Aggiunta a mano"
 msgstr "Added by hand"
 
+#, python-format
+msgid "Aggiunta «%(label)s»."
+msgid_plural "Aggiunte %(num)d transazioni."
+msgstr[0] "«%(label)s» added."
+msgstr[1] "%(num)d transactions added."
+
 msgid "Ago"
 msgstr "Aug"
 
@@ -719,11 +728,26 @@ msgstr "Yearly"
 msgid "Annulla"
 msgstr "Cancel"
 
+msgid "Annulla (Ctrl+Z)"
+msgstr "Undo (Ctrl+Z)"
+
 msgid "Annulla l'importazione"
 msgstr "Cancel the import"
 
 msgid "Annullamento in corso…"
 msgstr "Cancelling…"
+
+#, python-format
+msgid "Annullato: rimessa la transazione eliminata."
+msgid_plural "Annullato: rimesse le %(num)d transazioni eliminate."
+msgstr[0] "Undone: the deleted transaction is back."
+msgstr[1] "Undone: the %(num)d deleted transactions are back."
+
+#, python-format
+msgid "Annullato: tolta la transazione aggiunta."
+msgid_plural "Annullato: tolte le %(num)d transazioni aggiunte."
+msgstr[0] "Undone: the added transaction was removed."
+msgstr[1] "Undone: the %(num)d added transactions were removed."
 
 msgid "Annuo"
 msgstr "Yearly"
@@ -1031,6 +1055,9 @@ msgstr "Top Category"
 
 msgid "Categoria attuale"
 msgstr "Current category"
+
+msgid "Categoria automatica"
+msgstr "Automatic category"
 
 msgid "Categoria della parte"
 msgstr "Category of the part"
@@ -1680,6 +1707,12 @@ msgstr "Delete this transaction?"
 msgid "Eliminare «%(name)s»? Il file verrà cancellato."
 msgstr "Delete «%(name)s»? The file will be removed."
 
+#, python-format
+msgid "Eliminata «%(label)s»."
+msgid_plural "Eliminate %(num)d transazioni."
+msgstr[0] "«%(label)s» deleted."
+msgstr[1] "%(num)d transactions deleted."
+
 msgid "Entrambe"
 msgstr "Both"
 
@@ -2290,6 +2323,9 @@ msgstr "Import cancelled."
 msgid "Importo"
 msgstr "Amount"
 
+msgid "Importo (negativo = uscita)"
+msgstr "Amount (negative = expense)"
+
 msgid "Importo (più alti prima)"
 msgstr "Amount (largest first)"
 
@@ -2868,6 +2904,9 @@ msgstr "Edit Policy"
 msgid "Modifica Transazione"
 msgstr "Edit Transaction"
 
+msgid "Modifica annullata."
+msgstr "Change undone."
+
 msgid "Modifica e collega"
 msgstr "Edit and link"
 
@@ -3156,6 +3195,12 @@ msgstr "Monthly net: history and forecast"
 msgid "Netto mese per mese"
 msgstr "Net month by month"
 
+msgid "Niente da annullare."
+msgstr "Nothing to undo."
+
+msgid "Niente da ripetere."
+msgstr "Nothing to redo."
+
 msgid "No, annulla"
 msgstr "No, cancel"
 
@@ -3257,6 +3302,9 @@ msgstr "New rule"
 
 msgid "Nuova transazione"
 msgstr "New transaction"
+
+msgid "Nuova transazione: descrizione (premi «n»)"
+msgstr "New transaction: description (press «n»)"
 
 msgid "Nuovo"
 msgstr "New"
@@ -4013,11 +4061,20 @@ msgstr "Remove row"
 msgid "Rinominare una categoria aggiorna tutte le sue transazioni; dare il nome di un'altra le unisce"
 msgstr "Renaming a category updates all its transactions; giving it the name of another one merges them"
 
+msgid "Ripeti"
+msgstr "Redo"
+
+msgid "Ripeti (Ctrl+Y)"
+msgstr "Redo (Ctrl+Y)"
+
 msgid "Ripeti la nuova password"
 msgstr "Repeat the new password"
 
 msgid "Ripeti la password"
 msgstr "Repeat the password"
+
+msgid "Ripetuto."
+msgstr "Redone."
 
 msgid "Riporta"
 msgstr "Roll over"
@@ -4135,6 +4192,9 @@ msgstr "Financial Health"
 
 msgid "Salva"
 msgstr "Save"
+
+msgid "Salva (Invio)"
+msgstr "Save (Enter)"
 
 msgid "Salva Modifiche"
 msgstr "Save Changes"
@@ -5446,6 +5506,10 @@ msgid "vuoto = lo stesso"
 msgstr "empty = unchanged"
 
 #, python-format
+msgid "«%(description)s» aggiunta in %(category)s."
+msgstr "«%(description)s» added in %(category)s."
+
+#, python-format
 msgid "«%(description)s» di nuovo attivo."
 msgstr "«%(description)s» active again."
 
@@ -5540,6 +5604,9 @@ msgstr "is the cheapest option."
 
 msgid "— Carica prima un file —"
 msgstr "— Upload a file first —"
+
+msgid "— Conto —"
+msgstr "— Account —"
 
 msgid "— Fuori dai miei conti —"
 msgstr "— Outside my accounts —"
