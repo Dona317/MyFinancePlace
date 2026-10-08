@@ -231,6 +231,7 @@ def test_split_text(text, size, expected):
 def test_every_page_of_a_long_scan_is_read(ollama):
     """No page limit: a 30-page scan is read page by page."""
     import io as _io
+
     from PIL import Image
     pages = [Image.new("L", (200, 280), 255) for _ in range(30)]
     buffer = _io.BytesIO()
@@ -271,6 +272,7 @@ def test_claude_reports_progress_per_page_block(claude):
 def test_claude_reads_a_long_pdf_in_page_blocks(claude):
     """A 45-page PDF goes to Claude as 3 requests of at most 20 pages, merged with the balances."""
     import io as _io
+
     import pdfplumber
     from PIL import Image
     pages = [Image.new("L", (200, 280), 255) for _ in range(45)]

@@ -3,6 +3,7 @@ Transaction categories, in one place: the table `categories` (seeded with the de
 plus any category already used by transactions (e.g. from an import). Renaming or merging a category
 updates everything that refers to it.
 """
+from flask_babel import gettext as _
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
@@ -13,7 +14,6 @@ from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Document
 from app.services import request_cache, settings_store
 from app.services.i18n import N_, _l
-from flask_babel import gettext as _
 
 KINDS = {"expense": _l("Uscite"), "income": _l("Entrate"), "both": _l("Entrambe")}
 SEEDED_SETTING = "categories.seeded"

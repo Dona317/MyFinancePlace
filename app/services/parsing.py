@@ -5,6 +5,7 @@ Shared by the CSV import, the bank-statement import and the transaction forms.
 import re
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+
 from flask_babel import gettext as _
 
 DATE_FORMATS = ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y", "%m/%d/%Y")

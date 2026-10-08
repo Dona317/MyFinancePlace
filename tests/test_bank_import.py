@@ -1,17 +1,16 @@
 import io
-import sys
 import re
-from pathlib import Path
+import sys
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
 from app.models.transaction import Transaction
 from app.services import bank_import
 from tests.form_helper import form_data
-from tests.statements import fineco_xlsx, intesa_xlsx, intesa_legacy_html, generic_csv
-
+from tests.statements import fineco_xlsx, generic_csv, intesa_legacy_html, intesa_xlsx
 
 # ── Parsing ────────────────────────────────────────────────────────────────────
 
@@ -178,6 +177,7 @@ def test_uploads_over_16_mb_are_accepted(client, db, app):
 def test_large_statement_with_long_descriptions_is_imported_whole(client, db):
     """No limits: thousands of rows, descriptions longer than 255 characters, all saved from the preview."""
     from datetime import timedelta
+
     from tests.statements import xlsx
     header = ["Data_Operazione", "Data_Valuta", "Entrate", "Uscite", "Descrizione", "Descrizione_Completa", "Stato", "Moneymap"]
     long_tail = " dettaglio" * 60  # ~600 characters

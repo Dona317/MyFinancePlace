@@ -8,7 +8,7 @@ from statistics import median
 from app.services.parsing import normalize, to_date, to_decimal
 from app.services.statement_readers import Word
 
-from .layouts import AUTO, HEADER_SCAN_ROWS, identify_bank, header_key, layout_for_headers
+from .layouts import AUTO, HEADER_SCAN_ROWS, header_key, identify_bank, layout_for_headers
 from .model import StatementRow
 
 # ── Column layouts without a table (PDF text, fixed-width TXT) ─────────────────

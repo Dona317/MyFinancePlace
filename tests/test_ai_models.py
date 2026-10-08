@@ -1,7 +1,7 @@
 """AI models page (Ollama catalog, download, removal, active model) and pending uploads."""
 import io
-import re
 import json
+import re
 import subprocess
 import sys
 import time

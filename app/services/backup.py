@@ -14,16 +14,30 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+from flask_babel import gettext as _
 from sqlalchemy import delete, insert, text
 from sqlalchemy.types import ARRAY, JSON, Boolean, Date, DateTime, Integer, Numeric
 
 from app.extensions import db
 from app.models import (
-    Account, AppSetting, Budget, Category, CategoryRule, Debt, ExchangeRate, Document, DuplicateDismissal, Goal, Holding, HoldingPrice, InsurancePolicy, Snapshot,
-    Transaction, TransactionSplit,
+    Account,
+    AppSetting,
+    Budget,
+    Category,
+    CategoryRule,
+    Debt,
+    Document,
+    DuplicateDismissal,
+    ExchangeRate,
+    Goal,
+    Holding,
+    HoldingPrice,
+    InsurancePolicy,
+    Snapshot,
+    Transaction,
+    TransactionSplit,
 )
 from app.services import currency, document_store, money, studio
-from flask_babel import gettext as _
 
 FORMAT = "myfinanceplace-backup"
 VERSION = 2

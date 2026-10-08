@@ -27,12 +27,24 @@ from sqlalchemy.orm import selectinload
 from app.models.transaction import Transaction
 from app.services.analytics import UNCATEGORIZED
 from app.services.duplicates import meaningful_words
-from app.services.periods import add_months, month_index, month_label, month_start, shift_month  # noqa: F401 (shift_month re-exported)
 from app.services.forecast_prefs import (  # noqa: F401 - the page's choices, re-exported for older imports
-    DEFAULT_RECURRING, HORIZON_RANGE, LAYOUT_SETTING, METHODS, RECURRING_AMOUNTS, WIDGETS, WINDOW_RANGE, default_layout, layout,
-    normalize_layout, preferences, reset_layout, save_layout, save_preferences,
+    DEFAULT_RECURRING,
+    HORIZON_RANGE,
+    LAYOUT_SETTING,
+    METHODS,
+    RECURRING_AMOUNTS,
+    WIDGETS,
+    WINDOW_RANGE,
+    default_layout,
+    layout,
+    normalize_layout,
+    preferences,
+    reset_layout,
+    save_layout,
+    save_preferences,
 )
 from app.services.i18n import _l
+from app.services.periods import add_months, month_index, month_label, month_start, shift_month  # noqa: F401 (shift_month re-exported)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 

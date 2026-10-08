@@ -1,8 +1,9 @@
 from datetime import date
 from decimal import Decimal
 
-from flask import flash, redirect, render_template, request, url_for
 from apiflask import APIBlueprint
+from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.budget import Budget
@@ -10,7 +11,6 @@ from app.models.wealth import Goal
 from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form, year_arg
 from app.services import analytics, budgets, categories, display
 from app.services.periods import add_months
-from flask_babel import gettext as _
 
 lifestyle_bp = APIBlueprint(
     "lifestyle",

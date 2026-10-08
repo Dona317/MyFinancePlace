@@ -9,9 +9,9 @@ import sys
 import zipfile
 from datetime import date, timedelta
 
+from common import AUTH, OUT, check, launch, local_assets, summary
+from common import BASE as B
 from playwright.sync_api import sync_playwright
-
-from common import AUTH, BASE as B, OUT, check, launch, local_assets, summary
 
 with sync_playwright() as p:
     b = launch(p)

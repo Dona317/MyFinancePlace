@@ -2,8 +2,9 @@ import json
 import re
 from datetime import date
 
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from apiflask import APIBlueprint
+from flask import flash, jsonify, redirect, render_template, request, session, url_for
+from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.category import Category, CategoryRule
@@ -11,12 +12,21 @@ from app.models.currency import ExchangeRate
 from app.routes.helpers import delete_and_redirect, flash_errors, form_choice, form_date, form_decimal, form_text
 from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, display, settings_store
 from app.services.bank_import import CATEGORY_RULES
+
 # The interface choices live in a service (services read them too); re-exported for this page and older imports
 from app.services.ui_settings import (  # noqa: F401
-    AUTONOMY_TARGETS, DEFAULT_SETTINGS, LANGUAGES, MODULE_BLUEPRINTS, MODULE_ENDPOINT_PREFIXES, MODULE_ENDPOINTS,
-    SETTINGS_KEY, autonomy_target, current_language, current_settings, module_setting,
+    AUTONOMY_TARGETS,
+    DEFAULT_SETTINGS,
+    LANGUAGES,
+    MODULE_BLUEPRINTS,
+    MODULE_ENDPOINT_PREFIXES,
+    MODULE_ENDPOINTS,
+    SETTINGS_KEY,
+    autonomy_target,
+    current_language,
+    current_settings,
+    module_setting,
 )
-from flask_babel import gettext as _
 
 settings_bp = APIBlueprint(
     "settings",

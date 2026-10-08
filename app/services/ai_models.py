@@ -12,7 +12,9 @@ import threading
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+
 from flask_babel import gettext as _
+
 from app.services.i18n import N_
 
 TIERS = {"medio": "Medi (5–10 GB)", "piccolo": "Piccoli (2–4 GB)", "tiny": "Tiny (< 2 GB)"}

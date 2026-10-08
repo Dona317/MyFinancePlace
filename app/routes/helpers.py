@@ -7,10 +7,10 @@ from datetime import date
 from decimal import Decimal
 
 from flask import Response, flash, redirect, request, url_for
+from flask_babel import gettext as _
 
 from app.extensions import db
 from app.services.parsing import MAX_AMOUNT, to_date, to_decimal
-from flask_babel import gettext as _
 
 
 def safe_next() -> str | None:

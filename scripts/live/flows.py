@@ -9,9 +9,8 @@ import io
 import json
 import sys
 
-from playwright.sync_api import sync_playwright
-
 from common import AUTH, BASE, OUT, SAMPLES, check, launch, local_assets, run, sql, summary
+from playwright.sync_api import sync_playwright
 
 S = str(SAMPLES) + "/"
 

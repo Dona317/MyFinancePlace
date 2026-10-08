@@ -11,9 +11,9 @@ from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
-from app.services.ui_settings import current_settings
 from app.services import budgets, display, forecast, request_cache, settings_store, wealth
 from app.services.i18n import tr
+from app.services.ui_settings import current_settings
 
 DISMISSED_SETTING = "notifications.dismissed"
 KEEP_DISMISSED = 500

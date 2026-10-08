@@ -16,7 +16,7 @@ import pytest
 from app.models.account import Account
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Document, Holding, InsurancePolicy
-from app.services import capital_gains, accounts, analytics, backup, bank_import, categories, document_store, notifications, subscriptions, wealth
+from app.services import accounts, analytics, backup, bank_import, capital_gains, categories, document_store, notifications, subscriptions, wealth
 from tests.conftest import make_tx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))

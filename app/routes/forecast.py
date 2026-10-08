@@ -2,12 +2,12 @@ from datetime import date
 
 from apiflask import APIBlueprint
 from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.routes.helpers import back_to
 from app.services import analytics, forecast
-from flask_babel import gettext as _
 
 forecast_bp = APIBlueprint(
     "forecast",

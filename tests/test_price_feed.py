@@ -6,9 +6,8 @@ import pytest
 
 from app.models.currency import ExchangeRate
 from app.models.wealth import Holding, HoldingPrice
-from app.services import price_feed
 from app.routes.settings import SETTINGS_KEY
-from app.services import settings_store
+from app.services import price_feed, settings_store
 
 STAMP = int(datetime(2026, 10, 7, 16, 0, tzinfo=timezone.utc).timestamp())
 

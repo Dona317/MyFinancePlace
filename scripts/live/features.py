@@ -8,9 +8,9 @@ desktop and phone (screenshots in LIVE_SHOTS when set).
 import sys
 from pathlib import Path
 
+from common import AUTH, OUT, SHOTS, check, launch, local_assets, run, sql, summary
+from common import BASE as B
 from playwright.sync_api import sync_playwright
-
-from common import AUTH, BASE as B, OUT, SHOTS, check, launch, local_assets, run, sql, summary
 
 SAMPLES = Path(__file__).resolve().parents[2] / "samples" / "bank_statements"
 

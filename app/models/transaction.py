@@ -1,5 +1,6 @@
-from app.extensions import db
 from sqlalchemy.dialects.postgresql import ARRAY
+
+from app.extensions import db
 
 
 class Transaction(db.Model):

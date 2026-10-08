@@ -1,5 +1,5 @@
-from flask import render_template, request
 from apiflask import APIBlueprint
+from flask import render_template, request
 
 from app.routes.helpers import back_to
 from app.services import notifications

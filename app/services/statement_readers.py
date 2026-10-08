@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from statistics import median
 from xml.etree import ElementTree
+
 from flask_babel import gettext as _
 
 OLE2_MAGIC = b"\xd0\xcf\x11\xe0"

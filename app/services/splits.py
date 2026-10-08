@@ -1,9 +1,10 @@
 """Split transactions: one amount divided across several categories (100 € = 70 Spesa + 30 Casa)."""
 from decimal import Decimal
 
+from flask_babel import gettext as _
+
 from app.models.transaction import Transaction, TransactionSplit
 from app.services import display
-from flask_babel import gettext as _
 
 
 def apply(tx: Transaction, parts: list[tuple[str | None, Decimal | None]]) -> None:

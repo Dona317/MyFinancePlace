@@ -8,9 +8,9 @@ from PIL import Image
 from app.models.transaction import Transaction
 from app.services import ai_classification, bank_import, history_classifier, ocr
 from tests.conftest import make_tx
-from tests.test_ai_classification import items, ollama as classify_ollama  # noqa: F401 - fixtures
+from tests.test_ai_classification import items  # noqa: F401 - fixtures
+from tests.test_ai_classification import ollama as classify_ollama  # noqa: F401 - fixtures
 from tests.test_ai_extraction import PHOTO, SAMPLES, SCAN, _upload, ollama, truth_movements  # noqa: F401
-
 
 # ── Light OCR ──────────────────────────────────────────────────────────────────
 

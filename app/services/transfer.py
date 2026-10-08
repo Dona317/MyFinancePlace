@@ -5,12 +5,12 @@ import csv
 import io
 from datetime import date, datetime
 
+from flask_babel import gettext as _
 from sqlalchemy.orm import selectinload
 
 from app.models.transaction import Transaction
 from app.services import categories, display
 from app.services.periods import month_bounds, year_bounds
-from flask_babel import gettext as _
 
 EXPORT_FIELDS = [
     "id", "date", "description", "amount", "currency", "type", "category", "main_category",

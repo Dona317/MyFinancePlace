@@ -2,9 +2,9 @@
 
 import sys
 
+from common import AUTH, check, launch, summary
+from common import BASE as B
 from playwright.sync_api import sync_playwright
-
-from common import AUTH, BASE as B, check, launch, summary
 
 with sync_playwright() as p:
     br = launch(p)

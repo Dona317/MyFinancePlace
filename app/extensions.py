@@ -1,9 +1,9 @@
 from flask import g, has_app_context
-from flask_sqlalchemy import SQLAlchemy
-from flask_sqlalchemy.session import Session as FlaskSession
-from flask_migrate import Migrate
 from flask_babel import Babel
 from flask_login import LoginManager
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy.session import Session as FlaskSession
 from sqlalchemy import event, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.util import find_tables

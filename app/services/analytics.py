@@ -16,8 +16,7 @@ from app.services.categories import UNCATEGORIZED  # noqa: F401 - used by report
 from app.services.financial_health import autonomy, income_stability, nature_split  # noqa: F401 - older imports
 from app.services.i18n import N_
 from app.services.money import share
-from app.services.periods import (month_bounds, month_index, month_label,
-                                  month_labels, shift_month, year_bounds)
+from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total, with_lines
 
 OTHER = N_("Altre")  # the categories past the top ones, added up in one series

@@ -3,9 +3,9 @@ from datetime import date, timedelta
 from flask import Blueprint, render_template, request
 from flask_babel import gettext as _
 
+from app.routes.helpers import csv_text, download, year_arg
 from app.services import accounts, analytics, categories, i18n, reports, transfer
 from app.services.analytics import UNCATEGORIZED
-from app.routes.helpers import csv_text, download, year_arg
 from app.services.display import number
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/reports")

@@ -1,22 +1,35 @@
 import json
 import math
 from datetime import date, datetime
-from flask import render_template, request, redirect, url_for, flash, current_app, jsonify, send_file, abort
+
 from apiflask import APIBlueprint
+from flask import abort, current_app, flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask_babel import gettext as _
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
+
 from app.extensions import db
 from app.models.account import Account
-from app.services.parsing import to_decimal
 from app.routes.helpers import download, form_ids, uploaded_file, year_arg
 from app.services import (
-    accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_jobs, ai_models, upload_store, backup,
-    pdf_report, statement_readers, column_guess,
+    accounts,
+    ai_classification,
+    ai_extraction,
+    ai_jobs,
+    ai_models,
+    analytics,
+    backup,
+    bank_import,
+    column_guess,
+    pdf_report,
+    statement_readers,
+    transfer,
+    upload_store,
 )
+from app.services.categories import known_categories
+from app.services.parsing import to_decimal
 from app.services.periods import year_bounds
 from app.services.tags import all_tags
-from app.services.categories import known_categories
-from flask_babel import gettext as _
 
 export_bp = APIBlueprint(
     "export",

@@ -1,12 +1,12 @@
 from datetime import date
 
-from flask import flash, redirect, render_template, request, url_for
 from apiflask import APIBlueprint
+from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from app.routes.helpers import form_decimal, year_arg
 from app.services import analytics, settings_store, wealth
 from app.services.parsing import to_date
-from flask_babel import gettext as _
 
 accounting_bp = APIBlueprint(
     "accounting",

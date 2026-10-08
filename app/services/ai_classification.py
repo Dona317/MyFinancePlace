@@ -14,10 +14,11 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
 from flask import current_app
-
-from app.services import ai_extraction, categories as category_service, category_rules, history_classifier, settings_store
-from app.services.ai_extraction import AIExtractionError
 from flask_babel import gettext as _
+
+from app.services import ai_extraction, category_rules, history_classifier, settings_store
+from app.services import categories as category_service
+from app.services.ai_extraction import AIExtractionError
 
 # Tag of a transaction whose category was suggested by the AI and accepted unchanged: easy to find, to check it
 AI_TAG = "da confermare (AI)"

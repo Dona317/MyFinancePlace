@@ -1,6 +1,6 @@
 from apiflask import Schema
-from apiflask.fields import Boolean, String, Integer, Float, Date, List, Nested
-from apiflask.validators import OneOf, Range, Length
+from apiflask.fields import Boolean, Date, Float, Integer, List, Nested, String
+from apiflask.validators import Length, OneOf, Range
 
 TRANSACTION_TYPES = ["income", "expense", "transfer"]
 RECURRENCES       = ["weekly", "monthly", "quarterly", "yearly"]

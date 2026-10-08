@@ -21,8 +21,8 @@ from decimal import Decimal, InvalidOperation
 
 from flask_babel import gettext as _
 
-from app.services.parsing import clean_text, to_decimal, valid_amount
 from app.services.money import CENT
+from app.services.parsing import clean_text, to_decimal, valid_amount
 
 FORMATS = {"ofx": "OFX", "qif": "QIF", "camt": "CAMT.053 (ISO 20022)"}
 QIF_ACCOUNT_TYPES = ("bank", "ccard", "cash", "oth a", "oth l")

@@ -36,9 +36,9 @@ from .categorize import (  # noqa: F401
     _TRANSFER_PATTERN,
     CATEGORY_RULES,
     TRANSFER_KEYWORDS,
-    search_text,
     categorize,
     is_transfer,
+    search_text,
 )
 from .layouts import (  # noqa: F401
     AUTO,
@@ -49,10 +49,10 @@ from .layouts import (  # noqa: F401
     PENDING_STATUSES,
     BankLayout,
     Layout,
-    identify_bank,
     _match_columns,
     detect_layout,
     header_key,
+    identify_bank,
     layout_for_headers,
     layout_named,
 )

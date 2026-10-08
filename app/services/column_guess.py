@@ -11,9 +11,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
+from flask_babel import gettext as _
+
 from app.services.i18n import _l
 from app.services.parsing import normalize, to_date, to_decimal
-from flask_babel import gettext as _
 
 FIELDS = ("date", "amount", "debit", "credit", "description", "category", "type", "counterparty")
 SAMPLE = 200            # rows looked at: enough to judge a column, fast on big files

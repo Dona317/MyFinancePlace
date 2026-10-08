@@ -1,7 +1,9 @@
 from datetime import date
 
-from flask import abort, flash, redirect, render_template, request, send_file, url_for
 from apiflask import APIBlueprint
+from flask import abort, flash, redirect, render_template, request, send_file, url_for
+from flask_babel import gettext as _
+from flask_babel import ngettext
 from sqlalchemy import extract
 
 from app.extensions import db
@@ -10,7 +12,6 @@ from app.models.wealth import Document
 from app.routes.helpers import back_to, form_int, form_text, safe_next
 from app.services import document_store
 from app.services.categories import known_categories
-from flask_babel import gettext as _, ngettext
 
 documents_bp = APIBlueprint(
     "documents",

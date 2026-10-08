@@ -13,9 +13,9 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from app.models.transaction import Transaction
 from app.services import categories, settings_store, tax_rules
-from app.services.tax_rules import DETRAZIONE
 from app.services.money import CENT
 from app.services.periods import year_bounds
+from app.services.tax_rules import DETRAZIONE
 
 MAP_SETTING = "tax.730_categories"
 PEOPLE_SETTING = MAP_SETTING + ".people"

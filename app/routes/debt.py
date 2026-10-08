@@ -1,14 +1,14 @@
 from collections import defaultdict
 from datetime import date
 
-from flask import render_template, request, url_for
 from apiflask import APIBlueprint
+from flask import render_template, request, url_for
+from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.wealth import Debt
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_int, form_text, save_form
 from app.services import wealth
-from flask_babel import gettext as _
 
 debt_bp = APIBlueprint(
     "debt",

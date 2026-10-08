@@ -26,10 +26,10 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from flask import current_app
+from flask_babel import gettext as _
 
 from app.services import settings_store
 from app.services.statement_readers import is_image, is_pdf
-from flask_babel import gettext as _
 
 DEFAULT_MODELS = {"ollama": "qwen2.5vl:7b", "anthropic": "claude-opus-5"}
 ANTHROPIC_MODELS = ("claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5")  # offered in the UI, most capable first

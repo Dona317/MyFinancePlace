@@ -13,14 +13,14 @@ import xml.etree.ElementTree as ET
 from datetime import date
 from decimal import Decimal
 
+from flask_babel import gettext as _
 from sqlalchemy import event, select, text
 
 from app.extensions import db
 from app.models.currency import ExchangeRate
 from app.models.transaction import Transaction
-from app.services.i18n import N_
 from app.services import money
-from flask_babel import gettext as _
+from app.services.i18n import N_
 
 BASE = "EUR"  # the currency the rates are expressed in
 CURRENCIES = {  # code: (symbol, name)

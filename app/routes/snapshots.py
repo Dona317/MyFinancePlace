@@ -1,11 +1,11 @@
-from flask import flash, redirect, render_template, request, url_for
 from apiflask import APIBlueprint
+from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.wealth import Snapshot
 from app.routes.helpers import delete_and_redirect, form_text
 from app.services import display, wealth
-from flask_babel import gettext as _
 
 snapshots_bp = APIBlueprint(
     "snapshots",

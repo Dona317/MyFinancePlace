@@ -6,6 +6,7 @@ They are checked before the built-in rules of the bank import (bank_import.CATEG
 import re
 
 from flask import has_app_context
+from flask_babel import gettext as _
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db
@@ -14,7 +15,6 @@ from app.models.transaction import Transaction
 from app.services import request_cache
 from app.services.categories import FALLBACK
 from app.services.parsing import normalize
-from flask_babel import gettext as _
 
 MIN_KEYWORD = 3  # shorter words would match too much ("bar" is the shortest useful one)
 

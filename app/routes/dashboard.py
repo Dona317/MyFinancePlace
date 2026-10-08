@@ -1,10 +1,12 @@
 from datetime import date
-from flask import render_template, redirect, url_for
+
 from apiflask import APIBlueprint
+from flask import redirect, render_template, url_for
+
 from app.models.transaction import Transaction
 from app.routes.helpers import year_arg
-from app.services.ui_settings import autonomy_target
 from app.services import analytics, budgets, i18n, sankey
+from app.services.ui_settings import autonomy_target
 
 dashboard_bp = APIBlueprint(
     "dashboard",

@@ -1,15 +1,16 @@
 from datetime import date
 
-from flask import flash, redirect, render_template, request, url_for
 from apiflask import APIBlueprint
+from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, currency as currency_service, display
+from app.services import accounts, display
+from app.services import currency as currency_service
 from app.services.tax_rules import REGIMES as TAX_REGIMES
-from flask_babel import gettext as _
 
 accounts_bp = APIBlueprint(
     "accounts",
