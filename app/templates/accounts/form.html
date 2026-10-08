@@ -23,6 +23,16 @@
         </div>
         {{ f.text(values, 'iban_tail', _('Ultime cifre IBAN o carta'), a.iban_tail, placeholder=_('es. 4821')) }}
         {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
+        <fieldset class="fee-rules mb-16">
+          <legend class="form-label">{{ _('Commissioni del broker (facoltative)') }}</legend>
+          <p class="form-hint">{{ _('Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una vendita su questo conto, la commissione viene calcolata e proposta. Vuoto = la inserisci tu.') }}</p>
+          <div class="grid-4">
+            {{ f.number(values, 'fee_fixed', _('Fisso (€)'), a.fee_fixed, placeholder='0,00') }}
+            {{ f.number(values, 'fee_percent', _('Percentuale (%%)'), a.fee_percent, placeholder='0,19') }}
+            {{ f.number(values, 'fee_min', _('Minimo (€)'), a.fee_min, placeholder='2,95') }}
+            {{ f.number(values, 'fee_max', _('Massimo (€)'), a.fee_max, placeholder='19,00') }}
+          </div>
+        </fieldset>
         {% set is_active = ('active' in values) if values else (a.active if is_edit else true) %}
         <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" class="check" {{ 'checked' if is_active }} /> {{ _("Conto attivo (togli la spunta se l'hai chiuso)") }}</label>
         {{ f.actions(url_for('accounts.detail', account_id=account.id) if is_edit else url_for('accounts.index'),

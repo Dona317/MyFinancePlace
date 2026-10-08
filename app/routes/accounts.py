@@ -29,6 +29,12 @@ def _account_from_form(account: Account) -> Account:
     account.iban_tail = (form_text("iban_tail", _("Ultime cifre IBAN / carta")) or "")[-10:] or None
     account.notes = form_text("notes", _("Note"))
     account.active = "active" in request.form
+    account.fee_fixed = form_decimal("fee_fixed", _("Commissione fissa"))
+    account.fee_percent = form_decimal("fee_percent", _("Commissione percentuale"))
+    account.fee_min = form_decimal("fee_min", _("Commissione minima"))
+    account.fee_max = form_decimal("fee_max", _("Commissione massima"))
+    if account.fee_min is not None and account.fee_max is not None and account.fee_min > account.fee_max:
+        raise ValueError(_("Commissioni: il minimo non può superare il massimo."))
     duplicate = Account.query.filter(Account.name == account.name, Account.id != account.id).first()
     if duplicate:
         raise ValueError(_("Esiste già un conto chiamato «%(name)s».", name=account.name))

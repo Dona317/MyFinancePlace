@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 05:20+0000\n"
+"POT-Creation-Date: 2026-10-08 05:31+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -511,6 +511,9 @@ msgstr "Accumulated"
 msgid "Acquisti (−) e vendite (+) di investimenti"
 msgstr "Purchases (−) and sales (+) of investments"
 
+msgid "Acquisto"
+msgstr "Purchase"
+
 msgid "Acquisto casa"
 msgstr "Buying a home"
 
@@ -522,6 +525,9 @@ msgstr "Update Prices"
 
 msgid "Aggiorna prezzi"
 msgstr "Update prices"
+
+msgid "Aggiorna quantità e prezzo medio della posizione"
+msgstr "Update the holding's quantity and average price"
 
 msgid "Aggiornalo quando vuoi (anche tutti insieme da «Aggiorna prezzi»): vuoto = vale quanto l'hai pagato."
 msgstr "Update it whenever you like (also all at once from «Update prices»): empty = worth what you paid."
@@ -1204,6 +1210,34 @@ msgstr "How it works"
 
 msgid "Come hai già categorizzato transazioni simili: il modello AI non è stato interpellato"
 msgstr "How you already categorized similar transactions: the AI model was not asked"
+
+msgid "Commissione"
+msgstr "Commission"
+
+#, python-format
+msgid "Commissione di %(amount)s registrata come spesa."
+msgstr "Commission of %(amount)s recorded as an expense."
+
+msgid "Commissione e posizione si aggiornano solo quando la registri: qui cambi solo i dati dell’operazione."
+msgstr "Commission and holding are updated only when the trade is recorded: here you only change the trade's data."
+
+msgid "Commissione fissa"
+msgstr "Fixed commission"
+
+msgid "Commissione massima"
+msgstr "Maximum commission"
+
+msgid "Commissione minima"
+msgstr "Minimum commission"
+
+msgid "Commissione percentuale"
+msgstr "Percent commission"
+
+msgid "Commissioni del broker (facoltative)"
+msgstr "Broker commissions (optional)"
+
+msgid "Commissioni: il minimo non può superare il massimo."
+msgstr "Commissions: the minimum cannot exceed the maximum."
 
 msgid "Compagnia"
 msgstr "Company"
@@ -1953,6 +1987,9 @@ msgid ""
 "Fissa: ogni mese (affitto, bollette) · Non mensile: poche volte all’anno (tasse, assicurazioni) · Variabile: la parte"
 " comprimibile"
 msgstr "Fixed: every month (rent, bills) · Not monthly: a few times a year (taxes, insurance) · Variable: the part you can cut"
+
+msgid "Fisso (€)"
+msgstr "Fixed (€)"
 
 msgid "Flussi operativi, di investimento e di finanziamento"
 msgstr "Operating, investing and financing flows"
@@ -2768,6 +2805,9 @@ msgstr "Coverage limit"
 msgid "Massimale / copertura (€)"
 msgstr "Coverage limit (€)"
 
+msgid "Massimo (€)"
+msgstr "Maximum (€)"
+
 msgid "Media"
 msgstr "Average"
 
@@ -2842,6 +2882,9 @@ msgstr "Method"
 
 msgid "Mezza riga / riga intera"
 msgstr "Half row / full row"
+
+msgid "Minimo (€)"
+msgstr "Minimum (€)"
 
 msgid "Minimo tra i metodi"
 msgstr "Lowest across methods"
@@ -3419,6 +3462,12 @@ msgstr "More than 20%% above the average"
 msgid "Oltre l'importo: {amount}"
 msgstr "Over the amount: {amount}"
 
+msgid "Operazione in quote (facoltativa)"
+msgstr "Trade in units (optional)"
+
+msgid "Operazione: indica quote e prezzo per quota, entrambi maggiori di zero."
+msgstr "Trade: give units and price per unit, both greater than zero."
+
 msgid "Oppure incolla più righe «data;prezzo»"
 msgstr "Or paste several «date;price» lines"
 
@@ -3548,11 +3597,22 @@ msgstr "To restore a full backup, confirm that the current data will be replaced
 msgid "Per scansioni e foto serve un modello \"vision\" (es."
 msgstr "Scans and photos need a \"vision\" model (e.g."
 
+msgid ""
+"Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una "
+"vendita su questo conto, la commissione viene calcolata e proposta. Vuoto = la inserisci tu."
+msgstr ""
+"For a brokerage account: fixed + percent of the amount, between a minimum and a maximum. When you record a purchase "
+"or a sale on this account, the commission is computed and proposed. Empty = you enter it."
+
 msgid "Per un patrimonio netto corretto, tieni aggiornate queste tre fonti"
 msgstr "For a correct net worth, keep these three sources up to date"
 
 msgid "Per unità. Per un conto deposito: il capitale versato."
 msgstr "Per unit. For a savings account: the capital deposited."
+
+#, python-format
+msgid "Percentuale (%%)"
+msgstr "Percent (%%)"
 
 msgid "Percentuale del reddito lordo risparmiata"
 msgstr "Share of gross income saved"
@@ -3748,6 +3808,12 @@ msgstr "Average purchase price (€)"
 msgid "Prezzo medio di acquisto"
 msgstr "Average purchase price"
 
+msgid "Prezzo per quota"
+msgstr "Price per unit"
+
+msgid "Prezzo per quota (€)"
+msgstr "Price per unit (€)"
+
 #, python-format
 msgid "Prima del ripristino del %(day)s alle %(time)s"
 msgstr "Before the restore of %(day)s at %(time)s"
@@ -3846,6 +3912,9 @@ msgstr ""
 msgid "Quota"
 msgstr "Share"
 
+msgid "Quote"
+msgstr "Units"
+
 msgid "RAM"
 msgstr "RAM"
 
@@ -3885,6 +3954,9 @@ msgstr "Remaining Installments"
 
 msgid "Real"
 msgstr "Real"
+
+msgid "Registra la commissione come spesa:"
+msgstr "Record the commission as an expense:"
 
 #, python-format
 msgid "Registrato fino al %(day)s + previsto"
@@ -5041,6 +5113,9 @@ msgstr "See all"
 msgid "Veicolo"
 msgstr "Vehicle"
 
+msgid "Vendita"
+msgstr "Sale"
+
 msgid "Verifica"
 msgstr "Check"
 
@@ -5105,6 +5180,9 @@ msgstr "assign them"
 #, python-format
 msgid "budget del mese + %(amount)s riportati"
 msgstr "month's budgets + %(amount)s rolled over"
+
+msgid "calcolata con le regole del conto: puoi correggerla"
+msgstr "computed with the account's rules: you can correct it"
 
 msgid "calcolata da tasso e durata"
 msgstr "worked out from rate and term"
@@ -5326,6 +5404,9 @@ msgstr "no budget"
 
 msgid "nessun cambio nel file della BCE"
 msgstr "no rates in the ECB file"
+
+msgid "nessuna regola sul conto: scrivila a mano, se c’è"
+msgstr "no rule on the account: type it, if there is one"
 
 msgid "no piece table"
 msgstr "no piece table"

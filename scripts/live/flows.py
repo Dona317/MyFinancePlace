@@ -379,7 +379,7 @@ with sync_playwright() as p:
         pg.goto(BASE + "/forecast/")
         pg.wait_for_timeout(600)
         check(
-            "forecast dashboard", pg.locator(".fc-widget").count() == 11 and pg.evaluate("!!Chart.getChart('netChart')")
+            "forecast dashboard", pg.locator(".fc-widget").count() == 12 and pg.evaluate("!!Chart.getChart('netChart')")
         )
         with pg.expect_navigation():
             pg.select_option("select[name=method]", "mediana")

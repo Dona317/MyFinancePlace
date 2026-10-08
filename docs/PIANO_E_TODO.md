@@ -68,6 +68,8 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 | F4 | A | M | ⬜ | **Prova con estratti conto reali anonimizzati** (8 banche) | Campioni oggi generati; PDF a maggior rischio. Serve che tu fornisca i file |
 | F5 | M | M | ✅ | **Storico prezzi investimenti** (+ prezzi automatici ETF/cripto) | `holding_prices`: Portafoglio → Storico prezzi (uno o più prezzi incollati, grafico), «Aggiorna prezzi» con data; stati patrimoniali, andamento e istantanee usano il prezzo di allora. Prezzi automatici rimandati a F16 (serve una fonte esterna) |
 | F6 | M | M | ✅ | **Import OFX / QIF / CAMT.053** | `structured_statements.py` (solo libreria standard): OFX 1 SGML e 2 XML, QIF con categorie e giroconti, CAMT.053/052 con quadratura dei saldi e movimenti in attesa esclusi; stessa anteprima, categorie e duplicati degli altri estratti; 4 campioni |
+| F17 | A | M | ✅ | **Commissioni del broker e operazioni in quote** | Sul conto: fisso + % con minimo e massimo. Nel modulo: quote × prezzo → importo; commissione proposta dalle regole (modificabile) e, confermata, salvata come spesa «Commissioni» collegata; posizione aggiornata (quantità, prezzo medio con commissione, prezzo nello storico). L'operazione è un movimento verso/da l'investimento, non una spesa. Tutto facoltativo |
+| F5b | M | S | ⬜ | **Prezzi da internet** (Yahoo Finance per ETF/azioni, CoinGecko per cripto, gratis e senza chiave) | Pulsante in «Aggiorna prezzi», attivabile in Impostazioni; manda solo i ticker; finisce nello storico di F5 |
 
 ### Budget e analisi
 

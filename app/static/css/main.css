@@ -1490,3 +1490,11 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .undo-bar form { margin: 0; }
 @media (max-width: 900px) { .quick-add, .quick-add:not(:has(select[name=account_id])) { grid-template-columns: 1fr 1fr; }
                             .quick-add #quick-description { grid-column: 1 / -1; order: -1; } }
+
+/* ── Trade in units with the broker commission (transaction form, F17) ────────────────────────────── */
+.trade-box, .fee-rules { border: 1px solid var(--clr-border); border-radius: var(--border-radius); padding: 12px 14px; }
+.trade-box legend, .fee-rules legend { padding: 0 6px; margin-bottom: 0; }
+.trade-grid { display: grid; grid-template-columns: 140px minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.trade-fee { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.trade-fee input[name=fee_amount] { max-width: 120px; }
+@media (max-width: 480px) { .trade-grid { grid-template-columns: 1fr 1fr; } .trade-grid .form-group:first-child { grid-column: 1 / -1; } }

@@ -15,3 +15,13 @@ class Account(db.Model):
     active           = db.Column(db.Boolean, nullable=False, default=True)
     reconciled_on    = db.Column(db.Date)            # last time the balance was checked against a statement
     reconciled_balance = db.Column(db.Numeric(38, 2))  # the balance the statement showed that day
+    # Broker commission rules (F17): fixed + percent of the traded amount, within a minimum and a maximum;
+    # all empty = no rule (the commission, if any, is entered by hand)
+    fee_fixed        = db.Column(db.Numeric(38, 2))
+    fee_percent      = db.Column(db.Numeric(9, 4))   # e.g. 0.19 = 0,19%
+    fee_min          = db.Column(db.Numeric(38, 2))
+    fee_max          = db.Column(db.Numeric(38, 2))
+
+    @property
+    def has_fee_rule(self) -> bool:
+        return any(v is not None for v in (self.fee_fixed, self.fee_percent, self.fee_min, self.fee_max))

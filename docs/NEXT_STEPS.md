@@ -102,6 +102,12 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Quick entry and undo/redo** (F13, `services/undo.py`): a quick-entry row on the transactions list («n» to
   focus it, Enter to save; category and counterparty guessed as on import); the last addition or deletion (also of
   many rows, splits included) can be undone and redone for 30 minutes, with Ctrl+Z / Ctrl+Y; kept in `app_settings`
+- **Broker commissions and trades in units** (F17, migration `e5a7c9e1f3b4`, `services/broker.py`): fee rules on an
+  account (fixed + percent, minimum, maximum); a transaction linked to a holding can be entered as units × price —
+  the amount follows, the commission is estimated from the rules and, once confirmed, saved as its own «Commissioni»
+  expense linked to the trade (`fee_for_id`, deleted with it); the holding's quantity and average price (commission
+  included) follow the trade and its price goes into the history. A trade is a transfer to/from the investment, so
+  the savings rate is not touched. Without rules or confirmation everything stays manual
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

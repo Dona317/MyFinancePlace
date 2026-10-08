@@ -33,6 +33,11 @@ class Transaction(db.Model):
     # What the money is for, when it matters to the cash-flow statement: buying/selling an investment
     # (investing) or receiving/repaying a loan (financing)
     holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="SET NULL"), index=True)
+    # An investment trade entered in units (F17): units bought (negative: sold) at a price per unit
+    units      = db.Column(db.Numeric(38, 8))
+    unit_price = db.Column(db.Numeric(38, 6))
+    # A broker commission: the trade it was charged for (deleted with it)
+    fee_for_id = db.Column(db.Integer, db.ForeignKey("transactions.id", ondelete="CASCADE"), index=True)
     debt_id    = db.Column(db.Integer, db.ForeignKey("debts.id", ondelete="SET NULL"), index=True)
 
     # loaded on first use (only the account page shows them): joining them on every query slowed down
@@ -41,6 +46,7 @@ class Transaction(db.Model):
     counter_account = db.relationship("Account", foreign_keys=[counter_account_id])
     # A split transaction: its amount divided across categories (70 Spesa + 30 Casa); `category` is then the
     # category of the largest part, so lists and filters keep working
+    fee_for = db.relationship("Transaction", remote_side=[id], foreign_keys=[fee_for_id])
     splits = db.relationship("TransactionSplit", back_populates="transaction", cascade="all, delete-orphan",
                              passive_deletes=True, order_by="TransactionSplit.id")
 

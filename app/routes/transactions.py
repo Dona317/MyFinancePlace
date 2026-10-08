@@ -10,7 +10,7 @@ from app.models.account import Account
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
-from app.services import accounts, ai_classification, bank_import, currency as money, ai_extraction, category_rules, duplicates, merchant, splits, undo
+from app.services import accounts, ai_classification, bank_import, broker, currency as money, ai_extraction, category_rules, display, duplicates, merchant, splits, undo
 from app.services.ai_classification import AI_TAG
 from app.services import categories as category_service
 from app.services.categories import known_categories
@@ -36,7 +36,12 @@ RECURRENCES = ("weekly", "monthly", "quarterly", "yearly")
 def _tx_from_form(tx: Transaction) -> Transaction:
     """Fill the transaction from the form; a ValueError says which field is wrong (nothing crashes)."""
     tx.date = form_date("date", _("Data"), required=True)
-    amount = form_decimal("amount", _("Importo"), required=True, allow_negative=True)
+    units, unit_price = _trade_from_form()
+    if units is not None and not (request.form.get("amount") or "").strip():  # the amount follows units × price
+        gross = (abs(units) * unit_price).quantize(Decimal("0.01"))
+        amount = -gross if units > 0 else gross
+    else:
+        amount = form_decimal("amount", _("Importo"), required=True, allow_negative=True)
     if not valid_amount(amount):
         raise ValueError(_("Importo: deve essere diverso da zero."))
     tx.type = _type_from(amount)
@@ -69,8 +74,42 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     # what the money is for, in the cash-flow statement: an investment or a debt (one of the two)
     tx.holding_id = _linked_id("holding_id", Holding)
     tx.debt_id = _linked_id("debt_id", Debt) if not tx.holding_id else None
+    # units × price only mean something for a trade of a holding
+    tx.units, tx.unit_price = (units, unit_price) if tx.holding_id and units is not None else (None, None)
+    if tx.units is not None:
+        # a trade moves money between the account and the investment: not an expense nor an income (the savings rate
+        # stays right); a purchase leaves the account, a sale arrives on it (wealth.cash_balance / accounts.balance)
+        tx.type, tx.category = "transfer", tx.category or "Investimenti"
+        broker_account = tx.account_id or tx.counter_account_id
+        tx.account_id, tx.counter_account_id = (broker_account, None) if tx.units > 0 else (None, broker_account)
+        tx.splits = []
     _splits_from_form(tx)
     return tx
+
+
+def _trade_from_form() -> tuple[Decimal | None, Decimal | None]:
+    """Units and price per unit of an investment trade (both or neither); sold units are negative."""
+    units = form_decimal("units", _("Quote"))
+    price = form_decimal("unit_price", _("Prezzo per quota"))
+    if units is None and price is None:
+        return None, None
+    if units is None or price is None or units <= 0 or price <= 0:
+        raise ValueError(_("Operazione: indica quote e prezzo per quota, entrambi maggiori di zero."))
+    return (-units if request.form.get("trade_side") == "sell" else units), price
+
+
+def _after_trade(tx: Transaction) -> list[Transaction]:
+    """A new trade entered in units: the confirmed commission as its own expense, and the holding moved by it."""
+    created = []
+    fee = form_decimal("fee_amount", _("Commissione")) if "record_fee" in request.form else None
+    if fee:
+        account_id = tx.account_id or tx.counter_account_id
+        created.append(broker.fee_transaction(tx, fee, db.session.get(Account, account_id) if account_id else None))
+        db.session.add(created[-1])
+    if tx.holding_id and tx.units is not None and "update_holding" in request.form:
+        holding = db.session.get(Holding, tx.holding_id)
+        broker.apply_trade(holding, tx.units, tx.unit_price, fee if fee and tx.units > 0 else Decimal(0), tx.date)
+    return created
 
 
 def _split_rows() -> list[tuple[str, str]]:
@@ -144,11 +183,13 @@ def _form_values(tx: Transaction | None = None) -> dict:
         return {key: form.get(key, "") for key in (
             "date", "amount", "currency", "description", "category", "tags",
             "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
-            "account_amount", "counter_amount")} | {
-            "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows()}
+            "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount")} | {
+            "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows(),
+            "record_fee": "record_fee" in form, "update_holding": "update_holding" in form}
     if tx is None:
         return {"currency": "EUR", "is_recurring": False, "transfer": False, "splits": [],
-                "account_id": request.args.get("account", "")}
+                "account_id": request.args.get("account", ""), "trade_side": "buy", "record_fee": True,
+                "update_holding": True}
     sign = "-" if tx.type == "expense" else ""
     return {
         "transfer": tx.type == "transfer", "date": tx.date.isoformat() if tx.date else "",
@@ -160,6 +201,9 @@ def _form_values(tx: Transaction | None = None) -> dict:
         "holding_id": str(tx.holding_id or ""), "debt_id": str(tx.debt_id or ""),
         "account_amount": _plain(tx.account_amount), "counter_amount": _plain(tx.counter_amount),
         "splits": [(s.category or "", _plain(s.amount)) for s in tx.splits],
+        "units": f"{abs(tx.units):f}".rstrip("0").rstrip(".").replace(".", ",") if tx.units is not None else "",
+        "unit_price": f"{tx.unit_price:f}".rstrip("0").rstrip(".").replace(".", ",") if tx.unit_price is not None else "",
+        "trade_side": "sell" if tx.units is not None and tx.units < 0 else "buy",
     }
 
 
@@ -251,12 +295,17 @@ def new():
     if request.method == "POST":
         try:
             tx = _tx_from_form(Transaction())
+            db.session.add(tx)
+            db.session.flush()
+            extra = _after_trade(tx)
         except ValueError as exc:
+            db.session.rollback()
             flash(str(exc), "error")
             return _render_form(None)
-        db.session.add(tx)
         db.session.commit()
-        undo.remember_created([tx])
+        undo.remember_created([tx, *extra])
+        if extra:
+            flash(_("Commissione di %(amount)s registrata come spesa.", amount=display.money(extra[0].amount)), "success")
         flash(_("Transazione aggiunta."), "success")
         _learn_from(tx)
         return redirect(url_for("transactions.index"))
@@ -326,7 +375,7 @@ def _render_form(tx: Transaction | None):
     return render_template(
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=_form_values(tx),
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
-        currencies=money.CURRENCIES, tag_pool=all_tags(),
+        currencies=money.CURRENCIES, tag_pool=all_tags(), fee_rules=broker.rules(accounts.all_accounts()),
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )

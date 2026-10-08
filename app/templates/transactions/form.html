@@ -165,6 +165,40 @@
           </div>
           {% endif %}
         </div>
+        {% if holdings %}
+        <fieldset class="trade-box mb-16" id="trade-box" {{ 'hidden' if not v.holding_id }}>
+          <legend class="form-label">{{ _('Operazione in quote (facoltativa)') }}</legend>
+          <div class="trade-grid">
+            <div class="form-group">
+              <label class="form-label" for="f-trade-side">{{ _('Tipo') }}</label>
+              <select id="f-trade-side" name="trade_side" class="form-select">
+                <option value="buy" {{ 'selected' if v.trade_side != 'sell' }}>{{ _('Acquisto') }}</option>
+                <option value="sell" {{ 'selected' if v.trade_side == 'sell' }}>{{ _('Vendita') }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f-units">{{ _('Quote') }}</label>
+              <input type="text" inputmode="decimal" id="f-units" name="units" class="form-control" value="{{ v.units }}" autocomplete="off" placeholder="10" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f-unit-price">{{ _('Prezzo per quota (€)') }}</label>
+              <input type="text" inputmode="decimal" id="f-unit-price" name="unit_price" class="form-control" value="{{ v.unit_price }}" autocomplete="off" placeholder="105,40" />
+            </div>
+          </div>
+          {% if action == 'new' %}
+          <div class="trade-fee">
+            <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="record_fee" class="check" id="f-record-fee" {{ 'checked' if v.record_fee }} />
+              {{ _('Registra la commissione come spesa:') }}</label>
+            <input type="text" inputmode="decimal" id="f-fee" name="fee_amount" class="form-control" value="{{ v.fee_amount }}" autocomplete="off" placeholder="0,00" aria-label="{{ _('Commissione') }}" />
+            <span class="text-xs text-muted" id="fee-hint" data-rule="{{ _('calcolata con le regole del conto: puoi correggerla') }}" data-manual="{{ _('nessuna regola sul conto: scrivila a mano, se c’è') }}"></span>
+          </div>
+          <label class="d-flex align-center gap-8 text-sm mt-8"><input type="checkbox" name="update_holding" class="check" {{ 'checked' if v.update_holding }} />
+            {{ _('Aggiorna quantità e prezzo medio della posizione') }}</label>
+          {% else %}
+          <p class="form-hint">{{ _('Commissione e posizione si aggiornano solo quando la registri: qui cambi solo i dati dell’operazione.') }}</p>
+          {% endif %}
+        </fieldset>
+        {% endif %}
         {% endif %}
 
         <label class="d-flex align-center gap-8 text-sm mb-16" style="margin-top:-8px;">
@@ -275,6 +309,45 @@
 
 {% block scripts %}
 <script>
+// Trades in units (F17): the amount follows units × price, the commission follows the account's rule
+(() => {
+  const box = document.getElementById('trade-box');
+  if (!box) return;
+  const rules = {{ fee_rules|tojson }};
+  const holding = document.getElementById('f-holding');
+  const side = document.getElementById('f-trade-side');
+  const units = document.getElementById('f-units');
+  const price = document.getElementById('f-unit-price');
+  const amount = document.getElementById('f-amount');
+  const account = document.getElementById('f-account');
+  const fee = document.getElementById('f-fee');
+  const hint = document.getElementById('fee-hint');
+  const num = (el) => parseFloat((el?.value || '').replace(/\./g, '').replace(',', '.')) || 0;
+  const plain = (x) => x.toFixed(2).replace('.', ',');
+  let feeTouched = !!(fee && fee.value);
+  fee?.addEventListener('input', () => { feeTouched = true; });
+  const update = () => {
+    box.hidden = !holding.value;
+    const gross = num(units) * num(price);
+    if (gross > 0) {
+      amount.value = (side.value === 'sell' ? '' : '-') + plain(gross);
+      amount.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (!fee) return;
+    const rule = rules[account?.value];
+    hint.textContent = rule ? hint.dataset.rule : hint.dataset.manual;
+    if (rule && gross > 0 && !feeTouched) {
+      let value = rule.fixed + gross * rule.percent / 100;
+      if (rule.min !== null) value = Math.max(value, rule.min);
+      if (rule.max !== null) value = Math.min(value, rule.max);
+      fee.value = plain(Math.round(value * 100) / 100);
+    }
+  };
+  [holding, side, units, price, account].forEach((el) => el?.addEventListener('input', update));
+  [holding, side, account].forEach((el) => el?.addEventListener('change', update));
+  update();
+})();
+
 // The sign of the amount says what it is: minus = expense, no sign = income; "transfer" overrides both
 (function () {
   const amount = document.getElementById('f-amount');
