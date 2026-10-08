@@ -13,7 +13,9 @@ from app.extensions import db
 from app.models.transaction import Transaction
 from app.services import categories, wealth
 from app.services.i18n import N_
-from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
+from app.services.money import share
+from app.services.periods import (first_of_month, last_complete_months, month_bounds, month_index, month_label,
+                                  month_labels, shift_month, year_bounds)
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total, with_lines
 
 UNCATEGORIZED = N_("Senza categoria")
@@ -77,7 +79,7 @@ def breakdown(query, tx_type: str, within: str | None = None) -> list[dict]:
         entry[0] += float(amount or 0)
         entry[1] += count
     total = sum(amount for amount, _ in grouped.values())
-    items = [{"category": name, "amount": amount, "count": count, "share": round(amount / total * 100, 1) if total else 0.0}
+    items = [{"category": name, "amount": amount, "count": count, "share": share(amount, total)}
              for name, (amount, count) in grouped.items()]
     return sorted(items, key=lambda item: item["amount"], reverse=True)
 
@@ -149,7 +151,7 @@ def summary_table(year: int, months: int = 12) -> dict:
     previous_totals: dict[tuple[str, str], float] = {}
     for month, tx_type, category, amount in _by_month_and_category(year - 1):
         if month < months:
-            for name in {categories.top(category) or UNCATEGORIZED, category or UNCATEGORIZED}:
+            for name in {categories.main_or(category, UNCATEGORIZED), category or UNCATEGORIZED}:
                 key = (tx_type, name)
                 previous_totals[key] = previous_totals.get(key, 0.0) + amount
 
@@ -160,7 +162,7 @@ def summary_table(year: int, months: int = 12) -> dict:
     for month, tx_type, category, amount in _by_month_and_category(year):
         if month >= months:
             continue
-        main = categories.top(category) or UNCATEGORIZED
+        main = categories.main_or(category, UNCATEGORIZED)
         parent = sections[tx_type].setdefault(main, row(tx_type, main))
         parent["months"][month] += amount
         if category and category != main:
@@ -230,7 +232,7 @@ def monthly_category_trend(year: int, top_n: int = 5, tx_type: str = "expense", 
         index = int(month) - 1
         if index >= months:
             continue
-        name = categories.top(category) or UNCATEGORIZED
+        name = categories.main_or(category, UNCATEGORIZED)
         target = series.get(name)
         if target is not None:
             target[index] = round(target[index] + float(amount), 2)
@@ -275,7 +277,7 @@ def autonomy(today: date | None = None, sheet: dict | None = None) -> dict:
     today = today or date.today()
     sheet = sheet or wealth.balance_sheet(today)
     liquid = float(sum(sheet["current_assets"].values()))
-    end = date(today.year, today.month, 1)
+    end = first_of_month(today)
     first = db.session.query(func.min(Transaction.date)).filter(Transaction.type == "expense",
                                                                 Transaction.date < end).scalar()
     months = min(12, (end.year - first.year) * 12 + end.month - first.month) if first else 0
@@ -310,7 +312,7 @@ def dashboard_kpis(today: date | None = None) -> dict:
         "total_investments": sheet["investments"],
         "total_debt": sheet["total_liabilities"],
         "autonomy": runway,
-        "debt_to_income": round(installments / income * 100, 1) if income else None,
+        "debt_to_income": share(installments, income) if income else None,
     }
 
 
@@ -321,7 +323,7 @@ def income_statement(year: int) -> dict:
     expense_lines = category_breakdown(start, end, "expense")
     for line in income_lines + expense_lines:
         line["share_of_income"] = (
-            round(line["amount"] / summary["income"] * 100, 1) if summary["income"] else None
+            share(line["amount"], summary["income"]) if summary["income"] else None
         )
     return {
         "year": year,
@@ -414,7 +416,7 @@ def nature_split(start: date, end: date) -> dict:
     total = sum(amounts.values())
     return {"total": total, "amounts": amounts,
             "parts": [{"key": key, "label": str(label), "amount": amounts[key],
-                       "share": round(amounts[key] / total * 100, 1) if total else 0.0}
+                       "share": share(amounts[key], total)}
                       for key, label in categories.NATURES.items()]}
 
 
@@ -428,15 +430,14 @@ def income_stability(today: date | None = None) -> dict:
     Stable: at least 10 months and within ±15%; variable: at least 6 months; occasional: the rest.
     """
     today = today or date.today()
-    end = date(today.year, today.month, 1)
-    start = date(*shift_month(end.year, end.month, -12), 1)
+    start, end = last_complete_months(today, 12)
     month = func.date_trunc("month", Transaction.date)
     rows = (lines_query(month, LINE_CATEGORY, func.sum(LINE_VALUE))
             .filter(Transaction.type == "income", Transaction.date >= start, Transaction.date < end)
             .group_by(month, LINE_CATEGORY).all())
     by_source: dict[str, dict] = {}
     for day, category, amount in rows:
-        months = by_source.setdefault(categories.top(category) or UNCATEGORIZED, {})
+        months = by_source.setdefault(categories.main_or(category, UNCATEGORIZED), {})
         key = (day.year, day.month)
         months[key] = months.get(key, 0.0) + float(amount or 0)
     total = sum(sum(m.values()) for m in by_source.values())
@@ -452,7 +453,7 @@ def income_stability(today: date | None = None) -> dict:
     sources.sort(key=lambda s: s["total"], reverse=True)
     stable = sum(s["total"] for s in sources if s["kind"] == "stable")
     return {"sources": sources, "total": round(total, 2), "monthly": round(total / 12, 2),
-            "stable_share": round(stable / total * 100, 1) if total else None,
+            "stable_share": share(stable, total) if total else None,
             "start": start, "end": end}
 
 
@@ -479,8 +480,8 @@ def lifestyle_report(year: int, today: date | None = None) -> dict:
             "category": name,
             "this_month": current,
             "last_month": previous,
-            "change": round((current - previous) / previous * 100, 1) if previous else None,
-            "share": round(current / this_total * 100, 1) if this_total else 0.0,
+            "change": _change(current, previous),
+            "share": share(current, this_total),
         })
 
     months_elapsed = ref_month
@@ -492,7 +493,7 @@ def lifestyle_report(year: int, today: date | None = None) -> dict:
         "total_expenses": total_expenses,
         "monthly_average": total_expenses / months_elapsed if months_elapsed else 0.0,
         "top_category": breakdown[0]["category"] if breakdown else None,
-        "discretionary_share": round(discretionary / total_expenses * 100, 1) if total_expenses else 0.0,
+        "discretionary_share": share(discretionary, total_expenses),
         "breakdown": breakdown,
         "rows": rows,
         "this_month_total": this_total,

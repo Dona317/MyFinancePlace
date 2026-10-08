@@ -24,8 +24,8 @@ from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
 from app.services import tax_rules
+from app.services.money import CENT
 
-CENT = Decimal("0.01")
 DICHIARATIVO = "dichiarativo"
 
 

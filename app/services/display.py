@@ -17,7 +17,7 @@ DATE_FORMATS = {"DD/MM/YYYY": "%d/%m/%Y", "YYYY-MM-DD": "%Y-%m-%d", "MM/DD/YYYY"
 def prefs() -> dict:
     store = request_cache.cache()
     if "display" not in store:
-        from app.routes.settings import current_settings  # settings live with their page
+        from app.services.ui_settings import current_settings
         from app.services import currency
 
         settings = current_settings()

@@ -17,7 +17,6 @@ but aren't flagged are suggested, so they can be flagged with one click.
 from __future__ import annotations
 
 import calendar
-import json
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -55,6 +54,7 @@ DEFAULT_HORIZON = 12
 WINDOW_RANGE = (1, 36)
 HORIZON_RANGE = (1, 24)
 BACKTEST_MONTHS = 6
+LAYOUT_SETTING = "forecast.layout"
 AMOUNT_TOLERANCE = 0.15   # a recurring series keeps its amount within ±15% (fuel or groceries don't)
 
 FREQUENCIES = {  # label, average length in days, tolerance in days, occurrences per month
@@ -127,20 +127,17 @@ def normalize_layout(items) -> list[dict]:
 
 
 def layout() -> list[dict]:
-    try:
-        return normalize_layout(json.loads(settings_store.get("forecast.layout") or "[]"))
-    except (TypeError, ValueError):
-        return default_layout()
+    return normalize_layout(settings_store.get_json(LAYOUT_SETTING, [], expect=list))
 
 
 def save_layout(items) -> list[dict]:
     items = normalize_layout(items)
-    settings_store.set("forecast.layout", json.dumps(items))
+    settings_store.set_json(LAYOUT_SETTING, items)
     return items
 
 
 def reset_layout() -> list[dict]:
-    settings_store.set("forecast.layout", None)
+    settings_store.set(LAYOUT_SETTING, None)
     return default_layout()
 
 

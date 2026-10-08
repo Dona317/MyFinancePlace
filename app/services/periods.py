@@ -18,6 +18,16 @@ def year_bounds(year: int) -> tuple[date, date]:
     return date(year, 1, 1), date(year + 1, 1, 1)
 
 
+def first_of_month(day: date) -> date:
+    return day.replace(day=1)
+
+
+def last_complete_months(today: date, months: int) -> tuple[date, date]:
+    """[first day `months` months before this one, first day of this month): the last `months` complete months."""
+    end = first_of_month(today)
+    return add_months(end, -months), end
+
+
 def month_bounds(year: int, month: int) -> tuple[date, date]:
     """Return [first day of month, first day of next month)."""
     return date(year, month, 1), month_start(month_index(date(year, month, 1)) + 1)

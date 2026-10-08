@@ -14,9 +14,9 @@ from decimal import ROUND_HALF_UP, Decimal
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import wealth
+from app.services import money, wealth
+from app.services.money import CENT
 
-CENT = Decimal("0.01")
 FEE_CATEGORY = "Commissioni"
 
 
@@ -47,7 +47,7 @@ def apply_trade(holding: Holding, units: Decimal, price: Decimal, fee: Decimal, 
     if units > 0:
         cost = quantity * Decimal(holding.avg_price or 0) + units * price + fee
         holding.quantity = quantity + units
-        holding.avg_price = (cost / holding.quantity).quantize(Decimal("0.000001"))
+        holding.avg_price = money.price(cost / holding.quantity)
     else:
         holding.quantity = max(quantity + units, Decimal(0))
     wealth.record_price(holding, price, on)

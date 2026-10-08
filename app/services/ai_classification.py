@@ -170,8 +170,8 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
     if ai_extraction.provider() is None:
         raise AIExtractionError(_("La classificazione AI non è configurata: scegli un modello in Impostazioni → Modelli AI."))
     categories = list(dict.fromkeys(c for c in categories if c))
-    if "Altro" not in categories:
-        categories.append("Altro")
+    if category_service.FALLBACK not in categories:
+        categories.append(category_service.FALLBACK)
     model = model or model_name()
 
     # the user's history first: the model only gets what it cannot place

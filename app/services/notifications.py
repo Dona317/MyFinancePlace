@@ -3,7 +3,6 @@ Reminders collected from the rest of the app: insurance expiries, recurring tran
 installments coming up, budgets at 80% or over, savings goals running late. Nothing is stored except
 the reminders the user dismissed (by key: a key includes the date, so next month's reminder shows again).
 """
-import json
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
@@ -12,7 +11,7 @@ from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
-from app.routes.settings import current_settings
+from app.services.ui_settings import current_settings
 from app.services import budgets, display, forecast, request_cache, settings_store, wealth
 from app.services.i18n import tr
 
@@ -123,11 +122,7 @@ SOURCES = ((_policies, "module_insurance"), (_recurring, None), (_installments, 
 
 
 def dismissed() -> list[str]:
-    try:
-        keys = json.loads(settings_store.get(DISMISSED_SETTING) or "[]")
-    except ValueError:
-        return []
-    return keys if isinstance(keys, list) else []
+    return settings_store.get_json(DISMISSED_SETTING, [], expect=list)
 
 
 def collect(today: date | None = None, include_dismissed: bool = False) -> list[Notification]:
@@ -150,4 +145,4 @@ def collect(today: date | None = None, include_dismissed: bool = False) -> list[
 def dismiss(keys: list[str]) -> None:
     current = dismissed()
     current.extend(k for k in keys if k not in current)
-    settings_store.set(DISMISSED_SETTING, json.dumps(current[-KEEP_DISMISSED:]))
+    settings_store.set_json(DISMISSED_SETTING, current[-KEEP_DISMISSED:])

@@ -22,7 +22,7 @@ from app.models import (
     Account, AppSetting, Budget, Category, CategoryRule, Debt, ExchangeRate, Document, DuplicateDismissal, Goal, Holding, HoldingPrice, InsurancePolicy, Snapshot,
     Transaction, TransactionSplit,
 )
-from app.services import currency, document_store, studio
+from app.services import currency, document_store, money, studio
 from flask_babel import gettext as _
 
 FORMAT = "myfinanceplace-backup"
@@ -210,7 +210,7 @@ def _reset_sequences() -> None:
 
 def import_transactions(data: dict) -> tuple[int, int]:
     """The older JSON export: add its transactions, skipping those already present. Returns (added, skipped)."""
-    existing = {(t.date, t.description, Decimal(t.amount).quantize(Decimal("0.01")), t.type)
+    existing = {(t.date, t.description, money.cents(t.amount), t.type)
                 for t in Transaction.query.all()}
     added = skipped = 0
     try:
@@ -220,7 +220,7 @@ def import_transactions(data: dict) -> tuple[int, int]:
             if "date" not in values or "description" not in values or "amount" not in values:
                 raise BackupError(_("Una transazione del file non ha data, descrizione o importo."))
             values["amount"] = abs(values["amount"])
-            key = (values["date"], values["description"], values["amount"].quantize(Decimal("0.01")), values.get("type"))
+            key = (values["date"], values["description"], money.cents(values["amount"]), values.get("type"))
             if key in existing:
                 skipped += 1
                 continue

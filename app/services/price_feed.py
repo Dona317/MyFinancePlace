@@ -20,7 +20,7 @@ from decimal import Decimal
 from flask_babel import gettext as _
 
 from app.models.wealth import Holding
-from app.services import currency, wealth
+from app.services import currency, money, wealth
 
 YAHOO = "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=5d&interval=1d"
 COINGECKO = "https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=eur&include_last_updated_at=true"
@@ -73,7 +73,7 @@ def _yahoo(holding: Holding) -> tuple[Decimal, date]:
         if currency.rate_on(code, on) is None:
             raise ValueError(_("prezzo in %(code)s: manca il cambio (Impostazioni → Valute)", code=code))
         value = currency.to_base(value, code, on)
-    return value.quantize(Decimal("0.000001")), on
+    return money.price(value), on
 
 
 def _coingecko(holdings: list[Holding]) -> dict[int, tuple[Decimal, date] | str]:

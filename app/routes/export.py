@@ -13,7 +13,8 @@ from app.services import (
     accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_jobs, ai_models, upload_store, backup,
     pdf_report, statement_readers, column_guess,
 )
-from app.routes.transactions import all_tags
+from app.services.periods import year_bounds
+from app.services.tags import all_tags
 from app.services.categories import known_categories
 from flask_babel import gettext as _
 
@@ -146,7 +147,7 @@ def export_pdf_download():
 @export_bp.route("/tax/<int:year>")
 def export_tax(year):
     transactions = [
-        tx for tx in transfer.query_transactions(date(year, 1, 1), date(year + 1, 1, 1))
+        tx for tx in transfer.query_transactions(*year_bounds(year))
         if transfer.is_tax_relevant(tx)
     ]
     content = "\ufeff" + transfer.to_csv(transactions)

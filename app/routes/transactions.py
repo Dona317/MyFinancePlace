@@ -3,14 +3,15 @@ from decimal import Decimal
 
 from flask import render_template, request, redirect, url_for, flash
 from apiflask import APIBlueprint, abort
-from sqlalchemy import func, or_, text
+from sqlalchemy import func, or_
 from sqlalchemy.orm import selectinload
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
-from app.services import accounts, ai_classification, bank_import, broker, currency as money, ai_extraction, category_rules, display, duplicates, merchant, splits, undo
+from app.services.tags import all_tags, parse_tags  # noqa: F401 - re-exported for older imports
+from app.services import accounts, ai_classification, ai_extraction, bank_import, broker, category_rules, currency as currency_service, display, duplicates, merchant, money, splits, undo
 from app.services.ai_classification import AI_TAG
 from app.services import categories as category_service
 from app.services.categories import known_categories
@@ -38,7 +39,7 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     tx.date = form_date("date", _("Data"), required=True)
     units, unit_price = _trade_from_form()
     if units is not None and not (request.form.get("amount") or "").strip():  # the amount follows units × price
-        gross = (abs(units) * unit_price).quantize(Decimal("0.01"))
+        gross = money.cents(abs(units) * unit_price)
         amount = -gross if units > 0 else gross
     else:
         amount = form_decimal("amount", _("Importo"), required=True, allow_negative=True)
@@ -48,7 +49,7 @@ def _tx_from_form(tx: Transaction) -> Transaction:
     tx.amount = abs(amount)
     tx.description = form_text("description", _("Descrizione"), required=True)
     currency = request.form.get("currency") or "EUR"
-    tx.currency = currency if currency in money.CURRENCIES else "EUR"
+    tx.currency = currency if currency in currency_service.CURRENCIES else "EUR"
     tx.category = form_text("category", _("Categoria"))
     tx.tags = parse_tags(request.form.get("tags", ""))
     # the counterparty is now the first tag (kept in its own column for rules, search and the AI)
@@ -137,24 +138,6 @@ def _type_from(amount) -> str:
     if amount < 0 or request.form.get("type") == "expense":
         return "expense"
     return "income"
-
-
-def parse_tags(raw: str) -> list[str]:
-    """Comma-separated tags, trimmed, without repeats (case-insensitive), in the order given."""
-    tags, seen = [], set()
-    for tag in (t.strip() for t in (raw or "").split(",")):
-        if tag and tag.casefold() not in seen:
-            seen.add(tag.casefold())
-            tags.append(tag)
-    return tags
-
-
-def all_tags() -> list[str]:
-    """Every tag already used, to pick from (most used first, then alphabetical)."""
-    rows = db.session.execute(text(
-        "SELECT tag, count(*) FROM (SELECT unnest(tags) AS tag FROM transactions) t "
-        "GROUP BY tag ORDER BY count(*) DESC, lower(tag)")).all()
-    return [tag for tag, _count in rows]
 
 
 def _linked_id(field: str, model) -> int | None:
@@ -375,7 +358,7 @@ def _render_form(tx: Transaction | None):
     return render_template(
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=_form_values(tx),
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
-        currencies=money.CURRENCIES, tag_pool=all_tags(), fee_rules=broker.rules(accounts.all_accounts()),
+        currencies=currency_service.CURRENCIES, tag_pool=all_tags(), fee_rules=broker.rules(accounts.all_accounts()),
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )
@@ -583,7 +566,7 @@ def fill_counterparties():
 # ── AI classification of saved transactions ──────────────────────────────────
 
 def _unclassified_query():
-    return Transaction.query.filter(or_(Transaction.category.is_(None), Transaction.category.in_(["", "Altro"])),
+    return Transaction.query.filter(or_(Transaction.category.is_(None), Transaction.category.in_(["", category_service.FALLBACK])),
                                     ~Transaction.splits.any())
 
 

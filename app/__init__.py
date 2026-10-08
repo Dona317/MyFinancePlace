@@ -8,7 +8,7 @@ from flask_login import current_user
 from jinja2 import Undefined
 from sqlalchemy import text
 from config import config
-from .routes.settings import current_language, current_settings, module_setting
+from .services.ui_settings import current_language, current_settings, module_setting
 from .extensions import babel, db, login_manager, migrate
 
 

@@ -8,19 +8,19 @@ franchigia, up to the ceiling, and the deduction it is worth.
 """
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
-from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
 from app.models.transaction import Transaction
 from app.services import categories, settings_store, tax_rules
 from app.services.tax_rules import DETRAZIONE
+from app.services.money import CENT
+from app.services.periods import year_bounds
 
 MAP_SETTING = "tax.730_categories"
+PEOPLE_SETTING = MAP_SETTING + ".people"
 DEFAULT_MAP = {"sanitarie": ["Salute"], "istruzione": ["Istruzione"]}
 TAX_TAGS = {"detraibile", "deducibile"}
-CENT = Decimal("0.01")
 
 
 @dataclass
@@ -49,27 +49,20 @@ class Line:
 
 def mapping() -> dict[str, list[str]]:
     """{line code: [categories]} as saved, the defaults before the first save."""
-    raw = settings_store.get(MAP_SETTING)
-    try:
-        saved = json.loads(raw) if raw else None
-    except ValueError:
-        saved = None
+    saved = settings_store.get_json(MAP_SETTING, expect=dict)
     return {k: [c for c in v if isinstance(c, str)] for k, v in saved.items() if isinstance(v, list)} \
         if isinstance(saved, dict) else {k: list(v) for k, v in DEFAULT_MAP.items()}
 
 
 def save_mapping(chosen: dict[str, list[str]], people: dict[str, int]) -> None:
-    settings_store.set(MAP_SETTING, json.dumps({k: sorted(set(v)) for k, v in chosen.items() if v}))
-    settings_store.set(MAP_SETTING + ".people", json.dumps({k: n for k, n in people.items() if n > 1}))
+    settings_store.set_json(MAP_SETTING, {k: sorted(set(v)) for k, v in chosen.items() if v})
+    settings_store.set_json(PEOPLE_SETTING, {k: n for k, n in people.items() if n > 1})
 
 
 def people() -> dict[str, int]:
     """How many students or children a per-person ceiling applies to (Fisco → 730 → Categorie)."""
-    try:
-        saved = json.loads(settings_store.get(MAP_SETTING + ".people") or "{}")
-    except ValueError:
-        return {}
-    return {k: int(v) for k, v in saved.items() if isinstance(v, int) and 1 <= v <= 20} if isinstance(saved, dict) else {}
+    saved = settings_store.get_json(PEOPLE_SETTING, {}, expect=dict)
+    return {k: int(v) for k, v in saved.items() if isinstance(v, int) and 1 <= v <= 20}
 
 
 def summary(year: int) -> dict:
@@ -80,8 +73,9 @@ def summary(year: int) -> dict:
         for name in names:
             owner.setdefault(name, code)
     unassigned = []
-    expenses = (Transaction.query.filter(Transaction.type == "expense", Transaction.date >= date(year, 1, 1),
-                                         Transaction.date < date(year + 1, 1, 1))
+    start, end = year_bounds(year)
+    expenses = (Transaction.query.filter(Transaction.type == "expense", Transaction.date >= start,
+                                         Transaction.date < end)
                 .order_by(Transaction.date, Transaction.id))
     for tx in expenses:
         taken = False

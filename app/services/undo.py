@@ -9,7 +9,6 @@ undo and the undo of a redo.
 """
 from __future__ import annotations
 
-import json
 from datetime import datetime, timedelta
 
 from sqlalchemy import insert
@@ -34,15 +33,12 @@ def _snapshot(transactions: list[Transaction]) -> list[dict]:
 
 
 def _store(key: str, step: dict | None) -> None:
-    settings_store.set(key, json.dumps(step | {"at": datetime.now().isoformat(timespec="seconds")}) if step else None)
+    settings_store.set_json(key, step | {"at": datetime.now().isoformat(timespec="seconds")} if step else None)
 
 
 def _read(key: str) -> dict | None:
-    try:
-        step = json.loads(settings_store.get(key) or "null")
-    except ValueError:
-        return None
-    if not isinstance(step, dict) or "kind" not in step:
+    step = settings_store.get_json(key, expect=dict)
+    if step is None or "kind" not in step:
         return None
     try:
         fresh = datetime.now() - datetime.fromisoformat(step.get("at", "")) <= KEEP_FOR

@@ -19,6 +19,7 @@ from sqlalchemy import literal_column, select
 from app.extensions import db
 from app.models.duplicate import DuplicateDismissal
 from app.models.transaction import Transaction
+from app.services import money
 
 DEFAULT_WINDOW_DAYS = 3
 SENSITIVITY = {"alta": 0.4, "normale": 0.6, "bassa": 0.85}   # minimum description similarity
@@ -48,7 +49,7 @@ def similarity(first: str | None, second: str | None) -> float:
 
 
 def _signed_key(tx_type: str, amount) -> tuple[str, Decimal]:
-    return tx_type, abs(Decimal(str(amount))).quantize(Decimal("0.01"))
+    return tx_type, money.cents(abs(Decimal(str(amount))))
 
 
 # ── Duplicate finder ───────────────────────────────────────────────────────────

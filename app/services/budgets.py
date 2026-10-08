@@ -15,19 +15,15 @@ from app.extensions import db
 from app.models.budget import Budget
 from app.models.transaction import Transaction
 from app.services import categories
-from app.services.periods import add_months, month_bounds
+from app.services.periods import add_months, first_of_month, month_bounds
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query
 
 WARNING_SHARE = 80  # percent of the budget spent that raises a warning
 
 
-def month_start(day: date) -> date:
-    return date(day.year, day.month, 1)
-
-
 def budgets_for(month: date) -> dict[str, Budget]:
     """The budget that applies to each category in `month` (the month's own, else the every-month one)."""
-    month = month_start(month)
+    month = first_of_month(month)
     chosen: dict[str, Budget] = {}
     for budget in Budget.query.filter((Budget.month.is_(None)) | (Budget.month == month)).all():
         if budget.category not in chosen or budget.month is not None:
@@ -52,10 +48,10 @@ def _spent_by_month(names: list[str], start: date, end: date) -> dict[date, floa
 def carried(category: str, month: date) -> float:
     """What the months since the rollover was switched on leave to `month`: their budgets minus their spending."""
     every = every_month_budget(category)
-    month = month_start(month)
+    month = first_of_month(month)
     if every is None or every.rollover_since is None or every.rollover_since >= month:
         return 0.0
-    since = month_start(every.rollover_since)
+    since = first_of_month(every.rollover_since)
     own = {b.month: float(b.amount) for b in Budget.query.filter(Budget.category == category, Budget.month >= since,
                                                                   Budget.month < month)}
     spent = _spent_by_month(categories.with_children(category), since, month)
@@ -77,7 +73,7 @@ def spent_by_category(month: date) -> dict[str, float]:
 def status(month: date, today: date | None = None) -> list[dict]:
     """One line per budgeted category: planned, spent, share, left, and where the month should be by now."""
     today = today or date.today()
-    month = month_start(month)
+    month = first_of_month(month)
     spent = spent_by_category(month)
     start, end = month_bounds(month.year, month.month)
     days = (end - start).days
@@ -104,7 +100,7 @@ def set_asides(today: date | None = None) -> list[dict]:
     """The not-monthly categories (taxes, insurance, car, holidays…) with what they cost in the last 12 complete
     months and the monthly quota to put aside for them; their every-month budget and whether it rolls over."""
     today = today or date.today()
-    end = month_start(today)
+    end = first_of_month(today)
     start = add_months(end, -12)
     natures = categories.natures()
     parents = categories.parents()
@@ -139,7 +135,7 @@ def save(category: str, amount: Decimal | None, month: date | None, rollover: bo
          since: date | None = None) -> None:
     """Set (or with no amount remove) the budget of a category, every month or for one month. For an every-month
     budget, `rollover` switches the carrying over on (from `since`, kept if already on) or off; None leaves it."""
-    month = month_start(month) if month else None
+    month = first_of_month(month) if month else None
     budget = Budget.query.filter(Budget.category == category,
                                  Budget.month.is_(None) if month is None else Budget.month == month).first()
     if not amount:
@@ -152,4 +148,4 @@ def save(category: str, amount: Decimal | None, month: date | None, rollover: bo
     else:
         budget.amount = amount
     if month is None and rollover is not None:
-        budget.rollover_since = (budget.rollover_since or month_start(since or date.today())) if rollover else None
+        budget.rollover_since = (budget.rollover_since or first_of_month(since or date.today())) if rollover else None

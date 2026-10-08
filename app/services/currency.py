@@ -19,6 +19,7 @@ from app.extensions import db
 from app.models.currency import ExchangeRate
 from app.models.transaction import Transaction
 from app.services.i18n import N_
+from app.services import money
 from flask_babel import gettext as _
 
 BASE = "EUR"  # the currency the rates are expressed in
@@ -39,12 +40,12 @@ def symbol(code: str | None) -> str:
 
 def base(connection=None) -> str:
     """The currency totals are shown in (Settings → Visualizzazione → Valuta)."""
-    if connection is None:
-        from app.routes.settings import current_settings  # settings live with their page
+    from app.services.ui_settings import SETTINGS_KEY, current_settings  # here: ui_settings needs the models loaded
 
+    if connection is None:
         code = current_settings().get("currency")
     else:  # inside a flush: read the saved preferences with the same connection
-        raw = connection.execute(text("SELECT value FROM app_settings WHERE key = 'ui.settings'")).scalar()
+        raw = connection.execute(text("SELECT value FROM app_settings WHERE key = :key"), {"key": SETTINGS_KEY}).scalar()
         try:
             code = json.loads(raw).get("currency") if raw else None
         except (ValueError, AttributeError):
@@ -77,9 +78,9 @@ def to_base(amount, currency: str | None, on: date, connection=None, target: str
     target = target or base(connection)
     currency = currency or BASE
     if currency == target:
-        return Decimal(amount or 0).quantize(Decimal("0.01"))
+        return money.cents(amount or 0)
     in_euro = Decimal(amount or 0) * (rate_on(currency, on, connection) or Decimal(1))
-    return (in_euro / (rate_on(target, on, connection) or Decimal(1))).quantize(Decimal("0.01"))
+    return money.cents(in_euro / (rate_on(target, on, connection) or Decimal(1)))
 
 
 @event.listens_for(Transaction, "before_insert")

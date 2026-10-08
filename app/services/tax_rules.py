@@ -12,7 +12,6 @@ from decimal import Decimal
 from app.services.i18n import N_
 
 D = Decimal
-FIRST_YEAR = 2024
 DETRAZIONE, DEDUZIONE = "detrazione", "deduzione"
 
 

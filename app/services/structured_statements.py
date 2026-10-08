@@ -22,11 +22,10 @@ from decimal import Decimal, InvalidOperation
 from flask_babel import gettext as _
 
 from app.services.parsing import clean_text, to_decimal, valid_amount
+from app.services.money import CENT
 
 FORMATS = {"ofx": "OFX", "qif": "QIF", "camt": "CAMT.053 (ISO 20022)"}
-EXTENSIONS = (".ofx", ".qfx", ".qif", ".xml")
 QIF_ACCOUNT_TYPES = ("bank", "ccard", "cash", "oth a", "oth l")
-CENT = Decimal("0.01")
 
 
 class StructuredFileError(ValueError):

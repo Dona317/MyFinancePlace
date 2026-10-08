@@ -12,6 +12,7 @@ from app.extensions import db
 from app.models.category import CategoryRule
 from app.models.transaction import Transaction
 from app.services import request_cache
+from app.services.categories import FALLBACK
 from app.services.parsing import normalize
 from flask_babel import gettext as _
 
@@ -81,7 +82,7 @@ def apply(only_uncategorized: bool = True) -> int:
     """Categorize existing transactions with the rules (by default only those without a category or in "Altro")."""
     query = Transaction.query.filter(~Transaction.splits.any())  # a split made by hand is never overwritten
     if only_uncategorized:
-        query = query.filter((Transaction.category.is_(None)) | (Transaction.category == "Altro"))
+        query = query.filter((Transaction.category.is_(None)) | (Transaction.category == FALLBACK))
     changed = 0
     hits: dict[int, int] = {}
     forget_cache()

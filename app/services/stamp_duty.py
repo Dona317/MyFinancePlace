@@ -20,8 +20,8 @@ from app.models.account import Account
 from app.models.wealth import Holding
 from app.services import accounts, tax_rules, wealth
 from app.services.i18n import N_
+from app.services.money import CENT
 
-CENT = Decimal("0.01")
 BOLLO, IVAFE, IC = N_("Imposta di bollo"), N_("IVAFE"), N_("IC cripto-attività")
 SAVINGS_CLASS = "Conto Risparmio"
 

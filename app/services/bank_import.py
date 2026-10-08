@@ -41,7 +41,7 @@ from decimal import Decimal
 from statistics import median
 
 from app.models.transaction import Transaction
-from app.services import categories, category_rules
+from app.services import categories, category_rules, money
 from app.services.ai_classification import AI_TAG
 from app.services import ai_extraction, column_guess, duplicates, history_classifier, merchant, ocr
 from app.services import statement_readers as readers
@@ -296,7 +296,7 @@ def categorize(description: str, details: str | None = None, bank_category: str 
             if pattern.search(bank_text):
                 return category
         return bank_category.strip()
-    return "Altro"
+    return categories.FALLBACK
 
 
 def is_transfer(description: str, details: str | None = None) -> bool:
@@ -548,7 +548,7 @@ class StatementRow:
     bank_category: str | None = None
     currency: str = "EUR"
     type: str = "expense"
-    category: str = "Altro"
+    category: str = categories.FALLBACK
     import_ref: str = ""
     duplicate: bool = False
     similar_to: str | None = None   # description of an existing transaction this row may duplicate
@@ -698,7 +698,7 @@ class BalanceCheck:
 
     @property
     def ok(self) -> bool:
-        return abs(self.difference) <= Decimal("0.01")
+        return abs(self.difference) <= money.CENT
 
 
 @dataclass
@@ -876,7 +876,7 @@ def preview_from_mapping(headers: list[str], rows: list[dict], mapping: dict, fi
         kind = _explicit_type(cell(row, "type"))
         if kind in ("expense", "income"):  # the type column wins over a missing sign
             amount = -abs(amount) if kind == "expense" else abs(amount)
-        parsed.append(StatementRow(date=tx_date, description=description, amount=amount.quantize(Decimal("0.01")),
+        parsed.append(StatementRow(date=tx_date, description=description, amount=money.cents(amount),
                                    counterparty=counterparty))
         extras.append((kind, clean_text(cell(row, "category"))))
     if not parsed:
@@ -933,7 +933,7 @@ def preview_from_ai(filename: str, result: ai_extraction.AIExtraction, bank: str
             discarded += 1
             continue
         rows.append(StatementRow(
-            date=tx_date, description=description, amount=amount.quantize(Decimal("0.01")),
+            date=tx_date, description=description, amount=money.cents(amount),
             details=clean_text(item.get("details")),
         ))
     if not rows:
@@ -944,8 +944,8 @@ def preview_from_ai(filename: str, result: ai_extraction.AIExtraction, bank: str
     check = None
     if result.has_balances:
         check = BalanceCheck(
-            opening=Decimal(str(result.opening_balance)).quantize(Decimal("0.01")),
-            closing=Decimal(str(result.closing_balance)).quantize(Decimal("0.01")),
+            opening=money.cents(str(result.opening_balance)),
+            closing=money.cents(str(result.closing_balance)),
             movements_total=sum((r.amount for r in rows), Decimal(0)),
         )
     return StatementPreview(
@@ -1014,10 +1014,10 @@ def build_transaction(base: dict, bank_key: str, fields: dict | None = None, ai:
     return Transaction(
         date=tx_date,
         description=description,
-        amount=abs(amount).quantize(Decimal("0.01")),
+        amount=money.cents(abs(amount)),
         currency=base.get("currency") or "EUR",
         type=tx_type,
-        category=clean_text(fields.get("category")) or "Altro",
+        category=clean_text(fields.get("category")) or categories.FALLBACK,
         counterparty=counterparty,
         tags=tags,
         is_recurring=False,

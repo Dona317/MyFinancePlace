@@ -6,7 +6,7 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.routes.settings import current_settings
+from app.services.ui_settings import current_settings
 from app.services import display, price_feed, wealth
 from flask_babel import gettext as _
 

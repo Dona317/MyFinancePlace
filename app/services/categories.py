@@ -67,7 +67,6 @@ OLD_HINTS = {
     "Stipendio": "stipendio, emolumenti, pensione",
 }
 SEEDED_V2_SETTING = "categories.seeded_v2"
-DEFAULT_CATEGORIES = [name for name, *_ in DEFAULTS]
 
 # A few subcategories to start with (added once, removable): main category → [(name, what it covers)]
 SUBCATEGORY_DEFAULTS = {
@@ -218,6 +217,11 @@ def parents() -> dict[str, str]:
 def top(name: str | None) -> str | None:
     """The main category of `name` (itself when it is one)."""
     return parents().get(name, name) if name else name
+
+
+def main_or(name: str | None, fallback: str) -> str:
+    """The main category of `name`, or `fallback` when it has none (an uncategorized transaction)."""
+    return top(name) or fallback
 
 
 def label(name: str | None) -> str:

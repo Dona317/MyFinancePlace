@@ -14,7 +14,7 @@ from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
 from app.services import accounts, settings_store
 from app.services.i18n import N_
-from app.services.periods import add_months
+from app.services.periods import add_months, last_complete_months
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total
 
 # ── Asset classes and how the Balance Sheet groups them ────────────────────────
@@ -183,9 +183,8 @@ def monthly_installments(today: date | None = None) -> float:
 
 
 def monthly_average_income(today: date | None = None, months: int = 12) -> float:
-    this_month = (today or date.today()).replace(day=1)
-    return value_total(Transaction.type == "income", Transaction.date >= add_months(this_month, -months),
-                       Transaction.date < this_month) / months
+    start, end = last_complete_months(today or date.today(), months)
+    return value_total(Transaction.type == "income", Transaction.date >= start, Transaction.date < end) / months
 
 
 # ── Portfolio ──────────────────────────────────────────────────────────────────
