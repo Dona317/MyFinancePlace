@@ -12,12 +12,13 @@ from app.models.category import Category, CategoryRule
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Document
 from app.services import request_cache, settings_store
-from app.services.i18n import _l
+from app.services.i18n import N_, _l
 from flask_babel import gettext as _
 
 KINDS = {"expense": _l("Uscite"), "income": _l("Entrate"), "both": _l("Entrambe")}
 SEEDED_SETTING = "categories.seeded"
 FALLBACK = "Altro"
+UNCATEGORIZED = N_("Senza categoria")  # how reports show transactions without a category
 
 # (name, kind, what it covers — also guides the AI classifier, discretionary spending?)
 DEFAULTS = [

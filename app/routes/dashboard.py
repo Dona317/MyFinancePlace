@@ -4,7 +4,7 @@ from apiflask import APIBlueprint
 from app.models.transaction import Transaction
 from app.routes.helpers import year_arg
 from app.services.ui_settings import autonomy_target
-from app.services import analytics, budgets, i18n
+from app.services import analytics, budgets, i18n, sankey
 
 dashboard_bp = APIBlueprint(
     "dashboard",
@@ -53,7 +53,7 @@ def dashboard():
         income_trend=_translated(analytics.monthly_category_trend(year, TREND_LINES, "income", months, other=True)),
         cumulative=analytics.cumulative_series(year, months),
         savings=analytics.savings_rates_by_year(today),
-        sankey=analytics.sankey(year_start, year_end),
+        sankey=sankey.flow(year_start, year_end),
         recent_transactions=recent,
         budget_alerts=budgets.alerts(today),
         autonomy_target=autonomy_target(),

@@ -1,4 +1,7 @@
 # Lint rules the project follows. Written down so every ruff version checks the same thing
 # (ruff 0.16 enabled many more rules by default, which made CI fail on style it never enforced).
+# The code uses long lines; this width is only what the import sorter wraps at (E501 is not checked).
+line-length = 150
+
 [lint]
 select = ["E4", "E7", "E9", "F"]

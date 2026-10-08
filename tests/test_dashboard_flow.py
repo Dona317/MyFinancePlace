@@ -1,7 +1,7 @@
 """Dashboard: monthly net, yearly three-bar total and the Sankey of where the money goes."""
 from datetime import date
 
-from app.services import analytics
+from app.services import analytics, sankey
 from tests.conftest import make_tx
 
 YEAR = (date(2026, 1, 1), date(2027, 1, 1))
@@ -21,7 +21,7 @@ def _year(db, spend_more=False):
 def test_sankey_flows_from_income_to_expenses_and_savings(app, db):
     _year(db)
     with app.test_request_context():
-        flow = analytics.sankey(*YEAR)
+        flow = sankey.flow(*YEAR)
     names = [(n["label"], n["amount"], n["kind"]) for n in flow["nodes"]]
     assert names == [("Stipendio", 2000.0, "income"), ("Freelance", 500.0, "income"), ("Entrate", 2500.0, "total"),
                      ("Casa", 800.0, "expense"), ("Alimentari", 300.0, "expense"), ("Risparmio", 1400.0, "expense")]
@@ -35,7 +35,7 @@ def test_sankey_flows_from_income_to_expenses_and_savings(app, db):
 def test_sankey_when_spending_more_than_earning(app, db):
     _year(db, spend_more=True)
     with app.test_request_context():
-        flow = analytics.sankey(*YEAR)
+        flow = sankey.flow(*YEAR)
     assert ("Dai risparmi", 1300.0) in [(n["label"], n["amount"]) for n in flow["nodes"] if n["kind"] == "income"]
     assert "Risparmio" not in [n["label"] for n in flow["nodes"]]
 
@@ -45,14 +45,14 @@ def test_sankey_groups_the_smallest_categories(app, db):
     db.session.add_all([make_tx(date=date(2026, 3, 2), category=f"Cat {i}", amount=100 + i) for i in range(10)])
     db.session.commit()
     with app.test_request_context():
-        flow = analytics.sankey(*YEAR)
+        flow = sankey.flow(*YEAR)
     right = [n["label"] for n in flow["nodes"] if n["kind"] == "expense"]
-    assert len(right) == analytics.SANKEY_SIDE + 2 and right[-2:] == ["Altre", "Risparmio"]
+    assert len(right) == sankey.SIDE + 2 and right[-2:] == ["Altre", "Risparmio"]
 
 
 def test_nothing_to_draw(app, db):
     with app.test_request_context():
-        assert analytics.sankey(*YEAR) is None
+        assert sankey.flow(*YEAR) is None
 
 
 def test_dashboard_shows_the_new_charts_and_they_can_be_hidden(client, db):
