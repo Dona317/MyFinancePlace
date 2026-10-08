@@ -29,7 +29,6 @@ from app.extensions import STUDIO_TABLES, db
 from app.models.client import Client
 
 SESSION_KEY = "client_id"
-SLUG = re.compile(r"^[a-z0-9_]{1,40}$")
 DATABASE = re.compile(r"^[a-z0-9_]{1,63}$")
 COLORS = ("#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c", "#0891b2", "#ca8a04", "#db2777")
 PRIMARY_SLUG = "principale"
@@ -51,10 +50,10 @@ def primary() -> Client:
     return client
 
 
-def clients(include_archived: bool = True) -> list[Client]:
+def clients() -> list[Client]:
+    """The primary archive first, then the clients by name."""
     primary()
-    query = Client.query.order_by(Client.database.isnot(None), Client.name)
-    return query.all() if include_archived else query.filter_by(archived=False).all()
+    return Client.query.order_by(Client.database.isnot(None), Client.name).all()
 
 
 def current() -> Client | None:
@@ -127,13 +126,15 @@ def engine_for(client: Client):
     return engines[client.database]
 
 
-def folder(name: str) -> Path:
-    """`<instance>/<name>` for the primary archive, `<instance>/clients/<slug>/<name>` for the others."""
-    client = current()
+def _home(client: Client | None) -> Path:
+    """`<instance>` for the primary archive, `<instance>/clients/<slug>` for the others."""
     base = Path(current_app.instance_path)
-    if client is not None and not client.is_primary:
-        base = base / "clients" / client.slug
-    path = base / name
+    return base if client is None or client.is_primary else base / "clients" / client.slug
+
+
+def folder(name: str) -> Path:
+    """A folder of the open client's archive (documents, backups, pending uploads), created if missing."""
+    path = _home(current()) / name
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -151,7 +152,7 @@ def _database_name(slug: str) -> str:
     base = re.sub(r"[^a-z0-9_]", "_", (db.engine.url.database or "mfp").lower())[:20]
     name = f"{base}_c_{slug}"[:63]
     if not DATABASE.match(name):  # built here from checked parts: never from what the user typed
-        raise StudioError("nome del database non valido")
+        raise StudioError(_("Nome del database non valido."))
     return name
 
 
@@ -181,12 +182,17 @@ def migrate_all() -> list[str]:
 
 # ── Creating, changing, removing ──────────────────────────────────────────────
 
-def create(name: str, color: str | None = None, notes: str | None = None) -> Client:
-    from app.services import categories  # here: categories imports settings, which imports this module's users
-
+def _clean_name(name: str | None) -> str:
     name = " ".join((name or "").split())[:120]
     if not name:
         raise StudioError(_("Scrivi il nome del cliente."))
+    return name
+
+
+def create(name: str, color: str | None = None, notes: str | None = None) -> Client:
+    from app.services import categories  # here: categories imports settings, which imports this module's users
+
+    name = _clean_name(name)
     primary()
     slug = slugify(name)
     client = Client(name=name, slug=slug, database=_database_name(slug), notes=(notes or "").strip() or None,
@@ -195,23 +201,20 @@ def create(name: str, color: str | None = None, notes: str | None = None) -> Cli
         _admin(f'CREATE DATABASE "{client.database}"')
     except Exception as exc:
         raise StudioError(_("Impossibile creare l'archivio del cliente (%(exc)s).", exc=exc.__class__.__name__)) from exc
-    try:
+    try:  # the archive is complete before the client is listed: a failure leaves neither behind
         migrate(client)
-        db.session.add(client)
-        db.session.commit()
         with using(client):
             categories.ensure_defaults()
     except Exception:
-        db.session.rollback()
         _drop(client)
         raise
+    db.session.add(client)
+    db.session.commit()
     return client
 
 
 def update(client: Client, name: str, color: str | None, notes: str | None, archived: bool) -> None:
-    name = " ".join((name or "").split())[:120]
-    if not name:
-        raise StudioError(_("Scrivi il nome del cliente."))
+    name = _clean_name(name)
     client.name, client.notes, client.archived = name, (notes or "").strip() or None, archived and not client.is_primary
     if color in COLORS:
         client.color = color
@@ -238,7 +241,7 @@ def delete(client: Client) -> Path:
         session.pop(SESSION_KEY, None)
         activate(None)
     _drop(client)
-    shutil.rmtree(Path(current_app.instance_path) / "clients" / client.slug, ignore_errors=True)
+    shutil.rmtree(_home(client), ignore_errors=True)
     db.session.delete(client)
     db.session.commit()
     return path

@@ -58,12 +58,17 @@ def _secret_key(root: Path) -> str:
     return path.read_text(encoding="utf-8").strip()
 
 
+def _health(url: str, timeout: float) -> dict:
+    """What the app at `url` says about itself (its database reachable or not)."""
+    with urllib.request.urlopen(url + "health", timeout=timeout) as answer:  # noqa: S310 - our own localhost
+        return json.loads(answer.read())
+
+
 def _already_open(root: Path) -> str | None:
     """The address of an app already running on this data folder, if any."""
     try:
-        info = json.loads((root / "running.json").read_text(encoding="utf-8"))
-        with urllib.request.urlopen(info["url"] + "health", timeout=2) as answer:  # noqa: S310 - our own localhost
-            return info["url"] if answer.status == 200 else None
+        url = json.loads((root / "running.json").read_text(encoding="utf-8"))["url"]
+        return url if _health(url, 2).get("ok") else None
     except (OSError, ValueError, KeyError):
         return None
 
@@ -149,8 +154,7 @@ def main(argv=None) -> int:
         print(url, flush=True)
 
         if args.smoke:
-            with urllib.request.urlopen(url + "health", timeout=10) as answer:  # noqa: S310 - our own localhost
-                body = json.loads(answer.read())
+            body = _health(url, 10)
             print(json.dumps(body), flush=True)
             return 0 if body.get("ok") else 4
         if args.headless:

@@ -138,6 +138,18 @@ def test_names_and_failures(office, client, monkeypatch):
         studio.create("Delta")
     assert Client.query.filter_by(name="Delta").first() is None
     assert not any(name.endswith("_c_delta") for name in _databases(office))
+    monkeypatch.undo()
+
+    from app.services import categories
+
+    def failing_seed():
+        raise RuntimeError("seed failed")
+
+    monkeypatch.setattr(categories, "ensure_defaults", failing_seed)
+    with office.test_request_context(), pytest.raises(RuntimeError):
+        studio.create("Epsilon")  # fails after the database is ready: neither the client nor its database stay
+    assert Client.query.filter_by(name="Epsilon").first() is None
+    assert not any(name.endswith("_c_epsilon") for name in _databases(office))
 
 
 def test_session_points_to_a_deleted_client(office, client):

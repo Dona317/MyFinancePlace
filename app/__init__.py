@@ -232,10 +232,15 @@ def create_app(config_name="default"):
             return _refused(400)
         return None
 
+    def _wants_json() -> bool:
+        """An API client (or the API docs) rather than a page: answer with JSON, never a redirect or HTML."""
+        return (request.blueprint == "openapi" or "/api" in request.path or request.is_json
+                or request.accept_mimetypes.best == "application/json")
+
     def _refused(status=403):
         message = (_("Richiesta rifiutata: arriva da un altro sito.") if status == 403
                    else _("Richiesta rifiutata: contiene caratteri non validi."))
-        if request.is_json or "/api" in request.path:
+        if _wants_json():
             return jsonify({"message": message}), status
         return render_template("refused.html", message=message), status
 
@@ -247,7 +252,7 @@ def create_app(config_name="default"):
             return None
         if not users.any_user():  # first visit: create the administrator
             return redirect(url_for("auth.setup"))
-        if request.blueprint == "openapi" or "/api" in request.path or request.is_json or request.accept_mimetypes.best == "application/json":
+        if _wants_json():
             return jsonify({"message": "Accesso richiesto."}), 401
         return redirect(url_for("auth.login", next=request.full_path.rstrip("?")))
 
