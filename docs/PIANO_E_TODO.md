@@ -86,7 +86,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 
 | ID | Pri | Sforzo | Stato | Funzione | Note |
 |---|---|---|---|---|---|
-| F11 | A | L | ⬜ | **Studio: più clienti, un archivio per cliente** | Un database «studio» (utenti, elenco clienti) + un database PostgreSQL per cliente, con i suoi documenti e backup; cliente attivo scelto dopo l'accesso e sempre visibile in alto; nuovo / apri / esporta / elimina (con backup prima). I clienti non accedono. Il database di oggi diventa il primo cliente |
+| F11 | A | L | ✅ | **Studio: più clienti, un archivio per cliente** | Un database «studio» (utenti, elenco clienti) + un database PostgreSQL per cliente, con i suoi documenti e backup; cliente attivo scelto dopo l'accesso e sempre visibile in alto; nuovo / apri / esporta / elimina (con backup prima). I clienti non accedono. Il database di oggi diventa il primo cliente |
 | F12 | — | — | ❌ | PWA installabile sul telefono | Scartata con D3 = desktop |
 | F16 | A | L | ⬜ | **Eseguibile desktop** (D3) | Finestra nativa (pywebview) sul server locale, PyInstaller per Windows/macOS/Linux; il nodo è il database: PostgreSQL incorporato (binari portabili avviati dall'app) **oppure** passaggio a SQLite (da togliere gli `ARRAY`/funzioni solo Postgres). Login facoltativo, dati e documenti nella cartella utente, aggiornamenti |
 | F13 | B | M | ✅ | Inserimento rapido da tastiera, annulla/ripeti | Transazioni: riga d'inserimento rapido («n» per andarci, Invio per salvare; categoria e controparte indovinate); barra Annulla/Ripeti (Ctrl+Z / Ctrl+Y) per l'ultima aggiunta o eliminazione, anche multipla, per 30 minuti |
@@ -123,7 +123,7 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 
 ## 6. Proposta di ordine (aggiornata l'8 ott 2026)
 
-1. **F11** studio con più clienti (cambia dove stanno dati, documenti e backup: va prima del pacchetto).
+1. ✅ **F11** studio con più clienti (pagina Clienti, `flask clients list|create|migrate`).
 2. **F16** eseguibile desktop con PostgreSQL incorporato.
 3. **F15** fisco completo, a sotto-passi.
 4. F10c (heatmap a calendario, analisi per tag), F14.

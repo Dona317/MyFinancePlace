@@ -14,7 +14,6 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from flask import current_app
 from sqlalchemy import delete, insert, text
 from sqlalchemy.types import ARRAY, JSON, Boolean, Date, DateTime, Integer, Numeric
 
@@ -23,7 +22,7 @@ from app.models import (
     Account, AppSetting, Budget, Category, CategoryRule, Debt, ExchangeRate, Document, DuplicateDismissal, Goal, Holding, HoldingPrice, InsurancePolicy, Snapshot,
     Transaction, TransactionSplit,
 )
-from app.services import currency, document_store
+from app.services import currency, document_store, studio
 from flask_babel import gettext as _
 
 FORMAT = "myfinanceplace-backup"
@@ -242,9 +241,7 @@ def import_transactions(data: dict) -> tuple[int, int]:
 # ── Automatic copies taken before a restore ────────────────────────────────────
 
 def safety_folder() -> Path:
-    path = Path(current_app.instance_path) / "backups"
-    path.mkdir(parents=True, exist_ok=True)
-    return path
+    return studio.folder("backups")
 
 
 def save_safety_copy() -> str:

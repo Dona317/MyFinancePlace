@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 06:06+0000\n"
+"POT-Creation-Date: 2026-10-08 09:32+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -808,11 +808,17 @@ msgstr "Apr"
 msgid "Apri"
 msgstr "Open"
 
+msgid "Archiviato (nascosto dal selettore, dati intatti)"
+msgstr "Archived (hidden from the switcher, data kept)"
+
 msgid "Archivio"
 msgstr "Archive"
 
 msgid "Archivio Documenti"
 msgstr "Document Archive"
+
+msgid "Archivio principale"
+msgstr "Main archive"
 
 msgid "Archivio vuoto"
 msgstr "Archive empty"
@@ -1192,6 +1198,21 @@ msgid "Clicca per partire da un modello: potrai cambiare nome e importo"
 msgstr "Click to start from a template: you can change name and amount"
 
 #, python-format
+msgid "Cliente «%(name)s» aggiornato."
+msgstr "Client “%(name)s” updated."
+
+#, python-format
+msgid "Cliente «%(name)s» creato con un archivio tutto suo: ora stai lavorando sui suoi dati."
+msgstr "Client “%(name)s” created with an archive of its own: you are now working on their data."
+
+#, python-format
+msgid "Cliente «%(name)s» eliminato. Una copia di sicurezza è in %(path)s."
+msgstr "Client “%(name)s” deleted. A safety copy is in %(path)s."
+
+msgid "Clienti"
+msgstr "Clients"
+
+#, python-format
 msgid "CoinGecko non risponde (%(exc)s)"
 msgstr "CoinGecko does not answer (%(exc)s)"
 
@@ -1222,6 +1243,9 @@ msgstr "Columns only partly recognised: check the choices."
 
 msgid "Colonne riconosciute: controlla e importa."
 msgstr "Columns recognised: check and import."
+
+msgid "Colore"
+msgstr "Colour"
 
 msgid "Come funziona"
 msgstr "How it works"
@@ -1471,6 +1495,9 @@ msgstr "Create account and sign in"
 
 msgid "Crea almeno un'istantanea: potrai confrontarla con la situazione di oggi."
 msgstr "Take at least one snapshot: you can compare it with today's situation."
+
+msgid "Crea il cliente e aprilo"
+msgstr "Create the client and open it"
 
 msgid "Crea il tuo account"
 msgstr "Create your account"
@@ -1901,6 +1928,9 @@ msgstr "Export"
 
 msgid "Esporta / Importa"
 msgstr "Export / Import"
+
+msgid "Esporta archivio"
+msgstr "Export archive"
 
 msgid "Esporta e Portabilità"
 msgstr "Export and Portability"
@@ -2441,6 +2471,10 @@ msgid "Impossibile contattare l'API Anthropic: controlla la connessione."
 msgstr "Cannot reach the Anthropic API: check the connection."
 
 #, python-format
+msgid "Impossibile creare l'archivio del cliente (%(exc)s)."
+msgstr "The client's archive could not be created (%(exc)s)."
+
+#, python-format
 msgid "Impossibile leggere il PDF: %(exc)s"
 msgstr "Cannot read the PDF: %(exc)s"
 
@@ -2590,6 +2624,9 @@ msgstr "The OCR read %(count)s movements but seems to have missed or merged some
 
 msgid "L'accesso con password è disattivato in questa installazione."
 msgstr "Password sign-in is turned off in this installation."
+
+msgid "L'archivio principale non si può eliminare."
+msgstr "The main archive cannot be deleted."
 
 msgid "L'hai nascosta nelle Impostazioni: riattivala per usarla di nuovo. I dati non sono stati toccati."
 msgstr "You hid it in Settings: turn it back on to use it again. Your data has not been touched."
@@ -3284,6 +3321,9 @@ msgstr "Name"
 msgid "Nome *"
 msgstr "Name *"
 
+msgid "Nome del cliente"
+msgstr "Client name"
+
 msgid "Nome del modello non valido."
 msgstr "Invalid model name."
 
@@ -3307,6 +3347,9 @@ msgstr "Not monthly"
 
 msgid "Non più attivo"
 msgstr "No longer active"
+
+msgid "Non puoi archiviare il cliente aperto: aprine prima un altro."
+msgstr "You cannot archive the open client: open another one first."
 
 msgid "Non puoi eliminare il tuo stesso utente."
 msgstr "You cannot delete your own user."
@@ -3398,6 +3441,9 @@ msgstr "New Goal"
 msgid "Nuovo Obiettivo di Risparmio"
 msgstr "New Savings Goal"
 
+msgid "Nuovo cliente"
+msgstr "New client"
+
 msgid "Nuovo conto o carta"
 msgstr "New account or card"
 
@@ -3461,6 +3507,13 @@ msgstr "Today (current data)"
 msgid "Ogni campo è modificabile. Deseleziona le righe da escludere, eliminale con"
 msgstr "Every field can be edited. Untick the rows to leave out, delete them with"
 
+msgid ""
+"Ogni cliente ha un archivio tutto suo: conti, movimenti, documenti, impostazioni e backup separati. Lavori sempre su "
+"un cliente alla volta, quello indicato in alto."
+msgstr ""
+"Each client has an archive of its own: separate accounts, transactions, documents, settings and backups. You always "
+"work on one client at a time, the one shown at the top."
+
 msgid "Ogni mese (€)"
 msgstr "Every month (€)"
 
@@ -3504,6 +3557,10 @@ msgstr "Trade: give units and price per unit, both greater than zero."
 
 msgid "Oppure incolla più righe «data;prezzo»"
 msgstr "Or paste several «date;price» lines"
+
+#, python-format
+msgid "Ora stai lavorando su «%(name)s»."
+msgstr "You are now working on “%(name)s”."
 
 msgid "Ordina"
 msgstr "Sort"
@@ -3612,6 +3669,14 @@ msgstr "For computers with little memory: they only read text documents, not sca
 
 msgid "Per conti deposito, fondi pensione e immobili: 1"
 msgstr "For savings accounts, pension funds and property: 1"
+
+#, python-format
+msgid "Per eliminare il cliente e il suo archivio scrivi «%(name)s»"
+msgstr "To delete the client and its archive type “%(name)s”"
+
+#, python-format
+msgid "Per eliminare «%(name)s» scrivi il suo nome esatto."
+msgstr "To delete “%(name)s” type its exact name."
 
 msgid "Per file con un formato non riconosciuto: scegli tu quali colonne usare"
 msgstr "For files in an unrecognized format: you choose which columns to use"
@@ -3864,6 +3929,9 @@ msgstr "Price per unit (€)"
 #, python-format
 msgid "Prima del ripristino del %(day)s alle %(time)s"
 msgstr "Before the restore of %(day)s at %(time)s"
+
+msgid "Prima dell'eliminazione viene salvata una copia di sicurezza dell'archivio."
+msgstr "A safety copy of the archive is saved before deleting."
 
 msgid "Prima dell'importazione potrai controllare e modificare ogni movimento."
 msgstr "Before importing you can check and edit every movement."
@@ -4415,6 +4483,9 @@ msgstr "Card with the total net worth (assets − liabilities)"
 msgid "Scontrino"
 msgstr "Receipt"
 
+msgid "Scrivi il nome del cliente."
+msgstr "Enter the client's name."
+
 msgid "Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna"
 msgstr "Enter the balance the bank shows at a date: the app tells you whether it matches"
 
@@ -4587,6 +4658,10 @@ msgstr "Income stability"
 
 msgid "Stagionale"
 msgstr "Seasonal"
+
+#, python-format
+msgid "Stai lavorando su «%(name)s»: clicca per cambiare cliente"
+msgstr "You are working on “%(name)s”: click to switch client"
 
 msgid "Stampa dal browser"
 msgstr "Print from the browser"
@@ -5236,6 +5311,15 @@ msgstr "at the rate of its day (or the closest day before)."
 msgid "al mese, per rispettare le date"
 msgstr "a month, to meet the dates"
 
+msgid "aperto"
+msgstr "open"
+
+msgid "archiviato"
+msgstr "archived"
+
+msgid "archivio principale"
+msgstr "main archive"
+
 msgid "assegnale"
 msgstr "assign them"
 
@@ -5295,6 +5379,9 @@ msgstr "to confirm (AI)"
 
 msgid "da conservare fuori da questo computer (chiavetta, cloud). Fallo almeno una volta al mese e prima di aggiornare l'app."
 msgstr "to keep outside this computer (USB stick, cloud). Do it at least once a month and before updating the app."
+
+msgid "dal"
+msgstr "since"
 
 msgid "dal piano di ammortamento"
 msgstr "from the amortization plan"
@@ -5380,6 +5467,9 @@ msgstr "e.g. Emergency fund"
 
 msgid "es. Generali, UnipolSai..."
 msgstr "e.g. Generali, UnipolSai..."
+
+msgid "es. Mario Rossi"
+msgstr "e.g. John Smith"
 
 msgid "es. Mutuo casa — Intesa"
 msgstr "e.g. Home mortgage — Intesa"
@@ -5691,6 +5781,10 @@ msgstr "“%(name)s” has subcategories: it cannot become one itself."
 #, python-format
 msgid "«%(name)s» non è una categoria di spese non mensili con spese nell'ultimo anno."
 msgstr "«%(name)s» is not a non-monthly category with spending in the last year."
+
+#, python-format
+msgid "«%(name)s» è archiviato: riattivalo per aprirlo."
+msgstr "“%(name)s” is archived: reactivate it to open it."
 
 #, python-format
 msgid "«%(name)s» è già una sottocategoria: scegli una categoria principale."

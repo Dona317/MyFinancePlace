@@ -27,7 +27,7 @@ from pathlib import Path
 
 from flask import Flask, current_app
 
-from app.services import ai_extraction, bank_import, upload_store
+from app.services import ai_extraction, bank_import, studio, upload_store
 
 ACTIVE = ("queued", "running")
 DONE_LABELS = {"pagina": "Pagine lette", "parte": "Parti lette", "blocco di pagine": "Blocchi di pagine letti"}
@@ -147,14 +147,14 @@ def start(token: str, filename: str, raw: bytes, bank: str, model: str | None) -
         _work(*args)
     else:
         app = current_app._get_current_object()
-        thread = threading.Thread(target=_run, args=(app, *args), daemon=True, name=f"ai-job-{token[:8]}")
+        thread = threading.Thread(target=_run, args=(app, studio.current(), *args), daemon=True, name=f"ai-job-{token[:8]}")
         with _lock:
             _threads[token] = thread
             thread.start()
     return get(token) or job
 
 
-def _run(app: Flask, token: str, *args) -> None:
+def _run(app: Flask, client, token: str, *args) -> None:
     stop = threading.Event()
 
     def heartbeat() -> None:
@@ -164,6 +164,7 @@ def _run(app: Flask, token: str, *args) -> None:
     threading.Thread(target=heartbeat, daemon=True, name=f"ai-job-heartbeat-{token[:8]}").start()
     try:
         with app.app_context():
+            studio.activate(client)  # the archive of the client that uploaded the file (F11)
             _work(token, *args)
     finally:
         stop.set()

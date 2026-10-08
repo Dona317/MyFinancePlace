@@ -187,6 +187,10 @@
           <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
+        <a href="{{ url_for('clients.index') }}"
+           class="nav-item {% if request.endpoint.startswith('clients.') %}active{% endif %}">
+          <i class="bi bi-people"></i> <span class="nav-label">{{ _('Clienti') }}</span>
+        </a>
         <a href="{{ url_for('settings.index') }}"
            class="nav-item {% if 'settings' in request.endpoint %}active{% endif %}">
           <i class="bi bi-gear"></i> <span class="nav-label">{{ _('Impostazioni') }}</span>
@@ -257,6 +261,16 @@
 
       <div class="topbar-actions">
         {% block topbar_actions %}{% endblock %}
+
+        <!-- The client being worked on (F11): always in sight when there is more than one archive -->
+        {% set working_on = working_client() %}
+        {% if working_on %}
+        <a href="{{ url_for('clients.index') }}" class="client-chip" id="client-chip"
+           title="{{ _('Stai lavorando su «%(name)s»: clicca per cambiare cliente', name=working_on.name) }}">
+          <span class="client-badge" style="background:{{ working_on.color }}">{{ working_on.initials }}</span>
+          <span class="client-name">{{ working_on.name }}</span>
+        </a>
+        {% endif %}
 
         <!-- Light / dark mode -->
         <button type="button" id="theme-toggle" class="btn btn-ghost btn-icon theme-toggle"

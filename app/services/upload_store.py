@@ -8,16 +8,14 @@ import secrets
 import time
 from pathlib import Path
 
-from flask import current_app
+from app.services import studio
 
 MAX_AGE_SECONDS = 2 * 3600
 TOKEN = re.compile(r"^[A-Za-z0-9_-]{20,64}$")
 
 
 def _folder() -> Path:
-    folder = Path(current_app.instance_path) / "pending_uploads"
-    folder.mkdir(parents=True, exist_ok=True)
-    return folder
+    return studio.folder("pending_uploads")  # per client: a file uploaded for one is never imported into another
 
 
 def _paths(token: str) -> tuple[Path, Path]:

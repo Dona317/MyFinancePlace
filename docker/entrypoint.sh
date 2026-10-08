@@ -32,6 +32,7 @@ if [ "${RUN_MIGRATIONS:-1}" = "1" ]; then
         attempt=$((attempt + 1))
         sleep 2
     done
+    flask --app wsgi clients migrate  # every client's own database (F11)
 fi
 
 exec "$@"

@@ -73,6 +73,7 @@ def create_app(config_name="default"):
     from .routes.notifications import notifications_bp
     from .routes.reports import reports_bp
     from .routes.subscriptions import subscriptions_bp
+    from .routes.clients import clients_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -91,9 +92,11 @@ def create_app(config_name="default"):
     app.register_blueprint(notifications_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(subscriptions_bp)
+    app.register_blueprint(clients_bp)
 
-    from app.cli import users_cli
+    from app.cli import clients_cli, users_cli
     app.cli.add_command(users_cli)
+    app.cli.add_command(clients_cli)
 
     # ── Template filters ───────────────────────────────────────────────────────
     # Amounts, numbers and dates follow Settings → Visualizzazione (services.display)
@@ -159,7 +162,16 @@ def create_app(config_name="default"):
     @app.context_processor
     def inject_settings():
         return {"settings": current_settings(), "notification_count": notification_count, "display": display.prefs(),
-                "current_language": current_language}
+                "current_language": current_language, "working_client": working_client}
+
+    def working_client():
+        """The client being worked on, for the badge in the top bar (F11); None for a single archive."""
+        try:
+            return (studio.current() or studio.primary()) if studio.is_studio() else None
+        except Exception:  # noqa: BLE001 - never breaks a page
+            app.logger.exception("clients unavailable")
+            db.session.rollback()
+            return None
 
     def notification_count() -> int:
         """Reminders not yet seen, for the bell (never breaks a page)."""
@@ -179,6 +191,14 @@ def create_app(config_name="default"):
         return db.session.get(User, int(user_id)) if str(user_id).isdigit() else None
 
     public_endpoints = {"static", "auth.login", "auth.setup"}
+
+    # ── The client being worked on (F11): its database for the whole request; first of all the hooks ──
+    from .services import studio
+
+    @app.before_request
+    def open_client_archive():
+        if request.endpoint != "static":
+            studio.open_from_session()
 
     # ── Requests from another site: a page elsewhere could make the browser post a form here (cross-site request
     # forgery), which matters most on the desktop app, where nobody signs in. Browsers say where a request

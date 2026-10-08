@@ -1498,3 +1498,21 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .trade-fee { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .trade-fee input[name=fee_amount] { max-width: 120px; }
 @media (max-width: 480px) { .trade-grid { grid-template-columns: 1fr 1fr; } .trade-grid .form-group:first-child { grid-column: 1 / -1; } }
+
+/* ── Clienti (F11) ───────────────────────────────────────────────────────── */
+.client-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border-radius: 999px;
+  border: 1px solid var(--clr-border); color: var(--clr-text-primary); text-decoration: none; font-size: 13px; font-weight: 600;
+  max-width: 220px; }
+.client-chip:hover { background: var(--clr-primary-light); }
+.client-chip span.client-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.client-badge { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%;
+  color: #fff; font-size: 11px; font-weight: 700; flex: none; }
+.client-card .client-badge { width: 36px; height: 36px; font-size: 13px; }
+.client-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.client-open { outline: 2px solid var(--clr-primary); }
+.client-archived { opacity: .65; }
+.client-color input { position: absolute; opacity: 0; }
+.client-color span { display: inline-block; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+.client-color input:checked + span { border-color: var(--clr-text-primary); box-shadow: 0 0 0 2px var(--clr-surface, #fff) inset; }
+.client-color input:focus-visible + span { outline: 2px solid var(--clr-primary); outline-offset: 2px; }
+@media (max-width: 640px) { .client-chip span.client-name { display: none; } .client-chip { padding: 2px; } }

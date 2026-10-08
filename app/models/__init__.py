@@ -8,8 +8,9 @@ from .category import Category, CategoryRule
 from .currency import ExchangeRate
 from .budget import Budget
 from .user import User
+from .client import Client
 
 __all__ = [
     "Account", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule",
-    "ExchangeRate", "Budget", "User", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
+    "ExchangeRate", "Budget", "User", "Client", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
 ]

@@ -43,12 +43,16 @@ Open `http://localhost:8000` (another port: `APP_PORT=8080` in `.env`).
 - AI reading with **Ollama** on the host machine: the container reaches it at `http://host.docker.internal:11434`
   (set `DOCKER_OLLAMA_URL` to point elsewhere, e.g. an `ollama` container). **Anthropic**: set `ANTHROPIC_API_KEY`
   in `.env`.
+- **Clients (F11)**: each client is a separate database on the same PostgreSQL server, created by the app; the
+  database user needs the `CREATEDB` right (the compose user, being the owner, has it). Documents and backups of a
+  client live in `instance/clients/<slug>/`; a deleted client's last backup in `instance/clients_deleted/`.
 - Only the database for local development: `docker compose up -d db` (then `python run.py`, as in the README).
 
 Without Docker: `pip install -r requirements.txt`, set `SECRET_KEY` and `DATABASE_URL`, then
 
 ```bash
 flask --app wsgi db upgrade
+flask --app wsgi clients migrate   # the clients' own databases (F11)
 gunicorn -c gunicorn.conf.py wsgi:app
 ```
 

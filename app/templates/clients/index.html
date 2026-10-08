@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Clienti') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Clienti') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Clienti') }}</li>{% endblock %}
+
+{% block content %}
+<p class="text-sm text-muted mb-16">
+  {{ _('Ogni cliente ha un archivio tutto suo: conti, movimenti, documenti, impostazioni e backup separati. Lavori sempre su un cliente alla volta, quello indicato in alto.') }}
+</p>
+
+<div class="client-grid mb-24">
+  {% for client in clients %}
+  <div class="card client-card{{ ' client-open' if client.id == open_client.id }}{{ ' client-archived' if client.archived }}" id="client-{{ client.id }}">
+    <div class="card-body">
+      <div class="d-flex align-center gap-8 mb-8">
+        <span class="client-badge" style="background:{{ client.color }}">{{ client.initials }}</span>
+        <div>
+          <div class="fw-600">{{ client.name }}</div>
+          <div class="text-xs text-muted">
+            {% if client.is_primary %}{{ _('archivio principale') }}{% else %}{{ _('dal') }} {{ client.created_at|it_date }}{% endif %}
+            {% if client.archived %} · {{ _('archiviato') }}{% endif %}
+            {% if client.id == open_client.id %} · <strong>{{ _('aperto') }}</strong>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% if client.notes %}<p class="text-sm text-muted mb-8">{{ client.notes }}</p>{% endif %}
+      <div class="d-flex gap-8 flex-wrap">
+        {% if client.id != open_client.id and not client.archived %}
+        <form method="POST" action="{{ url_for('clients.open_client', client_id=client.id) }}">
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-in-right"></i> {{ _('Apri') }}</button>
+        </form>
+        {% endif %}
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('clients.backup', client_id=client.id) }}"><i class="bi bi-download"></i> {{ _('Esporta archivio') }}</a>
+      </div>
+      <details class="mt-8">
+        <summary class="text-sm">{{ _('Modifica') }}</summary>
+        <form method="POST" action="{{ url_for('clients.edit', client_id=client.id) }}" class="mt-8">
+          <div class="form-group">
+            <label class="form-label" for="name-{{ client.id }}">{{ _('Nome') }}</label>
+            <input type="text" id="name-{{ client.id }}" name="name" class="form-control" value="{{ client.name }}" required maxlength="120" />
+          </div>
+          <div class="form-group">
+            <span class="form-label">{{ _('Colore') }}</span>
+            <div class="d-flex gap-8">
+              {% for color in colors %}
+              <label class="client-color"><input type="radio" name="color" value="{{ color }}" {{ 'checked' if color == client.color }} /><span style="background:{{ color }}"></span></label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="notes-{{ client.id }}">{{ _('Note') }}</label>
+            <textarea id="notes-{{ client.id }}" name="notes" class="form-control" rows="2">{{ client.notes or '' }}</textarea>
+          </div>
+          {% if not client.is_primary %}
+          <label class="d-flex align-center gap-8 text-sm mb-8"><input class="check" type="checkbox" name="archived" {{ 'checked' if client.archived }} /> {{ _('Archiviato (nascosto dal selettore, dati intatti)') }}</label>
+          {% endif %}
+          <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
+        </form>
+        {% if not client.is_primary %}
+        <form method="POST" action="{{ url_for('clients.delete', client_id=client.id) }}" class="mt-16">
+          <label class="form-label" for="confirm-{{ client.id }}">{{ _('Per eliminare il cliente e il suo archivio scrivi «%(name)s»', name=client.name) }}</label>
+          <div class="d-flex gap-8">
+            <input type="text" id="confirm-{{ client.id }}" name="confirm" class="form-control" autocomplete="off" />
+            <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina') }}</button>
+          </div>
+          <p class="text-xs text-muted mt-8">{{ _("Prima dell'eliminazione viene salvata una copia di sicurezza dell'archivio.") }}</p>
+        </form>
+        {% endif %}
+      </details>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-person-plus"></i> {{ _('Nuovo cliente') }}</div></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('clients.create') }}">
+      <div class="grid-2" style="gap:16px;">
+        <div class="form-group">
+          <label class="form-label" for="new-name">{{ _('Nome del cliente') }}</label>
+          <input type="text" id="new-name" name="name" class="form-control" required maxlength="120" placeholder="{{ _('es. Mario Rossi') }}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="new-notes">{{ _('Note') }}</label>
+          <input type="text" id="new-notes" name="notes" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group">
+        <span class="form-label">{{ _('Colore') }}</span>
+        <div class="d-flex gap-8">
+          {% for color in colors %}
+          <label class="client-color"><input type="radio" name="color" value="{{ color }}" {{ 'checked' if loop.index0 == (clients|length) % (colors|length) }} /><span style="background:{{ color }}"></span></label>
+          {% endfor %}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea il cliente e aprilo') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
