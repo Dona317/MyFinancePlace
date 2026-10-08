@@ -264,7 +264,7 @@ function refresh() {
   // with the bin do not ("this row is not in the document").
   const total = [...table.querySelectorAll('.statement-row')].reduce((sum, row) => {
     if (row.dataset.signed !== undefined) return sum + Number(row.dataset.signed);  // already imported
-    const amount = parseFloat(row.querySelector('.row-amount').value.replace(',', '.')) || 0;
+    const amount = parseAmount(row.querySelector('.row-amount').value);
     const type = row.querySelector('.row-type').value;
     const sign = type === 'income' ? 1 : type === 'expense' ? -1 : Number(row.dataset.sign);
     return sum + sign * Math.abs(amount);
@@ -320,7 +320,7 @@ classifyButton?.addEventListener('click', async () => {
       !confirm({{ _('Le causali dei movimenti verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')|tojson }})) return;
   const rows = [...table.querySelectorAll('.preview-row')].map(row => {
     const type = row.querySelector('.row-type').value;
-    const amount = Math.abs(parseFloat(row.querySelector('.row-amount').value.replace(',', '.')) || 0);
+    const amount = Math.abs(parseAmount(row.querySelector('.row-amount').value));
     const sign = type === 'income' ? 1 : type === 'expense' ? -1 : Number(row.dataset.sign);
     return {
       index: Number(row.dataset.index),

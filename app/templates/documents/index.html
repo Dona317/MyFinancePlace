@@ -155,12 +155,7 @@
                          : {{ _('Trascina qui i file, oppure sceglili con il campo «File»')|tojson }};
   };
   input.addEventListener('change', show);
-  ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('over'); }));
-  ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, () => zone.classList.remove('over')));
-  zone.addEventListener('drop', e => {
-    e.preventDefault();
-    if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; show(); }
-  });
+  initDropZone(zone, input);
 })();
 </script>
 {% endblock %}

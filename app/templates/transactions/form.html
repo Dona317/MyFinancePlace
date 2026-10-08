@@ -321,7 +321,7 @@
   const account = document.getElementById('f-account');
   const fee = document.getElementById('f-fee');
   const hint = document.getElementById('fee-hint');
-  const num = (el) => parseFloat((el?.value || '').replace(/\./g, '').replace(',', '.')) || 0;
+  const num = (el) => parseAmount(el?.value);
   const plain = (x) => x.toFixed(2).replace('.', ',');
   let feeTouched = !!(fee && fee.value);
   fee?.addEventListener('input', () => { feeTouched = true; });
@@ -371,13 +371,7 @@
   const single = document.getElementById('category-single'), box = document.getElementById('split-box');
   const rows = document.getElementById('split-rows'), left = document.getElementById('split-left');
   const amount = document.getElementById('f-amount'), select = document.getElementById('f-category');
-  const parse = (text) => {
-    text = (text || '').replace(/[€\s]/g, '').replace(/^[-+]/, '');
-    if (/,\d{1,2}$/.test(text) || (text.includes(',') && !text.includes('.'))) text = text.replace(/\./g, '').replace(',', '.');
-    else text = text.replace(/,/g, '');
-    const value = parseFloat(text);
-    return isFinite(value) ? value : 0;
-  };
+  const parse = (text) => Math.abs(parseAmount(text));
   const refresh = () => {
     if (box.hidden) return;
     const total = parse(amount.value);

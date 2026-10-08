@@ -4,9 +4,9 @@
 {% block breadcrumb %}<li>{{ _('Impostazioni') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <form method="POST" action="{{ url_for('settings.reset') }}" style="display:inline;">
-    <button type="submit" class="btn btn-ghost btn-sm"
-            onclick="return confirm('Ripristinare tutte le impostazioni predefinite?')">
+  <form method="POST" action="{{ url_for('settings.reset') }}" style="display:inline;"
+        data-confirm="{{ _('Ripristinare tutte le impostazioni predefinite?') }}">
+    <button type="submit" class="btn btn-ghost btn-sm">
       <i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina Defaults') }}
     </button>
   </form>

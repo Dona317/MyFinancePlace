@@ -8,23 +8,6 @@ const store = {
   set(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* private mode */ } },
 };
 
-/* ── Modal helpers ─────────────────────────────────────────────────────── */
-function openModal(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.add("open");
-  document.body.style.overflow = "hidden";
-  // Focus first input for accessibility
-  setTimeout(() => { const f = el.querySelector("input, select, textarea"); if (f) f.focus(); }, 80);
-}
-
-function closeModal(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.remove("open");
-  document.body.style.overflow = "";
-}
-
 /* Fill a translated message: fmt("%(count)s rows", {count: 3}) → "3 rows" */
 function fmt(message, values) {
   return String(message).replace(/%\((\w+)\)s/g, (all, key) => (key in values ? values[key] : all));
@@ -122,48 +105,74 @@ function formatMoney(value, currency, locale) {
 }
 window.formatMoney = formatMoney;
 
-document.addEventListener("DOMContentLoaded", () => {
+/* A typed amount as a number, read like the server does (parsing.parse_amount): "1.234,56", "1,234.56", "12,5",
+   "€ 12" and a sign; 0 when it is not a number */
+function parseAmount(text) {
+  let raw = String(text ?? '').replace(/[€\s]/g, '');
+  if (raw.includes(',') && raw.includes('.')) {
+    raw = raw.lastIndexOf(',') > raw.lastIndexOf('.') ? raw.replace(/\./g, '').replace(',', '.') : raw.replace(/,/g, '');
+  } else {
+    raw = raw.replace(',', '.');
+  }
+  const value = Number(raw);
+  return isFinite(value) && raw !== '' ? value : 0;
+}
+window.parseAmount = parseAmount;
 
-  // Theme switch: show the theme applied in <head>, change it on click
+/* A dashed box files can be dropped on: they go into the file input, as if chosen with it ("change" fires);
+   only the first file when the input takes one */
+function initDropZone(zone, input) {
+  if (!zone || !input) return;
+  ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('over'); }));
+  zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('over'); });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('over');
+    const files = [...e.dataTransfer.files].slice(0, input.multiple ? undefined : 1);
+    if (!files.length) return;
+    const transfer = new DataTransfer();
+    files.forEach(file => transfer.items.add(file));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+  });
+}
+window.initDropZone = initDropZone;
+
+/* Interface texts in the chosen language (set by base.html), Italian when missing */
+const TEXT = Object.assign({
+  expand_menu: "Espandi il menu", shrink_menu: "Riduci il menu", confirm: "Sei sicuro?",
+}, window.MFP_TEXT || {});
+
+/* Theme switch: show the theme applied in <head>, change it on click, follow the system until the user chooses */
+function initTheme() {
   applyTheme(currentTheme(), false);
   document.getElementById("theme-toggle")?.addEventListener("click", () => {
     applyTheme(currentTheme() === "dark" ? "light" : "dark", true);
   });
-  // Follow the operating system while the user has not chosen
   window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change", e => {
     if (!store.get("mfp-theme")) applyTheme(e.matches ? "dark" : "light", false);
   });
+}
 
-  // Close modal when clicking the overlay background
-  document.querySelectorAll(".modal-overlay").forEach(overlay => {
-    overlay.addEventListener("click", e => {
-      if (e.target === overlay) closeModal(overlay.id);
-    });
-  });
-
-  // Interface texts in the chosen language (set by base.html), Italian when missing
-  const text = Object.assign({
-    expand_menu: "Espandi il menu", shrink_menu: "Riduci il menu", confirm: "Sei sicuro?",
-  }, window.MFP_TEXT || {});
-
-  /* ── Sidebar ─────────────────────────────────────────────────────────── */
+/* The ☰ button in the sidebar: on desktop it switches the menu between icons + names and icons only
+   (remembered), so the menu never disappears; on phones and tablets the sidebar is hidden, the ☰ in the
+   topbar slides it in and the one in the sidebar, the overlay or ESC closes it */
+function initSidebar() {
   const toggleBtn = document.getElementById("sidebar-toggle");
   const openBtn   = document.getElementById("sidebar-open");
   const sidebar   = document.getElementById("sidebar");
   const overlay   = document.getElementById("sidebar-overlay");
-
-  // The ☰ button in the sidebar: on desktop it switches the menu between icons + names and icons only
-  // (remembered), so the menu never disappears; on phones and tablets the sidebar is hidden, the ☰ in the
-  // topbar slides it in and the one in the sidebar, the overlay or ESC closes it
   const phone = window.matchMedia("(max-width: 992px)");
   const closeSidebar = () => {
-    sidebar && sidebar.classList.remove("open");
-    overlay && overlay.classList.remove("active");
+    sidebar?.classList.remove("open");
+    overlay?.classList.remove("active");
   };
-  openBtn && sidebar && openBtn.addEventListener("click", () => {
-    sidebar.classList.add("open");
-    overlay && overlay.classList.add("active");
-  });
+  if (openBtn && sidebar) {
+    openBtn.addEventListener("click", () => {
+      sidebar.classList.add("open");
+      overlay?.classList.add("active");
+    });
+  }
   // Icons only: more room for tables; each icon gets its name as a tooltip
   const applyMini = (mini) => {
     document.documentElement.classList.toggle("sidebar-mini", mini);
@@ -173,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else item.removeAttribute("title");
     });
     if (!toggleBtn) return;
-    const label = mini ? text.expand_menu : text.shrink_menu;
+    const label = mini ? TEXT.expand_menu : TEXT.shrink_menu;
     toggleBtn.setAttribute("aria-label", label);
     toggleBtn.setAttribute("aria-expanded", String(!mini));
     toggleBtn.title = label;
@@ -190,16 +199,12 @@ document.addEventListener("DOMContentLoaded", () => {
       store.set("mfp-sidebar-mini", mini ? "1" : "0");
     });
   }
-  overlay && overlay.addEventListener("click", closeSidebar);
+  overlay?.addEventListener("click", closeSidebar);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeSidebar(); });
+}
 
-  // ESC closes the open modal and the phone sidebar
-  document.addEventListener("keydown", e => {
-    if (e.key !== "Escape") return;
-    document.querySelectorAll(".modal-overlay.open").forEach(m => closeModal(m.id));
-    closeSidebar();
-  });
-
-  // Collapsible sections, remembered in this browser
+/* Collapsible sections of the menu, remembered in this browser */
+function initNavSections() {
   const saveCollapsed = () => {
     const closed = [...document.querySelectorAll(".nav-section.collapsed")].map(s => s.dataset.section);
     store.set("mfp-nav-collapsed", JSON.stringify(closed));
@@ -212,38 +217,52 @@ document.addEventListener("DOMContentLoaded", () => {
       saveCollapsed();
     });
   });
+}
 
-  /* ── Tags: chips picked from the tags already used, or new ones (Enter or comma) ── */
-  document.querySelectorAll("input[data-tag-input]").forEach(input => initTagInput(input, text));
-
-  /* ── Auto-dismiss flash alerts ──────────────────────────────────────── */
+/* Flash messages marked data-autohide fade out after a few seconds */
+function initFlash() {
   document.querySelectorAll(".alert[data-autohide]").forEach(el => {
     setTimeout(() => { el.style.opacity = "0"; setTimeout(() => el.remove(), 300); }, 4000);
   });
+}
 
-  /* ── Amount formatter (tabular display) ─────────────────────────────── */
+/* Amounts written by the server as data-amount, shown in the chosen currency and number format */
+function initAmounts() {
   document.querySelectorAll("[data-amount]").forEach(el => {
     const raw = parseFloat(el.dataset.amount);
     el.textContent = formatMoney(raw, el.dataset.currency, el.dataset.locale);
     if (raw > 0) el.classList.add("positive");
     else if (raw < 0) el.classList.add("negative");
   });
+}
 
-  /* ── Confirm-before-delete ───────────────────────────────────────────── */
+/* Forms marked data-confirm ask before they are sent (deletions) */
+function initConfirm() {
   document.querySelectorAll("form[data-confirm]").forEach(form => {
-    form.addEventListener("submit", (e) => {
-      if (!confirm(form.dataset.confirm || text.confirm)) {
-        e.preventDefault();
-      }
+    form.addEventListener("submit", e => {
+      if (!confirm(form.dataset.confirm || TEXT.confirm)) e.preventDefault();
     });
   });
+}
 
-  /* ── Active menu item for pages the server does not mark (e.g. /transactions/duplicates) ── */
-  if (!document.querySelector(".sidebar .nav-item.active")) {
-    const path = window.location.pathname === "/" ? "/dashboard" : window.location.pathname;
-    const best = [...document.querySelectorAll(".sidebar .nav-item[href]")]
-      .filter(link => path.startsWith(link.getAttribute("href")))
-      .sort((a, b) => b.getAttribute("href").length - a.getAttribute("href").length)[0];
-    best?.classList.add("active");
-  }
+/* Active menu item for pages the server does not mark (e.g. /transactions/duplicates): the longest matching link */
+function initActiveNav() {
+  if (document.querySelector(".sidebar .nav-item.active")) return;
+  const path = window.location.pathname === "/" ? "/dashboard" : window.location.pathname;
+  const best = [...document.querySelectorAll(".sidebar .nav-item[href]")]
+    .filter(link => path.startsWith(link.getAttribute("href")))
+    .sort((a, b) => b.getAttribute("href").length - a.getAttribute("href").length)[0];
+  best?.classList.add("active");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  initSidebar();
+  initNavSections();
+  // Tags: chips picked from the tags already used, or new ones (Enter or comma)
+  document.querySelectorAll("input[data-tag-input]").forEach(input => initTagInput(input, TEXT));
+  initFlash();
+  initAmounts();
+  initConfirm();
+  initActiveNav();
 });

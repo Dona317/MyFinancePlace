@@ -54,7 +54,7 @@
       <div class="goal-foot">
         <form method="POST" action="{{ url_for('lifestyle.goal_contribute', goal_id=goal.id) }}">
           <input type="text" inputmode="decimal" name="amount" class="form-control" placeholder="{{ _('+ importo') }}"
-                 aria-label="Importo da aggiungere a {{ goal.name }}" autocomplete="off" required />
+                 aria-label="{{ _('Importo da aggiungere a %(name)s', name=goal.name) }}" autocomplete="off" required />
           <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Aggiungi (usa il meno per togliere)') }}"><i class="bi bi-plus-lg"></i> {{ _('Versa') }}</button>
         </form>
         <div class="cell-actions">

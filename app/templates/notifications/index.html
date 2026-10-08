@@ -25,7 +25,7 @@
       </a>
       <form method="POST" action="{{ url_for('notifications.dismiss') }}">
         <input type="hidden" name="key" value="{{ n.key }}" />
-        <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Segna come visto') }}" aria-label="Segna come visto: {{ n.title }}"><i class="bi bi-x-lg"></i></button>
+        <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Segna come visto') }}" aria-label="{{ _('Segna come visto: %(title)s', title=n.title) }}"><i class="bi bi-x-lg"></i></button>
       </form>
     </li>
     {% endfor %}

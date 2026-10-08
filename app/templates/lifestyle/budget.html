@@ -44,9 +44,9 @@
           <tr>
             <td class="cell-title">{{ row.category }}<input type="hidden" name="category" value="{{ row.category }}" /></td>
             <td class="text-right"><input type="text" inputmode="decimal" name="every-{{ row.category }}" class="form-control" style="max-width:120px;margin-left:auto;"
-                   value="{{ row.every_month|plain }}" placeholder="—" aria-label="Budget mensile di {{ row.category }}" autocomplete="off" /></td>
+                   value="{{ row.every_month|plain }}" placeholder="—" aria-label="{{ _('Budget mensile di %(category)s', category=row.category) }}" autocomplete="off" /></td>
             <td class="text-right"><input type="text" inputmode="decimal" name="month-{{ row.category }}" class="form-control" style="max-width:120px;margin-left:auto;"
-                   value="{{ row.this_month|plain }}" placeholder="—" aria-label="Budget di questo mese per {{ row.category }}" autocomplete="off" /></td>
+                   value="{{ row.this_month|plain }}" placeholder="—" aria-label="{{ _('Budget di questo mese per %(category)s', category=row.category) }}" autocomplete="off" /></td>
             <td class="text-center"><input type="checkbox" class="check" name="rollover-{{ row.category }}" {{ 'checked' if row.rollover }}
                    aria-label="{{ _('Riporta al mese dopo il budget di %(name)s', name=row.category) }}" /></td>
             <td class="amount text-right">{{ row.spent|money }}</td>

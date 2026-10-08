@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 21:12+0000\n"
+"POT-Creation-Date: 2026-10-08 21:35+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1021,8 +1021,16 @@ msgid "Budget del mese:"
 msgstr "This month's budget:"
 
 #, python-format
+msgid "Budget di questo mese per %(category)s"
+msgstr "This month's budget for %(category)s"
+
+#, python-format
 msgid "Budget di questo mese per %(name)s"
 msgstr "This month's budget for %(name)s"
+
+#, python-format
+msgid "Budget mensile di %(category)s"
+msgstr "Monthly budget for %(category)s"
 
 #, python-format
 msgid "Budget mensile di %(name)s"
@@ -1582,6 +1590,10 @@ msgstr "Courses and training"
 
 msgid "Cosa comprende"
 msgstr "What it includes"
+
+#, python-format
+msgid "Cosa comprende %(name)s"
+msgstr "What %(name)s includes"
 
 msgid "Costo medio"
 msgstr "Average cost"
@@ -2601,6 +2613,10 @@ msgstr "Amount credited to the receiving account"
 msgid "Importo addebitato sul conto"
 msgstr "Amount charged to the account"
 
+#, python-format
+msgid "Importo da aggiungere a %(name)s"
+msgstr "Amount to add to %(name)s"
+
 msgid "Importo della parte"
 msgstr "Amount of the part"
 
@@ -2997,6 +3013,9 @@ msgstr "Read with AI"
 
 msgid "Lettura con l'intelligenza artificiale"
 msgstr "Reading with artificial intelligence"
+
+msgid "Lettura delle colonne…"
+msgstr "Reading the columns…"
 
 msgid "Lettura in corso…"
 msgstr "Reading…"
@@ -3562,6 +3581,10 @@ msgstr "Invalid database name."
 msgid "Nome del modello non valido."
 msgstr "Invalid model name."
 
+#, python-format
+msgid "Nome di %(name)s"
+msgstr "Name of %(name)s"
+
 msgid "Nome utente"
 msgstr "Username"
 
@@ -3687,6 +3710,10 @@ msgstr "New goal"
 
 msgid "Nuovo prezzo (€)"
 msgstr "New price (€)"
+
+#, python-format
+msgid "Nuovo prezzo di %(name)s"
+msgstr "New price of %(name)s"
 
 msgid "Obbligazione"
 msgstr "Bond"
@@ -4566,6 +4593,9 @@ msgid ""
 "prima)."
 msgstr "Restore this file? If it is a full backup, ALL current data will be replaced (a copy is saved first)."
 
+msgid "Ripristinare tutte le impostazioni predefinite?"
+msgstr "Restore all the default settings?"
+
 msgid "Riprova"
 msgstr "Try again"
 
@@ -4790,6 +4820,10 @@ msgstr "Mark as recurring"
 
 msgid "Segna come visto"
 msgstr "Mark as seen"
+
+#, python-format
+msgid "Segna come visto: %(title)s"
+msgstr "Mark as seen: %(title)s"
 
 msgid "Segna tutti come visti"
 msgstr "Mark all as seen"
@@ -5111,6 +5145,10 @@ msgid "Tema scuro per l'intera interfaccia — disponibile prossimamente"
 msgstr "Dark theme for the whole interface — coming soon"
 
 #, python-format
+msgid "Tenere la transazione selezionata ed eliminare le altre %(count)s?"
+msgstr "Keep the selected transaction and delete the other %(count)s?"
+
+#, python-format
 msgid "Tenuta 1 transazione, eliminati %(count)s duplicati."
 msgstr "Kept 1 transaction, deleted %(count)s duplicates."
 
@@ -5132,6 +5170,10 @@ msgstr "Keep the selected one, delete the others"
 
 msgid "Tipo"
 msgstr "Type"
+
+#, python-format
+msgid "Tipo di %(name)s"
+msgstr "Type of %(name)s"
 
 msgid "Tipo di grafico"
 msgstr "Chart type"

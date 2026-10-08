@@ -389,7 +389,7 @@ makeLineChart('netChart', labels, [
     { label: {{ _('Intervallo tra i metodi')|tojson }}, data: gap(h).concat(months.map(m => m[flow + '_high'])), color: 'neutral', fill: '-1', fillAlpha: 0.15, pointRadius: 0, borderWidth: 0 },
   ]);
 });
-makeLineChart('balanceChart', months.map(m => m.current ? m.label + ' (in corso)' : m.label), [
+makeLineChart('balanceChart', months.map(m => m.current ? fmt({{ _('%(month)s (in corso)', month='%(month)s')|tojson }}, {month: m.label}) : m.label), [
   { label: {{ _('Saldo previsto')|tojson }}, data: months.map(m => m.balance), color: 'primary', fill: true },
 ]);
 // Controls: every change is applied and remembered

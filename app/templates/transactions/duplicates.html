@@ -98,7 +98,7 @@
       <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-check2-circle"></i> {{ _('Non sono duplicati') }}</button>
     </form>
     <form method="POST" action="{{ url_for('transactions.duplicates_keep') }}" id="keep-{{ g }}"
-          data-confirm="Tenere la transazione selezionata ed eliminare le altre {{ group.transactions|length - 1 }}?">
+          data-confirm="{{ _('Tenere la transazione selezionata ed eliminare le altre %(count)s?', count=group.transactions|length - 1) }}">
       {% for tx in group.transactions %}<input type="hidden" name="ids" value="{{ tx.id }}" />{% endfor %}
       <input type="hidden" name="next" value="{{ here }}" />
       <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-trash3"></i> {{ _('Tieni la selezionata, elimina le altre') }}</button>

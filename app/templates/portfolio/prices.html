@@ -50,7 +50,7 @@
             <td class="text-right">
               <input type="text" inputmode="decimal" name="{{ field }}" class="form-control" style="max-width:140px;margin-left:auto;"
                      value="{{ values[field] if field in values else '' }}" placeholder="{{ h.price|plain }}"
-                     aria-label="Nuovo prezzo di {{ h.name }}" autocomplete="off" />
+                     aria-label="{{ _('Nuovo prezzo di %(name)s', name=h.name) }}" autocomplete="off" />
             </td>
           </tr>
           {% endfor %}
