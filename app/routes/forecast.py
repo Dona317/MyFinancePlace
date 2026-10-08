@@ -5,6 +5,7 @@ from flask import flash, jsonify, redirect, render_template, request, url_for
 
 from app.extensions import db
 from app.models.transaction import Transaction
+from app.routes.helpers import back_to
 from app.services import analytics, forecast
 from flask_babel import gettext as _
 
@@ -68,5 +69,4 @@ def mark_recurring(tx_id):
     tx.is_recurring, tx.recurrence = True, frequency
     db.session.commit()
     flash(_("«%(description)s» è ora una transazione ricorrente (%(value)s).", description=tx.description, value=forecast.FREQUENCIES[frequency][0].lower()), "success")
-    back = request.form.get("next") or ""
-    return redirect(back if back.startswith("/") and not back.startswith("//") else url_for("forecast.index"))
+    return back_to("forecast.index")

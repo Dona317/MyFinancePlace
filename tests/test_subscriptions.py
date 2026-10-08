@@ -63,8 +63,9 @@ def test_confirm_from_the_page_comes_back_to_it(client, db):
     response = client.post(f"/forecast/recurring/{tx.id}", data={"frequency": "monthly", "next": "/subscriptions/"})
     assert response.headers["Location"].endswith("/subscriptions/")
     assert db.session.get(Transaction, tx.id).is_recurring
-    response = client.post(f"/forecast/recurring/{tx.id}", data={"frequency": "monthly", "next": "//evil.example"})
-    assert response.headers["Location"].endswith("/forecast/")
+    for outside in ("//evil.example", "/\\evil.example"):  # browsers read /\ as // : another site
+        response = client.post(f"/forecast/recurring/{tx.id}", data={"frequency": "monthly", "next": outside})
+        assert response.headers["Location"].endswith("/forecast/")
 
 
 def test_pages(client, db):
