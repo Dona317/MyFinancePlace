@@ -43,10 +43,14 @@ class EmbeddedPostgres:
     def _exe(self, name: str) -> str:
         return str(self.bin_dir / (name + (".exe" if WINDOWS else "")))
 
-    def _run(self, *args: str, timeout: int = 120) -> subprocess.CompletedProcess:
+    def _run(self, *args: str, timeout: int = 120, capture: bool = True) -> subprocess.CompletedProcess:
+        """`capture=False` for `pg_ctl start`: the server it leaves running inherits the output handles, and on
+        Windows reading them would wait for the server to stop. Its messages go to the log file instead."""
         flags = subprocess.CREATE_NO_WINDOW if WINDOWS else 0  # no console windows popping up
         env = {**os.environ, "LC_ALL": "C", "LANG": "C"}
-        return subprocess.run(args, capture_output=True, text=True, timeout=timeout, creationflags=flags, env=env)
+        streams = ({"capture_output": True} if capture else
+                   {"stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL})
+        return subprocess.run(args, text=True, timeout=timeout, creationflags=flags, env=env, **streams)
 
     @property
     def password(self) -> str:
@@ -89,10 +93,10 @@ class EmbeddedPostgres:
             options += " -c unix_socket_directories=''"  # TCP on localhost only; no socket file to clash with
         self.log.parent.mkdir(parents=True, exist_ok=True)
         done = self._run(self._exe("pg_ctl"), "-D", str(self.data), "-l", str(self.log), "-o", options,
-                         "-w", "-t", "90", "start", timeout=120)
+                         "-w", "-t", "90", "start", timeout=120, capture=False)
         if done.returncode != 0:
             tail = self.log.read_text(encoding="utf-8", errors="replace")[-2000:] if self.log.exists() else ""
-            raise DatabaseError("Avvio del database non riuscito:\n" + (done.stderr or done.stdout or tail)[-2000:])
+            raise DatabaseError("Avvio del database non riuscito:\n" + tail)
         self._wait()
 
     def _wait(self, seconds: float = 30) -> None:

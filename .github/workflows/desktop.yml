@@ -63,6 +63,7 @@ jobs:
           tail -3 build.log
 
       - name: Start once (database, migrations, /health, stop)
+        timeout-minutes: 8
         shell: bash
         run: |
           "${{ matrix.exe }}" --smoke --data-dir "$RUNNER_TEMP/mfp-data"
