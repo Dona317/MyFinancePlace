@@ -1,14 +1,14 @@
 import json
 import math
 from datetime import date, datetime
-from flask import render_template, request, redirect, url_for, flash, Response, current_app, jsonify, send_file, abort
+from flask import render_template, request, redirect, url_for, flash, current_app, jsonify, send_file, abort
 from apiflask import APIBlueprint
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.account import Account
 from app.services.parsing import to_decimal
-from app.routes.helpers import form_ids
+from app.routes.helpers import download, form_ids, uploaded_file, year_arg
 from app.services import (
     accounts, analytics, transfer, bank_import, ai_classification, ai_extraction, ai_jobs, ai_models, upload_store, backup,
     pdf_report, statement_readers, column_guess,
@@ -24,14 +24,6 @@ export_bp = APIBlueprint(
     url_prefix="/export",
     tag="Export"
 )
-
-
-def _download(content: str, filename: str, mimetype: str) -> Response:
-    return Response(
-        content,
-        mimetype=mimetype,
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
 
 
 def _preview_serializer() -> URLSafeSerializer:
@@ -55,16 +47,14 @@ def index():
 @export_bp.route("/backup")
 def download_backup():
     """Everything in one .zip: all the tables and the files of the document archive."""
-    content = backup.create_archive()
-    return Response(content, mimetype="application/zip", headers={
-        "Content-Disposition": f'attachment; filename="myfinanceplace_backup_{datetime.now():%Y-%m-%d_%H%M}.zip"',
-    })
+    return download(backup.create_archive(), f"myfinanceplace_backup_{datetime.now():%Y-%m-%d_%H%M}.zip",
+                    "application/zip")
 
 
 @export_bp.route("/restore", methods=["POST"])
 def restore():
-    upload = request.files.get("file")
-    if not upload or not upload.filename:
+    upload = uploaded_file()
+    if upload is None:
         flash(_("Scegli il file di backup da ripristinare."), "error")
         return redirect(url_for("export.index") + "#backup")
     try:
@@ -106,7 +96,7 @@ def export_csv():
     transactions = transfer.query_transactions(start, end)
     # BOM so Excel detects UTF-8 correctly
     content = "\ufeff" + transfer.to_csv(transactions)
-    return _download(content, f"transazioni_{period}_{date.today().isoformat()}.csv", "text/csv; charset=utf-8")
+    return download(content, f"transazioni_{period}_{date.today().isoformat()}.csv", "text/csv; charset=utf-8")
 
 
 @export_bp.route("/json")
@@ -118,13 +108,13 @@ def export_json():
         "transactions": [transfer.tx_to_dict(tx) for tx in transactions],
     }
     content = json.dumps(payload, ensure_ascii=False, indent=2)
-    return _download(content, f"myfinanceplace_backup_{date.today().isoformat()}.json", "application/json")
+    return download(content, f"myfinanceplace_backup_{date.today().isoformat()}.json", "application/json")
 
 
 @export_bp.route("/pdf")
 def export_pdf():
     """Print-ready report page ("Stampa dal browser"); /pdf/download gives the same report as a real PDF."""
-    year = request.args.get("year", type=int) or date.today().year
+    year = year_arg(date.today().year)
     return render_template(
         "export/report.html",
         year=year,
@@ -137,11 +127,9 @@ def export_pdf():
 @export_bp.route("/pdf/download")
 def export_pdf_download():
     """The yearly report as a PDF file generated on the server."""
-    year = request.args.get("year", type=int) or date.today().year
+    year = year_arg(date.today().year)
     content = pdf_report.build_report(year, analytics.income_statement(year), analytics.cash_flow(year))
-    return Response(content, mimetype="application/pdf", headers={
-        "Content-Disposition": f'attachment; filename="report_finanziario_{year}.pdf"',
-    })
+    return download(content, f"report_finanziario_{year}.pdf", "application/pdf")
 
 
 @export_bp.route("/tax/<int:year>")
@@ -151,14 +139,14 @@ def export_tax(year):
         if transfer.is_tax_relevant(tx)
     ]
     content = "\ufeff" + transfer.to_csv(transactions)
-    return _download(content, f"fiscale_{year}.csv", "text/csv; charset=utf-8")
+    return download(content, f"fiscale_{year}.csv", "text/csv; charset=utf-8")
 
 
 @export_bp.route("/import/columns", methods=["POST"])
 def import_columns():
     """Column names of an uploaded CSV / Excel / .ods file, for the mapping selects (JSON); nothing is saved."""
-    upload = request.files.get("file")
-    if not upload or not upload.filename:
+    upload = uploaded_file()
+    if upload is None:
         return jsonify({"error": _("Seleziona un file.")}), 400
     try:
         headers, rows, first_line = transfer.read_table(upload.filename, upload.read())
@@ -172,8 +160,8 @@ def import_columns():
 @export_bp.route("/import/columns/ai", methods=["POST"])
 def import_columns_ai():
     """Ask the AI which column is what, sending only the titles and the first rows (the user clicked for it)."""
-    upload = request.files.get("file")
-    if not upload or not upload.filename:
+    upload = uploaded_file()
+    if upload is None:
         return jsonify({"error": _("Seleziona un file.")}), 400
     try:
         headers, rows, _first_line = transfer.read_table(upload.filename, upload.read())
@@ -186,8 +174,8 @@ def import_columns_ai():
 @export_bp.route("/import", methods=["POST"])
 def import_csv():
     """Manual column-mapping import of a CSV or spreadsheet (.xlsx, .xls, .ods)."""
-    upload = request.files.get("file")
-    if not upload or not upload.filename:
+    upload = uploaded_file()
+    if upload is None:
         flash(_("Seleziona un file CSV o Excel da importare."), "error")
         return redirect(url_for("export.index"))
     try:
@@ -243,8 +231,8 @@ def _suggested_account(bank_name: str) -> int | None:
 @export_bp.route("/bank", methods=["POST"])
 def bank_preview():
     """Step 1: parse the uploaded statement and show an editable preview (or ask about AI reading)."""
-    upload = request.files.get("file")
-    if not upload or not upload.filename:
+    upload = uploaded_file()
+    if upload is None:
         flash(_("Seleziona l'estratto conto da importare."), "error")
         return redirect(url_for("export.index"))
 

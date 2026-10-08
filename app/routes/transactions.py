@@ -9,7 +9,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Debt, Document, Holding
-from app.routes.helpers import form_choice, form_date, form_decimal, form_ids, form_text, safe_next
+from app.routes.helpers import back_to, form_choice, form_date, form_decimal, form_ids, form_text, safe_next
 from app.services.tags import all_tags, parse_tags  # noqa: F401 - re-exported for older imports
 from app.services import accounts, ai_classification, ai_extraction, bank_import, broker, category_rules, currency as currency_service, display, duplicates, merchant, money, splits, undo
 from app.services.ai_classification import AI_TAG
@@ -184,13 +184,14 @@ def _form_values(tx: Transaction | None = None) -> dict:
         "holding_id": str(tx.holding_id or ""), "debt_id": str(tx.debt_id or ""),
         "account_amount": _plain(tx.account_amount), "counter_amount": _plain(tx.counter_amount),
         "splits": [(s.category or "", _plain(s.amount)) for s in tx.splits],
-        "units": f"{abs(tx.units):f}".rstrip("0").rstrip(".").replace(".", ",") if tx.units is not None else "",
-        "unit_price": f"{tx.unit_price:f}".rstrip("0").rstrip(".").replace(".", ",") if tx.unit_price is not None else "",
+        "units": display.plain(abs(tx.units)) if tx.units is not None else "",
+        "unit_price": display.plain(tx.unit_price),
         "trade_side": "sell" if tx.units is not None and tx.units < 0 else "buy",
     }
 
 
 def _plain(value) -> str:
+    """An amount as a form value with two decimals: 12.5 → '12,50'."""
     return f"{value:.2f}".replace(".", ",") if value is not None else ""
 
 
@@ -333,13 +334,13 @@ def undo_last():
     else:
         flash(ngettext("Annullato: rimessa la transazione eliminata.", "Annullato: rimesse le %(num)d transazioni eliminate.",
                        step.get("count", 1)), "success")
-    return redirect(safe_next() or url_for("transactions.index"))
+    return back_to("transactions.index")
 
 
 @transactions_bp.route("/redo", methods=["POST"])
 def redo_last():
     flash(_("Ripetuto.") if undo.redo() else _("Niente da ripetere."), "success")
-    return redirect(safe_next() or url_for("transactions.index"))
+    return back_to("transactions.index")
 
 
 def _learn_from(tx: Transaction) -> None:
@@ -377,7 +378,7 @@ def edit(tx_id):
         db.session.commit()
         flash(_("Transazione aggiornata."), "success")
         _learn_from(tx)
-        return redirect(safe_next() or url_for("transactions.index"))
+        return back_to("transactions.index")
     return _render_form(tx)
 
 
@@ -388,7 +389,7 @@ def delete(tx_id):
     db.session.delete(tx)
     db.session.commit()
     flash(_("Transazione «%(description)s» eliminata.", description=tx.description), "success")
-    return redirect(safe_next() or url_for("transactions.index"))
+    return back_to("transactions.index")
 
 
 @transactions_bp.route("/delete-selected", methods=["POST"])
@@ -400,7 +401,7 @@ def delete_selected():
     db.session.commit()
     flash(_("%(deleted)s transazioni eliminate.", deleted=deleted) if deleted else _("Nessuna transazione selezionata."),
           "success" if deleted else "warning")
-    return redirect(safe_next() or url_for("transactions.index"))
+    return back_to("transactions.index")
 
 
 @transactions_bp.route("/assign-account", methods=["POST"])
@@ -414,7 +415,7 @@ def assign_account():
         flash(_("%(changed)s transazioni messe sul conto «%(name)s».", changed=changed, name=account.name), "success")
     else:
         flash(_("%(changed)s transazioni messe senza conto.", changed=changed), "success")
-    return redirect(safe_next() or url_for("transactions.index"))
+    return back_to("transactions.index")
 
 
 @transactions_bp.route("/confirm-ai", methods=["POST"])
@@ -429,7 +430,7 @@ def confirm_ai():
         flash(ngettext("%(num)d categoria confermata.", "%(num)d categorie confermate.", changed), "success")
     else:
         flash(_("Nessuna transazione da confermare tra quelle selezionate."), "warning")
-    return redirect(safe_next() or url_for("transactions.index"))
+    return back_to("transactions.index")
 
 
 # ── Duplicate finder ───────────────────────────────────────────────────────────
@@ -455,7 +456,7 @@ def duplicates_dismiss():
     if len(ids) >= 2:
         duplicates.dismiss(ids)
         flash(_("Segnate come transazioni diverse: non verranno più proposte come duplicati."), "success")
-    return redirect(safe_next() or url_for("transactions.duplicates_page"))
+    return back_to("transactions.duplicates_page")
 
 
 @transactions_bp.route("/duplicates/keep", methods=["POST"])
@@ -470,7 +471,7 @@ def duplicates_keep():
         Transaction.query.filter(Transaction.id.in_(others)).delete(synchronize_session=False)
         db.session.commit()
         flash(_("Tenuta 1 transazione, eliminati %(count)s duplicati.", count=len(others)), "success")
-    return redirect(safe_next() or url_for("transactions.duplicates_page"))
+    return back_to("transactions.duplicates_page")
 
 
 # ── REST API routes ────────────────────────────────────────────────────────────
@@ -560,7 +561,7 @@ def fill_counterparties():
     flash(ngettext("%(num)s transazione ha ora la controparte, letta dalla causale.",
                    "%(num)s transazioni hanno ora la controparte, letta dalla causale.", filled) if filled
           else _("Nessuna controparte da aggiungere: le causali non nominano un esercente."), "success" if filled else "info")
-    return redirect(safe_next() or url_for("transactions.index"))
+    return back_to("transactions.index")
 
 
 # ── AI classification of saved transactions ──────────────────────────────────
@@ -583,7 +584,7 @@ def classify():
     transactions = query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
     if not transactions:
         flash(_("Nessuna transazione da classificare."), "warning")
-        return redirect(safe_next() or url_for("transactions.index"))
+        return back_to("transactions.index")
     items = [
         {"id": tx.id, "text": _classification_text(tx), "amount": tx.signed_amount} for tx in transactions
     ]
@@ -591,7 +592,7 @@ def classify():
         suggestions = ai_classification.classify(items, known_categories())
     except ai_extraction.AIExtractionError as exc:
         flash(_("Classificazione AI non riuscita: %(exc)s", exc=exc), "error")
-        return redirect(safe_next() or url_for("transactions.index"))
+        return back_to("transactions.index")
     return render_template(
         "transactions/classify.html",
         rows=[(tx, suggestions.get(tx.id)) for tx in transactions],
@@ -623,4 +624,4 @@ def classify_apply():
         updated += 1
     db.session.commit()
     flash(_("%(updated)s transazioni aggiornate.", updated=updated) if updated else _("Nessuna modifica applicata."), "success" if updated else "warning")
-    return redirect(safe_next() or url_for("transactions.index"))
+    return back_to("transactions.index")

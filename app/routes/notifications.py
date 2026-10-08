@@ -1,7 +1,7 @@
-from flask import redirect, render_template, request, url_for
+from flask import render_template, request
 from apiflask import APIBlueprint
 
-from app.routes.helpers import safe_next
+from app.routes.helpers import back_to
 from app.services import notifications
 
 notifications_bp = APIBlueprint(
@@ -26,7 +26,7 @@ def dismiss():
     if request.form.get("all"):
         keys = [n.key for n in notifications.collect()]
     notifications.dismiss(keys)
-    return redirect(safe_next() or url_for("notifications.index"))
+    return back_to("notifications.index")
 
 
 @notifications_bp.route("/api")

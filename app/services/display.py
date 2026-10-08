@@ -4,6 +4,8 @@ base currency (symbol of every total), number format (1.234,56 or 1,234.56) and 
 """
 from datetime import date, datetime
 
+from jinja2 import Undefined
+
 from app.services import request_cache
 
 LOCALES = {  # code: (label, thousands separator, decimal separator)
@@ -53,3 +55,11 @@ def day(value) -> str:
     if isinstance(value, datetime):
         value = value.date()
     return value.strftime(prefs()["date_format"]) if isinstance(value, date) else str(value)
+
+
+def plain(value) -> str:
+    """A stored number as a form field value, Italian decimal comma, no trailing zeros: Decimal('10.500') → '10,5'."""
+    if value is None or isinstance(value, Undefined):
+        return ""
+    text = format(value, "f")
+    return (text.rstrip("0").rstrip(".") if "." in text else text).replace(".", ",")

@@ -3,7 +3,7 @@ from flask import flash, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required, login_user, logout_user
 
-from app.routes.helpers import safe_next
+from app.routes.helpers import back_to
 from app.services import users
 
 auth_bp = APIBlueprint(
@@ -19,7 +19,7 @@ def login():
     if not users.any_user():
         return redirect(url_for("auth.setup"))
     if current_user.is_authenticated:
-        return redirect(safe_next() or url_for("dashboard.dashboard"))
+        return back_to("dashboard.dashboard")
     if request.method == "POST":
         user = users.authenticate(request.form.get("username", ""), request.form.get("password", ""))
         if user is None:
@@ -27,7 +27,7 @@ def login():
             flash(_("Nome utente o password non corretti."), "error")
             return render_template("auth/login.html", username=request.form.get("username", "")), 401
         login_user(user, remember="remember" in request.form)
-        return redirect(safe_next() or url_for("dashboard.dashboard"))
+        return back_to("dashboard.dashboard")
     return render_template("auth/login.html", username="")
 
 

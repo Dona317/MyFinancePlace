@@ -5,6 +5,7 @@ from flask_login import current_user
 
 from app.extensions import db
 from app.models.user import MIN_PASSWORD, User
+from app.routes.helpers import flash_errors
 from app.routes.settings import settings_bp
 from app.services import users
 
@@ -24,24 +25,20 @@ def account():
 def account_password():
     if not current_user.is_authenticated:
         abort(403)
-    try:
+    with flash_errors():
         users.change_password(current_user, request.form.get("current", ""), request.form.get("password", ""),
                               request.form.get("confirm", ""))
         flash(_("Password cambiata."), "success")
-    except ValueError as exc:
-        flash(str(exc), "error")
     return redirect(url_for("settings.account"))
 
 
 @settings_bp.route("/users/add", methods=["POST"])
 def user_add():
     _admin_only()
-    try:
+    with flash_errors():
         user = users.create(request.form.get("username", ""), request.form.get("password", ""),
                             is_admin="is_admin" in request.form)
         flash(_("Utente «%(name)s» creato: vede gli stessi dati di tutti.", name=user.username), "success")
-    except ValueError as exc:
-        flash(str(exc), "error")
     return redirect(url_for("settings.account"))
 
 
@@ -49,11 +46,9 @@ def user_add():
 def user_reset_password(user_id):
     _admin_only()
     user = db.get_or_404(User, user_id)
-    try:
+    with flash_errors():
         users.reset_password(user, request.form.get("password", ""))
         flash(_("Nuova password impostata per «%(name)s».", name=user.username), "success")
-    except ValueError as exc:
-        flash(str(exc), "error")
     return redirect(url_for("settings.account"))
 
 
@@ -61,9 +56,7 @@ def user_reset_password(user_id):
 def user_delete(user_id):
     _admin_only()
     user = db.get_or_404(User, user_id)
-    try:
+    with flash_errors():
         users.delete(user, current_user)
         flash(_("Utente «%(name)s» eliminato.", name=user.username), "success")
-    except ValueError as exc:
-        flash(str(exc), "error")
     return redirect(url_for("settings.account"))

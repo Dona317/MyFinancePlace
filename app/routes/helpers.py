@@ -1,9 +1,12 @@
 """Small helpers shared by the HTML routes."""
+import csv
+import io
 import re
+from contextlib import contextmanager
 from datetime import date
 from decimal import Decimal
 
-from flask import flash, redirect, request
+from flask import Response, flash, redirect, request, url_for
 
 from app.extensions import db
 from app.services.parsing import MAX_AMOUNT, to_date, to_decimal
@@ -14,6 +17,48 @@ def safe_next() -> str | None:
     """Local path to go back to after an action (never an external URL)."""
     target = request.values.get("next") or ""
     return target if target.startswith("/") and not target.startswith("//") and "\\" not in target else None
+
+
+def back_to(endpoint: str, **values):
+    """Redirect to the page the user came from (`next`), or to `endpoint`."""
+    return redirect(safe_next() or url_for(endpoint, **values))
+
+
+def year_arg(default: int, choices=None) -> int:
+    """`?year=` as a number; `default` when missing, not a year, or (with `choices`) not one of them."""
+    value = request.args.get("year", "")
+    year = int(value) if value.isdigit() and 1900 < int(value) < 3000 else None
+    return year if year is not None and (choices is None or year in choices) else default
+
+
+def uploaded_file():
+    """The file posted as `file`, or None when none was chosen."""
+    upload = request.files.get("file")
+    return upload if upload and upload.filename else None
+
+
+def download(content, filename: str, mimetype: str) -> Response:
+    """`content` as a file to save, named `filename`."""
+    return Response(content, mimetype=mimetype, headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+def csv_text(rows) -> str:
+    """Rows as a CSV that Excel opens right: semicolons, and a BOM so it reads the accents as UTF-8."""
+    buffer = io.StringIO()
+    csv.writer(buffer, delimiter=";").writerows(rows)
+    return "\ufeff" + buffer.getvalue()
+
+
+@contextmanager
+def flash_errors(*kinds: type[Exception], rollback: bool = False):
+    """Show the message of a ValueError (or of `kinds`) as an error instead of failing; the caller then
+    goes on (usually to its redirect)."""
+    try:
+        yield
+    except kinds or (ValueError,) as exc:
+        if rollback:
+            db.session.rollback()
+        flash(str(exc), "error")
 
 
 def form_ids(name: str = "ids") -> set[int]:

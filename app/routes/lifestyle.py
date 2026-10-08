@@ -7,7 +7,7 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.budget import Budget
 from app.models.wealth import Goal
-from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form
+from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form, year_arg
 from app.services import analytics, budgets, categories, display
 from app.services.periods import add_months
 from flask_babel import gettext as _
@@ -23,7 +23,7 @@ lifestyle_bp = APIBlueprint(
 @lifestyle_bp.route("/")
 def index():
     years = analytics.available_years()
-    year = request.args.get("year", type=int) or date.today().year
+    year = year_arg(date.today().year)
     report = analytics.lifestyle_report(year)
     return render_template("lifestyle/index.html", report=report, years=years, year=year)
 

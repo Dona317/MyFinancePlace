@@ -1,7 +1,8 @@
 from datetime import date
-from flask import render_template, redirect, request, url_for
+from flask import render_template, redirect, url_for
 from apiflask import APIBlueprint
 from app.models.transaction import Transaction
+from app.routes.helpers import year_arg
 from app.services.ui_settings import autonomy_target
 from app.services import analytics, budgets, i18n
 
@@ -32,8 +33,7 @@ def dashboard():
     cash_flow = analytics.last_12_months(today)
     # The totals by category, their monthly lines and the running totals: one year (the current one by default)
     years = analytics.available_years()
-    year = request.args.get("year", type=int)
-    year = year if year in years else today.year
+    year = year_arg(today.year, choices=years)
     months = analytics.months_to_show(year, today)
     year_start, year_end = analytics.year_bounds(year)
     recent = (

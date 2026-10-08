@@ -7,7 +7,7 @@ from sqlalchemy import extract
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.wealth import Document
-from app.routes.helpers import form_int, form_text, safe_next
+from app.routes.helpers import back_to, form_int, form_text, safe_next
 from app.services import document_store
 from app.services.categories import known_categories
 from flask_babel import gettext as _, ngettext
@@ -121,7 +121,7 @@ def edit(doc_id):
         document.transaction_id = tx_id if tx_id and db.session.get(Transaction, tx_id) else None
         db.session.commit()
         flash(_("Documento «%(filename)s» aggiornato.", filename=document.filename), "success")
-        return redirect(safe_next() or url_for("documents.index"))
+        return back_to("documents.index")
     return render_template(
         "documents/form.html",
         document=document,

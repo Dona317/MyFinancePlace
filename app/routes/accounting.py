@@ -3,7 +3,7 @@ from datetime import date
 from flask import flash, redirect, render_template, request, url_for
 from apiflask import APIBlueprint
 
-from app.routes.helpers import form_decimal
+from app.routes.helpers import form_decimal, year_arg
 from app.services import analytics, settings_store, wealth
 from app.services.parsing import to_date
 from flask_babel import gettext as _
@@ -59,7 +59,7 @@ def opening_cash():
 @accounting_bp.route("/income-statement")
 def income_statement():
     years = analytics.available_years()
-    year = request.args.get("year", type=int) or date.today().year
+    year = year_arg(date.today().year)
     report = analytics.income_statement(year)
     return render_template("accounting/income_statement.html", report=report, years=years, year=year)
 
@@ -67,6 +67,6 @@ def income_statement():
 @accounting_bp.route("/cash-flow")
 def cash_flow():
     years = analytics.available_years()
-    year = request.args.get("year", type=int) or date.today().year
+    year = year_arg(date.today().year)
     report = analytics.cash_flow(year)
     return render_template("accounting/cash_flow.html", report=report, years=years, year=year)

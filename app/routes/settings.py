@@ -8,7 +8,7 @@ from apiflask import APIBlueprint
 from app.extensions import db
 from app.models.category import Category, CategoryRule
 from app.models.currency import ExchangeRate
-from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text
+from app.routes.helpers import delete_and_redirect, flash_errors, form_choice, form_date, form_decimal, form_text
 from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, display, settings_store
 from app.services.bank_import import CATEGORY_RULES
 # The interface choices live in a service (services read them too); re-exported for this page and older imports
@@ -299,11 +299,9 @@ def ai_delete():
     if not _valid_model_name(name):
         flash(_("Nome del modello non valido."), "error")
         return redirect(url_for("settings.ai_models_page"))
-    try:
+    with flash_errors(ai_models.OllamaError):
         ai_models.delete(ai_extraction.base_url(), name)
         flash(_("Modello %(name)s rimosso.", name=name), "success")
-    except ai_models.OllamaError as exc:
-        flash(str(exc), "error")
     return redirect(url_for("settings.ai_models_page"))
 
 

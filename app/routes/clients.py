@@ -1,9 +1,10 @@
 """Clienti (F11): the archives this studio keeps, one per client; open one, add, rename, export, delete."""
-from flask import Blueprint, Response, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.client import Client
+from app.routes.helpers import download, flash_errors
 from app.services import studio
 
 clients_bp = Blueprint("clients", __name__, url_prefix="/clients")
@@ -48,12 +49,10 @@ def edit(client_id):
     if client is studio.current() and "archived" in request.form:
         flash(_("Non puoi archiviare il cliente aperto: aprine prima un altro."), "error")
         return redirect(url_for("clients.index"))
-    try:
+    with flash_errors(studio.StudioError):
         studio.update(client, request.form.get("name", ""), request.form.get("color"), request.form.get("notes"),
                       "archived" in request.form)
         flash(_("Cliente «%(name)s» aggiornato.", name=client.name), "success")
-    except studio.StudioError as exc:
-        flash(str(exc), "error")
     return redirect(url_for("clients.index"))
 
 
@@ -62,7 +61,7 @@ def backup(client_id):
     client = _client(client_id)
     archive = studio.backup(client)
     name = f"myfinanceplace_{client.slug}.zip"
-    return Response(archive, mimetype="application/zip", headers={"Content-Disposition": f'attachment; filename="{name}"'})
+    return download(archive, name, "application/zip")
 
 
 @clients_bp.route("/<int:client_id>/delete", methods=["POST"])
