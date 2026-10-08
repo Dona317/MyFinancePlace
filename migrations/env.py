@@ -11,9 +11,9 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-# Upgrading a client's database from inside the app (services/studio.py) passes the connection and must not
-# reconfigure the app's logging.
-if config.attributes.get("connection") is None:
+# From inside the app (a client's database, services/studio.py; the desktop launcher) the app's logging is
+# already set up: alembic.ini must not replace it.
+if config.attributes.get("connection") is None and not logging.getLogger().handlers:
     fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 

@@ -332,3 +332,7 @@ python scripts/translations.py compile   # rebuild messages.mo (committed; a tes
 ## License
 
 Proprietary — all rights reserved. See [LICENSE](LICENSE).
+
+## Desktop app
+
+A desktop build (window + its own PostgreSQL) for Windows, macOS and Linux: see [docs/DESKTOP.md](docs/DESKTOP.md).

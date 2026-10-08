@@ -88,7 +88,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 |---|---|---|---|---|---|
 | F11 | A | L | ✅ | **Studio: più clienti, un archivio per cliente** | Un database «studio» (utenti, elenco clienti) + un database PostgreSQL per cliente, con i suoi documenti e backup; cliente attivo scelto dopo l'accesso e sempre visibile in alto; nuovo / apri / esporta / elimina (con backup prima). I clienti non accedono. Il database di oggi diventa il primo cliente |
 | F12 | — | — | ❌ | PWA installabile sul telefono | Scartata con D3 = desktop |
-| F16 | A | L | ⬜ | **Eseguibile desktop** (D3) | Finestra nativa (pywebview) sul server locale, PyInstaller per Windows/macOS/Linux; il nodo è il database: PostgreSQL incorporato (binari portabili avviati dall'app) **oppure** passaggio a SQLite (da togliere gli `ARRAY`/funzioni solo Postgres). Login facoltativo, dati e documenti nella cartella utente, aggiornamenti |
+| F16 | A | L | ✅ | **Eseguibile desktop** (D3, D7) | Finestra pywebview sul server locale (waitress), PostgreSQL 16 portabile incluso e avviato dall'app, dati nella cartella utente, migrazioni all'avvio, login con password. Build Windows/macOS/Linux su GitHub Actions con prova di avvio. Vedi [DESKTOP](DESKTOP.md). Da fare poi: icona, firma del codice, installer, aggiornamento automatico |
 | F13 | B | M | ✅ | Inserimento rapido da tastiera, annulla/ripeti | Transazioni: riga d'inserimento rapido («n» per andarci, Invio per salvare; categoria e controparte indovinate); barra Annulla/Ripeti (Ctrl+Z / Ctrl+Y) per l'ultima aggiunta o eliminazione, anche multipla, per 30 minuti |
 | F14 | B | M | ⬜ | Notifiche email (scadenze, budget superati) | Serve SMTP configurabile |
 | F15 | A | L | ⬜ | **Fisco italiano completo** (D5) | A sotto-passi: spese detraibili/deducibili per il 730; plus/minusvalenze del portafoglio (costo medio, commissioni F17); compensazione delle minusvalenze nei 4 anni; regime amministrato vs dichiarativo (quadro RT); imposta di bollo titoli e conti; IVAFE per l'estero; riepilogo annuo esportabile per il commercialista. Aliquote e soglie in tabella per anno |
@@ -124,7 +124,7 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 ## 6. Proposta di ordine (aggiornata l'8 ott 2026)
 
 1. ✅ **F11** studio con più clienti (pagina Clienti, `flask clients list|create|migrate`).
-2. **F16** eseguibile desktop con PostgreSQL incorporato.
+2. ✅ **F16** eseguibile desktop con PostgreSQL incorporato ([DESKTOP](DESKTOP.md)).
 3. **F15** fisco completo, a sotto-passi.
 4. F10c (heatmap a calendario, analisi per tag), F14.
 5. D1 (unire su `main`) a novembre 2026.

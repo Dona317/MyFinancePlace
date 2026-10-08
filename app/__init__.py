@@ -6,6 +6,7 @@ from flask_babel import gettext as _
 from flask import jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from jinja2 import Undefined
+from sqlalchemy import text
 from config import config
 from .routes.settings import current_language, current_settings, module_setting
 from .extensions import babel, db, login_manager, migrate
@@ -16,7 +17,8 @@ def create_app(config_name="default"):
         __name__,
         title='MyFinancePlace | API',
         version='1.0.0',
-        docs_path='/swagger'
+        docs_path='/swagger',
+        instance_path=os.environ.get("MFP_INSTANCE_PATH") or None,  # the desktop app keeps it in the user's data folder
     )
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)  # production: SECRET_KEY check, ProxyFix, logging to stdout
@@ -30,7 +32,8 @@ def create_app(config_name="default"):
     app.request_class = UnlimitedRequest
 
     db.init_app(app)
-    migrate.init_app(app, db)
+    # Absolute: the desktop app runs from anywhere, with the migrations bundled next to the app package
+    migrate.init_app(app, db, directory=os.path.join(os.path.dirname(app.root_path), "migrations"))
     # Interface language (Settings → Visualizzazione): Italian is the source, English the translation
     app.config.setdefault("BABEL_DEFAULT_LOCALE", "it")
     babel.init_app(app, locale_selector=current_language)
@@ -190,7 +193,18 @@ def create_app(config_name="default"):
     def load_user(user_id):
         return db.session.get(User, int(user_id)) if str(user_id).isdigit() else None
 
-    public_endpoints = {"static", "auth.login", "auth.setup"}
+    public_endpoints = {"static", "auth.login", "auth.setup", "health"}
+
+    @app.get("/health")
+    @app.doc(hide=True)
+    def health():
+        """For the desktop launcher and monitoring: the app answers and reaches its database."""
+        try:
+            db.session.execute(text("SELECT 1"))
+            return {"ok": True}
+        except Exception:  # noqa: BLE001 - reported, not raised
+            db.session.rollback()
+            return {"ok": False}, 503
 
     # ── The client being worked on (F11): its database for the whole request; first of all the hooks ──
     from .services import studio

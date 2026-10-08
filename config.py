@@ -98,9 +98,20 @@ class TestingConfig(Config):
     LOGIN_DISABLED = True  # the pages are tested without signing in; tests/test_auth.py turns it back on
 
 
+class DesktopConfig(Config):
+    """The desktop app (desktop/main.py): local server on 127.0.0.1, its own PostgreSQL, data in the user's folder.
+    SECRET_KEY and DATABASE_URL are set by the launcher. Sign-in stays on: the first start asks for the password."""
+    DEBUG = False
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_DURATION = timedelta(days=90)
+
+
 config = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
     "testing": TestingConfig,
+    "desktop": DesktopConfig,
     "default": DevelopmentConfig,
 }
