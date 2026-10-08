@@ -418,6 +418,44 @@ def nature_split(start: date, end: date) -> dict:
                       for key, label in categories.NATURES.items()]}
 
 
+STABILITY_LABELS = {"stable": N_("Stabile"), "variable": N_("Variabile"), "occasional": N_("Occasionale")}
+
+
+def income_stability(today: date | None = None) -> dict:
+    """
+    How reliable each source of income is (F10b), over the last 12 complete months: in how many months it came,
+    its monthly average when it came, how much it varies (coefficient of variation) and its share of the income.
+    Stable: at least 10 months and within ±15%; variable: at least 6 months; occasional: the rest.
+    """
+    today = today or date.today()
+    end = date(today.year, today.month, 1)
+    start = date(*shift_month(end.year, end.month, -12), 1)
+    month = func.date_trunc("month", Transaction.date)
+    rows = (lines_query(month, LINE_CATEGORY, func.sum(LINE_VALUE))
+            .filter(Transaction.type == "income", Transaction.date >= start, Transaction.date < end)
+            .group_by(month, LINE_CATEGORY).all())
+    by_source: dict[str, dict] = {}
+    for day, category, amount in rows:
+        months = by_source.setdefault(categories.top(category) or UNCATEGORIZED, {})
+        key = (day.year, day.month)
+        months[key] = months.get(key, 0.0) + float(amount or 0)
+    total = sum(sum(m.values()) for m in by_source.values())
+    sources = []
+    for name, months in by_source.items():
+        values = list(months.values())
+        average = sum(values) / len(values)
+        spread = (sum((v - average) ** 2 for v in values) / len(values)) ** 0.5 / average if average else 0.0
+        kind = "stable" if len(values) >= 10 and spread <= 0.15 else "variable" if len(values) >= 6 else "occasional"
+        sources.append({"name": name, "months": len(values), "average": round(average, 2), "total": round(sum(values), 2),
+                        "variation": round(spread * 100, 1), "share": round(sum(values) / total * 100, 1) if total else 0.0,
+                        "kind": kind, "label": STABILITY_LABELS[kind]})
+    sources.sort(key=lambda s: s["total"], reverse=True)
+    stable = sum(s["total"] for s in sources if s["kind"] == "stable")
+    return {"sources": sources, "total": round(total, 2), "monthly": round(total / 12, 2),
+            "stable_share": round(stable / total * 100, 1) if total else None,
+            "start": start, "end": end}
+
+
 def lifestyle_report(year: int, today: date | None = None) -> dict:
     today = today or date.today()
     start, end = year_bounds(year)

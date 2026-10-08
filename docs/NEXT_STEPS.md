@@ -93,6 +93,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Budget rollover and set-asides** (F7, migration `c3e5a7b9d1f2`): «Riporta» on an every-month budget carries what
   is left (or overspent) to the next month from the month it was switched on (`budgets.carried`); «Da accantonare»
   lists the not-monthly categories (F8) with 1/12 of their last 12 months, and budgets that quota with rollover
+- **Income stability** (F10b, `analytics.income_stability`, Previsioni panel): each income source over the last 12
+  complete months — months present, average, coefficient of variation, share — as stable (≥ 10 months, ±15%),
+  variable (≥ 6 months) or occasional, with the share of income from stable sources
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

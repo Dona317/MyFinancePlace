@@ -105,6 +105,7 @@ WIDGETS = {  # id: (title, default span: 1 = half row, 2 = whole row)
     "categories": (_l("Previsione per categoria"), 1),
     "upcoming":   (_l("Prossime ricorrenti"), 1),
     "candidates": (_l("Sembrano ricorrenti"), 1),
+    "stability":  (_l("Stabilità delle entrate"), 1),
     "help":       (_l("Come funziona"), 1),
 }
 

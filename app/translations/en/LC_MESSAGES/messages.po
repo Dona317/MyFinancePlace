@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-07 21:54+0000\n"
+"POT-Creation-Date: 2026-10-08 04:33+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -321,6 +321,10 @@ msgstr "%(pct)s%% compared with the previous period (%(amount)s)"
 #, python-format
 msgid "%(pct)s%% sul capitale"
 msgstr "%(pct)s%% on capital"
+
+#, python-format
+msgid "%(share)s%% delle entrate degli ultimi 12 mesi viene da fonti stabili"
+msgstr "%(share)s%% of the income of the last 12 months comes from stable sources"
 
 #, python-format
 msgid "%(shown)s di %(total)s"
@@ -2766,6 +2770,9 @@ msgstr "Last month"
 msgid "Mese successivo"
 msgstr "Next month"
 
+msgid "Mesi"
+msgstr "Months"
+
 msgid "Mesi di autonomia"
 msgstr "Months of autonomy"
 
@@ -3000,6 +3007,9 @@ msgstr "No income"
 
 msgid "Nessuna entrata in questo periodo."
 msgstr "No income in this period."
+
+msgid "Nessuna entrata negli ultimi 12 mesi completi."
+msgstr "No income in the last 12 complete months."
 
 #, python-format
 msgid "Nessuna entrata o uscita nel %(year)s."
@@ -3281,6 +3291,9 @@ msgstr "Goal «%(name)s» overdue"
 #, python-format
 msgid "Obiettivo «%(name)s» tra %(days)s giorni"
 msgstr "Goal «%(name)s» in %(days)s days"
+
+msgid "Occasionale"
+msgstr "Occasional"
 
 msgid "Oggi"
 msgstr "Today"
@@ -3706,6 +3719,9 @@ msgstr "How many months of spending your liquid money should cover (usually 3 to
 msgid "Quantità"
 msgstr "Quantity"
 
+msgid "Quanto cambia da un mese all’altro (coefficiente di variazione)"
+msgstr "How much it changes from one month to the next (coefficient of variation)"
+
 msgid "Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata."
 msgstr "How much of each month's income is left. Choose the years to compare: the choice is remembered."
 
@@ -3730,6 +3746,9 @@ msgid ""
 msgstr ""
 "Here you find expiring policies, recurring expenses and installments of the next 7 days, budgets almost used up and "
 "goals behind schedule."
+
+msgid "Quota"
+msgstr "Share"
 
 msgid "RAM"
 msgstr "RAM"
@@ -4317,6 +4336,12 @@ msgstr "Move down"
 msgid "Sposta prima"
 msgstr "Move up"
 
+msgid "Stabile"
+msgstr "Stable"
+
+msgid "Stabilità delle entrate"
+msgstr "Income stability"
+
 msgid "Stagionale"
 msgstr "Seasonal"
 
@@ -4697,6 +4722,9 @@ msgstr "Last digits of IBAN or card"
 
 msgid "Ultimi 12 mesi"
 msgstr "Last 12 months"
+
+msgid "Ultimi 12 mesi completi"
+msgstr "Last 12 complete months"
 
 msgid "Ultimi 3 mesi"
 msgstr "Last 3 months"

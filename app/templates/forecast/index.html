@@ -314,6 +314,35 @@
         </table>
       </div>
     </div>
+  {% elif w.id == 'stability' %}
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-header-title">{{ _('Stabilità delle entrate') }}</div>
+          <div class="card-header-sub">{% if stability.stable_share is not none %}{{ _('%(share)s%% delle entrate degli ultimi 12 mesi viene da fonti stabili', share=stability.stable_share|number(0)) }}{% else %}{{ _('Ultimi 12 mesi completi') }}{% endif %}</div>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="table-compact">
+          <thead><tr><th>{{ _('Fonte') }}</th><th class="text-right">{{ _('Mesi') }}</th><th class="text-right">{{ _('Media') }}</th>
+              <th class="text-right col-optional" title="{{ _('Quanto cambia da un mese all’altro (coefficiente di variazione)') }}">{{ _('Variazione') }}</th><th class="text-right">{{ _('Quota') }}</th><th>{{ _('Tipo') }}</th></tr></thead>
+          <tbody>
+            {% for s in stability.sources %}
+            <tr>
+              <td>{{ s.name|tr }}</td>
+              <td class="text-right">{{ s.months }}/12</td>
+              <td class="amount text-right nowrap">{{ s.average|money }}</td>
+              <td class="text-right col-optional">±{{ s.variation|number(0) }}%</td>
+              <td class="text-right">{{ s.share|number(0) }}%</td>
+              <td><span class="badge {{ 'badge-positive' if s.kind == 'stable' else 'badge-warning' if s.kind == 'variable' else 'badge-muted' }}">{{ s.label|tr }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td class="text-muted" colspan="6">{{ _('Nessuna entrata negli ultimi 12 mesi completi.') }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   {% elif w.id == 'help' %}
     <div class="card">
       <div class="card-header"><div class="card-header-title">{{ _('Come funziona') }}</div></div>

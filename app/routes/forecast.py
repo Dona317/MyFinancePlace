@@ -5,7 +5,7 @@ from flask import flash, jsonify, redirect, render_template, request, url_for
 
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.services import forecast
+from app.services import analytics, forecast
 from flask_babel import gettext as _
 
 forecast_bp = APIBlueprint(
@@ -22,11 +22,12 @@ def index():
     prefs = forecast.preferences(request.args.get("method"), request.args.get("window"), request.args.get("horizon"),
                                  request.args.get("recurring"))
     result = forecast.load(**prefs, today=date.today())
+    stability = analytics.income_stability(date.today())
     return render_template(
         "forecast/index.html",
         fc=result, prefs=prefs, methods=forecast.METHODS, frequencies=forecast.FREQUENCIES,
         recurring_amounts=forecast.RECURRING_AMOUNTS, layout=forecast.layout(), widgets=forecast.WIDGETS,
-        window_range=forecast.WINDOW_RANGE, horizon_range=forecast.HORIZON_RANGE,
+        window_range=forecast.WINDOW_RANGE, horizon_range=forecast.HORIZON_RANGE, stability=stability,
     )
 
 
