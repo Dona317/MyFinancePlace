@@ -47,6 +47,17 @@ class Holding(db.Model):
         return self.gain / self.cost * 100 if self.cost else 0.0
 
 
+class HoldingPrice(db.Model):
+    """The price of a holding on a date (F5): past balance sheets value the holding at the latest one known by then."""
+    __tablename__ = "holding_prices"
+    __table_args__ = (db.UniqueConstraint("holding_id", "on"),)
+
+    id         = db.Column(db.Integer, primary_key=True)
+    holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="CASCADE"), nullable=False, index=True)
+    on         = db.Column(db.Date, nullable=False)
+    price      = db.Column(db.Numeric(38, 6), nullable=False)
+
+
 class Debt(db.Model):
     """A mortgage, loan or credit card, repaid with constant monthly installments (French amortization)."""
     __tablename__ = "debts"

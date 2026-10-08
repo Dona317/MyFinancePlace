@@ -4,7 +4,7 @@ from flask import flash, redirect, render_template, request, url_for
 from apiflask import APIBlueprint
 
 from app.extensions import db
-from app.models.wealth import Holding, Snapshot
+from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from app.services import wealth
 from flask_babel import gettext as _
@@ -24,7 +24,9 @@ def _holding_from_form(holding: Holding) -> Holding:
     holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
     holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
     price = form_decimal("current_price", _("Prezzo attuale"))
-    if price != holding.current_price:
+    if price is not None and price != holding.current_price and holding.id is not None:
+        wealth.record_price(holding, price)  # a new price of an existing holding goes into its history
+    elif price != holding.current_price:
         holding.price_date = date.today() if price is not None else None
     holding.current_price = price
     holding.purchase_date = form_date("purchase_date", _("Data di acquisto"))
@@ -78,20 +80,62 @@ def prices():
     if request.method == "POST":
         changed = 0
         try:
+            on = form_date("on", _("Data dei prezzi")) or date.today()
+            if on > date.today():
+                raise ValueError(_("La data dei prezzi non può essere nel futuro."))
             for holding in holdings:
                 price = form_decimal(f"price-{holding.id}", _("Prezzo di %(name)s", name=holding.name))
-                if price is not None and price != holding.current_price:
-                    holding.current_price = price
-                    holding.price_date = date.today()
+                if price is not None and price > 0:
+                    wealth.record_price(holding, price, on)
                     changed += 1
         except ValueError as exc:
             db.session.rollback()
             flash(str(exc), "error")
-            return render_template("portfolio/prices.html", holdings=holdings, values=request.form)
+            return render_template("portfolio/prices.html", holdings=holdings, values=request.form, today=date.today())
         db.session.commit()
         flash(_("Prezzi aggiornati: %(changed)s.", changed=changed) if changed else _("Nessun prezzo cambiato."), "success")
         return redirect(url_for("portfolio.index"))
-    return render_template("portfolio/prices.html", holdings=holdings, values={})
+    return render_template("portfolio/prices.html", holdings=holdings, values={}, today=date.today())
+
+
+@portfolio_bp.route("/<int:holding_id>/history", methods=["GET", "POST"])
+def history(holding_id):
+    """The holding's price history: add one price, or paste many lines «date;price»."""
+    holding = db.get_or_404(Holding, holding_id)
+    if request.method == "POST":
+        try:
+            if request.form.get("lines", "").strip():
+                points, unread = wealth.parse_prices(request.form["lines"])
+            else:
+                when = form_date("on", _("Data"), required=True)
+                price = form_decimal("price", _("Prezzo"), required=True)
+                if price <= 0:
+                    raise ValueError(_("Il prezzo deve essere maggiore di zero."))
+                points, unread = [(when, price)], []
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return redirect(url_for("portfolio.history", holding_id=holding.id))
+        for when, price in points:
+            wealth.record_price(holding, price, when)
+        db.session.commit()
+        if points:
+            flash(_("Prezzi salvati: %(count)s.", count=len(points)), "success")
+        if unread:
+            flash(_("Righe non lette: %(lines)s", lines=" · ".join(unread[:5])), "warning")
+        return redirect(url_for("portfolio.history", holding_id=holding.id))
+    points = wealth.price_history(holding)
+    return render_template("portfolio/history.html", holding=holding, points=points,
+                           chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})
+
+
+@portfolio_bp.route("/prices/<int:point_id>/delete", methods=["POST"])
+def delete_price(point_id):
+    point = db.get_or_404(HoldingPrice, point_id)
+    holding_id = point.holding_id
+    wealth.remove_price(point)
+    db.session.commit()
+    flash(_("Prezzo eliminato."), "success")
+    return redirect(url_for("portfolio.history", holding_id=holding_id))
 
 
 @portfolio_bp.route("/<int:holding_id>/delete", methods=["POST"])

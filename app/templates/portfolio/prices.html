@@ -13,6 +13,13 @@
   </div>
   {% if holdings %}
   <form method="POST">
+    <div class="card-body" style="padding-bottom:0;">
+      <div class="form-group" style="max-width:220px;">
+        <label class="form-label" for="prices-on">{{ _('Data dei prezzi') }}</label>
+        <input type="date" id="prices-on" name="on" class="form-control" value="{{ values.get('on') or today.isoformat() }}" max="{{ today.isoformat() }}" />
+        <div class="form-hint">{{ _('Una data passata aggiunge i prezzi allo storico senza cambiare quelli più recenti.') }}</div>
+      </div>
+    </div>
     <div class="table-wrapper">
       <table>
         <thead>

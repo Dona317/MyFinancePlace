@@ -13,8 +13,8 @@ Accounts and how they are linked (every link is a «giroconto», a transfer betw
 Investments are trades linked to their holding (transfers, cash flow «investing»): the ETF plan, a BTP bought with
 money from the savings account and its coupons, Enel shares with dividends and half of them sold at a gain, Bitcoin
 bought twice from the current account, monthly pension fund contributions; each holding's quantity and average price
-are computed from its trades. Six insurance policies (one expiring within the reminder window, one ended) with their
-premiums among the movements; three debts (one interest-free loan already repaid); a few PDF documents, one linked to
+are computed from its trades, and a price history (monthly for the ETF, quarterly for the others) values the past.
+Six insurance policies (one expiring within the reminder window, one ended) with their premiums among the movements; three debts (one interest-free loan already repaid); a few PDF documents, one linked to
 its payment; quarterly snapshots.
 
 The data also has: salary raises, a yearly bonus and the «tredicesima»; seasonal bills; yearly costs (car insurance,
@@ -46,7 +46,7 @@ from app.models.account import Account  # noqa: E402
 from app.models.budget import Budget  # noqa: E402
 from app.models.currency import ExchangeRate  # noqa: E402
 from app.models.transaction import Transaction, TransactionSplit  # noqa: E402
-from app.models.wealth import Debt, Document, Goal, Holding, InsurancePolicy  # noqa: E402
+from app.models.wealth import Debt, Document, Goal, Holding, HoldingPrice, InsurancePolicy  # noqa: E402
 from app.services import backup, categories, document_store, settings_store, transfer, wealth  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
@@ -329,6 +329,32 @@ def investments(first: date, today: date, add) -> None:
           counterparty="Young Platform")
 
 
+def price_points(holdings: dict, first: date, before: date) -> list[HoldingPrice]:
+    """The price history (F5): the ETF at the end of every month (the plan's price path), the bond, the shares
+    and the crypto at a few dates; the last point of each is the holding's current price."""
+    points = []
+
+    def add(key, day, price):
+        if day < before:
+            points.append(HoldingPrice(holding_id=holdings[key].id, on=day, price=Decimal(str(price))))
+
+    k, day = 0, first
+    while day < before:
+        month_end = date(day.year + (day.month == 12), day.month % 12 + 1, 1) - timedelta(days=1)
+        add("vwce", month_end, vwce_price(k))
+        if k % 3 == 2:  # every quarter
+            add("btp", month_end, round(99.5 + 0.06 * k, 2))
+            add("enel", month_end, round(6.0 + 0.04 * k + (0.3 if k % 6 == 5 else 0), 2))
+            add("btc", month_end, round(40000 + 1500 * k + (8000 if k % 6 == 2 else -5000), 0))
+        k, day = k + 1, date(day.year + (day.month == 12), day.month % 12 + 1, 1)
+    for key in ("vwce", "btp", "enel", "btc", "casa"):  # today's price closes each series
+        add(key, before - timedelta(days=1), holdings[key].current_price)
+    unique = {}
+    for point in points:  # one price a day: the last one written wins
+        unique[(point.holding_id, point.on)] = point
+    return list(unique.values())
+
+
 def portfolio(moves: list[Move], before: date) -> dict[str, dict]:
     """Quantity and average purchase price of each holding from its trades before `before`."""
     result = {}
@@ -393,6 +419,7 @@ def fill(today: date) -> dict:
     db.session.add_all(ExchangeRate(currency=code, on=start, rate=rate) for code, rate in RATES.items()
                        for start in months(date(today.year - YEARS, today.month, 1), today))
     db.session.flush()
+    db.session.add_all(price_points(holdings, date(today.year - YEARS, today.month, 1), cutoff))
 
     rows = []
     for mv in (mv for mv in moves if mv.date < cutoff):

@@ -96,6 +96,9 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 - **Income stability** (F10b, `analytics.income_stability`, Previsioni panel): each income source over the last 12
   complete months — months present, average, coefficient of variation, share — as stable (≥ 10 months, ±15%),
   variable (≥ 6 months) or occasional, with the share of income from stable sources
+- **Price history of the holdings** (F5, migration `d4f6b8c0e2a3`, `holding_prices`): Portafoglio → Storico prezzi
+  (one price or pasted «date;price» lines, chart, delete), «Aggiorna prezzi» on a chosen date; balance sheets, the
+  net worth trend and snapshots value each holding at the latest price known on that date (`wealth.prices_on`)
 - **Merchant from the causale** (`services/merchant.py`): counterparty and first tag on import, "Compila
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of

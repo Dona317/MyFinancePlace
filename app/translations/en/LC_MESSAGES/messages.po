@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 04:33+0000\n"
+"POT-Creation-Date: 2026-10-08 04:57+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -582,6 +582,9 @@ msgid ""
 msgstr ""
 "Add mortgages, loans and credit cards: the app works out the installment, the amortization plan and the remaining "
 "debt, and subtracts them from your net worth."
+
+msgid "Aggiungi prezzi"
+msgstr "Add prices"
 
 msgid "Aggiungi riga"
 msgstr "Add row"
@@ -1451,6 +1454,9 @@ msgstr "From when it counts in the balance sheet of past months."
 msgid "Da tutte le istantanee"
 msgstr "From all snapshots"
 
+msgid "Da un foglio di calcolo o dal CSV del broker: una riga per data, separata da «;», tab o spazio."
+msgstr "From a spreadsheet or the broker's CSV: one line per date, separated by «;», a tab or a space."
+
 msgid "Dai risparmi"
 msgstr "From savings"
 
@@ -1483,6 +1489,9 @@ msgstr "Date (newest first)"
 
 msgid "Data d'acquisto"
 msgstr "Purchase date"
+
+msgid "Data dei prezzi"
+msgstr "Date of the prices"
 
 msgid "Data dell'estratto"
 msgstr "Statement date"
@@ -1655,6 +1664,10 @@ msgstr "Delete the account «%(name)s»? Its transactions remain, without an acc
 #, python-format
 msgid "Eliminare il debito «%(name)s»?"
 msgstr "Delete the debt «%(name)s»?"
+
+#, python-format
+msgid "Eliminare il prezzo del %(day)s?"
+msgstr "Delete the price of %(day)s?"
 
 #, python-format
 msgid "Eliminare l’utente «%(name)s»? I dati restano."
@@ -2027,6 +2040,9 @@ msgstr "Already expired"
 msgid "Già visti (%(count)s)"
 msgstr "Already seen (%(count)s)"
 
+msgid "Gli stati patrimoniali e l’andamento del patrimonio valutano la posizione all’ultimo prezzo noto a quella data."
+msgstr "Balance sheets and the net worth trend value the holding at the latest price known on that date."
+
 msgid "Grafico Entrate per Categoria"
 msgstr "Income by Category Chart"
 
@@ -2214,6 +2230,9 @@ msgstr "The most accurate on income"
 msgid "Il più preciso sulle uscite"
 msgstr "The most accurate on expenses"
 
+msgid "Il prezzo deve essere maggiore di zero."
+msgstr "The price must be greater than zero."
+
 msgid "Il residuo di mutui, prestiti e carte secondo il piano di ammortamento (o il saldo che hai inserito)."
 msgstr "What is left on mortgages, loans and cards according to the amortization plan (or the balance you entered)."
 
@@ -2258,6 +2277,9 @@ msgstr "Import Transactions"
 
 msgid "Importa estratto conto"
 msgstr "Import bank statement"
+
+msgid "Importa le righe"
+msgstr "Import the lines"
 
 msgid "Importa un estratto conto o inserisci le transazioni di almeno un mese completo."
 msgstr "Import a bank statement or enter the transactions of at least one full month."
@@ -2489,6 +2511,9 @@ msgstr "The Anthropic API key has no access to this model (LLM_MODEL)."
 
 msgid "La classificazione AI non è configurata: scegli un modello in Impostazioni → Modelli AI."
 msgstr "AI classification is not set up: choose a model in Settings → AI Models."
+
+msgid "La data dei prezzi non può essere nel futuro."
+msgstr "The date of the prices cannot be in the future."
 
 #, python-format
 msgid "La finestra ne usa quindi solo %(n)s."
@@ -2987,6 +3012,9 @@ msgstr "No possible duplicates"
 msgid "Nessun prezzo cambiato."
 msgstr "No price changed."
 
+msgid "Nessun prezzo registrato: finché non ne aggiungi, il passato usa il prezzo attuale."
+msgstr "No price recorded: until you add some, the past uses the current price."
+
 msgid "Nessun promemoria"
 msgstr "No reminders"
 
@@ -3343,6 +3371,9 @@ msgstr "More than 20%% above the average"
 msgid "Oltre l'importo: {amount}"
 msgstr "Over the amount: {amount}"
 
+msgid "Oppure incolla più righe «data;prezzo»"
+msgstr "Or paste several «date;price» lines"
+
 msgid "Ordina"
 msgstr "Sort"
 
@@ -3630,6 +3661,20 @@ msgstr "Prices updated: %(changed)s."
 msgid "Prezzi attuali"
 msgstr "Current prices"
 
+#, python-format
+msgid "Prezzi registrati (%(count)s)"
+msgstr "Recorded prices (%(count)s)"
+
+#, python-format
+msgid "Prezzi salvati: %(count)s."
+msgstr "Prices saved: %(count)s."
+
+msgid "Prezzo"
+msgstr "Price"
+
+msgid "Prezzo (€)"
+msgstr "Price (€)"
+
 msgid "Prezzo Attuale"
 msgstr "Current Price"
 
@@ -3645,6 +3690,9 @@ msgstr "Current price (€)"
 #, python-format
 msgid "Prezzo di %(name)s"
 msgstr "Price of %(name)s"
+
+msgid "Prezzo eliminato."
+msgstr "Price deleted."
 
 msgid "Prezzo medio d'acquisto (€)"
 msgstr "Average purchase price (€)"
@@ -3931,6 +3979,10 @@ msgstr "Row %(line)s: description missing"
 #, python-format
 msgid "Riga %(line)s: importo mancante o non valido"
 msgstr "Row %(line)s: amount missing or not valid"
+
+#, python-format
+msgid "Righe non lette: %(lines)s"
+msgstr "Lines not read: %(lines)s"
 
 #, python-format
 msgid "Righe non salvate perché incomplete o non valide: %(value)s."
@@ -4248,6 +4300,9 @@ msgstr "At least one more snapshot is needed to draw the trend."
 msgid "Servono almeno 3 mesi completi di spese per la media."
 msgstr "At least 3 complete months of spending are needed for the average."
 
+msgid "Servono almeno due prezzi per il grafico: aggiungili qui sotto."
+msgstr "At least two prices are needed for the chart: add them below."
+
 msgid "Servono dei movimenti per fare una previsione"
 msgstr "Some movements are needed to make a forecast"
 
@@ -4388,6 +4443,13 @@ msgstr "History available: %(n)s full months."
 
 msgid "Storico insufficiente: usa la media mobile"
 msgstr "Not enough history: use the moving average"
+
+msgid "Storico prezzi"
+msgstr "Price history"
+
+#, python-format
+msgid "Storico prezzi di %(name)s"
+msgstr "Price history of %(name)s"
 
 msgid "Strumenti"
 msgstr "Tools"
@@ -4760,6 +4822,9 @@ msgstr ""
 msgid "Una categoria non può essere sottocategoria di sé stessa."
 msgstr "A category cannot be a subcategory of itself."
 
+msgid "Una data passata aggiunge i prezzi allo storico senza cambiare quelli più recenti."
+msgstr "A past date adds the prices to the history without changing the newer ones."
+
 msgid "Una sola categoria"
 msgstr "One category only"
 
@@ -4858,6 +4923,9 @@ msgstr "Total Value"
 
 msgid "Valore centrale degli ultimi N mesi: ignora i mesi eccezionali (una spesa una tantum)."
 msgstr "Middle value of the last N months: ignores exceptional months (a one-off expense)."
+
+msgid "Valore con la quantità attuale"
+msgstr "Value at the current quantity"
 
 msgid "Valore totale del portafoglio investimenti"
 msgstr "Total value of the investment portfolio"
@@ -5245,6 +5313,9 @@ msgstr "for a missing or misread movement"
 
 msgid "più preciso"
 msgstr "most accurate"
+
+msgid "prezzo attuale"
+msgstr "current price"
 
 msgid "prezzo di acquisto"
 msgstr "purchase price"

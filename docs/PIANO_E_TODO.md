@@ -66,7 +66,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 | ID | Pri | Sforzo | Stato | Funzione | Note |
 |---|---|---|---|---|---|
 | F4 | A | M | ⬜ | **Prova con estratti conto reali anonimizzati** (8 banche) | Campioni oggi generati; PDF a maggior rischio. Serve che tu fornisca i file |
-| F5 | M | M | ⬜ | **Storico prezzi investimenti** (+ prezzi automatici ETF/cripto) | Oggi gli stati patrimoniali passati usano l'ultimo prezzo |
+| F5 | M | M | ✅ | **Storico prezzi investimenti** (+ prezzi automatici ETF/cripto) | `holding_prices`: Portafoglio → Storico prezzi (uno o più prezzi incollati, grafico), «Aggiorna prezzi» con data; stati patrimoniali, andamento e istantanee usano il prezzo di allora. Prezzi automatici rimandati a F16 (serve una fonte esterna) |
 | F6 | M | M | ✅ | **Import OFX / QIF / CAMT.053** | `structured_statements.py` (solo libreria standard): OFX 1 SGML e 2 XML, QIF con categorie e giroconti, CAMT.053/052 con quadratura dei saldi e movimenti in attesa esclusi; stessa anteprima, categorie e duplicati degli altri estratti; 4 campioni |
 
 ### Budget e analisi

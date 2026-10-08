@@ -135,6 +135,20 @@ def test_the_portfolio_comes_from_its_trades(app, demo_data):
             "ETF", "Obbligazione", "Azione", "Criptovaluta")), abs=0.05)
 
 
+def test_the_past_is_valued_with_the_price_history(app, demo_data):
+    from app.models.wealth import HoldingPrice
+
+    vwce = Holding.query.filter_by(ticker="VWCE").one()
+    points = HoldingPrice.query.filter_by(holding_id=vwce.id).order_by(HoldingPrice.on).all()
+    assert len(points) >= 34 and points[-1].price == vwce.current_price
+    with app.test_request_context():
+        a_year_ago = wealth.balance_sheet(date(2025, 8, 31))
+        prices = wealth.prices_on(date(2025, 8, 31))
+    assert prices[vwce.id] == float(demo.vwce_price(22))  # August 2025 is the 23rd month from October 2023
+    assert a_year_ago["investments"] != pytest.approx(sum(h.value for h in Holding.query.filter(
+        Holding.asset_class.in_(("ETF", "Obbligazione", "Azione", "Criptovaluta")))))
+
+
 def test_policies_reminders_and_documents(client, demo_data):
     policies = InsurancePolicy.query.all()
     assert len(policies) == 6 and sum(not p.is_active(TODAY) for p in policies) == 1

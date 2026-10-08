@@ -2,6 +2,7 @@
 Net worth: cash from the transactions, investments and other assets, debts and their amortization plans.
 Feeds the Balance Sheet, the dashboard KPIs, Portfolio, Debt and the Snapshots.
 """
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -10,7 +11,7 @@ from sqlalchemy import case, func
 
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.models.wealth import Debt, Holding, Snapshot
+from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
 from app.services import accounts, settings_store
 from app.services.i18n import N_
 from app.services.periods import add_months
@@ -197,6 +198,72 @@ def holdings_on(on: date | None = None) -> list[Holding]:
     return query.order_by(Holding.asset_class, Holding.name).all()
 
 
+# ── Price history (F5) ─────────────────────────────────────────────────────────
+
+def prices_on(on: date) -> dict[int, float]:
+    """{holding id: its latest recorded price on or before `on`} — one query for every holding."""
+    latest = (db.session.query(HoldingPrice.holding_id, func.max(HoldingPrice.on).label("on"))
+              .filter(HoldingPrice.on <= on).group_by(HoldingPrice.holding_id).subquery())
+    rows = (db.session.query(HoldingPrice.holding_id, HoldingPrice.price)
+            .join(latest, (HoldingPrice.holding_id == latest.c.holding_id) & (HoldingPrice.on == latest.c.on)))
+    return {holding_id: float(price) for holding_id, price in rows}
+
+
+def value_on(holding: Holding, on: date | None, prices: dict[int, float] | None = None) -> float:
+    """The holding's value on a date: at the latest price recorded by then; with none, at its current price."""
+    if on is None or on >= date.today():
+        return holding.value
+    price = (prices if prices is not None else prices_on(on)).get(holding.id)
+    return float(holding.quantity or 0) * price if price is not None else holding.value
+
+
+def record_price(holding: Holding, price, on: date | None = None) -> None:
+    """Add (or correct) the price of a day; the newest one is also the holding's current price."""
+    on = on or date.today()
+    point = HoldingPrice.query.filter_by(holding_id=holding.id, on=on).first()
+    if point is None:
+        db.session.add(HoldingPrice(holding_id=holding.id, on=on, price=price))
+    else:
+        point.price = price
+    if holding.price_date is None or on >= holding.price_date:
+        holding.current_price, holding.price_date = price, on
+
+
+def remove_price(point: HoldingPrice) -> None:
+    """Delete a recorded price; the holding's current price follows what is left (or stays as it was)."""
+    holding = db.session.get(Holding, point.holding_id)
+    db.session.delete(point)
+    db.session.flush()
+    newest = HoldingPrice.query.filter_by(holding_id=holding.id).order_by(HoldingPrice.on.desc()).first()
+    if newest is not None:
+        holding.current_price, holding.price_date = newest.price, newest.on
+
+
+def price_history(holding: Holding) -> list[HoldingPrice]:
+    return HoldingPrice.query.filter_by(holding_id=holding.id).order_by(HoldingPrice.on).all()
+
+
+def parse_prices(text: str) -> tuple[list[tuple[date, object]], list[str]]:
+    """Lines «date;price» (or separated by a tab or a space; Italian or ISO dates) pasted from a spreadsheet or a CSV:
+    the readable ones, and the lines that could not be read."""
+    from app.services.parsing import to_date, to_decimal
+
+    points, unread = [], []
+    for number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        # «;» or a tab between the two (a comma would be ambiguous with Italian decimals), else a space
+        parts = re.split(r"[;\t]", line, maxsplit=1) if re.search(r"[;\t]", line) else line.split(None, 1)
+        parts = [p.strip() for p in parts]
+        when = to_date(parts[0]) if parts else None
+        price = to_decimal(parts[1]) if len(parts) > 1 else None
+        if when is None or price is None or price <= 0:
+            unread.append(line.strip()[:40])
+            continue
+        points.append((when, price))
+    return points, unread
+
+
 def portfolio_summary(holdings: list[Holding]) -> dict:
     invested = [h for h in holdings if ASSET_CLASSES.get(h.asset_class, ("", False))[1]]
     cost = sum(h.cost for h in holdings)
@@ -226,15 +293,16 @@ def dividends(start: date, end: date) -> float:
 
 def balance_sheet(on: date | None = None) -> dict:
     """
-    Assets and liabilities on a date. Holdings are valued at their latest price (the app keeps no price
-    history); debts follow their amortization plan; cash is the balance of the transactions.
+    Assets and liabilities on a date. Holdings are valued at the latest price recorded by that date (their current
+    price when none was); debts follow their amortization plan; cash is the balance of the transactions.
     """
     today = date.today()
     on = on or today
     assets = defaultdict(float)
     assets["Liquidità"] = cash_balance(on)
+    prices = prices_on(on) if on < today else {}
     for h in holdings_on(on):
-        assets[ASSET_CLASSES.get(h.asset_class, ("Altri beni", False))[0]] += h.value
+        assets[ASSET_CLASSES.get(h.asset_class, ("Altri beni", False))[0]] += value_on(h, on, prices)
 
     liabilities = defaultdict(float)
     debt_rows = []
@@ -298,7 +366,7 @@ def take_snapshot(label: str | None = None, on: date | None = None) -> Snapshot:
         liabilities=sheet["total_liabilities"],
         net_worth=sheet["net_worth"],
         detail={"assets": lines, "liabilities": liabilities,
-                "holdings": [{"name": h.name, "asset_class": h.asset_class, "value": _money(h.value)}
+                "holdings": [{"name": h.name, "asset_class": h.asset_class, "value": _money(value_on(h, sheet["date"]))}
                              for h in holdings_on(sheet["date"])],
                 "debts": sheet["debts"]},
     )
@@ -308,7 +376,7 @@ def take_snapshot(label: str | None = None, on: date | None = None) -> Snapshot:
 
 
 def net_worth_trend(months: int = 12, today: date | None = None) -> dict:
-    """Net worth at the end of each of the last `months` months (holdings at their latest price)."""
+    """Net worth at the end of each of the last `months` months (holdings at the price they had then)."""
     ends = list(reversed(month_ends(months, today)))
     return {"labels": [d.strftime("%m/%y") if i < len(ends) - 1 else "Oggi" for i, d in enumerate(ends)],
             "data": [balance_sheet(d)["net_worth"] for d in ends]}

@@ -117,6 +117,9 @@
           </td>
           <td>
             <div class="cell-actions">
+              <a href="{{ url_for('portfolio.history', holding_id=h.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Storico prezzi') }}" aria-label="{{ _('Storico prezzi di %(name)s', name=h.name) }}">
+                <i class="bi bi-graph-up"></i>
+              </a>
               <a href="{{ url_for('portfolio.edit', holding_id=h.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica {{ h.name }}">
                 <i class="bi bi-pencil"></i>
               </a>
