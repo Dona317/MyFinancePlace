@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Obiettivi') }} — MyFinancePlace{% endblock %}
@@ -56,10 +58,8 @@
           <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Aggiungi (usa il meno per togliere)') }}"><i class="bi bi-plus-lg"></i> {{ _('Versa') }}</button>
         </form>
         <div class="cell-actions">
-          <a href="{{ url_for('lifestyle.goal_edit', goal_id=goal.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica {{ goal.name }}"><i class="bi bi-pencil"></i></a>
-          <form method="POST" action="{{ url_for('lifestyle.goal_delete', goal_id=goal.id) }}" data-confirm="Eliminare l'obiettivo «{{ goal.name }}»?">
-            <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ goal.name }}"><i class="bi bi-trash3"></i></button>
-          </form>
+          {{ icon_link(url_for('lifestyle.goal_edit', goal_id=goal.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=goal.name)) }}
+          {{ delete_button(url_for('lifestyle.goal_delete', goal_id=goal.id), _("Eliminare l'obiettivo «%(name)s»?", name=goal.name), _('Elimina %(name)s', name=goal.name)) }}
         </div>
       </div>
     </div>
@@ -68,12 +68,9 @@
 </div>
 {% else %}
 <div class="card">
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-trophy"></i></div>
-    <div class="empty-state-title">{{ _('Nessun obiettivo ancora') }}</div>
-    <div class="empty-state-text">{{ _('Crea il tuo primo obiettivo finanziario, oppure parti da uno dei suggerimenti qui sotto.') }}</div>
+  {% call empty_state(text=_('Crea il tuo primo obiettivo finanziario, oppure parti da uno dei suggerimenti qui sotto.'), icon='bi-trophy', title=_('Nessun obiettivo ancora')) %}
     <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea Obiettivo') }}</a>
-  </div>
+  {% endcall %}
 </div>
 {% endif %}
 

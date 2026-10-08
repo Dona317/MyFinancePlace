@@ -2,7 +2,6 @@
 {% import "partials/fields.html" as f %}
 {% set is_edit = debt is not none %}
 {% set d = debt or {} %}
-{% block title %}{{ _('Modifica Debito') if is_edit else _('Nuovo Debito') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Modifica Debito') if is_edit else _('Nuovo Debito') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>{% endblock %}
 

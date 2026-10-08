@@ -342,6 +342,7 @@ a:hover { color: var(--clr-primary-hover); }
 .kpi-negative { --kpi-accent: var(--clr-negative); --kpi-accent-bg: var(--clr-negative-bg); }
 .kpi-neutral  { --kpi-accent: var(--clr-neutral);  --kpi-accent-bg: var(--clr-neutral-bg); }
 .kpi-warning  { --kpi-accent: var(--clr-warning);  --kpi-accent-bg: var(--clr-warning-bg); }
+.kpi-purple   { --kpi-accent: var(--chart-5);      --kpi-accent-bg: var(--clr-purple-bg); }
 
 .kpi-card {
   background: var(--clr-bg-card);
@@ -727,6 +728,8 @@ tfoot td {
   padding: 64px 24px;
   text-align: center;
 }
+
+.empty-state-compact { padding: 32px; }  /* inside a panel */
 
 .empty-state-icon {
   font-size: 48px;

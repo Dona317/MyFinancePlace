@@ -1,7 +1,7 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 {% set d = summary.debt %}
-{% block title %}{{ d.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ d.name }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ d.name }}</li>{% endblock %}
 
@@ -68,12 +68,9 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-text">
-      {{ _('Per calcolare il piano servono la <strong>data di inizio</strong> e la <strong>durata</strong> (o la rata mensile).') }}
-    </div>
+  {% call empty_state(text=_('Per calcolare il piano servono la <strong>data di inizio</strong> e la <strong>durata</strong> (o la rata mensile).')) %}
     <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> {{ _('Completa i dati') }}</a>
-  </div>
+  {% endcall %}
   {% endif %}
 </div>
 

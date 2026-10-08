@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
-{% block title %}{{ _('Conti e Carte') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Conti e Carte') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Conti e Carte') }}</li>{% endblock %}
 
@@ -35,11 +36,9 @@
           <td class="text-right"><a href="{{ url_for('transactions.index', account=a.id) }}">{{ row.count }}</a></td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('accounts.detail', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Riconcilia') }}" aria-label="{{ _('Riconcilia %(name)s', name=a.name) }}"><i class="bi bi-check2-square"></i></a>
-              <a href="{{ url_for('accounts.edit', account_id=a.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="{{ _('Modifica %(name)s', name=a.name) }}"><i class="bi bi-pencil"></i></a>
-              <form method="POST" action="{{ url_for('accounts.delete', account_id=a.id) }}" data-confirm="{{ _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name) }}">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina %(name)s', name=a.name) }}"><i class="bi bi-trash3"></i></button>
-              </form>
+              {{ icon_link(url_for('accounts.detail', account_id=a.id), 'bi-check2-square', _('Riconcilia'), _('Riconcilia %(name)s', name=a.name)) }}
+              {{ icon_link(url_for('accounts.edit', account_id=a.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=a.name)) }}
+              {{ delete_button(url_for('accounts.delete', account_id=a.id), _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name), _('Elimina %(name)s', name=a.name)) }}
             </div>
           </td>
         </tr>
@@ -48,14 +47,9 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-bank"></i></div>
-    <div class="empty-state-title">{{ _('Nessun conto') }}</div>
-    <div class="empty-state-text">
-      {{ _('Aggiungi conti correnti, carte, conti deposito e contanti: vedrai il saldo di ognuno, potrai importare gli estratti sul conto giusto e riconciliarli con la banca.') }}
-    </div>
+  {% call empty_state(text=_('Aggiungi conti correnti, carte, conti deposito e contanti: vedrai il saldo di ognuno, potrai importare gli estratti sul conto giusto e riconciliarli con la banca.'), icon='bi-bank', title=_('Nessun conto')) %}
     <a href="{{ url_for('accounts.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Conto') }}</a>
-  </div>
+  {% endcall %}
   {% endif %}
 </div>
 {% endblock %}

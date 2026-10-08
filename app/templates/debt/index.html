@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Debiti') }} — MyFinancePlace{% endblock %}
@@ -18,15 +20,11 @@
   {{ kpi('credit-card-2-back', _('Debito Residuo'), value=total_balance|money, cls='kpi-negative', value_class='text-negative', sub=(ngettext('%(num)d debito', '%(num)d debiti', summaries|length))) }}
   {{ kpi('calendar-check', _('Rate Mensili'), value=monthly_total|money, cls='kpi-warning', sub=(_('somma delle rate in corso'))) }}
   {{ kpi('percent', _('Interessi (anno)'), value=interest_ytd|money, sub=(_('dal piano di ammortamento'))) }}
-  <div class="kpi-card {{ 'kpi-negative' if debt_to_income and debt_to_income > 35 else 'kpi-positive' }}">
-    <div class="kpi-icon"><i class="bi bi-speedometer2"></i></div>
-    <div class="kpi-label">{{ _('Rate / Reddito') }}</div>
-    <div class="kpi-value">{{ (debt_to_income|number(1) ~ '%') if debt_to_income is not none else '—' }}</div>
-    <div class="kpi-sub">
-      {% if debt_to_income is none %}{{ _('servono le entrate degli ultimi 12 mesi') }}
-      {% else %}{{ _('su %(amount)s di entrate medie al mese', amount=average_income|money) }}{% if debt_to_income > 35 %} {{ _('· oltre il 35%% consigliato') }}{% endif %}{% endif %}
-    </div>
-  </div>
+  {% call kpi('speedometer2', _('Rate / Reddito'), value=(debt_to_income|number(1) ~ '%') if debt_to_income is not none else '—',
+            cls=('kpi-negative' if debt_to_income and debt_to_income > 35 else 'kpi-positive')) %}
+    {% if debt_to_income is none %}{{ _('servono le entrate degli ultimi 12 mesi') }}
+    {% else %}{{ _('su %(amount)s di entrate medie al mese', amount=average_income|money) }}{% if debt_to_income > 35 %} {{ _('· oltre il 35%% consigliato') }}{% endif %}{% endif %}
+  {% endcall %}
 </div>
 
 <!-- Grafici ──────────────────────────────────────────────────────────── -->
@@ -99,11 +97,9 @@
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('debt.detail', debt_id=d.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Piano di ammortamento') }}" aria-label="{{ _('Piano di %(name)s', name=d.name) }}"><i class="bi bi-table"></i></a>
-              <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="{{ _('Modifica %(name)s', name=d.name) }}"><i class="bi bi-pencil"></i></a>
-              <form method="POST" action="{{ url_for('debt.delete', debt_id=d.id) }}" data-confirm="{{ _('Eliminare il debito «%(name)s»?', name=d.name) }}">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina %(name)s', name=d.name) }}"><i class="bi bi-trash3"></i></button>
-              </form>
+              {{ icon_link(url_for('debt.detail', debt_id=d.id), 'bi-table', _('Piano di ammortamento'), _('Piano di %(name)s', name=d.name)) }}
+              {{ icon_link(url_for('debt.edit', debt_id=d.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=d.name)) }}
+              {{ delete_button(url_for('debt.delete', debt_id=d.id), _('Eliminare il debito «%(name)s»?', name=d.name), _('Elimina %(name)s', name=d.name)) }}
             </div>
           </td>
         </tr>
@@ -112,14 +108,9 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-credit-card"></i></div>
-    <div class="empty-state-title">{{ _('Nessun debito registrato') }}</div>
-    <div class="empty-state-text">
-      {{ _("Aggiungi mutui, prestiti e carte di credito: l'app calcola rata, piano di ammortamento e debito residuo, e li sottrae dal patrimonio netto.") }}
-    </div>
+  {% call empty_state(text=_("Aggiungi mutui, prestiti e carte di credito: l'app calcola rata, piano di ammortamento e debito residuo, e li sottrae dal patrimonio netto."), icon='bi-credit-card', title=_('Nessun debito registrato')) %}
     <a href="{{ url_for('debt.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Debito') }}</a>
-  </div>
+  {% endcall %}
   {% endif %}
 </div>
 

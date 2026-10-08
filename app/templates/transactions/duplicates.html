@@ -1,6 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 
-{% block title %}{{ _('Possibili duplicati') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Possibili duplicati') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Duplicati') }}</li>{% endblock %}
 
@@ -107,12 +107,9 @@
 </div>
 {% else %}
 <div class="card">
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-check2-circle"></i></div>
-    <div class="empty-state-title">{{ _('Nessun possibile duplicato') }}</div>
-    <div class="empty-state-text">{{ _('Con questi criteri non ci sono transazioni simili da ricontrollare.') }}</div>
+  {% call empty_state(text=_('Con questi criteri non ci sono transazioni simili da ricontrollare.'), icon='bi-check2-circle', title=_('Nessun possibile duplicato')) %}
     <a href="{{ url_for('transactions.index') }}" class="btn btn-outline">{{ _('Torna alle transazioni') }}</a>
-  </div>
+  {% endcall %}
 </div>
 {% endfor %}
 

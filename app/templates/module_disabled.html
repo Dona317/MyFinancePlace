@@ -1,14 +1,11 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Sezione disattivata') }} — MyFinancePlace{% endblock %}
+{% from "partials/empty.html" import empty_state %}
 {% block page_title %}{{ _('Sezione disattivata') }}{% endblock %}
 
 {% block content %}
 <div class="card">
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-eye-slash"></i></div>
-    <div class="empty-state-title">{{ _('Questa sezione è disattivata') }}</div>
-    <div class="empty-state-text">{{ _("L'hai nascosta nelle Impostazioni: riattivala per usarla di nuovo. I dati non sono stati toccati.") }}</div>
+  {% call empty_state(text=_("L'hai nascosta nelle Impostazioni: riattivala per usarla di nuovo. I dati non sono stati toccati."), icon='bi-eye-slash', title=_('Questa sezione è disattivata')) %}
     <a href="{{ url_for('settings.index') }}" class="btn btn-primary"><i class="bi bi-gear"></i> {{ _('Vai alle Impostazioni') }}</a>
-  </div>
+  {% endcall %}
 </div>
 {% endblock %}

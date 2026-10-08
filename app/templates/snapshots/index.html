@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
 
 {% block title %}{{ _('Istantanee') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Istantanee Finanziarie') }}{% endblock %}
@@ -100,10 +102,8 @@
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('snapshots.compare', a=s.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Confronta con oggi') }}" aria-label="{{ _('Confronta con oggi') }}"><i class="bi bi-arrow-left-right"></i></a>
-              <form method="POST" action="{{ url_for('snapshots.delete', snapshot_id=s.id) }}" data-confirm="Eliminare l'istantanea del {{ s.taken_on|it_date }}?">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina istantanea') }}"><i class="bi bi-trash3"></i></button>
-              </form>
+              {{ icon_link(url_for('snapshots.compare', a=s.id), 'bi-arrow-left-right', _('Confronta con oggi')) }}
+              {{ delete_button(url_for('snapshots.delete', snapshot_id=s.id), _("Eliminare l'istantanea del %(date)s?", date=s.taken_on|it_date), _('Elimina istantanea')) }}
             </div>
           </td>
         </tr>
@@ -115,11 +115,7 @@
 
 {% else %}
 <div class="card">
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-camera"></i></div>
-    <div class="empty-state-title">{{ _('Nessuna istantanea ancora') }}</div>
-    <div class="empty-state-text">{{ _("Crea la prima istantanea per iniziare a tracciare l'evoluzione del tuo patrimonio nel tempo.") }}</div>
-  </div>
+  {{ empty_state(text=_("Crea la prima istantanea per iniziare a tracciare l'evoluzione del tuo patrimonio nel tempo."), icon='bi-camera', title=_('Nessuna istantanea ancora')) }}
 </div>
 {% endif %}
 

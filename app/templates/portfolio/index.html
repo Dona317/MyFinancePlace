@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Portafoglio') }} — MyFinancePlace{% endblock %}
@@ -21,12 +23,9 @@
 <!-- KPI ──────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24">
   {{ kpi('briefcase', _('Valore Totale'), value=summary.value|money, cls='kpi-primary', sub=(_('ai prezzi più recenti'))) }}
-  <div class="kpi-card {{ 'kpi-positive' if summary.gain >= 0 else 'kpi-negative' }}">
-    <div class="kpi-icon"><i class="bi bi-graph-{{ 'up' if summary.gain >= 0 else 'down' }}-arrow"></i></div>
-    <div class="kpi-label">{{ _('Guadagno') }}</div>
-    <div class="kpi-value {{ 'text-positive' if summary.gain >= 0 else 'text-negative' }}">{{ '+' if summary.gain > 0 }}{{ summary.gain|money }}</div>
-    <div class="kpi-sub">{{ '+' if summary.gain_pct > 0 }}{{ _('%(pct)s%% sul capitale', pct=summary.gain_pct|number) }}</div>
-  </div>
+  {{ kpi('graph-' ~ ('up' if summary.gain >= 0 else 'down') ~ '-arrow', _('Guadagno'), value=('+' if summary.gain > 0 else '') ~ summary.gain|money,
+         cls=('kpi-positive' if summary.gain >= 0 else 'kpi-negative'), value_class=('text-positive' if summary.gain >= 0 else 'text-negative'),
+         sub=('+' if summary.gain_pct > 0 else '') ~ _('%(pct)s%% sul capitale', pct=summary.gain_pct|number)) }}
   {{ kpi('cash-coin', _('Investito'), value=summary.cost|money, sub=(_('quantità × prezzo medio'))) }}
   {{ kpi('building-check', _('Dividendi (anno)'), value=dividends_ytd|money, cls='kpi-warning', sub=(_('entrate con categoria «Dividendi» o «Cedole»'))) }}
 </div>
@@ -117,18 +116,9 @@
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('portfolio.history', holding_id=h.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Storico prezzi') }}" aria-label="{{ _('Storico prezzi di %(name)s', name=h.name) }}">
-                <i class="bi bi-graph-up"></i>
-              </a>
-              <a href="{{ url_for('portfolio.edit', holding_id=h.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica {{ h.name }}">
-                <i class="bi bi-pencil"></i>
-              </a>
-              <form method="POST" action="{{ url_for('portfolio.delete', holding_id=h.id) }}"
-                    data-confirm="Eliminare la posizione «{{ h.name }}»?">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ h.name }}">
-                  <i class="bi bi-trash3"></i>
-                </button>
-              </form>
+              {{ icon_link(url_for('portfolio.history', holding_id=h.id), 'bi-graph-up', _('Storico prezzi'), _('Storico prezzi di %(name)s', name=h.name)) }}
+              {{ icon_link(url_for('portfolio.edit', holding_id=h.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=h.name)) }}
+              {{ delete_button(url_for('portfolio.delete', holding_id=h.id), _('Eliminare la posizione «%(name)s»?', name=h.name), _('Elimina %(name)s', name=h.name)) }}
             </div>
           </td>
         </tr>
@@ -148,21 +138,15 @@
     </table>
   </div>
   {% elif selected %}
-  <div class="empty-state">
-    <div class="empty-state-text">{{ _('Nessuna posizione nella classe «%(cls)s».', cls=selected|tr) }}</div>
+  {% call empty_state(text=_('Nessuna posizione nella classe «%(cls)s».', cls=selected|tr)) %}
     <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost">{{ _('Mostra tutte') }}</a>
-  </div>
+  {% endcall %}
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-briefcase"></i></div>
-    <div class="empty-state-title">{{ _('Nessuna posizione nel portafoglio') }}</div>
-    <div class="empty-state-text">
-      {{ _('Aggiungi azioni, ETF, fondi, obbligazioni, criptovalute, conti deposito, fondi pensione o immobili: entrano nel patrimonio netto e nello stato patrimoniale.') }}
-    </div>
+  {% call empty_state(text=_('Aggiungi azioni, ETF, fondi, obbligazioni, criptovalute, conti deposito, fondi pensione o immobili: entrano nel patrimonio netto e nello stato patrimoniale.'), icon='bi-briefcase', title=_('Nessuna posizione nel portafoglio')) %}
     <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary">
       <i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}
     </a>
-  </div>
+  {% endcall %}
   {% endif %}
 </div>
 

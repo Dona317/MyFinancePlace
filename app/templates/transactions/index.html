@@ -1,7 +1,7 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
 
-{% block title %}{{ _('Transazioni') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Transazioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Transazioni') }}</li>{% endblock %}
 
@@ -240,19 +240,13 @@
     <input type="hidden" name="next" value="{{ request.full_path }}" />
   </form>
   {% elif filters.values()|select|list %}
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-search"></i></div>
-    <div class="empty-state-title">{{ _('Nessun risultato') }}</div>
-    <div class="empty-state-text">{{ _('Nessuna transazione corrisponde ai filtri selezionati.') }}</div>
+  {% call empty_state(text=_('Nessuna transazione corrisponde ai filtri selezionati.'), icon='bi-search', title=_('Nessun risultato')) %}
     <a href="{{ url_for('transactions.index') }}" class="btn btn-outline">
       <i class="bi bi-arrow-counterclockwise"></i> {{ _('Azzera filtri') }}
     </a>
-  </div>
+  {% endcall %}
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-    <div class="empty-state-title">{{ _('Nessuna transazione') }}</div>
-    <div class="empty-state-text">{{ _('Aggiungi la tua prima transazione oppure importa da Excel.') }}</div>
+  {% call empty_state(text=_('Aggiungi la tua prima transazione oppure importa da Excel.'), icon='bi-inbox', title=_('Nessuna transazione')) %}
     <div style="display:flex;gap:10px;">
       <a href="{{ url_for('transactions.new') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> {{ _('Aggiungi Manualmente') }}
@@ -261,7 +255,7 @@
         <i class="bi bi-file-earmark-excel"></i> {{ _('Importa estratto conto') }}
       </a>
     </div>
-  </div>
+  {% endcall %}
   {% endif %}
 </div>
 

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 
-{% block title %}{{ _('Dashboard') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Dashboard') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
 
@@ -32,21 +32,11 @@
   {% endif %}
 
   {% if settings.dashboard_savings_rate %}
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">{{ _('Tasso di Risparmio') }}</div>
-    <div class="kpi-value">{{ "%.1f"|format(kpis.savings_rate) }}%</div>
-    <div class="kpi-sub">{{ _('del reddito di questo mese') }}</div>
-  </div>
+  {{ kpi('piggy-bank', _('Tasso di Risparmio'), value="%.1f"|format(kpis.savings_rate) ~ '%', sub=_('del reddito di questo mese')) }}
   {% endif %}
 
   {% if settings.dashboard_investments %}
-  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
-    <div class="kpi-icon" style="background:var(--clr-purple-bg);color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
-    <div class="kpi-label">{{ _('Investimenti') }}</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_investments }}">—</div>
-    <div class="kpi-sub">{% if settings.module_portfolio %}<a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a>{% else %}{{ _('Portafoglio') }}{% endif %}</div>
-  </div>
+  {% call kpi('briefcase', _('Investimenti'), amount=kpis.total_investments, cls='kpi-purple') %}{% if settings.module_portfolio %}<a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a>{% else %}{{ _('Portafoglio') }}{% endif %}{% endcall %}
   {% endif %}
 
   {% if settings.dashboard_debt %}
@@ -114,9 +104,7 @@
         {% endfor %}
       </ul>
       {% else %}
-      <div class="empty-state" style="padding:32px;"><div class="empty-state-text">
-        {{ _('Nessuna spesa in questo periodo.') if kind == 'expense' else _('Nessuna entrata in questo periodo.') }}
-      </div></div>
+      {{ empty_state(text=_('Nessuna spesa in questo periodo.') if kind == 'expense' else _('Nessuna entrata in questo periodo.'), compact=True) }}
       {% endif %}
     </div>
   </div>
@@ -271,13 +259,11 @@
           {% else %}
           <tr>
             <td colspan="4">
-              <div class="empty-state" style="padding:32px;">
-                <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-                <div class="empty-state-text">{{ _('Nessuna transazione. Aggiungi la prima!') }}</div>
+              {% call empty_state(text=_('Nessuna transazione. Aggiungi la prima!'), icon='bi-inbox', compact=True) %}
                 <a class="btn btn-primary btn-sm" href="{{ url_for('transactions.new') }}">
                   <i class="bi bi-plus"></i> {{ _('Aggiungi Transazione') }}
                 </a>
-              </div>
+              {% endcall %}
             </td>
           </tr>
           {% endfor %}

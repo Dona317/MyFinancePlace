@@ -2,7 +2,6 @@
 {% import "partials/fields.html" as f %}
 {% set is_edit = holding is not none %}
 {% set h = holding or {} %}
-{% block title %}{{ _('Modifica posizione') if is_edit else _('Nuova posizione') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Modifica posizione') if is_edit else _('Nuova posizione') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>{% endblock %}
 

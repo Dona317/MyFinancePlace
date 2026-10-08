@@ -1,7 +1,7 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 
-{% block title %}{{ _('Previsioni') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Previsioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Previsioni') }}</li>{% endblock %}
 
@@ -54,12 +54,9 @@
 
 {% if not fc.history_months and not fc.scheduled %}
 <div class="card">
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-graph-up-arrow"></i></div>
-    <div class="empty-state-title">{{ _('Servono dei movimenti per fare una previsione') }}</div>
-    <div class="empty-state-text">{{ _('Importa un estratto conto o inserisci le transazioni di almeno un mese completo.') }}</div>
+  {% call empty_state(text=_('Importa un estratto conto o inserisci le transazioni di almeno un mese completo.'), icon='bi-graph-up-arrow', title=_('Servono dei movimenti per fare una previsione')) %}
     <a href="{{ url_for('export.index', _anchor='bank-import') }}" class="btn btn-primary"><i class="bi bi-bank2"></i> {{ _('Importa estratto conto') }}</a>
-  </div>
+  {% endcall %}
 </div>
 {% else %}
 
@@ -96,12 +93,7 @@
     {{ kpi('arrow-up-circle', _('Uscite %(month)s', month=nxt.label), amount=nxt.expenses, cls='kpi-negative', sub=(_('di cui ricorrenti %(amount)s', amount=nxt.scheduled_expenses|money))) }}
     {% endif %}
     {{ kpi('wallet2', _('Saldo tra %(n)s mesi', n=fc.horizon), amount=fc.final_balance, sub=(_('Oggi %(amount)s', amount=fc.balance_now|money))) }}
-    <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:var(--clr-purple-bg);">
-      <div class="kpi-icon"><i class="bi bi-arrow-repeat"></i></div>
-      <div class="kpi-label">{{ _('Ricorrenti al mese') }}</div>
-      <div class="kpi-value" data-amount="{{ fc.recurring_monthly }}">—</div>
-      <div class="kpi-sub">{{ _('%(count)s programmate', count=fc.scheduled|length) }}{% if fc.candidates %} · {{ _('%(count)s da confermare', count=fc.candidates|length) }}{% endif %}</div>
-    </div>
+    {% call kpi('arrow-repeat', _('Ricorrenti al mese'), amount=fc.recurring_monthly, cls='kpi-purple') %}{{ _('%(count)s programmate', count=fc.scheduled|length) }}{% if fc.candidates %} · {{ _('%(count)s da confermare', count=fc.candidates|length) }}{% endif %}{% endcall %}
   </div>
   {% elif w.id == 'net' %}
     <div class="card">

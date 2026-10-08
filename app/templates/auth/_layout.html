@@ -9,10 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
-  <!-- the same light / dark theme as the app, before paint -->
-  <script>(function(){var t=null;try{t=localStorage.getItem('mfp-theme');}catch(e){}
-    if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
-    document.documentElement.setAttribute('data-theme',t);}());</script>
+  {% include "partials/theme_boot.html" %}
 </head>
 <body>
 <div class="auth-wrapper">

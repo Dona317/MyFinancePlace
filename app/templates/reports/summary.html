@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/tabs.html" import tab_bar %}
 {% from "partials/kpi.html" import kpi %}
 {% block title %}{{ _('Riepilogo %(year)s', year=year) }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Report') }}{% endblock %}
@@ -35,12 +36,9 @@
 
 {% block content %}
 <div class="report-bar mb-16">
-  <nav class="report-tabs" aria-label="{{ _('Tipo di report') }}">
-    {% for key, label in tabs.items() %}
-    <a href="{{ url_for('reports.index', tab=key) }}" class="report-tab">{{ label }}</a>
-    {% endfor %}
-    <a href="{{ url_for('reports.summary', year=year) }}" class="report-tab active" aria-current="page">{{ _('Riepilogo') }}</a>
-  </nav>
+  {% set tab_items = namespace(list=[]) %}
+  {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, url_for('reports.index', tab=key), label)] %}{% endfor %}
+  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo'))], 'summary', _('Tipo di report')) }}
   <div class="report-controls">
     {% include "partials/year_select.html" %}
     <a href="{{ url_for('reports.summary_csv', year=year) }}" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> {{ _('CSV') }}</a>

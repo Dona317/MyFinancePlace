@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
 
 {% block title %}{{ _('Documenti') }} — MyFinancePlace{% endblock %}
@@ -119,11 +121,9 @@
           </td>
           <td>
             <div class="cell-actions">
-              <a href="{{ url_for('documents.file', doc_id=doc.id, download=1) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Scarica') }}" aria-label="{{ _('Scarica %(name)s', name=doc.filename) }}"><i class="bi bi-download"></i></a>
-              <a href="{{ url_for('documents.edit', doc_id=doc.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica e collega') }}" aria-label="{{ _('Modifica %(name)s', name=doc.filename) }}"><i class="bi bi-pencil"></i></a>
-              <form method="POST" action="{{ url_for('documents.delete', doc_id=doc.id) }}" data-confirm="{{ _('Eliminare «%(name)s»? Il file verrà cancellato.', name=doc.filename) }}">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina %(name)s', name=doc.filename) }}"><i class="bi bi-trash3"></i></button>
-              </form>
+              {{ icon_link(url_for('documents.file', doc_id=doc.id, download=1), 'bi-download', _('Scarica'), _('Scarica %(name)s', name=doc.filename)) }}
+              {{ icon_link(url_for('documents.edit', doc_id=doc.id, next=request.full_path), 'bi-pencil', _('Modifica e collega'), _('Modifica %(name)s', name=doc.filename)) }}
+              {{ delete_button(url_for('documents.delete', doc_id=doc.id), _('Eliminare «%(name)s»? Il file verrà cancellato.', name=doc.filename), _('Elimina %(name)s', name=doc.filename)) }}
             </div>
           </td>
         </tr>
@@ -132,18 +132,11 @@
     </table>
   </div>
   {% elif total %}
-  <div class="empty-state">
-    <div class="empty-state-text">{{ _('Nessun documento corrisponde ai filtri.') }}</div>
+  {% call empty_state(text=_('Nessun documento corrisponde ai filtri.')) %}
     <a href="{{ url_for('documents.index') }}" class="btn btn-ghost">{{ _('Mostra tutti') }}</a>
-  </div>
+  {% endcall %}
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-folder2-open"></i></div>
-    <div class="empty-state-title">{{ _('Archivio vuoto') }}</div>
-    <div class="empty-state-text">
-      {{ _('Carica fatture, scontrini, estratti conto e contratti per tenerli a portata di mano, collegati alle transazioni e ordinati per anno fiscale. Sono inclusi nel backup.') }}
-    </div>
-  </div>
+  {{ empty_state(text=_('Carica fatture, scontrini, estratti conto e contratti per tenerli a portata di mano, collegati alle transazioni e ordinati per anno fiscale. Sono inclusi nel backup.'), icon='bi-folder2-open', title=_('Archivio vuoto')) }}
   {% endif %}
 </div>
 

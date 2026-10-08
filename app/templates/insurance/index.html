@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Assicurazioni') }} — MyFinancePlace{% endblock %}
@@ -77,10 +79,8 @@
             </td>
             <td>
               <div class="cell-actions">
-                <a href="{{ url_for('insurance.edit', policy_id=p.id) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}" aria-label="Modifica polizza {{ p.company }}"><i class="bi bi-pencil"></i></a>
-                <form method="POST" action="{{ url_for('insurance.delete', policy_id=p.id) }}" data-confirm="Eliminare la polizza {{ p.type|tr }} di {{ p.company }}?">
-                  <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina polizza {{ p.company }}"><i class="bi bi-trash3"></i></button>
-                </form>
+                {{ icon_link(url_for('insurance.edit', policy_id=p.id), 'bi-pencil', _('Modifica'), _('Modifica polizza %(company)s', company=p.company)) }}
+                {{ delete_button(url_for('insurance.delete', policy_id=p.id), _('Eliminare la polizza %(type)s di %(company)s?', type=p.type|tr, company=p.company), _('Elimina polizza %(company)s', company=p.company)) }}
               </div>
             </td>
           </tr>
@@ -89,16 +89,13 @@
       </table>
     </div>
     {% elif selected %}
-    <div class="empty-state">
-      <div class="empty-state-text">{{ _('Nessuna polizza di tipo «%(type)s».', type=selected|tr) }}</div>
+    {% call empty_state(text=_('Nessuna polizza di tipo «%(type)s».', type=selected|tr)) %}
       <a href="{{ url_for('insurance.index') }}" class="btn btn-ghost">{{ _('Mostra tutte') }}</a>
-    </div>
+    {% endcall %}
     {% else %}
-    <div class="empty-state">
-      <div class="empty-state-icon"><i class="bi bi-shield-slash"></i></div>
-      <div class="empty-state-text">{{ _('Nessuna polizza registrata. Aggiungi la prima copertura: ti ricorderemo le scadenze.') }}</div>
+    {% call empty_state(text=_('Nessuna polizza registrata. Aggiungi la prima copertura: ti ricorderemo le scadenze.'), icon='bi-shield-slash') %}
       <a href="{{ url_for('insurance.new') }}" class="btn btn-primary"><i class="bi bi-plus"></i> {{ _('Aggiungi Polizza') }}</a>
-    </div>
+    {% endcall %}
     {% endif %}
   </div>
 

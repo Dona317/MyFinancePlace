@@ -1,6 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
-{% block title %}{{ account.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ account.name }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ account.name }}</li>{% endblock %}
 
@@ -75,7 +75,7 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state"><div class="empty-state-text">{{ _('Nessun movimento su questo conto. Assegnalo alle transazioni o scegli il conto quando importi un estratto.') }}</div></div>
+  {{ empty_state(text=_('Nessun movimento su questo conto. Assegnalo alle transazioni o scegli il conto quando importi un estratto.')) }}
   {% endif %}
 </div>
 {% endblock %}

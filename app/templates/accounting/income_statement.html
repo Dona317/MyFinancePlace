@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/kpi.html" import kpi %}
 
-{% block title %}{{ _('Conto Economico') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Conto Economico') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Conto Economico') }}</li>{% endblock %}
 
@@ -19,11 +18,7 @@
   {{ kpi('arrow-down-circle', _('Totale Entrate'), value=report.summary.income|money, cls='kpi-positive', value_class='text-positive') }}
   {{ kpi('arrow-up-circle', _('Totale Uscite'), value=report.summary.expenses|money, cls='kpi-negative', value_class='text-negative') }}
   {{ kpi('piggy-bank', _('Risparmio Netto'), value=report.summary.net|money, cls='kpi-primary', value_class=('text-negative' if report.summary.net < 0 else '')) }}
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-percent"></i></div>
-    <div class="kpi-label">{{ _('Tasso di Risparmio') }}</div>
-    <div class="kpi-value">{{ "%.1f"|format(report.summary.savings_rate) }}%</div>
-  </div>
+  {{ kpi('percent', _('Tasso di Risparmio'), value="%.1f"|format(report.summary.savings_rate) ~ '%') }}
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% from "partials/tabs.html" import tab_bar %}
+{% from "partials/empty.html" import empty_state %}
 {% set f = filters %}
 {% macro link(changes) -%}
   {{ url_for('reports.index', **dict(query_args, **changes)) }}
 {%- endmacro %}
 
-{% block title %}{{ _('Report') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Report') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Report') }}</li>{% endblock %}
 
@@ -12,13 +13,9 @@
 
 <!-- Tabs, period and filters ─────────────────────────────────────────────── -->
 <div class="report-bar mb-16">
-  <nav class="report-tabs" aria-label="{{ _('Tipo di report') }}">
-    {% for key, label in tabs.items() %}
-    <a href="{{ link({'tab': key, 'category': ''}) }}" class="report-tab{{ ' active' if f.tab == key }}"
-       {% if f.tab == key %}aria-current="page"{% endif %}>{{ label }}</a>
-    {% endfor %}
-    <a href="{{ url_for('reports.summary') }}" class="report-tab">{{ _('Riepilogo') }}</a>
-  </nav>
+  {% set tab_items = namespace(list=[]) %}
+  {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, link({'tab': key, 'category': ''}), label)] %}{% endfor %}
+  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary'), _('Riepilogo'))], f.tab, _('Tipo di report')) }}
   <form method="GET" class="report-controls" id="report-form">
     <input type="hidden" name="tab" value="{{ f.tab }}">
     {% if f.category %}<input type="hidden" name="category" value="{{ f.category }}">{% endif %}
@@ -95,10 +92,7 @@
       </div>
     </div>
     {% else %}
-    <div class="empty-state" style="padding:32px;">
-      <div class="empty-state-icon"><i class="bi bi-pie-chart"></i></div>
-      <div class="empty-state-text">{{ _('Nessuna spesa in questo periodo.') if f.tab == 'spending' else _('Nessuna entrata in questo periodo.') }}</div>
-    </div>
+    {{ empty_state(text=_('Nessuna spesa in questo periodo.') if f.tab == 'spending' else _('Nessuna entrata in questo periodo.'), icon='bi-pie-chart', compact=True) }}
     {% endif %}
   </div>
 </div>
@@ -155,7 +149,7 @@
       {% endif %}
     </div>
     {% else %}
-    <div class="empty-state" style="padding:32px;"><div class="empty-state-text">{{ _('Nessuna transazione con questi filtri.') }}</div></div>
+    {{ empty_state(text=_('Nessuna transazione con questi filtri.'), compact=True) }}
     {% endif %}
   </div>
 

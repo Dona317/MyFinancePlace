@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 {% block title %}{{ _('Plusvalenze') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Fisco') }}{% endblock %}
@@ -89,10 +90,8 @@
   </div>
 </div>
 {% else %}
-<div class="card"><div class="empty-state">
-  <div class="empty-state-icon"><i class="bi bi-graph-up"></i></div>
-  <div class="empty-state-title">{{ _('Nessuna vendita registrata') }}</div>
-  <div class="empty-state-text">{{ _('Le plusvalenze si calcolano dalle operazioni inserite in quote (Transazioni → Operazione su investimento). Il regime fiscale si sceglie sul conto del broker.') }}</div>
-</div></div>
+<div class="card">
+  {{ empty_state(text=_('Le plusvalenze si calcolano dalle operazioni inserite in quote (Transazioni → Operazione su investimento). Il regime fiscale si sceglie sul conto del broker.'), icon='bi-graph-up', title=_('Nessuna vendita registrata')) }}
+</div>
 {% endfor %}
 {% endblock %}

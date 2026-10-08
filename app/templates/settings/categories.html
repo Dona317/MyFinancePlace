@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Categorie') }} — MyFinancePlace{% endblock %}
+{% from "partials/actions.html" import delete_button %}
 {% block page_title %}{{ _('Categorie') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Categorie') }}</li>{% endblock %}
 
@@ -75,14 +75,11 @@
             <div class="cell-actions">
               <form method="POST" action="{{ url_for('settings.category_save') }}" id="{{ form_id }}">
                 <input type="hidden" name="old_name" value="{{ c.name }}" />
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Salva') }}" aria-label="Salva {{ c.name }}"><i class="bi bi-check-lg"></i></button>
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Salva') }}" aria-label="{{ _('Salva %(name)s', name=c.name) }}"><i class="bi bi-check-lg"></i></button>
               </form>
-              <form method="POST" action="{{ url_for('settings.category_delete') }}"
-                    data-confirm="Eliminare «{{ c.name }}»?{% if usage.get(c.name) %} Le sue {{ usage.get(c.name) }} transazioni andranno in «Altro».{% endif %}">
-                <input type="hidden" name="name" value="{{ c.name }}" />
-                <input type="hidden" name="replacement" value="{{ 'Altro' if c.name != 'Altro' else '' }}" />
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina {{ c.name }}"><i class="bi bi-trash3"></i></button>
-              </form>
+              {{ delete_button(url_for('settings.category_delete'),
+                               _('Eliminare «%(name)s»?', name=c.name) ~ ((' ' ~ _('Le sue %(count)s transazioni andranno in «Altro».', count=usage.get(c.name))) if usage.get(c.name) else ''),
+                               _('Elimina %(name)s', name=c.name), hidden={'name': c.name, 'replacement': 'Altro' if c.name != 'Altro' else ''}) }}
             </div>
           </td>
         </tr>

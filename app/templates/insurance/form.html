@@ -2,7 +2,6 @@
 {% import "partials/fields.html" as f %}
 {% set is_edit = policy is not none %}
 {% set p = policy or {} %}
-{% block title %}{{ _('Modifica polizza') if is_edit else _('Nuova polizza') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Modifica polizza') if is_edit else _('Nuova polizza') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('insurance.index') }}">{{ _('Assicurazioni') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>{% endblock %}
 

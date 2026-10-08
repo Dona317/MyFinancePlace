@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% block title %}{{ _('Aggiorna prezzi') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Aggiorna Prezzi') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Prezzi') }}</li>{% endblock %}
@@ -64,10 +65,9 @@
     </div>
   </form>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-text">{{ _('Nessuna posizione da aggiornare.') }}</div>
+  {% call empty_state(text=_('Nessuna posizione da aggiornare.')) %}
     <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}</a>
-  </div>
+  {% endcall %}
   {% endif %}
 </div>
 {% endblock %}

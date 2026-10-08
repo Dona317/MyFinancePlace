@@ -1,6 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
-{% block title %}{{ _('Fisco') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Fisco') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Fisco') }}</li>{% endblock %}
 
@@ -57,7 +57,7 @@
           <td class="amount text-right nowrap positive">{{ line.benefit|money }}</td>
         </tr>
       {% else %}
-        <tr><td colspan="5"><div class="empty-state"><div class="empty-state-text">{{ _('Nessuna spesa nelle categorie collegate alle voci del 730 per questo anno. Collega le categorie qui sotto.') }}</div></div></td></tr>
+        <tr><td colspan="5">{{ empty_state(text=_('Nessuna spesa nelle categorie collegate alle voci del 730 per questo anno. Collega le categorie qui sotto.')) }}</td></tr>
       {% endfor %}
       </tbody>
     </table>

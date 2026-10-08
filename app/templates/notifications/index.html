@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Promemoria') }} — MyFinancePlace{% endblock %}
+{% from "partials/empty.html" import empty_state %}
 {% block page_title %}{{ _('Promemoria') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Promemoria') }}</li>{% endblock %}
 
@@ -31,13 +31,7 @@
     {% endfor %}
   </ul>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-icon"><i class="bi bi-bell-slash"></i></div>
-    <div class="empty-state-title">{{ _('Nessun promemoria') }}</div>
-    <div class="empty-state-text">
-      {{ _('Qui compaiono le polizze in scadenza, le spese ricorrenti e le rate dei prossimi 7 giorni, i budget quasi esauriti e gli obiettivi in ritardo.') }}
-    </div>
-  </div>
+  {{ empty_state(text=_('Qui compaiono le polizze in scadenza, le spese ricorrenti e le rate dei prossimi 7 giorni, i budget quasi esauriti e gli obiettivi in ritardo.'), icon='bi-bell-slash', title=_('Nessun promemoria')) }}
   {% endif %}
 </div>
 {% if hidden %}

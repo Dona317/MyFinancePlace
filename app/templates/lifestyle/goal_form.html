@@ -2,7 +2,6 @@
 {% import "partials/fields.html" as f %}
 {% set is_edit = goal is not none %}
 {% set g = goal or {} %}
-{% block title %}{{ _('Modifica obiettivo') if is_edit else _('Nuovo obiettivo') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Modifica obiettivo') if is_edit else _('Nuovo obiettivo') }}{% endblock %}
 {% block breadcrumb %}
   <li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di Vita') }}</a></li>

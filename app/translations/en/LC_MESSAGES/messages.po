@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 14:35+0000\n"
+"POT-Creation-Date: 2026-10-08 21:12+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1874,6 +1874,14 @@ msgstr "Delete rate"
 msgid "Elimina istantanea"
 msgstr "Delete snapshot"
 
+#, python-format
+msgid "Elimina polizza %(company)s"
+msgstr "Delete policy %(company)s"
+
+#, python-format
+msgid "Elimina regola %(keyword)s"
+msgstr "Delete rule %(keyword)s"
+
 msgid "Elimina selezionate ("
 msgstr "Delete selected ("
 
@@ -1882,6 +1890,10 @@ msgstr "Permanently delete the selected transactions?"
 
 msgid "Eliminare definitivamente questa transazione?"
 msgstr "Permanently delete this transaction?"
+
+#, python-format
+msgid "Eliminare il cambio %(currency)s del %(date)s?"
+msgstr "Delete the %(currency)s rate of %(date)s?"
 
 #, python-format
 msgid "Eliminare il conto «%(name)s»? Le transazioni restano, senza conto."
@@ -1896,11 +1908,35 @@ msgid "Eliminare il prezzo del %(day)s?"
 msgstr "Delete the price of %(day)s?"
 
 #, python-format
+msgid "Eliminare l'istantanea del %(date)s?"
+msgstr "Delete the snapshot of %(date)s?"
+
+#, python-format
+msgid "Eliminare l'obiettivo «%(name)s»?"
+msgstr "Delete the goal “%(name)s”?"
+
+#, python-format
+msgid "Eliminare la polizza %(type)s di %(company)s?"
+msgstr "Delete the %(type)s policy with %(company)s?"
+
+#, python-format
+msgid "Eliminare la posizione «%(name)s»?"
+msgstr "Delete the holding “%(name)s”?"
+
+#, python-format
+msgid "Eliminare la regola «%(keyword)s»?"
+msgstr "Delete the rule “%(keyword)s”?"
+
+#, python-format
 msgid "Eliminare l’utente «%(name)s»? I dati restano."
 msgstr "Delete the user “%(name)s”? The data stays."
 
 msgid "Eliminare questa transazione?"
 msgstr "Delete this transaction?"
+
+#, python-format
+msgid "Eliminare «%(name)s»?"
+msgstr "Delete “%(name)s”?"
 
 #, python-format
 msgid "Eliminare «%(name)s»? Il file verrà cancellato."
@@ -2902,6 +2938,10 @@ msgid "Le spese delle categorie collegate a ogni voce, con franchigia e massimal
 msgstr "The expenses of the categories linked to each item, with threshold and ceiling"
 
 #, python-format
+msgid "Le sue %(count)s transazioni andranno in «Altro»."
+msgstr "Its %(count)s transactions will move to «Other»."
+
+#, python-format
 msgid "Le transazioni del %(year)s: cambia l'anno fiscale e salva per vederne altre."
 msgstr "The transactions of %(year)s: change the tax year and save to see others."
 
@@ -3202,6 +3242,10 @@ msgstr "Edit goal"
 
 msgid "Modifica polizza"
 msgstr "Edit policy"
+
+#, python-format
+msgid "Modifica polizza %(company)s"
+msgstr "Edit policy %(company)s"
 
 msgid "Modifica posizione"
 msgstr "Edit holding"
@@ -4620,6 +4664,10 @@ msgstr "Financial Health"
 
 msgid "Salva"
 msgstr "Save"
+
+#, python-format
+msgid "Salva %(name)s"
+msgstr "Save %(name)s"
 
 msgid "Salva (Invio)"
 msgstr "Save (Enter)"

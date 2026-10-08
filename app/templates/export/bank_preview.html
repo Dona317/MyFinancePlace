@@ -2,7 +2,6 @@
 {% from "partials/kpi.html" import kpi %}
 {% import "partials/fields.html" as f %}
 
-{% block title %}{{ _('Anteprima Importazione') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Anteprima Importazione') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('export.index') }}">{{ _('Esporta') }}</a></li><li>{{ _('Estratto conto') }}</li>{% endblock %}
 
@@ -17,14 +16,7 @@
     <div class="kpi-value" style="font-size:var(--font-size-xl);">{{ preview.bank.name }}</div>
     <div class="kpi-sub" title="{{ filename }}">{{ filename|truncate(32, true) }}</div>
   </div>
-  <div class="kpi-card kpi-neutral">
-    <div class="kpi-icon"><i class="bi bi-list-check"></i></div>
-    <div class="kpi-label">{{ _('Movimenti nuovi') }}</div>
-    <div class="kpi-value">{{ preview.new_rows|length }}</div>
-    <div class="kpi-sub">
-      {% if preview.period %}{{ (preview.period[0]|it_date) }} → {{ (preview.period[1]|it_date) }}{% endif %}
-    </div>
-  </div>
+  {% call kpi('list-check', _('Movimenti nuovi'), value=preview.new_rows|length) %}{% if preview.period %}{{ (preview.period[0]|it_date) }} → {{ (preview.period[1]|it_date) }}{% endif %}{% endcall %}
   {{ kpi('arrow-down-circle', _('Entrate'), value=preview.total_income|money, cls='kpi-positive', value_class='text-positive') }}
   {{ kpi('arrow-up-circle', _('Uscite'), value=preview.total_expenses|money, cls='kpi-negative', value_class='text-negative') }}
 </div>

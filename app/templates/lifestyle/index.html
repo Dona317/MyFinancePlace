@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Spese e Tendenze') }} — MyFinancePlace{% endblock %}
@@ -16,12 +17,7 @@
   {{ kpi('cart3', _('Spese Totali'), amount=report.total_expenses, cls='kpi-negative', value_class='text-negative', sub=(_('Anno %(year)s', year=year))) }}
   {{ kpi('calendar3', _('Media Mensile'), amount=report.monthly_average, cls='kpi-primary', sub=(_('Gen → %(month)s %(year)s', month=report.reference_month, year=year))) }}
   {{ kpi('graph-up', _('Categoria Top'), value=(report.top_category or '—'), value_style='font-size:var(--font-size-xl);', cls='kpi-warning', sub=(_('Spesa maggiore'))) }}
-  <div class="kpi-card kpi-positive">
-    <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">{{ _('Spese Discrezionali') }}</div>
-    <div class="kpi-value">{{ "%.1f"|format(report.discretionary_share) }}%</div>
-    <div class="kpi-sub">{{ _('del totale spese') }}</div>
-  </div>
+  {{ kpi('piggy-bank', _('Spese Discrezionali'), value="%.1f"|format(report.discretionary_share) ~ '%', cls='kpi-positive', sub=_('del totale spese')) }}
 </div>
 
 <!-- Grafici principali ──────────────────────────────────────────────── -->
@@ -130,10 +126,7 @@
         </tr>
         {% else %}
         <tr><td colspan="5">
-          <div class="empty-state" style="padding:32px;">
-            <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-            <div class="empty-state-text">{{ _('Nessuna spesa registrata in questo periodo.') }}</div>
-          </div>
+          {{ empty_state(text=_('Nessuna spesa registrata in questo periodo.'), icon='bi-inbox', compact=True) }}
         </td></tr>
         {% endfor %}
       </tbody>

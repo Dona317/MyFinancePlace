@@ -2,7 +2,6 @@
 {% import "partials/fields.html" as f %}
 {% set is_edit = account is not none %}
 {% set a = account or {} %}
-{% block title %}{{ _('Modifica Conto') if is_edit else _('Nuovo Conto') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Modifica Conto') if is_edit else _('Nuovo Conto') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>{% endblock %}
 

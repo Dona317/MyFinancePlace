@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
 {% block title %}{{ _('Regole di categoria') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Regole di Categoria') }}{% endblock %}
@@ -52,9 +54,7 @@
           <td class="text-right">{{ r.hits }}</td>
           <td>
             <div class="cell-actions">
-              <form method="POST" action="{{ url_for('settings.rule_delete', rule_id=r.id) }}" data-confirm="Eliminare la regola «{{ r.keyword }}»?">
-                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="Elimina regola {{ r.keyword }}"><i class="bi bi-trash3"></i></button>
-              </form>
+              {{ delete_button(url_for('settings.rule_delete', rule_id=r.id), _('Eliminare la regola «%(keyword)s»?', keyword=r.keyword), _('Elimina regola %(keyword)s', keyword=r.keyword)) }}
             </div>
           </td>
         </tr>
@@ -63,11 +63,7 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-text">
-      {{ _("Nessuna regola ancora. Aggiungine una qui sopra, oppure correggi la categoria di una transazione con «Ricorda per questa controparte»: l'app imparerà da sola.") }}
-    </div>
-  </div>
+  {{ empty_state(text=_("Nessuna regola ancora. Aggiungine una qui sopra, oppure correggi la categoria di una transazione con «Ricorda per questa controparte»: l'app imparerà da sola.")) }}
   {% endif %}
 </div>
 
