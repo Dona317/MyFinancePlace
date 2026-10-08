@@ -5,6 +5,13 @@
 > dell'MVP. I dati completi sono in
 > [`Analisi Funzionalita vs MVP.xlsx`](Strategy%20and%20Business/Analisi%20Funzionalita%20vs%20MVP.xlsx).
 > Lo stato di MyFinancePlace è verificato sul codice di `origin/test-Cloud` (b30343e), non sulle intenzioni.
+>
+> **Aggiornamento 8 ottobre 2026.** Da allora sono state fatte quasi tutte le funzioni mancanti di §4 e §5: transazioni
+> suddivise (F1), Riepilogo con heatmap (F2), tasso di risparmio mese per mese (F3), storico prezzi (F5), import
+> OFX/QIF/CAMT (F6), riporto del budget e accantonamento (F7), spese fisse/non mensili/variabili (F8), Abbonamenti
+> (F9), mesi di autonomia (F10a), stabilità delle entrate (F10b), Sankey. Decisioni: partita doppia **scartata**
+> (ROADMAP → Scartato), forma dell'app **eseguibile desktop**. Lo stato aggiornato di tutto è in
+> [PIANO_E_TODO.md](PIANO_E_TODO.md); sotto, ✅ segna ciò che è stato fatto.
 
 ## 1. In sintesi
 
@@ -12,7 +19,7 @@ I due Excel dicono: *il mercato è diviso tra "contabilità profonda con UX data
 "UX bella con contabilità superficiale" (Monarch, YNAB); lo spazio vuoto è la contabilità vera con UX moderna,
 in locale e pensata per l'Italia*. L'analisi regge, con tre correzioni che la cambiano:
 
-1. **La partita doppia non c'è ancora.** Nel codice ogni transazione è un movimento singolo, con tipo, categoria
+1. ❌ **La partita doppia non c'è ancora** (decisione presa: non si fa, vedi ROADMAP → Scartato). Nel codice ogni transazione è un movimento singolo, con tipo, categoria
    testuale, conto e controconto (quest'ultimo solo per i giroconti). SP, CE e CF sono calcolati dai movimenti.
    Il pilastro su cui poggia tutto il posizionamento ("double-entry vero", profondità 10/10) va **o costruito o
    ridimensionato**. È la prima decisione da prendere con il co-dev.
@@ -51,17 +58,17 @@ dei migliori per ampiezza**: la differenza la faranno la profondità contabile e
 ## 4. Cosa manca rispetto ai competitor (in ordine di priorità)
 
 **Alta**: poco lavoro, grande effetto.
-- **Transazioni suddivise** su più categorie (standard in YNAB, Actual, Monarch, GnuCash).
-- **Sankey** entrate → uscite → risparmio (Monarch, Sure, Actual sperimentale). Plotly lo supporta già.
-- **Tabella Riepilogo** categoria × mese, cioè l'Excel dentro l'app (Lunch Money Query Tool, Tiller).
-- **Tasso di risparmio mese per mese**: oggi c'è solo come KPI.
-- **Licenza open source.**
+- ✅ **Transazioni suddivise** su più categorie (standard in YNAB, Actual, Monarch, GnuCash).
+- ✅ **Sankey** entrate → uscite → risparmio (Monarch, Sure, Actual sperimentale). Plotly lo supporta già.
+- ✅ **Tabella Riepilogo** categoria × mese, cioè l'Excel dentro l'app (Lunch Money Query Tool, Tiller).
+- ✅ **Tasso di risparmio mese per mese** (con il confronto tra gli anni).
+- **Licenza open source** (ancora da decidere: D4).
 
 **Media**
-- **Riporto del budget** (rollover) al mese dopo: ormai lo fanno tutti tranne GnuCash e Sossoldi.
-- **Spese fisse / non mensili / variabili** (Monarch Flex): basta un attributo sulla categoria.
-- **Vista abbonamenti**: i ricorrenti sono già riconosciuti in Previsioni.
-- **Import OFX / QIF / CAMT.053** (Actual, GnuCash, YNAB).
+- ✅ **Riporto del budget** (rollover) al mese dopo: ormai lo fanno tutti tranne GnuCash e Sossoldi.
+- ✅ **Spese fisse / non mensili / variabili** (Monarch Flex): basta un attributo sulla categoria.
+- ✅ **Vista abbonamenti**: i ricorrenti sono già riconosciuti in Previsioni.
+- ✅ **Import OFX / QIF / CAMT.053** (Actual, GnuCash, YNAB).
 - **Inserimento da tastiera e annulla/ripeti** (Actual).
 
 **Da non fare**: collegamento automatico alle banche (esclusa per scelta) e budget a buste o a base zero
@@ -72,8 +79,8 @@ dei migliori per ampiezza**: la differenza la faranno la profondità contabile e
 Il foglio `TEMPLATE - Portafolio.xlsx` è una matrice categoria × 12 mesi con netto mensile e totali annui,
 già riprodotta dalla dashboard dell'MVP. Da aggiungere:
 
-- **Subito**: tabella Riepilogo con heatmap, tasso di risparmio mensile, confronto con l'anno precedente, Sankey.
-- **Fase 2**: spese fisse/non mensili/variabili, accantonamento per spese annuali, vista abbonamenti, stabilità
+- ✅ **Subito**: tabella Riepilogo con heatmap, tasso di risparmio mensile, confronto con l'anno precedente, Sankey.
+- ✅ **Fase 2**: spese fisse/non mensili/variabili, accantonamento per spese annuali, vista abbonamenti, stabilità
   delle entrate per fonte, mesi di autonomia (liquidità ÷ spesa media).
 - **Dopo**: heatmap giornaliera a calendario, analisi libera per tag.
 
@@ -81,10 +88,10 @@ Il dettaglio (fonte, motivo, sforzo) è nel foglio **Analisi da aggiungere**.
 
 ## 6. Decisioni da prendere con il co-dev
 
-1. **Partita doppia**: costruire il ledger (conti per categorie, movimenti con ≥ 2 righe bilanciate) oppure
+1. ❌ **Partita doppia** (decisa: scartata): costruire il ledger (conti per categorie, movimenti con ≥ 2 righe bilanciate) oppure
    riposizionarsi come "conti + rendiconti derivati"? Tutto il resto del posizionamento dipende da questa scelta.
 2. **Licenza**: MIT (come Actual) o AGPL (come Firefly III e Sure, che impedisce fork chiusi).
-3. **Forma dell'app**: web self-hosted con login, com'è oggi, o desktop in un solo file, come dicono gli Excel?
+3. ✅ **Forma dell'app** (decisa: eseguibile desktop): web self-hosted con login, com'è oggi, o desktop in un solo file, come dicono gli Excel?
 4. **Pilastro fiscale IT**: oggi c'è solo l'export per anno. Moneyviz (Torino) copre già il fisco su trading
    e cripto: conviene puntarci o lasciarlo?
 

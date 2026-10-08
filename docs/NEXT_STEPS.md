@@ -106,13 +106,10 @@ Current status and roadmap. Update this file as items are completed. The MVP che
 
 ## 🔜 To do
 
-### 1. Price history
+What is left, with priorities and decisions, is in **[PIANO_E_TODO.md](PIANO_E_TODO.md)** (one list for the whole
+project). Below only the technical notes that belong to an open item there.
 
-Holdings are valued at their latest price, also in the balance sheet of past months (the app keeps no price
-history). Snapshots record the value at that moment; an optional price feed (ETFs, crypto) would make past
-balance sheets exact.
-
-### 2. Bank import improvements (MVP point 4, TBD)
+### Notes for F4 — bank import with real statements
 
 - Check the new layouts (UniCredit, BPER, BancoPosta, ING, Revolut, N26) against real anonymized exports: they
   follow the published column names, but the samples in `samples/bank_statements` are generated. Banca Sella,

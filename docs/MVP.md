@@ -43,4 +43,6 @@ Niente: tutti i punti dell'MVP sono fatti.
 
 ## Dopo l'MVP
 
-- Storico dei prezzi dei titoli (oggi gli stati patrimoniali passati usano l'ultimo prezzo).
+Le funzioni venute dopo l'MVP (transazioni suddivise, Riepilogo, storico dei prezzi, import OFX/QIF/CAMT, riporto del
+budget, Abbonamenti…) e ciò che resta da fare, con priorità e decisioni aperte, sono in
+**[PIANO_E_TODO.md](PIANO_E_TODO.md)**.

@@ -3,8 +3,8 @@
 Unico punto di controllo di cosa fare dopo. Complementa (non sostituisce) [ROADMAP](../ROADMAP.md) (stato
 delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMPETITOR](ANALISI_COMPETITOR.md).
 
-**Ultimo aggiornamento**: 7 ottobre 2026 · **Ramo**: `test-Cloud` (76 commit avanti a `main`, PR #8) ·
-**MVP**: completo · **Test**: 560, copertura 95% (dato da CI; non rieseguito in questa scansione)
+**Ultimo aggiornamento**: 8 ottobre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
+**MVP**: completo · **Test**: 643, copertura 95,6% · **Migrazioni**: 20
 
 | Stato | Significato |
 |---|---|
@@ -99,9 +99,9 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 
 | ID | Stato | Cosa |
 |---|---|---|
-| M1 | ⬜ | Aggiornare `ANALISI_COMPETITOR.md`: Sankey fatto; decisione 1 chiusa (scartata) |
+| M1 | ✅ | Aggiornare `ANALISI_COMPETITOR.md`: Sankey fatto; decisione 1 chiusa (scartata) — aggiornato l'8 ott 2026 con tutte le F fatte |
 | M2 | ⬜ | Aggiungere un `LICENSE` appena presa D4 |
-| M3 | ⬜ | Rimandare da `MVP.md` ("Dopo l'MVP") e `NEXT_STEPS.md` ("To do") a questo file, per non avere tre liste |
+| M3 | ✅ | Rimandare da `MVP.md` ("Dopo l'MVP") e `NEXT_STEPS.md` ("To do") a questo file, per non avere tre liste |
 | M4 | ⬜ | Rendere `.claude/` e `.vscode/` ignorati o committati (oggi non tracciati) |
 | M5 | ⬜ | Ripetere la prova di test e copertura in locale (nel venv del progetto; l'interprete usato in questa scansione non ha pytest) |
 
