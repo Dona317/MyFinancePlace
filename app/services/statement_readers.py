@@ -195,7 +195,10 @@ def text_document(kind: str, text: str) -> Document:
     except csv.Error:
         # The sniffer gives up on short files with a preamble ("BPER Banca" above the header)
         delimiter = common_delimiter(sample)
-        rows = list(csv.reader(io.StringIO(text), delimiter=delimiter)) if delimiter else []
+        try:
+            rows = list(csv.reader(io.StringIO(text), delimiter=delimiter)) if delimiter else []
+        except csv.Error:  # not a table after all (a cell of megabytes, binary data): read as plain lines
+            rows = []
     if sum(1 for row in rows if len(row) >= 3) >= 2:
         document.tables.append(rows)
     if "\t" in text:

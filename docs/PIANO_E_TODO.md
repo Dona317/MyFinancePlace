@@ -105,6 +105,7 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 | M2 | ⬜ | Aggiungere un `LICENSE` appena presa D4 |
 | M3 | ✅ | Rimandare da `MVP.md` ("Dopo l'MVP") e `NEXT_STEPS.md` ("To do") a questo file, per non avere tre liste |
 | M4 | ⬜ | Rendere `.claude/` e `.vscode/` ignorati o committati (oggi non tracciati) |
+| M6 | ✅ | Collaudo con input impropri (8 ott 2026): ~6.000 invii ostili su tutti i moduli (testi enormi, XSS, SQL, NUL, numeri e date assurde, id inesistenti) + API JSON + file ostili (binari, XXE, zip bomb, backup corrotti). Corretti: CSV illeggibile → messaggio invece di errore 500; caratteri NUL rifiutati/tolti; richieste da altri siti (CSRF) rifiutate controllando Origin/Referer. Nessun XSS, nessuna risposta lenta. Regressioni in `tests/test_robustness.py` |
 | M5 | ⬜ | Ripetere la prova di test e copertura in locale (nel venv del progetto; l'interprete usato in questa scansione non ha pytest) |
 
 ---

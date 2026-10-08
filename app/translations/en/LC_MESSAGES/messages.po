@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 05:40+0000\n"
+"POT-Creation-Date: 2026-10-08 06:06+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2261,6 +2261,10 @@ msgstr "The file contains no spreadsheet: upload it as CSV, .xlsx, .xls or .ods.
 msgid "Il file non è più disponibile: caricalo di nuovo."
 msgstr "The file is no longer available: upload it again."
 
+#, python-format
+msgid "Il file non è un CSV leggibile (%(exc)s): controlla che sia il file giusto."
+msgstr "The file is not a readable CSV (%(exc)s): check that it is the right file."
+
 msgid "Il file non è un backup (.zip) né un export JSON di MyFinancePlace."
 msgstr "The file is neither a backup (.zip) nor a MyFinancePlace JSON export."
 
@@ -3317,6 +3321,9 @@ msgstr "Not duplicates"
 msgid "Non trovo le colonne di data e importo: sceglile a mano."
 msgstr "I cannot find the date and amount columns: choose them yourself."
 
+msgid "Non è stato salvato nulla. Se hai usato un modulo di questa app, ricarica la pagina e riprova."
+msgstr "Nothing was saved. If you used a form of this app, reload the page and try again."
+
 msgid "Normale"
 msgstr "Normal"
 
@@ -4079,9 +4086,18 @@ msgstr "Revenue, spending and net result by period."
 msgid "Ricevuta"
 msgstr "Receipt"
 
+msgid "Richiesta rifiutata"
+msgstr "Request refused"
+
 #, python-format
 msgid "Richiesta rifiutata dall'API Anthropic: %(message)s"
 msgstr "Request rejected by the Anthropic API: %(message)s"
+
+msgid "Richiesta rifiutata: arriva da un altro sito."
+msgstr "Request refused: it comes from another site."
+
+msgid "Richiesta rifiutata: contiene caratteri non validi."
+msgstr "Request refused: it contains invalid characters."
 
 msgid "Riconcilia"
 msgstr "Reconcile"
@@ -4755,6 +4771,9 @@ msgstr "Remove the tag"
 
 msgid "Togli questa parte"
 msgstr "Remove this part"
+
+msgid "Torna alla dashboard"
+msgstr "Back to the dashboard"
 
 msgid "Torna alle Istantanee"
 msgstr "Back to Snapshots"

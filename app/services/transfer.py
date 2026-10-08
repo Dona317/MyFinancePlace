@@ -149,7 +149,10 @@ def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
     if not name.endswith(MAPPING_EXTENSIONS):
         raise TableError(_("Formato non supportato: carica un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)."))
     if name.endswith((".csv", ".txt", ".tsv")):
-        cells = csv_cells(readers.decode_text(raw))
+        try:
+            cells = csv_cells(readers.decode_text(raw))
+        except csv.Error as exc:  # binary data, a broken quote, a cell of megabytes
+            raise TableError(_("Il file non è un CSV leggibile (%(exc)s): controlla che sia il file giusto.", exc=exc))
     else:
         try:
             document = readers.read_document(filename, raw)

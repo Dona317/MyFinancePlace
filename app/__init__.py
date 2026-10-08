@@ -1,6 +1,8 @@
 import os
+from urllib.parse import urlsplit
 
 from apiflask import APIFlask
+from flask_babel import gettext as _
 from flask import jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from jinja2 import Undefined
@@ -177,6 +179,31 @@ def create_app(config_name="default"):
         return db.session.get(User, int(user_id)) if str(user_id).isdigit() else None
 
     public_endpoints = {"static", "auth.login", "auth.setup"}
+
+    # ── Requests from another site: a page elsewhere could make the browser post a form here (cross-site request
+    # forgery), which matters most on the desktop app, where nobody signs in. Browsers say where a request
+    # comes from: a change asked by another origin is refused. Text with NUL characters is refused too (the
+    # database cannot store or search it, and no keyboard types it).
+    @app.before_request
+    def refuse_foreign_and_broken_requests():
+        if request.endpoint is None:  # no such page or method: answered 404/405 anyway
+            return None
+        if request.method not in ("GET", "HEAD", "OPTIONS"):
+            if request.headers.get("Sec-Fetch-Site") == "cross-site":
+                return _refused()
+            source = request.headers.get("Origin") or request.headers.get("Referer")
+            if source and (source == "null" or urlsplit(source).netloc != request.host):
+                return _refused()
+        if any("\x00" in value for values in (request.args, request.form) for value in values.values()):
+            return _refused(400)
+        return None
+
+    def _refused(status=403):
+        message = (_("Richiesta rifiutata: arriva da un altro sito.") if status == 403
+                   else _("Richiesta rifiutata: contiene caratteri non validi."))
+        if request.is_json or "/api" in request.path:
+            return jsonify({"message": message}), status
+        return render_template("refused.html", message=message), status
 
     @app.before_request
     def require_login():
