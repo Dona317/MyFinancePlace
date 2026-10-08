@@ -331,28 +331,32 @@ def anthropic_json(model: str, system: str, content: list[dict], schema: dict, m
         # Long documents can produce long JSON: stream to avoid HTTP timeouts
         with client.beta.messages.stream(**request) as stream:
             message = stream.get_final_message()
-    except anthropic.AuthenticationError:
-        raise AIExtractionError(_("Chiave API Anthropic mancante o non valida (ANTHROPIC_API_KEY)."))
-    except anthropic.PermissionDeniedError:
-        raise AIExtractionError(_("La chiave API Anthropic non ha accesso a questo modello (LLM_MODEL)."))
-    except anthropic.NotFoundError:
-        raise AIExtractionError(_("Modello Anthropic non trovato: %(model)s (LLM_MODEL).", model=model))
-    except anthropic.RateLimitError:
-        raise AIExtractionError(_("Troppe richieste all'API Anthropic: riprova tra qualche minuto."))
-    except anthropic.BadRequestError as exc:
-        raise AIExtractionError(_("Richiesta rifiutata dall'API Anthropic: %(message)s", message=exc.message))
-    except anthropic.APIStatusError as exc:
-        raise AIExtractionError(_("Errore del servizio Anthropic (%(status_code)s): riprova più tardi.", status_code=exc.status_code))
-    except anthropic.APITimeoutError:
-        raise AIExtractionError(_("Il modello ha impiegato troppo tempo: riprova o dividi il lavoro."))
-    except anthropic.APIConnectionError:
-        raise AIExtractionError(_("Impossibile contattare l'API Anthropic: controlla la connessione."))
-
+    except anthropic.APIError as exc:
+        raise AIExtractionError(_anthropic_error(anthropic, exc, model)) from None
     if message.stop_reason == "refusal":
         raise AIExtractionError(_("Il modello ha rifiutato la richiesta."))
     if message.stop_reason == "max_tokens":
         raise AIExtractionError(too_long)
     return next((block.text for block in message.content if block.type == "text"), None)
+
+
+def _anthropic_error(anthropic, exc, model: str) -> str:
+    """What to tell the user about an API error (subclasses before APIStatusError, their parent)."""
+    if isinstance(exc, anthropic.AuthenticationError):
+        return _("Chiave API Anthropic mancante o non valida (ANTHROPIC_API_KEY).")
+    if isinstance(exc, anthropic.PermissionDeniedError):
+        return _("La chiave API Anthropic non ha accesso a questo modello (LLM_MODEL).")
+    if isinstance(exc, anthropic.NotFoundError):
+        return _("Modello Anthropic non trovato: %(model)s (LLM_MODEL).", model=model)
+    if isinstance(exc, anthropic.RateLimitError):
+        return _("Troppe richieste all'API Anthropic: riprova tra qualche minuto.")
+    if isinstance(exc, anthropic.BadRequestError):
+        return _("Richiesta rifiutata dall'API Anthropic: %(message)s", message=exc.message)
+    if isinstance(exc, anthropic.APIStatusError):
+        return _("Errore del servizio Anthropic (%(status_code)s): riprova più tardi.", status_code=exc.status_code)
+    if isinstance(exc, anthropic.APITimeoutError):
+        return _("Il modello ha impiegato troppo tempo: riprova o dividi il lavoro.")
+    return _("Impossibile contattare l'API Anthropic: controlla la connessione.")
 
 
 def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: str, progress: Progress) -> AIExtraction:

@@ -84,40 +84,55 @@ def _candidates(window_days: int):
             .order_by(Transaction.date, Transaction.id))
 
 
-def find_groups(window_days: int = DEFAULT_WINDOW_DAYS, threshold: float = SENSITIVITY["normale"]) -> list[DuplicateGroup]:
+class _UnionFind:
+    """Groups that merge: linking a with b and b with c puts all three in one group."""
+
+    def __init__(self):
+        self.parent: dict[int, int] = {}
+
+    def find(self, x: int) -> int:
+        while self.parent.setdefault(x, x) != x:
+            self.parent[x] = self.parent[self.parent[x]]
+            x = self.parent[x]
+        return x
+
+    def union(self, a: int, b: int) -> None:
+        self.parent[self.find(a)] = self.find(b)
+
+
+def _buckets(window_days: int) -> list[list[Transaction]]:
+    """The candidates by type and amount, each bucket sorted by date."""
     buckets: dict[tuple, list[Transaction]] = {}
     for tx in _candidates(window_days):
         buckets.setdefault(_signed_key(tx.type, tx.amount), []).append(tx)
+    return list(buckets.values())
+
+
+def _group(txs: list[Transaction]) -> DuplicateGroup:
+    txs.sort(key=lambda t: (t.date, t.id))
+    identical = len({t.date for t in txs}) == 1 and len({frozenset(meaningful_words(t.description)) for t in txs}) == 1
+    return DuplicateGroup(txs, identical)
+
+
+def find_groups(window_days: int = DEFAULT_WINDOW_DAYS, threshold: float = SENSITIVITY["normale"]) -> list[DuplicateGroup]:
+    """Transactions of the same type and amount, a few days apart, with similar descriptions; pairs the user said
+    are not duplicates stay apart."""
     dismissed = _dismissed_pairs()
-
-    parent: dict[int, int] = {}
-
-    def find(x: int) -> int:
-        while parent.setdefault(x, x) != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-
-    by_id: dict[int, Transaction] = {}
-    for bucket in buckets.values():
+    links, by_id = _UnionFind(), {}
+    for bucket in _buckets(window_days):
         for i, first in enumerate(bucket):
             for second in bucket[i + 1:]:
                 if (second.date - first.date).days > window_days:
-                    break  # bucket is sorted by date
+                    break  # the bucket is sorted by date
                 pair = (min(first.id, second.id), max(first.id, second.id))
                 if pair in dismissed or similarity(first.description, second.description) < threshold:
                     continue
                 by_id[first.id], by_id[second.id] = first, second
-                parent[find(first.id)] = find(second.id)
-
+                links.union(first.id, second.id)
     members: dict[int, list[Transaction]] = {}
     for tx_id, tx in by_id.items():
-        members.setdefault(find(tx_id), []).append(tx)
-    groups = []
-    for txs in members.values():
-        txs.sort(key=lambda t: (t.date, t.id))
-        identical = len({t.date for t in txs}) == 1 and len({frozenset(meaningful_words(t.description)) for t in txs}) == 1
-        groups.append(DuplicateGroup(txs, identical))
+        members.setdefault(links.find(tx_id), []).append(tx)
+    groups = [_group(txs) for txs in members.values()]
     return sorted(groups, key=lambda g: (not g.identical, -g.latest.toordinal()))
 
 

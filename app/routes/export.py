@@ -380,6 +380,53 @@ def bank_ai_cancel(token):
     return redirect(url_for("export.index"))
 
 
+PREVIEW_FIELDS = ("date", "description", "amount", "type", "category", "counterparty", "aicat")
+
+
+def _assign_account(tx, base: dict, account: Account) -> None:
+    """Money coming in through a transfer arrives on `account`; everything else moves from it. The preview shows
+    amounts without sign: the direction comes from the statement row as read."""
+    if tx.type == "transfer" and (to_decimal(base.get("amount")) or 0) > 0:
+        tx.counter_account_id = account.id
+    else:
+        tx.account_id = account.id
+
+
+def _collect_rows(data: dict, account: Account | None) -> tuple[list, list[int], int]:
+    """The rows the user kept, as transactions: (created, invalid row numbers, skipped as already imported)."""
+    rows = data["rows"]
+    selected = sorted(form_ids("include"))
+    existing = bank_import.already_imported([rows[i]["import_ref"] for i in selected if i < len(rows)])
+    created, invalid, skipped = [], [], 0
+    for index in selected:
+        base = rows[index] if index < len(rows) else {}  # indexes past the payload are rows added by hand
+        if base.get("import_ref") in existing:
+            skipped += 1
+            continue
+        fields = {name: request.form.get(f"{name}-{index}", "") for name in PREVIEW_FIELDS}
+        try:
+            tx = bank_import.build_transaction(base, data["bank"], fields, ai=data.get("ai", False))
+        except ValueError:
+            invalid.append(index + 1)
+            continue
+        if account is not None:
+            _assign_account(tx, base, account)
+        created.append(tx)
+    return created, invalid, skipped
+
+
+def _import_message(count: int, bank_key: str, account: Account | None, skipped: int) -> str:
+    bank_name = bank_import.layout_named(bank_key).name
+    if account:
+        message = _("%(count)s movimenti importati da %(bank)s sul conto «%(account)s».",
+                    count=count, bank=bank_name, account=account.name)
+    else:
+        message = _("%(count)s movimenti importati da %(bank)s.", count=count, bank=bank_name)
+    if skipped:
+        message += " " + _("%(count)s già presenti sono stati ignorati.", count=skipped)
+    return message
+
+
 @export_bp.route("/bank/confirm", methods=["POST"])
 def bank_confirm():
     """Step 2: save the rows the user kept, with every field as edited in the preview."""
@@ -389,34 +436,8 @@ def bank_confirm():
         flash(_("Anteprima non valida o scaduta: carica di nuovo il file."), "error")
         return redirect(url_for("export.index"))
 
-    rows = data["rows"]
-    selected = sorted(form_ids("include"))
-    existing = bank_import.already_imported([rows[i]["import_ref"] for i in selected if i < len(rows)])
-
-    created, invalid, skipped = [], [], 0
     account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
-    for index in selected:
-        base = rows[index] if index < len(rows) else {}  # indexes past the payload are rows added by hand
-        if base.get("import_ref") in existing:
-            skipped += 1
-            continue
-        fields = {name: request.form.get(f"{name}-{index}", "") for name in
-                  ("date", "description", "amount", "type", "category", "counterparty", "aicat")}
-        try:
-            tx = bank_import.build_transaction(base, data["bank"], fields, ai=data.get("ai", False))
-        except ValueError:
-            invalid.append(index + 1)
-            continue
-        if account is not None:
-            # money coming in through a transfer arrives on this account; everything else moves from it.
-            # The preview shows amounts without sign: the direction comes from the statement row as read.
-            incoming = tx.type == "transfer" and (to_decimal(base.get("amount")) or 0) > 0
-            if incoming:
-                tx.counter_account_id = account.id
-            else:
-                tx.account_id = account.id
-        created.append(tx)
-
+    created, invalid, skipped = _collect_rows(data, account)
     db.session.add_all(created)
     try:
         db.session.commit()
@@ -425,15 +446,7 @@ def bank_confirm():
         flash(_("Alcuni movimenti risultano già importati: ricarica il file e riprova."), "error")
         return redirect(url_for("export.index"))
 
-    bank_name = bank_import.layout_named(data['bank']).name
-    if account:
-        message = _("%(count)s movimenti importati da %(bank)s sul conto «%(account)s».",
-                    count=len(created), bank=bank_name, account=account.name)
-    else:
-        message = _("%(count)s movimenti importati da %(bank)s.", count=len(created), bank=bank_name)
-    if skipped:
-        message += " " + _("%(count)s già presenti sono stati ignorati.", count=skipped)
-    flash(message, "success")
+    flash(_import_message(len(created), data["bank"], account, skipped), "success")
     if invalid:
         flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")
     return redirect(url_for("transactions.index"))

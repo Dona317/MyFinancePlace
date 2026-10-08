@@ -141,6 +141,16 @@ def _change(current: float, previous: float) -> float | None:
     return round((current - previous) / previous * 100, 1) if previous else None
 
 
+def _previous_totals(year: int, months: int) -> dict[tuple[str, str], float]:
+    """{(type, category): total of the first `months` months of `year`}, for main categories and subcategories."""
+    totals: dict[tuple[str, str], float] = {}
+    for month, tx_type, category, amount in _by_month_and_category(year):
+        if month < months:
+            for name in {categories.main_or(category, UNCATEGORIZED), category or UNCATEGORIZED}:
+                totals[(tx_type, name)] = totals.get((tx_type, name), 0.0) + amount
+    return totals
+
+
 def summary_table(year: int, months: int = 12) -> dict:
     """
     The year as a category × month table (the spreadsheet inside the app): for income and expenses, one row per
@@ -148,12 +158,7 @@ def summary_table(year: int, months: int = 12) -> dict:
     and change on the same months of the year before; then net and savings rate per month. `months`: the
     columns shown (the months so far, for the current year).
     """
-    previous_totals: dict[tuple[str, str], float] = {}
-    for month, tx_type, category, amount in _by_month_and_category(year - 1):
-        if month < months:
-            for name in {categories.main_or(category, UNCATEGORIZED), category or UNCATEGORIZED}:
-                key = (tx_type, name)
-                previous_totals[key] = previous_totals.get(key, 0.0) + amount
+    previous_totals = _previous_totals(year - 1, months)
 
     def row(tx_type: str, name: str) -> dict:
         return {"name": name, "months": [0.0] * months, "children": {}, "type": tx_type}

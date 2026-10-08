@@ -426,3 +426,31 @@ def test_export_page_shows_ai_status(client, app):
     app.config["LLM_PROVIDER"] = "ollama"
     html = client.get("/export/").get_data(as_text=True)
     assert "Lettura AI disponibile" in html and "qwen2.5vl:7b" in html and ".jpg" in html
+
+
+def test_anthropic_errors_become_messages():
+    """Each API error the user can act on gets its own message; subclasses are checked before their parent."""
+    from types import SimpleNamespace
+
+    class APIError(Exception):
+        pass
+
+    class APIStatusError(APIError):
+        status_code = 503
+
+    class BadRequestError(APIStatusError):
+        message = "troppo grande"
+
+    kinds = {name: type(name, (APIStatusError,), {}) for name in
+             ("AuthenticationError", "PermissionDeniedError", "NotFoundError", "RateLimitError")}
+    fake = SimpleNamespace(APIStatusError=APIStatusError, BadRequestError=BadRequestError,
+                           APITimeoutError=type("APITimeoutError", (APIError,), {}), **kinds)
+    message = ai_extraction._anthropic_error
+    assert "ANTHROPIC_API_KEY" in message(fake, kinds["AuthenticationError"](), "m")
+    assert "non ha accesso" in message(fake, kinds["PermissionDeniedError"](), "m")
+    assert "non trovato: claude-x" in message(fake, kinds["NotFoundError"](), "claude-x")
+    assert "Troppe richieste" in message(fake, kinds["RateLimitError"](), "m")
+    assert "troppo grande" in message(fake, BadRequestError(), "m")
+    assert "(503)" in message(fake, APIStatusError(), "m")
+    assert "troppo tempo" in message(fake, fake.APITimeoutError(), "m")
+    assert "connessione" in message(fake, APIError(), "m")

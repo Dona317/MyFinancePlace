@@ -113,26 +113,35 @@ def counts(data: dict) -> dict:
 
 # ── Reading an uploaded file ───────────────────────────────────────────────────
 
-def read_upload(raw: bytes) -> tuple[dict, dict[str, bytes]]:
-    """(data, document files) from a .zip backup or a .json file; BackupError when it is neither."""
+def _document_entries(archive: zipfile.ZipFile) -> dict[str, bytes]:
+    """The archived document files (flat names under documents/, no hidden or nested paths)."""
     files = {}
-    if zipfile.is_zipfile(io.BytesIO(raw)):
-        try:
-            with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-                data = json.loads(archive.read(DATA_FILE).decode("utf-8"))
-                for name in archive.namelist():
-                    stored = name[len(DOCUMENTS_DIR):]
-                    if name.startswith(DOCUMENTS_DIR) and stored and "/" not in stored and not stored.startswith("."):
-                        files[stored] = archive.read(name)
-        except KeyError:
-            raise BackupError(_("Nel file .zip manca %(DATA_FILE)s: non è un backup di MyFinancePlace.", DATA_FILE=DATA_FILE)) from None
-        except (zipfile.BadZipFile, UnicodeDecodeError, json.JSONDecodeError):
-            raise BackupError(_("Il file .zip è danneggiato o non è un backup di MyFinancePlace.")) from None
-    else:
-        try:
-            data = json.loads(raw.decode("utf-8-sig"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
-            raise BackupError(_("Il file non è un backup (.zip) né un export JSON di MyFinancePlace.")) from None
+    for name in archive.namelist():
+        stored = name[len(DOCUMENTS_DIR):]
+        if name.startswith(DOCUMENTS_DIR) and stored and "/" not in stored and not stored.startswith("."):
+            files[stored] = archive.read(name)
+    return files
+
+
+def _read_zip(raw: bytes) -> tuple[dict, dict[str, bytes]]:
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            return json.loads(archive.read(DATA_FILE).decode("utf-8")), _document_entries(archive)
+    except KeyError:
+        raise BackupError(_("Nel file .zip manca %(DATA_FILE)s: non è un backup di MyFinancePlace.", DATA_FILE=DATA_FILE)) from None
+    except (zipfile.BadZipFile, UnicodeDecodeError, json.JSONDecodeError):
+        raise BackupError(_("Il file .zip è danneggiato o non è un backup di MyFinancePlace.")) from None
+
+
+def _read_json(raw: bytes) -> dict:
+    try:
+        return json.loads(raw.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        raise BackupError(_("Il file non è un backup (.zip) né un export JSON di MyFinancePlace.")) from None
+
+
+def _check(data) -> None:
+    """A full backup this version can restore, or the older JSON export of the transactions."""
     if not isinstance(data, dict):
         raise BackupError(_("Il file non è un backup di MyFinancePlace."))
     if data.get("format") == FORMAT:
@@ -142,6 +151,12 @@ def read_upload(raw: bytes) -> tuple[dict, dict[str, bytes]]:
             raise BackupError(_("Il backup viene da una versione più recente dell'app: aggiorna l'app prima di ripristinarlo."))
     elif not isinstance(data.get("transactions"), list):
         raise BackupError(_("Il file non è un backup di MyFinancePlace."))
+
+
+def read_upload(raw: bytes) -> tuple[dict, dict[str, bytes]]:
+    """(data, document files) from a .zip backup or a .json file; BackupError when it is neither."""
+    data, files = _read_zip(raw) if zipfile.is_zipfile(io.BytesIO(raw)) else (_read_json(raw), {})
+    _check(data)
     return data, files
 
 
@@ -151,29 +166,51 @@ def is_full_backup(data: dict) -> bool:
 
 # ── Restore ────────────────────────────────────────────────────────────────────
 
+# Fix-ups of backups made by older versions, run after every restore (they change nothing on newer ones)
+LEGACY_FIXES = (
+    # made before multi-currency: no value in euro
+    text("UPDATE transactions SET amount_base = amount WHERE amount_base IS NULL"),
+    # made before the counterparty became a tag: the same conversion as the migration b7c1d2e3f4a5
+    text("""
+        UPDATE transactions SET tags = array_replace(tags, 'categoria-ai', 'da confermare (AI)')
+        WHERE 'categoria-ai' = ANY(tags)"""),
+    text("""
+        UPDATE transactions
+        SET tags = ARRAY[btrim(counterparty)]::varchar[] || COALESCE(tags, ARRAY[]::varchar[])
+        WHERE counterparty IS NOT NULL AND btrim(counterparty) <> ''
+          AND NOT EXISTS (SELECT 1 FROM unnest(COALESCE(tags, ARRAY[]::varchar[])) AS t(tag)
+                          WHERE lower(t.tag) = lower(btrim(counterparty)))"""),
+)
+
+
+def _replace_tables(prepared) -> None:
+    for model in reversed(MODELS):
+        db.session.execute(delete(model))
+    for model, rows in prepared:
+        if rows:
+            db.session.execute(insert(model.__table__), rows)
+    _reset_sequences()
+    for fix in LEGACY_FIXES:
+        db.session.execute(fix)
+
+
+def _sync_document_files(tables: dict, files: dict[str, bytes]) -> None:
+    """Write the archived files of the restored documents; remove the files of documents that no longer exist."""
+    kept = {record["stored_name"] for record in tables.get("documents", [])}
+    for stored, content in files.items():
+        if stored in kept:
+            document_store.write(stored, content)
+    for path in document_store.folder().iterdir():
+        if path.is_file() and path.name not in kept:
+            path.unlink(missing_ok=True)
+
+
 def restore(data: dict, files: dict[str, bytes]) -> dict:
     """Replace every table with the backup's content. All or nothing: on error nothing changes."""
     tables = data["tables"]
     try:
         prepared = [(model, [_row(model, record) for record in tables.get(model.__tablename__, [])]) for model in MODELS]
-        for model in reversed(MODELS):
-            db.session.execute(delete(model))
-        for model, rows in prepared:
-            if rows:
-                db.session.execute(insert(model.__table__), rows)
-        _reset_sequences()
-        # backups made before multi-currency have no value in euro: compute it
-        db.session.execute(text("UPDATE transactions SET amount_base = amount WHERE amount_base IS NULL"))
-        # backups made before the counterparty became a tag: the same conversion as the migration b7c1d2e3f4a5
-        db.session.execute(text("""
-            UPDATE transactions SET tags = array_replace(tags, 'categoria-ai', 'da confermare (AI)')
-            WHERE 'categoria-ai' = ANY(tags)"""))
-        db.session.execute(text("""
-            UPDATE transactions
-            SET tags = ARRAY[btrim(counterparty)]::varchar[] || COALESCE(tags, ARRAY[]::varchar[])
-            WHERE counterparty IS NOT NULL AND btrim(counterparty) <> ''
-              AND NOT EXISTS (SELECT 1 FROM unnest(COALESCE(tags, ARRAY[]::varchar[])) AS t(tag)
-                              WHERE lower(t.tag) = lower(btrim(counterparty)))"""))
+        _replace_tables(prepared)
         db.session.commit()
         currency.recompute()
     except BackupError:
@@ -185,14 +222,7 @@ def restore(data: dict, files: dict[str, bytes]) -> dict:
     except Exception as exc:  # database constraints (duplicates, broken links)
         db.session.rollback()
         raise BackupError(_("Il database ha rifiutato il backup: %(value)s", value=str(exc).splitlines()[0])) from None
-
-    kept = {record["stored_name"] for record in tables.get("documents", [])}
-    for stored, content in files.items():
-        if stored in kept:
-            document_store.write(stored, content)
-    for path in document_store.folder().iterdir():  # files of documents that no longer exist
-        if path.is_file() and path.name not in kept:
-            path.unlink(missing_ok=True)
+    _sync_document_files(tables, files)
     return {model.__tablename__: len(rows) for model, rows in prepared}
 
 
@@ -208,10 +238,14 @@ def _reset_sequences() -> None:
             ))
 
 
+def _dedup_key(day, description, amount, tx_type) -> tuple:
+    """Two transactions with the same day, description, amount (to the cent) and type are the same one."""
+    return day, description, money.cents(amount), tx_type
+
+
 def import_transactions(data: dict) -> tuple[int, int]:
     """The older JSON export: add its transactions, skipping those already present. Returns (added, skipped)."""
-    existing = {(t.date, t.description, money.cents(t.amount), t.type)
-                for t in Transaction.query.all()}
+    existing = {_dedup_key(t.date, t.description, t.amount, t.type) for t in Transaction.query.all()}
     added = skipped = 0
     try:
         for record in data["transactions"]:
@@ -220,7 +254,7 @@ def import_transactions(data: dict) -> tuple[int, int]:
             if "date" not in values or "description" not in values or "amount" not in values:
                 raise BackupError(_("Una transazione del file non ha data, descrizione o importo."))
             values["amount"] = abs(values["amount"])
-            key = (values["date"], values["description"], money.cents(values["amount"]), values.get("type"))
+            key = _dedup_key(values["date"], values["description"], values["amount"], values.get("type"))
             if key in existing:
                 skipped += 1
                 continue

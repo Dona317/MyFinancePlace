@@ -137,12 +137,8 @@ def _is_data_row(row: list[str]) -> bool:
     return any(is_date(c) for c in row if c) and any(is_amount(c) for c in row if c)
 
 
-def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
-    """
-    Read a CSV or spreadsheet (.xlsx, .xls, .ods) for the manual column mapping.
-    Returns (headers, rows as {header: text}, line number of the first data row). Rows above the header
-    (bank name, account holder, period) are skipped.
-    """
+def _read_cells(filename: str, raw: bytes) -> list[list[str]]:
+    """The cells of a CSV, or of the first sheet of a spreadsheet, as text."""
     from app.services import statement_readers as readers
 
     name = filename.lower()
@@ -150,25 +146,22 @@ def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
         raise TableError(_("Formato non supportato: carica un file CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)."))
     if name.endswith((".csv", ".txt", ".tsv")):
         try:
-            cells = csv_cells(readers.decode_text(raw))
+            return csv_cells(readers.decode_text(raw))
         except csv.Error as exc:  # binary data, a broken quote, a cell of megabytes
             raise TableError(_("Il file non è un CSV leggibile (%(exc)s): controlla che sia il file giusto.", exc=exc))
-    else:
-        try:
-            document = readers.read_document(filename, raw)
-        except readers.UnsupportedFile as exc:
-            raise TableError(str(exc))
-        if document.kind not in ("xlsx", "xls", "odf", "html") or not document.tables:
-            raise TableError(_("Il file non contiene un foglio di calcolo: caricalo in formato CSV, .xlsx, .xls o .ods."))
-        # .ods: the first "table" is the text preamble plus every sheet merged; the real first sheet follows
-        table = document.tables[1] if document.kind == "odf" and len(document.tables) > 1 else document.tables[0]
-        cells = [[_cell_text(c) for c in row] for row in table]
-    if not any(any(row) for row in cells):
-        raise TableError(_("Il foglio è vuoto."))
-    header_at = _header_index(cells)
-    titles = cells[header_at]
-    if _is_data_row(titles):  # no header at all: the first row is a movement, the columns get numbered
-        titles, header_at = [""] * max(len(row) for row in cells), header_at - 1
+    try:
+        document = readers.read_document(filename, raw)
+    except readers.UnsupportedFile as exc:
+        raise TableError(str(exc))
+    if document.kind not in ("xlsx", "xls", "odf", "html") or not document.tables:
+        raise TableError(_("Il file non contiene un foglio di calcolo: caricalo in formato CSV, .xlsx, .xls o .ods."))
+    # .ods: the first "table" is the text preamble plus every sheet merged; the real first sheet follows
+    table = document.tables[1] if document.kind == "odf" and len(document.tables) > 1 else document.tables[0]
+    return [[_cell_text(c) for c in row] for row in table]
+
+
+def _unique_headers(titles: list[str]) -> list[str]:
+    """Column titles, numbered when empty and made unique when repeated."""
     headers, seen = [], set()
     for position, title in enumerate(titles, start=1):
         title = title or f"Colonna {position}"
@@ -176,6 +169,23 @@ def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
             title = f"{title} ({position})"
         seen.add(title)
         headers.append(title)
+    return headers
+
+
+def read_table(filename: str, raw: bytes) -> tuple[list[str], list[dict], int]:
+    """
+    Read a CSV or spreadsheet (.xlsx, .xls, .ods) for the manual column mapping.
+    Returns (headers, rows as {header: text}, line number of the first data row). Rows above the header
+    (bank name, account holder, period) are skipped.
+    """
+    cells = _read_cells(filename, raw)
+    if not any(any(row) for row in cells):
+        raise TableError(_("Il foglio è vuoto."))
+    header_at = _header_index(cells)
+    titles = cells[header_at]
+    if _is_data_row(titles):  # no header at all: the first row is a movement, the columns get numbered
+        titles, header_at = [""] * max(len(row) for row in cells), header_at - 1
+    headers = _unique_headers(titles)
     rows = [dict(zip(headers, row + [""] * (len(headers) - len(row)))) for row in cells[header_at + 1:]]
     while rows and not any(rows[-1].values()):
         rows.pop()

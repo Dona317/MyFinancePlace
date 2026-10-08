@@ -14,8 +14,10 @@ Every reader returns a `Document` with up to three views of the file, from most 
 import csv
 import io
 import re
+import struct
 import zipfile
 from dataclasses import dataclass, field
+from html.parser import HTMLParser
 from statistics import median
 from xml.etree import ElementTree
 from flask_babel import gettext as _
@@ -148,33 +150,34 @@ def _read_zip_document(raw: bytes) -> Document:
 
 # ── HTML (bank "Excel" exports that are really HTML tables) ─────────────────────
 
+class _TableParser(HTMLParser):
+    """The cells of every <tr> of an HTML page, as text."""
+
+    def __init__(self):
+        super().__init__()
+        self.rows, self.row, self.cell = [], None, None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "tr":
+            self.row = []
+        elif tag in ("td", "th") and self.row is not None:
+            self.cell = []
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th") and self.row is not None and self.cell is not None:
+            self.row.append(" ".join("".join(self.cell).split()))
+            self.cell = None
+        elif tag == "tr" and self.row is not None:
+            self.rows.append(self.row)
+            self.row = None
+
+    def handle_data(self, data):
+        if self.cell is not None:
+            self.cell.append(data)
+
+
 def _html_rows(text: str) -> list[list[str]]:
-    from html.parser import HTMLParser
-
-    class TableParser(HTMLParser):
-        def __init__(self):
-            super().__init__()
-            self.rows, self.row, self.cell = [], None, None
-
-        def handle_starttag(self, tag, attrs):
-            if tag == "tr":
-                self.row = []
-            elif tag in ("td", "th") and self.row is not None:
-                self.cell = []
-
-        def handle_endtag(self, tag):
-            if tag in ("td", "th") and self.row is not None and self.cell is not None:
-                self.row.append(" ".join("".join(self.cell).split()))
-                self.cell = None
-            elif tag == "tr" and self.row is not None:
-                self.rows.append(self.row)
-                self.row = None
-
-        def handle_data(self, data):
-            if self.cell is not None:
-                self.cell.append(data)
-
-    parser = TableParser()
+    parser = _TableParser()
     parser.feed(text)
     if not parser.rows:
         raise UnsupportedFile(_("Il file non contiene tabelle leggibili."))
@@ -188,17 +191,7 @@ def text_document(kind: str, text: str) -> Document:
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     document = Document(kind=kind, text_lines=text.split("\n"), char_width=1.0)
 
-    sample = text[:8192]
-    try:
-        dialect = csv.Sniffer().sniff(sample, delimiters=";,\t|")
-        rows = [row for row in csv.reader(io.StringIO(text), dialect)]
-    except csv.Error:
-        # The sniffer gives up on short files with a preamble ("BPER Banca" above the header)
-        delimiter = common_delimiter(sample)
-        try:
-            rows = list(csv.reader(io.StringIO(text), delimiter=delimiter)) if delimiter else []
-        except csv.Error:  # not a table after all (a cell of megabytes, binary data): read as plain lines
-            rows = []
+    rows = _delimited_rows(text)
     if sum(1 for row in rows if len(row) >= 3) >= 2:
         document.tables.append(rows)
     if "\t" in text:
@@ -209,6 +202,21 @@ def text_document(kind: str, text: str) -> Document:
         words = [Word(m.group(), m.start(), m.end(), number) for m in re.finditer(r"\S+", line.expandtabs(8))]
         document.lines.append(words)
     return document
+
+
+def _delimited_rows(text: str) -> list[list[str]]:
+    """The rows of a delimited table (CSV with any separator); none when the text is not one."""
+    sample = text[:8192]
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=";,\t|")
+        return list(csv.reader(io.StringIO(text), dialect))
+    except csv.Error:
+        # The sniffer gives up on short files with a preamble ("BPER Banca" above the header)
+        delimiter = common_delimiter(sample)
+        try:
+            return list(csv.reader(io.StringIO(text), delimiter=delimiter)) if delimiter else []
+        except csv.Error:  # not a table after all (a cell of megabytes, binary data): read as plain lines
+            return []
 
 
 def common_delimiter(sample: str) -> str | None:
@@ -293,8 +301,6 @@ def _read_doc(raw: bytes) -> Document:
 
 def doc_text_lines(raw: bytes) -> list[str]:
     """The main text of a Word 97-2003 document, one line per paragraph and one tab-separated line per table row."""
-    import struct
-
     import olefile
     try:
         ole = olefile.OleFileIO(raw)
@@ -331,7 +337,6 @@ def doc_text_lines(raw: bytes) -> list[str]:
 
 def _doc_pieces(word: bytes, clx: bytes, ccp_text: int) -> str:
     """Concatenate the pieces of the main text described by the CLX (skipping its Prc formatting blocks)."""
-    import struct
     pos = 0
     while pos < len(clx) and clx[pos] == 0x01:              # Prc: 0x01, cbGrpprl, grpprl
         pos += 3 + struct.unpack_from("<h", clx, pos + 1)[0]
