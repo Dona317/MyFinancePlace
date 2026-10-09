@@ -14,7 +14,7 @@ from sqlalchemy import func
 from app.extensions import db
 from app.models.budget import Budget
 from app.models.transaction import Transaction
-from app.services import categories
+from app.services import categories, request_cache
 from app.services.periods import add_months, first_of_month, month_bounds
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query
 
@@ -35,6 +35,10 @@ def every_month_budget(category: str) -> Budget | None:
     return Budget.query.filter(Budget.category == category, Budget.month.is_(None)).first()
 
 
+def _every_month_budgets() -> dict[str, Budget]:
+    return {b.category: b for b in Budget.query.filter(Budget.month.is_(None))}
+
+
 def _spent_by_month(names: list[str], start: date, end: date) -> dict[date, float]:
     """Spending of these categories in each month of [start, end)."""
     month = func.date_trunc("month", Transaction.date)
@@ -45,9 +49,10 @@ def _spent_by_month(names: list[str], start: date, end: date) -> dict[date, floa
     return {day.date() if hasattr(day, "date") else day: float(total or 0) for day, total in rows}
 
 
-def carried(category: str, month: date) -> float:
-    """What the months since the rollover was switched on leave to `month`: their budgets minus their spending."""
-    every = every_month_budget(category)
+def carried(category: str, month: date, every: Budget | None = None) -> float:
+    """What the months since the rollover was switched on leave to `month`: their budgets minus their spending.
+    `every` is the category's every-month budget when the caller already has it."""
+    every = every or every_month_budget(category)
     month = first_of_month(month)
     if every is None or every.rollover_since is None or every.rollover_since >= month:
         return 0.0
@@ -78,10 +83,12 @@ def status(month: date, today: date | None = None) -> list[dict]:
     start, end = month_bounds(month.year, month.month)
     days = (end - start).days
     elapsed = days if today >= end else max((today - start).days + 1, 0) if today >= start else 0
+    every_month = _every_month_budgets()
     lines = []
     for category, budget in sorted(budgets_for(month).items(), key=lambda item: item[0].casefold()):
         planned = float(budget.amount)
-        carry = carried(category, month)
+        every = every_month.get(category)
+        carry = carried(category, month, every) if every else 0.0
         available = planned + carry
         used = sum(spent.get(name, 0.0) for name in categories.with_children(category))  # a main one: with its subcategories
         share = round(used / available * 100, 1) if available > 0 else (100.0 if used else 0.0)
@@ -91,7 +98,7 @@ def status(month: date, today: date | None = None) -> list[dict]:
             "share": share, "state": "over" if used > available else "warning" if share >= WARNING_SHARE else "ok",
             "pace": round(elapsed / days * 100, 1) if days else 0.0,  # share of the month gone by
             "only_this_month": budget.month is not None,
-            "rollover": bool((every := every_month_budget(category)) and every.rollover_since),
+            "rollover": bool(every and every.rollover_since),
         })
     return lines
 
@@ -126,9 +133,13 @@ def set_aside(category: str, monthly: Decimal, month: date) -> None:
 
 
 def alerts(today: date | None = None) -> list[dict]:
-    """Budgets of the current month at or past the warning share (for the dashboard and notifications)."""
+    """Budgets of the current month at or past the warning share (for the dashboard and notifications; once per
+    request)."""
     today = today or date.today()
-    return [line for line in status(today, today) if line["state"] != "ok"]
+    store, key = request_cache.cache(), f"budget-alerts-{today}"
+    if key not in store:
+        store[key] = [line for line in status(today, today) if line["state"] != "ok"]
+    return store[key]
 
 
 def save(category: str, amount: Decimal | None, month: date | None, rollover: bool | None = None,

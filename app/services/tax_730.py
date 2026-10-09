@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 
+from sqlalchemy.orm import selectinload
+
 from app.models.transaction import Transaction
 from app.services import categories, settings_store, tax_rules
 from app.services.money import CENT
@@ -76,6 +78,7 @@ def summary(year: int) -> dict:
     start, end = year_bounds(year)
     expenses = (Transaction.query.filter(Transaction.type == "expense", Transaction.date >= start,
                                          Transaction.date < end)
+                .options(selectinload(Transaction.splits), selectinload(Transaction.account))
                 .order_by(Transaction.date, Transaction.id))
     for tx in expenses:
         taken = False

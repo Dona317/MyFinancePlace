@@ -27,6 +27,7 @@ from sqlalchemy import create_engine, text
 
 from app.extensions import STUDIO_TABLES, db
 from app.models.client import Client
+from app.services import request_cache
 
 SESSION_KEY = "client_id"
 DATABASE = re.compile(r"^[a-z0-9_]{1,63}$")
@@ -74,6 +75,7 @@ def activate(client: Client | None) -> None:
     """Point this request's database session at `client`'s archive (None or the primary: the studio database)."""
     g.client = client
     g.client_engine = engine_for(client) if client is not None and not client.is_primary else None
+    request_cache.clear()  # settings and reminders read so far belong to the other archive
 
 
 def open_from_session() -> None:
@@ -104,6 +106,7 @@ def using(client: Client):
         db.session.rollback()
         _forget_archive_rows()
         g.client, g.client_engine = before
+        request_cache.clear()
 
 
 def _forget_archive_rows() -> None:

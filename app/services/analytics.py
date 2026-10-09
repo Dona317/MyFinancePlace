@@ -17,7 +17,7 @@ from app.services.financial_health import autonomy, income_stability, nature_spl
 from app.services.i18n import N_
 from app.services.money import share
 from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
-from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total, with_lines
+from app.services.totals import LINE_CATEGORY, LINE_VALUE, VALUE, lines_query, value_total, with_lines
 
 OTHER = N_("Altre")  # the categories past the top ones, added up in one series
 
@@ -204,17 +204,23 @@ def summary_table(year: int, months: int = 12) -> dict:
     }
 
 
+def _monthly_totals(start: date, end: date) -> dict[tuple[date, str], float]:
+    """Income and expenses of each month of [start, end), in one query: {(first day of the month, type): total}."""
+    month = func.date_trunc("month", Transaction.date)
+    rows = (db.session.query(month, Transaction.type, func.sum(VALUE))
+            .filter(Transaction.type.in_(["income", "expense"]), Transaction.date >= start, Transaction.date < end)
+            .group_by(month, Transaction.type).all())
+    return {(day.date(), tx_type): float(total or 0) for day, tx_type, total in rows}
+
+
 def last_12_months(today: date | None = None) -> dict:
     """Income / expenses for the 12 months ending with the month of `today`."""
     today = today or date.today()
-    labels, income, expenses = [], [], []
-    for delta in range(-11, 1):
-        y, m = shift_month(today.year, today.month, delta)
-        start, end = month_bounds(y, m)
-        labels.append(month_label(month_index(start)))
-        income.append(_sum("income", start, end))
-        expenses.append(_sum("expense", start, end))
-    return {"labels": labels, "income": income, "expenses": expenses}
+    starts = [date(*shift_month(today.year, today.month, delta), 1) for delta in range(-11, 1)]
+    totals = _monthly_totals(starts[0], month_bounds(today.year, today.month)[1])
+    return {"labels": [month_label(month_index(start)) for start in starts],
+            "income": [totals.get((start, "income"), 0.0) for start in starts],
+            "expenses": [totals.get((start, "expense"), 0.0) for start in starts]}
 
 
 def monthly_category_trend(year: int, top_n: int = 5, tx_type: str = "expense", months: int = 12,

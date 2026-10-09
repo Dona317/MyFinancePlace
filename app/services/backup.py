@@ -37,7 +37,7 @@ from app.models import (
     Transaction,
     TransactionSplit,
 )
-from app.services import currency, document_store, money, studio
+from app.services import currency, document_store, money, settings_store, studio
 
 FORMAT = "myfinanceplace-backup"
 VERSION = 2
@@ -226,6 +226,7 @@ def restore(data: dict, files: dict[str, bytes]) -> dict:
         prepared = [(model, [_row(model, record) for record in tables.get(model.__tablename__, [])]) for model in MODELS]
         _replace_tables(prepared)
         db.session.commit()
+        settings_store.forget()
         currency.recompute()
     except BackupError:
         db.session.rollback()

@@ -21,7 +21,6 @@ from app.services import (
     backup,
     bank_import,
     column_guess,
-    pdf_report,
     statement_readers,
     transfer,
     upload_store,
@@ -140,6 +139,8 @@ def export_pdf():
 @export_bp.route("/pdf/download")
 def export_pdf_download():
     """The yearly report as a PDF file generated on the server."""
+    from app.services import pdf_report  # fpdf takes half a second to load: only when a PDF is asked for
+
     year = year_arg(date.today().year)
     content = pdf_report.build_report(year, analytics.income_statement(year), analytics.cash_flow(year))
     return download(content, f"report_finanziario_{year}.pdf", "application/pdf")

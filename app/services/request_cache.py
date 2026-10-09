@@ -6,3 +6,8 @@ def cache() -> dict:
     if not has_request_context():
         return {}
     return request.__dict__.setdefault("_mfp_cache", {})
+
+
+def clear() -> None:
+    """Forget what this request cached (another client's archive was opened)."""
+    cache().clear()

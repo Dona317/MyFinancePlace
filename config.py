@@ -94,7 +94,6 @@ class TestingConfig(Config):
     LLM_PROVIDER = ""  # tests enable it explicitly
     AI_JOBS_SYNC = True  # tests of the background thread turn it off explicitly
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test"
-    WTF_CSRF_ENABLED = False
     LOGIN_DISABLED = True  # the pages are tested without signing in; tests/test_auth.py turns it back on
 
 
