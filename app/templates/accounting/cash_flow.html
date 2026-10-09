@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Flusso di Cassa') }} — MyFinancePlace{% endblock %}

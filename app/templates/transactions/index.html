@@ -168,52 +168,45 @@
         {% for tx in transactions %}
         <tr>
           <td><input type="checkbox" name="ids" value="{{ tx.id }}" form="bulk-form" class="bulk-select check" /></td>
-          <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">
-            {{ tx.date|it_date }}
-          </td>
+          <td class="tx-date">{{ tx.date|it_date }}</td>
           <td>
-            <div style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</div>
-            {% if tx.bank_description and tx.bank_description != tx.description %}
-            <div class="text-xs text-muted" title="{{ _('Causale originale della banca') }}">
-              <i class="bi bi-bank"></i> {{ tx.bank_description|truncate(90) }}</div>
-            {% endif %}
+            <div class="tx-description">{{ tx.description }}</div>
+            {%- if tx.bank_description and tx.bank_description != tx.description %}
+            <div class="text-xs text-muted" title="{{ _('Causale originale della banca') }}"><i class="bi bi-bank"></i> {{ tx.bank_description|truncate(90) }}</div>
+            {%- endif %}
           </td>
           <td>{% if tx.splits %}<span class="badge badge-primary" title="{% for s in tx.splits %}{{ s.category }} {{ s.amount|number }}{{ '; ' if not loop.last }}{% endfor %}">{{ tx.splits|map(attribute='category')|join(' + ') }}</span>
               <span class="badge badge-neutral">{{ _('suddivisa') }}</span>
-            {% elif tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}</td>
+            {%- elif tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}</td>
           <td class="tag-cell">
-            {% for tag in tx.tags %}
-            {% if tag == ai_tag %}
+            {%- for tag in tx.tags %}
+            {%- if tag == ai_tag %}
             <form method="POST" action="{{ url_for('transactions.confirm_ai') }}" class="tag-chip tag-ai"
                   title="{{ _("Categoria proposta dall'AI e accettata senza modifiche: controllala e confermala.") }}">
               <input type="hidden" name="ids" value="{{ tx.id }}" /><input type="hidden" name="next" value="{{ request.full_path }}" />
               <i class="bi bi-stars"></i> {{ _('da confermare (AI)') }}
               <button type="submit" aria-label="{{ _('Conferma la categoria') }}" title="{{ _('Conferma la categoria') }}"><i class="bi bi-check2"></i></button>
             </form>
-            {% else %}
+            {%- else %}
             <a class="tag-chip" href="{{ url_for('transactions.index', tag=tag) }}" title="{{ _('Mostra le transazioni con questo tag') }}">{{ tag }}</a>
-            {% endif %}
-            {% endfor %}
+            {%- endif %}
+            {%- endfor %}
           </td>
           <td class="text-right">
-            {% set symbol = tx.currency if tx.currency and tx.currency != 'EUR' else '€' %}
-            {% if tx.type == 'transfer' %}
-            <span class="amount" style="color:var(--clr-text-muted);white-space:nowrap;" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money(symbol) }}</span>
-            {% else %}
-            {% set original = -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs %}
+            {%- set symbol = tx.currency if tx.currency and tx.currency != 'EUR' else '€' %}
+            {%- if tx.type == 'transfer' %}
+            <span class="amount tx-transfer" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money(symbol) }}</span>
+            {%- else %}
+            {%- set original = -(tx.amount|abs) if tx.type == 'expense' else tx.amount|abs %}
             <span class="amount {{ tx.type|tone }}">{{ '+' if tx.type == 'income' }}{{ original|money(symbol) }}</span>
-            {% if (tx.currency or 'EUR') != display.currency %}<div class="text-xs text-muted nowrap" title="{{ _('Controvalore nella valuta dei totali al cambio del giorno') }}">≈ {{ tx.signed_amount|money }}</div>{% endif %}
-            {% endif %}
+            {%- if (tx.currency or 'EUR') != display.currency %}<div class="text-xs text-muted nowrap" title="{{ _('Controvalore nella valuta dei totali al cambio del giorno') }}">≈ {{ tx.signed_amount|money }}</div>{% endif %}
+            {%- endif %}
           </td>
           <td class="text-center">
-            <div style="display:flex;gap:4px;justify-content:center;">
-              <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}">
-                <i class="bi bi-pencil"></i>
-              </a>
+            <div class="tx-actions">
+              <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}"><i class="bi bi-pencil"></i></a>
               <button type="submit" form="row-delete-form" formaction="{{ url_for('transactions.delete', tx_id=tx.id) }}"
-                      class="btn btn-ghost btn-icon btn-sm" title="{{ _('Elimina') }}" style="color:var(--clr-negative);">
-                <i class="bi bi-trash3"></i>
-              </button>
+                      class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}"><i class="bi bi-trash3"></i></button>
             </div>
           </td>
         </tr>

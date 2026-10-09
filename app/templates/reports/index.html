@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/tabs.html" import tab_bar %}
 {% from "partials/empty.html" import empty_state %}
 {% set f = filters %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block title %}{{ _('Storico prezzi') }} — {{ holding.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ holding.name }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Storico prezzi') }}</li>{% endblock %}

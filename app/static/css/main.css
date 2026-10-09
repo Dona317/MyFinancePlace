@@ -1375,3 +1375,9 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .tax-map-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; margin-top: 8px; }
 .tax-entries { margin: 0; padding-left: 18px; max-height: 240px; overflow-y: auto; }
 .rt-summary { max-width: 520px; }
+
+/* ── Transactions list (one rule here instead of a style on every row) ───── */
+.tx-date { white-space: nowrap; color: var(--clr-text-muted); font-size: var(--font-size-xs); }
+.tx-description { font-weight: 500; color: var(--clr-text-primary); }
+.tx-transfer { color: var(--clr-text-muted); white-space: nowrap; }
+.tx-actions { display: flex; gap: 4px; justify-content: center; }

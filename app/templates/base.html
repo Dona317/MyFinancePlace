@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/icons/icons.css') }}" />
 
   <!-- App CSS: load theme first, then main -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
@@ -329,10 +329,8 @@
   "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
   "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
 }|tojson }};</script>
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<!-- App JS -->
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<!-- Chart.js and its helpers: only on the pages with charts -->
+{% block chart_scripts %}{% endblock %}
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 {% block scripts %}{% endblock %}
