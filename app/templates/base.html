@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ current_language() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
+<html lang="{{ current_language() }}" data-font="{{ ui_font() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}{{ self.page_title()|striptags|trim }} — MyFinancePlace{% endblock %}</title>
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Fonts: served by the app, chosen in Settings → Visualizzazione -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fonts/fonts.css') }}" />
 
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/icons/icons.css') }}" />

@@ -24,9 +24,23 @@ def test_every_icon_used_is_in_the_icon_subset():
     assert not missing, f"run scripts/icons.py again: {missing}"
 
 
-def test_no_script_or_icon_from_a_cdn():
+def test_no_script_icon_or_font_from_a_cdn():
     for path in (APP / "templates").rglob("*.html"):
-        assert "cdn.jsdelivr" not in path.read_text(encoding="utf-8"), path
+        text = path.read_text(encoding="utf-8")
+        assert "cdn.jsdelivr" not in text and "fonts.googleapis" not in text, path
+
+
+def test_the_font_is_chosen_in_settings(client):
+    page = client.get("/settings/").get_data(as_text=True)
+    assert 'data-font="inter"' in page and "vendor/fonts/fonts.css" in page
+    assert 'name="font"' in page and "IBM Plex Sans" in page and "Atkinson Hyperlegible" in page
+    client.post("/settings/save", data={"font": "plex"})
+    assert 'data-font="plex"' in client.get("/dashboard").get_data(as_text=True)
+    client.post("/settings/save", data={"font": "comic-sans"})  # not one of them: the default
+    assert 'data-font="inter"' in client.get("/dashboard").get_data(as_text=True)
+    for name in ("inter", "ibm-plex-sans", "atkinson-hyperlegible-next"):
+        assert (APP / "static" / "vendor" / "fonts" / f"{name}.woff2").stat().st_size > 20_000
+        assert "Open Font License" in (APP / "static" / "vendor" / "fonts" / f"LICENSE-{name}.txt").read_text()
 
 
 def test_charts_load_only_on_pages_with_charts(client, sample_data):

@@ -208,6 +208,14 @@
             </select>
           </div>
           <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="s-font">{{ _('Carattere') }}</label>
+            <select id="s-font" name="font" class="form-select" onchange="this.form.submit()">
+              {% for key, (label, family) in fonts.items() %}
+              <option value="{{ key }}" style="font-family:{{ family }}, sans-serif;" {{ 'selected' if ui_font() == key }}>{{ label }}{{ ' (' ~ _('predefinito') ~ ')' if loop.first }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="s-date">{{ _('Formato data') }}</label>
             <select id="s-date" name="date_format" class="form-select" onchange="this.form.submit()">
               <option value="DD/MM/YYYY" {{ 'selected' if settings.date_format == 'DD/MM/YYYY' }}>{{ _('DD/MM/YYYY (italiano)') }}</option>

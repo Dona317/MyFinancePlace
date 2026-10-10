@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-10 07:47+0000\n"
+"POT-Creation-Date: 2026-10-10 07:56+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1121,6 +1121,9 @@ msgstr "Initial principal (€)"
 
 msgid "Capitale iniziale: deve essere maggiore di zero."
 msgstr "Initial principal: must be greater than zero."
+
+msgid "Carattere"
+msgstr "Font"
 
 msgid "Carica"
 msgstr "Upload"
@@ -6072,6 +6075,9 @@ msgstr "most accurate"
 
 msgid "plusvalenze annullate da minus precedenti"
 msgstr "gains cancelled by earlier losses"
+
+msgid "predefinito"
+msgstr "default"
 
 msgid "prezzo attuale"
 msgstr "current price"

@@ -17,6 +17,7 @@ from app.services.bank_import import CATEGORY_RULES
 from app.services.ui_settings import (  # noqa: F401
     AUTONOMY_TARGETS,
     DEFAULT_SETTINGS,
+    FONTS,
     LANGUAGES,
     MODULE_BLUEPRINTS,
     MODULE_ENDPOINT_PREFIXES,
@@ -39,7 +40,7 @@ settings_bp = APIBlueprint(
 def index():
     return render_template("settings/index.html", settings=current_settings(), defaults=DEFAULT_SETTINGS,
                            currencies=currency.CURRENCIES, locales=display.LOCALES, languages=LANGUAGES, preview_date=date(2026, 5, 25),
-                           autonomy_targets=AUTONOMY_TARGETS, desktop_app=desktop.available())
+                           autonomy_targets=AUTONOMY_TARGETS, desktop_app=desktop.available(), fonts=FONTS)
 
 
 @settings_bp.route("/save", methods=["POST"])

@@ -6,7 +6,7 @@ from flask import Flask
 
 from app.extensions import db
 from app.services import display, notifications, studio
-from app.services.ui_settings import current_language, current_settings
+from app.services.ui_settings import current_font, current_language, current_settings
 
 
 def register_context(app: Flask) -> None:
@@ -41,4 +41,4 @@ def register_context(app: Flask) -> None:
     @app.context_processor
     def inject_settings():
         return {"settings": current_settings(), "notification_count": notification_count, "display": display.prefs(),
-                "current_language": current_language, "working_client": working_client}
+                "current_language": current_language, "working_client": working_client, "ui_font": current_font}

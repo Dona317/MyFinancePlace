@@ -50,9 +50,22 @@ DEFAULT_SETTINGS = {
     "locale":      "it-IT",
     "date_format": "DD/MM/YYYY",
     "language":    "it",
+    "font":        "inter",
 }
 
 LANGUAGES = {"it": "Italiano", "en": "English"}  # interface languages (translations/<code>/LC_MESSAGES)
+# Interface fonts, served by the app (static/vendor/fonts): key → (name, CSS family); the first is the default
+FONTS = {
+    "inter":    ("Inter", "'Inter Variable'"),
+    "plex":     ("IBM Plex Sans", "'IBM Plex Sans Variable'"),
+    "atkinson": ("Atkinson Hyperlegible", "'Atkinson Hyperlegible Next Variable'"),
+}
+
+
+def current_font() -> str:
+    """The chosen interface font (a key of FONTS)."""
+    font = current_settings().get("font")
+    return font if font in FONTS else next(iter(FONTS))
 AUTONOMY_TARGETS = (3, 6, 9, 12)
 
 
