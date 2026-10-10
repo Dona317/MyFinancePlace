@@ -3,6 +3,7 @@ Run with:  python seed.py
 Wipes all existing data and inserts fresh test records.
 """
 from datetime import date
+
 from app import create_app
 from app.extensions import db
 from app.models.transaction import Transaction

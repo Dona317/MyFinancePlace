@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/kpi.html" import kpi %}
+{% set d = summary.debt %}
+{% block page_title %}{{ d.name }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ d.name }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="kpi-grid mb-24">
+  {{ kpi('credit-card-2-back', _('Residuo Oggi'), value=summary.balance|money, cls='kpi-negative', value_class='text-negative', sub=(_('saldo inserito da te') if d.balance is not none else _('dal piano di ammortamento'))) }}
+  {% call kpi('calendar-check', _('Rata Mensile'), value=(summary.installment|money if summary.installment else '—'), cls='kpi-warning') %}{{ d.type|tr }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}{% endcall %}
+  {{ kpi('hourglass-split', _('Rate Rimanenti'), value=summary.months_left, sub=(_('ultima il %(date)s', date=summary.end_date|it_date) if summary.end_date else '')) }}
+  {{ kpi('percent', _('Interessi Ancora da Pagare'), value=summary.interest_left|money, cls='kpi-primary', sub=(_("%(amount)s pagati quest'anno", amount=summary.interest_ytd|money))) }}
+</div>
+
+{% if summary.never_ends %}
+<div class="alert alert-error mb-16"><i class="bi bi-exclamation-triangle"></i>
+  {{ _('La rata (%(amount)s) non copre nemmeno gli interessi del primo mese: così il debito non si estingue mai. Controlla rata e tasso.', amount=summary.installment|money) }}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Piano di Ammortamento') }}</div>
+      <div class="card-header-sub">{{ _("Rata costante (alla francese): all'inizio si pagano soprattutto interessi, poi capitale") }}</div>
+    </div>
+  </div>
+  {% if plan %}
+  <div class="table-wrapper" style="max-height:560px;overflow:auto;">
+    <table class="table-compact">
+      <thead>
+        <tr>
+          <th class="text-right">N°</th>
+          <th>{{ _('Scadenza') }}</th>
+          <th class="text-right">{{ _('Rata') }}</th>
+          <th class="text-right">{{ _('Interessi') }}</th>
+          <th class="text-right">{{ _('Capitale') }}</th>
+          <th class="text-right">{{ _('Residuo') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in plan %}
+        <tr {% if row.due <= today %}class="text-muted"{% endif %}>
+          <td class="text-right">{{ row.number }}</td>
+          <td class="nowrap">{{ row.due|it_date }}{% if row.due <= today %} <i class="bi bi-check2" title="{{ _('Già scaduta') }}"></i>{% endif %}</td>
+          <td class="amount text-right">{{ row.payment|money }}</td>
+          <td class="amount text-right">{{ row.interest|money }}</td>
+          <td class="amount text-right">{{ row.principal|money }}</td>
+          <td class="amount text-right">{{ row.balance|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2">{{ _('Totale') }}</td>
+          <td class="amount text-right">{{ plan|sum(attribute='payment')|money }}</td>
+          <td class="amount text-right">{{ plan|sum(attribute='interest')|money }}</td>
+          <td class="amount text-right">{{ plan|sum(attribute='principal')|money }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}
+  {% call empty_state(text=_('Per calcolare il piano servono la <strong>data di inizio</strong> e la <strong>durata</strong> (o la rata mensile).')) %}
+    <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> {{ _('Completa i dati') }}</a>
+  {% endcall %}
+  {% endif %}
+</div>
+
+{% if d.notes %}
+<div class="card mt-16"><div class="card-body"><strong>{{ _('Note:') }}</strong> {{ d.notes }}</div></div>
+{% endif %}
+
+{% endblock %}

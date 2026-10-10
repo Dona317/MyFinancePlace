@@ -1,0 +1,381 @@
+"""
+Net worth: cash from the transactions, investments and other assets, debts and their amortization plans.
+Feeds the Balance Sheet, the dashboard KPIs, Portfolio, Debt and the Snapshots.
+"""
+import re
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import date, timedelta
+
+from sqlalchemy import case, func
+
+from app.extensions import db
+from app.models.transaction import Transaction
+from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
+from app.services import accounts, settings_store
+from app.services.i18n import N_
+from app.services.periods import add_months, last_complete_months
+from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total
+
+# ── Asset classes and how the Balance Sheet groups them ────────────────────────
+
+INVESTMENTS = N_("Portafoglio investimenti")
+ASSET_CLASSES = {
+    # class: (balance-sheet line, is it part of the investment portfolio?)
+    N_("Azione"):          (INVESTMENTS, True),
+    N_("ETF"):             (INVESTMENTS, True),
+    N_("Fondo"):           (INVESTMENTS, True),
+    N_("Obbligazione"):    (INVESTMENTS, True),
+    N_("Criptovaluta"):    (INVESTMENTS, True),
+    N_("Conto Risparmio"): (N_("Conti deposito e risparmio"), False),
+    N_("Fondo Pensione"):  (N_("Previdenza complementare"), False),
+    N_("Immobile"):        (N_("Immobili"), False),
+    N_("Altro"):           (N_("Altri beni"), False),
+}
+CURRENT_ASSET_LINES = (N_("Liquidità"), N_("Conti deposito e risparmio"))
+
+DEBT_TYPES = [N_("Mutuo"), N_("Prestito Personale"), N_("Prestito Auto"), N_("Carta di Credito"), N_("Prestito Studentesco"), N_("Altro")]
+
+OPENING_CASH_SETTING = "balance.opening_cash"
+MAX_PLAN_MONTHS = 12 * 100  # a plan that never ends (installment below the interest) stops here
+
+
+def _money(value) -> float:
+    return round(float(value or 0), 2)
+
+
+# ── Cash ───────────────────────────────────────────────────────────────────────
+
+def opening_cash() -> float:
+    """Money on the accounts before the first recorded transaction (set in the Balance Sheet)."""
+    try:
+        return float(settings_store.get(OPENING_CASH_SETTING) or 0)
+    except ValueError:
+        return 0.0
+
+
+def cash_balance(on: date | None = None) -> float:
+    """
+    Opening balance (general + each account's) + income − expenses up to and including `on`. Transfers move money
+    between own accounts, except those linked to an investment: buying one (from an account, to no account) takes
+    the money out of the cash — it is counted in the portfolio — and selling one (to an account) brings it back.
+    """
+    value = func.abs(Transaction.amount_base)
+    investing = (Transaction.type == "transfer") & Transaction.holding_id.isnot(None)
+    bought = investing & Transaction.counter_account_id.is_(None)
+    sold = investing & Transaction.account_id.is_(None) & Transaction.counter_account_id.isnot(None)
+    signed = func.sum(case((Transaction.type == "expense", -value), (bought, -value), (sold, value), else_=value))
+    query = db.session.query(func.coalesce(signed, 0)).filter(Transaction.type.in_(["income", "expense"]) | bought | sold)
+    if on is not None:
+        query = query.filter(Transaction.date <= on)
+    return _money(opening_cash() + accounts.opening_total() + float(query.scalar()))
+
+
+# ── Debts: French amortization (constant monthly installment) ──────────────────
+
+@dataclass
+class Installment:
+    number: int
+    due: date
+    payment: float
+    interest: float
+    principal: float
+    balance: float
+
+
+def installment(debt: Debt) -> float | None:
+    """The monthly installment: the one entered, or the one that repays the principal over the term."""
+    if debt.monthly_payment:
+        return float(debt.monthly_payment)
+    if not debt.term_months:
+        return None
+    principal, rate = float(debt.principal or 0), float(debt.annual_rate or 0) / 1200
+    if rate == 0:
+        return round(principal / debt.term_months, 2)
+    return round(principal * rate / (1 - (1 + rate) ** -debt.term_months), 2)
+
+
+def schedule(debt: Debt) -> list[Installment]:
+    """Every installment from the first (one month after the start) until the debt is repaid."""
+    payment = installment(debt)
+    if not payment or not debt.start_date:
+        return []
+    rate = float(debt.annual_rate or 0) / 1200
+    balance = float(debt.principal or 0)
+    plan = []
+    number = 0
+    while balance > 0.005 and number < MAX_PLAN_MONTHS:
+        number += 1
+        interest = round(balance * rate, 2)
+        if payment <= interest:  # the installment doesn't even cover the interest: the debt never ends
+            break
+        paid = min(payment, balance + interest)
+        balance = round(balance + interest - paid, 2)
+        plan.append(Installment(number, add_months(debt.start_date, number), round(paid, 2),
+                                interest, round(paid - interest, 2), max(balance, 0.0)))
+    return plan
+
+
+def never_ends(debt: Debt) -> bool:
+    payment = installment(debt)
+    rate = float(debt.annual_rate or 0) / 1200
+    return bool(payment) and payment <= float(debt.principal or 0) * rate
+
+
+def balance_on(debt: Debt, on: date | None = None, plan: list[Installment] | None = None) -> float:
+    """
+    Outstanding balance on a date. Today: the balance the user entered, if any; otherwise the plan says
+    how much is left after the installments already due. Without a plan, the whole principal.
+    """
+    today = date.today()
+    on = on or today
+    if debt.balance is not None and on >= today:
+        return _money(debt.balance)
+    if debt.start_date and on < debt.start_date:
+        return 0.0
+    plan = schedule(debt) if plan is None else plan
+    if not plan:
+        return _money(debt.balance if debt.balance is not None else debt.principal)
+    paid = [row for row in plan if row.due <= on]
+    return _money(paid[-1].balance if paid else debt.principal)
+
+
+def interest_between(debt: Debt, start: date, end: date, plan: list[Installment] | None = None) -> float:
+    plan = schedule(debt) if plan is None else plan
+    return _money(sum(row.interest for row in plan if start <= row.due < end))
+
+
+def debt_summary(debt: Debt, today: date | None = None) -> dict:
+    today = today or date.today()
+    plan = schedule(debt)
+    remaining = [row for row in plan if row.due > today]
+    balance = balance_on(debt, today, plan)
+    principal = float(debt.principal or 0)
+    return {
+        "debt": debt,
+        "installment": installment(debt),
+        "balance": balance,
+        "repaid_pct": round(min(max((principal - balance) / principal * 100, 0), 100), 1) if principal else 0.0,
+        "end_date": plan[-1].due if plan else None,
+        "months_left": len(remaining),
+        "interest_left": _money(sum(row.interest for row in remaining)),
+        "interest_ytd": interest_between(debt, date(today.year, 1, 1), today + timedelta(days=1), plan),
+        "never_ends": never_ends(debt),
+        "short_term": debt.type == "Carta di Credito" or bool(plan and len(remaining) <= 12 and remaining),
+    }
+
+
+def debts_projection(debts: list[Debt], today: date | None = None, years: int = 10) -> dict:
+    """Outstanding balance of each debt at the start of each of the next `years` years (for the chart)."""
+    today = today or date.today()
+    dates = [today] + [date(today.year + i, 1, 1) for i in range(1, years + 1)]
+    datasets = []
+    for debt in debts:
+        plan = schedule(debt)
+        datasets.append({"label": debt.name, "data": [balance_on(debt, d, plan) for d in dates]})
+    return {"labels": ["Oggi"] + [str(d.year) for d in dates[1:]], "datasets": datasets}
+
+
+def monthly_installments(today: date | None = None) -> float:
+    """Sum of the installments of the debts still being repaid."""
+    summaries = [debt_summary(d, today) for d in Debt.query.all()]
+    return _money(sum(s["installment"] or 0 for s in summaries if s["balance"] > 0))
+
+
+def monthly_average_income(today: date | None = None, months: int = 12) -> float:
+    start, end = last_complete_months(today or date.today(), months)
+    return value_total(Transaction.type == "income", Transaction.date >= start, Transaction.date < end) / months
+
+
+# ── Portfolio ──────────────────────────────────────────────────────────────────
+
+def holdings_on(on: date | None = None) -> list[Holding]:
+    """Holdings owned on a date (bought on or before it; no purchase date = always owned)."""
+    query = Holding.query
+    if on is not None:
+        query = query.filter((Holding.purchase_date.is_(None)) | (Holding.purchase_date <= on))
+    return query.order_by(Holding.asset_class, Holding.name).all()
+
+
+# ── Price history (F5) ─────────────────────────────────────────────────────────
+
+def prices_on(on: date) -> dict[int, float]:
+    """{holding id: its latest recorded price on or before `on`} — one query for every holding."""
+    latest = (db.session.query(HoldingPrice.holding_id, func.max(HoldingPrice.on).label("on"))
+              .filter(HoldingPrice.on <= on).group_by(HoldingPrice.holding_id).subquery())
+    rows = (db.session.query(HoldingPrice.holding_id, HoldingPrice.price)
+            .join(latest, (HoldingPrice.holding_id == latest.c.holding_id) & (HoldingPrice.on == latest.c.on)))
+    return {holding_id: float(price) for holding_id, price in rows}
+
+
+def value_on(holding: Holding, on: date | None, prices: dict[int, float] | None = None) -> float:
+    """The holding's value on a date: at the latest price recorded by then; with none, at its current price."""
+    if on is None or on >= date.today():
+        return holding.value
+    price = (prices if prices is not None else prices_on(on)).get(holding.id)
+    return float(holding.quantity or 0) * price if price is not None else holding.value
+
+
+def record_price(holding: Holding, price, on: date | None = None) -> None:
+    """Add (or correct) the price of a day; the newest one is also the holding's current price."""
+    on = on or date.today()
+    point = HoldingPrice.query.filter_by(holding_id=holding.id, on=on).first()
+    if point is None:
+        db.session.add(HoldingPrice(holding_id=holding.id, on=on, price=price))
+    else:
+        point.price = price
+    if holding.price_date is None or on >= holding.price_date:
+        holding.current_price, holding.price_date = price, on
+
+
+def remove_price(point: HoldingPrice) -> None:
+    """Delete a recorded price; the holding's current price follows what is left (or stays as it was)."""
+    holding = db.session.get(Holding, point.holding_id)
+    db.session.delete(point)
+    db.session.flush()
+    newest = HoldingPrice.query.filter_by(holding_id=holding.id).order_by(HoldingPrice.on.desc()).first()
+    if newest is not None:
+        holding.current_price, holding.price_date = newest.price, newest.on
+
+
+def price_history(holding: Holding) -> list[HoldingPrice]:
+    return HoldingPrice.query.filter_by(holding_id=holding.id).order_by(HoldingPrice.on).all()
+
+
+def parse_prices(text: str) -> tuple[list[tuple[date, object]], list[str]]:
+    """Lines «date;price» (or separated by a tab or a space; Italian or ISO dates) pasted from a spreadsheet or a CSV:
+    the readable ones, and the lines that could not be read."""
+    from app.services.parsing import to_date, to_decimal
+
+    points, unread = [], []
+    for number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        # «;» or a tab between the two (a comma would be ambiguous with Italian decimals), else a space
+        parts = re.split(r"[;\t]", line, maxsplit=1) if re.search(r"[;\t]", line) else line.split(None, 1)
+        parts = [p.strip() for p in parts]
+        when = to_date(parts[0]) if parts else None
+        price = to_decimal(parts[1]) if len(parts) > 1 else None
+        if when is None or price is None or price <= 0:
+            unread.append(line.strip()[:40])
+            continue
+        points.append((when, price))
+    return points, unread
+
+
+def portfolio_summary(holdings: list[Holding]) -> dict:
+    invested = [h for h in holdings if ASSET_CLASSES.get(h.asset_class, ("", False))[1]]
+    cost = sum(h.cost for h in holdings)
+    value = sum(h.value for h in holdings)
+    allocation = defaultdict(float)
+    for h in holdings:
+        allocation[h.asset_class] += h.value
+    return {
+        "value": _money(value),
+        "cost": _money(cost),
+        "gain": _money(value - cost),
+        "gain_pct": round((value - cost) / cost * 100, 2) if cost else 0.0,
+        "investments_value": _money(sum(h.value for h in invested)),
+        "allocation": sorted(allocation.items(), key=lambda item: item[1], reverse=True),
+    }
+
+
+def dividends(start: date, end: date) -> float:
+    """Income recorded under a dividend or coupon category."""
+    total = (lines_query(func.coalesce(func.sum(LINE_VALUE), 0))
+             .filter(Transaction.type == "income", Transaction.date >= start, Transaction.date < end,
+                     func.lower(LINE_CATEGORY).op("~")("dividend|cedol")).scalar())
+    return _money(float(total))
+
+
+# ── Balance Sheet ──────────────────────────────────────────────────────────────
+
+def balance_sheet(on: date | None = None) -> dict:
+    """
+    Assets and liabilities on a date. Holdings are valued at the latest price recorded by that date (their current
+    price when none was); debts follow their amortization plan; cash is the balance of the transactions.
+    """
+    today = date.today()
+    on = on or today
+    assets = defaultdict(float)
+    assets["Liquidità"] = cash_balance(on)
+    prices = prices_on(on) if on < today else {}
+    for h in holdings_on(on):
+        assets[ASSET_CLASSES.get(h.asset_class, ("Altri beni", False))[0]] += value_on(h, on, prices)
+
+    liabilities = defaultdict(float)
+    debt_rows = []
+    for debt in Debt.query.order_by(Debt.name).all():
+        summary = debt_summary(debt, on)
+        if summary["balance"] <= 0:
+            continue
+        if debt.type == "Carta di Credito":
+            line = N_("Carte di credito")
+        elif summary["short_term"]:
+            line = N_("Prestiti in scadenza entro 12 mesi")
+        elif debt.type == "Mutuo":
+            line = N_("Mutui")
+        else:
+            line = N_("Prestiti a lungo termine")
+        liabilities[line] += summary["balance"]
+        debt_rows.append({"name": debt.name, "type": debt.type, "line": line, "balance": summary["balance"]})
+
+    current_assets = {k: _money(v) for k, v in assets.items() if k in CURRENT_ASSET_LINES}
+    other_assets = {k: _money(v) for k, v in assets.items() if k not in CURRENT_ASSET_LINES and v}
+    current_liabilities = {k: _money(v) for k, v in liabilities.items()
+                           if k in ("Carte di credito", "Prestiti in scadenza entro 12 mesi")}
+    long_liabilities = {k: _money(v) for k, v in liabilities.items() if k not in current_liabilities}
+
+    total_assets = _money(sum(assets.values()))
+    total_liabilities = _money(sum(liabilities.values()))
+    return {
+        "date": on,
+        "current_assets": current_assets,
+        "other_assets": other_assets,
+        "current_liabilities": current_liabilities,
+        "long_liabilities": long_liabilities,
+        "total_assets": total_assets,
+        "total_liabilities": total_liabilities,
+        "net_worth": _money(total_assets - total_liabilities),
+        "cash": _money(assets["Liquidità"]),
+        "investments": _money(assets[INVESTMENTS]),
+        "debts": debt_rows,
+    }
+
+
+def month_ends(count: int = 12, today: date | None = None) -> list[date]:
+    """Today and the last day of each of the previous `count - 1` months (choices for the Balance Sheet)."""
+    today = today or date.today()
+    return [today] + [add_months(today.replace(day=1), -i) - timedelta(days=1) for i in range(count - 1)]
+
+
+# ── Snapshots ──────────────────────────────────────────────────────────────────
+
+def take_snapshot(label: str | None = None, on: date | None = None) -> Snapshot:
+    """Save today's balance sheet, so the net worth can be followed and compared over time."""
+    sheet = balance_sheet(on)
+    lines = {**sheet["current_assets"], **sheet["other_assets"]}
+    liabilities = {**sheet["current_liabilities"], **sheet["long_liabilities"]}
+    snapshot = Snapshot(
+        taken_on=sheet["date"],
+        label=label,
+        cash=sheet["cash"],
+        investments=sheet["investments"],
+        other_assets=_money(sheet["total_assets"] - sheet["cash"] - sheet["investments"]),
+        liabilities=sheet["total_liabilities"],
+        net_worth=sheet["net_worth"],
+        detail={"assets": lines, "liabilities": liabilities,
+                "holdings": [{"name": h.name, "asset_class": h.asset_class, "value": _money(value_on(h, sheet["date"]))}
+                             for h in holdings_on(sheet["date"])],
+                "debts": sheet["debts"]},
+    )
+    db.session.add(snapshot)
+    db.session.commit()
+    return snapshot
+
+
+def net_worth_trend(months: int = 12, today: date | None = None) -> dict:
+    """Net worth at the end of each of the last `months` months (holdings at the price they had then)."""
+    ends = list(reversed(month_ends(months, today)))
+    return {"labels": [d.strftime("%m/%y") if i < len(ends) - 1 else "Oggi" for i, d in enumerate(ends)],
+            "data": [balance_sheet(d)["net_worth"] for d in ends]}

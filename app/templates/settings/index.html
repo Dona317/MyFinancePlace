@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Impostazioni — MyFinancePlace{% endblock %}
-{% block page_title %}Impostazioni{% endblock %}
-{% block breadcrumb %}<li>Impostazioni</li>{% endblock %}
+{% block page_title %}{{ _('Impostazioni') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Impostazioni') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <form method="POST" action="{{ url_for('settings.reset') }}" style="display:inline;">
-    <button type="submit" class="btn btn-ghost btn-sm"
-            onclick="return confirm('Ripristinare tutte le impostazioni predefinite?')">
-      <i class="bi bi-arrow-counterclockwise"></i> Ripristina Defaults
+  <form method="POST" action="{{ url_for('settings.reset') }}" style="display:inline;"
+        data-confirm="{{ _('Ripristinare tutte le impostazioni predefinite?') }}">
+    <button type="submit" class="btn btn-ghost btn-sm">
+      <i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina Defaults') }}
     </button>
   </form>
 {% endblock %}
@@ -37,23 +36,48 @@
   <!-- ── Left nav ───────────────────────────────────────────────────────── -->
   <nav class="settings-nav">
     <a href="#dashboard"   class="settings-nav-item active" onclick="scrollTo(this)">
-      <i class="bi bi-speedometer2"></i> Dashboard
+      <i class="bi bi-speedometer2"></i> {{ _('Dashboard') }}
     </a>
     <a href="#moduli"      class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-grid-3x3-gap"></i> Moduli
+      <i class="bi bi-grid-3x3-gap"></i> {{ _('Moduli') }}
     </a>
     <a href="#contabilita" class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-bar-chart-line"></i> Contabilità
+      <i class="bi bi-bar-chart-line"></i> {{ _('Contabilità') }}
     </a>
     <a href="#lifestyle"   class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-pie-chart"></i> Stile di Vita
+      <i class="bi bi-pie-chart"></i> {{ _('Stile di Vita') }}
     </a>
     <a href="#visualizza"  class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-palette"></i> Visualizzazione
+      <i class="bi bi-palette"></i> {{ _('Visualizzazione') }}
     </a>
-    <a href="#account"     class="settings-nav-item" onclick="scrollTo(this)">
-      <i class="bi bi-person-circle"></i> Account
+    <a href="{{ url_for('settings.account') }}" class="settings-nav-item">
+      <i class="bi bi-person-circle"></i> {{ _('Account e utenti') }}
     </a>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('settings.my_menu') }}" class="settings-nav-item">
+      <i class="bi bi-layout-sidebar"></i> {{ _('Il mio menu') }}
+    </a>
+    {% endif %}
+    <a href="{{ url_for('settings.owners_page') }}" class="settings-nav-item">
+      <i class="bi bi-person-check"></i> {{ _('Titolari e IBAN') }}
+    </a>
+    <a href="{{ url_for('settings.categories_page') }}" class="settings-nav-item">
+      <i class="bi bi-tags"></i> {{ _('Categorie') }}
+    </a>
+    <a href="{{ url_for('settings.rules_page') }}" class="settings-nav-item">
+      <i class="bi bi-magic"></i> {{ _('Regole di categoria') }}
+    </a>
+    <a href="{{ url_for('settings.currencies_page') }}" class="settings-nav-item">
+      <i class="bi bi-currency-exchange"></i> {{ _('Valute e cambi') }}
+    </a>
+    <a href="{{ url_for('settings.ai_models_page') }}" class="settings-nav-item">
+      <i class="bi bi-stars"></i> {{ _('Modelli AI') }}
+    </a>
+    {% if desktop_app %}
+    <a href="{{ url_for('desktop.settings_page') }}" class="settings-nav-item">
+      <i class="bi bi-window"></i> {{ _('App desktop') }}
+    </a>
+    {% endif %}
   </nav>
 
   <!-- ── Right content ──────────────────────────────────────────────────── -->
@@ -63,28 +87,53 @@
     <div class="settings-section" id="dashboard">
       <div class="settings-section-header">
         <i class="bi bi-speedometer2" style="color:var(--clr-primary);"></i>
-        Dashboard — Schede KPI
+        {{ _('Dashboard — Schede KPI') }}
       </div>
       <div class="settings-section-body">
-        {{ toggle('dashboard_net_worth',    'Patrimonio Netto',    'Scheda con il valore netto totale (attività − passività)') }}
-        {{ toggle('dashboard_income',       'Entrate Mensili',     'Totale entrate del mese in corso') }}
-        {{ toggle('dashboard_expenses',     'Uscite Mensili',      'Totale uscite del mese in corso') }}
-        {{ toggle('dashboard_savings_rate', 'Tasso di Risparmio',  'Percentuale del reddito lordo risparmiata') }}
-        {{ toggle('dashboard_investments',  'Investimenti',        'Valore totale del portafoglio investimenti') }}
-        {{ toggle('dashboard_debt',         'Debito Totale',       'Somma di tutti i debiti in corso') }}
+        {{ toggle('dashboard_net_worth',    _('Patrimonio Netto'),    _('Scheda con il valore netto totale (attività − passività)')) }}
+        {{ toggle('dashboard_income',       _('Entrate Mensili'),     _('Totale entrate del mese in corso')) }}
+        {{ toggle('dashboard_expenses',     _('Uscite Mensili'),      _('Totale uscite del mese in corso')) }}
+        {{ toggle('dashboard_savings_rate', _('Tasso di Risparmio'),  _('Percentuale del reddito lordo risparmiata')) }}
+        {{ toggle('dashboard_investments',  _('Investimenti'),        _('Valore totale del portafoglio investimenti')) }}
+        {{ toggle('dashboard_debt',         _('Debito Totale'),       _('Somma di tutti i debiti in corso')) }}
       </div>
     </div>
 
     <div class="settings-section">
       <div class="settings-section-header">
         <i class="bi bi-layout-text-window" style="color:var(--clr-primary);"></i>
-        Dashboard — Sezioni
+        {{ _('Dashboard — Sezioni') }}
       </div>
       <div class="settings-section-body">
-        {{ toggle('dashboard_cashflow_chart', 'Grafico Flusso di Cassa',   'Grafico entrate/uscite degli ultimi 12 mesi') }}
-        {{ toggle('dashboard_expense_pie',    'Grafico Spese per Categoria','Torta con la distribuzione delle spese del mese') }}
-        {{ toggle('dashboard_recent_tx',      'Transazioni Recenti',        'Tabella con le ultime transazioni registrate') }}
-        {{ toggle('dashboard_health',         'Salute Finanziaria',         'Barre di progresso per risparmio, debito e fondo emergenza') }}
+        {{ toggle('dashboard_cashflow_chart', _('Grafico Flusso di Cassa'),   _('Grafico entrate/uscite degli ultimi 12 mesi')) }}
+        {{ toggle('dashboard_expense_pie',    _('Grafico Spese per Categoria'),_("Torta con la distribuzione delle spese dell'anno")) }}
+        {{ toggle('dashboard_income_pie',     _('Grafico Entrate per Categoria'),_("Torta con la distribuzione delle entrate dell'anno")) }}
+        {{ toggle('dashboard_category_trends', _('Categorie nel tempo'), _('Linee mese per mese per ogni categoria di entrata e di uscita')) }}
+        {{ toggle('dashboard_cumulative',     _('Entrate e uscite cumulate'), _("Istogramma mese per mese con i totali progressivi dell'anno")) }}
+        {{ toggle('dashboard_net',            _('Netto mensile e totale annuo'), _("Il netto di ogni mese (sotto lo zero se negativo) e le tre barre dell'anno")) }}
+        {{ toggle('dashboard_savings_trend', _('Tasso di risparmio mese per mese'), _("La parte delle entrate di ogni mese che resta, confrontata con l'anno prima")) }}
+        {{ toggle('dashboard_sankey',         _('Flusso del denaro (Sankey)'), _("Da dove arrivano le entrate e dove vanno: categorie di entrata → uscite e risparmio")) }}
+        {{ toggle('dashboard_recent_tx',      _('Transazioni Recenti'),        _('Tabella con le ultime transazioni registrate')) }}
+        {{ toggle('dashboard_health',         _('Salute Finanziaria'),         _('Barre di progresso per risparmio, debito e mesi di autonomia')) }}
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <label class="toggle-label" for="s-autonomy">{{ _('Obiettivo di mesi di autonomia') }}</label>
+            <div class="toggle-hint">{{ _('Quanti mesi di spese vuoi coprire con la liquidità (di solito da 3 a 12)') }}</div>
+          </div>
+          <select id="s-autonomy" name="autonomy_target" class="form-select" style="width:auto;" onchange="this.form.submit()">
+            {% for n in autonomy_targets %}<option value="{{ n }}" {{ 'selected' if settings.autonomy_target == n|string }}>{{ _('%(n)s mesi', n=n) }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section" id="online">
+      <div class="settings-section-header">
+        <i class="bi bi-globe" style="color:var(--clr-primary);"></i>
+        {{ _('Dati da internet') }}
+      </div>
+      <div class="settings-section-body">
+        {{ toggle('prices_online', _('Prezzi degli investimenti da internet'), _('Aggiunge «Aggiorna da internet» in Portafoglio → Aggiorna prezzi: legge i prezzi da Yahoo Finance (ETF, azioni) e CoinGecko (cripto), gratis e senza chiave. Invia solo i ticker, e solo quando premi il pulsante.')) }}
       </div>
     </div>
 
@@ -92,18 +141,19 @@
     <div class="settings-section" id="moduli">
       <div class="settings-section-header">
         <i class="bi bi-grid-3x3-gap" style="color:var(--clr-primary);"></i>
-        Moduli — Visibilità nella Navigazione
+        {{ _('Moduli — Visibilità nella Navigazione') }}
         <span class="badge badge-muted" style="margin-left:auto;font-weight:400;">
-          Disabilitare un modulo lo nasconde dalla sidebar e dalla navigazione
+          {{ _('Disabilitare un modulo lo nasconde dalla sidebar e dalla navigazione') }}
         </span>
       </div>
       <div class="settings-section-body">
-        {{ toggle('module_portfolio',  'Portafoglio Investimenti', 'Azioni, ETF, criptovalute, obbligazioni, conti risparmio') }}
-        {{ toggle('module_debt',       'Gestione Debiti',          'Mutui, prestiti e scadenze') }}
-        {{ toggle('module_insurance',  'Assicurazioni',            'Polizze attive, premi e scadenze') }}
-        {{ toggle('module_documents',  'Archivio Documenti',       'Fatture, scontrini e contratti collegati alle transazioni') }}
-        {{ toggle('module_snapshots',  'Istantanee',               'Fotografie della situazione finanziaria nel tempo') }}
-        {{ toggle('module_export',     'Esporta / Importa',        'CSV, JSON, PDF ed esportazione fiscale') }}
+        {{ toggle('module_portfolio',  _('Portafoglio Investimenti'), _('Azioni, ETF, criptovalute, obbligazioni, conti risparmio')) }}
+        {{ toggle('module_debt',       _('Gestione Debiti'),          _('Mutui, prestiti e scadenze')) }}
+        {{ toggle('module_insurance',  _('Assicurazioni'),            _('Polizze attive, premi e scadenze')) }}
+        {{ toggle('module_documents',  _('Archivio Documenti'),       _('Fatture, scontrini e contratti collegati alle transazioni')) }}
+        {{ toggle('module_snapshots',  _('Istantanee'),               _('Fotografie della situazione finanziaria nel tempo')) }}
+        {{ toggle('module_tax',        _('Fisco'),                    _('730, plusvalenze, bollo e IVAFE')) }}
+        {{ toggle('module_export',     _('Esporta / Importa'),        _('CSV, JSON, PDF ed esportazione fiscale')) }}
       </div>
     </div>
 
@@ -111,12 +161,12 @@
     <div class="settings-section" id="contabilita">
       <div class="settings-section-header">
         <i class="bi bi-bar-chart-line" style="color:var(--clr-primary);"></i>
-        Contabilità — Sotto-sezioni
+        {{ _('Contabilità — Sotto-sezioni') }}
       </div>
       <div class="settings-section-body">
-        {{ toggle('accounting_balance_sheet',    'Stato Patrimoniale', 'Attività, passività e patrimonio netto') }}
-        {{ toggle('accounting_income_statement', 'Conto Economico',    'Ricavi, spese e risparmio netto per periodo') }}
-        {{ toggle('accounting_cash_flow',        'Flusso di Cassa',    'Flussi operativi, di investimento e di finanziamento') }}
+        {{ toggle('accounting_balance_sheet',    _('Stato Patrimoniale'), _('Attività, passività e patrimonio netto')) }}
+        {{ toggle('accounting_income_statement', _('Conto Economico'),    _('Ricavi, spese e risparmio netto per periodo')) }}
+        {{ toggle('accounting_cash_flow',        _('Flusso di Cassa'),    _('Flussi operativi, di investimento e di finanziamento')) }}
       </div>
     </div>
 
@@ -124,10 +174,10 @@
     <div class="settings-section" id="lifestyle">
       <div class="settings-section-header">
         <i class="bi bi-pie-chart" style="color:var(--clr-primary);"></i>
-        Stile di Vita — Sotto-sezioni
+        {{ _('Stile di Vita — Sotto-sezioni') }}
       </div>
       <div class="settings-section-body">
-        {{ toggle('lifestyle_goals', 'Obiettivi Personali', 'Tracciamento degli obiettivi finanziari con barre di progresso') }}
+        {{ toggle('lifestyle_goals', _('Obiettivi Personali'), _('Tracciamento degli obiettivi finanziari con barre di progresso')) }}
       </div>
     </div>
 
@@ -135,46 +185,67 @@
     <div class="settings-section" id="visualizza">
       <div class="settings-section-header">
         <i class="bi bi-palette" style="color:var(--clr-primary);"></i>
-        Visualizzazione
+        {{ _('Visualizzazione') }}
       </div>
       <div class="settings-section-body" style="padding-top:12px;padding-bottom:12px;">
 
-        <div class="grid-2" style="gap:16px;">
+        <div class="grid-4" style="gap:16px;">
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Valuta Predefinita</label>
-            <select name="currency" class="form-select" onchange="this.form.submit()">
-              <option value="EUR" {{ 'selected' if settings.currency == 'EUR' }}>€ EUR — Euro</option>
-              <option value="USD" {{ 'selected' if settings.currency == 'USD' }}>$ USD — Dollaro</option>
-              <option value="GBP" {{ 'selected' if settings.currency == 'GBP' }}>£ GBP — Sterlina</option>
-              <option value="CHF" {{ 'selected' if settings.currency == 'CHF' }}>₣ CHF — Franco Svizzero</option>
+            <label class="form-label" for="s-language">{{ _('Lingua') }}{% if current_language() != 'en' %} · Language{% endif %}</label>
+            <select id="s-language" name="language" class="form-select" onchange="this.form.submit()">
+              {% for code, label in languages.items() %}
+              <option value="{{ code }}" lang="{{ code }}" {{ 'selected' if settings.language == code }}>{{ label }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Formato Data</label>
-            <select name="date_format" class="form-select" onchange="this.form.submit()">
-              <option value="DD/MM/YYYY" {{ 'selected' if settings.date_format == 'DD/MM/YYYY' }}>DD/MM/YYYY (italiano)</option>
-              <option value="YYYY-MM-DD" {{ 'selected' if settings.date_format == 'YYYY-MM-DD' }}>YYYY-MM-DD (ISO)</option>
-              <option value="MM/DD/YYYY" {{ 'selected' if settings.date_format == 'MM/DD/YYYY' }}>MM/DD/YYYY (US)</option>
+            <label class="form-label" for="s-currency">{{ _('Valuta dei totali') }}</label>
+            <select id="s-currency" name="currency" class="form-select" onchange="this.form.submit()">
+              {% for code, (sym, name) in currencies.items() %}
+              <option value="{{ code }}" {{ 'selected' if settings.currency == code }}>{{ sym }} {{ code }} — {{ name|tr }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-hint">{{ _('Le transazioni in altre valute vengono convertite con i') }} <a href="{{ url_for('settings.currencies_page') }}">{{ _('cambi') }}</a>.</div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="s-locale">{{ _('Formato numeri') }}</label>
+            <select id="s-locale" name="locale" class="form-select" onchange="this.form.submit()">
+              {% for code, (label, _thousands, _decimal) in locales.items() %}
+              <option value="{{ code }}" {{ 'selected' if settings.locale == code }}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="s-font">{{ _('Carattere') }}</label>
+            <select id="s-font" name="font" class="form-select" onchange="this.form.submit()">
+              {% for key, (label, family) in fonts.items() %}
+              <option value="{{ key }}" style="font-family:{{ family }}, sans-serif;" {{ 'selected' if ui_font() == key }}>{{ label }}{{ ' (' ~ _('predefinito') ~ ')' if loop.first }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="s-date">{{ _('Formato data') }}</label>
+            <select id="s-date" name="date_format" class="form-select" onchange="this.form.submit()">
+              <option value="DD/MM/YYYY" {{ 'selected' if settings.date_format == 'DD/MM/YYYY' }}>{{ _('DD/MM/YYYY (italiano)') }}</option>
+              <option value="YYYY-MM-DD" {{ 'selected' if settings.date_format == 'YYYY-MM-DD' }}>{{ _('YYYY-MM-DD (ISO)') }}</option>
+              <option value="MM/DD/YYYY" {{ 'selected' if settings.date_format == 'MM/DD/YYYY' }}>{{ _('MM/DD/YYYY (US)') }}</option>
             </select>
           </div>
         </div>
 
         <div style="margin-top:16px;padding:14px;background:var(--clr-bg-input);border-radius:var(--border-radius-sm);">
           <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">
-            Anteprima
+            {{ _('Anteprima') }}
           </div>
           <span style="font-family:var(--font-mono);font-size:var(--font-size-sm);">
-            {{ settings.currency }} 1.234,56 &nbsp;·&nbsp;
-            {% if settings.date_format == 'DD/MM/YYYY' %}25/05/2026
-            {% elif settings.date_format == 'YYYY-MM-DD' %}2026-05-25
-            {% else %}05/25/2026{% endif %}
+            {{ 1234.56|money }} &nbsp;·&nbsp; {{ preview_date|it_date }}
           </span>
         </div>
 
         <div style="margin-top:16px;" class="toggle-wrap">
           <div class="toggle-info">
-            <div class="toggle-label">Modalità Scura</div>
-            <div class="toggle-hint">Tema scuro per l'intera interfaccia — disponibile prossimamente</div>
+            <div class="toggle-label">{{ _('Modalità Scura') }}</div>
+            <div class="toggle-hint">{{ _("Tema scuro per l'intera interfaccia — disponibile prossimamente") }}</div>
           </div>
           <label class="toggle-switch" style="opacity:.4;pointer-events:none;">
             <input type="checkbox" disabled />
@@ -182,57 +253,6 @@
           </label>
         </div>
 
-      </div>
-    </div>
-
-    <!-- ── ACCOUNT ─────────────────────────────────────────────────────── -->
-    <div class="settings-section" id="account">
-      <div class="settings-section-header">
-        <i class="bi bi-person-circle" style="color:var(--clr-primary);"></i>
-        Account
-      </div>
-      <div class="settings-section-body" style="padding-top:16px;padding-bottom:16px;">
-        <div class="grid-2" style="gap:16px;margin-bottom:16px;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Nome</label>
-            <input type="text" class="form-control" placeholder="Il tuo nome"
-                   value="{{ current_user.first_name if current_user is defined and current_user.is_authenticated else '' }}" />
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Cognome</label>
-            <input type="text" class="form-control" placeholder="Il tuo cognome"
-                   value="{{ current_user.last_name if current_user is defined and current_user.is_authenticated else '' }}" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-control" placeholder="email@esempio.com"
-                 value="{{ current_user.email if current_user is defined and current_user.is_authenticated else '' }}" />
-        </div>
-        <div style="border-top:1px solid var(--clr-border-light);padding-top:16px;margin-top:8px;">
-          <div style="font-weight:600;font-size:var(--font-size-sm);color:var(--clr-text-primary);margin-bottom:12px;">
-            Cambia Password
-          </div>
-          <div class="form-group">
-            <label class="form-label">Password Attuale</label>
-            <input type="password" class="form-control" placeholder="••••••••" />
-          </div>
-          <div class="grid-2" style="gap:16px;">
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Nuova Password</label>
-              <input type="password" class="form-control" placeholder="••••••••" />
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Conferma Password</label>
-              <input type="password" class="form-control" placeholder="••••••••" />
-            </div>
-          </div>
-        </div>
-        <div style="margin-top:20px;display:flex;justify-content:flex-end;">
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> Salva Modifiche Account
-          </button>
-        </div>
       </div>
     </div>
 

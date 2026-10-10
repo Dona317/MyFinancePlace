@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block title %}{{ _('Storico prezzi') }} — {{ holding.name }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ holding.name }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Storico prezzi') }}</li>{% endblock %}
+
+{% block content %}
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Storico prezzi') }}</div>
+      <div class="card-header-sub">{{ _('Gli stati patrimoniali e l’andamento del patrimonio valutano la posizione all’ultimo prezzo noto a quella data.') }}</div>
+    </div>
+    <span class="text-sm text-muted">{{ holding.ticker or holding.asset_class|tr }} · {{ _('prezzo attuale') }} {{ holding.price|money }}</span>
+  </div>
+  <div class="card-body">
+    {% if points|length >= 2 %}
+    <div class="chart-container" style="height:260px;"><canvas id="priceChart"></canvas></div>
+    {% else %}
+    <p class="text-muted text-sm mb-0">{{ _('Servono almeno due prezzi per il grafico: aggiungili qui sotto.') }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="history-grid">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Aggiungi prezzi') }}</div></div>
+    <div class="card-body">
+      <form method="POST" class="mb-16 history-one">
+        <div class="form-group"><label class="form-label" for="h-on">{{ _('Data') }}</label>
+          <input type="date" id="h-on" name="on" class="form-control" required /></div>
+        <div class="form-group"><label class="form-label" for="h-price">{{ _('Prezzo (€)') }}</label>
+          <input type="text" inputmode="decimal" id="h-price" name="price" class="form-control" required autocomplete="off" /></div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+      </form>
+      <form method="POST">
+        <div class="form-group">
+          <label class="form-label" for="h-lines">{{ _('Oppure incolla più righe «data;prezzo»') }}</label>
+          <textarea id="h-lines" name="lines" class="form-control" rows="6" placeholder="31/01/2026;101,20&#10;28/02/2026;103,05"></textarea>
+          <div class="form-hint">{{ _('Da un foglio di calcolo o dal CSV del broker: una riga per data, separata da «;», tab o spazio.') }}</div>
+        </div>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-clipboard-plus"></i> {{ _('Importa le righe') }}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Prezzi registrati (%(count)s)', count=points|length) }}</div></div>
+    <div class="table-wrapper history-table">
+      <table class="table-compact">
+        <thead><tr><th>{{ _('Data') }}</th><th class="text-right">{{ _('Prezzo') }}</th><th class="text-right">{{ _('Valore con la quantità attuale') }}</th><th></th></tr></thead>
+        <tbody>
+          {% for p in points|reverse %}
+          <tr>
+            <td class="nowrap">{{ p.on|it_date }}</td>
+            <td class="amount text-right">{{ p.price|money }}</td>
+            <td class="amount text-right text-muted">{{ (p.price * holding.quantity)|money }}</td>
+            <td class="text-right">
+              <form method="POST" action="{{ url_for('portfolio.delete_price', point_id=p.id) }}" data-confirm="{{ _('Eliminare il prezzo del %(day)s?', day=p.on|it_date) }}">
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina') }}"><i class="bi bi-trash3"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-muted">{{ _('Nessun prezzo registrato: finché non ne aggiungi, il passato usa il prezzo attuale.') }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if points|length >= 2 %}
+<script>
+makeLineChart('priceChart', {{ chart.labels|tojson }}, [{ label: {{ holding.name|tojson }}, data: {{ chart.data|tojson }} }], { legend: false });
+</script>
+{% endif %}
+{% endblock %}

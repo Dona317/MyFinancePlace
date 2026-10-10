@@ -1,74 +1,39 @@
 {% extends "base.html" %}
+{% import "partials/fields.html" as f %}
 {% set is_edit = debt is not none %}
-{% block title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Debito — MyFinancePlace{% endblock %}
-{% block page_title %}{{ 'Modifica' if is_edit else 'Nuovo' }} Debito{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">Debiti</a></li><li>{{ 'Modifica' if is_edit else 'Nuovo' }}</li>{% endblock %}
+{% set d = debt or {} %}
+{% block page_title %}{{ _('Modifica Debito') if is_edit else _('Nuovo Debito') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>{% endblock %}
 
 {% block content %}
-<div style="max-width:640px;">
+<div class="page-form">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ 'Modifica Debito' if is_edit else 'Inserisci Nuovo Debito' }}</div>
+      <div class="card-header-title">{{ _('Modifica «%(name)s»', name=debt.name) if is_edit else _('Inserisci Nuovo Debito') }}</div>
     </div>
     <div class="card-body">
       <form method="POST">
         <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Tipo di Debito</label>
-            <select name="type" class="form-select">
-              {% for t in ['Mutuo', 'Prestito Personale', 'Prestito Auto', 'Carta di Credito', 'Prestito Studentesco', 'Altro'] %}
-              <option {{ 'selected' if is_edit and debt.type == t }}>{{ t }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Istituto / Creditore</label>
-            <input type="text" name="lender" class="form-control" placeholder="es. UniCredit"
-                   value="{{ debt.lender if is_edit else '' }}" required />
-          </div>
+          {{ f.select(values, 'type', _('Tipo'), debt_types, d.type or 'Mutuo') }}
+          {{ f.text(values, 'name', _('Istituto / descrizione'), d.name, required=true, placeholder=_('es. Mutuo casa — Intesa')) }}
         </div>
         <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Capitale Iniziale (€)</label>
-            <input type="number" name="principal" class="form-control" step="0.01" min="0"
-                   placeholder="0.00" value="{{ debt.principal if is_edit else '' }}" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Saldo Residuo (€)</label>
-            <input type="number" name="balance" class="form-control" step="0.01" min="0"
-                   placeholder="0.00" value="{{ debt.balance if is_edit else '' }}" required />
-          </div>
+          {{ f.number(values, 'principal', _('Capitale iniziale (€)'), d.principal, required=true, placeholder='0,00') }}
+          {{ f.number(values, 'annual_rate', _('Tasso annuo (%%)'), d.annual_rate, placeholder=_('es. 3,25'), hint=_('TAN. Zero per un prestito senza interessi.')) }}
         </div>
         <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Tasso di Interesse (%)</label>
-            <input type="number" name="rate" class="form-control" step="0.01" min="0" max="100"
-                   placeholder="0.00" value="{{ debt.rate if is_edit else '' }}" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Rata Mensile (€)</label>
-            <input type="number" name="monthly_payment" class="form-control" step="0.01" min="0"
-                   placeholder="0.00" value="{{ debt.monthly_payment if is_edit else '' }}" />
-          </div>
+          {{ f.date(values, 'start_date', _('Data di inizio'), d.start_date, hint=_('La prima rata cade un mese dopo.')) }}
+          {{ f.number(values, 'term_months', _('Durata (mesi)'), d.term_months, placeholder=_('es. 300 per 25 anni')) }}
         </div>
         <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Data Inizio</label>
-            <input type="date" name="start_date" class="form-control"
-                   value="{{ debt.start_date if is_edit else '' }}" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Data Scadenza</label>
-            <input type="date" name="due_date" class="form-control"
-                   value="{{ debt.due_date if is_edit else '' }}" />
-          </div>
+          {{ f.number(values, 'monthly_payment', _('Rata mensile (€)'), d.monthly_payment, placeholder=_('calcolata da tasso e durata'),
+                      hint=_('Lasciala vuota per calcolarla (ammortamento alla francese).')) }}
+          {{ f.number(values, 'balance', _('Saldo residuo oggi (€)'), d.balance, placeholder=_('calcolato dal piano'),
+                      hint=_("Solo se lo conosci dall'estratto: prevale sul piano.")) }}
         </div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
-          <a href="{{ url_for('debt.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if is_edit else 'Aggiungi Debito' }}
-          </button>
-        </div>
+        {{ f.textarea(values, 'notes', _('Note'), d.notes) }}
+        {{ f.actions(url_for('debt.detail', debt_id=debt.id) if is_edit else url_for('debt.index'),
+                     _('Salva Modifiche') if is_edit else _('Aggiungi Debito')) }}
       </form>
     </div>
   </div>

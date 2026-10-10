@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% from "partials/tabs.html" import tab_bar %}
+{% from "partials/kpi.html" import kpi %}
+{% block title %}{{ _('Riepilogo %(year)s', year=year) }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Report') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('reports.index') }}">{{ _('Report') }}</a></li><li>{{ _('Riepilogo') }}</li>{% endblock %}
+
+{# One table row: name, the month cells shaded by their share of the row's busiest month (links to the
+   transactions of that category and month), total, average, change on the year before. #}
+{% macro line(item, kind, label, level='', link_category=none, previous=true) %}
+{% set nature = natures.get(item.name) if kind == 'expense' and item.name else none %}
+<tr class="summary-row {{ level }}">
+  <th scope="row" class="summary-name">{% if nature %}<span class="nature-dot nature-{{ nature }} summary-nature" title="{{ nature_labels[nature] }}" aria-label="{{ nature_labels[nature] }}"></span>{% endif %}{{ label }}</th>
+  {% for value in item.months %}
+  {% set share = (value / item.max) if item.max else 0 %}
+  <td class="summary-cell {{ kind }}" style="--heat: {{ '%.2f'|format(share) }};">
+    {% if value %}
+      {% if link_category is not none %}
+      <a href="{{ url_for('transactions.index', category=link_category, month='%d-%02d'|format(year, loop.index), type=kind if kind != 'net' else '') }}"
+         title="{{ label }} · {{ table.labels[loop.index0] }}">{{ value|number(0) }}</a>
+      {% else %}{{ value|number(0) }}{% endif %}
+    {% else %}<span class="text-muted">·</span>{% endif %}
+  </td>
+  {% endfor %}
+  <td class="summary-total">{{ item.total|number(0) }}</td>
+  <td class="summary-total text-muted">{{ item.average|number(0) }}</td>
+  <td class="summary-total">
+    {% if previous and item.change is not none %}
+      {% set up_is_good = kind == 'income' %}
+      <span class="{{ 'text-positive' if (item.change >= 0) == up_is_good else 'text-negative' }}"
+            title="{{ _('Anno prima: %(amount)s', amount=item.previous|money) }}">{{ '+' if item.change > 0 }}{{ item.change|number(1) }}%</span>
+    {% else %}<span class="text-muted">—</span>{% endif %}
+  </td>
+</tr>
+{% endmacro %}
+
+{% block content %}
+<div class="report-bar mb-16">
+  {% set tab_items = namespace(list=[]) %}
+  {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, url_for('reports.index', tab=key), label)] %}{% endfor %}
+  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo'))], 'summary', _('Tipo di report')) }}
+  <div class="report-controls">
+    {% include "partials/year_select.html" %}
+    <a href="{{ url_for('reports.summary_csv', year=year) }}" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> {{ _('CSV') }}</a>
+  </div>
+</div>
+
+<div class="kpi-grid mb-16">
+  {{ kpi('arrow-down-circle', _('Entrate %(year)s', year=year), value=table.income.total.total|money, cls='kpi-positive', value_class='text-positive') }}
+  {{ kpi('arrow-up-circle', _('Uscite %(year)s', year=year), value=table.expense.total.total|money, cls='kpi-negative', value_class='text-negative') }}
+  {{ kpi('wallet2', _('Netto'), value=table.net.total|money, cls='kpi-primary', value_class=('text-negative' if table.net.total < 0)) }}
+  {{ kpi('piggy-bank', _('Tasso di risparmio'), value=((table.savings.total|number(1) ~ '%') if table.savings.total is not none else '—')) }}
+</div>
+
+<div class="card">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Categorie mese per mese — %(year)s', year=year) }}</div>
+    <div class="card-header-sub">{{ _('Più scura la cella, più alta la spesa (o l\'entrata) rispetto agli altri mesi della stessa categoria. Clicca un importo per vedere le transazioni.') }}</div>
+  </div></div>
+  {% if not table.income.rows and not table.expense.rows %}
+  <div class="card-body"><p class="text-muted">{{ _('Nessuna entrata o uscita nel %(year)s.', year=year) }}</p></div>
+  {% else %}
+  <div class="table-wrapper summary-wrapper">
+    <table class="table summary-table">
+      <thead><tr>
+        <th scope="col" class="summary-name">{{ _('Categoria') }}</th>
+        {% for label in table.labels %}<th scope="col" class="text-right">{{ label }}</th>{% endfor %}
+        <th scope="col" class="text-right">{{ _('Totale') }}</th>
+        <th scope="col" class="text-right">{{ _('Media') }}</th>
+        <th scope="col" class="text-right" title="{{ _('Rispetto agli stessi mesi del %(year)s', year=year - 1) }}">{{ _('vs %(year)s', year=year - 1) }}</th>
+      </tr></thead>
+      {% for kind, title in (('income', _('Entrate')), ('expense', _('Uscite'))) %}
+      <tbody>
+        <tr class="summary-section"><th scope="rowgroup" colspan="{{ table.months + 4 }}">{{ title }}</th></tr>
+        {% for item in table[kind].rows %}
+          {{ line(item, kind, item.name|tr, link_category=('' if item.name == uncategorized else item.name)) }}
+          {% for child in item.children %}
+            {{ line(child, kind, '↳ ' ~ child.name, 'summary-child', link_category=child.name) }}
+          {% endfor %}
+        {% endfor %}
+        {{ line(table[kind].total, kind, _('Totale %(section)s', section=title|lower), 'summary-sum') }}
+      </tbody>
+      {% endfor %}
+      <tbody>
+        <tr class="summary-row summary-sum">
+          <th scope="row" class="summary-name">{{ _('Netto') }}</th>
+          {% for value in table.net.months %}
+          <td class="summary-total {{ 'text-negative' if value < 0 }}">{{ value|number(0) }}</td>
+          {% endfor %}
+          <td class="summary-total {{ 'text-negative' if table.net.total < 0 }}">{{ table.net.total|number(0) }}</td>
+          <td class="summary-total text-muted">{{ table.net.average|number(0) }}</td>
+          <td class="summary-total"></td>
+        </tr>
+        <tr class="summary-row">
+          <th scope="row" class="summary-name">{{ _('Tasso di risparmio') }}</th>
+          {% for value in table.savings.months %}
+          <td class="summary-total {{ 'text-negative' if value is not none and value < 0 }}">{{ (value|number(1) ~ '%') if value is not none else '—' }}</td>
+          {% endfor %}
+          <td class="summary-total">{{ (table.savings.total|number(1) ~ '%') if table.savings.total is not none else '—' }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

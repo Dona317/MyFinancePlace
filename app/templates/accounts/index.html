@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/kpi.html" import kpi %}
+{% block page_title %}{{ _('Conti e Carte') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Conti e Carte') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo Conto') }}</a>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid mb-24">
+  {{ kpi('bank', _('Saldo Totale'), value=total|money, cls='kpi-primary', sub=(_('conti attivi'))) }}
+  {{ kpi('wallet2', _('Conti'), value=rows|length, sub=(_('%(count)s attivi', count=rows|selectattr('account.active')|list|length))) }}
+  {% call kpi('question-circle', _('Senza Conto'), value=unassigned, cls=('kpi-warning' if unassigned else 'kpi-positive')) %}{% if unassigned %}<a href="{{ url_for('transactions.index', account='none') }}">{{ _('assegnale') }}</a>{% else %}{{ _('tutte assegnate') }}{% endif %}{% endcall %}
+</div>
+
+<div class="card">
+  {% if rows %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Conto') }}</th><th>{{ _('Tipo') }}</th><th class="text-right">{{ _('Saldo') }}</th><th>{{ _('Riconciliato') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+        {% set a = row.account %}
+        <tr {% if not a.active %}class="text-muted"{% endif %}>
+          <td>
+            <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>
+            {% if a.iban_tail %}<div class="text-xs text-muted font-mono">…{{ a.iban_tail }}</div>{% endif %}
+            {% if not a.active %}<span class="badge badge-muted">{{ _('chiuso') }}</span>{% endif %}
+          </td>
+          <td>{{ kinds.get(a.kind, a.kind) }}{% if a.currency != 'EUR' %} · {{ a.currency }}{% endif %}</td>
+          <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money(row.symbol) }}</td>
+          <td class="text-xs">{% if a.reconciled_on %}<i class="bi bi-check2-circle text-positive"></i> {{ _('al %(date)s', date=a.reconciled_on|it_date) }}{% else %}<span class="text-muted">{{ _('mai') }}</span>{% endif %}</td>
+          <td class="text-right"><a href="{{ url_for('transactions.index', account=a.id) }}">{{ row.count }}</a></td>
+          <td>
+            <div class="cell-actions">
+              {{ icon_link(url_for('accounts.detail', account_id=a.id), 'bi-check2-square', _('Riconcilia'), _('Riconcilia %(name)s', name=a.name)) }}
+              {{ icon_link(url_for('accounts.edit', account_id=a.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=a.name)) }}
+              {{ delete_button(url_for('accounts.delete', account_id=a.id), _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name), _('Elimina %(name)s', name=a.name)) }}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  {% call empty_state(text=_('Aggiungi conti correnti, carte, conti deposito e contanti: vedrai il saldo di ognuno, potrai importare gli estratti sul conto giusto e riconciliarli con la banca.'), icon='bi-bank', title=_('Nessun conto')) %}
+    <a href="{{ url_for('accounts.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Conto') }}</a>
+  {% endcall %}
+  {% endif %}
+</div>
+{% endblock %}

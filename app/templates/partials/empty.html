@@ -1,0 +1,9 @@
+{# What a page or panel shows when it has nothing to list: icon, title, text, and the actions inside {% call %}. #}
+{% macro empty_state(text, icon=None, title=None, compact=False) -%}
+<div class="empty-state{% if compact %} empty-state-compact{% endif %}">
+  {% if icon %}<div class="empty-state-icon"><i class="bi {{ icon }}"></i></div>{% endif %}
+  {% if title %}<div class="empty-state-title">{{ title }}</div>{% endif %}
+  <div class="empty-state-text">{{ text }}</div>
+  {% if caller %}{{ caller() }}{% endif %}
+</div>
+{%- endmacro %}

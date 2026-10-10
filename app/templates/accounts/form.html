@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% import "partials/fields.html" as f %}
+{% set is_edit = account is not none %}
+{% set a = account or {} %}
+{% block page_title %}{{ _('Modifica Conto') if is_edit else _('Nuovo Conto') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-bank"></i> {{ _('Modifica «%(name)s»', name=account.name) if is_edit else _('Nuovo conto o carta') }}</div></div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="grid-2">
+          {{ f.text(values, 'name', _('Nome'), a.name, required=true, placeholder=_('es. Fineco, Carta Amex, Contanti')) }}
+          {{ f.select(values, 'kind', _('Tipo'), kinds.items()|list, a.kind or 'current') }}
+        </div>
+        <div class="grid-2">
+          {{ f.select(values, 'currency', _('Valuta'), currencies, a.currency or 'EUR') }}
+          {{ f.number(values, 'opening_balance', _('Saldo iniziale (nella valuta del conto)'), a.opening_balance, placeholder='0,00',
+                      hint=_('Il saldo prima della prima transazione registrata su questo conto.')) }}
+        </div>
+        <div class="grid-2">
+          {{ f.text(values, 'iban', _('IBAN'), a.iban, placeholder='IT60 X054 2811 1010 0000 0123 456',
+                    hint=_('Facoltativo: un bonifico verso questo IBAN da un altro tuo conto viene importato come giroconto.')) }}
+          {{ f.text(values, 'iban_tail', _('Ultime cifre IBAN o carta'), a.iban_tail, placeholder=_('es. 4821')) }}
+        </div>
+        {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
+        <fieldset class="fee-rules mb-16">
+          <legend class="form-label">{{ _('Commissioni del broker (facoltative)') }}</legend>
+          <p class="form-hint">{{ _('Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una vendita su questo conto, la commissione viene calcolata e proposta. Vuoto = la inserisci tu.') }}</p>
+          <div class="grid-4">
+            {{ f.number(values, 'fee_fixed', _('Fisso (€)'), a.fee_fixed, placeholder='0,00') }}
+            {{ f.number(values, 'fee_percent', _('Percentuale (%%)'), a.fee_percent, placeholder='0,19') }}
+            {{ f.number(values, 'fee_min', _('Minimo (€)'), a.fee_min, placeholder='2,95') }}
+            {{ f.number(values, 'fee_max', _('Massimo (€)'), a.fee_max, placeholder='19,00') }}
+          </div>
+        </fieldset>
+        <fieldset class="fee-rules mb-16">
+          <legend class="form-label">{{ _('Fisco') }}</legend>
+          {{ f.select(values, 'tax_regime', _('Regime delle plusvalenze'), tax_regimes.items(), a.tax_regime or 'amministrato') }}
+          {% set is_abroad = ('abroad' in values) if values else a.abroad %}
+          <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="abroad" class="check" {{ 'checked' if is_abroad }} /> {{ _("Conto all'estero (IVAFE al posto dell'imposta di bollo)") }}</label>
+        </fieldset>
+        {% set is_active = ('active' in values) if values else (a.active if is_edit else true) %}
+        <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" class="check" {{ 'checked' if is_active }} /> {{ _("Conto attivo (togli la spunta se l'hai chiuso)") }}</label>
+        {{ f.actions(url_for('accounts.detail', account_id=account.id) if is_edit else url_for('accounts.index'),
+                     _('Salva Modifiche') if is_edit else _('Aggiungi Conto')) }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

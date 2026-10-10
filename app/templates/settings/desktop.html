@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('App desktop') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('App desktop') }}</li>{% endblock %}
+
+{% macro toggle(key, label, hint) %}
+<div class="toggle-wrap">
+  <div class="toggle-info">
+    <div class="toggle-label">{{ label }}</div>
+    <div class="toggle-hint">{{ hint }}</div>
+  </div>
+  <label class="toggle-switch">
+    <input type="checkbox" name="{{ key }}" {% if prefs[key] %}checked{% endif %} onchange="this.form.submit()" />
+    <span class="toggle-slider"></span>
+  </label>
+</div>
+{% endmacro %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('desktop.settings_save') }}" class="settings-section">
+  <div class="settings-section-header">
+    <i class="bi bi-window" style="color:var(--clr-primary);"></i> {{ _('Avvio e notifiche') }}
+  </div>
+  <div class="settings-section-body">
+    {{ toggle('autostart', _("Avvia all'accensione del computer"),
+              _("Parte in background, con l'icona vicino all'orologio: le notifiche arrivano anche senza aprire l'app. Clic sull'icona per aprirla, «Esci» per chiuderla del tutto.")) }}
+    {{ toggle('notify', _('Promemoria come notifiche del sistema'),
+              _("Polizze in scadenza, rate e spese ricorrenti, budget, obiettivi, di tutti gli archivi dei clienti. Quelle non lette dei giorni in cui l'app era chiusa arrivano appena si avvia; ognuna si ripete una volta al giorno finché non la segni come vista in Notifiche.")) }}
+  </div>
+</form>
+{% endblock %}
