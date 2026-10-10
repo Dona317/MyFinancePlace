@@ -3,8 +3,8 @@
 Unico punto di controllo di cosa fare dopo. Complementa (non sostituisce) [ROADMAP](../ROADMAP.md) (stato
 delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMPETITOR](ANALISI_COMPETITOR.md).
 
-**Ultimo aggiornamento**: 8 ottobre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
-**MVP**: completo · **Test**: 698, copertura 96,1% · **Migrazioni**: 22
+**Ultimo aggiornamento**: 10 ottobre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
+**MVP**: completo · **Test**: 732, copertura 96,6% · **Migrazioni**: 24
 
 | Stato | Significato |
 |---|---|
@@ -17,6 +17,12 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
 ---
 
 ## 1. Scansione dello stato (7 ott 2026)
+
+> **Versione attuale (10 ott 2026): il ramo `test-Cloud` @ `df54fec`**, con CI verde (test + app desktop
+> Windows/macOS/Linux) e test live verdi. Dopo il 7 ottobre ha aggiunto: refactoring «clean code», efficienza
+> (meno query, niente CDN), font inclusi e selezionabili, F14 (notifiche di sistema, avvio automatico,
+> installatore Windows), F18 (sezioni per utente). `main` resta indietro fino all'unione della PR #8 (D1,
+> rimandata a novembre).
 
 - `test-Cloud` ha tutto l'MVP: dati reali, report, import 8 banche + generico, AI locale/Claude, conti e valute,
   budget, obiettivi, portafoglio, debiti, assicurazioni, backup, login, IT/EN, Docker, CI. 17 migrazioni.
