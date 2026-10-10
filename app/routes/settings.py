@@ -10,7 +10,7 @@ from app.extensions import db
 from app.models.category import Category, CategoryRule
 from app.models.currency import ExchangeRate
 from app.routes.helpers import delete_and_redirect, flash_errors, form_choice, form_date, form_decimal, form_text
-from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, display, settings_store
+from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, desktop, display, settings_store
 from app.services.bank_import import CATEGORY_RULES
 
 # The interface choices live in a service (services read them too); re-exported for this page and older imports
@@ -39,7 +39,7 @@ settings_bp = APIBlueprint(
 def index():
     return render_template("settings/index.html", settings=current_settings(), defaults=DEFAULT_SETTINGS,
                            currencies=currency.CURRENCIES, locales=display.LOCALES, languages=LANGUAGES, preview_date=date(2026, 5, 25),
-                           autonomy_targets=AUTONOMY_TARGETS)
+                           autonomy_targets=AUTONOMY_TARGETS, desktop_app=desktop.available())
 
 
 @settings_bp.route("/save", methods=["POST"])

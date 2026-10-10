@@ -67,9 +67,9 @@ def test_database_helpers(tmp_path):
 
 
 def test_launcher_helpers(tmp_path):
-    assert main._already_open(tmp_path) is None
+    assert main._running(tmp_path) is None
     (tmp_path / "running.json").write_text(json.dumps({"url": "http://127.0.0.1:9/"}))
-    assert main._already_open(tmp_path) is None  # nothing answers there
+    assert main._running(tmp_path) is None  # nothing answers there
     key = main._secret_key(tmp_path)
     assert len(key) > 40 and main._secret_key(tmp_path) == key
     args = main._arguments(["--headless", "--port", "8123"])

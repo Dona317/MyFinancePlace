@@ -17,6 +17,13 @@ fondo, sotto *Artifacts*:
 Si scarica uno zip: lo si estrae dove si vuole (es. `Documenti\MyFinancePlace`) e si avvia **MyFinancePlace**
 (`MyFinancePlace.exe` su Windows, `MyFinancePlace.app` su Mac).
 
+**Windows, con l'installatore** (`MyFinancePlace-Setup-windows-x64` → `MyFinancePlace-Setup.exe`): installa solo per
+l'utente, senza permessi di amministratore, in `%LOCALAPPDATA%\Programs\MyFinancePlace`. Mette l'app nel menu Start
+(serve anche alle notifiche, che così mostrano nome e icona dell'app) e chiede se **avviarla all'accensione del
+computer**; facoltativa l'icona sul desktop. Per aggiornare si rilancia l'installatore: chiude l'app aperta e
+sostituisce il programma, i dati restano. Disinstallando (Impostazioni di Windows → App) si tolgono programma, avvio
+automatico e collegamenti; i dati in `%APPDATA%\MyFinancePlace` restano.
+
 Il programma non è firmato con un certificato a pagamento, quindi al primo avvio:
 - **Windows**: «Windows ha protetto il PC» → *Ulteriori informazioni* → *Esegui comunque*.
 - **macOS**: tasto destro su `MyFinancePlace.app` → *Apri* → *Apri*. Se dice che è danneggiata (succede ai file
@@ -29,7 +36,23 @@ Il programma non è firmato con un certificato a pagamento, quindi al primo avvi
 2. Chiede di creare l'utente e la password: proteggono i dati dei clienti.
 3. Da *Clienti* si creano gli archivi dei clienti (F11).
 
-Gli avvii successivi richiedono circa 2 secondi. Chiudendo la finestra si fermano server e database.
+Gli avvii successivi richiedono circa 2 secondi.
+
+## In background, avvio automatico e notifiche (F14)
+
+- **Windows**: chiudendo la finestra l'app resta aperta in background, con l'icona vicino all'orologio. Clic
+  sull'icona (o «Apri MyFinancePlace») riapre la finestra; «Esci» chiude tutto (server e database). Su macOS e Linux
+  chiudendo la finestra si ferma l'app, come prima.
+- **Avvio all'accensione**: dall'installatore o da *Impostazioni → App desktop*. L'app parte in background (Windows:
+  solo l'icona; macOS e Linux: con la finestra).
+- **Notifiche del sistema** (*Impostazioni → App desktop*, accese di base): i promemoria del campanello (polizze in
+  scadenza, rate, spese ricorrenti, budget, obiettivi) di **tutti gli archivi dei clienti**, con il nome del cliente
+  quando ce n'è più di uno. Venti secondi dopo l'avvio arrivano quelli non letti, anche dei giorni in cui l'app era
+  chiusa; poi un controllo ogni ora. Ognuno si ripete una volta al giorno finché non lo segni come visto in
+  *Notifiche*; se sono più di tre, ne arrivano due più «Altri N promemoria». Clic sulla notifica (Windows): l'app si
+  apre su quel cliente e su quella pagina.
+- Come: Windows 10/11 con le notifiche native (PowerShell e le API di Windows, niente da installare), macOS con
+  `osascript`, Linux con `notify-send`. Le scelte stanno in `desktop.json` nella cartella dei dati.
 
 ## Dove sono i dati
 
@@ -45,13 +68,20 @@ cartella in `instance/clients/`), `logs/` (registro dell'app e del database), `s
 del database (studio e clienti) si applicano da sole all'avvio.
 
 Opzioni da riga di comando: `--data-dir CARTELLA` (dati altrove, es. su un disco cifrato), `--browser` (nel
-browser invece che nella finestra), `--headless` (solo server, stampa l'indirizzo), `--smoke` (avvia, controlla e
-chiude: usato dalla build).
+browser invece che nella finestra), `--background` (senza finestra: icona e notifiche; è come parte all'accensione),
+`--headless` (solo server, stampa l'indirizzo), `--stop` (chiude l'app aperta: usato dall'installatore), `--smoke`
+(avvia, controlla e chiude: usato dalla build).
 
 ## Come è fatto
 
 - `desktop/main.py`: cartella dati → PostgreSQL locale → migrazioni → server waitress su `127.0.0.1` (porta
-  libera) → finestra pywebview. Un secondo avvio mentre l'app è aperta riapre la stessa.
+  libera) → finestra pywebview, icona e promemoria. Un secondo avvio (o un clic su una notifica, link
+  `myfinanceplace://`) chiede all'app aperta di mostrare la finestra: `running.json` nella cartella dei dati contiene
+  indirizzo e un codice segreto che solo l'utente può leggere.
+- `desktop/notify.py`, `desktop/tray.py`, `desktop/windows.py` (nome e icona delle notifiche, link `myfinanceplace://`,
+  scritti per l'utente a ogni avvio), `app/services/autostart.py`, `app/services/system_notifications.py`.
+- `desktop/installer.iss`: l'installatore Windows (Inno Setup), costruito, installato, avviato e disinstallato dal
+  workflow a ogni push. `desktop/make_icon.py` disegna l'icona (`desktop/assets`).
 - `desktop/database.py`: `initdb` al primo avvio (UTF-8, accesso solo con password), avvio su `127.0.0.1` e porta
   libera, arresto pulito. Rifiuta di partire come root.
 - `desktop/fetch_postgres.py`: scarica i binari portabili di PostgreSQL 16 (build zonky.io su Maven Central).

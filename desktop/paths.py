@@ -40,3 +40,11 @@ def postgres_bin() -> Path | None:
         if candidate and (Path(candidate) / exe).is_file():
             return Path(candidate)
     return None
+
+
+def icon_file(kind: str) -> Path:
+    """The app's icon (desktop/assets/icon.png or .ico, bundled as assets/)."""
+    for folder in (bundle_dir() / "assets", Path(__file__).resolve().parent / "assets"):
+        if (folder / f"icon.{kind}").is_file():
+            return folder / f"icon.{kind}"
+    return Path(__file__).resolve().parent / "assets" / f"icon.{kind}"

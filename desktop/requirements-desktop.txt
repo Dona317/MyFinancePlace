@@ -2,3 +2,4 @@
 waitress==3.0.2        # local server
 pywebview==6.2.1       # native window (WebView2 on Windows, WebKit on macOS, GTK/Qt on Linux)
 pyinstaller==6.22.3    # packaging
+pystray==0.19.5; sys_platform == "win32"   # icon next to the clock: the app keeps running in the background (F14)

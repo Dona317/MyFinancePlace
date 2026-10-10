@@ -80,3 +80,33 @@ jobs:
           name: MyFinancePlace-${{ matrix.name }}
           path: ${{ runner.os == 'macOS' && 'desktop/dist/MyFinancePlace.app' || 'desktop/dist/MyFinancePlace' }}
           retention-days: 30
+
+      # Windows installer (F14): build it, install it silently with «start with the computer», start the installed
+      # app once, uninstall it and check nothing is left behind (program and Run entry; the data stays)
+      - name: Installer (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y; $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          & $iscc /Q desktop\installer.iss
+          if ($LASTEXITCODE) { exit 1 }
+          $dir = "$env:RUNNER_TEMP\mfp-installed"
+          Start-Process desktop\dist\MyFinancePlace-Setup.exe -Wait -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=$dir", "/TASKS=autostart"
+          $run = (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run").MyFinancePlace
+          if ($run -notlike "*MyFinancePlace.exe*--background*") { Write-Error "autostart entry missing: $run"; exit 1 }
+          if (-not (Test-Path "HKCU:\Software\Classes\myfinanceplace\shell\open\command")) { Write-Error "link handler missing"; exit 1 }
+          & "$dir\MyFinancePlace.exe" --smoke --data-dir "$env:RUNNER_TEMP\mfp-installed-data" | Out-Host
+          if ($LASTEXITCODE) { exit 1 }
+          Start-Process "$dir\unins000.exe" -Wait -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\MyFinancePlace.exe") { Write-Error "program left after uninstall"; exit 1 }
+          if ((Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run").MyFinancePlace) { Write-Error "autostart left after uninstall"; exit 1 }
+          Write-Host "installer: install, start, uninstall OK"
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: MyFinancePlace-Setup-windows-x64
+          path: desktop/dist/MyFinancePlace-Setup.exe
+          retention-days: 30

@@ -12,7 +12,7 @@ from app.models.user import User
 from app.services import studio, users
 from app.services.ui_settings import current_settings, module_setting
 
-PUBLIC_ENDPOINTS = {"static", "auth.login", "auth.setup", "health"}
+PUBLIC_ENDPOINTS = {"static", "auth.login", "auth.setup", "health", "desktop.show", "desktop.quit_app"}  # desktop.*: token-checked
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
 

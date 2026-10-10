@@ -16,6 +16,7 @@ datas = [
     (str(ROOT / "app" / "translations"), "app/translations"),
     (str(ROOT / "migrations"), "migrations"),
     (str(PGSQL), "pgsql"),
+    (str(ROOT / "desktop" / "assets"), "assets"),  # the icon: tray, notifications
 ]
 for package in ("apiflask", "fpdf", "flask_migrate", "pdfminer", "docx"):
     datas += collect_data_files(package)
@@ -23,6 +24,8 @@ for package in ("apiflask", "fpdf", "flask_migrate", "pdfminer", "docx"):
 
 hiddenimports = collect_submodules("app") + collect_submodules("apiflask") + ["psycopg2", "waitress", "sqlalchemy.dialects.postgresql.psycopg2",
                                              "logging.config"]
+if sys.platform.startswith("win"):
+    hiddenimports += ["pystray._win32"]  # the icon next to the clock (F14)
 excludes = ["rapidocr_onnxruntime", "onnxruntime", "cv2", "torch", "tensorflow", "pytest", "IPython",
             "matplotlib", "tkinter"]  # the light OCR is optional: without it scans go to AI reading
 
@@ -40,7 +43,7 @@ def _wanted(entry) -> bool:
 
 a.datas = [entry for entry in a.datas if _wanted(entry)]
 pyz = PYZ(a.pure)
-icon = None
+icon = str(ROOT / "desktop" / "assets" / "icon.ico") if sys.platform.startswith("win") else None
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="MyFinancePlace", console=False, icon=icon,
           upx=False)
 coll = COLLECT(exe, a.binaries, a.datas, name="MyFinancePlace", upx=False)

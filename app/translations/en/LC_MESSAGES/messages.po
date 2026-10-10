@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-08 21:35+0000\n"
+"POT-Creation-Date: 2026-10-10 07:47+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -834,6 +834,9 @@ msgstr "Down payment and notary fees"
 msgid "Apertura → Chiusura"
 msgstr "Opening → Closing"
 
+msgid "App desktop"
+msgstr "Desktop app"
+
 msgid "Applica"
 msgstr "Apply"
 
@@ -851,6 +854,9 @@ msgstr "Apr"
 
 msgid "Apri"
 msgstr "Open"
+
+msgid "Aprili in MyFinancePlace → Notifiche."
+msgstr "Open them in MyFinancePlace → Notifications."
 
 msgid "Archiviato (nascosto dal selettore, dati intatti)"
 msgstr "Archived (hidden from the switcher, data kept)"
@@ -915,11 +921,21 @@ msgstr "Car"
 msgid "Auto o moto"
 msgstr "Car or motorbike"
 
+msgid "Avvia all'accensione del computer"
+msgstr "Start with the computer"
+
 msgid "Avvialo (su Windows/macOS parte da solo; su Linux:"
 msgstr "Start it (on Windows/macOS it starts by itself; on Linux:"
 
+#, python-format
+msgid "Avvio automatico non modificato: %(exc)s"
+msgstr "Start with the computer not changed: %(exc)s"
+
 msgid "Avvio della lettura…"
 msgstr "Starting to read…"
+
+msgid "Avvio e notifiche"
+msgstr "Start and notifications"
 
 #, python-format
 msgid "Avviso all'%(share)s%% e quando lo superi. Lascia vuoto per nessun budget."
@@ -2688,6 +2704,9 @@ msgstr "Estimated tax"
 msgid "Impostazioni"
 msgstr "Settings"
 
+msgid "Impostazioni dell'app salvate."
+msgstr "App settings saved."
+
 msgid "Impostazioni ripristinate ai valori predefiniti."
 msgstr "Settings reset to the defaults."
 
@@ -3873,6 +3892,13 @@ msgstr "Keyword: at least %(MIN_KEYWORD)s characters."
 msgid "Parole chiave"
 msgstr "Keywords"
 
+msgid ""
+"Parte in background, con l'icona vicino all'orologio: le notifiche arrivano anche senza aprire l'app. Clic sull'icona"
+" per aprirla, «Esci» per chiuderla del tutto."
+msgstr ""
+"Starts in the background, with its icon next to the clock: the notifications arrive without opening the app. Click "
+"the icon to open it, «Exit» to close it completely."
+
 msgid "Passa alla modalità chiara"
 msgstr "Switch to light mode"
 
@@ -4049,6 +4075,15 @@ msgstr "Active Policies"
 
 msgid "Polizze attive, premi e scadenze"
 msgstr "Active policies, premiums and expiry dates"
+
+msgid ""
+"Polizze in scadenza, rate e spese ricorrenti, budget, obiettivi, di tutti gli archivi dei clienti. Quelle non lette "
+"dei giorni in cui l'app era chiusa arrivano appena si avvia; ognuna si ripete una volta al giorno finché non la segni"
+" come vista in Notifiche."
+msgstr ""
+"Expiring policies, installments and recurring payments, budgets, goals, of every client archive. The unread ones of "
+"the days the app was closed arrive as soon as it starts; each is repeated once a day until you mark it as seen in "
+"Notifications."
 
 msgid "Portafoglio"
 msgstr "Portfolio"
@@ -4229,6 +4264,9 @@ msgstr "Scheduled up to the end of %(month)s"
 
 msgid "Promemoria"
 msgstr "Reminders"
+
+msgid "Promemoria come notifiche del sistema"
+msgstr "Reminders as system notifications"
 
 #, python-brace-format
 msgid "Pronti {count} file"
@@ -5429,6 +5467,12 @@ msgstr "Latest amount"
 
 msgid "Ultimo pagamento"
 msgstr "Last payment"
+
+#, python-format
+msgid "Un altro promemoria"
+msgid_plural "Altri %(num)s promemoria"
+msgstr[0] "One more reminder"
+msgstr[1] "%(num)s more reminders"
 
 msgid "Un file"
 msgstr "One file"

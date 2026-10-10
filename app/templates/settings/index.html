@@ -65,6 +65,11 @@
     <a href="{{ url_for('settings.ai_models_page') }}" class="settings-nav-item">
       <i class="bi bi-stars"></i> {{ _('Modelli AI') }}
     </a>
+    {% if desktop_app %}
+    <a href="{{ url_for('desktop.settings_page') }}" class="settings-nav-item">
+      <i class="bi bi-window"></i> {{ _('App desktop') }}
+    </a>
+    {% endif %}
   </nav>
 
   <!-- ── Right content ──────────────────────────────────────────────────── -->
