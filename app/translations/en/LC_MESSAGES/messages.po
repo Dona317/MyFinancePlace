@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-10 14:27+0000\n"
+"POT-Creation-Date: 2026-10-10 14:43+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -273,12 +273,6 @@ msgstr[0] "%(num)d transfer linked to the movement already imported from the oth
 msgstr[1] "%(num)d transfers linked to the movements already imported from the other account."
 
 #, python-format
-msgid "%(num)d giroconto è già stato importato dall'altro conto"
-msgid_plural "%(num)d giroconti sono già stati importati dall'altro conto"
-msgstr[0] "%(num)d transfer was already imported from the other account"
-msgstr[1] "%(num)d transfers were already imported from the other account"
-
-#, python-format
 msgid "%(num)d gruppo di possibili duplicati da ricontrollare."
 msgid_plural "%(num)d gruppi di possibili duplicati da ricontrollare."
 msgstr[0] "%(num)d group of possible duplicates to review."
@@ -289,6 +283,12 @@ msgid "%(num)d movimento sembra già presente"
 msgid_plural "%(num)d movimenti sembrano già presenti"
 msgstr[0] "%(num)d movement seems to be already there"
 msgstr[1] "%(num)d movements seem to be already there"
+
+#, python-format
+msgid "%(num)d movimento tra i tuoi conti è già stato importato dall'altro conto"
+msgid_plural "%(num)d movimenti tra i tuoi conti sono già stati importati dall'altro conto"
+msgstr[0] "%(num)d movement between your accounts was already imported from the other account"
+msgstr[1] "%(num)d movements between your accounts were already imported from the other account"
 
 #, python-format
 msgid "%(num)d polizza scade entro %(days)s giorni:"
@@ -387,6 +387,15 @@ msgstr "(e.g. from an import):"
 msgid "(facoltativo)"
 msgstr "(optional)"
 
+msgid ""
+"(giroconti o bonifici con lo stesso importo, verso opposto, a pochi giorni di distanza): importandoli si collegano a "
+"quel movimento, che diventa un giroconto con il conto di partenza e quello di arrivo, senza contarli due volte. Togli"
+" la spunta «collega» se sono movimenti diversi."
+msgstr ""
+"(transfers or bank transfers with the same amount, opposite direction, a few days apart): importing them links them "
+"to that movement, which becomes a transfer with both the source and the destination account, without counting them "
+"twice. Untick «link» if they are different movements."
+
 msgid "(non conta come entrata né come uscita)"
 msgstr "(counts as neither income nor expense)"
 
@@ -398,13 +407,6 @@ msgstr "(installment, disbursement)"
 
 msgid "(servizio cloud) per essere letto. Se preferisci che i dati restino sul tuo computer,"
 msgstr "(cloud service) to be read. If you prefer the data to stay on your computer,"
-
-msgid ""
-"(stessa data e stesso importo, verso opposto): importandoli si collegano a quel movimento, che avrà così il conto di "
-"partenza e quello di arrivo, senza contarli due volte."
-msgstr ""
-"(same date and amount, opposite direction): importing them links them to that movement, which then has both the "
-"source and the destination account, without counting them twice."
 
 msgid ""
 "(stesso importo, data vicina, descrizione simile): sono deselezionati. Controllali e riselezionali se sono movimenti "
@@ -1338,6 +1340,10 @@ msgstr "Clients"
 #, python-format
 msgid "CoinGecko non risponde (%(exc)s)"
 msgstr "CoinGecko does not answer (%(exc)s)"
+
+#, python-format
+msgid "Collega al giroconto: %(tx)s"
+msgstr "Link to the transfer: %(tx)s"
 
 msgid "Collega la loro categoria a una voce qui sotto, oppure cambia la categoria della spesa."
 msgstr "Link their category to an item below, or change the expense's category."
@@ -2366,10 +2372,6 @@ msgstr "Debt Management"
 msgid "Gestione Finanze Personali"
 msgstr "Personal Finance Management"
 
-#, python-format
-msgid "Giroconto: si collega a %(tx)s"
-msgstr "Transfer: links to %(tx)s"
-
 msgid "Giu"
 msgstr "Jun"
 
@@ -3122,15 +3124,15 @@ msgstr "Turkish lira"
 msgid "Livellamento esponenziale con α = 2 / (N + 1): segue i cambiamenti più in fretta."
 msgstr "Exponential smoothing with α = 2 / (N + 1): follows changes faster."
 
-msgid "Lo stesso giroconto è già stato importato dall'estratto conto dell'altro conto"
-msgstr "The same transfer was already imported from the other account's statement"
-
 msgid ""
 "Lo stesso mese dell'anno prima, riscalato sul livello degli ultimi N mesi: coglie bollette invernali, vacanze estive,"
 " tredicesima. Serve almeno un anno di storico."
 msgstr ""
 "The same month of the year before, rescaled to the level of the last N months: catches winter bills, summer holidays,"
 " year-end bonuses. Needs at least one year of history."
+
+msgid "Lo stesso movimento è già stato importato dall'estratto conto dell'altro conto"
+msgstr "The same movement was already imported from the other account's statement"
 
 msgid "Locale (Ollama) — i dati restano sul computer"
 msgstr "Local (Ollama) — the data stays on the computer"

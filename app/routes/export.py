@@ -411,18 +411,22 @@ def _outgoing(base: dict) -> bool:
     return (to_decimal(base.get("amount")) or 0) <= 0
 
 
-def _join_transfer(tx, base: dict, account: Account, taken: set[int]) -> str | None:
-    """A giroconto already saved from the other account's statement: "linked" when this row completes its other
-    half, "present" when both halves are already joined; None for a new movement."""
+def _join_transfer(tx, base: dict, index: int, account: Account, taken: set[int]) -> bool:
+    """Money moved between own accounts, whose other side is already saved from the other account's statement:
+    that transaction becomes one transfer with both accounts (True) and this row adds nothing. A row the preview
+    marked can be kept apart by unticking «collega»."""
+    marked = bool(base.get("pairs"))
+    if marked and not request.form.get(f"pair-{index}"):
+        return False
+    if tx.type != "transfer" and not marked:
+        return False
     outgoing = _outgoing(base)
-    half = bank_import.other_half(tx.date, tx.amount, outgoing, account.id, exclude=taken)
-    if half is not None:
-        bank_import.complete(half, outgoing, account.id)
-        taken.add(half.id)
-        return "linked"
-    if bank_import.already_complete(tx.date, tx.amount, outgoing, account.id):
-        return "present"
-    return None
+    other = bank_import.other_side(tx.date, tx.amount, outgoing, account.id, exclude=taken)
+    if other is None:
+        return False
+    bank_import.join(other, outgoing, account.id, tx.import_ref)
+    taken.add(other.id)
+    return True
 
 
 def _collect_rows(data: dict, account: Account | None) -> tuple[list, int, list[int], int]:
@@ -444,12 +448,8 @@ def _collect_rows(data: dict, account: Account | None) -> tuple[list, int, list[
             invalid.append(index + 1)
             continue
         if account is not None:
-            joined = _join_transfer(tx, base, account, taken) if tx.type == "transfer" else None
-            if joined == "linked":
+            if _join_transfer(tx, base, index, account, taken):
                 linked += 1
-                continue
-            if joined == "present":
-                skipped += 1
                 continue
             _assign_account(tx, base, account)
         created.append(tx)

@@ -22,6 +22,8 @@ class Transaction(db.Model):
     notes          = db.Column(db.Text)
     bank_description = db.Column(db.Text)       # the bank's original causale, kept as imported (never edited)
     import_ref     = db.Column(db.String(64), unique=True, index=True)  # fingerprint of a bank-statement row
+    # a transfer between own accounts is in both statements: the other statement's row, once joined to this one
+    counter_import_ref = db.Column(db.String(64), unique=True, index=True)
     # The account the money leaves (expense, outgoing transfer) or reaches (income); for a transfer between
     # two own accounts, counter_account is where it arrives
     account_id         = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)

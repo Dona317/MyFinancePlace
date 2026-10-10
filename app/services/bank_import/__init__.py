@@ -93,4 +93,4 @@ from .text_layout import (  # noqa: F401
     parse_text_lines,
     rebuild_columns,
 )
-from .transfers import already_complete, complete, flag_pairs, other_half  # noqa: F401
+from .transfers import flag_pairs, is_bank_transfer, join, other_side  # noqa: F401

@@ -1,6 +1,7 @@
 """
-A giroconto between two of the user's accounts is in both banks' statements. Importing the second statement must
-join it to the half saved from the first one (one transfer with both accounts), never skip it or count it twice.
+Money moved between two of the user's accounts is in both banks' statements, maybe a few days apart and maybe called
+just "bonifico". Importing the second statement must join it to the side saved from the first one (one transfer with
+both accounts), never skip it or count it twice.
 """
 import io
 import re
@@ -57,7 +58,7 @@ def test_the_second_statement_joins_the_transfer(client, pair, app):
     unicredit, fineco = pair
     _import(client, "unicredit_gennaio.csv", UNICREDIT, unicredit)
     html = _preview(client, "unicredit_fineco.csv", FINECO)
-    assert "Giroconto: si collega a 28/01/2026" in html and "Possibile duplicato" not in html
+    assert "Collega al giroconto: 28/01/2026" in html and "Possibile duplicato" not in html
     page = _import(client, "unicredit_fineco.csv", FINECO, fineco)
     assert "1 giroconto collegato al movimento già importato dall&#39;altro conto." in page
 
@@ -90,6 +91,52 @@ def test_a_transfer_is_not_joined_to_its_own_account(client, pair):
     assert len(halves) == 2 and not any(t.account_id and t.counter_account_id for t in halves)
 
 
+def test_a_plain_bonifico_arriving_days_later_becomes_a_giroconto(client, pair, app):
+    """A bonifico to oneself, not called «giroconto», sent on Friday and booked by the other bank on Tuesday."""
+    unicredit, fineco = pair
+    _import(client, "unicredit_marzo.csv", _csv(
+        "06.03.2026;06.03.2026;Bonifico SEPA a MARIO ROSSI IBAN IT40S0301503200000012345678;Bonifico SEPA;-300,00",
+        "06.03.2026;06.03.2026;Bonifico SEPA a IDRAULICO BIANCHI fattura 12;Bonifico SEPA;-150,00"), unicredit)
+    sent = Transaction.query.filter(Transaction.description.like("%MARIO ROSSI%")).one()
+    assert sent.type == "expense"  # alone, a bonifico to oneself looks like any payment
+
+    arriving = _csv("10.03.2026;10.03.2026;Bonifico da MARIO ROSSI IBAN IT60X0200801600000102345678;Bonifico;300,00",
+                    "10.03.2026;10.03.2026;Bonifico da IDRAULICO BIANCHI rimborso;Bonifico;150,00")
+    html = _preview(client, "unicredit_fineco_marzo.csv", arriving)
+    assert html.count('name="pair-') == 2  # both look like the other side: the user decides
+    rows = sorted(set(re.findall(r'name="include" value="(\d+)"', html)), key=int)
+    # the plumber's refund is a different movement: «collega» unticked for it
+    data = form_data(html, "preview-form", include=rows, account_id=str(fineco.id))
+    plumber = re.search(r'name="pair-(\d+)"[^>]*>\s*<i[^>]*></i> Collega al giroconto: 06/03/2026 · Bonifico SEPA a IDRAULICO', html)
+    data.pop(f"pair-{plumber.group(1)}")
+    client.post("/export/bank/confirm", data=data)
+
+    joined = db_refresh(sent)
+    assert (joined.type, joined.category, joined.account_id, joined.counter_account_id) == (
+        "transfer", "Giroconto", unicredit.id, fineco.id)
+    assert Transaction.query.filter_by(type="income", account_id=fineco.id).count() == 1  # the refund, kept apart
+    with app.test_request_context():
+        assert accounts.balance(unicredit) == 550.0 and accounts.balance(fineco) == 450.0
+    before = Transaction.query.count()
+    _import(client, "unicredit_fineco_marzo.csv", arriving, fineco)  # again: both rows already there
+    assert Transaction.query.count() == before
+
+
+def test_too_far_apart_or_backwards_is_not_the_same_movement(client, pair):
+    unicredit, fineco = pair
+    _import(client, "unicredit_aprile.csv", _csv("10.04.2026;10.04.2026;Giroconto verso Fineco;Giroconto;-250,00"),
+            unicredit)
+    later = _csv("20.04.2026;20.04.2026;Giroconto da UniCredit;Giroconto;250,00",  # ten days later
+                 "08.04.2026;08.04.2026;Giroconto da UniCredit;Giroconto;250,00")  # before it left
+    assert 'name="pair-' not in _preview(client, "unicredit_fineco_aprile.csv", later)
+
+
+def db_refresh(tx):
+    from app.extensions import db
+    db.session.expire_all()
+    return db.session.get(Transaction, tx.id)
+
+
 @pytest.mark.parametrize("first", ["unicredit", "fineco"])
 def test_the_two_bank_sample_files_in_either_order(client, pair, app, first):
     unicredit, fineco = pair
@@ -103,7 +150,7 @@ def test_the_two_bank_sample_files_in_either_order(client, pair, app, first):
 
     moves = two.build()
     transfers = Transaction.query.filter_by(type="transfer")
-    assert transfers.count() == sum(m.transfer for m in moves) // 2
+    assert transfers.count() == sum(m.transfer for m in moves) // 2  # giroconti and bonifici to oneself, once each
     assert transfers.filter((Transaction.account_id.is_(None)) | (Transaction.counter_account_id.is_(None))).count() == 0
     with app.test_request_context():
         summary = two.summary(moves)

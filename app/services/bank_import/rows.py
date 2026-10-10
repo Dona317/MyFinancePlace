@@ -97,8 +97,9 @@ def already_imported(refs: list[str]) -> set[str]:
     """The statement-row fingerprints among `refs` that are already saved as transactions."""
     if not refs:
         return set()
-    query = Transaction.query.with_entities(Transaction.import_ref).filter(Transaction.import_ref.in_(refs))
-    return {ref for (ref,) in query}
+    query = (Transaction.query.with_entities(Transaction.import_ref, Transaction.counter_import_ref)
+             .filter(Transaction.import_ref.in_(refs) | Transaction.counter_import_ref.in_(refs)))
+    return {ref for pair in query for ref in pair} & set(refs)
 
 
 def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:

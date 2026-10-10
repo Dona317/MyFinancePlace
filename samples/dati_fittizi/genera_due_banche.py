@@ -1,6 +1,8 @@
 """
 Two FAKE bank statements of the same household, from January 2022 to September 2026, that exchange transfers:
-every giroconto is in both files, on the same day, for the same amount (out of one account, into the other).
+every movement between the two accounts is in both files for the same amount (out of one account, into the other).
+Like real banks, it is sometimes called «giroconto», sometimes a plain bonifico to oneself, and it arrives the same
+day or a few working days later.
 
     python samples/dati_fittizi/genera_due_banche.py      # writes samples/dati_fittizi/due_banche/
 
@@ -34,6 +36,7 @@ OPENING = {"unicredit": Decimal("4200.00"), "fineco": Decimal("22000.00")}
 UNICREDIT_FILE = "unicredit_conto_corrente_2022-01_2026-09.csv"
 FINECO_FILE = "fineco_conto_risparmio_2022-01_2026-09.xlsx"
 CENT = Decimal("0.01")
+IBAN = {"unicredit": "IT60X0200801600000102345678", "fineco": "IT40S0301503200000012345678"}
 
 
 @dataclass
@@ -49,6 +52,17 @@ class Move:
 
 def euro(value: float) -> Decimal:
     return Decimal(str(value)).quantize(CENT, ROUND_HALF_EVEN)
+
+
+def working_days_after(day: date, count: int) -> date:
+    """`count` working days after `day` (Saturdays and Sundays skipped); 0 = the same day, or Monday if a weekend."""
+    while day.weekday() >= 5:
+        day += timedelta(days=1)
+    for _ in range(count):
+        day += timedelta(days=1)
+        while day.weekday() >= 5:
+            day += timedelta(days=1)
+    return day
 
 
 def months():
@@ -78,12 +92,23 @@ class Household:
         self.add(account, day, -self.rng.uniform(low, high), short, full, kind)
 
     def transfer(self, day: date, amount, source: str, reason: str = ""):
-        """A giroconto: the same day and amount, out of `source` and into the other account."""
+        """Money moved between the two accounts, the same amount out of `source` and into the other one. Like real
+        banks: sometimes a «giroconto», sometimes a plain bonifico to oneself; an instant one arrives the same day,
+        an ordinary SEPA transfer one to three working days later."""
         target = "fineco" if source == "unicredit" else "unicredit"
         names = {"unicredit": "UniCredit c/c 000102345678", "fineco": "Fineco c/c 0012345678"}
         suffix = f" - {reason}" if reason else ""
-        self.add(source, day, -amount, "Giroconto", f"Giroconto verso {names[target]}{suffix}", "transfer", True)
-        self.add(target, day, amount, "Giroconto", f"Giroconto da {names[source]}{suffix}", "transfer", True)
+        style = self.rng.choice(["giroconto", "giroconto", "bonifico", "istantaneo"])
+        arrival = day if style == "istantaneo" else working_days_after(day, self.rng.choice([0, 1, 1, 2, 3]))
+        arrival = min(arrival, END)
+        if style == "giroconto":
+            self.add(source, day, -amount, "Giroconto", f"Giroconto verso {names[target]}{suffix}", "transfer", True)
+            self.add(target, arrival, amount, "Giroconto", f"Giroconto da {names[source]}{suffix}", "transfer", True)
+        else:
+            kind = "Bonifico istantaneo" if style == "istantaneo" else "Bonifico SEPA"
+            self.add(source, day, -amount, kind, f"{kind} a {HOLDER} IBAN {IBAN[target]}{suffix}", "bank_transfer", True)
+            self.add(target, arrival, amount, "Bonifico in entrata", f"Bonifico da {HOLDER} IBAN {IBAN[source]}{suffix}",
+                     "bank_transfer", True)
 
     def random_day(self, year: int, month: int, first: int = 1, last: int = 31) -> date:
         last = min(last, calendar.monthrange(year, month)[1])
@@ -274,7 +299,7 @@ class Household:
                  "Bonifico a STUDIO NOTARILE ROSSI - anticipo e spese rogito", "home")
         self.add(u, date(2023, 6, 29), -1850, "Bonifico SEPA", "Bonifico a TECNOCASA - provvigione agenzia", "home")
         self.transfer(date(2023, 7, 10), 3500, "fineco", "mobili casa nuova")
-        self.add(u, date(2023, 7, 12), -2280, "Pagamento POS", "PAGAMENTO POS IKEA CORSICO arredamento", "home")
+        self.add(u, date(2023, 7, 17), -2280, "Pagamento POS", "PAGAMENTO POS IKEA CORSICO arredamento", "home")
         self.add(u, date(2023, 7, 19), -1090, "Bonifico SEPA", "Bonifico a MONDO CONVENIENZA divano", "home")
         self.add(u, date(2023, 7, 25), -320, "Bonifico SEPA", "Bonifico a TRASLOCHI VELOCI SNC", "home")
         # 15 June 2024: the wedding, mostly from the savings account
@@ -363,7 +388,7 @@ MONEYMAP = {
     "shopping": "Shopping", "rent": "Affitto", "mortgage": "Mutuo", "condo": "Casa", "utilities": "Utenze",
     "subscription": "Abbonamenti", "sport": "Sport", "insurance": "Assicurazioni", "tax": "Tasse",
     "car": "Auto", "gifts": "Regali", "travel": "Viaggi", "home": "Casa", "wedding": "Matrimonio",
-    "pets": "Animali", "transfer": "Giroconto", "salary": "Stipendio", "interest": "Interessi",
+    "pets": "Animali", "transfer": "Giroconto", "bank_transfer": "Bonifici", "salary": "Stipendio", "interest": "Interessi",
     "other_income": "Entrate varie", "gift_income": "Entrate varie",
 }
 

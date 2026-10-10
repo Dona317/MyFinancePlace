@@ -73,8 +73,8 @@
 {% if paired %}
 <div class="alert alert-info mb-16" style="display:block;">
   <i class="bi bi-arrow-left-right"></i>
-  <strong>{{ ngettext("%(num)d giroconto è già stato importato dall'altro conto", "%(num)d giroconti sono già stati importati dall'altro conto", paired|length) }}</strong>
-  {{ _('(stessa data e stesso importo, verso opposto): importandoli si collegano a quel movimento, che avrà così il conto di partenza e quello di arrivo, senza contarli due volte.') }}
+  <strong>{{ ngettext("%(num)d movimento tra i tuoi conti è già stato importato dall'altro conto", "%(num)d movimenti tra i tuoi conti sono già stati importati dall'altro conto", paired|length) }}</strong>
+  {{ _("(giroconti o bonifici con lo stesso importo, verso opposto, a pochi giorni di distanza): importandoli si collegano a quel movimento, che diventa un giroconto con il conto di partenza e quello di arrivo, senza contarli due volte. Togli la spunta «collega» se sono movimenti diversi.") }}
 </div>
 {% endif %}
 
@@ -184,9 +184,10 @@
               <input type="text" name="counterparty-{{ i }}" value="{{ row.counterparty or '' }}" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
                      style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" {{ '' if checked else 'disabled' }} />
               {% if row.pairs_with %}
-              <div class="badge badge-neutral" style="margin-top:4px;white-space:normal;" title="{{ _("Lo stesso giroconto è già stato importato dall'estratto conto dell'altro conto") }}">
-                <i class="bi bi-arrow-left-right"></i> {{ _('Giroconto: si collega a %(tx)s', tx=row.pairs_with) }}
-              </div>
+              <label class="badge badge-neutral" style="margin-top:4px;white-space:normal;cursor:pointer;" title="{{ _("Lo stesso movimento è già stato importato dall'estratto conto dell'altro conto") }}">
+                <input type="checkbox" name="pair-{{ i }}" value="1" class="row-field" checked />
+                <i class="bi bi-arrow-left-right"></i> {{ _('Collega al giroconto: %(tx)s', tx=row.pairs_with) }}
+              </label>
               {% endif %}
               {% if row.similar_to %}
               <div class="badge badge-negative" style="margin-top:4px;white-space:normal;" title="{{ _('Stesso importo, data vicina e descrizione simile a una transazione già salvata') }}">

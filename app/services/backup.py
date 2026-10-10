@@ -275,6 +275,7 @@ def import_transactions(data: dict) -> tuple[int, int]:
                 continue
             existing.add(key)
             values.pop("import_ref", None)
+            values.pop("counter_import_ref", None)
             db.session.add(Transaction(**values))
             added += 1
         db.session.commit()

@@ -1,7 +1,7 @@
 """
 The two-bank fictitious statements (samples/dati_fittizi/genera_due_banche.py): January 2022 – September 2026, and
-every giroconto in both files on the same day for the same amount. The committed files must be the generator's output
-and must be read by the bank import as UniCredit and Fineco.
+every movement between the two accounts in both files for the same amount, within a few days. The committed files
+must be the generator's output and must be read by the bank import as UniCredit and Fineco.
 """
 import sys
 from collections import Counter
@@ -24,10 +24,17 @@ def test_four_years_and_nine_months_of_both_accounts():
     assert two.build() == MOVES  # deterministic
 
 
-def test_every_transfer_is_in_both_files_on_the_same_day():
-    out = Counter((m.day, -m.amount) for m in MOVES if m.transfer and m.amount < 0)
-    arriving = Counter((m.day, m.amount) for m in MOVES if m.transfer and m.amount > 0)
-    assert out == arriving and sum(out.values()) > 50
+def test_every_transfer_is_in_both_files():
+    """Same amount, out of one account and into the other the same day or up to three working days later; called
+    «giroconto» or a plain bonifico to oneself."""
+    out = sorted(((m.day, -m.amount) for m in MOVES if m.transfer and m.amount < 0), key=lambda x: (x[1], x[0]))
+    arriving = sorted(((m.day, m.amount) for m in MOVES if m.transfer and m.amount > 0), key=lambda x: (x[1], x[0]))
+    assert len(out) == len(arriving) > 50
+    assert [amount for _, amount in out] == [amount for _, amount in arriving]
+    assert all(0 <= (back - sent).days <= 5 for (sent, _), (back, _) in zip(out, arriving))
+    assert any(sent != back for (sent, _), (back, _) in zip(out, arriving))  # not always instant
+    styles = {m.short for m in MOVES if m.transfer and m.amount < 0}
+    assert styles == {"Giroconto", "Bonifico SEPA", "Bonifico istantaneo"}
     for account in ("unicredit", "fineco"):  # both ways: savings out of UniCredit, deposits back from Fineco
         assert any(m.transfer and m.amount < 0 and m.account == account for m in MOVES)
 
@@ -54,4 +61,5 @@ def test_the_committed_files_are_read_by_the_import(app):
             mine = [m for m in MOVES if m.account == account]
             assert preview.bank.key == bank and len(preview.rows) == len(mine), name
             assert sum((r.amount for r in preview.rows), Decimal(0)) == sum((m.amount for m in mine), Decimal(0))
-            assert sum(r.type == "transfer" for r in preview.rows) == sum(m.transfer for m in mine)
+            # «giroconto» is read as a transfer straight away; a plain bonifico only once joined to the other side
+            assert sum(r.type == "transfer" for r in preview.rows) == sum(m.short == "Giroconto" for m in mine)

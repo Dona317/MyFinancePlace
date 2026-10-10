@@ -54,6 +54,7 @@ class StatementRow:
             "import_ref": self.import_ref,
             "duplicate": self.duplicate,
             "counterparty": self.counterparty,
+            "pairs": bool(self.pairs_with),
         }
 
 
