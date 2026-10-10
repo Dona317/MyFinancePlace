@@ -12,6 +12,7 @@ from app.services.parsing import clean_text, normalize, to_date, to_decimal, val
 from .categorize import categorize, is_transfer
 from .layouts import PENDING_STATUSES, Layout
 from .model import StatementRow
+from .transfers import flag_pairs
 
 
 def _cell(row: list, columns: dict[str, int], name: str):
@@ -121,5 +122,6 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
     existing = already_imported([r.import_ref for r in rows])
     for row in rows:
         row.duplicate = row.import_ref in existing
-    duplicates.flag_similar_rows([r for r in rows if not r.duplicate])
+    flag_pairs(rows)
+    duplicates.flag_similar_rows([r for r in rows if not r.duplicate and not r.pairs_with])
     return rows

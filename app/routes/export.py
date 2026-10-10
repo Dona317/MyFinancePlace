@@ -5,6 +5,7 @@ from datetime import date, datetime
 from apiflask import APIBlueprint
 from flask import abort, current_app, flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import gettext as _
+from flask_babel import ngettext
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy.exc import IntegrityError
 
@@ -400,18 +401,37 @@ PREVIEW_FIELDS = ("date", "description", "amount", "type", "category", "counterp
 def _assign_account(tx, base: dict, account: Account) -> None:
     """Money coming in through a transfer arrives on `account`; everything else moves from it. The preview shows
     amounts without sign: the direction comes from the statement row as read."""
-    if tx.type == "transfer" and (to_decimal(base.get("amount")) or 0) > 0:
+    if tx.type == "transfer" and not _outgoing(base):
         tx.counter_account_id = account.id
     else:
         tx.account_id = account.id
 
 
-def _collect_rows(data: dict, account: Account | None) -> tuple[list, list[int], int]:
-    """The rows the user kept, as transactions: (created, invalid row numbers, skipped as already imported)."""
+def _outgoing(base: dict) -> bool:
+    return (to_decimal(base.get("amount")) or 0) <= 0
+
+
+def _join_transfer(tx, base: dict, account: Account, taken: set[int]) -> str | None:
+    """A giroconto already saved from the other account's statement: "linked" when this row completes its other
+    half, "present" when both halves are already joined; None for a new movement."""
+    outgoing = _outgoing(base)
+    half = bank_import.other_half(tx.date, tx.amount, outgoing, account.id, exclude=taken)
+    if half is not None:
+        bank_import.complete(half, outgoing, account.id)
+        taken.add(half.id)
+        return "linked"
+    if bank_import.already_complete(tx.date, tx.amount, outgoing, account.id):
+        return "present"
+    return None
+
+
+def _collect_rows(data: dict, account: Account | None) -> tuple[list, int, list[int], int]:
+    """The rows the user kept, as transactions: (created, giroconti joined to their saved other half, invalid row
+    numbers, skipped as already imported)."""
     rows = data["rows"]
     selected = sorted(form_ids("include"))
     existing = bank_import.already_imported([rows[i]["import_ref"] for i in selected if i < len(rows)])
-    created, invalid, skipped = [], [], 0
+    created, invalid, skipped, linked, taken = [], [], 0, 0, set()
     for index in selected:
         base = rows[index] if index < len(rows) else {}  # indexes past the payload are rows added by hand
         if base.get("import_ref") in existing:
@@ -424,18 +444,28 @@ def _collect_rows(data: dict, account: Account | None) -> tuple[list, list[int],
             invalid.append(index + 1)
             continue
         if account is not None:
+            joined = _join_transfer(tx, base, account, taken) if tx.type == "transfer" else None
+            if joined == "linked":
+                linked += 1
+                continue
+            if joined == "present":
+                skipped += 1
+                continue
             _assign_account(tx, base, account)
         created.append(tx)
-    return created, invalid, skipped
+    return created, linked, invalid, skipped
 
 
-def _import_message(count: int, bank_key: str, account: Account | None, skipped: int) -> str:
+def _import_message(count: int, bank_key: str, account: Account | None, skipped: int, linked: int = 0) -> str:
     bank_name = bank_import.layout_named(bank_key).name
     if account:
         message = _("%(count)s movimenti importati da %(bank)s sul conto «%(account)s».",
                     count=count, bank=bank_name, account=account.name)
     else:
         message = _("%(count)s movimenti importati da %(bank)s.", count=count, bank=bank_name)
+    if linked:
+        message += " " + ngettext("%(num)d giroconto collegato al movimento già importato dall'altro conto.",
+                                  "%(num)d giroconti collegati ai movimenti già importati dall'altro conto.", linked)
     if skipped:
         message += " " + _("%(count)s già presenti sono stati ignorati.", count=skipped)
     return message
@@ -451,7 +481,7 @@ def bank_confirm():
         return redirect(url_for("export.index"))
 
     account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
-    created, invalid, skipped = _collect_rows(data, account)
+    created, linked, invalid, skipped = _collect_rows(data, account)
     db.session.add_all(created)
     try:
         db.session.commit()
@@ -460,7 +490,7 @@ def bank_confirm():
         flash(_("Alcuni movimenti risultano già importati: ricarica il file e riprova."), "error")
         return redirect(url_for("export.index"))
 
-    flash(_import_message(len(created), data["bank"], account, skipped), "success")
+    flash(_import_message(len(created), data["bank"], account, skipped, linked), "success")
     if invalid:
         flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")
     return redirect(url_for("transactions.index"))

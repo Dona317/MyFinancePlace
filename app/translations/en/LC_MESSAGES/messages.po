@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-10 08:47+0000\n"
+"POT-Creation-Date: 2026-10-10 14:27+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -267,6 +267,18 @@ msgstr[0] "%(num)d debt"
 msgstr[1] "%(num)d debts"
 
 #, python-format
+msgid "%(num)d giroconto collegato al movimento già importato dall'altro conto."
+msgid_plural "%(num)d giroconti collegati ai movimenti già importati dall'altro conto."
+msgstr[0] "%(num)d transfer linked to the movement already imported from the other account."
+msgstr[1] "%(num)d transfers linked to the movements already imported from the other account."
+
+#, python-format
+msgid "%(num)d giroconto è già stato importato dall'altro conto"
+msgid_plural "%(num)d giroconti sono già stati importati dall'altro conto"
+msgstr[0] "%(num)d transfer was already imported from the other account"
+msgstr[1] "%(num)d transfers were already imported from the other account"
+
+#, python-format
 msgid "%(num)d gruppo di possibili duplicati da ricontrollare."
 msgid_plural "%(num)d gruppi di possibili duplicati da ricontrollare."
 msgstr[0] "%(num)d group of possible duplicates to review."
@@ -386,6 +398,13 @@ msgstr "(installment, disbursement)"
 
 msgid "(servizio cloud) per essere letto. Se preferisci che i dati restino sul tuo computer,"
 msgstr "(cloud service) to be read. If you prefer the data to stay on your computer,"
+
+msgid ""
+"(stessa data e stesso importo, verso opposto): importandoli si collegano a quel movimento, che avrà così il conto di "
+"partenza e quello di arrivo, senza contarli due volte."
+msgstr ""
+"(same date and amount, opposite direction): importing them links them to that movement, which then has both the "
+"source and the destination account, without counting them twice."
 
 msgid ""
 "(stesso importo, data vicina, descrizione simile): sono deselezionati. Controllali e riselezionali se sono movimenti "
@@ -2347,6 +2366,10 @@ msgstr "Debt Management"
 msgid "Gestione Finanze Personali"
 msgstr "Personal Finance Management"
 
+#, python-format
+msgid "Giroconto: si collega a %(tx)s"
+msgstr "Transfer: links to %(tx)s"
+
 msgid "Giu"
 msgstr "Jun"
 
@@ -3098,6 +3121,9 @@ msgstr "Turkish lira"
 
 msgid "Livellamento esponenziale con α = 2 / (N + 1): segue i cambiamenti più in fretta."
 msgstr "Exponential smoothing with α = 2 / (N + 1): follows changes faster."
+
+msgid "Lo stesso giroconto è già stato importato dall'estratto conto dell'altro conto"
+msgstr "The same transfer was already imported from the other account's statement"
 
 msgid ""
 "Lo stesso mese dell'anno prima, riscalato sul livello degli ultimi N mesi: coglie bollette invernali, vacanze estive,"

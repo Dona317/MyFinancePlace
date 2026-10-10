@@ -69,6 +69,15 @@
 </div>
 {% endif %}
 
+{% set paired = preview.rows|selectattr('pairs_with')|rejectattr('duplicate')|list %}
+{% if paired %}
+<div class="alert alert-info mb-16" style="display:block;">
+  <i class="bi bi-arrow-left-right"></i>
+  <strong>{{ ngettext("%(num)d giroconto è già stato importato dall'altro conto", "%(num)d giroconti sono già stati importati dall'altro conto", paired|length) }}</strong>
+  {{ _('(stessa data e stesso importo, verso opposto): importandoli si collegano a quel movimento, che avrà così il conto di partenza e quello di arrivo, senza contarli due volte.') }}
+</div>
+{% endif %}
+
 {% set similar = preview.rows|selectattr('similar_to')|rejectattr('duplicate')|list %}
 {% if similar %}
 <div class="alert alert-warning mb-16" style="display:block;">
@@ -174,6 +183,11 @@
               {% if row.details %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:2px;">{{ row.details|truncate(90) }}</div>{% endif %}
               <input type="text" name="counterparty-{{ i }}" value="{{ row.counterparty or '' }}" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
                      style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" {{ '' if checked else 'disabled' }} />
+              {% if row.pairs_with %}
+              <div class="badge badge-neutral" style="margin-top:4px;white-space:normal;" title="{{ _("Lo stesso giroconto è già stato importato dall'estratto conto dell'altro conto") }}">
+                <i class="bi bi-arrow-left-right"></i> {{ _('Giroconto: si collega a %(tx)s', tx=row.pairs_with) }}
+              </div>
+              {% endif %}
               {% if row.similar_to %}
               <div class="badge badge-negative" style="margin-top:4px;white-space:normal;" title="{{ _('Stesso importo, data vicina e descrizione simile a una transazione già salvata') }}">
                 <i class="bi bi-exclamation-triangle"></i> {{ _('Possibile duplicato di: %(tx)s', tx=row.similar_to) }}

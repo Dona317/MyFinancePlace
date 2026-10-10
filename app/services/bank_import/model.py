@@ -34,6 +34,7 @@ class StatementRow:
     import_ref: str = ""
     duplicate: bool = False
     similar_to: str | None = None   # description of an existing transaction this row may duplicate
+    pairs_with: str | None = None   # a giroconto whose other half is saved: it will be joined to it
     counterparty: str | None = None  # merchant / payee: from a column, else read from the causale (first tag)
 
     @property
