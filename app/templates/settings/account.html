@@ -42,7 +42,7 @@
   <div class="card">
     <div class="card-header"><div class="card-header-title"><i class="bi bi-person-plus"></i> {{ _('Aggiungi un utente') }}</div></div>
     <div class="card-body">
-      <p class="text-sm text-muted mb-16">{{ _('Tutti gli utenti vedono e modificano gli stessi dati. Gli amministratori possono anche gestire gli utenti.') }}</p>
+      <p class="text-sm text-muted mb-16">{{ _('Tutti gli utenti vedono e modificano gli stessi dati, nelle sezioni che possono aprire (colonna «Sezioni» qui sotto). Gli amministratori vedono tutto e gestiscono gli utenti.') }}</p>
       <form method="POST" action="{{ url_for('settings.user_add') }}">
         <div class="grid-2" style="gap:16px;">
           <div class="form-group">
@@ -67,12 +67,20 @@
   <div class="card-header"><div class="card-header-title"><i class="bi bi-people"></i> {{ _('Utenti') }}</div></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>{{ _('Nome utente') }}</th><th>{{ _('Ruolo') }}</th><th>{{ _('Ultimo accesso') }}</th><th>{{ _('Reimposta password') }}</th><th></th></tr></thead>
+      <thead><tr><th>{{ _('Nome utente') }}</th><th>{{ _('Ruolo') }}</th><th>{{ _('Sezioni') }}</th><th>{{ _('Ultimo accesso') }}</th><th>{{ _('Reimposta password') }}</th><th></th></tr></thead>
       <tbody>
       {% for u in users %}
         <tr>
           <td><strong>{{ u.username }}</strong>{% if u.id == current_user.id %} <span class="badge badge-neutral">{{ _('tu') }}</span>{% endif %}</td>
           <td>{{ _('Amministratore') if u.is_admin else _('Utente') }}</td>
+          <td class="text-sm">
+            {% if u.is_admin %}<span class="text-muted">{{ _('tutte') }}</span>
+            {% else %}
+            <a href="{{ url_for('settings.user_sections', user_id=u.id) }}">
+              {% if u.blocked_sections %}<i class="bi bi-lock"></i> {{ ngettext('%(num)s bloccata', '%(num)s bloccate', u.blocked_sections|length) }}{% else %}{{ _('tutte') }}{% endif %}
+              · {{ _('Modifica') }}</a>
+            {% endif %}
+          </td>
           <td class="text-sm text-muted">{{ u.last_login.strftime('%d/%m/%Y %H:%M') if u.last_login else '—' }}</td>
           <td>
             <form method="POST" action="{{ url_for('settings.user_reset_password', user_id=u.id) }}" class="d-flex gap-8" style="flex-wrap:wrap;">

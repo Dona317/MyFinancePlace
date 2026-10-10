@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-10 07:56+0000\n"
+"POT-Creation-Date: 2026-10-10 08:47+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -289,6 +289,12 @@ msgid "%(num)d transazione"
 msgid_plural "%(num)d transazioni"
 msgstr[0] "%(num)d transaction"
 msgstr[1] "%(num)d transactions"
+
+#, python-format
+msgid "%(num)s bloccata"
+msgid_plural "%(num)s bloccate"
+msgstr[0] "%(num)s blocked"
+msgstr[1] "%(num)s blocked"
 
 #, python-format
 msgid "%(num)s documento caricato."
@@ -1012,6 +1018,9 @@ msgstr "Welcome back"
 
 msgid "Benvenuto! Il tuo account amministratore è pronto."
 msgstr "Welcome! Your administrator account is ready."
+
+msgid "Bloccata da un amministratore"
+msgstr "Blocked by an administrator"
 
 msgid "Bollo e IVAFE"
 msgstr "Stamp duty and IVAFE"
@@ -1825,6 +1834,9 @@ msgstr "Turning a module off hides it from the sidebar and the navigation"
 msgid "Disattivata"
 msgstr "Off"
 
+msgid "Disattivata per tutti in Impostazioni → Moduli"
+msgstr "Switched off for everybody in Settings → Modules"
+
 msgid "Disdetto: non compare più nelle previsioni"
 msgstr "Cancelled: no longer in the forecast"
 
@@ -2122,6 +2134,9 @@ msgstr "Export archive"
 msgid "Esporta e Portabilità"
 msgstr "Export and Portability"
 
+msgid "Esporta e importa"
+msgstr "Export and import"
+
 msgid "Esportazione Fiscale per Anno"
 msgstr "Tax Export by Year"
 
@@ -2354,6 +2369,9 @@ msgstr "Already expired"
 msgid "Già visti (%(count)s)"
 msgstr "Already seen (%(count)s)"
 
+msgid "Gli amministratori vedono sempre tutte le sezioni."
+msgstr "Administrators always see every section."
+
 msgid "Gli stati patrimoniali e l’andamento del patrimonio valutano la posizione all’ultimo prezzo noto a quella data."
 msgstr "Balance sheets and the net worth trend value the holding at the latest price known on that date."
 
@@ -2513,6 +2531,9 @@ msgstr "The sheet is empty."
 msgid "Il formato non è stato riconosciuto: %(reason)s"
 msgstr "The format was not recognized: %(reason)s"
 
+msgid "Il mio menu"
+msgstr "My menu"
+
 #, python-format
 msgid "Il modello %(model)s non può leggere questo file."
 msgstr "The model %(model)s cannot read this file."
@@ -2574,6 +2595,9 @@ msgstr "The balance before the first transaction recorded on this account."
 
 msgid "Il tuo account"
 msgstr "Your account"
+
+msgid "Il tuo menu è aggiornato."
+msgstr "Your menu is updated."
 
 msgid "Il valore nel tempo viene dalle istantanee: creane una ogni mese da"
 msgstr "The value over time comes from the snapshots: take one every month from"
@@ -2971,6 +2995,14 @@ msgstr "Your choices are remembered"
 
 msgid "Le serie segnate come ricorrenti e quelle che lo sembrano (stessa descrizione, ritmo regolare, importo stabile)"
 msgstr "Series flagged as recurring and those that look recurring (same description, regular rhythm, stable amount)"
+
+#, python-format
+msgid ""
+"Le sezioni spente sono bloccate per «%(name)s»: non le vede nel menu e non può aprirle, nemmeno con un link o "
+"dall'API. Dashboard e Impostazioni restano sempre."
+msgstr ""
+"The sections switched off are blocked for «%(name)s»: not in their menu and they cannot open them, not even with a "
+"link or through the API. Dashboard and Settings always stay."
 
 msgid "Le spese delle categorie collegate a ogni voce, con franchigia e massimale"
 msgstr "The expenses of the categories linked to each item, with threshold and ceiling"
@@ -3619,6 +3651,13 @@ msgstr "Username: required field."
 msgid "Non essenziale"
 msgstr "Non-essential"
 
+msgid "Non hai accesso a questa sezione."
+msgstr "You have no access to this section."
+
+#, python-format
+msgid "Non hai accesso a «%(name)s»"
+msgstr "You have no access to «%(name)s»"
+
 msgid "Non installato"
 msgstr "Not installed"
 
@@ -3658,6 +3697,9 @@ msgstr "Optional notes..."
 
 msgid "Note:"
 msgstr "Notes:"
+
+msgid "Notifiche"
+msgstr "Notifications"
 
 msgid "Nov"
 msgstr "Nov"
@@ -4825,6 +4867,13 @@ msgstr "Pick from the tags already used or type a new one and press Enter. The c
 msgid "Scegli il file di backup da ripristinare."
 msgstr "Choose the backup file to restore."
 
+msgid ""
+"Scegli le sezioni da vedere nel tuo menu: le altre spariscono solo per te, i dati restano e le riattivi qui quando "
+"vuoi. Dashboard e Impostazioni ci sono sempre."
+msgstr ""
+"Choose the sections to see in your menu: the others disappear only for you, the data stays and you switch them back "
+"on here whenever you like. Dashboard and Settings are always there."
+
 msgid "Scegli quale transazione tenere."
 msgstr "Choose which transaction to keep."
 
@@ -4935,8 +4984,19 @@ msgstr "Section"
 msgid "Sezione disattivata"
 msgstr "Section turned off"
 
+msgid "Sezioni"
+msgstr "Sections"
+
 msgid "Sezioni del fisco"
 msgstr "Tax sections"
+
+#, python-format
+msgid "Sezioni di %(name)s"
+msgstr "Sections of %(name)s"
+
+#, python-format
+msgid "Sezioni di «%(name)s» aggiornate."
+msgstr "Sections of «%(name)s» updated."
 
 msgid "Simili"
 msgstr "Similar"
@@ -5237,6 +5297,9 @@ msgstr "Remove the tag"
 msgid "Togli questa parte"
 msgstr "Remove this part"
 
+msgid "Torna alla Dashboard"
+msgstr "Back to the Dashboard"
+
 msgid "Torna alla dashboard"
 msgstr "Back to the dashboard"
 
@@ -5415,8 +5478,12 @@ msgstr "All transactions in structured JSON. Re-import it from «Restore» below
 msgid "Tutti gli anni"
 msgstr "All years"
 
-msgid "Tutti gli utenti vedono e modificano gli stessi dati. Gli amministratori possono anche gestire gli utenti."
-msgstr "Every user sees and edits the same data. Administrators can also manage users."
+msgid ""
+"Tutti gli utenti vedono e modificano gli stessi dati, nelle sezioni che possono aprire (colonna «Sezioni» qui sotto)."
+" Gli amministratori vedono tutto e gestiscono gli utenti."
+msgstr ""
+"All users see and change the same data, in the sections they may open (column «Sections» below). Administrators see "
+"everything and manage the users."
 
 msgid "Tutti i conti"
 msgstr "All accounts"
@@ -5476,6 +5543,13 @@ msgid "Un altro promemoria"
 msgid_plural "Altri %(num)s promemoria"
 msgstr[0] "One more reminder"
 msgstr[1] "%(num)s more reminders"
+
+msgid ""
+"Un amministratore ha bloccato questa sezione per il tuo utente. Se ti serve, chiedigli di sbloccarla in Impostazioni "
+"→ Account e utenti."
+msgstr ""
+"An administrator blocked this section for your user. If you need it, ask them to unblock it in Settings → Account and"
+" users."
 
 msgid "Un file"
 msgstr "One file"
@@ -6207,6 +6281,9 @@ msgstr "transactions"
 
 msgid "tu"
 msgstr "you"
+
+msgid "tutte"
+msgstr "all"
 
 msgid "tutte assegnate"
 msgstr "all assigned"

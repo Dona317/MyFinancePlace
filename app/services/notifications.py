@@ -11,9 +11,8 @@ from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
-from app.services import budgets, display, forecast, request_cache, settings_store, wealth
+from app.services import budgets, display, forecast, request_cache, sections, settings_store, wealth
 from app.services.i18n import tr
-from app.services.ui_settings import current_settings
 
 DISMISSED_SETTING = "notifications.dismissed"
 KEEP_DISMISSED = 500
@@ -117,8 +116,9 @@ def _goals(today: date) -> list[Notification]:
 
 
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
-SOURCES = ((_policies, "module_insurance"), (_recurring, None), (_installments, "module_debt"),
-           (_budgets, None), (_goals, "lifestyle_goals"))
+# Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
+SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
+           (_goals, "goals"))
 
 
 def dismissed() -> list[str]:
@@ -131,8 +131,8 @@ def collect(today: date | None = None, include_dismissed: bool = False) -> list[
     store, cache_key = request_cache.cache(), f"notifications-{today}"
     if not include_dismissed and cache_key in store:
         return store[cache_key]
-    enabled = current_settings()
-    items = [item for source, setting in SOURCES if not setting or enabled.get(setting, True) for item in source(today)]
+    items = [item for source, section in SOURCES if not sections.switched_off(section) and not sections.blocked(section)
+             for item in source(today)]
     if not include_dismissed:
         hidden = set(dismissed())
         items = [item for item in items if item.key not in hidden]

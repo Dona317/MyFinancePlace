@@ -53,6 +53,11 @@
     <a href="{{ url_for('settings.account') }}" class="settings-nav-item">
       <i class="bi bi-person-circle"></i> {{ _('Account e utenti') }}
     </a>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('settings.my_menu') }}" class="settings-nav-item">
+      <i class="bi bi-layout-sidebar"></i> {{ _('Il mio menu') }}
+    </a>
+    {% endif %}
     <a href="{{ url_for('settings.categories_page') }}" class="settings-nav-item">
       <i class="bi bi-tags"></i> {{ _('Categorie') }}
     </a>

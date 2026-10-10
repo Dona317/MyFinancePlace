@@ -8,7 +8,7 @@
 
 {% block content %}
 
-{% if budget_alerts %}
+{% if budget_alerts and allowed('budget') %}
 <div class="alert {{ 'alert-error' if budget_alerts|selectattr('state', 'equalto', 'over')|list else 'alert-warning' }} mb-16">
   <i class="bi bi-clipboard-x"></i>
   <span>{{ _('Budget del mese:') }}
@@ -36,11 +36,11 @@
   {{ kpi('piggy-bank', _('Tasso di Risparmio'), value="%.1f"|format(kpis.savings_rate) ~ '%', sub=_('del reddito di questo mese')) }}
   {% endif %}
 
-  {% if settings.dashboard_investments %}
-  {% call kpi('briefcase', _('Investimenti'), amount=kpis.total_investments, cls='kpi-purple') %}{% if settings.module_portfolio %}<a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a>{% else %}{{ _('Portafoglio') }}{% endif %}{% endcall %}
+  {% if settings.dashboard_investments and allowed('portfolio') %}
+  {% call kpi('briefcase', _('Investimenti'), amount=kpis.total_investments, cls='kpi-purple') %}{% if allowed('portfolio') %}<a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a>{% else %}{{ _('Portafoglio') }}{% endif %}{% endcall %}
   {% endif %}
 
-  {% if settings.dashboard_debt %}
+  {% if settings.dashboard_debt and allowed('debt') %}
   {{ kpi('credit-card', _('Debito Totale'), amount=kpis.total_debt, cls='kpi-warning', sub=(_('In corso'))) }}
   {% endif %}
 
@@ -223,10 +223,11 @@
 {% endif %}
 
 <!-- Bottom Row ───────────────────────────────────────────────────────────── -->
-{% if settings.dashboard_recent_tx or settings.dashboard_health %}
-<div style="display:grid;grid-template-columns:{% if settings.dashboard_recent_tx and settings.dashboard_health %}1fr 1fr 1fr{% else %}1fr{% endif %};gap:16px;">
+{% set recent_on = settings.dashboard_recent_tx and allowed('transactions') %}
+{% if recent_on or settings.dashboard_health %}
+<div style="display:grid;grid-template-columns:{% if recent_on and settings.dashboard_health %}1fr 1fr 1fr{% else %}1fr{% endif %};gap:16px;">
 
-  {% if settings.dashboard_recent_tx %}
+  {% if recent_on %}
   <div class="card" style="{% if settings.dashboard_health %}grid-column:span 2;{% endif %}">
     <div class="card-header">
       <div class="card-header-title">{{ _('Transazioni Recenti') }}</div>

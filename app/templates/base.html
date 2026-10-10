@@ -53,19 +53,23 @@
            class="nav-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
           <i class="bi bi-speedometer2"></i> <span class="nav-label">{{ _('Dashboard') }}</span>
         </a>
+        {% if shown('reports') %}
         <a href="{{ url_for('reports.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
           <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Report') }}</span>
         </a>
+        {% endif %}
         </div></div>
       </div>
 
       <!-- CONTABILITÀ -->
+      {% if shown_any('accounting', 'forecast', 'subscriptions') %}
       <div class="nav-section" data-section="contabilita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-contabilita">
           <span class="nav-label">{{ _('Contabilità') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-contabilita"><div>
+        {% if shown('accounting') %}
         <a href="{{ url_for('accounting.index') }}"
            class="nav-item {% if request.endpoint == 'accounting.index' %}active{% endif %}">
           <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Panoramica') }}</span> <span class="nav-badge nav-badge-next">v2</span>
@@ -88,32 +92,43 @@
           <i class="bi bi-arrow-left-right"></i> <span class="nav-label">{{ _('Flusso di Cassa') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% endif %}
+        {% endif %}
+        {% if shown('forecast') %}
         <a href="{{ url_for('forecast.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
           <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">{{ _('Previsioni') }}</span>
         </a>
+        {% endif %}
+        {% if shown('subscriptions') %}
         <a href="{{ url_for('subscriptions.index') }}"
            class="nav-item nav-sub {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
           <i class="bi bi-arrow-repeat"></i> <span class="nav-label">{{ _('Abbonamenti') }}</span>
         </a>
+        {% endif %}
         </div></div>
       </div>
+      {% endif %}
 
       <!-- STILE DI VITA -->
+      {% if shown_any('lifestyle', 'budget', 'goals') %}
       <div class="nav-section" data-section="stiledivita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-stiledivita">
           <span class="nav-label">{{ _('Stile di Vita') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-stiledivita"><div>
+        {% if shown('lifestyle') %}
         <a href="{{ url_for('lifestyle.index') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
           <i class="bi bi-pie-chart"></i> <span class="nav-label">{{ _('Spese e Tendenze') }}</span>
         </a>
+        {% endif %}
+        {% if shown('budget') %}
         <a href="{{ url_for('lifestyle.budget') }}"
            class="nav-item {% if request.endpoint in ('lifestyle.budget', 'lifestyle.budget_save') %}active{% endif %}">
           <i class="bi bi-clipboard-check"></i> <span class="nav-label">{{ _('Budget') }}</span>
         </a>
-        {% if settings.lifestyle_goals %}
+        {% endif %}
+        {% if shown('goals') %}
         <a href="{{ url_for('lifestyle.goals') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
           <i class="bi bi-trophy"></i> <span class="nav-label">{{ _('Obiettivi') }}</span>
@@ -121,46 +136,52 @@
         {% endif %}
         </div></div>
       </div>
+      {% endif %}
 
       <!-- GESTIONE -->
+      {% if shown_any('transactions', 'accounts', 'portfolio', 'debt', 'insurance', 'documents', 'tax') %}
       <div class="nav-section" data-section="gestione">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-gestione">
           <span class="nav-label">{{ _('Gestione') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-gestione"><div>
+        {% if shown('transactions') %}
         <a href="{{ url_for('transactions.index') }}"
            class="nav-item {% if 'transactions' in request.endpoint %}active{% endif %}">
           <i class="bi bi-list-ul"></i> <span class="nav-label">{{ _('Transazioni') }}</span>
         </a>
+        {% endif %}
+        {% if shown('accounts') %}
         <a href="{{ url_for('accounts.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
           <i class="bi bi-bank"></i> <span class="nav-label">{{ _('Conti e Carte') }}</span>
         </a>
-        {% if settings.module_portfolio %}
+        {% endif %}
+        {% if shown('portfolio') %}
         <a href="{{ url_for('portfolio.index') }}"
            class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">
           <i class="bi bi-briefcase"></i> <span class="nav-label">{{ _('Portafoglio') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if settings.module_debt %}
+        {% if shown('debt') %}
         <a href="{{ url_for('debt.index') }}"
            class="nav-item {% if 'debt' in request.endpoint %}active{% endif %}">
           <i class="bi bi-credit-card"></i> <span class="nav-label">{{ _('Debiti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if settings.module_insurance %}
+        {% if shown('insurance') %}
         <a href="{{ url_for('insurance.index') }}"
            class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">
           <i class="bi bi-shield-check"></i> <span class="nav-label">{{ _('Assicurazioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if settings.module_documents %}
+        {% if shown('documents') %}
         <a href="{{ url_for('documents.index') }}"
            class="nav-item {% if 'documents' in request.endpoint %}active{% endif %}">
           <i class="bi bi-folder2-open"></i> <span class="nav-label">{{ _('Documenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if settings.module_tax %}
+        {% if shown('tax') %}
         <a href="{{ url_for('tax.index') }}"
            class="nav-item {% if request.endpoint.startswith('tax.') %}active{% endif %}">
           <i class="bi bi-percent"></i> <span class="nav-label">{{ _('Fisco') }}</span>
@@ -168,6 +189,7 @@
         {% endif %}
         </div></div>
       </div>
+      {% endif %}
 
       <!-- STRUMENTI -->
       <div class="nav-section" data-section="strumenti">
@@ -175,22 +197,24 @@
           <span class="nav-label">{{ _('Strumenti') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-strumenti"><div>
-        {% if settings.module_snapshots %}
+        {% if shown('snapshots') %}
         <a href="{{ url_for('snapshots.index') }}"
            class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">
           <i class="bi bi-camera"></i> <span class="nav-label">{{ _('Istantanee') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if settings.module_export %}
+        {% if shown('export') %}
         <a href="{{ url_for('export.index') }}"
            class="nav-item {% if 'export' in request.endpoint %}active{% endif %}">
           <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
+        {% if shown('clients') %}
         <a href="{{ url_for('clients.index') }}"
            class="nav-item {% if request.endpoint.startswith('clients.') %}active{% endif %}">
           <i class="bi bi-people"></i> <span class="nav-label">{{ _('Clienti') }}</span>
         </a>
+        {% endif %}
         <a href="{{ url_for('settings.index') }}"
            class="nav-item {% if 'settings' in request.endpoint %}active{% endif %}">
           <i class="bi bi-gear"></i> <span class="nav-label">{{ _('Impostazioni') }}</span>
@@ -211,12 +235,14 @@
     }());</script>
 
     <!-- Nuova transazione -->
+    {% if allowed('transactions') %}
     <div style="padding:12px 16px;">
       <a href="{{ url_for('transactions.add') }}" class="btn btn-primary nav-new" style="width:100%;justify-content:center;"
          title="{{ _('Nuova Transazione') }}">
         <i class="bi bi-plus-lg"></i> <span class="nav-label">{{ _('Nuova Transazione') }}</span>
       </a>
     </div>
+    {% endif %}
 
     <!-- User footer -->
     <div class="sidebar-footer">
@@ -265,7 +291,7 @@
         <!-- The client being worked on (F11): always in sight when there is more than one archive -->
         {% set working_on = working_client() %}
         {% if working_on %}
-        <a href="{{ url_for('clients.index') }}" class="client-chip" id="client-chip"
+        <a {% if allowed('clients') %}href="{{ url_for('clients.index') }}" {% endif %}class="client-chip" id="client-chip"
            title="{{ _('Stai lavorando su «%(name)s»: clicca per cambiare cliente', name=working_on.name) }}">
           <span class="client-badge" style="background:{{ working_on.color }}">{{ working_on.initials }}</span>
           <span class="client-name">{{ working_on.name }}</span>
@@ -280,12 +306,14 @@
         </button>
 
         <!-- Reminders -->
+        {% if shown('notifications') %}
         {% set reminder_count = notification_count() %}
         <a href="{{ url_for('notifications.index') }}" class="btn btn-ghost btn-icon topbar-bell"
            title="{{ _('Promemoria') }}" aria-label="{{ _('Promemoria') }}{{ ' (%d)'|format(reminder_count) if reminder_count }}"
            {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
           <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
         </a>
+        {% endif %}
 
         <!-- Settings -->
         <a href="{{ url_for('settings.index') }}" class="btn btn-ghost btn-icon topbar-settings"

@@ -1,5 +1,6 @@
 """What runs before every request, in this order: open the client's archive, refuse requests from other sites or
-with NUL characters, ask to sign in, hide the modules switched off in Settings. Plus /health."""
+with NUL characters, ask to sign in, hide the modules switched off in Settings and the sections blocked for the user.
+Plus /health."""
 from urllib.parse import urlsplit
 
 from flask import Flask, current_app, jsonify, redirect, render_template, request, url_for
@@ -9,7 +10,7 @@ from sqlalchemy import text
 
 from app.extensions import db, login_manager
 from app.models.user import User
-from app.services import studio, users
+from app.services import sections, studio, users
 from app.services.ui_settings import current_settings, module_setting
 
 PUBLIC_ENDPOINTS = {"static", "auth.login", "auth.setup", "health", "desktop.show", "desktop.quit_app"}  # desktop.*: token-checked
@@ -67,10 +68,16 @@ def require_login():
 
 
 def block_disabled_modules():
-    """A module switched off in Settings disappears from the menu and its pages answer "not found"."""
+    """A module switched off in Settings disappears from the menu and its pages answer "not found"; a section an
+    administrator blocked for this user answers "access denied" (pages, API and downloads alike)."""
     key = module_setting(request.blueprint, request.endpoint)
     if key and not current_settings().get(key, True):
         return render_template("module_disabled.html", setting=key), 404
+    section = sections.section_of(request.endpoint)
+    if section and sections.blocked(section):
+        if wants_json():
+            return jsonify({"message": _("Non hai accesso a questa sezione.")}), 403
+        return render_template("section_blocked.html", section=sections.BY_KEY[section]), 403
     return None
 
 

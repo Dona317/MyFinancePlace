@@ -7,7 +7,7 @@ from app.extensions import db
 from app.models.user import MIN_PASSWORD, User
 from app.routes.helpers import flash_errors
 from app.routes.settings import settings_bp
-from app.services import users
+from app.services import sections, users
 
 
 def _admin_only():
@@ -60,3 +60,30 @@ def user_delete(user_id):
         users.delete(user, current_user)
         flash(_("Utente «%(name)s» eliminato.", name=user.username), "success")
     return redirect(url_for("settings.account"))
+
+
+# ── Sections of the menu: hidden by each user, blocked by an administrator ────
+
+@settings_bp.route("/menu", methods=["GET", "POST"])
+def my_menu():
+    """Each user's own menu: the sections they want to see (the blocked ones stay off)."""
+    if not current_user.is_authenticated:
+        abort(404)  # sign-in switched off: one shared menu, Settings → Moduli
+    if request.method == "POST":
+        sections.set_hidden(current_user, [s.key for s in sections.SECTIONS if s.key not in request.form])
+        flash(_("Il tuo menu è aggiornato."), "success")
+        return redirect(url_for("settings.my_menu"))
+    return render_template("settings/menu.html", groups=sections.grouped(), user=current_user, editing_self=True)
+
+
+@settings_bp.route("/users/<int:user_id>/sections", methods=["GET", "POST"])
+def user_sections(user_id):
+    """An administrator chooses the sections a user may open."""
+    _admin_only()
+    user = db.get_or_404(User, user_id)
+    if request.method == "POST":
+        with flash_errors():
+            sections.set_blocked(user, [s.key for s in sections.SECTIONS if s.key not in request.form])
+            flash(_("Sezioni di «%(name)s» aggiornate.", name=user.username), "success")
+        return redirect(url_for("settings.account"))
+    return render_template("settings/menu.html", groups=sections.grouped(), user=user, editing_self=False)

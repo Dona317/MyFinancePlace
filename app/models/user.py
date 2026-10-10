@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask_login import UserMixin
+from sqlalchemy.dialects.postgresql import ARRAY
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
@@ -9,7 +10,7 @@ MIN_PASSWORD = 8
 
 
 class User(UserMixin, db.Model):
-    """Someone who can open the app. The data is shared: every user sees the same accounts and transactions."""
+    """Someone who can open the app. The data is shared; an administrator can block sections of the app for a user."""
     __tablename__ = "users"
 
     id            = db.Column(db.Integer, primary_key=True)
@@ -18,6 +19,9 @@ class User(UserMixin, db.Model):
     is_admin      = db.Column(db.Boolean, nullable=False, default=False)  # can add and remove users
     created_at    = db.Column(db.DateTime, nullable=False, default=datetime.now)
     last_login    = db.Column(db.DateTime)
+    # sections of the menu (services/sections.py): blocked by an administrator, hidden by the user from their menu
+    blocked_sections = db.Column(ARRAY(db.String(40)), nullable=False, default=list, server_default="{}")
+    hidden_sections  = db.Column(ARRAY(db.String(40)), nullable=False, default=list, server_default="{}")
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
