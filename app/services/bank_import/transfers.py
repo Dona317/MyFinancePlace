@@ -1,6 +1,6 @@
 """
-Money moved between two of the user's accounts is in both statements: out of one, into the other a few days later
-at most (a bank transfer is not always instant), for the same amount. It is a giroconto even when the banks call it
+Money moved between two of the user's accounts is in both statements: out of one, into the other up to 15 days
+later (a bank transfer is not always instant), for the same amount. It is a giroconto even when the banks call it
 a plain bonifico ("Bonifico a MARIO ROSSI").
 
 The first statement imported saves its side: half a transfer (only the account it knows), or an expense / income
@@ -17,7 +17,7 @@ from app.models.transaction import Transaction
 
 from .categorize import search_text
 
-DAYS = 5  # a bank transfer between banks arrives within a few working days (a weekend included)
+DAYS = 15  # the longest a transfer between banks takes to arrive: usually 0-3 working days, sometimes two weeks
 _BANK_TRANSFER = re.compile(r" (bonifico|bonif|sepa|giroconto|girofondi|trasferimento|ricarica|sct) ")
 
 

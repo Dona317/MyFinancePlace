@@ -2,7 +2,7 @@
 Two FAKE bank statements of the same household, from January 2022 to September 2026, that exchange transfers:
 every movement between the two accounts is in both files for the same amount (out of one account, into the other).
 Like real banks, it is sometimes called «giroconto», sometimes a plain bonifico to oneself, and it arrives the same
-day or a few working days later.
+day, a few working days later or, now and then, up to two weeks later.
 
     python samples/dati_fittizi/genera_due_banche.py      # writes samples/dati_fittizi/due_banche/
 
@@ -91,16 +91,17 @@ class Household:
     def spend(self, account: str, day: date, low: float, high: float, short: str, full: str, kind: str):
         self.add(account, day, -self.rng.uniform(low, high), short, full, kind)
 
-    def transfer(self, day: date, amount, source: str, reason: str = ""):
+    def transfer(self, day: date, amount, source: str, reason: str = "", style: str | None = None):
         """Money moved between the two accounts, the same amount out of `source` and into the other one. Like real
         banks: sometimes a «giroconto», sometimes a plain bonifico to oneself; an instant one arrives the same day,
-        an ordinary SEPA transfer one to three working days later."""
+        an ordinary SEPA transfer usually one to three working days later, now and then up to 15 days later."""
         target = "fineco" if source == "unicredit" else "unicredit"
         names = {"unicredit": "UniCredit c/c 000102345678", "fineco": "Fineco c/c 0012345678"}
         suffix = f" - {reason}" if reason else ""
-        style = self.rng.choice(["giroconto", "giroconto", "bonifico", "istantaneo"])
-        arrival = day if style == "istantaneo" else working_days_after(day, self.rng.choice([0, 1, 1, 2, 3]))
-        arrival = min(arrival, END)
+        style = style or self.rng.choice(["giroconto", "giroconto", "bonifico", "istantaneo"])
+        delay = self.rng.choice([0, 1, 1, 2, 2, 3, 3, 5, 8, 10])  # working days; 10 = two weeks
+        arrival = day if style == "istantaneo" else working_days_after(day, delay)
+        arrival = min(arrival, day + timedelta(days=15), END)
         if style == "giroconto":
             self.add(source, day, -amount, "Giroconto", f"Giroconto verso {names[target]}{suffix}", "transfer", True)
             self.add(target, arrival, amount, "Giroconto", f"Giroconto da {names[source]}{suffix}", "transfer", True)
@@ -294,11 +295,11 @@ class Household:
                  "home")
         self.add(u, date(2023, 3, 14), -549, "Pagamento POS", "PAGAMENTO POS UNIEURO lavatrice Samsung 9 kg", "home")
         # June–July 2023: buying the house, the savings pay the deposit and the furniture
-        self.transfer(date(2023, 6, 20), 15000, "fineco", "anticipo acquisto casa")
+        self.transfer(date(2023, 6, 20), 15000, "fineco", "anticipo acquisto casa", "istantaneo")
         self.add(u, date(2023, 6, 28), -14500, "Bonifico SEPA",
                  "Bonifico a STUDIO NOTARILE ROSSI - anticipo e spese rogito", "home")
         self.add(u, date(2023, 6, 29), -1850, "Bonifico SEPA", "Bonifico a TECNOCASA - provvigione agenzia", "home")
-        self.transfer(date(2023, 7, 10), 3500, "fineco", "mobili casa nuova")
+        self.transfer(date(2023, 7, 10), 3500, "fineco", "mobili casa nuova", "istantaneo")
         self.add(u, date(2023, 7, 17), -2280, "Pagamento POS", "PAGAMENTO POS IKEA CORSICO arredamento", "home")
         self.add(u, date(2023, 7, 19), -1090, "Bonifico SEPA", "Bonifico a MONDO CONVENIENZA divano", "home")
         self.add(u, date(2023, 7, 25), -320, "Bonifico SEPA", "Bonifico a TRASLOCHI VELOCI SNC", "home")

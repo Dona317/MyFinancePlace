@@ -1,6 +1,6 @@
 """
 The two-bank fictitious statements (samples/dati_fittizi/genera_due_banche.py): January 2022 – September 2026, and
-every movement between the two accounts in both files for the same amount, within a few days. The committed files
+every movement between the two accounts in both files for the same amount, up to 15 days apart. The committed files
 must be the generator's output and must be read by the bank import as UniCredit and Fineco.
 """
 import sys
@@ -25,13 +25,14 @@ def test_four_years_and_nine_months_of_both_accounts():
 
 
 def test_every_transfer_is_in_both_files():
-    """Same amount, out of one account and into the other the same day or up to three working days later; called
+    """Same amount, out of one account and into the other the same day or up to 15 days later; called
     «giroconto» or a plain bonifico to oneself."""
     out = sorted(((m.day, -m.amount) for m in MOVES if m.transfer and m.amount < 0), key=lambda x: (x[1], x[0]))
     arriving = sorted(((m.day, m.amount) for m in MOVES if m.transfer and m.amount > 0), key=lambda x: (x[1], x[0]))
     assert len(out) == len(arriving) > 50
     assert [amount for _, amount in out] == [amount for _, amount in arriving]
-    assert all(0 <= (back - sent).days <= 5 for (sent, _), (back, _) in zip(out, arriving))
+    assert all(0 <= (back - sent).days <= 15 for (sent, _), (back, _) in zip(out, arriving))
+    assert any((back - sent).days > 7 for (sent, _), (back, _) in zip(out, arriving))  # some slow ones
     assert any(sent != back for (sent, _), (back, _) in zip(out, arriving))  # not always instant
     styles = {m.short for m in MOVES if m.transfer and m.amount < 0}
     assert styles == {"Giroconto", "Bonifico SEPA", "Bonifico istantaneo"}

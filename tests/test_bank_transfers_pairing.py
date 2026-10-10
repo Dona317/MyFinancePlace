@@ -122,13 +122,18 @@ def test_a_plain_bonifico_arriving_days_later_becomes_a_giroconto(client, pair, 
     assert Transaction.query.count() == before
 
 
-def test_too_far_apart_or_backwards_is_not_the_same_movement(client, pair):
+def test_up_to_fifteen_days_apart_never_before_it_left(client, pair):
     unicredit, fineco = pair
     _import(client, "unicredit_aprile.csv", _csv("10.04.2026;10.04.2026;Giroconto verso Fineco;Giroconto;-250,00"),
             unicredit)
-    later = _csv("20.04.2026;20.04.2026;Giroconto da UniCredit;Giroconto;250,00",  # ten days later
-                 "08.04.2026;08.04.2026;Giroconto da UniCredit;Giroconto;250,00")  # before it left
-    assert 'name="pair-' not in _preview(client, "unicredit_fineco_aprile.csv", later)
+    too_far = _csv("26.04.2026;26.04.2026;Giroconto da UniCredit;Giroconto;250,00",  # sixteen days later
+                   "08.04.2026;08.04.2026;Giroconto da UniCredit;Giroconto;250,00")  # before it left
+    assert 'name="pair-' not in _preview(client, "unicredit_fineco_aprile.csv", too_far)
+    slow = _csv("25.04.2026;25.04.2026;Bonifico da MARIO ROSSI;Bonifico;250,00")  # fifteen days: still the same
+    assert "Collega al giroconto: 10/04/2026" in _preview(client, "unicredit_fineco_aprile.csv", slow)
+    _import(client, "unicredit_fineco_aprile.csv", slow, fineco)
+    joined = Transaction.query.one()
+    assert (joined.account_id, joined.counter_account_id) == (unicredit.id, fineco.id)
 
 
 def db_refresh(tx):
