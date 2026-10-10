@@ -47,9 +47,15 @@ def fetch(name: str, target: Path = TARGET) -> Path:
                 jar = zipfile.ZipFile(io.BytesIO(answer.read()))
             break
         except urllib.error.HTTPError as exc:
-            if exc.code not in (429, 502, 503) or attempt == 4:
+            if exc.code not in (429, 500, 502, 503, 504) or attempt == 4:
                 raise
-            time.sleep(2 ** (attempt + 1))
+            print(f"attempt {attempt + 1}: HTTP {exc.code}, trying again")
+        except (urllib.error.URLError, OSError, zipfile.BadZipFile) as exc:
+            # the connection dropped, timed out or the file arrived cut short (seen on the Windows runners)
+            if attempt == 4:
+                raise
+            print(f"attempt {attempt + 1}: {exc!r}, trying again")
+        time.sleep(2 ** (attempt + 1))
     member = next(n for n in jar.namelist() if n.endswith(".txz"))
     if target.exists():
         shutil.rmtree(target)
