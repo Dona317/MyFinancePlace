@@ -35,6 +35,7 @@ class StatementRow:
     duplicate: bool = False
     similar_to: str | None = None   # description of an existing transaction this row may duplicate
     pairs_with: str | None = None   # a giroconto whose other half is saved: it will be joined to it
+    own_account_id: int | None = None  # the account whose IBAN the row names (a bonifico between own accounts)
     counterparty: str | None = None  # merchant / payee: from a column, else read from the causale (first tag)
 
     @property
@@ -55,6 +56,7 @@ class StatementRow:
             "duplicate": self.duplicate,
             "counterparty": self.counterparty,
             "pairs": bool(self.pairs_with),
+            "own_account": self.own_account_id,
         }
 
 

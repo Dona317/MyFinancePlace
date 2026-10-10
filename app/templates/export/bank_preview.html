@@ -189,6 +189,12 @@
                 <i class="bi bi-arrow-left-right"></i> {{ _('Collega al giroconto: %(tx)s', tx=row.pairs_with) }}
               </label>
               {% endif %}
+              {% if row.own_account_id and not row.pairs_with %}
+              {% set other = accounts|selectattr('id', 'equalto', row.own_account_id)|first %}
+              <div class="badge badge-neutral" style="margin-top:4px;white-space:normal;" title="{{ _("L'IBAN del movimento è quello di un tuo conto (Impostazioni → Titolari e IBAN)") }}">
+                <i class="bi bi-arrow-left-right"></i> {{ _('Giroconto con «%(name)s»', name=other.name if other else '?') }}
+              </div>
+              {% endif %}
               {% if row.similar_to %}
               <div class="badge badge-negative" style="margin-top:4px;white-space:normal;" title="{{ _('Stesso importo, data vicina e descrizione simile a una transazione già salvata') }}">
                 <i class="bi bi-exclamation-triangle"></i> {{ _('Possibile duplicato di: %(tx)s', tx=row.similar_to) }}

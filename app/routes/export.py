@@ -405,6 +405,12 @@ def _assign_account(tx, base: dict, account: Account) -> None:
         tx.counter_account_id = account.id
     else:
         tx.account_id = account.id
+    other = base.get("own_account")  # the IBAN of another account in the row: the other side of the giroconto
+    if tx.type == "transfer" and other and other != account.id and db.session.get(Account, other) is not None:
+        if _outgoing(base):
+            tx.counter_account_id = other
+        else:
+            tx.account_id = other
 
 
 def _outgoing(base: dict) -> bool:

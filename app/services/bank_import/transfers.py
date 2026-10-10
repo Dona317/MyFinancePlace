@@ -38,12 +38,16 @@ def _matches(tx: Transaction, day: date, outgoing: bool, account_id: int | None)
     if outgoing and tx.date < day or not outgoing and tx.date > day:
         return False  # the money arrives after it left, never before
     if tx.type == "transfer":
-        known, missing = (tx.counter_account_id, tx.account_id) if outgoing else (tx.account_id, tx.counter_account_id)
+        known, mine = (tx.counter_account_id, tx.account_id) if outgoing else (tx.account_id, tx.counter_account_id)
     else:  # a bonifico saved as income (it arrived there) or expense (it left from there)
         if tx.type != ("income" if outgoing else "expense") or not is_bank_transfer(tx.description, tx.bank_description):
             return False
-        known, missing = tx.account_id, None
-    return missing is None and known is not None and known != account_id
+        known, mine = tx.account_id, None
+    if known is None or known == account_id:
+        return False
+    # this row's side still empty, or already filled (from the IBAN in the other statement) but not yet joined to
+    # a row of this account's statement
+    return mine is None or (tx.counter_import_ref is None and account_id in (None, mine))
 
 
 def other_side(day: date, amount: Decimal, outgoing: bool, account_id: int | None = None,

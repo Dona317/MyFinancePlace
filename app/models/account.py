@@ -11,6 +11,7 @@ class Account(db.Model):
     currency         = db.Column(db.String(3), nullable=False, default="EUR")
     opening_balance  = db.Column(db.Numeric(38, 2), nullable=False, default=0)    # before its first transaction
     iban_tail        = db.Column(db.String(10))                                     # last digits, to recognize it
+    iban             = db.Column(db.String(34))  # the full IBAN: a bonifico to it is a giroconto (services.owners)
     notes            = db.Column(db.Text)
     active           = db.Column(db.Boolean, nullable=False, default=True)
     reconciled_on    = db.Column(db.Date)            # last time the balance was checked against a statement

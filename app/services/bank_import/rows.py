@@ -6,13 +6,13 @@ import re
 from decimal import Decimal
 
 from app.models.transaction import Transaction
-from app.services import duplicates, history_classifier, merchant
+from app.services import duplicates, history_classifier, merchant, owners
 from app.services.parsing import clean_text, normalize, to_date, to_decimal, valid_amount
 
 from .categorize import categorize, is_transfer
 from .layouts import PENDING_STATUSES, Layout
 from .model import StatementRow
-from .transfers import flag_pairs
+from .transfers import flag_pairs, is_bank_transfer
 
 
 def _cell(row: list, columns: dict[str, int], name: str):
@@ -102,10 +102,21 @@ def already_imported(refs: list[str]) -> set[str]:
     return {ref for pair in query for ref in pair} & set(refs)
 
 
+def _own_transfer(row: StatementRow, own: owners.Recognizer) -> None:
+    """A bonifico to one of the holders or to the IBAN of one of the accounts is a giroconto; with the IBAN, the
+    import also knows the other account."""
+    if row.type != "transfer" and not is_bank_transfer(row.description, row.details):
+        return
+    row.own_account_id = own.account_named(row.description, row.details)
+    if row.type != "transfer" and (row.own_account_id or own.names_holder(row.description, row.details)):
+        row.type, row.category, row.counterparty = "transfer", "Giroconto", None
+
+
 def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
     """Assign type, category and import_ref, and flag rows that were already imported."""
     seen: dict[str, int] = {}
     history = history_classifier.index()  # read once for the whole statement
+    own = owners.Recognizer()
     for row in rows:
         if is_transfer(row.description, row.details):
             row.type, row.category = "transfer", "Giroconto"
@@ -114,6 +125,7 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
             row.category = categorize(row.description, row.details, row.bank_category, row.amount > 0, history)
             # the merchant named in the causale, unless a column of the file already gave it
             row.counterparty = row.counterparty or merchant.extract(row.description, row.details)
+        _own_transfer(row, own)
 
         base = fingerprint(row, 0, bank_key)
         occurrence = seen.get(base, 0)

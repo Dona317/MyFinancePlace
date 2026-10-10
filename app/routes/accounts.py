@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, display
+from app.services import accounts, display, owners
 from app.services import currency as currency_service
 from app.services.tax_rules import REGIMES as TAX_REGIMES
 
@@ -29,6 +29,7 @@ def _account_from_form(account: Account) -> Account:
     account.currency = currency if currency in CURRENCIES else "EUR"
     account.opening_balance = form_decimal("opening_balance", _("Saldo iniziale"), allow_negative=True) or 0
     account.iban_tail = (form_text("iban_tail", _("Ultime cifre IBAN / carta")) or "")[-10:] or None
+    owners.set_iban(account, request.form.get("iban"))
     account.notes = form_text("notes", _("Note"))
     account.active = "active" in request.form
     account.fee_fixed = form_decimal("fee_fixed", _("Commissione fissa"))

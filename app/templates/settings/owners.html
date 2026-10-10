@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% import "partials/fields.html" as f %}
+{% block page_title %}{{ _('Titolari e IBAN') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Titolari e IBAN') }}</li>{% endblock %}
+
+{% block content %}
+<p class="text-sm text-muted mb-16">
+  {{ _("Un bonifico a uno dei titolari o all'IBAN di uno dei tuoi conti è un giroconto: l'import lo riconosce anche se carichi un solo estratto conto. Con l'IBAN sa anche qual è l'altro conto. Quando importi poi l'estratto dell'altro conto, i due movimenti si collegano senza doppioni.") }}
+</p>
+
+<form method="POST">
+  <div class="card mb-16">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-person-check"></i> {{ _('Titolari') }}</div></div>
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label" for="f-holders">{{ _('Nome e cognome, uno per riga') }}</label>
+        <textarea id="f-holders" name="holders" class="form-control" rows="3" placeholder="{{ _('es. Mario Rossi') }}">{{ f.value_of(values, 'holders', '') }}</textarea>
+        <div class="form-hint">{{ _('Chi è intestatario o cointestatario dei conti. Vale anche con nome e cognome invertiti, come li scrivono molte banche («ROSSI MARIO»).') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-16">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-bank"></i> {{ _('IBAN dei conti') }}</div></div>
+    <div class="card-body">
+      {% if accounts %}
+      {% for a in accounts %}
+      {{ f.text(values, 'iban-' ~ a.id, a.name ~ ('' if a.active else ' (' ~ _('chiuso') ~ ')'), a.iban, placeholder='IT60 X054 2811 1010 0000 0123 456') }}
+      {% endfor %}
+      {% else %}
+      {{ empty_state(_('Nessun conto: crealo da Conti e Carte, poi aggiungi qui il suo IBAN.'), 'bank', compact=true) }}
+      {% endif %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+</form>
+{% endblock %}

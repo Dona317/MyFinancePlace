@@ -7,10 +7,22 @@ from flask import flash, jsonify, redirect, render_template, request, session, u
 from flask_babel import gettext as _
 
 from app.extensions import db
+from app.models.account import Account
 from app.models.category import Category, CategoryRule
 from app.models.currency import ExchangeRate
 from app.routes.helpers import delete_and_redirect, flash_errors, form_choice, form_date, form_decimal, form_text
-from app.services import ai_classification, ai_extraction, ai_models, categories, category_rules, currency, desktop, display, settings_store
+from app.services import (
+    ai_classification,
+    ai_extraction,
+    ai_models,
+    categories,
+    category_rules,
+    currency,
+    desktop,
+    display,
+    owners,
+    settings_store,
+)
 from app.services.bank_import import CATEGORY_RULES
 
 # The interface choices live in a service (services read them too); re-exported for this page and older imports
@@ -318,3 +330,23 @@ def ai_delete():
 
 # Account and users pages live in their own module on this blueprint
 from app.routes import settings_users  # noqa: E402,F401
+
+
+@settings_bp.route("/owners", methods=["GET", "POST"])
+def owners_page():
+    """Titolari e IBAN: who owns the accounts, so that a bonifico between them is read as a giroconto."""
+    account_list = Account.query.order_by(Account.active.desc(), Account.name).all()
+    if request.method == "POST":
+        try:
+            owners.set_holders(request.form.get("holders", "").splitlines())
+            for account in account_list:
+                owners.set_iban(account, request.form.get(f"iban-{account.id}"))
+            db.session.commit()
+        except ValueError as exc:
+            db.session.rollback()
+            flash(str(exc), "error")
+            return render_template("settings/owners.html", accounts=account_list, values=request.form), 400
+        flash(_("Titolari e IBAN salvati: i bonifici tra i tuoi conti verranno importati come giroconti."), "success")
+        return redirect(url_for("settings.owners_page"))
+    values = {"holders": "\n".join(owners.holders())} | {f"iban-{a.id}": a.iban or "" for a in account_list}
+    return render_template("settings/owners.html", accounts=account_list, values=values)

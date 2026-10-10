@@ -36,7 +36,7 @@ OPENING = {"unicredit": Decimal("4200.00"), "fineco": Decimal("22000.00")}
 UNICREDIT_FILE = "unicredit_conto_corrente_2022-01_2026-09.csv"
 FINECO_FILE = "fineco_conto_risparmio_2022-01_2026-09.xlsx"
 CENT = Decimal("0.01")
-IBAN = {"unicredit": "IT60X0200801600000102345678", "fineco": "IT40S0301503200000012345678"}
+IBAN = {"unicredit": "IT27X0200801600000102345678", "fineco": "IT06S0301503200000012345678"}
 
 
 @dataclass

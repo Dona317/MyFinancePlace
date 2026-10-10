@@ -20,7 +20,11 @@
           {{ f.number(values, 'opening_balance', _('Saldo iniziale (nella valuta del conto)'), a.opening_balance, placeholder='0,00',
                       hint=_('Il saldo prima della prima transazione registrata su questo conto.')) }}
         </div>
-        {{ f.text(values, 'iban_tail', _('Ultime cifre IBAN o carta'), a.iban_tail, placeholder=_('es. 4821')) }}
+        <div class="grid-2">
+          {{ f.text(values, 'iban', _('IBAN'), a.iban, placeholder='IT60 X054 2811 1010 0000 0123 456',
+                    hint=_('Facoltativo: un bonifico verso questo IBAN da un altro tuo conto viene importato come giroconto.')) }}
+          {{ f.text(values, 'iban_tail', _('Ultime cifre IBAN o carta'), a.iban_tail, placeholder=_('es. 4821')) }}
+        </div>
         {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
         <fieldset class="fee-rules mb-16">
           <legend class="form-label">{{ _('Commissioni del broker (facoltative)') }}</legend>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-10 15:06+0000\n"
+"POT-Creation-Date: 2026-10-10 15:14+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -701,6 +701,10 @@ msgstr ""
 "On %(date)s the app shows <strong>%(app)s</strong>, the statement <strong>%(statement)s</strong>: difference "
 "<strong>%(difference)s</strong>"
 
+#, python-format
+msgid "Al massimo %(count)s titolari."
+msgstr "At most %(count)s holders."
+
 msgid "Al mese"
 msgstr "A month"
 
@@ -1274,6 +1278,13 @@ msgstr "Search by description or tag..."
 
 msgid "Cerca per nome o note..."
 msgstr "Search by name or notes..."
+
+msgid ""
+"Chi è intestatario o cointestatario dei conti. Vale anche con nome e cognome invertiti, come li scrivono molte banche"
+" («ROSSI MARIO»)."
+msgstr ""
+"Who holds or co-holds the accounts. Also recognized with first and last name swapped, as many banks write them "
+"(«ROSSI MARIO»)."
 
 msgid "Chiave API Anthropic mancante o non valida (ANTHROPIC_API_KEY)."
 msgstr "Anthropic API key missing or invalid (ANTHROPIC_API_KEY)."
@@ -2191,6 +2202,9 @@ msgstr "JSON export imported: %(added)s transactions added, %(skipped)s already 
 msgid "Facoltativa: con una data calcoliamo quanto mettere da parte ogni mese."
 msgstr "Optional: with a date we work out how much to set aside every month."
 
+msgid "Facoltativo: un bonifico verso questo IBAN da un altro tuo conto viene importato come giroconto."
+msgstr "Optional: a bank transfer to this IBAN from another of your accounts is imported as a transfer between accounts."
+
 msgid "Famiglia"
 msgstr "Family"
 
@@ -2372,6 +2386,10 @@ msgstr "Debt Management"
 msgid "Gestione Finanze Personali"
 msgstr "Personal Finance Management"
 
+#, python-format
+msgid "Giroconto con «%(name)s»"
+msgstr "Transfer with «%(name)s»"
+
 msgid "Giu"
 msgstr "Jun"
 
@@ -2457,6 +2475,12 @@ msgstr ""
 
 msgid "I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."
 msgstr "Prices from the internet are off: turn them on in Settings → Data from the internet."
+
+msgid "IBAN"
+msgstr "IBAN"
+
+msgid "IBAN dei conti"
+msgstr "Accounts' IBANs"
 
 msgid "IC cripto-attività"
 msgstr "IC crypto-assets"
@@ -2897,6 +2921,13 @@ msgstr "Item"
 
 msgid "L'AI sta leggendo le intestazioni…"
 msgstr "The AI is reading the headers…"
+
+#, python-format
+msgid "L'IBAN %(iban)s è già di un altro conto."
+msgstr "The IBAN %(iban)s already belongs to another account."
+
+msgid "L'IBAN del movimento è quello di un tuo conto (Impostazioni → Titolari e IBAN)"
+msgstr "The movement's IBAN is one of your accounts' (Settings → Holders and IBANs)"
 
 #, python-format
 msgid "L'OCR ha letto %(count)s movimenti ma sembra averne persi o uniti alcuni."
@@ -3447,6 +3478,9 @@ msgstr "No account"
 msgid "Nessun conto corrente, conto deposito o investimento."
 msgstr "No current account, deposit account or investment."
 
+msgid "Nessun conto: crealo da Conti e Carte, poi aggiungi qui il suo IBAN."
+msgstr "No accounts: create one in Accounts and Cards, then add its IBAN here."
+
 msgid "Nessun debito in corso."
 msgstr "No active debts."
 
@@ -3666,6 +3700,9 @@ msgstr "Invalid model name."
 #, python-format
 msgid "Nome di %(name)s"
 msgstr "Name of %(name)s"
+
+msgid "Nome e cognome, uno per riga"
+msgstr "First and last name, one per line"
 
 msgid "Nome utente"
 msgstr "Username"
@@ -5313,6 +5350,15 @@ msgstr "Policy type"
 msgid "Tipo di report"
 msgstr "Report type"
 
+msgid "Titolari"
+msgstr "Holders"
+
+msgid "Titolari e IBAN"
+msgstr "Holders and IBANs"
+
+msgid "Titolari e IBAN salvati: i bonifici tra i tuoi conti verranno importati come giroconti."
+msgstr "Holders and IBANs saved: bank transfers between your accounts will be imported as transfers between accounts."
+
 msgid "Titolo"
 msgstr "Security"
 
@@ -5578,6 +5624,15 @@ msgid ""
 msgstr ""
 "An administrator blocked this section for your user. If you need it, ask them to unblock it in Settings → Account and"
 " users."
+
+msgid ""
+"Un bonifico a uno dei titolari o all'IBAN di uno dei tuoi conti è un giroconto: l'import lo riconosce anche se "
+"carichi un solo estratto conto. Con l'IBAN sa anche qual è l'altro conto. Quando importi poi l'estratto dell'altro "
+"conto, i due movimenti si collegano senza doppioni."
+msgstr ""
+"A bank transfer to one of the holders or to the IBAN of one of your accounts is a transfer between accounts: the "
+"import recognizes it even when you load only one statement. With the IBAN it also knows the other account. When you "
+"then import the other account's statement, the two movements are linked without duplicates."
 
 msgid "Un file"
 msgstr "One file"
@@ -6377,6 +6432,14 @@ msgid "«%(description)s» è ora una transazione ricorrente (%(value)s)."
 msgstr "«%(description)s» is now a recurring transaction (%(value)s)."
 
 #, python-format
+msgid "«%(iban)s» non è un IBAN valido."
+msgstr "«%(iban)s» is not a valid IBAN."
+
+#, python-format
+msgid "«%(iban)s» non è un IBAN valido: controlla le cifre."
+msgstr "«%(iban)s» is not a valid IBAN: check the digits."
+
+#, python-format
 msgid "«%(name)s» ha delle sottocategorie: non può diventarlo a sua volta."
 msgstr "“%(name)s” has subcategories: it cannot become one itself."
 
@@ -6399,6 +6462,10 @@ msgstr "«%(name)s»: %(amount)s a month set aside, with rollover."
 #, python-format
 msgid "«%(name)s»: aggiunti %(amount)s."
 msgstr "«%(name)s»: %(amount)s added."
+
+#, python-format
+msgid "«%(name)s»: scrivi nome e cognome (una sola parola riconoscerebbe troppi movimenti)."
+msgstr "«%(name)s»: write first and last name (a single word would match too many movements)."
 
 #, python-format
 msgid "«%(name)s»: tolti %(amount)s."
