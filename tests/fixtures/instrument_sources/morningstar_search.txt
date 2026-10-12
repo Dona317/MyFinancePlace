@@ -1,0 +1,2 @@
+Fondo Esempio Azionario Europa A Acc|{"i":"F00000XYZ1","n":"Fondo Esempio Azionario Europa A Acc","t":"FO"}|FO|Fondo Esempio
+Fondo Esempio Azionario Europa B Dis|{"i":"F00000XYZ2","n":"Fondo Esempio B","t":"FO"}|FO|Fondo Esempio

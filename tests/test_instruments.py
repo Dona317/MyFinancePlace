@@ -41,7 +41,8 @@ def test_lookup_ranks_milan_first_and_maps_the_kinds(app, web):  # noqa: F811
         found = price_feed.lookup(" ie00bk5bqt80 ")
         assert [c.symbol for c in found] == ["VWCE.MI", "VWCE.DE"]  # the index is not something one holds
         assert found[0].as_dict() == {"symbol": "VWCE.MI", "name": "VANGUARD ALL-WORLD", "asset_class": "ETF",
-                                      "exchange": "Milan", "isin": ISIN}
+                                      "exchange": "Milan", "isin": ISIN, "source": "yahoo", "price_source": "auto",
+                                      "currency": None}
         answers["search?q=ENI"] = _search({"symbol": "ENI.MI", "longname": "Eni", "quoteType": "EQUITY", "exchange": "MIL"},
                                           {"symbol": "CL=F", "shortname": "Crude Oil", "quoteType": "FUTURE", "exchange": "NYM"})
         assert [(c.asset_class, c.isin) for c in price_feed.lookup("ENI")] == [("Azione", None), ("Derivato", None)]

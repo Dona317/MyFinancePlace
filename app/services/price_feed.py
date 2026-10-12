@@ -30,6 +30,8 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.wealth import Holding, HoldingPrice
 from app.services import currency, money, settings_store, studio, wealth
+from app.services import instrument_sources as sources
+from app.services.instrument_sources import Candidate
 from app.services.ui_settings import current_settings
 
 YAHOO = "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range={range}&interval={interval}"
@@ -38,7 +40,7 @@ STOOQ = "https://stooq.com/q/l/?s={symbol}&f=sd2t2ohlcv&h&e=csv"
 COINGECKO = "https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=eur&include_last_updated_at=true"
 CRYPTO_CLASSES = ("Criptovaluta",)
 MARKET_CLASSES = ("ETF", "Azione", "Obbligazione", "Fondo", "Derivato")  # priced on an exchange; the rest by hand
-SOURCES = ("auto", "yahoo", "stooq", "coingecko", "manual")
+SOURCES = ("auto", "yahoo", "stooq", "coingecko", "justetf", "borsaitaliana", "morningstar", "manual")
 COINGECKO_IDS = {"BTC": "bitcoin", "ETH": "ethereum", "SOL": "solana", "ADA": "cardano", "XRP": "ripple",
                  "DOT": "polkadot", "DOGE": "dogecoin", "LTC": "litecoin", "BNB": "binancecoin", "USDT": "tether",
                  "USDC": "usd-coin", "MATIC": "matic-network", "AVAX": "avalanche-2", "LINK": "chainlink"}
@@ -52,6 +54,9 @@ STOOQ_MARKETS = {"": ("us", "USD"), "DE": ("de", "EUR"), "L": ("uk", "GBX"), "T"
 ISIN = re.compile(r"^[A-Z]{2}[A-Z0-9]{9}\d$")
 HISTORY_POINTS = 5  # a holding with fewer saved prices gets the last year of weekly ones
 LAST_RUN = "prices.last_run"
+LOOKUP_CACHE = "prices.lookup_cache"
+CACHE_DAYS = 30
+CACHE_SIZE = 300
 TIMEOUT = 15
 _running: set = set()
 _lock = threading.Lock()
@@ -69,20 +74,6 @@ class Result:
     error: str | None = None
     source: str | None = None
     history: list = field(default_factory=list)  # (day, price in euro) of the past year, when read
-
-
-@dataclass
-class Candidate:
-    """An instrument found by a search: what fills the holding's form."""
-    symbol: str
-    name: str
-    asset_class: str
-    exchange: str | None = None
-    isin: str | None = None
-
-    def as_dict(self) -> dict:
-        return {"symbol": self.symbol, "name": self.name, "asset_class": self.asset_class, "exchange": self.exchange,
-                "isin": self.isin}
 
 
 def _fetch(url: str) -> str:
@@ -125,12 +116,7 @@ def _coingecko_id(holding: Holding) -> str:
 
 # ── Search: ISIN, ticker or name → instruments ─────────────────────────────────
 
-def lookup(text: str) -> list[Candidate]:
-    """Instruments matching an ISIN, a ticker or a name (Yahoo's search), the Milan and euro listings first."""
-    query = (text or "").strip()
-    if not query:
-        return []
-    isin = query.upper() if ISIN.match(query.upper()) else None
+def _yahoo_search(query: str, isin: str | None) -> list[Candidate]:
     data = _get_json(YAHOO_SEARCH.format(query=urllib.parse.quote(isin or query)))
     found = []
     for item in data.get("quotes") or []:
@@ -145,11 +131,61 @@ def lookup(text: str) -> list[Candidate]:
     return [candidate for _exchange, candidate in found]
 
 
+def _cached(isin: str, today: date) -> list[Candidate] | None:
+    entry = settings_store.get_json(LOOKUP_CACHE, {}, expect=dict).get(isin)
+    if not isinstance(entry, dict) or (today - date.fromisoformat(entry.get("on", "1900-01-01"))).days > CACHE_DAYS:
+        return None
+    return [Candidate(**row) for row in entry.get("results") or []]
+
+
+def _remember(isin: str, found: list[Candidate], today: date) -> None:
+    cache = settings_store.get_json(LOOKUP_CACHE, {}, expect=dict)
+    cache[isin] = {"on": today.isoformat(), "results": [c.as_dict() for c in found]}
+    if len(cache) > CACHE_SIZE:  # the oldest searches go
+        for old in sorted(cache, key=lambda k: cache[k].get("on", ""))[:len(cache) - CACHE_SIZE]:
+            cache.pop(old)
+    settings_store.set_json(LOOKUP_CACHE, cache)
+
+
+def search(text: str, today: date | None = None) -> tuple[list[Candidate], list[str]]:
+    """Instruments matching an ISIN (every site switched on, in order) or a ticker or name (Yahoo): the results,
+    without repeats, and what went wrong per site. A search by ISIN is remembered for a month."""
+    query, today = (text or "").strip(), today or date.today()
+    if not query:
+        return [], []
+    isin = query.upper() if ISIN.match(query.upper()) else None
+    if isin:
+        cached = _cached(isin, today)
+        if cached is not None:
+            return cached, []
+    found, errors, seen = [], [], set()
+    for site in sources.chosen() if isin else ["yahoo"]:
+        try:
+            results = _yahoo_search(query, isin) if site == "yahoo" else sources.FINDERS[site](isin)
+        except sources.NotFound:
+            continue
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            errors.append(f"{sources.NAMES[site]}: {exc}")
+            continue
+        for candidate in results:
+            key = candidate.symbol or f"{candidate.source}:{candidate.name}"
+            if key not in seen:
+                seen.add(key)
+                found.append(candidate)
+    if isin and found:
+        _remember(isin, found, today)
+    return found, errors
+
+
+def lookup(text: str) -> list[Candidate]:
+    return search(text)[0]
+
+
 def _resolve_ticker(holding: Holding) -> None:
     """A holding with only its ISIN: the ticker of its first listing (Milan if there is one)."""
     if holding.ticker or not holding.isin:
         return
-    candidates = lookup(holding.isin)
+    candidates = [c for c in lookup(holding.isin) if c.symbol]
     if not candidates:
         raise ValueError(_("ISIN %(isin)s non trovato: scrivi il ticker con il suffisso di borsa (es. SWDA.MI)",
                            isin=holding.isin))
@@ -251,27 +287,49 @@ def _wants_history(holding: Holding) -> bool:
     return holding.id is not None and HoldingPrice.query.filter_by(holding_id=holding.id).count() < HISTORY_POINTS
 
 
+def _price_order(holding: Holding) -> list[str]:
+    """Where its price is read, in order: the source chosen for it, or by its class among the sites switched on."""
+    if (holding.price_source or "auto") != "auto":
+        return [holding.price_source]
+    by_class = {"Obbligazione": ["borsaitaliana", "yahoo"], "Fondo": ["morningstar", "yahoo"],
+                "ETF": ["yahoo", "justetf", "stooq"]}
+    on = set(sources.chosen())
+    return [s for s in by_class.get(holding.asset_class, ["yahoo", "stooq"]) if s == "stooq" or s in on]
+
+
+def _from_site(holding: Holding, site: str) -> tuple[Decimal, date, list]:
+    if not holding.isin:
+        raise ValueError(_("serve l'ISIN"))
+    quote = sources.QUOTES[site](holding.isin)
+    code = _currency_code(quote.currency)
+    _remember_currency(holding, code)
+    return _to_euro(quote.price, code, quote.on), quote.on, []
+
+
 def _market(holding: Holding) -> Result:
-    """Yahoo, then Stooq when Yahoo does not answer (or the other way round when Stooq was chosen)."""
-    try:
-        _resolve_ticker(holding)
-    except (OSError, ValueError, KeyError, TypeError) as exc:
-        return Result(holding, error=str(exc))
-    first = source_of(holding)
-    order = [first] if (holding.price_source or "auto") != "auto" else [first, "stooq"]
+    """The sources of its class in order (Yahoo, then justETF or Stooq; Borsa Italiana for bonds, Morningstar for
+    funds) until one answers; what each one said when none does."""
+    order = _price_order(holding)
     errors = []
     for source in order:
         try:
-            if source == "stooq":
-                price, on, history = _stooq(holding)
+            if source in sources.QUOTES:
+                if not holding.isin and len(order) > 1:
+                    continue  # it needs the ISIN: the next source may do without
+                price, on, history = _from_site(holding, source)
             else:
-                price, on, history = _yahoo(holding, with_history=_wants_history(holding))
+                _resolve_ticker(holding)
+                if source == "stooq":
+                    price, on, history = _stooq(holding)
+                else:
+                    price, on, history = _yahoo(holding, with_history=_wants_history(holding))
             return Result(holding, price, on, source=source, history=history)
         except MissingRate as exc:
             return Result(holding, error=str(exc))
         except (OSError, ValueError, KeyError, TypeError) as exc:
-            errors.append(str(exc) if not errors else f"Stooq: {exc}")
-    return Result(holding, error=" · ".join(errors))
+            name = sources.NAMES.get(source, "Stooq" if source == "stooq" else source)
+            errors.append(str(exc) if not errors else f"{name}: {exc}")
+    return Result(holding, error=" · ".join(errors) or _("nessuna fonte attiva per questo titolo"))
 
 
 def update_all(holdings: list[Holding]) -> list[Result]:
@@ -288,7 +346,7 @@ def update_all(holdings: list[Holding]) -> list[Result]:
             quote = quotes[holding.id]
             results.append(Result(holding, error=quote) if isinstance(quote, str)
                            else Result(holding, *quote, source="coingecko"))
-    results += [_market(h) for h in holdings if supported(h) and source_of(h) in ("yahoo", "stooq")]
+    results += [_market(h) for h in holdings if supported(h) and source_of(h) not in ("coingecko", None)]
     today = date.today()
     for result in results:
         for day, price in result.history:

@@ -20,7 +20,7 @@
             <input type="text" id="lookup-q" class="form-control" placeholder="{{ _('ISIN, ticker o nome (es. IE00BK5BQT80, ENEL.MI, Vanguard All-World)') }}" autocomplete="off" />
             <button type="button" id="lookup-go" class="btn btn-ghost"><i class="bi bi-search"></i> {{ _('Cerca') }}</button>
           </div>
-          <div class="form-hint">{{ _('Da Yahoo Finance: scegli il risultato e il modulo si compila (ticker, nome, classe, borsa).') }}</div>
+          <div class="form-hint">{{ _('Con un ISIN cerca su tutti i siti attivi in Impostazioni → Fonti dei prezzi (Yahoo, OpenFIGI, justETF, Borsa Italiana, Morningstar); con un ticker o un nome solo su Yahoo. Scegli il risultato e il modulo si compila, fonte del prezzo compresa.') }}</div>
           <ul id="lookup-results" class="lookup-results" hidden></ul>
         </div>
         {% endif %}
@@ -93,10 +93,12 @@
       const li = document.createElement('li'), button = document.createElement('button');
       button.type = 'button';
       button.className = 'btn btn-ghost btn-sm';
-      button.textContent = `${item.symbol} · ${item.name} · ${item.exchange || ''} · ${item.asset_class}`;
+      button.textContent = [item.symbol, item.name, item.exchange, item.asset_class].filter(Boolean).join(' · ')
+        + ' — ' + item.source_name;
       button.addEventListener('click', () => {
         set('ticker', item.symbol); set('name', item.name); set('exchange', item.exchange); set('isin', item.isin);
-        set('asset_class', item.asset_class);
+        set('asset_class', item.asset_class); set('currency', item.currency);
+        set('price_source', item.price_source);
         list.hidden = true;
       });
       li.appendChild(button);

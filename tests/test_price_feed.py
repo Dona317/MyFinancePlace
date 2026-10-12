@@ -8,6 +8,7 @@ from app.models.currency import ExchangeRate
 from app.models.wealth import Holding, HoldingPrice
 from app.routes.settings import SETTINGS_KEY
 from app.services import price_feed, settings_store
+from app.services.instrument_sources import base as sources_base
 
 STAMP = int(datetime(2026, 10, 7, 16, 0, tzinfo=timezone.utc).timestamp())
 
@@ -33,6 +34,8 @@ def web(monkeypatch):
 
     monkeypatch.setattr(price_feed, "_get_json", fake)
     monkeypatch.setattr(price_feed, "_get_text", fake)  # Stooq's CSV
+    monkeypatch.setattr(sources_base, "fetch", lambda url, payload=None, content_type=None: fake(url))  # other sites
+    monkeypatch.setattr(sources_base, "MIN_INTERVAL", 0)
     return answers, calls
 
 

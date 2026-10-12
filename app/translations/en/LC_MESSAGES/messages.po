@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-12 07:15+0000\n"
+"POT-Creation-Date: 2026-10-12 11:57+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -996,6 +996,9 @@ msgstr "B — Investing Activities"
 msgid "B — Flusso di investimento"
 msgstr "B — Investing cash flow"
 
+msgid "BTP e obbligazioni del MOT, ETF, azioni e certificati di Milano: anche il prezzo"
+msgstr "BTPs and MOT bonds, ETFs, shares and certificates of Milan: the price too"
+
 msgid "Backup Completo e Ripristino"
 msgstr "Full Backup and Restore"
 
@@ -1481,6 +1484,26 @@ msgid "Con questi criteri non ci sono transazioni simili da ricontrollare."
 msgstr "With these criteria there are no similar transactions to review."
 
 msgid ""
+"Con un ISIN cerca su tutti i siti attivi in Impostazioni → Fonti dei prezzi (Yahoo, OpenFIGI, justETF, Borsa "
+"Italiana, Morningstar); con un ticker o un nome solo su Yahoo. Scegli il risultato e il modulo si compila, fonte del "
+"prezzo compresa."
+msgstr ""
+"With an ISIN it searches every site switched on in Settings → Price sources (Yahoo, OpenFIGI, justETF, Borsa "
+"Italiana, Morningstar); with a ticker or a name only Yahoo. Pick a result and the form fills in, price source "
+"included."
+
+msgid ""
+"Con un ISIN la ricerca chiede a questi siti, nell'ordine scelto, e mostra tutti i risultati. I prezzi di ogni giorno "
+"vengono da Yahoo (azioni, ETF, derivati; justETF e Stooq di riserva), da Borsa Italiana per le obbligazioni e da "
+"Morningstar per i fondi, se attivi. Si invia solo l'ISIN, al massimo una richiesta al secondo per sito; le ricerche "
+"restano salvate per un mese."
+msgstr ""
+"With an ISIN the search asks these sites, in the order chosen, and shows every result. The daily prices come from "
+"Yahoo (shares, ETFs, derivatives; justETF and Stooq as reserves), from Borsa Italiana for bonds and from Morningstar "
+"for funds, when switched on. Only the ISIN is sent, at most one request a second per site; searches are kept for a "
+"month."
+
+msgid ""
 "Con un modello locale senza scheda video può servire circa un minuto per pagina. La pagina si aggiorna da sola e al "
 "termine mostra i movimenti da controllare."
 msgstr ""
@@ -1725,9 +1748,6 @@ msgstr "From"
 msgid "Da Mettere da Parte"
 msgstr "To Set Aside"
 
-msgid "Da Yahoo Finance: scegli il risultato e il modulo si compila (ticker, nome, classe, borsa)."
-msgstr "From Yahoo Finance: pick a result and the form fills in (ticker, name, class, exchange)."
-
 msgid "Da accantonare per le spese non mensili"
 msgstr "To set aside for non-monthly costs"
 
@@ -1960,6 +1980,9 @@ msgstr "Term (months)"
 
 msgid "ETF"
 msgstr "ETF"
+
+msgid "ETF europei: nome e prezzo in euro"
+msgstr "European ETFs: name and price in euro"
 
 msgid "Elenco Transazioni"
 msgstr "Transaction List"
@@ -2361,6 +2384,12 @@ msgstr "Source"
 msgid "Fonte del prezzo"
 msgstr "Price source"
 
+msgid "Fonti dei prezzi"
+msgstr "Price sources"
+
+msgid "Fonti dei prezzi salvate."
+msgstr "Price sources saved."
+
 msgid "Formato data"
 msgstr "Date format"
 
@@ -2499,6 +2528,13 @@ msgid ""
 msgstr ""
 "The movements don't add up with the document's balances: opening balance %(opening)s + movements %(movements)s ≠ "
 "closing balance %(closing)s (difference %(difference)s). Some row is probably missing or wrong."
+
+msgid ""
+"I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet, altrimenti queste fonti non vengono "
+"usate."
+msgstr ""
+"Prices from the internet are off: turn them on in Settings → Data from the internet, otherwise these sources are not "
+"used."
 
 msgid "I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."
 msgstr "Prices from the internet are off: turn them on in Settings → Data from the internet."
@@ -4017,6 +4053,9 @@ msgstr "Sort"
 msgid "Ordinate per scadenza"
 msgstr "Sorted by expiry"
 
+msgid "Ordine"
+msgstr "Order"
+
 msgid "Origine"
 msgstr "Origin"
 
@@ -4477,6 +4516,9 @@ msgstr "Quadro E — year %(year)s"
 #, python-format
 msgid "Quadro RT (sezione II, 26%%) — riepilogo"
 msgstr "Quadro RT (section II, 26%%) — summary"
+
+msgid "Quali siti usare per cercare gli ISIN e leggere i prezzi di obbligazioni, fondi ed ETF, e in che ordine."
+msgstr "Which sites to use to look up ISINs and read the prices of bonds, funds and ETFs, and in which order."
 
 msgid "Quanti mesi completi recenti usare per stimare le spese e le entrate variabili"
 msgstr "How many recent full months to use to estimate variable spending and income"
@@ -4990,6 +5032,9 @@ msgstr "Download the backup"
 #, python-format
 msgid "Scaricati %(count)s cambi di riferimento BCE degli ultimi 90 giorni; transazioni ricalcolate."
 msgstr "Downloaded %(count)s ECB reference rates of the last 90 days; transactions recalculated."
+
+msgid "Scegli"
+msgstr "Choose"
 
 msgid "Scegli almeno un file da caricare."
 msgstr "Choose at least one file to upload."
@@ -5982,6 +6027,9 @@ msgstr "main archive"
 msgid "assegnale"
 msgstr "assign them"
 
+msgid "azioni, ETF, fondi e derivati di molte borse: ricerca, prezzo e storico"
+msgstr "shares, ETFs, funds and derivatives of many exchanges: search, price and history"
+
 #, python-format
 msgid "budget del mese + %(amount)s riportati"
 msgstr "month's budgets + %(amount)s rolled over"
@@ -6032,6 +6080,9 @@ msgstr "crypto «%(coin)s» not found on CoinGecko (use its id, e.g. bitcoin)"
 
 msgid "curl -fsSL https://ollama.com/install.sh | sh"
 msgstr "curl -fsSL https://ollama.com/install.sh | sh"
+
+msgid "da ISIN a ticker e borsa (Bloomberg), per azioni, ETF, obbligazioni e derivati"
+msgstr "from ISIN to ticker and exchange (Bloomberg), for shares, ETFs, bonds and derivatives"
 
 msgid "da confermare"
 msgstr "to confirm"
@@ -6174,6 +6225,9 @@ msgstr "e.g. vet, food, grooming"
 msgid "fiscale"
 msgstr "tax"
 
+msgid "fondi comuni: il NAV (la fonte più fragile)"
+msgstr "mutual funds: the NAV (the most fragile source)"
+
 #, python-format
 msgid "franchigia %(amount)s"
 msgstr "threshold %(amount)s"
@@ -6204,6 +6258,19 @@ msgstr "in progress"
 
 msgid "inserita a mano"
 msgstr "entered by hand"
+
+msgid ""
+"justETF, Borsa Italiana e Morningstar sono pagine web, non servizi pensati per le app: se cambiano, quella fonte dà "
+"errore («la pagina è cambiata») e le altre continuano. Morningstar è la più fragile ed è spenta all'inizio."
+msgstr ""
+"justETF, Borsa Italiana and Morningstar are web pages, not services made for apps: when they change, that source "
+"reports an error («the page changed») and the others go on. Morningstar is the most fragile and is off at first."
+
+msgid "la pagina è cambiata"
+msgstr "the page changed"
+
+msgid "la risposta è cambiata"
+msgstr "the answer changed"
 
 msgid "llama3.2:3b"
 msgstr "llama3.2:3b"
@@ -6259,6 +6326,15 @@ msgstr "no rates in the ECB file"
 #, python-format
 msgid "nessun prezzo per «%(ticker)s»"
 msgstr "no price for «%(ticker)s»"
+
+msgid "nessun risultato"
+msgstr "no result"
+
+msgid "nessuna fonte attiva per questo titolo"
+msgstr "no source switched on for this holding"
+
+msgid "nessuna quotazione su una borsa conosciuta"
+msgstr "no listing on a known exchange"
 
 msgid "nessuna regola sul conto: scrivila a mano, se c’è"
 msgstr "no rule on the account: type it, if there is one"
@@ -6366,6 +6442,12 @@ msgstr "rules"
 msgid "riporto"
 msgstr "rollover"
 
+msgid "risposta inattesa"
+msgstr "unexpected answer"
+
+msgid "risposta non leggibile"
+msgstr "unreadable answer"
+
 #, python-format
 msgid "saldo %(amount)s"
 msgstr "balance %(amount)s"
@@ -6384,6 +6466,9 @@ msgstr "scans and photos cannot be read."
 
 msgid "senza categoria"
 msgstr "no category"
+
+msgid "serve l'ISIN"
+msgstr "the ISIN is needed"
 
 msgid "servono le entrate degli ultimi 12 mesi"
 msgstr "the income of the last 12 months is needed"

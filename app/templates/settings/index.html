@@ -134,6 +134,13 @@
       </div>
       <div class="settings-section-body">
         {{ toggle('prices_online', _('Prezzi degli investimenti da internet'), _('Legge i prezzi una volta al giorno da Yahoo Finance (azioni, ETF, fondi, obbligazioni, derivati; Stooq di riserva) e CoinGecko (cripto), gratis e senza chiave, più il pulsante «Aggiorna da internet» in Portafoglio → Aggiorna prezzi e la ricerca per ISIN nel modulo del titolo. Invia solo ticker, ISIN o nomi cercati.')) }}
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <div class="toggle-label">{{ _('Fonti dei prezzi') }}</div>
+            <div class="toggle-hint">{{ _('Quali siti usare per cercare gli ISIN e leggere i prezzi di obbligazioni, fondi ed ETF, e in che ordine.') }}</div>
+          </div>
+          <a href="{{ url_for('settings.price_sources') }}" class="btn btn-ghost btn-sm">{{ _('Scegli') }} <i class="bi bi-chevron-right"></i></a>
+        </div>
       </div>
     </div>
 

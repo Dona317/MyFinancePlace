@@ -20,6 +20,7 @@ from app.services import (
     currency,
     desktop,
     display,
+    instrument_sources,
     owners,
     settings_store,
 )
@@ -350,3 +351,17 @@ def owners_page():
         return redirect(url_for("settings.owners_page"))
     values = {"holders": "\n".join(owners.holders())} | {f"iban-{a.id}": a.iban or "" for a in account_list}
     return render_template("settings/owners.html", accounts=account_list, values=values)
+
+
+@settings_bp.route("/price-sources", methods=["GET", "POST"])
+def price_sources():
+    """The sites where ISINs are looked up and prices read (F19): which ones, in which order."""
+    if request.method == "POST":
+        rows = instrument_sources.settings_rows()
+        positions = {r["key"]: request.form.get(f"order-{r['key']}", type=int) or r["position"] for r in rows}
+        order = sorted(positions, key=lambda key: (positions[key], instrument_sources.DEFAULT_ORDER.index(key)))
+        instrument_sources.save(order, {r["key"] for r in rows if request.form.get(f"on-{r['key']}")})
+        flash(_("Fonti dei prezzi salvate."), "success")
+        return redirect(url_for("settings.price_sources"))
+    return render_template("settings/price_sources.html", rows=instrument_sources.settings_rows(),
+                           online=current_settings()["prices_online"])

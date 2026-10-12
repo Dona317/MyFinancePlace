@@ -22,6 +22,7 @@ portfolio_bp = APIBlueprint(
 
 
 SOURCE_LABELS = {"auto": _l("Automatica"), "yahoo": "Yahoo Finance", "stooq": "Stooq", "coingecko": "CoinGecko",
+                 "justetf": "justETF", "borsaitaliana": "Borsa Italiana", "morningstar": "Morningstar",
                  "manual": _l("Solo a mano")}
 
 
@@ -161,11 +162,11 @@ def lookup():
     if not current_settings()["prices_online"]:
         return jsonify({"error": _("La ricerca usa internet: accendila in Impostazioni → Dati da internet."),
                         "results": []}), 403
-    try:
-        found = price_feed.lookup(request.args.get("q", "")[:60])
-    except (OSError, ValueError, KeyError, TypeError) as exc:
-        return jsonify({"error": _("Ricerca non riuscita: %(error)s", error=exc), "results": []}), 502
-    return jsonify({"results": [c.as_dict() for c in found[:8]]})
+    found, errors = price_feed.search(request.args.get("q", "")[:60])
+    if not found and errors:
+        return jsonify({"error": _("Ricerca non riuscita: %(error)s", error=" · ".join(errors)), "results": []}), 502
+    return jsonify({"results": [c.as_dict() | {"source_name": SOURCE_LABELS.get(c.source, c.source)} for c in found[:10]],
+                    "errors": errors})
 
 
 @portfolio_bp.route("/<int:holding_id>/history", methods=["GET", "POST"])
