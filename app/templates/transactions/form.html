@@ -191,10 +191,9 @@
             <input type="text" inputmode="decimal" id="f-fee" name="fee_amount" class="form-control" value="{{ v.fee_amount }}" autocomplete="off" placeholder="0,00" aria-label="{{ _('Commissione') }}" />
             <span class="text-xs text-muted" id="fee-hint" data-rule="{{ _('calcolata con le regole del conto: puoi correggerla') }}" data-manual="{{ _('nessuna regola sul conto: scrivila a mano, se c’è') }}"></span>
           </div>
-          <label class="d-flex align-center gap-8 text-sm mt-8"><input type="checkbox" name="update_holding" class="check" {{ 'checked' if v.update_holding }} />
-            {{ _('Aggiorna quantità e prezzo medio della posizione') }}</label>
+          <p class="form-hint mt-8">{{ _('Quantità e prezzo medio della posizione si ricalcolano dalle sue operazioni.') }}</p>
           {% else %}
-          <p class="form-hint">{{ _('Commissione e posizione si aggiornano solo quando la registri: qui cambi solo i dati dell’operazione.') }}</p>
+          <p class="form-hint">{{ _('La commissione si registra solo con una nuova operazione; quantità e prezzo medio della posizione si ricalcolano anche quando modifichi questa.') }}</p>
           {% endif %}
         </fieldset>
         {% endif %}

@@ -10,7 +10,7 @@ from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
 from app.schemas.transaction import RECURRENCES
-from app.services import broker, display, money, splits
+from app.services import broker, display, money, portfolio_ops, splits, wealth
 from app.services import currency as currency_service
 from app.services.ai_classification import AI_TAG
 from app.services.parsing import to_decimal, valid_amount
@@ -91,9 +91,11 @@ def after_trade(tx: Transaction) -> list[Transaction]:
         account_id = tx.account_id or tx.counter_account_id
         created.append(broker.fee_transaction(tx, fee, db.session.get(Account, account_id) if account_id else None))
         db.session.add(created[-1])
-    if tx.holding_id and tx.units is not None and "update_holding" in request.form:
+    if tx.holding_id and tx.units is not None:  # the position follows its operations (F19)
         holding = db.session.get(Holding, tx.holding_id)
-        broker.apply_trade(holding, tx.units, tx.unit_price, fee if fee and tx.units > 0 else Decimal(0), tx.date)
+        db.session.flush()
+        portfolio_ops.recompute(holding)
+        wealth.record_price(holding, tx.unit_price, tx.date)
     return created
 
 
@@ -147,11 +149,10 @@ def form_values(tx: Transaction | None = None) -> dict:
             "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
             "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount")} | {
             "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows(),
-            "record_fee": "record_fee" in form, "update_holding": "update_holding" in form}
+            "record_fee": "record_fee" in form}
     if tx is None:
         return {"currency": "EUR", "is_recurring": False, "transfer": False, "splits": [],
-                "account_id": request.args.get("account", ""), "trade_side": "buy", "record_fee": True,
-                "update_holding": True}
+                "account_id": request.args.get("account", ""), "trade_side": "buy", "record_fee": True}
     sign = "-" if tx.type == "expense" else ""
     return {
         "transfer": tx.type == "transfer", "date": tx.date.isoformat() if tx.date else "",

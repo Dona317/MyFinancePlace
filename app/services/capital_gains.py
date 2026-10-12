@@ -134,9 +134,14 @@ def realized(until: int | None = None) -> tuple[list[Sale], dict[str, Container]
         holding = holdings.get(tx.holding_id)
         if holding is None or (until is not None and tx.date.year > until):
             continue
-        if holding.id not in positions:  # what was held before the first recorded trade
-            before = max(Decimal(holding.quantity or 0) - recorded[holding.id], Decimal(0))
-            positions[holding.id] = [before, before * Decimal(holding.avg_price or 0), before > 0]
+        if holding.id not in positions:  # what was held before the first recorded trade: its opening position (F19)
+            if holding.opening_quantity is not None:
+                before = Decimal(holding.opening_quantity)
+                price = Decimal(holding.opening_price if holding.opening_price is not None else holding.avg_price or 0)
+            else:
+                before = max(Decimal(holding.quantity or 0) - recorded[holding.id], Decimal(0))
+                price = Decimal(holding.avg_price or 0)
+            positions[holding.id] = [before, before * price, before > 0]
         quantity, cost, estimated = positions[holding.id]
         units, price, fee = Decimal(tx.units), Decimal(tx.unit_price), fees.get(tx.id, Decimal(0))
         account = tx.account if tx.account is not None else tx.counter_account

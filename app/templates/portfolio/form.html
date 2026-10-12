@@ -35,10 +35,10 @@
                     hint=_("Da quando conta nello stato patrimoniale dei mesi passati.")) }}
         </div>
         <div class="grid-2">
-          {{ f.number(values, 'quantity', _('Quantità'), h.quantity, required=true,
-                      hint=_('Per conti deposito, fondi pensione e immobili: 1')) }}
-          {{ f.number(values, 'avg_price', _("Prezzo medio d'acquisto (€)"), h.avg_price, required=true, placeholder='0,00',
-                      hint=_('Per unità. Per un conto deposito: il capitale versato.')) }}
+          {{ f.number(values, 'quantity', _('Quantità posseduta (posizione iniziale)'), h.opening_quantity if h.opening_quantity is not none else h.quantity, required=true,
+                      hint=_('Quello che avevi prima delle operazioni registrate qui (0 se le registri tutte). Per conti deposito, fondi pensione e immobili: 1; per le obbligazioni il nominale.')) }}
+          {{ f.number(values, 'avg_price', _("Prezzo medio d'acquisto (€)"), h.opening_price if h.opening_price is not none else h.avg_price, required=true, placeholder='0,00',
+                      hint=_('Della posizione iniziale, per unità. Per un conto deposito: il capitale versato.')) }}
         </div>
         {{ f.number(values, 'current_price', _('Prezzo attuale (€)'), h.current_price, placeholder=_('uguale al prezzo di acquisto'),
                     hint=_("Aggiornalo quando vuoi (anche tutti insieme da «Aggiorna prezzi»): vuoto = vale quanto l'hai pagato.")) }}

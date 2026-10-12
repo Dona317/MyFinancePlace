@@ -30,7 +30,7 @@ def test_commission_rule():
 def _trade(client, account, holding, **changes):
     data = {"date": "2026-09-12", "description": "Acquisto VWCE", "amount": "", "currency": "EUR",
             "account_id": str(account.id), "holding_id": str(holding.id), "trade_side": "buy", "units": "10",
-            "unit_price": "120", "fee_amount": "5,30", "record_fee": "on", "update_holding": "on"}
+            "unit_price": "120", "fee_amount": "5,30", "record_fee": "on"}
     data.update(changes)
     return client.post("/transactions/new", data={k: v for k, v in data.items() if v is not None})
 
@@ -70,10 +70,10 @@ def test_a_sale_arrives_on_the_broker_account(client, db):
 
 def test_everything_stays_optional(client, db):
     directa, etf = _setup(db)
-    _trade(client, directa, etf, record_fee=None, update_holding=None, fee_amount="")
-    assert Transaction.query.count() == 1
+    _trade(client, directa, etf, record_fee=None, fee_amount="")
+    assert Transaction.query.count() == 1  # no commission saved
     db.session.refresh(etf)
-    assert etf.quantity == 10
+    assert etf.quantity > 10  # the position always follows its operations (F19)
     # a plain transaction linked to the holding, with no units: as before (a dividend, a manual purchase)
     client.post("/transactions/new", data={"date": "2026-09-20", "description": "Dividendo", "amount": "12",
                                            "currency": "EUR", "holding_id": str(etf.id)})
@@ -88,7 +88,7 @@ def test_invalid_units_are_refused_and_editing_does_not_repeat_the_effects(clien
     _trade(client, directa, etf)
     trade = Transaction.query.filter_by(description="Acquisto VWCE").one()
     page = client.get(f"/transactions/{trade.id}/edit").get_data(as_text=True)
-    assert 'value="10"' in page and "si aggiornano solo quando la registri" in page
+    assert 'value="10"' in page and "si ricalcolano anche quando modifichi questa" in page
     client.post(f"/transactions/{trade.id}/edit", data={"date": "2026-09-12", "description": "Acquisto VWCE (PAC)", "amount": "",
                                                         "currency": "EUR", "account_id": str(directa.id), "holding_id": str(etf.id),
                                                         "trade_side": "buy", "units": "10", "unit_price": "121"})

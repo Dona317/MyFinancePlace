@@ -7,9 +7,10 @@ from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
+from app.models.account import Account
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import display, price_feed, wealth
+from app.services import accounts, broker, display, portfolio_ops, price_feed, wealth
 from app.services.i18n import _l
 from app.services.ui_settings import current_settings
 
@@ -66,6 +67,11 @@ def _holding_from_form(holding: Holding) -> Holding:
         raise ValueError(_("Aliquota sulle plusvalenze: indica una percentuale tra 0 e 100 (es. 12,5)."))
     holding.tax_rate = rate
     holding.abroad = "abroad" in request.form
+    # quantity and average price typed here are the opening position: the operations recorded move it from there
+    holding.opening_quantity, holding.opening_price = holding.quantity, holding.avg_price
+    holding.opening_date = holding.purchase_date
+    if holding.id is not None:
+        portfolio_ops.recompute(holding)
     return holding
 
 
@@ -99,6 +105,57 @@ def new():
         return save_form(Holding(), _holding_from_form, _render_form,
                          lambda h: _("Posizione «%(name)s» aggiunta.", name=h.name), lambda h: url_for("portfolio.index"))
     return _render_form(None, {})
+
+
+@portfolio_bp.route("/<int:holding_id>")
+def detail(holding_id):
+    """One holding: its value and returns, its price, its operations."""
+    holding = db.get_or_404(Holding, holding_id)
+    points = wealth.price_history(holding)
+    return render_template("portfolio/detail.html", holding=holding, operations=portfolio_ops.operations(holding),
+                           perf=portfolio_ops.performance([holding]), kinds=portfolio_ops.KINDS,
+                           kind_of=portfolio_ops.kind_of,
+                           chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})
+
+
+def _operation_from_form() -> portfolio_ops.Operation:
+    kind = form_choice("kind", _("Operazione"), portfolio_ops.KINDS)
+    account_id = request.form.get("account_id", type=int)
+    on = form_date("on", _("Data"), required=True)
+    if on > date.today():
+        raise ValueError(_("La data non può essere nel futuro."))
+    trade = kind in ("buy", "sell")
+    return portfolio_ops.Operation(
+        kind, on, db.session.get(Account, account_id) if account_id else None,
+        units=form_decimal("units", _("Quote")) if trade else None,
+        price=form_decimal("price", _("Prezzo per quota")) if trade else None,
+        amount=None if trade else form_decimal("amount", _("Importo")),
+        fee=form_decimal("fee", _("Commissione")) if trade else None,
+        notes=form_text("notes", _("Note")))
+
+
+@portfolio_bp.route("/<int:holding_id>/operation", methods=["GET", "POST"])
+def operation(holding_id):
+    """A purchase, sale, dividend, coupon, commission or tax of the holding, saved as transactions."""
+    holding = db.get_or_404(Holding, holding_id)
+    values = {}
+    if request.method == "POST":
+        try:
+            op = _operation_from_form()
+            created = portfolio_ops.record(holding, op)
+            db.session.commit()
+        except ValueError as exc:
+            db.session.rollback()
+            flash(str(exc), "error")
+            values = request.form
+        else:
+            flash(_("%(kind)s registrata: %(description)s.", kind=portfolio_ops.KINDS[op.kind], description=created[0].description),
+                  "success")
+            return redirect(url_for("portfolio.detail", holding_id=holding.id))
+    active = accounts.active()
+    return render_template("portfolio/operation.html", holding=holding, values=values, today=date.today(),
+                           kinds=portfolio_ops.KINDS, accounts=[(a.id, a.name) for a in active],
+                           fee_rules=broker.rules(active)), 400 if values else 200
 
 
 @portfolio_bp.route("/<int:holding_id>/edit", methods=["GET", "POST"])

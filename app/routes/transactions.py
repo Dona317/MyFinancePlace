@@ -15,7 +15,19 @@ from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import back_to, form_date, form_decimal, form_ids, form_text, safe_next
 from app.routes.transactions_form import after_trade, form_values, linked_id, tx_from_form, type_from
-from app.services import accounts, ai_classification, ai_extraction, bank_import, broker, category_rules, display, duplicates, merchant, undo
+from app.services import (
+    accounts,
+    ai_classification,
+    ai_extraction,
+    bank_import,
+    broker,
+    category_rules,
+    display,
+    duplicates,
+    merchant,
+    portfolio_ops,
+    undo,
+)
 from app.services import categories as category_service
 from app.services import currency as currency_service
 from app.services.ai_classification import AI_TAG
@@ -116,6 +128,7 @@ def new():
     if request.method == "POST":
         try:
             tx = tx_from_form(Transaction())
+            portfolio_ops.ensure_opening(tx.holding_id if tx.units is not None else None)
             db.session.add(tx)
             db.session.flush()
             extra = after_trade(tx)
@@ -206,8 +219,11 @@ def _render_form(tx: Transaction | None):
 def edit(tx_id):
     tx = db.get_or_404(Transaction, tx_id)
     if request.method == "POST":
+        moved = portfolio_ops.holdings_of([tx.id])  # the holding it moved before the change
         try:
             tx_from_form(tx)
+            db.session.flush()
+            portfolio_ops.recompute_ids(moved | portfolio_ops.holdings_of([tx.id]))
         except ValueError as exc:
             db.session.rollback()  # discard the half-applied changes
             flash(str(exc), "error")
@@ -223,7 +239,10 @@ def edit(tx_id):
 def delete(tx_id):
     tx = db.get_or_404(Transaction, tx_id)
     undo.remember_deleted([tx])
+    moved = portfolio_ops.holdings_of([tx.id])
     db.session.delete(tx)
+    db.session.flush()
+    portfolio_ops.recompute_ids(moved)
     db.session.commit()
     flash(_("Transazione «%(description)s» eliminata.", description=tx.description), "success")
     return back_to("transactions.index")
@@ -234,7 +253,9 @@ def delete_selected():
     ids = form_ids()
     if ids:
         undo.remember_deleted(Transaction.query.filter(Transaction.id.in_(ids)).all())
+    moved = portfolio_ops.holdings_of(ids)
     deleted = Transaction.query.filter(Transaction.id.in_(ids)).delete(synchronize_session=False) if ids else 0
+    portfolio_ops.recompute_ids(moved)
     db.session.commit()
     flash(_("%(deleted)s transazioni eliminate.", deleted=deleted) if deleted else _("Nessuna transazione selezionata."),
           "success" if deleted else "warning")

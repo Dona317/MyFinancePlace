@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-12 11:59+0000\n"
+"POT-Creation-Date: 2026-10-12 12:15+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -199,6 +199,10 @@ msgid "%(field)s: «%(chosen)s» non contiene %(what)s, uso «%(used)s»."
 msgstr "%(field)s: “%(chosen)s” does not contain %(what)s, using “%(used)s”."
 
 #, python-format
+msgid "%(kind)s registrata: %(description)s."
+msgstr "%(kind)s recorded: %(description)s."
+
+#, python-format
 msgid "%(label)s: campo obbligatorio."
 msgstr "%(label)s: required field."
 
@@ -359,6 +363,10 @@ msgstr "%(shown)s of %(total)s"
 #, python-format
 msgid "%(size)s KB"
 msgstr "%(size)s KB"
+
+#, python-format
+msgid "%(units)s quote × %(price)s"
+msgstr "%(units)s units × %(price)s"
 
 #, python-format
 msgid "%(updated)s transazioni aggiornate."
@@ -582,9 +590,6 @@ msgstr "Update from the internet"
 
 msgid "Aggiorna prezzi"
 msgstr "Update prices"
-
-msgid "Aggiorna quantità e prezzo medio della posizione"
-msgstr "Update the holding's quantity and average price"
 
 msgid "Aggiornalo quando vuoi (anche tutti insieme da «Aggiorna prezzi»): vuoto = vale quanto l'hai pagato."
 msgstr "Update it whenever you like (also all at once from «Update prices»): empty = worth what you paid."
@@ -1128,6 +1133,9 @@ msgstr "CSV, JSON, PDF and tax export"
 msgid "CU / 730"
 msgstr "CU / 730"
 
+msgid "Calcolata dalla regola del conto, se ne ha una; correggila se serve."
+msgstr "Computed from the account's rule, if it has one; correct it if needed."
+
 msgid "Cambi presenti"
 msgstr "Rates available"
 
@@ -1279,6 +1287,9 @@ msgstr "Bank description"
 msgid "Causale originale della banca"
 msgstr "Original bank description"
 
+msgid "Cedola"
+msgstr "Coupon"
+
 msgid "Cerca"
 msgstr "Search"
 
@@ -1417,12 +1428,12 @@ msgstr "How you already categorized similar transactions: the AI model was not a
 msgid "Commissione"
 msgstr "Commission"
 
+msgid "Commissione (€)"
+msgstr "Commission (€)"
+
 #, python-format
 msgid "Commissione di %(amount)s registrata come spesa."
 msgstr "Commission of %(amount)s recorded as an expense."
-
-msgid "Commissione e posizione si aggiornano solo quando la registri: qui cambi solo i dati dell’operazione."
-msgstr "Commission and holding are updated only when the trade is recorded: here you only change the trade's data."
 
 msgid "Commissione fissa"
 msgstr "Fixed commission"
@@ -1881,6 +1892,9 @@ msgstr ""
 "Type column, negative amounts become expenses and positive ones income. Accepted dates: YYYY-MM-DD or DD/MM/YYYY (in "
 "Excel files also date cells)."
 
+msgid "Della posizione iniziale, per unità. Per un conto deposito: il capitale versato."
+msgstr "Of the opening position, per unit. For a deposit account: the capital paid in."
+
 msgid "Derivato"
 msgstr "Derivative"
 
@@ -1928,6 +1942,9 @@ msgstr "Split by Type"
 
 msgid "Dividendi (anno)"
 msgstr "Dividends (year)"
+
+msgid "Dividendo"
+msgstr "Dividend"
 
 msgid "Documenti"
 msgstr "Documents"
@@ -2492,8 +2509,15 @@ msgstr "Chart by category"
 msgid "Guadagno"
 msgstr "Gain"
 
+msgid "Guadagno non realizzato"
+msgstr "Unrealized gain"
+
 msgid "Ha delle sottocategorie: resta principale"
 msgstr "It has subcategories: it stays a main category"
+
+#, python-format
+msgid "Hai %(units)s quote, prezzo medio %(price)s, ultimo prezzo %(last)s."
+msgstr "You hold %(units)s units, average price %(price)s, latest price %(last)s."
 
 msgid "Hanno la precedenza sulle regole predefinite. «Imparata» = nata quando hai corretto la categoria di una transazione"
 msgstr "They take precedence over the default rules. «Learned» = created when you corrected the category of a transaction"
@@ -2785,6 +2809,9 @@ msgstr "Amount to add to %(name)s"
 msgid "Importo della parte"
 msgstr "Amount of the part"
 
+msgid "Importo netto (€)"
+msgstr "Net amount (€)"
+
 msgid "Importo obiettivo"
 msgstr "Target amount"
 
@@ -2880,6 +2907,12 @@ msgstr "In use"
 
 msgid "Incasso netto"
 msgstr "Net proceeds"
+
+msgid "Indica l'importo, maggiore di zero."
+msgstr "Enter the amount, above zero."
+
+msgid "Indica quote e prezzo per quota, entrambi maggiori di zero."
+msgstr "Enter units and price per unit, both above zero."
 
 msgid "Indicatori"
 msgstr "Indicators"
@@ -3034,8 +3067,21 @@ msgstr "The Anthropic API key has no access to this model (LLM_MODEL)."
 msgid "La classificazione AI non è configurata: scegli un modello in Impostazioni → Modelli AI."
 msgstr "AI classification is not set up: choose a model in Settings → AI Models."
 
+msgid "La commissione non può essere negativa."
+msgstr "The commission cannot be negative."
+
+msgid ""
+"La commissione si registra solo con una nuova operazione; quantità e prezzo medio della posizione si ricalcolano "
+"anche quando modifichi questa."
+msgstr ""
+"The commission is recorded only with a new operation; the holding's quantity and average price are recomputed when "
+"you edit this one too."
+
 msgid "La data dei prezzi non può essere nel futuro."
 msgstr "The date of the prices cannot be in the future."
+
+msgid "La data non può essere nel futuro."
+msgstr "The date cannot be in the future."
 
 #, python-format
 msgid "La finestra ne usa quindi solo %(n)s."
@@ -3457,6 +3503,9 @@ msgstr "Edit or stop"
 msgid "Modifica obiettivo"
 msgstr "Edit goal"
 
+msgid "Modifica operazione"
+msgstr "Edit operation"
+
 msgid "Modifica polizza"
 msgstr "Edit policy"
 
@@ -3651,6 +3700,9 @@ msgstr "No snapshots to compare"
 msgid "Nessuna modifica applicata."
 msgstr "No changes applied."
 
+msgid "Nessuna operazione: aggiungi acquisti, vendite, dividendi e cedole con «Nuova operazione»."
+msgstr "No operations: add purchases, sales, dividends and coupons with «New operation»."
+
 msgid "Nessuna polizza attiva."
 msgstr "No active policies."
 
@@ -3833,6 +3885,10 @@ msgid "Non puoi eliminare il tuo stesso utente."
 msgstr "You cannot delete your own user."
 
 #, python-format
+msgid "Non puoi vendere più quote di quelle che hai (%(units)s)."
+msgstr "You cannot sell more units than you hold (%(units)s)."
+
+#, python-format
 msgid "Non riesco a scaricare i cambi della BCE (%(exc)s). Controlla la connessione o inseriscili a mano."
 msgstr "Cannot download the ECB rates (%(exc)s). Check the connection or enter them by hand."
 
@@ -3880,6 +3936,9 @@ msgstr "New Transaction"
 
 msgid "Nuova categoria"
 msgstr "New category"
+
+msgid "Nuova operazione"
+msgstr "New operation"
 
 msgid "Nuova password"
 msgstr "New password"
@@ -4034,11 +4093,17 @@ msgstr "More than 20%% above the average"
 msgid "Oltre l'importo: {amount}"
 msgstr "Over the amount: {amount}"
 
+msgid "Operazione"
+msgstr "Operation"
+
 msgid "Operazione in quote (facoltativa)"
 msgstr "Trade in units (optional)"
 
 msgid "Operazione: indica quote e prezzo per quota, entrambi maggiori di zero."
 msgstr "Trade: give units and price per unit, both greater than zero."
+
+msgid "Operazioni"
+msgstr "Operations"
 
 msgid "Oppure incolla più righe «data;prezzo»"
 msgstr "Or paste several «date;price» lines"
@@ -4168,9 +4233,6 @@ msgstr ""
 msgid "Per computer con poca memoria: leggono solo documenti di testo, non scansioni o foto"
 msgstr "For computers with little memory: they only read text documents, not scans or photos"
 
-msgid "Per conti deposito, fondi pensione e immobili: 1"
-msgstr "For savings accounts, pension funds and property: 1"
-
 #, python-format
 msgid "Per eliminare il cliente e il suo archivio scrivi «%(name)s»"
 msgstr "To delete the client and its archive type “%(name)s”"
@@ -4212,9 +4274,6 @@ msgstr ""
 
 msgid "Per un patrimonio netto corretto, tieni aggiornate queste tre fonti"
 msgstr "For a correct net worth, keep these three sources up to date"
-
-msgid "Per unità. Per un conto deposito: il capitale versato."
-msgstr "Per unit. For a savings account: the capital deposited."
 
 #, python-format
 msgid "Percentuale (%%)"
@@ -4303,6 +4362,10 @@ msgstr "Investment Portfolio"
 
 msgid "Portafoglio investimenti"
 msgstr "Investment portfolio"
+
+#, python-format
+msgid "Posizione iniziale: %(units)s quote a %(price)s%(when)s"
+msgstr "Opening position: %(units)s units at %(price)s%(when)s"
 
 #, python-format
 msgid "Posizione «%(name)s» aggiornata."
@@ -4532,14 +4595,33 @@ msgstr "How many students or children"
 msgid "Quantità"
 msgstr "Quantity"
 
+msgid "Quantità e prezzo medio della posizione si ricalcolano dalle sue operazioni."
+msgstr "The holding's quantity and average price are recomputed from its operations."
+
+msgid "Quantità e prezzo medio si ricalcolano da queste operazioni."
+msgstr "Quantity and average price are recomputed from these operations."
+
+msgid "Quantità posseduta (posizione iniziale)"
+msgstr "Quantity held (opening position)"
+
 msgid "Quanto cambia da un mese all’altro (coefficiente di variazione)"
 msgstr "How much it changes from one month to the next (coefficient of variation)"
 
 msgid "Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata."
 msgstr "How much of each month's income is left. Choose the years to compare: the choice is remembered."
 
+msgid "Quanto è arrivato sul conto (dividendo, cedola) o quanto è uscito (commissione, imposta)."
+msgstr "What reached the account (dividend, coupon) or what left it (commission, tax)."
+
 msgid "Quello che avanza, o che sfori, passa al mese dopo"
 msgstr "What is left, or overspent, moves to the next month"
+
+msgid ""
+"Quello che avevi prima delle operazioni registrate qui (0 se le registri tutte). Per conti deposito, fondi pensione e"
+" immobili: 1; per le obbligazioni il nominale."
+msgstr ""
+"What you held before the operations recorded here (0 if you record them all). For deposit accounts, pension funds and"
+" property: 1; for bonds the face value."
 
 msgid "Quest'anno"
 msgstr "This year"
@@ -4606,6 +4688,9 @@ msgstr "Remaining Installments"
 msgid "Real"
 msgstr "Real"
 
+msgid "Realizzato e incassato"
+msgstr "Realized and received"
+
 msgid "Regime amministrato: il broker trattiene le imposte e tiene le minusvalenze"
 msgstr "Administered regime: the broker withholds the taxes and keeps the losses"
 
@@ -4654,6 +4739,9 @@ msgstr "Reset password"
 
 msgid "Rendiconto Finanziario"
 msgstr "Cash Flow Statement"
+
+msgid "Rendimento annuo"
+msgstr "Yearly return"
 
 msgid "Renminbi"
 msgstr "Renminbi"
@@ -4971,6 +5059,9 @@ msgstr "Save rate"
 
 msgid "Salva collegamenti"
 msgstr "Save links"
+
+msgid "Salva operazione"
+msgstr "Save operation"
 
 msgid "Salva prezzi"
 msgstr "Save prices"
@@ -5459,6 +5550,9 @@ msgstr "Type of %(name)s"
 
 msgid "Tipo di grafico"
 msgstr "Chart type"
+
+msgid "Tipo di operazione sconosciuto."
+msgstr "Unknown kind of operation."
 
 msgid "Tipo di polizza"
 msgstr "Policy type"
@@ -5999,6 +6093,10 @@ msgstr "at the latest prices"
 msgid "al %(date)s"
 msgstr "on %(date)s"
 
+#, python-format
+msgid "al %(day)s"
+msgstr "on %(day)s"
+
 msgid "al cambio"
 msgstr "at the exchange rate"
 
@@ -6305,6 +6403,10 @@ msgstr "months"
 msgid "mesi completi (la finestra mobile) con il metodo scelto."
 msgstr "full months (the rolling window) with the chosen method."
 
+#, python-format
+msgid "moltiplicatore %(value)s"
+msgstr "multiplier %(value)s"
+
 msgid "movimenti"
 msgstr "movements"
 
@@ -6393,11 +6495,18 @@ msgstr "most accurate"
 msgid "plusvalenze annullate da minus precedenti"
 msgstr "gains cancelled by earlier losses"
 
+msgid "ponderato per il denaro (XIRR), dalle operazioni"
+msgstr "money-weighted (XIRR), from the operations"
+
 msgid "predefinito"
 msgstr "default"
 
 msgid "prezzo attuale"
 msgstr "current price"
+
+#, python-format
+msgid "prezzo del %(day)s"
+msgstr "price of %(day)s"
 
 msgid "prezzo di acquisto"
 msgstr "purchase price"
@@ -6405,6 +6514,10 @@ msgstr "purchase price"
 #, python-format
 msgid "prezzo in %(code)s: manca il cambio (Impostazioni → Valute)"
 msgstr "price in %(code)s: the exchange rate is missing (Settings → Currencies)"
+
+#, python-format
+msgid "prezzo medio %(price)s"
+msgstr "average price %(price)s"
 
 msgid "prima"
 msgstr "before"
@@ -6420,6 +6533,10 @@ msgstr "any file with Date, Description and Amount columns (or Income/Expenses, 
 
 msgid "quantità × prezzo medio"
 msgstr "quantity × average price"
+
+#, python-format
+msgid "quotato in %(code)s"
+msgstr "quoted in %(code)s"
 
 msgid "qwen2.5vl:3b"
 msgstr "qwen2.5vl:3b"
@@ -6564,6 +6681,10 @@ msgstr "expenses"
 
 msgid "valore a fine anno"
 msgstr "value at year end"
+
+#, python-format
+msgid "vendite %(sales)s · dividendi e cedole %(income)s"
+msgstr "sales %(sales)s · dividends and coupons %(income)s"
 
 #, python-format
 msgid "vendite in guadagno nel %(year)s"

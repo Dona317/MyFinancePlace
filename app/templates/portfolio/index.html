@@ -98,7 +98,7 @@
         {% for h in holdings %}
         <tr>
           <td>
-            <div class="cell-title">{{ h.name }}</div>
+            <div class="cell-title"><a href="{{ url_for('portfolio.detail', holding_id=h.id) }}">{{ h.name }}</a></div>
             {% if h.ticker %}<div class="text-xs text-muted">{{ h.ticker }}</div>{% endif %}
           </td>
           <td><span class="badge badge-primary">{{ h.asset_class|tr }}</span></td>

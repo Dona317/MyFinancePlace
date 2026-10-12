@@ -15,7 +15,7 @@ from sqlalchemy import insert
 
 from app.extensions import db
 from app.models.transaction import Transaction, TransactionSplit
-from app.services import settings_store
+from app.services import portfolio_ops, settings_store
 from app.services.backup import _dump, _row
 
 UNDO_KEY, REDO_KEY = "undo.last", "undo.redo"
@@ -70,8 +70,11 @@ def _apply(step: dict) -> dict:
     if step["kind"] == "created":
         transactions = Transaction.query.filter(Transaction.id.in_(step["ids"])).all()
         opposite = {"kind": "deleted", "rows": _snapshot(transactions)}
+        moved = portfolio_ops.holdings_of(step["ids"])
         for tx in transactions:
             db.session.delete(tx)
+        db.session.flush()
+        portfolio_ops.recompute_ids(moved)
     else:
         ids = []
         for row in step["rows"]:
@@ -85,6 +88,7 @@ def _apply(step: dict) -> dict:
                 db.session.execute(insert(TransactionSplit).values(**split))
             ids.append(new_id)
         opposite = {"kind": "created", "ids": ids}
+        portfolio_ops.recompute_ids(portfolio_ops.holdings_of(ids))  # trades put back move their holding again
     db.session.commit()
     return opposite | {"label": step.get("label"), "count": step.get("count", 0)}
 
