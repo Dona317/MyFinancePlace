@@ -270,3 +270,6 @@ def delete_price(point_id):
 def delete(holding_id):
     holding = db.get_or_404(Holding, holding_id)
     return delete_and_redirect(holding, _("Posizione «%(name)s» eliminata.", name=holding.name), url_for("portfolio.index"))
+
+
+from app.routes import portfolio_import  # noqa: E402,F401 - registers the import and link routes on portfolio_bp

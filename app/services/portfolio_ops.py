@@ -128,6 +128,7 @@ class Operation:
     amount: Decimal | None = None      # dividend, coupon, fee, tax: the money (net, in euro)
     fee: Decimal | None = None         # the broker's commission of a purchase or sale
     notes: str | None = None
+    import_ref: str | None = None      # the row of a broker statement it was read from (never imported twice)
 
 
 def _description(holding: Holding, op: Operation) -> str:
@@ -153,7 +154,7 @@ def record(holding: Holding, op: Operation) -> list[Transaction]:
         account_id = op.account.id if op.account else None
         trade = Transaction(date=op.on, description=_description(holding, op), amount=money.cents(op.units * op.price),
                             currency="EUR", type="transfer", category="Investimenti", holding_id=holding.id,
-                            units=units, unit_price=op.price, notes=op.notes, tags=[],
+                            units=units, unit_price=op.price, notes=op.notes, tags=[], import_ref=op.import_ref,
                             account_id=account_id if units > 0 else None,
                             counter_account_id=account_id if units < 0 else None)
         created = [trade]

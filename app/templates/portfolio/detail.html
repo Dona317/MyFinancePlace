@@ -8,6 +8,7 @@
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.edit', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
   <a href="{{ url_for('portfolio.history', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-graph-up"></i> {{ _('Storico prezzi') }}</a>
+  <a href="{{ url_for('portfolio.link', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-link"></i> {{ _('Collega movimenti del conto') }}</a>
   <a href="{{ url_for('portfolio.operation', holding_id=holding.id) }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuova operazione') }}</a>
 {% endblock %}
 

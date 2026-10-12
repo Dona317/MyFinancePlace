@@ -121,11 +121,16 @@ def _cell_text(value) -> str:
 
 
 def _header_index(rows: list[list[str]]) -> int:
-    """The header row: the first one filled almost as much as the widest row (skips titles and preambles)."""
+    """The header row: the first one filled almost as much as the widest row (skips titles and preambles). When that
+    is already a movement, the row above it is the header if it is half filled (Degiro leaves the currency columns
+    without a title)."""
     scan = rows[:HEADER_SCAN_ROWS]
-    widest = max((sum(1 for c in row if c) for row in scan), default=0)
+    filled = [sum(1 for c in row if c) for row in scan]
+    widest = max(filled, default=0)
     for index, row in enumerate(scan):
-        if sum(1 for c in row if c) >= max(2, widest * 0.8):
+        if filled[index] >= max(2, widest * 0.8):
+            if index and _is_data_row(row) and not _is_data_row(scan[index - 1]) and filled[index - 1] >= max(2, widest / 2):
+                return index - 1
             return index
     return 0
 

@@ -6,6 +6,7 @@ import re
 from decimal import Decimal
 
 from app.models.transaction import Transaction
+from app.models.wealth import Holding
 from app.services import duplicates, history_classifier, merchant, owners
 from app.services.parsing import clean_text, normalize, to_date, to_decimal, valid_amount
 
@@ -112,11 +113,23 @@ def _own_transfer(row: StatementRow, own: owners.Recognizer) -> None:
         row.type, row.category, row.counterparty = "transfer", "Giroconto", None
 
 
+def _held_isins() -> set[str]:
+    return {isin for (isin,) in Holding.query.with_entities(Holding.isin).filter(Holding.isin.isnot(None))}
+
+
+def _investment(row: StatementRow, isins: set[str]) -> None:
+    """A causale naming the ISIN of a holding is that holding's purchase or sale: it goes to «Investimenti», where
+    the holding's page offers to link it (portfolio «Collega movimenti del conto»)."""
+    text = f"{row.description} {row.details or ''}".upper()
+    if row.type != "transfer" and any(isin in text for isin in isins):
+        row.category = "Investimenti"
+
+
 def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
     """Assign type, category and import_ref, and flag rows that were already imported."""
     seen: dict[str, int] = {}
     history = history_classifier.index()  # read once for the whole statement
-    own = owners.Recognizer()
+    own, isins = owners.Recognizer(), _held_isins()
     for row in rows:
         if is_transfer(row.description, row.details):
             row.type, row.category = "transfer", "Giroconto"
@@ -126,6 +139,7 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
             # the merchant named in the causale, unless a column of the file already gave it
             row.counterparty = row.counterparty or merchant.extract(row.description, row.details)
         _own_transfer(row, own)
+        _investment(row, isins)
 
         base = fingerprint(row, 0, bank_key)
         occurrence = seen.get(base, 0)

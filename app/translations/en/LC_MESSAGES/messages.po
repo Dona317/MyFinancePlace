@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-12 12:15+0000\n"
+"POT-Creation-Date: 2026-10-12 12:31+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -102,6 +102,10 @@ msgid "%(count)s da confermare"
 msgstr "%(count)s to confirm"
 
 #, python-format
+msgid "%(count)s già presenti sono state ignorate."
+msgstr "%(count)s already present were skipped."
+
+#, python-format
 msgid "%(count)s già presenti sono stati ignorati."
 msgstr "%(count)s already present were skipped."
 
@@ -116,6 +120,10 @@ msgstr "%(count)s models installed"
 #, python-format
 msgid "%(count)s movimenti classificati con %(model)s: i suggerimenti sono evidenziati"
 msgstr "%(count)s movements classified with %(model)s: the suggestions are highlighted"
+
+#, python-format
+msgid "%(count)s movimenti collegati come operazioni di «%(name)s»."
+msgstr "%(count)s movements linked as operations of “%(name)s”."
 
 #, python-format
 msgid ""
@@ -147,6 +155,14 @@ msgstr ""
 "them."
 
 #, python-format
+msgid "%(count)s operazioni importate."
+msgstr "%(count)s operations imported."
+
+#, python-format
+msgid "%(count)s operazioni trovate"
+msgstr "%(count)s operations found"
+
+#, python-format
 msgid "%(count)s pagamenti, ultimo il %(last)s"
 msgstr "%(count)s payments, last on %(last)s"
 
@@ -161,6 +177,10 @@ msgstr "%(count)s installments"
 #, python-format
 msgid "%(count)s righe con data o importo non validi sono state scartate."
 msgstr "%(count)s rows with an invalid date or amount were discarded."
+
+#, python-format
+msgid "%(count)s righe ignorate (versamenti, dividendi o righe illeggibili)"
+msgstr "%(count)s rows skipped (deposits, dividends or unreadable rows)"
 
 #, python-format
 msgid "%(count)s suggerimenti"
@@ -570,6 +590,9 @@ msgstr "Accumulated"
 msgid "Acquisti (−) e vendite (+) di investimenti"
 msgstr "Purchases (−) and sales (+) of investments"
 
+msgid "Acquisti e vendite diventano operazioni dei titoli; i titoli che non hai ancora vengono creati."
+msgstr "Purchases and sales become operations of the holdings; holdings you don't have yet are created."
+
 msgid "Acquisto"
 msgstr "Purchase"
 
@@ -752,6 +775,13 @@ msgstr "Other banks:"
 msgid "Altri beni"
 msgstr "Other assets"
 
+msgid ""
+"Altri broker: un CSV o Excel con le colonne data, ISIN o ticker, nome, quantità e prezzo (facoltative: commissioni, "
+"tipo acquisto/vendita, controvalore)."
+msgstr ""
+"Other brokers: a CSV or Excel file with the columns date, ISIN or ticker, name, quantity and price (optional: fees, "
+"buy/sell, value)."
+
 msgid "Altro"
 msgstr "Other"
 
@@ -854,6 +884,9 @@ msgstr "Import Preview"
 msgid "Anteprima non valida o scaduta: carica di nuovo il file."
 msgstr "Preview invalid or expired: upload the file again."
 
+msgid "Anteprima operazioni del broker"
+msgstr "Broker operations preview"
+
 msgid "Anthropic Claude (cloud) — i documenti vengono inviati"
 msgstr "Anthropic Claude (cloud) — documents are sent"
 
@@ -931,6 +964,9 @@ msgstr "Current assets"
 
 msgid "Attività sportive dei ragazzi (5-18 anni)"
 msgstr "Sports for children (5-18)"
+
+msgid "Attività → Transazioni → Esporta (CSV)."
+msgstr "Activity → Transactions → Export (CSV)."
 
 msgid "Attività − Passività"
 msgstr "Assets − Liabilities"
@@ -1381,12 +1417,24 @@ msgstr "Clients"
 msgid "CoinGecko non risponde (%(exc)s)"
 msgstr "CoinGecko does not answer (%(exc)s)"
 
+msgid "Collega"
+msgstr "Link"
+
 #, python-format
 msgid "Collega al giroconto: %(tx)s"
 msgstr "Link to the transfer: %(tx)s"
 
+msgid "Collega i movimenti scelti"
+msgstr "Link the selected movements"
+
 msgid "Collega la loro categoria a una voce qui sotto, oppure cambia la categoria della spesa."
 msgstr "Link their category to an item below, or change the expense's category."
+
+msgid "Collega movimenti"
+msgstr "Link movements"
+
+msgid "Collega movimenti del conto"
+msgstr "Link account movements"
 
 msgid "Colonna Categoria"
 msgstr "Category column"
@@ -1446,6 +1494,9 @@ msgstr "Minimum commission"
 
 msgid "Commissione percentuale"
 msgstr "Percent commission"
+
+msgid "Commissione €"
+msgstr "Fee €"
 
 msgid "Commissioni del broker (facoltative)"
 msgstr "Broker commissions (optional)"
@@ -1621,6 +1672,9 @@ msgstr "Current account → Movements list → Export to Excel."
 
 msgid "Conto dei movimenti"
 msgstr "Account of the movements"
+
+msgid "Conto del broker"
+msgstr "Broker account"
 
 msgid "Conto deposito"
 msgstr "Savings account"
@@ -2243,6 +2297,9 @@ msgstr "Tax Export by Year"
 msgid "Estratto conto"
 msgstr "Bank statement"
 
+msgid "Estratto delle operazioni del broker"
+msgstr "Broker's statement of operations"
+
 msgid "Etichetta"
 msgstr "Label"
 
@@ -2295,6 +2352,9 @@ msgstr "File"
 
 msgid "File dei movimenti (Excel, CSV, PDF, OFX/QFX, QIF, CAMT.053 XML, TXT, Word, ODS/ODT, RTF, foto)"
 msgstr "Transactions file (Excel, CSV, PDF, OFX/QFX, QIF, CAMT.053 XML, TXT, Word, ODS/ODT, RTF, photo)"
+
+msgid "File del broker (CSV o Excel)"
+msgstr "Broker file (CSV or Excel)"
 
 msgid "File di backup"
 msgstr "Backup file"
@@ -2775,11 +2835,23 @@ msgstr "Import Bank Statement"
 msgid "Importa Transazioni"
 msgstr "Import Transactions"
 
+msgid "Importa dal broker"
+msgstr "Import from broker"
+
 msgid "Importa estratto conto"
 msgstr "Import bank statement"
 
+msgid "Importa la riga"
+msgstr "Import the row"
+
+msgid "Importa le operazioni scelte"
+msgstr "Import the selected operations"
+
 msgid "Importa le righe"
 msgstr "Import the lines"
+
+msgid "Importa operazioni dal broker"
+msgstr "Import operations from the broker"
 
 msgid "Importa un estratto conto o inserisci le transazioni di almeno un mese completo."
 msgstr "Import a bank statement or enter the transactions of at least one full month."
@@ -2910,6 +2982,10 @@ msgstr "Net proceeds"
 
 msgid "Indica l'importo, maggiore di zero."
 msgstr "Enter the amount, above zero."
+
+#, python-format
+msgid "Indica le quote o il prezzo per i movimenti del %(days)s."
+msgstr "Enter the units or the price for the movements of %(days)s."
 
 msgid "Indica quote e prezzo per quota, entrambi maggiori di zero."
 msgstr "Enter units and price per unit, both above zero."
@@ -3286,6 +3362,9 @@ msgstr "Turkish lira"
 msgid "Livellamento esponenziale con α = 2 / (N + 1): segue i cambiamenti più in fretta."
 msgstr "Exponential smoothing with α = 2 / (N + 1): follows changes faster."
 
+msgid "Lo stesso file importato due volte non crea doppioni."
+msgstr "Importing the same file twice creates no duplicates."
+
 msgid ""
 "Lo stesso mese dell'anno prima, riscalato sul livello degli ultimi N mesi: coglie bollette invernali, vacanze estive,"
 " tredicesima. Serve almeno un anno di storico."
@@ -3557,6 +3636,13 @@ msgstr "Show all categories (%(count)s)"
 msgid "Mostra tutti"
 msgstr "Show all"
 
+msgid ""
+"Movimenti del conto corrente che sono acquisti o vendite di questo titolo: spunta, indica le quote o il prezzo e "
+"diventano sue operazioni. Un'uscita è un acquisto, un'entrata una vendita."
+msgstr ""
+"Current account movements that are purchases or sales of this holding: tick them, enter the units or the price and "
+"they become its operations. Money out is a purchase, money in a sale."
+
 #, python-format
 msgid "Movimenti fino al %(date)s"
 msgstr "Movements up to %(date)s"
@@ -3642,6 +3728,13 @@ msgstr "No installed model can read this file"
 msgid "Nessun movimento da classificare."
 msgstr "No movements to classify."
 
+msgid ""
+"Nessun movimento da collegare: servono movimenti in categoria Investimenti, o con ISIN, ticker o nome del titolo "
+"nella descrizione."
+msgstr ""
+"No movements to link: they must be in the Investments category, or name the holding's ISIN, ticker or name in the "
+"description."
+
 msgid "Nessun movimento su questo conto. Assegnalo alle transazioni o scegli il conto quando importi un estratto."
 msgstr "No movements on this account. Assign it to transactions or choose the account when you import a statement."
 
@@ -3699,6 +3792,9 @@ msgstr "No snapshots to compare"
 
 msgid "Nessuna modifica applicata."
 msgstr "No changes applied."
+
+msgid "Nessuna operazione di compravendita trovata nel file."
+msgstr "No purchases or sales found in the file."
 
 msgid "Nessuna operazione: aggiungi acquisti, vendite, dividendi e cedole con «Nuova operazione»."
 msgstr "No operations: add purchases, sales, dividends and coupons with «New operation»."
@@ -3869,6 +3965,10 @@ msgstr "You have no access to this section."
 msgid "Non hai accesso a «%(name)s»"
 msgstr "You have no access to «%(name)s»"
 
+#, python-format
+msgid "Non importate: %(rows)s"
+msgstr "Not imported: %(rows)s"
+
 msgid "Non installato"
 msgstr "Not installed"
 
@@ -3894,6 +3994,12 @@ msgstr "Cannot download the ECB rates (%(exc)s). Check the connection or enter t
 
 msgid "Non sono duplicati"
 msgstr "Not duplicates"
+
+msgid "Non trovo il prezzo né il controvalore delle operazioni."
+msgstr "Cannot find the price or the value of the operations."
+
+msgid "Non trovo le colonne delle operazioni: servono almeno data, quantità e titolo (ISIN, ticker o nome)."
+msgstr "Cannot find the operation columns: at least date, quantity and instrument (ISIN, ticker or name) are needed."
 
 msgid "Non trovo le colonne di data e importo: sceglile a mano."
 msgstr "I cannot find the date and amount columns: choose them yourself."
@@ -3966,6 +4072,10 @@ msgstr "New transaction"
 msgid "Nuova transazione: descrizione (premi «n»)"
 msgstr "New transaction: description (press «n»)"
 
+#, python-format
+msgid "Nuovi titoli: %(names)s."
+msgstr "New holdings: %(names)s."
+
 msgid "Nuovo"
 msgstr "New"
 
@@ -3996,6 +4106,10 @@ msgstr "New price (€)"
 #, python-format
 msgid "Nuovo prezzo di %(name)s"
 msgstr "New price of %(name)s"
+
+#, python-format
+msgid "Nuovo titolo: %(name)s"
+msgstr "New holding: %(name)s"
 
 msgid "Obbligazione"
 msgstr "Bond"
@@ -4507,6 +4621,9 @@ msgstr "Price per unit"
 
 msgid "Prezzo per quota (€)"
 msgstr "Price per unit (€)"
+
+msgid "Prezzo €"
+msgstr "Price €"
 
 #, python-format
 msgid "Prima del ripristino del %(day)s alle %(time)s"
@@ -5133,6 +5250,9 @@ msgstr "Choose at least one file to upload."
 msgid "Scegli dai tag già usati o scrivine uno nuovo e premi Invio. La controparte (es. il negozio) va nei tag."
 msgstr "Pick from the tags already used or type a new one and press Enter. The counterparty (e.g. the shop) goes in the tags."
 
+msgid "Scegli il file del broker da importare."
+msgstr "Choose the broker file to import."
+
 msgid "Scegli il file di backup da ripristinare."
 msgstr "Choose the backup file to restore."
 
@@ -5571,6 +5691,12 @@ msgstr "Holders and IBANs saved: bank transfers between your accounts will be im
 
 msgid "Titolo"
 msgstr "Security"
+
+msgid "Titolo del portafoglio"
+msgstr "Portfolio holding"
+
+msgid "Titolo nel file"
+msgstr "Instrument in the file"
 
 msgid "Togli il filtro"
 msgstr "Remove the filter"
@@ -6326,6 +6452,12 @@ msgstr "tax"
 msgid "fondi comuni ed ETF: il NAV e la sua data"
 msgstr "mutual funds and ETFs: the NAV and its date"
 
+msgid "formato Degiro"
+msgstr "Degiro format"
+
+msgid "formato generico"
+msgstr "generic format"
+
 #, python-format
 msgid "franchigia %(amount)s"
 msgstr "threshold %(amount)s"
@@ -6555,6 +6687,10 @@ msgstr "other income (offsettable)"
 
 msgid "regole"
 msgstr "rules"
+
+#, python-format
+msgid "riga %(line)s: %(error)s"
+msgstr "row %(line)s: %(error)s"
 
 msgid "riporto"
 msgstr "rollover"
