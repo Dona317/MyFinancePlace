@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% block page_title %}{{ _('Portafogli modello') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Portafogli modello') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('portfolio.models_new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo modello') }}</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('I tuoi modelli') }}</div>
+      <div class="card-header-sub">{{ _("Un modello dice quanto deve pesare ogni parte del portafoglio. Quello attivo si usa per il ribilanciamento.") }}</div>
+    </div>
+  </div>
+  {% if templates %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Nome') }}</th><th>{{ _('Parti') }}</th><th class="text-right">{{ _('Tolleranza') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for t in templates %}
+        <tr>
+          <td><a href="{{ url_for('portfolio.models_edit', template_id=t.id) }}">{{ t.name }}</a>
+            {% if t.active %}<span class="badge badge-positive">{{ _('Attivo') }}</span>{% endif %}
+            {% if t.description %}<div class="text-xs text-muted">{{ t.description }}</div>{% endif %}</td>
+          <td class="text-sm">{% for s in t.slots %}{{ s.label }} {{ s.target|number(2) }} %{{ ' · ' if not loop.last }}{% endfor %}</td>
+          <td class="text-right nowrap">± {{ t.band|number(2) }}</td>
+          <td>
+            <div class="cell-actions">
+              {% if t.active %}
+              {{ icon_link(url_for('portfolio.rebalance'), 'bi-arrow-left-right', _('Ribilancia')) }}
+              {% else %}
+              <form method="POST" action="{{ url_for('portfolio.models_activate', template_id=t.id) }}">
+                <button class="btn btn-ghost btn-sm" type="submit"><i class="bi bi-check2-circle"></i> {{ _('Rendi attivo') }}</button>
+              </form>
+              {% endif %}
+              {{ icon_link(url_for('portfolio.models_edit', template_id=t.id), 'bi-pencil', _('Modifica')) }}
+              {{ delete_button(url_for('portfolio.models_delete', template_id=t.id), _('Eliminare il modello «%(name)s»?', name=t.name), _('Elimina %(name)s', name=t.name)) }}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-muted">{{ _('Nessun modello: copiane uno pronto qui sotto o creane uno nuovo.') }}</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Modelli pronti') }}</div>
+      <div class="card-header-sub">{{ _('Esempi da copiare e modificare, con ETF quotati a Milano. Non sono consigli d\'investimento: scegli in base ai tuoi obiettivi e al tuo orizzonte.') }}</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Modello') }}</th><th>{{ _('Composizione') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for key, (name, description, slots) in ready.items() %}
+        <tr>
+          <td><strong>{{ _(name) }}</strong><div class="text-xs text-muted">{{ _(description) }}</div></td>
+          <td class="text-sm">{% for label, target, (isin, ticker) in slots %}{{ _(label) }} {{ target|number(2) }} % <span class="text-muted">({{ ticker }})</span>{{ ' · ' if not loop.last }}{% endfor %}</td>
+          <td><form method="POST" action="{{ url_for('portfolio.models_copy', key=key) }}">
+            <button class="btn btn-ghost btn-sm" type="submit"><i class="bi bi-copy"></i> {{ _('Copia') }}</button></form></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

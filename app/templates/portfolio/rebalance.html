@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('Ribilanciamento') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Ribilanciamento') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('portfolio.models_edit', template_id=plan.template.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica modello') }}</a>
+  <a href="{{ url_for('portfolio.models_index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-pie-chart"></i> {{ _('Portafogli modello') }}</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ plan.template.name }}</div>
+      <div class="card-header-sub">
+        {{ _('Investimenti: %(total)s', total=plan.total|money) }} ·
+        {% if plan.out_of_band %}<span class="text-negative">{{ _('%(count)s parti fuori dalla tolleranza di ± %(band)s punti', count=plan.out_of_band|length, band=plan.template.band|number(2)) }}</span>
+        {% else %}<span class="text-positive">{{ _('Tutte le parti sono entro ± %(band)s punti dal peso obiettivo', band=plan.template.band|number(2)) }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="GET" style="display:flex;flex-wrap:wrap;gap:16px;align-items:end;">
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="mode">{{ _('Modalità') }}</label>
+        <select name="mode" id="mode" class="form-select">
+          <option value="new" {{ 'selected' if plan.mode == 'new' else '' }}>{{ _('Solo con nuovi versamenti (solo acquisti)') }}</option>
+          <option value="full" {{ 'selected' if plan.mode == 'full' else '' }}>{{ _('Completo (acquisti e vendite)') }}</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="amount">{{ _('Importo da investire (€)') }}</label>
+        <input type="text" inputmode="decimal" name="amount" id="amount" class="form-control" value="{{ ('%.2f'|format(plan.amount)).replace('.', ',') if plan.amount else '' }}" placeholder="0,00" />
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> {{ _('Calcola') }}</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Parte') }}</th>
+          <th class="text-right">{{ _('Valore') }}</th>
+          <th class="text-right">{{ _('Peso attuale') }}</th>
+          <th class="text-right">{{ _('Obiettivo') }}</th>
+          <th class="text-right">{{ _('Scostamento') }}</th>
+          <th class="text-right">{{ _('Da comprare / vendere') }}</th>
+          <th>{{ _('Con') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in plan.lines %}
+        {% set off = (line.drift|abs) > plan.template.band %}
+        <tr>
+          <td>{{ line.label }}{% if line.holdings %}<div class="text-xs text-muted">{{ line.holdings|map(attribute='name')|join(', ') }}</div>{% endif %}</td>
+          <td class="text-right nowrap">{{ line.value|money }}</td>
+          <td class="text-right nowrap">{{ line.weight|number(2) }} %</td>
+          <td class="text-right nowrap">{{ line.target|number(2) }} %</td>
+          <td class="text-right nowrap {{ 'text-negative' if off else '' }}">{{ '+' if line.drift > 0 else '' }}{{ line.drift|number(2) }}{% if off %} <i class="bi bi-exclamation-triangle" title="{{ _('Fuori tolleranza') }}"></i>{% endif %}</td>
+          <td class="text-right nowrap {{ 'text-positive' if line.move > 0 else ('text-negative' if line.move < 0 else '') }}">
+            {% if line.move > 0 %}{{ _('Compra') }} {{ line.move|money }}{% elif line.move < 0 %}{{ _('Vendi') }} {{ (line.move|abs)|money }}{% else %}—{% endif %}
+            {% if line.units %}<div class="text-xs text-muted">{{ _('%(units)s quote', units=(line.units|abs)|number(4)) }}</div>{% endif %}</td>
+          <td class="text-sm">{% if line.move and line.via %}<a href="{{ url_for('portfolio.operation', holding_id=line.via.id) }}">{{ line.via.name }}</a>
+            {% elif line.move and line.suggestion %}{{ _('es. %(ticker)s', ticker=line.suggestion) }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if plan.mode == 'new' and not plan.amount %}
+  <div class="card-body text-sm text-muted">{{ _('Indica quanto vuoi investire: verrà diviso tra le parti più sotto il loro obiettivo.') }}</div>
+  {% endif %}
+</div>
+{% endblock %}

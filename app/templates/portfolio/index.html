@@ -14,6 +14,9 @@
     <i class="bi bi-arrow-repeat"></i> {{ _('Aggiorna prezzi') }}
   </a>
   {% endif %}
+  <a href="{{ url_for('portfolio.rebalance') }}" class="btn btn-ghost btn-sm">
+    <i class="bi bi-pie-chart"></i> {{ _('Portafoglio modello') }}
+  </a>
   <a href="{{ url_for('portfolio.broker_upload') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-upload"></i> {{ _('Importa dal broker') }}
   </a>
