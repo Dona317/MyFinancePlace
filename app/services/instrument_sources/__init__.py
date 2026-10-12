@@ -19,10 +19,10 @@ DESCRIPTIONS = {
     "openfigi": _l("da ISIN a ticker e borsa (Bloomberg), per azioni, ETF, obbligazioni e derivati"),
     "justetf": _l("ETF europei: nome e prezzo in euro"),
     "borsaitaliana": _l("BTP e obbligazioni del MOT, ETF, azioni e certificati di Milano: anche il prezzo"),
-    "morningstar": _l("fondi comuni: il NAV (la fonte più fragile)"),
+    "morningstar": _l("fondi comuni ed ETF: il NAV e la sua data"),
 }
 DEFAULT_ORDER = ["yahoo", "openfigi", "justetf", "borsaitaliana", "morningstar"]
-DEFAULT_OFF = {"morningstar"}
+DEFAULT_OFF: set[str] = set()  # every site on at first; each one can be switched off
 FINDERS = {"openfigi": openfigi.find, "justetf": justetf.find, "borsaitaliana": borsaitaliana.find,
            "morningstar": morningstar.find}
 QUOTES = {"justetf": justetf.quote, "borsaitaliana": borsaitaliana.quote, "morningstar": morningstar.quote}

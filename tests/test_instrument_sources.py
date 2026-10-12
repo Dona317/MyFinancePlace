@@ -140,14 +140,15 @@ def test_morningstar(app, sites):
 def test_search_by_isin_on_every_site_with_a_month_of_memory(app, db, sites):
     answers, calls = sites
     _json_answers(answers)
+    answers[f"SecuritySearch.ashx?q={ETF}"] = ""
     answers[f"search?q={ETF}"] = {"quotes": [{"symbol": "VWCE.MI", "longname": "Vanguard", "quoteType": "ETF",
                                               "exchange": "MIL", "exchDisp": "Milan"}]}
     with app.test_request_context():
         found, errors = price_feed.search(ETF, date(2026, 10, 10))
         assert [(c.symbol, c.source) for c in found] == [
             ("VWCE.MI", "yahoo"), ("VWCE.DE", "openfigi"), ("VWCE", "justetf"), ("", "borsaitaliana")]
-        assert errors == []  # Morningstar is off at first: not asked
-        assert not any("morningstar" in url for url in calls)
+        assert errors == []  # Morningstar does not know it: no result, not an error
+        assert any("morningstar" in url for url in calls)
         asked = len(calls)
         assert price_feed.search(ETF.lower(), date(2026, 10, 20))[0][0].symbol == "VWCE.MI" and len(calls) == asked
         price_feed.search(ETF, date(2026, 11, 20))  # more than a month: asked again
@@ -178,7 +179,7 @@ def test_choosing_and_ordering_the_sites(client, app, db, sites):
     assert "OpenFIGI" in page_html and "I prezzi da internet sono spenti" in page_html
     assert "/settings/price-sources" in client.get("/settings/").get_data(as_text=True)
     with app.test_request_context():
-        assert sources.chosen() == ["yahoo", "openfigi", "justetf", "borsaitaliana"]
+        assert sources.chosen() == ["yahoo", "openfigi", "justetf", "borsaitaliana", "morningstar"]  # all on at first
     client.post("/settings/price-sources", data={"on-morningstar": "1", "order-morningstar": "1", "on-borsaitaliana": "1",
                                                  "order-borsaitaliana": "2", "order-yahoo": "9", "order-openfigi": "x"})
     with app.test_request_context():
@@ -195,7 +196,6 @@ def test_choosing_and_ordering_the_sites(client, app, db, sites):
 def test_bonds_funds_and_etfs_priced_by_their_sites(app, db, sites):
     answers, _ = sites
     _json_answers(answers)
-    sources.save(sources.DEFAULT_ORDER, set(sources.DEFAULT_ORDER))  # Morningstar too
     btp = Holding(name="BTP 2031", isin=BTP, asset_class="Obbligazione", quantity=10000, avg_price=Decimal("0.9"))
     fund = Holding(name="Fondo", isin=FUND, asset_class="Fondo", quantity=100, avg_price=10)
     etf = Holding(name="All-World", ticker="VWCE.DE", isin=ETF, asset_class="ETF", quantity=5, avg_price=100)
@@ -207,6 +207,18 @@ def test_bonds_funds_and_etfs_priced_by_their_sites(app, db, sites):
     assert btp.value == 8547.0  # 10.000 € of face value at 85,47
     assert (results["Fondo"].source, results["Fondo"].price) == ("morningstar", Decimal("12.345000"))
     assert (results["All-World"].source, results["All-World"].price) == ("justetf", Decimal("131.420000"))  # Yahoo down
+
+
+def test_morningstar_is_a_reserve_for_etfs(app, db, sites):
+    answers, _ = sites
+    answers[f"SecuritySearch.ashx?q={ETF}"] = page("morningstar_search.txt")
+    answers.pop(f"api/etfs/{ETF}/quote")  # justETF does not answer either
+    etf = Holding(name="All-World", ticker="VWCE.DE", isin=ETF, asset_class="ETF", quantity=1, avg_price=100)
+    db.session.add(etf)
+    db.session.commit()
+    with app.test_request_context():
+        (result,) = price_feed.update_all([etf])
+    assert (result.source, result.price) == ("morningstar", Decimal("12.345000"))
 
 
 def test_a_chosen_site_and_what_goes_wrong(app, db, sites):

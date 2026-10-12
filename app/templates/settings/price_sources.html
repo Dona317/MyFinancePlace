@@ -9,7 +9,7 @@
 </div>
 {% endif %}
 <p class="text-sm text-muted mb-16">
-  {{ _("Con un ISIN la ricerca chiede a questi siti, nell'ordine scelto, e mostra tutti i risultati. I prezzi di ogni giorno vengono da Yahoo (azioni, ETF, derivati; justETF e Stooq di riserva), da Borsa Italiana per le obbligazioni e da Morningstar per i fondi, se attivi. Si invia solo l'ISIN, al massimo una richiesta al secondo per sito; le ricerche restano salvate per un mese.") }}
+  {{ _("Con un ISIN la ricerca chiede a questi siti, nell'ordine scelto, e mostra tutti i risultati. I prezzi di ogni giorno vengono da Yahoo (azioni, ETF, derivati; per gli ETF justETF, Morningstar e Stooq di riserva), da Borsa Italiana per le obbligazioni e da Morningstar per i fondi, tra i siti attivi. Si invia solo l'ISIN, al massimo una richiesta al secondo per sito; le ricerche restano salvate per un mese.") }}
 </p>
 <form method="POST">
   <div class="settings-section">
@@ -32,7 +32,7 @@
       {% endfor %}
     </div>
   </div>
-  <p class="form-hint mb-16">{{ _("justETF, Borsa Italiana e Morningstar sono pagine web, non servizi pensati per le app: se cambiano, quella fonte dà errore («la pagina è cambiata») e le altre continuano. Morningstar è la più fragile ed è spenta all'inizio.") }}</p>
+  <p class="form-hint mb-16">{{ _("justETF, Borsa Italiana e Morningstar sono pagine web, non servizi pensati per le app: se cambiano, quella fonte dà errore («la pagina è cambiata») e le altre continuano.") }}</p>
   <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
   <a href="{{ url_for('settings.index') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
 </form>

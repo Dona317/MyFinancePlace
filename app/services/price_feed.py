@@ -292,7 +292,7 @@ def _price_order(holding: Holding) -> list[str]:
     if (holding.price_source or "auto") != "auto":
         return [holding.price_source]
     by_class = {"Obbligazione": ["borsaitaliana", "yahoo"], "Fondo": ["morningstar", "yahoo"],
-                "ETF": ["yahoo", "justetf", "stooq"]}
+                "ETF": ["yahoo", "justetf", "morningstar", "stooq"]}
     on = set(sources.chosen())
     return [s for s in by_class.get(holding.asset_class, ["yahoo", "stooq"]) if s == "stooq" or s in on]
 
@@ -307,8 +307,8 @@ def _from_site(holding: Holding, site: str) -> tuple[Decimal, date, list]:
 
 
 def _market(holding: Holding) -> Result:
-    """The sources of its class in order (Yahoo, then justETF or Stooq; Borsa Italiana for bonds, Morningstar for
-    funds) until one answers; what each one said when none does."""
+    """The sources of its class in order (Yahoo, then justETF, Morningstar or Stooq; Borsa Italiana for bonds,
+    Morningstar for funds) until one answers; what each one said when none does."""
     order = _price_order(holding)
     errors = []
     for source in order:
