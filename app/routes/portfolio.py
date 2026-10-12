@@ -272,5 +272,5 @@ def delete(holding_id):
     return delete_and_redirect(holding, _("Posizione «%(name)s» eliminata.", name=holding.name), url_for("portfolio.index"))
 
 
-# registers the broker import, link and model portfolio routes on portfolio_bp
-from app.routes import portfolio_import, portfolio_templates  # noqa: E402,F401
+# registers the broker import, link, model portfolio, rule and PAC routes on portfolio_bp
+from app.routes import portfolio_import, portfolio_rules, portfolio_templates  # noqa: E402,F401

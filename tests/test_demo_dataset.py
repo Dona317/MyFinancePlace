@@ -166,3 +166,15 @@ def test_policies_reminders_and_documents(client, demo_data):
     assert receipt.transaction is not None and receipt.transaction.description == "Visita dentista"
     for url in ("/insurance/", "/documents/", f"/documents/{receipt.id}/file", "/notifications/"):
         assert client.get(url).status_code == 200, url
+
+
+def test_model_portfolio_pac_and_rules(app, demo_data):
+    from app.models.portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate
+    from app.services import portfolio_models
+
+    template = PortfolioTemplate.query.one()
+    assert template.active and InvestmentPlan.query.one().account.name == "Conto titoli Directa"
+    assert PortfolioRule.query.count() == 2
+    with app.test_request_context():
+        lines, _total = portfolio_models.standing(template)
+    assert [[h.ticker for h in line.holdings] for line in lines] == [["VWCE"], ["IT0005497000"], ["BTC", "ENEL"]]

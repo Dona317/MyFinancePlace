@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% block page_title %}{{ _('Regole e PAC') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Regole e PAC') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('portfolio.plan_new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo PAC') }}</a>
+{% endblock %}
+
+{% block content %}
+{% if alerts %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><div class="card-header-title">{{ _('Avvisi di oggi') }}</div></div>
+  <div class="card-body">
+    {% for a in alerts %}
+    <div style="margin-bottom:8px;"><a href="{{ a.url }}"><strong>{{ a.title }}</strong></a> <span class="text-sm text-muted">{{ a.detail }}</span></div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Regole') }}</div>
+      <div class="card-header-sub">{{ _("Si controllano a ogni aggiornamento dei prezzi; quando una scatta compare un promemoria (e una notifica nell'app desktop).") }}</div>
+    </div>
+  </div>
+  {% if rules %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Regola') }}</th><th>{{ _('Titolo') }}</th><th class="text-right">{{ _('Soglia') }}</th><th>{{ _('Stato') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for r in rules %}
+        <tr class="{{ '' if r.active else 'row-off' }}">
+          <td>{{ _(kinds[r.kind]) }}</td>
+          <td>{{ r.holding.name if r.holding else _('tutti') }}</td>
+          <td class="text-right nowrap">{{ r.threshold|number(2) if r.threshold is not none else _('tolleranza del modello') }}</td>
+          <td>{% if r.active %}<span class="badge badge-positive">{{ _('Attiva') }}</span>{% else %}<span class="badge badge-muted">{{ _('Sospesa') }}</span>{% endif %}</td>
+          <td>
+            <div class="cell-actions">
+              <form method="POST" action="{{ url_for('portfolio.rule_toggle', rule_id=r.id) }}">
+                <button class="btn btn-ghost btn-sm" type="submit">{{ _('Sospendi') if r.active else _('Riattiva') }}</button>
+              </form>
+              {{ delete_button(url_for('portfolio.rule_delete', rule_id=r.id), _('Eliminare la regola?'), _('Elimina la regola')) }}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('portfolio.rule_new') }}" id="rule-form" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+      <div class="form-group" style="margin:0;min-width:260px;">
+        <label class="form-label" for="rule-kind">{{ _('Nuova regola') }}</label>
+        <select name="kind" id="rule-kind" class="form-select">
+          {% for key, label in kinds.items() %}<option value="{{ key }}">{{ _(label) }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin:0;min-width:200px;">
+        <label class="form-label" for="rule-holding">{{ _('Titolo') }}</label>
+        <select name="holding_id" id="rule-holding" class="form-select">
+          <option value="">{{ _('— tutti —') }}</option>
+          {% for h in holdings %}<option value="{{ h.id }}">{{ h.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin:0;width:140px;">
+        <label class="form-label" for="rule-threshold">{{ _('Soglia') }}</label>
+        <input type="text" inputmode="decimal" name="threshold" id="rule-threshold" class="form-control" placeholder="15" />
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _("Piani d'accumulo (PAC)") }}</div>
+      <div class="card-header-sub">{{ _('Un importo investito ogni mese o trimestre, diviso secondo il portafoglio modello.') }}</div>
+    </div>
+  </div>
+  {% if plans %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Nome') }}</th><th class="text-right">{{ _('Importo') }}</th><th>{{ _('Frequenza') }}</th><th>{{ _('Ultima rata') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for p in plans %}
+        <tr>
+          <td><a href="{{ url_for('portfolio.plan_edit', plan_id=p.id) }}">{{ p.name }}</a>
+            {% if p.id in due %}<span class="badge badge-negative">{{ _('Da confermare') }}</span>{% endif %}</td>
+          <td class="text-right nowrap">{{ p.amount|money }}</td>
+          <td>{{ _(frequencies[p.frequency]) }}, {{ _('giorno %(day)s', day=p.day) }}</td>
+          <td>{{ p.last_done or '—' }}</td>
+          <td>
+            <div class="cell-actions">
+              <a href="{{ url_for('portfolio.plan_run', plan_id=p.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-cart"></i> {{ _('Investi ora') }}</a>
+              {{ icon_link(url_for('portfolio.plan_edit', plan_id=p.id), 'bi-pencil', _('Modifica')) }}
+              {{ delete_button(url_for('portfolio.plan_delete', plan_id=p.id), _('Eliminare il piano «%(name)s»?', name=p.name), _('Elimina %(name)s', name=p.name)) }}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-muted">{{ _('Nessun PAC.') }}</div>
+  {% endif %}
+</div>
+{% endblock %}

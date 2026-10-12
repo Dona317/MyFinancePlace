@@ -11,7 +11,17 @@ from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
-from app.services import budgets, display, forecast, request_cache, sections, settings_store, wealth
+from app.services import (
+    budgets,
+    display,
+    forecast,
+    investment_plans,
+    portfolio_rules,
+    request_cache,
+    sections,
+    settings_store,
+    wealth,
+)
 from app.services.i18n import tr
 
 DISMISSED_SETTING = "notifications.dismissed"
@@ -115,10 +125,22 @@ def _goals(today: date) -> list[Notification]:
     return items
 
 
+def _portfolio(today: date) -> list[Notification]:
+    """The rules on the investments that tripped, and the PAC instalments to confirm."""
+    items = [Notification(a.key, a.level, "graph-down-arrow" if a.level == "warning" else "bell", a.title, a.detail, a.when,
+                          a.url) for a in portfolio_rules.evaluate(today)]
+    for plan in investment_plans.due(today):
+        items.append(Notification(f"plan-{plan.id}-{investment_plans.period(today)}", "info", "piggy-bank",
+                                  _("PAC «%(name)s»: %(amount)s da investire", name=plan.name, amount=_money(plan.amount)),
+                                  _("Conferma gli acquisti del %(day)s", day=display.day(investment_plans.due_date(plan, today))),
+                                  today, url_for("portfolio.plan_run", plan_id=plan.id)))
+    return items
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
-           (_goals, "goals"))
+           (_goals, "goals"), (_portfolio, "portfolio"))
 
 
 def dismissed() -> list[str]:

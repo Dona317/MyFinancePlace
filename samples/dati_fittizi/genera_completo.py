@@ -8,7 +8,8 @@ Accounts and how they are linked (every link is a «giroconto», a transfer betw
   the savings account and on the broker account
 - Carta di credito Visa: restaurants, shopping, subscriptions, holidays (one in US dollars); paid off on the 15th
 - Conto deposito Illimity: monthly saving, quarterly interest, a withdrawal back to the current account each summer
-- Conto titoli Directa: monthly PAC (ETF bought on the 12th at a changing price), a bond, shares, dividends, coupons
+- Conto titoli Directa: monthly PAC (ETF bought on the 12th at a changing price), a bond, shares, dividends, coupons;
+  the 80/20 model portfolio, the PAC and two portfolio rules (F19)
 
 Investments are trades linked to their holding (transfers, cash flow «investing»): the ETF plan, a BTP bought with
 money from the savings account and its coupons, Enel shares with dividends and half of them sold at a gain, Bitcoin
@@ -45,9 +46,10 @@ from app.extensions import db  # noqa: E402
 from app.models.account import Account  # noqa: E402
 from app.models.budget import Budget  # noqa: E402
 from app.models.currency import ExchangeRate  # noqa: E402
+from app.models.portfolio_model import InvestmentPlan, PortfolioRule, SlotHolding  # noqa: E402
 from app.models.transaction import Transaction, TransactionSplit  # noqa: E402
 from app.models.wealth import Debt, Document, Goal, Holding, HoldingPrice, InsurancePolicy  # noqa: E402
-from app.services import backup, categories, document_store, settings_store, transfer, wealth  # noqa: E402
+from app.services import backup, categories, document_store, portfolio_models, settings_store, transfer, wealth  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 STATEMENTS = HERE / "estratti_da_importare"
@@ -272,6 +274,18 @@ PENSION_START = Decimal("9400")  # the pension fund before the data starts
 TV_LOAN_START = date(2024, 3, 1)  # a 12-month interest-free loan, repaid by now
 
 
+def investment_rules(holdings: dict, accounts: dict, first: date) -> None:
+    """The 80/20 model portfolio (VWCE for the stocks, the BTP for the bonds), the monthly PAC paid into the
+    securities account, and two watches: a holding 15 % below its average price, one above 40 % of the portfolio."""
+    template = portfolio_models.copy_ready("80-20")
+    db.session.flush()
+    template.slots[1].links.append(SlotHolding(holding_id=holdings["btp"].id))
+    db.session.add(InvestmentPlan(name="PAC mensile", amount=Decimal("250"), frequency="monthly", day=12,
+                                  account_id=accounts["titoli"].id, fractional=False, start=first))
+    db.session.add_all([PortfolioRule(kind="drawdown", threshold=Decimal("15")),
+                        PortfolioRule(kind="concentration", threshold=Decimal("40"))])
+
+
 def vwce_price(k: int) -> Decimal:
     """The ETF's price `k` months after the start: a slow rise with ups and downs."""
     return Decimal(str(round(95 * 1.008 ** k * (1 + 0.04 * math.sin(k / 2.5)), 2)))
@@ -423,6 +437,7 @@ def fill(today: date) -> dict:
     db.session.add_all(ExchangeRate(currency=code, on=start, rate=rate) for code, rate in RATES.items()
                        for start in months(date(today.year - YEARS, today.month, 1), today))
     db.session.flush()
+    investment_rules(holdings, accounts, date(today.year - YEARS, today.month, 12))
     db.session.add_all(price_points(holdings, date(today.year - YEARS, today.month, 1), cutoff))
 
     rows = []

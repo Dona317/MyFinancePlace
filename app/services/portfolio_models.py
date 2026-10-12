@@ -206,10 +206,18 @@ def _with_new_money(lines: list[Line], total: Decimal, amount: Decimal) -> None:
     if lacking >= amount:
         for line in lines:
             line.move = money.cents(amount * gaps[id(line)] / lacking) if lacking else Decimal(0)
-        return
-    spare = amount - lacking
-    for line in lines:
-        line.move = money.cents(gaps[id(line)] + spare * line.target / HUNDRED)
+    else:
+        spare = amount - lacking
+        for line in lines:
+            line.move = money.cents(gaps[id(line)] + spare * line.target / HUNDRED)
+    _round_to(lines, amount)
+
+
+def _round_to(lines: list[Line], amount: Decimal) -> None:
+    """The cents lost rounding each share go to the biggest purchase, so the purchases add up to the amount."""
+    biggest = max(lines, key=lambda line: line.move, default=None)
+    if biggest is not None and biggest.move > 0:
+        biggest.move += amount - sum((line.move for line in lines), Decimal(0))
 
 
 def _full(lines: list[Line], total: Decimal, amount: Decimal) -> None:

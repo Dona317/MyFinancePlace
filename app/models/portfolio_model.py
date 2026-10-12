@@ -53,3 +53,36 @@ class SlotHolding(db.Model):
     holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="CASCADE"), nullable=False, index=True)
 
     slot = db.relationship("TemplateSlot", back_populates="links")
+
+
+class PortfolioRule(db.Model):
+    """A watch on the investments (F19e); when it trips, a reminder appears (notifications, desktop alerts)."""
+    __tablename__ = "portfolio_rules"
+
+    id         = db.Column(db.Integer, primary_key=True)
+    kind       = db.Column(db.String(20), nullable=False)   # drift | drawdown | price_above | price_below | concentration
+    holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="CASCADE"), index=True)  # empty = every one
+    threshold  = db.Column(db.Numeric(18, 6))                # points, %, or a price in euro (empty drift = the band)
+    active     = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
+
+    holding = db.relationship("Holding")
+
+
+class InvestmentPlan(db.Model):
+    """A PAC (F19e): an amount invested every month or quarter, split as the model portfolio says."""
+    __tablename__ = "investment_plans"
+
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.Text, nullable=False)
+    amount      = db.Column(db.Numeric(14, 2), nullable=False)
+    frequency   = db.Column(db.String(10), nullable=False, default="monthly")  # monthly | quarterly
+    day         = db.Column(db.Integer, nullable=False, default=1)             # of the month
+    account_id  = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"))
+    template_id = db.Column(db.Integer, db.ForeignKey("portfolio_templates.id", ondelete="SET NULL"))  # empty = active
+    fractional  = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
+    start       = db.Column(db.Date, nullable=False)
+    end         = db.Column(db.Date)
+    last_done   = db.Column(db.String(7))                    # "2026-10": the last period confirmed
+
+    account = db.relationship("Account")
+    template = db.relationship("PortfolioTemplate")
