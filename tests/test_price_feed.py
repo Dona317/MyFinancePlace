@@ -32,6 +32,7 @@ def web(monkeypatch):
         raise OSError("network unreachable")
 
     monkeypatch.setattr(price_feed, "_get_json", fake)
+    monkeypatch.setattr(price_feed, "_get_text", fake)  # Stooq's CSV
     return answers, calls
 
 

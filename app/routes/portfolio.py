@@ -1,13 +1,16 @@
+import re
 from datetime import date
+from decimal import Decimal
 
 from apiflask import APIBlueprint
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from app.services import display, price_feed, wealth
+from app.services.i18n import _l
 from app.services.ui_settings import current_settings
 
 portfolio_bp = APIBlueprint(
@@ -18,10 +21,35 @@ portfolio_bp = APIBlueprint(
 )
 
 
+SOURCE_LABELS = {"auto": _l("Automatica"), "yahoo": "Yahoo Finance", "stooq": "Stooq", "coingecko": "CoinGecko",
+                 "manual": _l("Solo a mano")}
+
+
+def _instrument_from_form(holding: Holding) -> None:
+    """ISIN, quote currency, exchange, multiplier and where the price comes from (F19)."""
+    isin = (form_text("isin", "ISIN") or "").replace(" ", "").upper() or None
+    if isin and not price_feed.ISIN.match(isin):
+        raise ValueError(_("ISIN: 12 caratteri, due lettere del paese e poi lettere e cifre (es. IE00BK5BQT80)."))
+    holding.isin = isin
+    code = (form_text("currency", _("Valuta")) or "").upper() or None
+    if code and not re.fullmatch(r"[A-Z]{3}", code):
+        raise ValueError(_("Valuta: il codice di tre lettere (EUR, USD, GBP…)."))
+    holding.currency = code
+    holding.exchange = form_text("exchange", _("Borsa"))
+    multiplier = form_decimal("multiplier", _("Moltiplicatore"))
+    multiplier = Decimal(1) if multiplier is None else multiplier
+    if multiplier <= 0:
+        raise ValueError(_("Moltiplicatore: un numero maggiore di zero (1 per azioni ed ETF, es. 100 per un'opzione)."))
+    holding.multiplier = multiplier
+    holding.price_source = form_choice("price_source", _("Fonte del prezzo"), SOURCE_LABELS) \
+        if request.form.get("price_source") else "auto"
+
+
 def _holding_from_form(holding: Holding) -> Holding:
     holding.name = form_text("name", _("Nome"), required=True)
     holding.ticker = form_text("ticker", _("Ticker"))
     holding.asset_class = form_choice("asset_class", _("Classe"), wealth.ASSET_CLASSES)
+    _instrument_from_form(holding)
     holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
     holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
     price = form_decimal("current_price", _("Prezzo attuale"))
@@ -41,11 +69,13 @@ def _holding_from_form(holding: Holding) -> Holding:
 
 
 def _render_form(holding, values):
-    return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values)
+    return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
+                           sources=SOURCE_LABELS, online=current_settings()["prices_online"])
 
 
 @portfolio_bp.route("/")
 def index():
+    price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
     selected = request.args.get("asset_class", "")
     holdings = wealth.holdings_on()
     today = date.today()
@@ -123,6 +153,19 @@ def prices_online():
     if not results:
         flash(_("Nessuna posizione con un ticker da cercare: ETF, azioni, obbligazioni, fondi o cripto con il ticker compilato."), "warning")
     return redirect(url_for("portfolio.prices"))
+
+
+@portfolio_bp.route("/lookup")
+def lookup():
+    """ISIN, ticker or name → the instruments found (to fill the form); only with prices from the internet on."""
+    if not current_settings()["prices_online"]:
+        return jsonify({"error": _("La ricerca usa internet: accendila in Impostazioni → Dati da internet."),
+                        "results": []}), 403
+    try:
+        found = price_feed.lookup(request.args.get("q", "")[:60])
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return jsonify({"error": _("Ricerca non riuscita: %(error)s", error=exc), "results": []}), 502
+    return jsonify({"results": [c.as_dict() for c in found[:8]]})
 
 
 @portfolio_bp.route("/<int:holding_id>/history", methods=["GET", "POST"])

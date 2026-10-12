@@ -29,18 +29,29 @@ class Holding(db.Model):
     # and whether it is held abroad (IVAFE instead of the stamp duty)
     tax_rate      = db.Column(db.Numeric(5, 2))
     abroad        = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    # The instrument (F19): how it is found on the internet and how its price reads
+    isin          = db.Column(db.String(12))
+    currency      = db.Column(db.String(3))      # the currency it is quoted in (prices are kept in euro)
+    exchange      = db.Column(db.Text)           # where it is quoted (Milano, Xetra…), as the source names it
+    multiplier    = db.Column(db.Numeric(18, 6), nullable=False, default=1, server_default="1")  # derivatives' size
+    price_source  = db.Column(db.String(20), nullable=False, default="auto", server_default="auto")
 
     @property
     def price(self) -> float:
         return _number(self.current_price if self.current_price is not None else self.avg_price)
 
     @property
+    def units(self) -> float:
+        """Quantity × multiplier: what the price applies to (one option contract is often 100 shares)."""
+        return _number(self.quantity) * _number(self.multiplier if self.multiplier is not None else 1)
+
+    @property
     def cost(self) -> float:
-        return _number(self.quantity) * _number(self.avg_price)
+        return self.units * _number(self.avg_price)
 
     @property
     def value(self) -> float:
-        return _number(self.quantity) * self.price
+        return self.units * self.price
 
     @property
     def gain(self) -> float:

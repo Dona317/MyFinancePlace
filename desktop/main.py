@@ -157,9 +157,23 @@ def send_reminders(app, root: Path) -> int:
         return system_notifications.run(lambda m: notify.show(m.title, m.body, m.link))
 
 
+def read_prices(app) -> int:
+    """The day's investment prices of every archive (once a day, when turned on in Settings)."""
+    from app.services import price_feed
+
+    with app.app_context(), app.test_request_context("/"):
+        return price_feed.refresh_all_archives()
+
+
 def _reminders_loop(app, root: Path, stop: threading.Event) -> None:
     wait = FIRST_REMINDERS_AFTER
     while not stop.wait(wait):
+        try:
+            read = read_prices(app)  # first: the price alerts of the day then arrive with the reminders
+            if read:
+                log.info("%s investment price(s) read", read)
+        except Exception:  # noqa: BLE001 - no prices this round: the reminders still go
+            log.exception("prices not read")
         try:
             sent = send_reminders(app, root)
             if sent:

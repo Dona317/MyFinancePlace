@@ -93,6 +93,7 @@ class TestingConfig(Config):
     TESTING = True
     LLM_PROVIDER = ""  # tests enable it explicitly
     AI_JOBS_SYNC = True  # tests of the background thread turn it off explicitly
+    PRICES_SYNC = True  # the daily prices are read inside the request (no background thread)
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test"
     LOGIN_DISABLED = True  # the pages are tested without signing in; tests/test_auth.py turns it back on
 

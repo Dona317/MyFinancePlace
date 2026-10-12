@@ -13,9 +13,21 @@
     </div>
     <div class="card-body">
       <form method="POST">
+        {% if online %}
+        <div class="form-group">
+          <label class="form-label" for="lookup-q">{{ _('Cerca lo strumento') }}</label>
+          <div class="d-flex gap-8">
+            <input type="text" id="lookup-q" class="form-control" placeholder="{{ _('ISIN, ticker o nome (es. IE00BK5BQT80, ENEL.MI, Vanguard All-World)') }}" autocomplete="off" />
+            <button type="button" id="lookup-go" class="btn btn-ghost"><i class="bi bi-search"></i> {{ _('Cerca') }}</button>
+          </div>
+          <div class="form-hint">{{ _('Da Yahoo Finance: scegli il risultato e il modulo si compila (ticker, nome, classe, borsa).') }}</div>
+          <ul id="lookup-results" class="lookup-results" hidden></ul>
+        </div>
+        {% endif %}
         <div class="grid-2">
           {{ f.text(values, 'name', _('Nome'), h.name, required=true, placeholder=_('es. Vanguard FTSE All-World')) }}
-          {{ f.text(values, 'ticker', _('Ticker / ISIN'), h.ticker, placeholder=_('es. VWCE, IE00BK5BQT80, BTC')) }}
+          {{ f.text(values, 'ticker', _('Ticker'), h.ticker, placeholder=_('es. VWCE.DE, ENEL.MI, BTC'),
+                    hint=_('Con il suffisso di borsa: .MI Milano, .DE Xetra, .L Londra; nessuno per gli USA.')) }}
         </div>
         <div class="grid-2">
           {{ f.select(values, 'asset_class', _('Classe'), asset_classes.keys()|list, h.asset_class or 'ETF') }}
@@ -39,10 +51,71 @@
             <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="abroad" class="check" {{ 'checked' if is_abroad }} /> {{ _("All'estero o in un wallet privato (IVAFE / IC invece del bollo)") }}</label>
           </div>
         </div>
+        <fieldset class="fee-rules mb-16">
+          <legend class="form-label">{{ _('Strumento e prezzo da internet') }}</legend>
+          <div class="grid-3">
+            {{ f.text(values, 'isin', 'ISIN', h.isin, placeholder='IE00BK5BQT80',
+                      hint=_('Basta l’ISIN: il ticker viene cercato da solo al primo aggiornamento.')) }}
+            {{ f.text(values, 'currency', _('Valuta di quotazione'), h.currency, placeholder='EUR') }}
+            {{ f.text(values, 'exchange', _('Borsa'), h.exchange, placeholder=_('es. Milano, Xetra')) }}
+          </div>
+          <div class="grid-2">
+            {{ f.number(values, 'multiplier', _('Moltiplicatore'), h.multiplier if h.multiplier is not none else 1, placeholder='1',
+                        hint=_('Per i derivati: quante unità vale un contratto (es. 100 per un’opzione su azioni). Altrimenti 1.')) }}
+            {{ f.select(values, 'price_source', _('Fonte del prezzo'), sources.items()|list, h.price_source or 'auto') }}
+          </div>
+          <p class="form-hint">{{ _('Automatica: Yahoo Finance (e Stooq se Yahoo non risponde) per azioni, ETF, fondi, obbligazioni e derivati; CoinGecko per le cripto. «Solo a mano» per titoli non quotati, polizze, conti deposito.') }}</p>
+        </fieldset>
         {{ f.textarea(values, 'notes', _('Note'), h.notes, placeholder=_('Broker, conto titoli, note facoltative...')) }}
         {{ f.actions(url_for('portfolio.index'), _('Salva Modifiche') if is_edit else _('Aggiungi al Portafoglio')) }}
       </form>
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if online %}
+<script>
+(function () {
+  const query = document.getElementById('lookup-q'), list = document.getElementById('lookup-results');
+  const set = (name, value) => { const el = document.getElementById('f-' + name); if (el && value) el.value = value; };
+  function show(items, error) {
+    list.innerHTML = '';
+    list.hidden = false;
+    if (error || !items.length) {
+      const li = document.createElement('li');
+      li.textContent = error || {{ _('Nessuno strumento trovato.')|tojson }};
+      list.appendChild(li);
+      return;
+    }
+    items.forEach(item => {
+      const li = document.createElement('li'), button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn-ghost btn-sm';
+      button.textContent = `${item.symbol} · ${item.name} · ${item.exchange || ''} · ${item.asset_class}`;
+      button.addEventListener('click', () => {
+        set('ticker', item.symbol); set('name', item.name); set('exchange', item.exchange); set('isin', item.isin);
+        set('asset_class', item.asset_class);
+        list.hidden = true;
+      });
+      li.appendChild(button);
+      list.appendChild(li);
+    });
+  }
+  async function search() {
+    if (!query.value.trim()) return;
+    try {
+      const answer = await fetch({{ url_for('portfolio.lookup')|tojson }} + '?q=' + encodeURIComponent(query.value.trim()));
+      const data = await answer.json();
+      show(data.results || [], data.error);
+    } catch (e) {
+      show([], {{ _('Ricerca non riuscita.')|tojson }});
+    }
+  }
+  document.getElementById('lookup-go').addEventListener('click', search);
+  query.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); search(); } });
+})();
+</script>
+{% endif %}
 {% endblock %}

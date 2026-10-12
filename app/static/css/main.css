@@ -1381,3 +1381,7 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .tx-description { font-weight: 500; color: var(--clr-text-primary); }
 .tx-transfer { color: var(--clr-text-muted); white-space: nowrap; }
 .tx-actions { display: flex; gap: 4px; justify-content: center; }
+
+/* Instrument search on the holding form (F19) */
+.lookup-results { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.lookup-results .btn { width: 100%; justify-content: flex-start; text-align: left; white-space: normal; }

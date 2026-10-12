@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-10 15:14+0000\n"
+"POT-Creation-Date: 2026-10-12 07:15+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -592,13 +592,6 @@ msgstr "Update it whenever you like (also all at once from «Update prices»): e
 msgid "Aggiornato"
 msgstr "Updated"
 
-msgid ""
-"Aggiunge «Aggiorna da internet» in Portafoglio → Aggiorna prezzi: legge i prezzi da Yahoo Finance (ETF, azioni) e "
-"CoinGecko (cripto), gratis e senza chiave. Invia solo i ticker, e solo quando premi il pulsante."
-msgstr ""
-"Adds «Update from the internet» in Portfolio → Update prices: reads prices from Yahoo Finance (ETFs, shares) and "
-"CoinGecko (crypto), free and without a key. It sends only the tickers, and only when you press the button."
-
 msgid "Aggiungi"
 msgstr "Add"
 
@@ -952,6 +945,16 @@ msgstr "Car"
 msgid "Auto o moto"
 msgstr "Car or motorbike"
 
+msgid "Automatica"
+msgstr "Automatic"
+
+msgid ""
+"Automatica: Yahoo Finance (e Stooq se Yahoo non risponde) per azioni, ETF, fondi, obbligazioni e derivati; CoinGecko "
+"per le cripto. «Solo a mano» per titoli non quotati, polizze, conti deposito."
+msgstr ""
+"Automatic: Yahoo Finance (and Stooq when Yahoo does not answer) for shares, ETFs, funds, bonds and derivatives; "
+"CoinGecko for crypto. «By hand only» for unlisted securities, policies, deposit accounts."
+
 msgid "Avvia all'accensione del computer"
 msgstr "Start with the computer"
 
@@ -1035,6 +1038,9 @@ msgstr "Base"
 msgid "Bassa — quasi identiche"
 msgstr "Low — almost identical"
 
+msgid "Basta l’ISIN: il ticker viene cercato da solo al primo aggiornamento."
+msgstr "The ISIN is enough: the ticker is looked up by itself at the first update."
+
 msgid "Beneficio"
 msgstr "Benefit"
 
@@ -1049,6 +1055,9 @@ msgstr "Blocked by an administrator"
 
 msgid "Bollo e IVAFE"
 msgstr "Stamp duty and IVAFE"
+
+msgid "Borsa"
+msgstr "Exchange"
 
 msgid "Broker, conto titoli, note facoltative..."
 msgstr "Broker, securities account, optional notes..."
@@ -1267,11 +1276,17 @@ msgstr "Bank description"
 msgid "Causale originale della banca"
 msgstr "Original bank description"
 
+msgid "Cerca"
+msgstr "Search"
+
 msgid "Cerca documento"
 msgstr "Search document"
 
 msgid "Cerca duplicati"
 msgstr "Find duplicates"
+
+msgid "Cerca lo strumento"
+msgstr "Find the instrument"
 
 msgid "Cerca per descrizione o tag..."
 msgstr "Search by description or tag..."
@@ -1455,6 +1470,9 @@ msgstr "With Claude you need the variable"
 
 msgid "Con il segno meno è un'uscita (-45,20), senza è un'entrata (1.200)."
 msgstr "With a minus sign it is an expense (-45.20), without it is income (1,200)."
+
+msgid "Con il suffisso di borsa: .MI Milano, .DE Xetra, .L Londra; nessuno per gli USA."
+msgstr "With the exchange suffix: .MI Milan, .DE Xetra, .L London; none for the US."
 
 msgid "Con quale importo proiettare le transazioni ricorrenti, in entrata e in uscita"
 msgstr "Which amount to project the recurring transactions with, incoming and outgoing"
@@ -1707,6 +1725,9 @@ msgstr "From"
 msgid "Da Mettere da Parte"
 msgstr "To Set Aside"
 
+msgid "Da Yahoo Finance: scegli il risultato e il modulo si compila (ticker, nome, classe, borsa)."
+msgstr "From Yahoo Finance: pick a result and the form fills in (ticker, name, class, exchange)."
+
 msgid "Da accantonare per le spese non mensili"
 msgstr "To set aside for non-monthly costs"
 
@@ -1839,6 +1860,9 @@ msgstr ""
 "Only the first sheet of an Excel file is read; the bank's header rows above the column titles are skipped. Without a "
 "Type column, negative amounts become expenses and positive ones income. Accepted dates: YYYY-MM-DD or DD/MM/YYYY (in "
 "Excel files also date cells)."
+
+msgid "Derivato"
+msgstr "Derivative"
 
 msgid "Descrizione"
 msgstr "Description"
@@ -2334,6 +2358,9 @@ msgstr "Emergency fund"
 msgid "Fonte"
 msgstr "Source"
 
+msgid "Fonte del prezzo"
+msgstr "Price source"
+
 msgid "Formato data"
 msgstr "Date format"
 
@@ -2484,6 +2511,16 @@ msgstr "Accounts' IBANs"
 
 msgid "IC cripto-attività"
 msgstr "IC crypto-assets"
+
+#, python-format
+msgid "ISIN %(isin)s non trovato: scrivi il ticker con il suffisso di borsa (es. SWDA.MI)"
+msgstr "ISIN %(isin)s not found: write the ticker with the exchange suffix (e.g. SWDA.MI)"
+
+msgid "ISIN, ticker o nome (es. IE00BK5BQT80, ENEL.MI, Vanguard All-World)"
+msgstr "ISIN, ticker or name (e.g. IE00BK5BQT80, ENEL.MI, Vanguard All-World)"
+
+msgid "ISIN: 12 caratteri, due lettere del paese e poi lettere e cifre (es. IE00BK5BQT80)."
+msgstr "ISIN: 12 characters, two country letters then letters and digits (e.g. IE00BK5BQT80)."
 
 msgid "IVAFE"
 msgstr "IVAFE"
@@ -3011,6 +3048,9 @@ msgstr ""
 msgid "La rata non copre gli interessi"
 msgstr "The installment does not cover the interest"
 
+msgid "La ricerca usa internet: accendila in Impostazioni → Dati da internet."
+msgstr "The search uses the internet: turn it on in Settings → Data from the internet."
+
 msgid "La scadenza non può essere prima dell'inizio."
 msgstr "The expiry cannot be before the start."
 
@@ -3082,6 +3122,15 @@ msgstr "Your rules"
 
 msgid "Legge"
 msgstr "Reads"
+
+msgid ""
+"Legge i prezzi una volta al giorno da Yahoo Finance (azioni, ETF, fondi, obbligazioni, derivati; Stooq di riserva) e "
+"CoinGecko (cripto), gratis e senza chiave, più il pulsante «Aggiorna da internet» in Portafoglio → Aggiorna prezzi e "
+"la ricerca per ISIN nel modulo del titolo. Invia solo ticker, ISIN o nomi cercati."
+msgstr ""
+"Reads prices once a day from Yahoo Finance (shares, ETFs, funds, bonds, derivatives; Stooq as a reserve) and "
+"CoinGecko (crypto), free and without a key, plus the «Update from the internet» button in Portfolio → Update prices "
+"and the search by ISIN in the holding form. Sends only the tickers, ISINs or names searched."
 
 msgid "Legge il nome dell'esercente dalla causale e lo aggiunge come primo tag"
 msgstr "Reads the merchant's name from the bank causale and adds it as the first tag"
@@ -3398,6 +3447,12 @@ msgstr "Modules"
 msgid "Moduli — Visibilità nella Navigazione"
 msgstr "Modules — Visibility in the Navigation"
 
+msgid "Moltiplicatore"
+msgstr "Multiplier"
+
+msgid "Moltiplicatore: un numero maggiore di zero (1 per azioni ed ETF, es. 100 per un'opzione)."
+msgstr "Multiplier: a number above zero (1 for shares and ETFs, e.g. 100 for an option)."
+
 msgid "Mostra la password"
 msgstr "Show the password"
 
@@ -3653,6 +3708,9 @@ msgstr "No sales recorded"
 
 msgid "Nessuna voce"
 msgstr "No items"
+
+msgid "Nessuno strumento trovato."
+msgstr "No instrument found."
 
 msgid "Netto"
 msgstr "Net"
@@ -4084,6 +4142,9 @@ msgstr "To delete “%(name)s” type its exact name."
 
 msgid "Per file con un formato non riconosciuto: scegli tu quali colonne usare"
 msgstr "For files in an unrecognized format: you choose which columns to use"
+
+msgid "Per i derivati: quante unità vale un contratto (es. 100 per un’opzione su azioni). Altrimenti 1."
+msgstr "For derivatives: how many units one contract is worth (e.g. 100 for a stock option). Otherwise 1."
 
 msgid "Per le passività la differenza è mostrata dal punto di vista del patrimonio: un debito che scende è in verde."
 msgstr "For liabilities the difference is shown from the net worth's point of view: a debt going down is green."
@@ -4596,6 +4657,13 @@ msgstr "Revenue, spending and net savings by period"
 msgid "Ricavi, spese e risultato netto per periodo."
 msgstr "Revenue, spending and net result by period."
 
+msgid "Ricerca non riuscita."
+msgstr "Search failed."
+
+#, python-format
+msgid "Ricerca non riuscita: %(error)s"
+msgstr "Search failed: %(error)s"
+
 msgid "Ricevuta"
 msgstr "Receipt"
 
@@ -5070,6 +5138,9 @@ msgstr "Similar"
 msgid "Solo %(month)s (€)"
 msgstr "Only %(month)s (€)"
 
+msgid "Solo a mano"
+msgstr "By hand only"
+
 msgid "Solo gli interessi passivi e gli oneri accessori, non la quota capitale della rata."
 msgstr "Only the interest and ancillary charges, not the principal part of the installment."
 
@@ -5224,6 +5295,9 @@ msgstr "Tools"
 msgid "Strumento"
 msgstr "Instrument"
 
+msgid "Strumento e prezzo da internet"
+msgstr "Instrument and price from the internet"
+
 msgid "Subtotale"
 msgstr "Subtotal"
 
@@ -5324,9 +5398,6 @@ msgstr "Ended (%(count)s)"
 
 msgid "Ticker"
 msgstr "Ticker"
-
-msgid "Ticker / ISIN"
-msgstr "Ticker / ISIN"
 
 msgid "Tieni"
 msgstr "Keep"
@@ -5770,6 +5841,12 @@ msgstr "Currency"
 msgid "Valuta dei totali"
 msgstr "Totals currency"
 
+msgid "Valuta di quotazione"
+msgstr "Quote currency"
+
+msgid "Valuta: il codice di tre lettere (EUR, USD, GBP…)."
+msgstr "Currency: the three-letter code (EUR, USD, GBP…)."
+
 msgid "Valuta: scegline una diversa dall'euro."
 msgstr "Currency: choose one other than the euro."
 
@@ -6067,6 +6144,9 @@ msgstr "e.g. Generali, UnipolSai..."
 msgid "es. Mario Rossi"
 msgstr "e.g. John Smith"
 
+msgid "es. Milano, Xetra"
+msgstr "e.g. Milan, Xetra"
+
 msgid "es. Mutuo casa — Intesa"
 msgstr "e.g. Home mortgage — Intesa"
 
@@ -6076,8 +6156,8 @@ msgstr "e.g. POL-2024-001234"
 msgid "es. Spesa al supermercato"
 msgstr "e.g. Grocery shopping"
 
-msgid "es. VWCE, IE00BK5BQT80, BTC"
-msgstr "e.g. VWCE, IE00BK5BQT80, BTC"
+msgid "es. VWCE.DE, ENEL.MI, BTC"
+msgstr "e.g. VWCE.DE, ENEL.MI, BTC"
 
 msgid "es. Vanguard FTSE All-World"
 msgstr "e.g. Vanguard FTSE All-World"
@@ -6191,6 +6271,10 @@ msgstr "name"
 
 msgid "nome:tag"
 msgstr "name:tag"
+
+#, python-format
+msgid "non quotato su Stooq (borsa .%(suffix)s)"
+msgstr "not listed on Stooq (exchange .%(suffix)s)"
 
 msgid "non scadute"
 msgstr "not expired"
@@ -6478,6 +6562,10 @@ msgstr "«%(old)s» renamed to «%(name)s»."
 #, python-format
 msgid "«%(old)s» unita a «%(name)s»."
 msgstr "«%(old)s» merged into «%(name)s»."
+
+#, python-format
+msgid "«%(ticker)s» non trovato su Stooq"
+msgstr "«%(ticker)s» not found on Stooq"
 
 #, python-format
 msgid "«Ogni mese» vale per tutti i mesi; «solo %(month)s» lo sostituisce per questo mese."

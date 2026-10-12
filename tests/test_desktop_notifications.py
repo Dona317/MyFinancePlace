@@ -345,3 +345,11 @@ def test_tray_only_on_windows(monkeypatch):
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setitem(sys.modules, "pystray", None)  # not installed
     assert not tray.supported()
+
+
+def test_the_desktop_reads_the_prices_of_every_archive(app, monkeypatch):
+    from app.services import price_feed
+
+    calls = []
+    monkeypatch.setattr(price_feed, "refresh_all_archives", lambda: calls.append(1) or 2)
+    assert main.read_prices(app) == 2 and calls == [1]

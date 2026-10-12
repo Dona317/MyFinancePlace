@@ -27,6 +27,7 @@ ASSET_CLASSES = {
     N_("Fondo"):           (INVESTMENTS, True),
     N_("Obbligazione"):    (INVESTMENTS, True),
     N_("Criptovaluta"):    (INVESTMENTS, True),
+    N_("Derivato"):        (INVESTMENTS, True),   # options, futures, certificates: quantity × multiplier × price
     N_("Conto Risparmio"): (N_("Conti deposito e risparmio"), False),
     N_("Fondo Pensione"):  (N_("Previdenza complementare"), False),
     N_("Immobile"):        (N_("Immobili"), False),
@@ -213,7 +214,7 @@ def value_on(holding: Holding, on: date | None, prices: dict[int, float] | None 
     if on is None or on >= date.today():
         return holding.value
     price = (prices if prices is not None else prices_on(on)).get(holding.id)
-    return float(holding.quantity or 0) * price if price is not None else holding.value
+    return holding.units * price if price is not None else holding.value
 
 
 def record_price(holding: Holding, price, on: date | None = None) -> None:
