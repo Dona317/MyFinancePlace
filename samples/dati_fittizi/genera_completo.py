@@ -49,19 +49,26 @@ from app.models.account import Account  # noqa: E402
 from app.models.budget import Budget  # noqa: E402
 from app.models.currency import ExchangeRate  # noqa: E402
 from app.models.event import SpendingEvent  # noqa: E402
+from app.models.gig import Gig  # noqa: E402
 from app.models.portfolio_model import InvestmentPlan, PortfolioRule, SlotHolding  # noqa: E402
 from app.models.transaction import Transaction, TransactionSplit  # noqa: E402
 from app.models.wealth import Debt, Document, Goal, Holding, HoldingPrice, InsurancePolicy  # noqa: E402
 from app.services import (  # noqa: E402
     backup,
+    cash,
     categories,
+    contribution_limits,
     document_store,
     family,
+    gigs,
     owners,
+    personal_loans,
     portfolio_models,
     settings_store,
     spending_events,
+    taxonomies,
     transfer,
+    valuations,
     wealth,
 )
 
@@ -510,6 +517,7 @@ def fill(today: date) -> dict:
     settings_store.set(wealth.OPENING_CASH_SETTING, "0")
     db.session.flush()
     family_details(accounts, holdings, debts, goals, today)
+    everyday_extras(accounts, holdings, rows, cutoff)
     db.session.commit()
     documents(rows)
     for back in range(33, -1, -3):  # the balance sheet at the end of a quarter
@@ -519,6 +527,67 @@ def fill(today: date) -> dict:
             wealth.take_snapshot(f"Fine {on:%m/%Y}", on)
     db.session.commit()
     return {"moves": moves, "saved": len(rows), "cutoff": cutoff}
+
+
+# ── F22: limits, a car that loses value, the cash wallet, odd jobs, money between people ──────────
+
+def everyday_extras(accounts: dict, holdings: dict, rows: list[Transaction], cutoff: date) -> None:
+    """The deductible limit of the pension fund; the car (bought with the Agos loan) losing 15 % a year; the cash
+    wallet with monthly ATM withdrawals, the market paid in cash and a count; three odd jobs (one to collect); money
+    lent to and borrowed from friends, a dinner shared with them; a «Rischio» classification of the investments."""
+    contribution_limits.save(None, name="Fondo pensione Cometa (deducibile)", kind="pension", yearly=Decimal("5164.57"),
+                             total=None, since_year=None, account_ids=[], holding_ids=[holdings["pensione"].id],
+                             category=None, notes="Contributi dal conto corrente")
+    car = Holding(name="Fiat Panda 1.0 Hybrid", asset_class="Veicolo", quantity=Decimal(1), avg_price=Decimal("15500"),
+                  current_price=Decimal("15500"), purchase_date=date(2024, 9, 1), depreciation_rate=Decimal(15),
+                  owner="Marco Rossi")
+    db.session.add(car)
+    db.session.flush()
+    valuations.depreciate(car, cutoff - timedelta(days=1))
+
+    wallet = cash.wallet(create=True)
+    wallet.owner = family.JOINT
+    for back in range(6, 0, -1):
+        month = date(cutoff.year, cutoff.month, 1) - timedelta(days=30 * back)
+        rows_month = [
+            Transaction(date=month.replace(day=3), description="PRELIEVO BANCOMAT ATM ROMA", amount=Decimal(150),
+                        type="transfer", category="Giroconto", account_id=accounts["conto"].id,
+                        counter_account_id=wallet.id, tags=[]),
+            Transaction(date=month.replace(day=9), description="Mercato rionale", amount=Decimal(42), type="expense",
+                        category="Alimentari", account_id=wallet.id, counterparty="Mercato", tags=["Mercato"]),
+            Transaction(date=month.replace(day=20), description="Parrucchiere", amount=Decimal(25), type="expense",
+                        category="Cura personale", account_id=wallet.id, tags=[]),
+        ]
+        db.session.add_all(rows_month)
+    db.session.flush()
+
+    tutoring = gigs.save(Gig(), client="Famiglia Bianchi", description="Ripetizioni di matematica", owner="Giulia Rossi",
+                         on=cutoff - timedelta(days=70), hours=Decimal(10), gross=Decimal(200), withholding_agent=False,
+                         expenses=None, method="cash", notes=None)
+    website = gigs.save(Gig(), client="Studio Verdi Architetti", description="Sito web dello studio", owner="Marco Rossi",
+                        on=cutoff - timedelta(days=50), hours=Decimal(24), gross=Decimal(1500), withholding_agent=True,
+                        expenses=Decimal(60), method="transfer", notes="Ritenuta d'acconto 20 %")
+    gigs.save(Gig(), client="Condominio Via Roma 12", description="Inventario della cantina", owner="Marco Rossi",
+              on=cutoff - timedelta(days=40), hours=Decimal(6), gross=Decimal(250), withholding_agent=False,
+              expenses=None, method="transfer", notes=None)  # still to collect: a reminder
+    db.session.flush()
+    gigs.collect(tutoring, wallet, tutoring.date + timedelta(days=1))
+    gigs.collect(website, accounts["conto"], website.date + timedelta(days=20))
+    db.session.flush()
+    cash.count(wallet, Decimal("380"), cutoff - timedelta(days=2))  # after the cash collected for the tutoring
+
+    personal_loans.add("Luca Bianchi", "lent", Decimal(60), cutoff - timedelta(days=25), "Biglietti del concerto",
+                       due=cutoff + timedelta(days=10))
+    personal_loans.add("Sara Neri", "borrowed", Decimal(100), cutoff - timedelta(days=60), "Anticipo per la cena di classe")
+    personal_loans.add("Sara Neri", "repaid_them", Decimal(60), cutoff - timedelta(days=20))
+    dinner = next(tx for tx in reversed(rows) if tx.type == "expense" and tx.category == "Ristoranti" and not tx.splits)
+    personal_loans.share_expense(dinner, personal_loans.equal_shares(abs(dinner.amount), ["Luca Bianchi"]))
+
+    risk = taxonomies.create("Rischio", False, "Basso\nMedio\nAlto")
+    db.session.flush()
+    low, medium, high = risk.categories
+    for key, category in (("vwce", medium), ("btp", low), ("enel", high), ("btc", high)):
+        taxonomies.assign(holdings[key], risk, {category.id: Decimal(100)})
 
 
 # ── Insurance policies and archived documents ──────────────────────────────────

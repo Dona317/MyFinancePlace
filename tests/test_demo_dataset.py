@@ -16,7 +16,20 @@ import pytest
 from app.models.account import Account
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Document, Holding, InsurancePolicy
-from app.services import accounts, analytics, backup, bank_import, capital_gains, categories, document_store, notifications, subscriptions, wealth
+from app.services import (
+    accounts,
+    analytics,
+    backup,
+    bank_import,
+    capital_gains,
+    cash,
+    categories,
+    document_store,
+    gigs,
+    notifications,
+    subscriptions,
+    wealth,
+)
 from tests.conftest import make_tx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
@@ -42,7 +55,7 @@ def test_three_years_on_four_linked_accounts(app, demo_data):
     first, last = (Transaction.query.order_by(Transaction.date.asc()).first().date,
                    Transaction.query.order_by(Transaction.date.desc()).first().date)
     assert first == date(2023, 10, 1) and last.month == 8 and demo_data["cutoff"] == date(2026, 9, 1)
-    assert Account.query.count() == 4 and TransactionSplit.query.count() > 0
+    assert Account.query.count() == 5 and TransactionSplit.query.count() > 0  # the four linked ones and the cash (F22)
     transfers = Transaction.query.filter_by(type="transfer")
     assert transfers.filter(Transaction.counter_account_id.isnot(None)).count() > 100  # the links between accounts
     with app.test_request_context():
@@ -53,9 +66,16 @@ def test_three_years_on_four_linked_accounts(app, demo_data):
         assert balances["Carta di credito Visa"] == -float(august)
         expected = {name: float(demo.balance(demo_data["moves"], key, demo_data["cutoff"]))
                     for key, (name, *_) in demo.ACCOUNTS.items()}
+        # F22: the ATM withdrawals to the cash wallet, and an odd job paid on the current account
+        withdrawn = sum(float(t.amount) for t in Transaction.query.filter_by(description="PRELIEVO BANCOMAT ATM ROMA"))
+        current = Account.query.filter_by(name="Conto corrente Fineco").one()
+        job = sum(float(t.amount) for t in Transaction.query.filter_by(category=gigs.CATEGORY, account_id=current.id))
+        expected["Conto corrente Fineco"] += job - withdrawn
+        wallet = cash.wallet()
+        assert withdrawn == 900 and job == 1200 and balances.pop(wallet.name) == pytest.approx(380)
         assert balances == pytest.approx(expected)
         # the cash in the balance sheet is the money on the accounts: ETF purchases left it for the portfolio
-        assert wealth.cash_balance() == pytest.approx(sum(balances.values()))
+        assert wealth.cash_balance() == pytest.approx(sum(balances.values()) + 380)
 
 
 def test_cash_leaves_for_an_investment_and_comes_back_from_a_sale(app, db):

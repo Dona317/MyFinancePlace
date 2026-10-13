@@ -919,12 +919,14 @@
 918;2026-03-01;Rata mutuo Intesa Sanpaolo;858.4;EUR;expense;Mutuo;Casa;Intesa Sanpaolo;Intesa Sanpaolo;True;monthly;;;;
 919;2026-03-02;Giroconto verso conto deposito;300.0;EUR;transfer;Giroconto;Giroconto;Illimity;Illimity;False;;;;;
 920;2026-03-03;Premio assicurazione casa UnipolSai;24.5;EUR;expense;Assicurazioni;Assicurazioni;UnipolSai;UnipolSai;True;monthly;;;;
+1106;2026-03-03;PRELIEVO BANCOMAT ATM ROMA;150.0;EUR;transfer;Giroconto;Giroconto;;;False;;;;;
 921;2026-03-04;Netflix abbonamento;15.99;EUR;expense;Streaming;Abbonamenti;Netflix;Netflix;True;monthly;;;;
 922;2026-03-05;Rata prestito auto Agos;276.6;EUR;expense;Prestiti;Prestiti;Agos;Agos;True;monthly;;;;
 923;2026-03-06;Conad spesa;40.01;EUR;expense;Alimentari;Alimentari;Conad;Conad;False;;;;;"Alimentari 28,01; Casa 12,00"
 924;2026-03-06;Spotify Premium;10.99;EUR;expense;Streaming;Abbonamenti;Spotify;Spotify;True;monthly;;;;
 925;2026-03-08;Bar Centrale colazione;7.47;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
 926;2026-03-08;Enel Energia bolletta luce e gas;160.52;EUR;expense;Bollette;Bollette;Enel Energia;Enel Energia;True;monthly;;;;
+1107;2026-03-09;Mercato rionale;42.0;EUR;expense;Alimentari;Alimentari;Mercato;Mercato;False;;;;;
 927;2026-03-10;Giroconto verso conto titoli;250.0;EUR;transfer;Giroconto;Giroconto;Directa;Directa;False;;;;;
 928;2026-03-11;Concerto Forum;38.91;EUR;expense;Svago;Svago;Concerto Forum;Concerto Forum;False;;;;;
 929;2026-03-11;Lidl spesa;94.61;EUR;expense;Alimentari;Alimentari;Lidl;Lidl;False;;;;;
@@ -938,6 +940,7 @@
 937;2026-03-16;Ristorante Da Mario;39.27;EUR;expense;Ristoranti;Ristoranti;Ristorante Da Mario;Ristorante Da Mario;False;;;;;
 938;2026-03-18;Iliad ricarica mobile;9.99;EUR;expense;Internet e telefono;Bollette;Iliad;Iliad;True;monthly;;;;
 939;2026-03-20;Palestra FitActive;34.9;EUR;expense;Palestra;Palestra;FitActive;FitActive;True;monthly;;;;
+1108;2026-03-20;Parrucchiere;25.0;EUR;expense;Cura personale;Cura personale;;;False;;;;;
 940;2026-03-23;Esselunga spesa;106.84;EUR;expense;Alimentari;Alimentari;Esselunga;Esselunga;False;;;;;
 941;2026-03-24;Trattoria Milanese;73.63;EUR;expense;Ristoranti;Ristoranti;Trattoria Milanese;Trattoria Milanese;False;;;;;
 942;2026-03-25;Bar Centrale colazione;5.56;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
@@ -951,10 +954,12 @@
 950;2026-04-02;Giroconto verso conto deposito;300.0;EUR;transfer;Giroconto;Giroconto;Illimity;Illimity;False;;;;;
 951;2026-04-03;Premio assicurazione casa UnipolSai;24.5;EUR;expense;Assicurazioni;Assicurazioni;UnipolSai;UnipolSai;True;monthly;;;;
 952;2026-04-03;Ristorante Da Mario;41.61;EUR;expense;Ristoranti;Ristoranti;Ristorante Da Mario;Ristorante Da Mario;False;;;;;
+1109;2026-04-03;PRELIEVO BANCOMAT ATM ROMA;150.0;EUR;transfer;Giroconto;Giroconto;;;False;;;;;
 953;2026-04-04;Netflix abbonamento;15.99;EUR;expense;Streaming;Abbonamenti;Netflix;Netflix;True;monthly;;;;
 954;2026-04-05;Rata prestito auto Agos;276.6;EUR;expense;Prestiti;Prestiti;Agos;Agos;True;monthly;;;;
 955;2026-04-06;Spotify Premium;10.99;EUR;expense;Streaming;Abbonamenti;Spotify;Spotify;True;monthly;;;;
 956;2026-04-08;Enel Energia bolletta luce e gas;58.64;EUR;expense;Bollette;Bollette;Enel Energia;Enel Energia;True;monthly;;;;
+1110;2026-04-09;Mercato rionale;42.0;EUR;expense;Alimentari;Alimentari;Mercato;Mercato;False;;;;;
 957;2026-04-10;Cinema UCI;27.39;EUR;expense;Svago;Svago;Cinema UCI;Cinema UCI;False;;;;;
 958;2026-04-10;Giroconto verso conto titoli;250.0;EUR;transfer;Giroconto;Giroconto;Directa;Directa;False;;;;;
 959;2026-04-12;Acquisto VWCE 2.0329 quote a 118.06 (PAC);240.0;EUR;transfer;Investimenti;Investimenti;Vanguard;Vanguard;False;;;;;
@@ -971,6 +976,7 @@
 970;2026-04-20;Bar Centrale colazione;6.28;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
 971;2026-04-20;Palestra FitActive;34.9;EUR;expense;Palestra;Palestra;FitActive;FitActive;True;monthly;;;;
 972;2026-04-20;Visita dentista;150.02;EUR;expense;Salute;Salute;Visita dentista;Visita dentista, detraibile;False;;;;;
+1111;2026-04-20;Parrucchiere;25.0;EUR;expense;Cura personale;Cura personale;;;False;;;;;
 973;2026-04-21;Eni carburante;61.73;EUR;expense;Carburante;Trasporto;Eni;Eni;False;;;;;
 974;2026-04-22;Hotel New York Manhattan;744.8;USD;expense;Viaggi;Viaggi;Hilton;Hilton, viaggio;False;;;;;
 975;2026-04-24;Esselunga spesa;79.91;EUR;expense;Alimentari;Alimentari;Esselunga;Esselunga;False;;;;;
@@ -980,6 +986,7 @@
 979;2026-05-01;Rata mutuo Intesa Sanpaolo;858.4;EUR;expense;Mutuo;Casa;Intesa Sanpaolo;Intesa Sanpaolo;True;monthly;;;;
 980;2026-05-02;Giroconto verso conto deposito;300.0;EUR;transfer;Giroconto;Giroconto;Illimity;Illimity;False;;;;;
 981;2026-05-03;Premio assicurazione casa UnipolSai;24.5;EUR;expense;Assicurazioni;Assicurazioni;UnipolSai;UnipolSai;True;monthly;;;;
+1112;2026-05-03;PRELIEVO BANCOMAT ATM ROMA;150.0;EUR;transfer;Giroconto;Giroconto;;;False;;;;;
 982;2026-05-04;Netflix abbonamento;15.99;EUR;expense;Streaming;Abbonamenti;Netflix;Netflix;True;monthly;;;;
 983;2026-05-05;Rata prestito auto Agos;276.6;EUR;expense;Prestiti;Prestiti;Agos;Agos;True;monthly;;;;
 984;2026-05-06;Esselunga spesa;39.16;EUR;expense;Alimentari;Alimentari;Esselunga;Esselunga;False;;;;;
@@ -987,6 +994,7 @@
 986;2026-05-07;Pizzeria Napoli;38.72;EUR;expense;Ristoranti;Ristoranti;Pizzeria Napoli;Pizzeria Napoli;False;;;;;
 987;2026-05-08;Bar Centrale colazione;5.42;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
 988;2026-05-08;Enel Energia bolletta luce e gas;79.9;EUR;expense;Bollette;Bollette;Enel Energia;Enel Energia;True;monthly;;;;
+1113;2026-05-09;Mercato rionale;42.0;EUR;expense;Alimentari;Alimentari;Mercato;Mercato;False;;;;;
 989;2026-05-10;Giroconto verso conto titoli;250.0;EUR;transfer;Giroconto;Giroconto;Directa;Directa;False;;;;;
 990;2026-05-11;Conad spesa;63.12;EUR;expense;Alimentari;Alimentari;Conad;Conad;False;;;;;
 991;2026-05-12;Acquisto VWCE 1.9866 quote a 120.81 (PAC);240.0;EUR;transfer;Investimenti;Investimenti;Vanguard;Vanguard;False;;;;;
@@ -1003,6 +1011,7 @@
 1002;2026-05-18;Trattoria Milanese;57.42;EUR;expense;Ristoranti;Ristoranti;Trattoria Milanese;Trattoria Milanese;False;;;;;
 1003;2026-05-20;IP carburante;69.71;EUR;expense;Carburante;Trasporto;IP;IP;False;;;;;
 1004;2026-05-20;Palestra FitActive;34.9;EUR;expense;Palestra;Palestra;FitActive;FitActive;True;monthly;;;;
+1114;2026-05-20;Parrucchiere;25.0;EUR;expense;Cura personale;Cura personale;;;False;;;;;
 1005;2026-05-22;Lidl spesa;116.95;EUR;expense;Alimentari;Alimentari;Lidl;Lidl;False;;;;;
 1006;2026-05-23;Ristorante Da Mario;46.99;EUR;expense;Ristoranti;Ristoranti;Ristorante Da Mario;Ristorante Da Mario;False;;;;;
 1007;2026-05-24;Bar Centrale colazione;8.56;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
@@ -1015,12 +1024,14 @@
 1014;2026-06-02;Pizzeria Napoli;61.38;EUR;expense;Ristoranti;Ristoranti;Pizzeria Napoli;Pizzeria Napoli;False;;;;;
 1015;2026-06-03;Bar Centrale colazione;2.64;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
 1016;2026-06-03;Premio assicurazione casa UnipolSai;24.5;EUR;expense;Assicurazioni;Assicurazioni;UnipolSai;UnipolSai;True;monthly;;;;
+1115;2026-06-03;PRELIEVO BANCOMAT ATM ROMA;150.0;EUR;transfer;Giroconto;Giroconto;;;False;;;;;
 1017;2026-06-04;IP carburante;74.74;EUR;expense;Carburante;Trasporto;IP;IP;False;;;;;
 1018;2026-06-04;Netflix abbonamento;15.99;EUR;expense;Streaming;Abbonamenti;Netflix;Netflix;True;monthly;;;;
 1019;2026-06-05;Rata prestito auto Agos;276.6;EUR;expense;Prestiti;Prestiti;Agos;Agos;True;monthly;;;;
 1020;2026-06-06;Spotify Premium;10.99;EUR;expense;Streaming;Abbonamenti;Spotify;Spotify;True;monthly;;;;
 1021;2026-06-08;Enel Energia bolletta luce e gas;47.59;EUR;expense;Bollette;Bollette;Enel Energia;Enel Energia;True;monthly;;;;
 1022;2026-06-09;Conad spesa;76.4;EUR;expense;Alimentari;Alimentari;Conad;Conad;False;;;;;
+1116;2026-06-09;Mercato rionale;42.0;EUR;expense;Alimentari;Alimentari;Mercato;Mercato;False;;;;;
 1023;2026-06-10;Giroconto verso conto titoli;250.0;EUR;transfer;Giroconto;Giroconto;Directa;Directa;False;;;;;
 1024;2026-06-12;Acquisto VWCE 1.9397 quote a 123.73 (PAC);240.0;EUR;transfer;Investimenti;Investimenti;Vanguard;Vanguard;False;;;;;
 1025;2026-06-12;Commissione ordine Directa;1.5;EUR;expense;Commissioni;Commissioni;Directa;Directa;False;;;;;
@@ -1032,8 +1043,10 @@
 1031;2026-06-20;Conad spesa;95.39;EUR;expense;Alimentari;Alimentari;Conad;Conad;False;;;;;
 1032;2026-06-20;Libreria Feltrinelli;34.47;EUR;expense;Svago;Svago;Libreria Feltrinelli;Libreria Feltrinelli;False;;;;;
 1033;2026-06-20;Palestra FitActive;34.9;EUR;expense;Palestra;Palestra;FitActive;FitActive;True;monthly;;;;
+1117;2026-06-20;Parrucchiere;25.0;EUR;expense;Cura personale;Cura personale;;;False;;;;;
 1034;2026-06-22;Bar Centrale colazione;5.41;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
 1035;2026-06-22;Ottico Salmoiraghi;43.45;EUR;expense;Salute;Salute;Ottico Salmoiraghi;Ottico Salmoiraghi, detraibile;False;;;;;
+1124;2026-06-24;Famiglia Bianchi: Ripetizioni di matematica;200.0;EUR;income;Lavori occasionali;Lavori occasionali;Famiglia Bianchi;;False;;;;;
 1036;2026-06-25;Lidl spesa;71.2;EUR;expense;Alimentari;Alimentari;Lidl;Lidl;False;;;;;
 1037;2026-06-26;Dividendo VWCE;20.6;EUR;income;Dividendi e cedole;Dividendi e cedole;Vanguard;Vanguard;False;;;;;
 1038;2026-06-26;Sushi Ko;76.62;EUR;expense;Ristoranti;Ristoranti;Sushi Ko;Sushi Ko;False;;;;;
@@ -1043,6 +1056,7 @@
 1042;2026-07-01;Rata mutuo Intesa Sanpaolo;858.4;EUR;expense;Mutuo;Casa;Intesa Sanpaolo;Intesa Sanpaolo;True;monthly;;;;
 1043;2026-07-02;Giroconto verso conto deposito;300.0;EUR;transfer;Giroconto;Giroconto;Illimity;Illimity;False;;;;;
 1044;2026-07-03;Premio assicurazione casa UnipolSai;24.5;EUR;expense;Assicurazioni;Assicurazioni;UnipolSai;UnipolSai;True;monthly;;;;
+1118;2026-07-03;PRELIEVO BANCOMAT ATM ROMA;150.0;EUR;transfer;Giroconto;Giroconto;;;False;;;;;
 1045;2026-07-04;Netflix abbonamento;15.99;EUR;expense;Streaming;Abbonamenti;Netflix;Netflix;True;monthly;;;;
 1046;2026-07-05;Coop spesa;75.56;EUR;expense;Alimentari;Alimentari;Coop;Coop;False;;;;;
 1047;2026-07-05;Rata prestito auto Agos;276.6;EUR;expense;Prestiti;Prestiti;Agos;Agos;True;monthly;;;;
@@ -1051,6 +1065,7 @@
 1050;2026-07-08;Enel Energia bolletta luce e gas;71.55;EUR;expense;Bollette;Bollette;Enel Energia;Enel Energia;True;monthly;;;;
 1051;2026-07-08;Libreria Feltrinelli;24.9;EUR;expense;Svago;Svago;Libreria Feltrinelli;Libreria Feltrinelli;False;;;;;
 1052;2026-07-08;Q8 carburante;57.41;EUR;expense;Carburante;Trasporto;Q8;Q8;False;;;;;
+1119;2026-07-09;Mercato rionale;42.0;EUR;expense;Alimentari;Alimentari;Mercato;Mercato;False;;;;;
 1053;2026-07-10;Bar Centrale colazione;2.67;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
 1054;2026-07-10;Giroconto verso conto titoli;250.0;EUR;transfer;Giroconto;Giroconto;Directa;Directa;False;;;;;
 1055;2026-07-12;Acquisto VWCE 1.8972 quote a 126.5 (PAC);240.0;EUR;transfer;Investimenti;Investimenti;Vanguard;Vanguard;False;;;;;
@@ -1064,6 +1079,7 @@
 1063;2026-07-18;Iliad ricarica mobile;9.99;EUR;expense;Internet e telefono;Bollette;Iliad;Iliad;True;monthly;;;;
 1064;2026-07-20;Giroconto da conto deposito per vacanze;1200.0;EUR;transfer;Giroconto;Giroconto;Illimity;Illimity;False;;;;;
 1065;2026-07-20;Palestra FitActive;34.9;EUR;expense;Palestra;Palestra;FitActive;FitActive;True;monthly;;;;
+1120;2026-07-20;Parrucchiere;25.0;EUR;expense;Cura personale;Cura personale;;;False;;;;;
 1066;2026-07-24;Coop spesa;71.24;EUR;expense;Alimentari;Alimentari;Coop;Coop;False;;;;;
 1067;2026-07-24;Dividendo Enel;26.88;EUR;income;Dividendi e cedole;Dividendi e cedole;Enel;Enel;False;;;;;
 1068;2026-07-24;IKEA acquisto;112.28;EUR;expense;Shopping;Shopping;IKEA;IKEA;False;;;;;
@@ -1073,8 +1089,10 @@
 1072;2026-07-27;Stipendio ACME S.p.A.;2600.0;EUR;income;Stipendio;Stipendio;ACME S.p.A.;ACME S.p.A.;True;monthly;;;;
 1073;2026-08-01;Rata mutuo Intesa Sanpaolo;858.4;EUR;expense;Mutuo;Casa;Intesa Sanpaolo;Intesa Sanpaolo;True;monthly;;;;
 1074;2026-08-02;Giroconto verso conto deposito;300.0;EUR;transfer;Giroconto;Giroconto;Illimity;Illimity;False;;;;;
+1125;2026-08-02;Studio Verdi Architetti: Sito web dello studio;1200.0;EUR;income;Lavori occasionali;Lavori occasionali;Studio Verdi Architetti;;False;;;;;
 1075;2026-08-03;Premio assicurazione casa UnipolSai;24.5;EUR;expense;Assicurazioni;Assicurazioni;UnipolSai;UnipolSai;True;monthly;;;;
 1076;2026-08-03;Volo e hotel vacanze Puglia;1081.04;EUR;expense;Viaggi;Viaggi;Booking.com;Booking.com;False;;;;;
+1121;2026-08-03;PRELIEVO BANCOMAT ATM ROMA;150.0;EUR;transfer;Giroconto;Giroconto;;;False;;;;;
 1077;2026-08-04;Lidl spesa;66.01;EUR;expense;Alimentari;Alimentari;Lidl;Lidl;False;;;;;
 1078;2026-08-04;Netflix abbonamento;15.99;EUR;expense;Streaming;Abbonamenti;Netflix;Netflix;True;monthly;;;;
 1079;2026-08-05;Pizzeria Napoli;47.0;EUR;expense;Ristoranti;Ristoranti;Pizzeria Napoli;Pizzeria Napoli;False;;;;;
@@ -1084,6 +1102,7 @@
 1083;2026-08-06;Spotify Premium;10.99;EUR;expense;Streaming;Abbonamenti;Spotify;Spotify;True;monthly;;;;
 1084;2026-08-07;Q8 carburante;54.88;EUR;expense;Carburante;Trasporto;Q8;Q8;False;;;;;
 1085;2026-08-08;Enel Energia bolletta luce e gas;60.63;EUR;expense;Bollette;Bollette;Enel Energia;Enel Energia;True;monthly;;;;
+1122;2026-08-09;Mercato rionale;42.0;EUR;expense;Alimentari;Alimentari;Mercato;Mercato;False;;;;;
 1086;2026-08-10;Giroconto verso conto titoli;250.0;EUR;transfer;Giroconto;Giroconto;Directa;Directa;False;;;;;
 1087;2026-08-11;Esselunga spesa;91.94;EUR;expense;Alimentari;Alimentari;Esselunga;Esselunga;False;;;;;
 1088;2026-08-12;Acquisto VWCE 1.8628 quote a 128.84 (PAC);240.0;EUR;transfer;Investimenti;Investimenti;Vanguard;Vanguard;False;;;;;
@@ -1097,10 +1116,12 @@
 1096;2026-08-17;Coop spesa;99.32;EUR;expense;Alimentari;Alimentari;Coop;Coop;False;;;;;
 1097;2026-08-17;Ottico Salmoiraghi;67.71;EUR;expense;Salute;Salute;Ottico Salmoiraghi;Ottico Salmoiraghi, detraibile;False;;;;;
 1098;2026-08-18;Iliad ricarica mobile;9.99;EUR;expense;Internet e telefono;Bollette;Iliad;Iliad;True;monthly;;;;
-1099;2026-08-18;Pizzeria Napoli;24.46;EUR;expense;Ristoranti;Ristoranti;Pizzeria Napoli;Pizzeria Napoli;False;;;;;
+1099;2026-08-18;Pizzeria Napoli;24.46;EUR;expense;Ristoranti;Ristoranti;Pizzeria Napoli;Pizzeria Napoli;False;;;;;"Ristoranti 12,23; Anticipi per altri 12,23"
 1100;2026-08-20;Eni carburante;51.72;EUR;expense;Carburante;Trasporto;Eni;Eni;False;;;;;
 1101;2026-08-20;Palestra FitActive;34.9;EUR;expense;Palestra;Palestra;FitActive;FitActive;True;monthly;;;;
+1123;2026-08-20;Parrucchiere;25.0;EUR;expense;Cura personale;Cura personale;;;False;;;;;
 1102;2026-08-25;Conad spesa;77.35;EUR;expense;Alimentari;Alimentari;Conad;Conad;False;;;;;
 1103;2026-08-27;Bar Centrale colazione;4.01;EUR;expense;Bar e caffè;Ristoranti;Bar Centrale;Bar Centrale;False;;;;;
 1104;2026-08-27;Stipendio ACME S.p.A.;2600.0;EUR;income;Stipendio;Stipendio;ACME S.p.A.;ACME S.p.A.;True;monthly;;;;
 1105;2026-08-28;Eni carburante;60.72;EUR;expense;Carburante;Trasporto;Eni;Eni;False;;;;;
+1126;2026-08-30;Conta dei contanti: spese non annotate;318.0;EUR;expense;Spese non annotate;Spese non annotate;;;False;;;;;
