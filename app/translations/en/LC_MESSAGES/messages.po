@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 20:45+0000\n"
+"POT-Creation-Date: 2026-10-13 20:48+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -817,6 +817,9 @@ msgstr "Add an exchange rate"
 msgid "Aggiungi un utente"
 msgstr "Add a user"
 
+msgid "Aggiungi una fonte"
+msgstr "Add a source"
+
 msgid "Aggiungi una parte"
 msgstr "Add a part"
 
@@ -852,6 +855,10 @@ msgstr ""
 
 msgid "Al giorno"
 msgstr "Per day"
+
+#, python-format
+msgid "Al massimo %(count)s fonti personalizzate."
+msgstr "At most %(count)s custom sources."
 
 #, python-format
 msgid "Al massimo %(count)s titolari."
@@ -2408,6 +2415,12 @@ msgstr ""
 "Where and in what you invest: region and sector are set on each holding's form (an ETF on the whole world is “Global”"
 " and “Diversified”)."
 
+msgid "Dove leggere il prezzo"
+msgstr "Where to read the price"
+
+msgid "Dove leggere la data (solo JSON, facoltativo)"
+msgstr "Where to read the date (JSON only, optional)"
+
 msgid "Dove tieni i soldi, perché è importante..."
 msgstr "Where you keep the money, why it matters..."
 
@@ -2519,6 +2532,10 @@ msgstr "Delete the snapshot of %(date)s?"
 #, python-format
 msgid "Eliminare l'obiettivo «%(name)s»?"
 msgstr "Delete the goal “%(name)s”?"
+
+#, python-format
+msgid "Eliminare la fonte «%(name)s»?"
+msgstr "Delete the source “%(name)s”?"
 
 #, python-format
 msgid "Eliminare la polizza %(type)s di %(company)s?"
@@ -2730,6 +2747,9 @@ msgstr "Export and import"
 
 msgid "Esportazione Fiscale per Anno"
 msgstr "Tax Export by Year"
+
+msgid "Espressione regolare non valida."
+msgstr "Invalid regular expression."
 
 msgid "Estratto conto"
 msgstr "Bank statement"
@@ -2943,11 +2963,28 @@ msgstr "Source"
 msgid "Fonte del prezzo"
 msgstr "Price source"
 
+msgid "Fonte eliminata: i titoli che la usavano tornano alla fonte automatica."
+msgstr "Source deleted: the holdings that used it go back to the automatic source."
+
+#, python-format
+msgid "Fonte «%(name)s» salvata: sceglila come fonte del prezzo nel titolo."
+msgstr "Source “%(name)s” saved: choose it as the price source in the holding."
+
+#, python-format
+msgid "Fonte «%(name)s»: %(error)s"
+msgstr "Source “%(name)s”: %(error)s"
+
 msgid "Fonti dei prezzi"
 msgstr "Price sources"
 
 msgid "Fonti dei prezzi salvate."
 msgstr "Price sources saved."
+
+msgid "Fonti tue"
+msgstr "Your own sources"
+
+msgid "Formato"
+msgstr "Format"
 
 msgid "Formato data"
 msgstr "Date format"
@@ -2963,6 +3000,9 @@ msgstr "Format not supported: upload a CSV, Excel (.xlsx, .xls) or LibreOffice (
 
 msgid "Formato numeri"
 msgstr "Number format"
+
+msgid "Formato: JSON, HTML o CSV."
+msgstr "Format: JSON, HTML or CSV."
 
 msgid "Fotografie della situazione finanziaria nel tempo"
 msgstr "Pictures of your financial situation over time"
@@ -3200,6 +3240,9 @@ msgstr "ISIN"
 #, python-format
 msgid "ISIN %(isin)s non trovato: scrivi il ticker con il suffisso di borsa (es. SWDA.MI)"
 msgstr "ISIN %(isin)s not found: write the ticker with the exchange suffix (e.g. SWDA.MI)"
+
+msgid "ISIN per la prova"
+msgstr "ISIN for the test"
 
 msgid "ISIN, ticker o nome (es. IE00BK5BQT80, ENEL.MI, Vanguard All-World)"
 msgstr "ISIN, ticker or name (e.g. IE00BK5BQT80, ENEL.MI, Vanguard All-World)"
@@ -3603,6 +3646,9 @@ msgstr "In use"
 msgid "Incasso netto"
 msgstr "Net proceeds"
 
+msgid "Indica dove leggere il prezzo (percorso, etichetta o colonna)."
+msgstr "Say where to read the price (path, label or column)."
+
 msgid "Indica l'importo, maggiore di zero."
 msgstr "Enter the amount, above zero."
 
@@ -3633,6 +3679,16 @@ msgstr "Indicators"
 
 msgid "Indipendenza finanziaria"
 msgstr "Financial independence"
+
+msgid "Indirizzo"
+msgstr "Address"
+
+msgid "Indirizzo: deve iniziare con https:// (o http://)."
+msgstr "Address: it must start with https:// (or http://)."
+
+#, python-brace-format
+msgid "Indirizzo: metti {ISIN} o {TICKER} dove va il codice del titolo."
+msgstr "Address: put {ISIN} or {TICKER} where the holding's code goes."
 
 msgid "Industria"
 msgstr "Industrials"
@@ -3773,6 +3829,13 @@ msgstr "Italy"
 
 msgid "Item"
 msgstr "Item"
+
+msgid ""
+"JSON: chiavi e posizioni separate da punti (data.quotes.0.nav). HTML: l’etichetta prima del prezzo, oppure «re:» e "
+"un’espressione regolare con il prezzo nel primo gruppo. CSV: nome o numero della colonna (si legge l’ultima riga)."
+msgstr ""
+"JSON: keys and positions separated by dots (data.quotes.0.nav). HTML: the label before the price, or “re:” and a "
+"regular expression with the price in its first group. CSV: name or number of the column (the last row is read)."
 
 msgid "L'AI sta leggendo le intestazioni…"
 msgstr "The AI is reading the headers…"
@@ -4784,6 +4847,9 @@ msgstr "Group name"
 msgid "Nome del modello non valido."
 msgstr "Invalid model name."
 
+msgid "Nome della fonte: fino a 40 lettere, cifre, spazi, punti o trattini."
+msgstr "Source name: up to 40 letters, digits, spaces, dots or dashes."
+
 #, python-format
 msgid "Nome di %(name)s"
 msgstr "Name of %(name)s"
@@ -5405,6 +5471,15 @@ msgstr ""
 "For a brokerage account: fixed + percent of the amount, between a minimum and a maximum. When you record a purchase "
 "or a sale on this account, the commission is computed and proposed. Empty = you enter it."
 
+msgid ""
+"Per un fondo o una polizza che nessun sito trova: un indirizzo e dove leggere il prezzo. Solo indirizzi su internet "
+"(mai il computer o la rete di casa), al massimo una richiesta al secondo; si invia solo il codice del titolo. Poi "
+"sceglila come «Fonte del prezzo» nel titolo."
+msgstr ""
+"For a fund or a policy no site finds: an address and where to read the price. Internet addresses only (never this "
+"computer or the home network), at most one request a second; only the holding's code is sent. Then choose it as the "
+"“Price source” in the holding."
+
 msgid "Per un gruppo servono almeno due archivi: crea prima l’archivio di ogni persona in Clienti."
 msgstr "A group needs at least two archives: first create each person's archive in Clients."
 
@@ -5703,6 +5778,10 @@ msgstr "Price of %(name)s"
 msgid "Prezzo eliminato."
 msgstr "Price deleted."
 
+#, python-format
+msgid "Prezzo in %% del nominale (obbligazioni): dividi per 100"
+msgstr "Price in %% of face value (bonds): divide by 100"
+
 msgid "Prezzo medio d'acquisto (€)"
 msgstr "Average purchase price (€)"
 
@@ -5790,6 +5869,13 @@ msgstr "Next 12 months (estimate)"
 
 msgid "Prossimo"
 msgstr "Next"
+
+msgid "Prova"
+msgstr "Test"
+
+#, python-format
+msgid "Prova riuscita: %(price)s %(currency)s del %(day)s."
+msgstr "Test passed: %(price)s %(currency)s on %(day)s."
 
 msgid "Provider"
 msgstr "Provider"
@@ -6411,6 +6497,9 @@ msgstr "Save rate"
 msgid "Salva collegamenti"
 msgstr "Save links"
 
+msgid "Salva la fonte"
+msgstr "Save the source"
+
 msgid "Salva modello"
 msgstr "Save model"
 
@@ -7026,6 +7115,9 @@ msgstr "Three-fund portfolio"
 
 msgid "Ticker"
 msgstr "Ticker"
+
+msgid "Ticker per la prova"
+msgstr "Ticker for the test"
 
 msgid "Tieni"
 msgstr "Keep"
@@ -7831,6 +7923,10 @@ msgstr "classification"
 msgid "claude-haiku-4-5"
 msgstr "claude-haiku-4-5"
 
+#, python-format
+msgid "colonna «%(path)s» non trovata"
+msgstr "column “%(path)s” not found"
+
 msgid "confronta con l'estratto qui sotto"
 msgstr "compare with the statement below"
 
@@ -8003,6 +8099,9 @@ msgstr "e.g. Monthly PAC"
 msgid "es. POL-2024-001234"
 msgstr "e.g. POL-2024-001234"
 
+msgid "es. Sito del mio fondo"
+msgstr "e.g. My fund's site"
+
 msgid "es. Spesa al supermercato"
 msgstr "e.g. Grocery shopping"
 
@@ -8068,6 +8167,9 @@ msgstr "the money lasts until %(age)s in %(pct)s simulations out of 100"
 msgid "il %(day)s"
 msgstr "on %(day)s"
 
+msgid "il CSV non ha righe"
+msgstr "the CSV has no rows"
+
 msgid "il portafoglio modello attivo"
 msgstr "the active model portfolio"
 
@@ -8081,6 +8183,10 @@ msgstr "invalid amount: '%(value)s'"
 msgid "in corso"
 msgstr "in progress"
 
+#, python-format
+msgid "indirizzo «%(host)s» non trovato"
+msgstr "address “%(host)s” not found"
+
 msgid "inserita a mano"
 msgstr "entered by hand"
 
@@ -8090,6 +8196,17 @@ msgid ""
 msgstr ""
 "justETF, Borsa Italiana and Morningstar are web pages, not services made for apps: when they change, that source "
 "reports an error («the page changed») and the others go on."
+
+msgid "l'espressione non trova nulla nella pagina"
+msgstr "the expression finds nothing in the page"
+
+#, python-format
+msgid "l'indirizzo «%(host)s» è nella rete locale: non consentito"
+msgstr "the address “%(host)s” is on the local network: not allowed"
+
+#, python-format
+msgid "la fonte «%(name)s» non c'è più"
+msgstr "the source “%(name)s” no longer exists"
 
 msgid "la pagina è cambiata"
 msgstr "the page changed"
@@ -8339,6 +8456,9 @@ msgstr "unexpected answer"
 msgid "risposta non leggibile"
 msgstr "unreadable answer"
 
+msgid "risposta troppo grande"
+msgstr "answer too large"
+
 #, python-format
 msgid "saldo %(amount)s"
 msgstr "balance %(amount)s"
@@ -8360,6 +8480,9 @@ msgstr "if the last 12 months repeat"
 
 msgid "senza categoria"
 msgstr "no category"
+
+msgid "serve il ticker"
+msgstr "the ticker is needed"
 
 msgid "serve l'ISIN"
 msgstr "the ISIN is needed"
@@ -8501,6 +8624,10 @@ msgstr "empty: the ready-made limit's name"
 msgid "vuoto: quello del tipo scelto"
 msgstr "empty: the chosen type's"
 
+#, python-brace-format
+msgid "{ISIN} e {TICKER} diventano i codici del titolo, {DATA} la data di oggi (AAAA-MM-GG)."
+msgstr "{ISIN} and {TICKER} become the holding's codes, {DATA} today's date (YYYY-MM-DD)."
+
 #, python-format
 msgid "«%(description)s» aggiunta in %(category)s."
 msgstr "«%(description)s» added in %(category)s."
@@ -8586,8 +8713,20 @@ msgid "«%(part)s» è fuori dal modello di %(points)s punti"
 msgstr "“%(part)s” is %(points)s points off the model"
 
 #, python-format
+msgid "«%(path)s» non trovato nella pagina"
+msgstr "“%(path)s” not found in the page"
+
+#, python-format
+msgid "«%(path)s» non trovato nella risposta"
+msgstr "“%(path)s” not found in the answer"
+
+#, python-format
 msgid "«%(ticker)s» non trovato su Stooq"
 msgstr "«%(ticker)s» not found on Stooq"
+
+#, python-format
+msgid "«%(value)s» non è un prezzo"
+msgstr "“%(value)s” is not a price"
 
 #, python-format
 msgid "«Ogni mese» vale per tutti i mesi; «solo %(month)s» lo sostituisce per questo mese."

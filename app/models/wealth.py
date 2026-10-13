@@ -39,7 +39,7 @@ class Holding(db.Model):
     currency      = db.Column(db.String(3))      # the currency it is quoted in (prices are kept in euro)
     exchange      = db.Column(db.Text)           # where it is quoted (Milano, Xetra…), as the source names it
     multiplier    = db.Column(db.Numeric(18, 6), nullable=False, default=1, server_default="1")  # derivatives' size
-    price_source  = db.Column(db.String(20), nullable=False, default="auto", server_default="auto")
+    price_source  = db.Column(db.String(60), nullable=False, default="auto", server_default="auto")
     # The opening position (F19): what it held before the operations recorded here; quantity and average price are
     # recomputed from it and the trades (services.portfolio_ops)
     opening_quantity = db.Column(db.Numeric(38, 8))

@@ -31,7 +31,7 @@ from app.extensions import db
 from app.models.wealth import Holding, HoldingPrice
 from app.services import currency, money, settings_store, studio, wealth
 from app.services import instrument_sources as sources
-from app.services.instrument_sources import Candidate
+from app.services.instrument_sources import Candidate, custom
 from app.services.ui_settings import current_settings
 
 YAHOO = "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range={range}&interval={interval}"
@@ -315,7 +315,7 @@ def _wants_history(holding: Holding) -> bool:
 def _price_order(holding: Holding) -> list[str]:
     """Where its price is read, in order: the source chosen for it, or by its class among the sites switched on."""
     if (holding.price_source or "auto") != "auto":
-        return [holding.price_source]
+        return [holding.price_source]  # also «custom:<name>», a source of the user's own (F22)
     by_class = {"Obbligazione": ["borsaitaliana", "yahoo"], "Fondo": ["morningstar", "yahoo"],
                 "ETF": ["yahoo", "justetf", "morningstar", "stooq"]}
     on = set(sources.chosen())
@@ -323,9 +323,15 @@ def _price_order(holding: Holding) -> list[str]:
 
 
 def _from_site(holding: Holding, site: str) -> tuple[Decimal, date, list]:
-    if not holding.isin:
+    if site.startswith(custom.PREFIX):
+        source = custom.get(site.removeprefix(custom.PREFIX))
+        if source is None:
+            raise ValueError(_("la fonte «%(name)s» non c'è più", name=site.removeprefix(custom.PREFIX)))
+        quote = custom.quote(source, holding.isin, holding.ticker)
+    elif not holding.isin:
         raise ValueError(_("serve l'ISIN"))
-    quote = sources.QUOTES[site](holding.isin)
+    else:
+        quote = sources.QUOTES[site](holding.isin)
     code = _currency_code(quote.currency)
     _remember_currency(holding, code)
     return _to_euro(quote.price, code, quote.on), quote.on, []
@@ -338,7 +344,9 @@ def _market(holding: Holding) -> Result:
     errors = []
     for source in order:
         try:
-            if source in sources.QUOTES:
+            if source.startswith(custom.PREFIX):
+                price, on, history = _from_site(holding, source)
+            elif source in sources.QUOTES:
                 if not holding.isin and len(order) > 1:
                     continue  # it needs the ISIN: the next source may do without
                 price, on, history = _from_site(holding, source)
@@ -352,7 +360,7 @@ def _market(holding: Holding) -> Result:
         except MissingRate as exc:
             return Result(holding, error=str(exc))
         except (OSError, ValueError, KeyError, TypeError) as exc:
-            name = sources.NAMES.get(source, "Stooq" if source == "stooq" else source)
+            name = sources.NAMES.get(source, "Stooq" if source == "stooq" else source.removeprefix(custom.PREFIX))
             errors.append(str(exc) if not errors else f"{name}: {exc}")
     return Result(holding, error=" · ".join(errors) or _("nessuna fonte attiva per questo titolo"))
 

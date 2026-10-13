@@ -12,6 +12,7 @@ from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, valuations, wealth
 from app.services.i18n import _l
+from app.services.instrument_sources import custom
 from app.services.ui_settings import current_settings
 
 portfolio_bp = APIBlueprint(
@@ -25,6 +26,11 @@ portfolio_bp = APIBlueprint(
 SOURCE_LABELS = {"auto": _l("Automatica"), "yahoo": "Yahoo Finance", "stooq": "Stooq", "coingecko": "CoinGecko",
                  "justetf": "justETF", "borsaitaliana": "Borsa Italiana", "morningstar": "Morningstar",
                  "manual": _l("Solo a mano")}
+
+
+def source_labels() -> dict:
+    """The sources a holding's price can come from: the sites and the user's own (F22)."""
+    return SOURCE_LABELS | custom.labels()
 
 
 def _instrument_from_form(holding: Holding) -> None:
@@ -43,7 +49,7 @@ def _instrument_from_form(holding: Holding) -> None:
     if multiplier <= 0:
         raise ValueError(_("Moltiplicatore: un numero maggiore di zero (1 per azioni ed ETF, es. 100 per un'opzione)."))
     holding.multiplier = multiplier
-    holding.price_source = form_choice("price_source", _("Fonte del prezzo"), SOURCE_LABELS) \
+    holding.price_source = form_choice("price_source", _("Fonte del prezzo"), source_labels()) \
         if request.form.get("price_source") else "auto"
 
 
@@ -87,7 +93,7 @@ def _holding_from_form(holding: Holding) -> Holding:
 def _render_form(holding, values):
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
                            suggested_rates=valuations.SUGGESTED_RATES,
-                           sources=SOURCE_LABELS, online=current_settings()["prices_online"],
+                           sources=source_labels(), online=current_settings()["prices_online"],
                            regions=composition.REGIONS, sectors=composition.SECTORS)
 
 

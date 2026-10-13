@@ -10,6 +10,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.category import Category, CategoryRule
 from app.models.currency import ExchangeRate
+from app.models.wealth import Holding
 from app.routes.helpers import delete_and_redirect, flash_errors, form_choice, form_date, form_decimal, form_text
 from app.services import (
     ai_classification,
@@ -25,6 +26,7 @@ from app.services import (
     settings_store,
 )
 from app.services.bank_import import CATEGORY_RULES
+from app.services.instrument_sources import custom
 
 # The interface choices live in a service (services read them too); re-exported for this page and older imports
 from app.services.ui_settings import (  # noqa: F401
@@ -365,4 +367,42 @@ def price_sources():
         flash(_("Fonti dei prezzi salvate."), "success")
         return redirect(url_for("settings.price_sources"))
     return render_template("settings/price_sources.html", rows=instrument_sources.settings_rows(),
-                           online=current_settings()["prices_online"])
+                           online=current_settings()["prices_online"], custom_sources=custom.all_sources(),
+                           formats=custom.FORMATS)
+
+
+def _custom_from_form() -> custom.CustomSource:
+    form = request.form
+    return custom.CustomSource(name=form.get("name", ""), url=form.get("url", ""), format=form.get("format", "json"),
+                               path=form.get("path", ""), date_path=form.get("date_path", ""),
+                               currency=form.get("currency", "EUR"), divide_100="divide_100" in form)
+
+
+@settings_bp.route("/price-sources/custom", methods=["POST"])
+def custom_source_save():
+    """Add or change a price source of the user's own (F22); «Prova» reads a price without saving."""
+    source = _custom_from_form()
+    try:
+        if "test" in request.form:
+            custom.validate(source)
+            quote = custom.quote(source, (request.form.get("test_isin") or "").strip().upper() or None,
+                                 (request.form.get("test_ticker") or "").strip() or None)
+            flash(_("Prova riuscita: %(price)s %(currency)s del %(day)s.", price=display.plain(quote.price),
+                    currency=quote.currency, day=display.day(quote.on)), "success")
+        else:
+            custom.save(source, request.form.get("old_name") or None)
+            db.session.commit()
+            flash(_("Fonte «%(name)s» salvata: sceglila come fonte del prezzo nel titolo.", name=source.name), "success")
+    except (ValueError, OSError) as exc:
+        flash(_("Fonte «%(name)s»: %(error)s", name=source.name or "?", error=exc), "error")
+    return redirect(url_for("settings.price_sources"))
+
+
+@settings_bp.route("/price-sources/custom/delete", methods=["POST"])
+def custom_source_delete():
+    name = request.form.get("name", "")
+    custom.delete(name)
+    Holding.query.filter_by(price_source=custom.PREFIX + name).update({"price_source": "auto"})
+    db.session.commit()
+    flash(_("Fonte eliminata: i titoli che la usavano tornano alla fonte automatica."), "success")
+    return redirect(url_for("settings.price_sources"))
