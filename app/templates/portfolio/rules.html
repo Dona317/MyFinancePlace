@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block content %}
+{% set nav_active = 'rules' %}{% include "portfolio/_nav.html" %}
 {% if alerts %}
 <div class="card" style="margin-bottom:24px;">
   <div class="card-header"><div class="card-header-title">{{ _('Avvisi di oggi') }}</div></div>

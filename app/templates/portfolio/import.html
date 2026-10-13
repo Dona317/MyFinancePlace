@@ -3,6 +3,7 @@
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Importa dal broker') }}</li>{% endblock %}
 
 {% block content %}
+{% set nav_active = 'import' %}{% include "portfolio/_nav.html" %}
 <div class="page-form">
   <div class="card">
     <div class="card-header">

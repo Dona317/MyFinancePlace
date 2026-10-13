@@ -19,6 +19,7 @@
 {% endblock %}
 
 {% block content %}
+{% set nav_active = 'performance' %}{% include "portfolio/_nav.html" %}
 {% if not report.returns %}
 <div class="card"><div class="card-body text-muted">{{ _('Servono almeno un mese di storia e i prezzi dei titoli: registra le operazioni o aggiorna i prezzi da internet.') }}</div></div>
 {% else %}

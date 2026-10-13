@@ -16,6 +16,7 @@
 {% endblock %}
 
 {% block content %}
+{% set nav_active = 'composition' %}{% include "portfolio/_nav.html" %}
 <p class="text-sm text-muted mb-16">{{ _('Dove e in cosa investi: area geografica e settore si indicano nella scheda di ogni titolo (un ETF su tutto il mondo è «Globale» e «Diversificato»).') }}</p>
 <div class="grid-2">
   {% for key, title in (('region', _('Per area geografica')), ('sector', _('Per settore'))) %}

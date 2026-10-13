@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block content %}
+{% set nav_active = 'income' %}{% include "portfolio/_nav.html" %}
 <div class="kpi-grid" style="margin-bottom:24px;">
   {{ kpi('cash-coin', _('Nel %(year)s', year=report.year), value=report.total|money, cls='kpi-primary') }}
   {{ kpi('calendar-month', _('Ultimi 12 mesi'), value=report.last_12|money, sub=_('%(amount)s al mese in media', amount=report.monthly_average|money)) }}
