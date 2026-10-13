@@ -113,7 +113,7 @@ def category_save():
     categories.ensure_defaults()  # before looking the name up: the defaults may not exist yet
     old = request.form.get("old_name")
     hint = form_text("hint", _("Descrizione"))
-    discretionary = "discretionary" in request.form
+    discretionary, excluded = "discretionary" in request.form, "excluded" in request.form
     nature = request.form.get("nature")
     nature = nature if nature in categories.NATURES else None  # empty: the main category's, else variable
     if old and old != name:
@@ -128,6 +128,7 @@ def category_save():
     elif not old:
         flash(_("La categoria «%(name)s» esiste già: aggiornata.", name=name), "success")
     category.kind, category.hint, category.discretionary, category.nature = kind, hint, discretionary, nature
+    category.excluded = excluded
     db.session.flush()
     try:
         categories.set_parent(category, request.form.get("parent") or None)

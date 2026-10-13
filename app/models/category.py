@@ -16,6 +16,9 @@ class Category(db.Model):
     # empty: the main category's, else variable
     nature        = db.Column(db.String(10))
     position      = db.Column(db.Integer, nullable=False, default=0)
+    # Left out of the analyses (reports, budgets, rhythm, consolidated view…) but not of the balances: refunds of work
+    # expenses, money spent for someone else (F22). A main category takes its subcategories with it.
+    excluded      = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
     # A subcategory's main category (Bollette → Luce); one level only. Transactions store the most specific name.
     parent_id     = db.Column(db.Integer, db.ForeignKey("categories.id", ondelete="SET NULL"), index=True)
 

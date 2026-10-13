@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 20:38+0000\n"
+"POT-Creation-Date: 2026-10-13 20:41+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -305,6 +305,10 @@ msgstr "%(months)s / %(target)s months"
 #, python-format
 msgid "%(n)s mesi"
 msgstr "%(n)s months"
+
+#, python-format
+msgid "%(name)s esclusa dalle analisi"
+msgstr "%(name)s left out of the analyses"
 
 #, python-format
 msgid "%(name)s ha perso il %(pct)s %% dal prezzo medio"
@@ -2683,6 +2687,13 @@ msgstr "Average error on expenses"
 
 msgid "Esci"
 msgstr "Sign out"
+
+msgid "Esclusa dalle analisi"
+msgstr "Left out of the analyses"
+
+#, python-format
+msgid "Escluse dalle analisi: %(amount)s"
+msgstr "Left out of the analyses: %(amount)s"
 
 msgid ""
 "Esempi da copiare e modificare, con ETF quotati a Milano. Non sono consigli d'investimento: scegli in base ai tuoi "
@@ -6037,6 +6048,13 @@ msgstr "Remaining"
 msgid "Residuo Oggi"
 msgstr "Remaining Today"
 
+msgid ""
+"Resta nei saldi ma non entra in report, budget, ritmo della spesa e consolidato: rimborsi spese di lavoro, soldi "
+"spesi per altri"
+msgstr ""
+"Stays in the balances but not in reports, budgets, spending rhythm and the consolidated view: refunds of work "
+"expenses, money spent for others"
+
 msgid "Retta di regressione sugli ultimi N mesi, proiettata in avanti: coglie spese in crescita o in calo."
 msgstr "Regression line over the last N months, projected forward: catches rising or falling spending."
 
@@ -7767,6 +7785,9 @@ msgstr "rates"
 #, python-format
 msgid "caricato il %(date)s"
 msgstr "uploaded on %(date)s"
+
+msgid "categorie"
+msgstr "categories"
 
 msgid "chiuso"
 msgstr "closed"

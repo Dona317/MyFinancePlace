@@ -178,6 +178,8 @@
         <div><dt>{{ _('Transazioni') }}</dt><dd>{{ rows|length }}</dd></div>
         {% endif %}
       </dl>
+      {% if excluded %}<p class="text-xs text-muted mb-8"><i class="bi bi-eye-slash"></i> {{ _('Escluse dalle analisi: %(amount)s', amount=excluded|money) }}
+        (<a href="{{ url_for('settings.categories_page') }}">{{ _('categorie') }}</a>)</p>{% endif %}
       <a href="{{ url_for('reports.csv', **query_args) }}" class="btn btn-ghost btn-sm report-csv"><i class="bi bi-download"></i> {{ _('Scarica CSV') }}</a>
     </div>
   </div>

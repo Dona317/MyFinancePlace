@@ -17,7 +17,7 @@ from app.services.financial_health import autonomy, income_stability, nature_spl
 from app.services.i18n import N_
 from app.services.money import share
 from app.services.periods import month_bounds, month_index, month_label, month_labels, shift_month, year_bounds
-from app.services.totals import LINE_CATEGORY, LINE_VALUE, VALUE, lines_query, value_total, with_lines
+from app.services.totals import LINE_CATEGORY, LINE_VALUE, VALUE, analysed, lines_query, value_total, with_lines
 
 OTHER = N_("Altre")  # the categories past the top ones, added up in one series
 
@@ -208,7 +208,7 @@ def _monthly_totals(start: date, end: date) -> dict[tuple[date, str], float]:
     """Income and expenses of each month of [start, end), in one query: {(first day of the month, type): total}."""
     month = func.date_trunc("month", Transaction.date)
     rows = (db.session.query(month, Transaction.type, func.sum(VALUE))
-            .filter(Transaction.type.in_(["income", "expense"]), Transaction.date >= start, Transaction.date < end)
+            .filter(Transaction.type.in_(["income", "expense"]), Transaction.date >= start, Transaction.date < end, analysed())
             .group_by(month, Transaction.type).all())
     return {(day.date(), tx_type): float(total or 0) for day, tx_type, total in rows}
 

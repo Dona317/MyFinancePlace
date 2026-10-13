@@ -12,7 +12,7 @@ from app.services import categories
 from app.services.analytics import UNCATEGORIZED, breakdown  # noqa: F401  (reports.breakdown)
 from app.services.i18n import _l
 from app.services.periods import add_months, month_index, month_label, month_start, year_bounds
-from app.services.totals import VALUE
+from app.services.totals import VALUE, analysed
 
 TABS = {"spending": _l("Spese"), "income": _l("Entrate"), "cashflow": _l("Flusso di cassa")}
 TAB_TYPE = {"spending": "expense", "income": "income"}
@@ -137,4 +137,4 @@ def previous_range(start: date, end: date) -> tuple[date, date]:
 
 
 def total(query, tx_type: str) -> float:
-    return float(query.filter(Transaction.type == tx_type).with_entities(func.coalesce(func.sum(VALUE), 0)).scalar())
+    return float(query.filter(Transaction.type == tx_type, analysed()).with_entities(func.coalesce(func.sum(VALUE), 0)).scalar())

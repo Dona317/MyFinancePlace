@@ -34,6 +34,7 @@
         <select id="new-nature" name="nature" class="form-select">{{ nature_options(none) }}</select></div>
       <div class="form-group">
         <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="discretionary" /> {{ _('Spesa non essenziale') }}</label>
+        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="excluded" /> {{ _('Esclusa dalle analisi') }}</label>
         <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
       </div>
     </form>
@@ -50,7 +51,7 @@
   <div class="table-wrapper">
     <table>
       <thead>
-        <tr><th>{{ _('Categoria') }}</th><th>{{ _('Sottocategoria di') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Cosa comprende') }}</th><th title="{{ _('Fissa: ogni mese (affitto, bollette) · Non mensile: poche volte all’anno (tasse, assicurazioni) · Variabile: la parte comprimibile') }}">{{ _('Natura') }}</th><th class="text-center">{{ _('Non essenziale') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr>
+        <tr><th>{{ _('Categoria') }}</th><th>{{ _('Sottocategoria di') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Cosa comprende') }}</th><th title="{{ _('Fissa: ogni mese (affitto, bollette) · Non mensile: poche volte all’anno (tasse, assicurazioni) · Variabile: la parte comprimibile') }}">{{ _('Natura') }}</th><th class="text-center">{{ _('Non essenziale') }}</th><th class="text-center" title="{{ _('Resta nei saldi ma non entra in report, budget, ritmo della spesa e consolidato: rimborsi spese di lavoro, soldi spesi per altri') }}">{{ _('Esclusa dalle analisi') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr>
       </thead>
       <tbody>
         {% for c in categories %}
@@ -68,6 +69,7 @@
           <td><input form="{{ form_id }}" name="hint" class="form-control" value="{{ c.hint or '' }}" aria-label="{{ _('Cosa comprende %(name)s', name=c.name) }}" /></td>
           <td>{% if c.kind != 'income' %}<select form="{{ form_id }}" name="nature" class="form-select" style="min-width:120px;" aria-label="{{ _('Natura di %(name)s', name=c.name) }}">{{ nature_options(c.nature) }}</select>{% endif %}</td>
           <td class="text-center"><input form="{{ form_id }}" type="checkbox" name="discretionary" class="check" {{ 'checked' if c.discretionary }} aria-label="{{ c.name }} non essenziale" /></td>
+          <td class="text-center"><input form="{{ form_id }}" type="checkbox" name="excluded" class="check" {{ 'checked' if c.excluded }} aria-label="{{ _('%(name)s esclusa dalle analisi', name=c.name) }}" /></td>
           <td class="text-right">
             {% if usage.get(c.name) %}<a href="{{ url_for('transactions.index', category=c.name) }}">{{ usage.get(c.name) }}</a>{% else %}0{% endif %}
           </td>

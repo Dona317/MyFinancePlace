@@ -3,10 +3,12 @@ from datetime import date, timedelta
 from flask import Blueprint, render_template, request
 from flask_babel import gettext as _
 
+from app.models.transaction import Transaction
 from app.routes.helpers import csv_text, download, year_arg
 from app.services import accounts, analytics, categories, i18n, periods, reports, spending_rhythm, transfer
 from app.services.analytics import UNCATEGORIZED
 from app.services.display import number
+from app.services.totals import analysed, excluded_total
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/reports")
 
@@ -40,6 +42,8 @@ def _filters() -> dict:
 
 def _rows(filters: dict):
     query = reports.base_query(filters["start"], filters["end"], filters["account"])
+    if filters["category"] not in categories.excluded_names():  # F22: unless an excluded one is asked for
+        query = query.filter(analysed())
     tx_type = reports.TAB_TYPE.get(filters["tab"])
     return query, tx_type, reports.transactions(query, tx_type, filters["category"] or None, filters["sort"])
 
@@ -61,6 +65,10 @@ def index():
                        total=sum(item["amount"] for item in items))
     else:
         context["flow"] = reports.cash_flow(query, filters["start"], filters["end"])
+    if not filters["category"]:
+        types = [tx_type] if tx_type else ["income", "expense"]
+        context["excluded"] = excluded_total(Transaction.type.in_(types), Transaction.date >= filters["start"],
+                                             Transaction.date < filters["end"])
     account_list = accounts.active()
     return render_template(
         "reports/index.html", **context, tabs=reports.TABS, periods=reports.PERIODS, sorts=reports.SORTS,

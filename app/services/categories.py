@@ -203,6 +203,16 @@ def _seed_subcategories() -> None:
 
 def forget() -> None:
     request_cache.cache().pop("category_parents", None)
+    request_cache.cache().pop("category_excluded", None)
+
+
+def excluded_names() -> list[str]:
+    """The categories left out of the analyses (F22): those marked, and the subcategories of a marked one."""
+    store = request_cache.cache()
+    if "category_excluded" not in store:
+        marked = {name for (name,) in db.session.query(Category.name).filter(Category.excluded.is_(True))}
+        store["category_excluded"] = sorted(marked | {child for child, main in parents().items() if main in marked})
+    return store["category_excluded"]
 
 
 def parents() -> dict[str, str]:
@@ -306,7 +316,7 @@ def usage() -> dict[str, int]:
     """How many transactions use each category (a split transaction counts for each of its categories)."""
     from app.services.totals import LINE_CATEGORY, lines_query
 
-    rows = (lines_query(LINE_CATEGORY, func.count(func.distinct(Transaction.id)))
+    rows = (lines_query(LINE_CATEGORY, func.count(func.distinct(Transaction.id)), analysis=False)
             .filter(LINE_CATEGORY.isnot(None)).group_by(LINE_CATEGORY))
     return dict(rows.all())
 
