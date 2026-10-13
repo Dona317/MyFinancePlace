@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:20+0000\n"
+"POT-Creation-Date: 2026-10-13 10:22+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1080,6 +1080,9 @@ msgstr "Insurance"
 msgid "Assicurazioni vita e infortuni"
 msgstr "Life and accident insurance"
 
+msgid "Assistente"
+msgstr "Assistant"
+
 msgid "Attiva"
 msgstr "Active"
 
@@ -1547,6 +1550,12 @@ msgstr ""
 
 msgid "Chiave API Anthropic mancante o non valida (ANTHROPIC_API_KEY)."
 msgstr "Anthropic API key missing or invalid (ANTHROPIC_API_KEY)."
+
+msgid "Chiedi"
+msgstr "Ask"
+
+msgid "Chiedi ai tuoi dati"
+msgstr "Ask your data"
 
 msgid "Chiedi all'AI quali colonne sono"
 msgstr "Ask the AI which columns are which"
@@ -2330,6 +2339,12 @@ msgstr "Canadian dollar"
 msgid "Dom"
 msgstr "Sun"
 
+msgid "Domanda"
+msgstr "Question"
+
+msgid "Domanda o dati troppo lunghi."
+msgstr "Question or data too long."
+
 msgid ""
 "Dove e in cosa investi: area geografica e settore si indicano nella scheda di ogni titolo (un ETF su tutto il mondo è"
 " «Globale» e «Diversificato»)."
@@ -2691,6 +2706,9 @@ msgstr "Optional: with a date we work out how much to set aside every month."
 
 msgid "Facoltativo: un bonifico verso questo IBAN da un altro tuo conto viene importato come giroconto."
 msgstr "Optional: a bank transfer to this IBAN from another of your accounts is imported as a transfer between accounts."
+
+msgid "Fai una domanda"
+msgstr "Ask a question"
 
 msgid "Famiglia"
 msgstr "Family"
@@ -3211,6 +3229,9 @@ msgstr "The model %(model)s cannot read this file."
 msgid "Il modello %(model)s non è ancora installato: installalo dal catalogo qui sotto."
 msgstr "The model %(model)s is not installed yet: install it from the catalog below."
 
+msgid "Il modello gira sul tuo computer: nulla esce."
+msgstr "The model runs on your computer: nothing leaves it."
+
 msgid "Il modello ha impiegato troppo tempo: riprova o dividi il lavoro."
 msgstr "The model took too long: try again or split the work."
 
@@ -3219,6 +3240,9 @@ msgstr "The model refused the request."
 
 msgid "Il modello locale ha impiegato troppo tempo: riprova o dividi il lavoro."
 msgstr "The local model took too long: try again or split the work."
+
+msgid "Il modello non ha dato una risposta leggibile: riprova."
+msgstr "The model did not give a readable answer: try again."
 
 msgid "Il modello non ha restituito dati leggibili: riprova o usa un file di qualità migliore."
 msgstr "The model returned no readable data: try again or use a better quality file."
@@ -3234,6 +3258,9 @@ msgstr "The model did not return a readable classification: try again."
 
 msgid "Il modello può sbagliare: controlla date, importi e segni prima di confermare."
 msgstr "The model can make mistakes: check dates, amounts and signs before confirming."
+
+msgid "Il modello scelto è su internet (Anthropic): il riassunto lascia il computer."
+msgstr "The chosen model is online (Anthropic): the summary leaves the computer."
 
 msgid "Il modello termina la parte che sta leggendo, poi la lettura si ferma."
 msgstr "The model finishes the part it is reading, then the reading stops."
@@ -3654,6 +3681,13 @@ msgstr "Password sign-in is turned off in this installation."
 
 msgid "L'archivio principale non si può eliminare."
 msgstr "The main archive cannot be deleted."
+
+msgid ""
+"L'assistente risponde da un riassunto dei tuoi numeri (saldi, spese per categoria e mese, investimenti, debiti, "
+"obiettivi): non vede i singoli movimenti e non può modificare nulla."
+msgstr ""
+"The assistant answers from a summary of your numbers (balances, spending by category and month, investments, debts, "
+"goals): it does not see single movements and cannot change anything."
 
 msgid "L'hai nascosta nelle Impostazioni: riattivala per usarla di nuovo. I dati non sono stati toccati."
 msgstr "You hid it in Settings: turn it back on to use it again. Your data has not been touched."
@@ -4368,6 +4402,12 @@ msgstr "No investments."
 
 msgid "Nessun modello AI configurato (Impostazioni → Modelli AI)."
 msgstr "No AI model configured (Settings → AI models)."
+
+msgid "Nessun modello AI configurato."
+msgstr "No AI model configured."
+
+msgid "Nessun modello AI configurato: sceglilo in Impostazioni → AI."
+msgstr "No AI model configured: choose one in Settings → AI."
 
 msgid "Nessun modello installato può leggere questo file"
 msgstr "No installed model can read this file"
@@ -5136,6 +5176,9 @@ msgstr "To delete the client and its archive type “%(name)s”"
 #, python-format
 msgid "Per eliminare «%(name)s» scrivi il suo nome esatto."
 msgstr "To delete “%(name)s” type its exact name."
+
+msgid "Per esempio:"
+msgstr "For example:"
 
 msgid "Per file con un formato non riconosciuto: scegli tu quali colonne usare"
 msgstr "For files in an unrecognized format: you choose which columns to use"
@@ -6035,6 +6078,9 @@ msgstr "Against the month before (%(before)s → %(now)s) and the average of the
 msgid "Risposta di Ollama non valida."
 msgstr "Invalid response from Ollama."
 
+msgid "Risposta generata da un modello AI: controlla i numeri nelle pagine indicate."
+msgstr "Answer generated by an AI model: check the numbers on the pages shown."
+
 msgid "Risultato"
 msgstr "Result"
 
@@ -6245,6 +6291,9 @@ msgstr "Choose which transaction to keep."
 msgid "Scegli un altro modello"
 msgstr "Choose another model"
 
+msgid "Sceglilo nelle Impostazioni."
+msgstr "Choose it in Settings."
+
 msgid "Scheda con il valore netto totale (attività − passività)"
 msgstr "Card with the total net worth (assets − liabilities)"
 
@@ -6265,6 +6314,9 @@ msgstr "Enter the balance the bank shows at a date: the app tells you whether it
 
 msgid "Scrivi solo quelli cambiati: gli altri restano come sono."
 msgstr "Only enter the ones that changed: the others stay as they are."
+
+msgid "Scrivi una domanda."
+msgstr "Write a question."
 
 msgid ""
 "Se la causale o la controparte contiene la parola, la transazione va nella categoria. Vale per gli import e per "

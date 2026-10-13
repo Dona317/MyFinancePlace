@@ -6,6 +6,7 @@ def register_blueprints(app: Flask) -> None:
     from app.cli import clients_cli, users_cli
     from app.routes.accounting import accounting_bp
     from app.routes.accounts import accounts_bp
+    from app.routes.assistant import assistant_bp
     from app.routes.auth import auth_bp
     from app.routes.clients import clients_bp
     from app.routes.dashboard import dashboard_bp
@@ -29,7 +30,7 @@ def register_blueprints(app: Flask) -> None:
 
     for blueprint in (auth_bp, dashboard_bp, accounting_bp, lifestyle_bp, transactions_bp, portfolio_bp, debt_bp,
                       documents_bp, snapshots_bp, export_bp, settings_bp, insurance_bp, forecast_bp, accounts_bp,
-                      notifications_bp, reports_bp, subscriptions_bp, clients_bp, tax_bp, desktop_bp, health_bp, events_bp):
+                      notifications_bp, reports_bp, subscriptions_bp, clients_bp, tax_bp, desktop_bp, health_bp, events_bp, assistant_bp):
         app.register_blueprint(blueprint)
     app.cli.add_command(users_cli)
     app.cli.add_command(clients_cli)

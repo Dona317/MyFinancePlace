@@ -76,7 +76,7 @@ def weekdays(start: date, end: date) -> list[Decimal]:
     return [(t / c).quantize(Decimal("0.01")) if c else Decimal(0) for t, c in zip(totals, counts)]
 
 
-def _by_category(start: date, end: date) -> dict[str, Decimal]:
+def by_category(start: date, end: date) -> dict[str, Decimal]:
     rows = lines_query(LINE_CATEGORY, func.sum(LINE_VALUE)).filter(
         Transaction.type == "expense", Transaction.date >= start, Transaction.date <= end).group_by(LINE_CATEGORY)
     totals = defaultdict(Decimal)
@@ -108,8 +108,8 @@ def changes(today: date | None = None) -> dict:
     last_end = periods.first_of_month(today) - timedelta(days=1)
     prev_start = periods.add_months(last_start, -1)
     year_start = periods.add_months(last_start, -12)
-    now, before = _by_category(last_start, last_end), _by_category(prev_start, last_start - timedelta(days=1))
-    year = _by_category(year_start, last_start - timedelta(days=1))
+    now, before = by_category(last_start, last_end), by_category(prev_start, last_start - timedelta(days=1))
+    year = by_category(year_start, last_start - timedelta(days=1))
     rows = [Change(name, now.get(name, Decimal(0)), before.get(name, Decimal(0)),
                    (year.get(name, Decimal(0)) / 12).quantize(Decimal("0.01")))
             for name in set(now) | set(before)]
