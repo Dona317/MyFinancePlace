@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 20:41+0000\n"
+"POT-Creation-Date: 2026-10-13 20:45+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4865,6 +4865,9 @@ msgstr "North America"
 msgid "Normale"
 msgstr "Normal"
 
+msgid "Nota"
+msgstr "Note"
+
 msgid "Note"
 msgstr "Notes"
 
@@ -5052,6 +5055,9 @@ msgstr "Goal «%(name)s» in %(days)s days"
 
 msgid "Occasionale"
 msgstr "Occasional"
+
+msgid "Oggetti di valore"
+msgstr "Valuables"
 
 msgid "Oggi"
 msgstr "Today"
@@ -5405,12 +5411,23 @@ msgstr "A group needs at least two archives: first create each person's archive 
 msgid "Per un patrimonio netto corretto, tieni aggiornate queste tre fonti"
 msgstr "For a correct net worth, keep these three sources up to date"
 
+msgid ""
+"Per un’auto, un telefono, un computer: la percentuale di valore persa ogni anno dall’ultima valutazione (un’auto "
+"circa 15). Vuoto: il valore cambia solo con i prezzi o le valutazioni."
+msgstr ""
+"For a car, a phone, a computer: the share of value lost each year since the last valuation (a car about 15). Empty: "
+"the value changes only with prices or valuations."
+
 #, python-format
 msgid "Percentuale (%%)"
 msgstr "Percent (%%)"
 
 msgid "Percentuale del reddito lordo risparmiata"
 msgstr "Share of gross income saved"
+
+#, python-format
+msgid "Perde il %(rate)s%% l’anno dall’ultima valutazione: i valori «stima» si scrivono da soli."
+msgstr "Loses %(rate)s%% a year from the last valuation: the “estimate” values are written by themselves."
 
 msgid "Periodo"
 msgstr "Period"
@@ -6907,6 +6924,16 @@ msgstr "On cost"
 msgid "Sul valore"
 msgstr "On value"
 
+msgid "Svalutazione annua"
+msgstr "Yearly depreciation"
+
+#, python-format
+msgid "Svalutazione annua (%%)"
+msgstr "Yearly depreciation (%%)"
+
+msgid "Svalutazione annua: indica una percentuale tra 0 e 99 (es. 15 per un'auto)."
+msgstr "Yearly depreciation: give a percentage between 0 and 99 (e.g. 15 for a car)."
+
 msgid "Sì, leggi con l'AI"
 msgstr "Yes, read with AI"
 
@@ -7555,6 +7582,9 @@ msgstr "Go to Settings"
 msgid "Valore"
 msgstr "Value"
 
+msgid "Valore (€)"
+msgstr "Value (€)"
+
 msgid "Valore Totale"
 msgstr "Total Value"
 
@@ -7581,6 +7611,9 @@ msgstr "Currency: the three-letter code (EUR, USD, GBP…)."
 
 msgid "Valuta: scegline una diversa dall'euro."
 msgstr "Currency: choose one other than the euro."
+
+msgid "Valutazioni"
+msgstr "Valuations"
 
 msgid "Valute"
 msgstr "Currencies"
@@ -7985,6 +8018,9 @@ msgstr "e.g. Trip to Japan"
 msgid "es. decathlon"
 msgstr "e.g. decathlon"
 
+msgid "es. perizia, quotazione OMI, listino dell’usato"
+msgstr "e.g. appraisal, OMI value, used-car list price"
+
 msgid "es. qwen2.5vl:7b"
 msgstr "e.g. qwen2.5vl:7b"
 
@@ -8355,6 +8391,9 @@ msgstr "spending in categories without a budget"
 
 msgid "stesso giorno"
 msgstr "same day"
+
+msgid "stima"
+msgstr "estimate"
 
 #, python-format
 msgid "su %(amount)s di entrate medie al mese"

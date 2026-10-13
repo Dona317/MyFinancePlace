@@ -8,8 +8,9 @@
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title">{{ _('Storico prezzi') }}</div>
-      <div class="card-header-sub">{{ _('Gli stati patrimoniali e l’andamento del patrimonio valutano la posizione all’ultimo prezzo noto a quella data.') }}</div>
+      <div class="card-header-title">{{ _('Valutazioni') if hand_valued else _('Storico prezzi') }}</div>
+      <div class="card-header-sub">{{ _('Gli stati patrimoniali e l’andamento del patrimonio valutano la posizione all’ultimo prezzo noto a quella data.') }}
+        {% if holding.depreciation_rate %}{{ _('Perde il %(rate)s%% l’anno dall’ultima valutazione: i valori «stima» si scrivono da soli.', rate=holding.depreciation_rate|number(1)) }}{% endif %}</div>
     </div>
     <span class="text-sm text-muted">{{ holding.ticker or holding.asset_class|tr }} · {{ _('prezzo attuale') }} {{ holding.price|money }}</span>
   </div>
@@ -29,8 +30,10 @@
       <form method="POST" class="mb-16 history-one">
         <div class="form-group"><label class="form-label" for="h-on">{{ _('Data') }}</label>
           <input type="date" id="h-on" name="on" class="form-control" required /></div>
-        <div class="form-group"><label class="form-label" for="h-price">{{ _('Prezzo (€)') }}</label>
+        <div class="form-group"><label class="form-label" for="h-price">{{ _('Valore (€)') if hand_valued else _('Prezzo (€)') }}</label>
           <input type="text" inputmode="decimal" id="h-price" name="price" class="form-control" required autocomplete="off" /></div>
+        <div class="form-group"><label class="form-label" for="h-note">{{ _('Nota') }}</label>
+          <input type="text" id="h-note" name="note" class="form-control" maxlength="200" placeholder="{{ _('es. perizia, quotazione OMI, listino dell’usato') }}" /></div>
         <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
       </form>
       <form method="POST">
@@ -52,7 +55,8 @@
         <tbody>
           {% for p in points|reverse %}
           <tr>
-            <td class="nowrap">{{ p.on|it_date }}</td>
+            <td class="nowrap">{{ p.on|it_date }}{% if p.estimated %} <span class="badge badge-neutral">{{ _('stima') }}</span>{% endif %}
+              {% if p.note %}<div class="text-xs text-muted">{{ p.note }}</div>{% endif %}</td>
             <td class="amount text-right">{{ p.price|money }}</td>
             <td class="amount text-right text-muted">{{ (p.price * holding.quantity)|money }}</td>
             <td class="text-right">

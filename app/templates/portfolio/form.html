@@ -67,6 +67,8 @@
           <p class="form-hint">{{ _('Automatica: Yahoo Finance (e Stooq se Yahoo non risponde) per azioni, ETF, fondi, obbligazioni e derivati; CoinGecko per le cripto. «Solo a mano» per titoli non quotati, polizze, conti deposito.') }}</p>
         </fieldset>
         {{ f.owner(values, h.owner) }}
+        {{ f.number(values, 'depreciation_rate', _('Svalutazione annua (%%)'), h.depreciation_rate, placeholder=(suggested_rates.get(h.asset_class)|string if h and suggested_rates.get(h.asset_class) else ''),
+                    hint=_('Per un’auto, un telefono, un computer: la percentuale di valore persa ogni anno dall’ultima valutazione (un’auto circa 15). Vuoto: il valore cambia solo con i prezzi o le valutazioni.')) }}
         <div class="grid-2">
           {{ f.select(values, 'region', _('Area geografica'), regions, h.region, blank=_('— non indicata —')) }}
           {{ f.select(values, 'sector', _('Settore'), sectors, h.sector, blank=_('— non indicato —')) }}

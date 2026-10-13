@@ -10,7 +10,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, wealth
+from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, valuations, wealth
 from app.services.i18n import _l
 from app.services.ui_settings import current_settings
 
@@ -70,6 +70,11 @@ def _holding_from_form(holding: Holding) -> Holding:
     if rate is not None and not 0 < rate <= 100:
         raise ValueError(_("Aliquota sulle plusvalenze: indica una percentuale tra 0 e 100 (es. 12,5)."))
     holding.tax_rate = rate
+    depreciation = form_decimal("depreciation_rate", _("Svalutazione annua"))
+    if depreciation is not None and not 0 <= depreciation < 100:
+        raise ValueError(_("Svalutazione annua: indica una percentuale tra 0 e 99 (es. 15 per un'auto)."))
+    holding.depreciation_rate = depreciation or None
+    valuations.forget()
     holding.abroad = "abroad" in request.form
     # quantity and average price typed here are the opening position: the operations recorded move it from there
     holding.opening_quantity, holding.opening_price = holding.quantity, holding.avg_price
@@ -81,12 +86,14 @@ def _holding_from_form(holding: Holding) -> Holding:
 
 def _render_form(holding, values):
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
+                           suggested_rates=valuations.SUGGESTED_RATES,
                            sources=SOURCE_LABELS, online=current_settings()["prices_online"],
                            regions=composition.REGIONS, sectors=composition.SECTORS)
 
 
 @portfolio_bp.route("/")
 def index():
+    valuations.refresh_daily()  # the depreciation of the cars and the like, once a day
     price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
     selected = request.args.get("asset_class", "")
     person = request.args.get("person", "")
@@ -252,7 +259,8 @@ def history(holding_id):
             flash(str(exc), "error")
             return redirect(url_for("portfolio.history", holding_id=holding.id))
         for when, price in points:
-            wealth.record_price(holding, price, when)
+            valuations.revalue(holding, price, when, request.form.get("note"))
+        valuations.depreciate(holding)
         db.session.commit()
         if points:
             flash(_("Prezzi salvati: %(count)s.", count=len(points)), "success")
@@ -261,6 +269,7 @@ def history(holding_id):
         return redirect(url_for("portfolio.history", holding_id=holding.id))
     points = wealth.price_history(holding)
     return render_template("portfolio/history.html", holding=holding, points=points,
+                           hand_valued=holding.asset_class in valuations.HAND_VALUED,
                            chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})
 
 
@@ -269,6 +278,7 @@ def delete_price(point_id):
     point = db.get_or_404(HoldingPrice, point_id)
     holding_id = point.holding_id
     wealth.remove_price(point)
+    valuations.forget()
     db.session.commit()
     flash(_("Prezzo eliminato."), "success")
     return redirect(url_for("portfolio.history", holding_id=holding_id))

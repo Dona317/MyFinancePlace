@@ -31,6 +31,8 @@ ASSET_CLASSES = {
     N_("Conto Risparmio"): (N_("Conti deposito e risparmio"), False),
     N_("Fondo Pensione"):  (N_("Previdenza complementare"), False),
     N_("Immobile"):        (N_("Immobili"), False),
+    N_("Veicolo"):         (N_("Altri beni"), False),           # F22: valued as it loses value
+    N_("Oggetti di valore"): (N_("Altri beni"), False),         # gold, jewels, art, collections
     N_("Altro"):           (N_("Altri beni"), False),
 }
 CURRENT_ASSET_LINES = (N_("Liquidità"), N_("Conti deposito e risparmio"))

@@ -28,6 +28,8 @@ class Holding(db.Model):
     owner         = db.Column(db.String(80))  # whose it is (F20): a holder's name, «joint», empty = family
     region        = db.Column(db.Text)            # where it invests (F20): Italia, Europa, Globale…
     sector        = db.Column(db.Text)            # in what: Tecnologia, Finanza, Obbligazioni governative…
+    # A car, a phone: loses this percentage of its value each year from the last valuation (F22, services.valuations)
+    depreciation_rate = db.Column(db.Numeric(6, 2))
     # Taxes (F15): the rate on its capital gains when not the usual one for its class (12.5 for government bonds),
     # and whether it is held abroad (IVAFE instead of the stamp duty)
     tax_rate      = db.Column(db.Numeric(5, 2))
@@ -79,6 +81,10 @@ class HoldingPrice(db.Model):
     holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="CASCADE"), nullable=False, index=True)
     on         = db.Column(db.Date, nullable=False)
     price      = db.Column(db.Numeric(38, 6), nullable=False)
+    # F22: what a valuation is based on (an appraisal, a used-car list price), and the points the depreciation of
+    # the asset wrote by itself (replaced when a new valuation is entered)
+    note       = db.Column(db.Text)
+    estimated  = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
 
 
 class Debt(db.Model):
