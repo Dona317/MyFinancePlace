@@ -13,6 +13,7 @@ from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
 from app.services import (
     budgets,
+    contribution_limits,
     data_health,
     display,
     forecast,
@@ -144,11 +145,19 @@ def _data_health(today: date) -> list[Notification]:
                          check.hint, today, url_for("health.index")) for check in data_health.severe(today)]
 
 
+def _limits(today: date) -> list[Notification]:
+    """Deductible room still free late in the year (a pension fund): lost on 31 December."""
+    return [Notification(f"limit-{s.limit.id}-{s.year}", "info", "piggy-bank",
+                         _("%(name)s: puoi ancora versare %(amount)s", name=s.limit.name, amount=_money(s.left)),
+                         _("Entro il 31/12 per dedurli nella dichiarazione del prossimo anno."), today,
+                         url_for("tax.limits", year=s.year)) for s in contribution_limits.reminders(today)]
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
-           (_data_health, "health"))
+           (_data_health, "health"), (_limits, "tax"))
 
 
 def dismissed() -> list[str]:

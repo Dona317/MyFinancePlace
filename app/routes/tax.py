@@ -6,9 +6,12 @@ from flask_babel import gettext as _
 from sqlalchemy import func
 
 from app.extensions import db
+from app.models.limit import ContributionLimit
 from app.models.transaction import Transaction
-from app.routes.helpers import csv_text, download, year_arg
-from app.services import capital_gains, categories, display, stamp_duty, tax_730, tax_rules
+from app.models.wealth import Holding
+from app.routes.helpers import csv_text, download, flash_errors, year_arg
+from app.services import accounts, capital_gains, categories, contribution_limits, display, stamp_duty, tax_730, tax_rules
+from app.services.parsing import to_decimal
 
 tax_bp = Blueprint("tax", __name__, url_prefix="/tax")
 
@@ -80,3 +83,54 @@ def investments():
 def duties():
     year = year_arg(date.today().year)
     return _page("tax/duties.html", "duties", year, data=stamp_duty.year_summary(year))
+
+
+# ── Contribution limits (F22) ──────────────────────────────────────────────────
+
+def _limit_form(limit: ContributionLimit | None):
+    form = request.form
+    kind, name, yearly = form.get("kind", "custom"), form.get("name", ""), to_decimal(form.get("yearly"))
+    total = to_decimal(form.get("total")) if (form.get("total") or "").strip() else None
+    preset = contribution_limits.BY_KIND.get(kind)
+    if preset is not None and yearly is None:  # a ready-made limit: its amounts unless typed
+        yearly, total = preset.yearly, total if total is not None else preset.total
+    if preset is not None and not name.strip():
+        name = _(preset.name)
+    return contribution_limits.save(
+        limit, name=name, kind=kind, yearly=yearly, total=total, since_year=form.get("since_year", type=int), account_ids=form.getlist("account_ids"),
+        holding_ids=form.getlist("holding_ids"), category=form.get("category"), notes=form.get("notes"))
+
+
+@tax_bp.route("/limits")
+def limits():
+    year = year_arg(date.today().year)
+    return _page("tax/limits.html", "limits", year, standings=contribution_limits.all_standings(year),
+                 presets=contribution_limits.PRESETS, accounts=accounts.active(),
+                 holdings=Holding.query.order_by(Holding.name).all(), category_names=_spending_categories())
+
+
+@tax_bp.route("/limits/new", methods=["POST"])
+def limit_new():
+    with flash_errors(rollback=True):
+        limit = _limit_form(None)
+        db.session.commit()
+        flash(_("Tetto «%(name)s» aggiunto.", name=limit.name), "success")
+    return redirect(url_for("tax.limits"))
+
+
+@tax_bp.route("/limits/<int:limit_id>/edit", methods=["POST"])
+def limit_edit(limit_id):
+    limit = db.get_or_404(ContributionLimit, limit_id)
+    with flash_errors(rollback=True):
+        _limit_form(limit)
+        db.session.commit()
+        flash(_("Tetto «%(name)s» aggiornato.", name=limit.name), "success")
+    return redirect(url_for("tax.limits"))
+
+
+@tax_bp.route("/limits/<int:limit_id>/delete", methods=["POST"])
+def limit_delete(limit_id):
+    db.session.delete(db.get_or_404(ContributionLimit, limit_id))
+    db.session.commit()
+    flash(_("Tetto eliminato: i movimenti restano."), "success")
+    return redirect(url_for("tax.limits"))

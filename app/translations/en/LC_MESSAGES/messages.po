@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 11:16+0000\n"
+"POT-Creation-Date: 2026-10-13 20:38+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -331,6 +331,10 @@ msgid "%(name)s: %(error)s"
 msgstr "%(name)s: %(error)s"
 
 #, python-format
+msgid "%(name)s: puoi ancora versare %(amount)s"
+msgstr "%(name)s: you can still pay in %(amount)s"
+
+#, python-format
 msgid "%(num)d categoria confermata."
 msgid_plural "%(num)d categorie confermate."
 msgstr[0] "%(num)d category confirmed."
@@ -415,6 +419,12 @@ msgid "%(num)s transazione ha ora la controparte, letta dalla causale."
 msgid_plural "%(num)s transazioni hanno ora la controparte, letta dalla causale."
 msgstr[0] "%(num)s transaction now has its counterparty, read from the causale."
 msgstr[1] "%(num)s transactions now have their counterparty, read from the causale."
+
+#, python-format
+msgid "%(num)s versamento nel %(year)s"
+msgid_plural "%(num)s versamenti nel %(year)s"
+msgstr[0] "%(num)s payment in %(year)s"
+msgstr[1] "%(num)s payments in %(year)s"
 
 #, python-format
 msgid "%(pct)s %% della crescita"
@@ -919,6 +929,9 @@ msgstr "Amount"
 
 msgid "Analizza file"
 msgstr "Analyze file"
+
+msgid "Ancora disponibile"
+msgstr "Still available"
 
 msgid "Ancora nessuna rendita: dividendi, cedole e interessi compaiono qui quando li registri."
 msgstr "No income yet: dividends, coupons and interest appear here once recorded."
@@ -1477,6 +1490,9 @@ msgstr "Automatic category"
 msgid "Categoria della parte"
 msgstr "Category of the part"
 
+msgid "Categoria di spesa (facoltativa)"
+msgstr "Expense category (optional)"
+
 #, python-format
 msgid "Categoria principale di %(name)s"
 msgstr "Main category of %(name)s"
@@ -1911,6 +1927,9 @@ msgstr "Accounts and Cards"
 
 msgid "Conti e investimenti"
 msgstr "Accounts and investments"
+
+msgid "Conti su cui arrivano i versamenti"
+msgstr "Accounts the payments arrive on"
 
 msgid "Conto"
 msgstr "Account"
@@ -2482,6 +2501,10 @@ msgid "Eliminare il prezzo del %(day)s?"
 msgstr "Delete the price of %(day)s?"
 
 #, python-format
+msgid "Eliminare il tetto «%(name)s»?"
+msgstr "Delete the limit “%(name)s”?"
+
+#, python-format
 msgid "Eliminare l'evento «%(name)s»? I movimenti restano."
 msgstr "Delete the event “%(name)s”? Its movements stay."
 
@@ -2624,6 +2647,9 @@ msgstr "By"
 #, python-format
 msgid "Entro il %(day)s"
 msgstr "By %(day)s"
+
+msgid "Entro il 31/12 per dedurli nella dichiarazione del prossimo anno."
+msgstr "By 31/12 to deduct them in next year's tax return."
 
 msgid "Erogazioni liberali a enti del terzo settore"
 msgstr "Donations to third-sector organisations"
@@ -2896,6 +2922,9 @@ msgstr "Pension Fund"
 
 msgid "Fondo d'emergenza"
 msgstr "Emergency fund"
+
+msgid "Fondo pensione (deducibile)"
+msgstr "Pension fund (deductible)"
 
 msgid "Fonte"
 msgstr "Source"
@@ -3360,6 +3389,12 @@ msgstr "The account balance and reconciliation will include these movements."
 
 msgid "Il saldo prima della prima transazione registrata su questo conto."
 msgstr "The balance before the first transaction recorded on this account."
+
+msgid "Il tetto annuo deve essere un importo positivo."
+msgstr "The yearly limit must be a positive amount."
+
+msgid "Il tetto totale non può essere più basso di quello annuo."
+msgstr "The total limit cannot be lower than the yearly one."
 
 msgid "Il tuo account"
 msgstr "Your account"
@@ -4546,6 +4581,9 @@ msgstr "No results"
 msgid "Nessun suggerimento"
 msgstr "No suggestions"
 
+msgid "Nessun tetto: aggiungi qui sotto il fondo pensione o un PIR."
+msgstr "No limits: add the pension fund or a PIR below."
+
 msgid "Nessuna categoria prevista."
 msgstr "No category forecast."
 
@@ -4934,6 +4972,9 @@ msgstr "New price (€)"
 msgid "Nuovo prezzo di %(name)s"
 msgstr "New price of %(name)s"
 
+msgid "Nuovo tetto"
+msgstr "New limit"
+
 #, python-format
 msgid "Nuovo titolo: %(name)s"
 msgstr "New holding: %(name)s"
@@ -5071,6 +5112,10 @@ msgstr "More than 20%% above the average"
 msgid "Oltre il limite del %(limit)s %%"
 msgstr "Above the %(limit)s %% limit"
 
+#, python-format
+msgid "Oltre il tetto: %(amount)s"
+msgstr "Over the limit: %(amount)s"
+
 #, python-brace-format
 msgid "Oltre l'importo: {amount}"
 msgstr "Over the amount: {amount}"
@@ -5129,6 +5174,12 @@ msgstr "PAC “%(name)s”"
 #, python-format
 msgid "PAC «%(name)s»: %(amount)s da investire"
 msgstr "PAC “%(name)s”: %(amount)s to invest"
+
+msgid "PIR alternativo"
+msgstr "Alternative PIR"
+
+msgid "PIR ordinario"
+msgstr "Ordinary PIR"
 
 msgid "Pagamenti in contanti: per molte voci serve un pagamento tracciabile"
 msgstr "Cash payments: most items need a traceable payment"
@@ -5763,6 +5814,15 @@ msgstr "How much it changes from one month to the next (coefficient of variation
 msgid "Quanto del bene è davvero tuo: il valore meno il debito ancora da restituire."
 msgstr "How much of the asset is really yours: its value minus the debt still to repay."
 
+msgid ""
+"Quanto puoi versare ogni anno in un fondo pensione (la parte deducibile) o in un PIR, e quanto hai già versato: "
+"contano i giroconti verso i conti scelti, i versamenti e gli acquisti dei titoli scelti (le vendite non liberano "
+"spazio) e le spese della categoria."
+msgstr ""
+"How much you can pay each year into a pension fund (the deductible part) or a PIR, and how much you already have: "
+"transfers to the chosen accounts, payments into and purchases of the chosen holdings (sales free no room) and the "
+"expenses of the category all count."
+
 msgid "Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata."
 msgstr "How much of each month's income is left. Choose the years to compare: the choice is remembered."
 
@@ -6389,6 +6449,9 @@ msgstr "Downloaded %(count)s ECB reference rates of the last 90 days; transactio
 msgid "Scegli"
 msgstr "Choose"
 
+msgid "Scegli almeno un conto, un titolo o una categoria in cui finiscono i versamenti."
+msgstr "Choose at least one account, holding or category the payments go into."
+
 msgid "Scegli almeno un file da caricare."
 msgstr "Choose at least one file to upload."
 
@@ -6437,6 +6500,9 @@ msgstr "Enter the client's name."
 
 msgid "Scrivi il nome del gruppo."
 msgstr "Write the name of the group."
+
+msgid "Scrivi il nome del tetto."
+msgstr "Write the name of the limit."
 
 msgid "Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna"
 msgstr "Enter the balance the bank shows at a date: the app tells you whether it matches"
@@ -6886,6 +6952,30 @@ msgstr "Kept 1 transaction, deleted %(count)s duplicates."
 msgid "Terminati (%(count)s)"
 msgstr "Ended (%(count)s)"
 
+msgid "Tetti di versamento"
+msgstr "Contribution limits"
+
+#, python-format
+msgid "Tetto %(year)s: %(amount)s"
+msgstr "%(year)s limit: %(amount)s"
+
+msgid "Tetto annuo (€)"
+msgstr "Yearly limit (€)"
+
+msgid "Tetto eliminato: i movimenti restano."
+msgstr "Limit deleted: the movements stay."
+
+msgid "Tetto totale (€, facoltativo)"
+msgstr "Total limit (€, optional)"
+
+#, python-format
+msgid "Tetto «%(name)s» aggiornato."
+msgstr "Limit “%(name)s” updated."
+
+#, python-format
+msgid "Tetto «%(name)s» aggiunto."
+msgstr "Limit “%(name)s” added."
+
 msgid "Three-fund portfolio"
 msgstr "Three-fund portfolio"
 
@@ -6934,6 +7024,9 @@ msgstr "Holdings"
 
 msgid "Titoli con quantità negativa"
 msgstr "Holdings with a negative quantity"
+
+msgid "Titoli o fondi in cui si versa"
+msgstr "Holdings or funds paid into"
 
 msgid "Titoli senza ISIN né ticker"
 msgstr "Holdings without ISIN or ticker"
@@ -7013,6 +7106,9 @@ msgstr "Total Expenses"
 msgid "Totale attività"
 msgstr "Total assets"
 
+msgid "Totale contato dal"
+msgstr "Total counted from"
+
 msgid "Totale dei corrispettivi"
 msgstr "Total proceeds"
 
@@ -7040,6 +7136,10 @@ msgstr "Estimated total"
 
 msgid "Totale uscite del mese in corso"
 msgstr "Total expenses of the current month"
+
+#, python-format
+msgid "Totale versato: %(paid)s di %(total)s (%(pct)s%%)"
+msgstr "Total paid in: %(paid)s of %(total)s (%(pct)s%%)"
 
 msgid "Totale:"
 msgstr "Total:"
@@ -7303,6 +7403,9 @@ msgstr "A model says how much each part of the portfolio should weigh. The activ
 msgid "Un solo ETF su tutte le borse del mondo: massima crescita attesa, ma il valore può anche dimezzarsi."
 msgstr "One ETF on every stock market in the world: the highest expected growth, but the value can also halve."
 
+msgid "Un tetto mio"
+msgstr "A limit of my own"
+
 msgid ""
 "Un viaggio, un matrimonio, dei lavori in casa: raccogli i movimenti di categorie diverse per vederne il costo totale "
 "e confrontarlo con un budget."
@@ -7527,6 +7630,9 @@ msgstr "Monthly saving"
 msgid "Versamento mensile (€)"
 msgstr "Monthly saving (€)"
 
+msgid "Versato"
+msgstr "Paid in"
+
 msgid "Verso il conto"
 msgstr "To account"
 
@@ -7613,6 +7719,9 @@ msgstr "a year at %(rate)s %%, against a need of %(gap)s"
 
 msgid "all'anno, conta quando hai versato"
 msgstr "a year, counts when you invested"
+
+msgid "anno"
+msgstr "year"
 
 #, python-format
 msgid "anno %(year)s"
@@ -8029,6 +8138,9 @@ msgstr "name"
 msgid "nome:tag"
 msgstr "name:tag"
 
+msgid "non deducibile"
+msgstr "not deductible"
+
 #, python-format
 msgid "non quotato su Stooq (borsa .%(suffix)s)"
 msgstr "not listed on Stooq (exchange .%(suffix)s)"
@@ -8260,6 +8372,10 @@ msgstr "ticker «%(ticker)s» not found (add .MI for Borsa Italiana, .DE for Xet
 msgid "tolleranza del modello"
 msgstr "model's tolerance"
 
+#, python-format
+msgid "totale %(amount)s"
+msgstr "total %(amount)s"
+
 msgid "transazioni"
 msgstr "transactions"
 
@@ -8318,6 +8434,12 @@ msgstr "vs %(year)s"
 
 msgid "vuoto = lo stesso"
 msgstr "empty = unchanged"
+
+msgid "vuoto: il nome del tetto pronto"
+msgstr "empty: the ready-made limit's name"
+
+msgid "vuoto: quello del tipo scelto"
+msgstr "empty: the chosen type's"
 
 #, python-format
 msgid "«%(description)s» aggiunta in %(category)s."
