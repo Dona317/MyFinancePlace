@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:05+0000\n"
+"POT-Creation-Date: 2026-10-13 10:07+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1194,8 +1194,20 @@ msgstr "Low — almost identical"
 msgid "Basta l’ISIN: il ticker viene cercato da solo al primo aggiornamento."
 msgstr "The ISIN is enough: the ticker is looked up by itself at the first update."
 
+msgid "Bene"
+msgstr "Asset"
+
+msgid "Bene finanziato"
+msgstr "Financed asset"
+
+msgid "Bene finanziato (facoltativo)"
+msgstr "Financed asset (optional)"
+
 msgid "Beneficio"
 msgstr "Benefit"
+
+msgid "Beni acquistati con un debito"
+msgstr "Assets bought with a debt"
 
 msgid "Bentornato"
 msgstr "Welcome back"
@@ -2596,6 +2608,9 @@ msgstr "Filter by type"
 
 msgid "Filtri"
 msgstr "Filters"
+
+msgid "Finanziato con un debito"
+msgstr "Financed with a debt"
 
 msgid "Fine"
 msgstr "End"
@@ -5273,6 +5288,9 @@ msgstr "Quantity held (opening position)"
 msgid "Quanto cambia da un mese all’altro (coefficiente di variazione)"
 msgstr "How much it changes from one month to the next (coefficient of variation)"
 
+msgid "Quanto del bene è davvero tuo: il valore meno il debito ancora da restituire."
+msgstr "How much of the asset is really yours: its value minus the debt still to repay."
+
 msgid "Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata."
 msgstr "How much of each month's income is left. Choose the years to compare: the choice is remembered."
 
@@ -6532,6 +6550,9 @@ msgstr "Too many requests to the Anthropic API: try again in a few minutes."
 msgid "Tua"
 msgstr "Yours"
 
+msgid "Tuo"
+msgstr "Yours"
+
 msgid "Tutte"
 msgstr "All"
 
@@ -7754,6 +7775,9 @@ msgid "— nessun evento —"
 msgstr "— no event —"
 
 msgid "— nessuna —"
+msgstr "— none —"
+
+msgid "— nessuno —"
 msgstr "— none —"
 
 msgid "— quello attivo —"

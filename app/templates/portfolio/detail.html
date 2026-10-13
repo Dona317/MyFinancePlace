@@ -13,6 +13,8 @@
 {% endblock %}
 
 {% block content %}
+{% from "partials/financed.html" import financed_table %}
+{{ financed_table(financed, _('Finanziato con un debito')) }}
 <p class="text-sm text-muted mb-16">
   {{ holding.asset_class|tr }}
   {% if holding.ticker %} · {{ holding.ticker }}{% endif %}

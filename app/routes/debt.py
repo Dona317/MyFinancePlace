@@ -6,7 +6,7 @@ from flask import render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
-from app.models.wealth import Debt
+from app.models.wealth import Debt, Holding
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_int, form_text, save_form
 from app.services import wealth
 
@@ -31,13 +31,16 @@ def _debt_from_form(debt: Debt) -> Debt:
     debt.monthly_payment = form_decimal("monthly_payment", _("Rata mensile"))
     debt.balance = form_decimal("balance", _("Saldo residuo"))
     debt.notes = form_text("notes", _("Note"))
+    holding_id = request.form.get("holding_id", type=int)
+    debt.holding_id = holding_id if holding_id and db.session.get(Holding, holding_id) else None
     if not debt.principal:
         raise ValueError(_("Capitale iniziale: deve essere maggiore di zero."))
     return debt
 
 
 def _render_form(debt, values):
-    return render_template("debt/form.html", debt=debt, debt_types=wealth.DEBT_TYPES, values=values)
+    return render_template("debt/form.html", debt=debt, debt_types=wealth.DEBT_TYPES, values=values,
+                           holdings=[(h.id, h.name) for h in Holding.query.order_by(Holding.name)])
 
 
 @debt_bp.route("/")
@@ -70,6 +73,7 @@ def detail(debt_id):
         "debt/detail.html",
         summary=wealth.debt_summary(debt),
         plan=wealth.schedule(debt),
+        financed=[row for row in wealth.financed_assets() if debt in row["debts"]],
         today=date.today(),
     )
 

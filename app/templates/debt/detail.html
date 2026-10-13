@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/financed.html" import financed_table %}
 {% set d = summary.debt %}
 {% block page_title %}{{ d.name }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ d.name }}</li>{% endblock %}
@@ -23,6 +24,8 @@
   {{ _('La rata (%(amount)s) non copre nemmeno gli interessi del primo mese: così il debito non si estingue mai. Controlla rata e tasso.', amount=summary.installment|money) }}
 </div>
 {% endif %}
+
+{{ financed_table(financed, _('Bene finanziato')) }}
 
 <div class="card">
   <div class="card-header">

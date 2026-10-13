@@ -37,6 +37,7 @@ def balance_sheet():
     return render_template(
         "accounting/balance_sheet.html",
         sheet=wealth.balance_sheet(on),
+        financed=wealth.financed_assets(on),
         choices=sorted(choices, reverse=True),
         opening_cash=wealth.opening_cash(),
         today=choices[0],

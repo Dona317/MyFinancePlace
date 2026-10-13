@@ -92,6 +92,10 @@ class Debt(db.Model):
     monthly_payment = db.Column(db.Numeric(38, 2))              # empty = computed from rate and term
     balance         = db.Column(db.Numeric(38, 2))              # known outstanding balance; empty = from the plan
     notes           = db.Column(db.Text)
+    # The asset it financed (F20: the mortgage of the house, the loan of the car): its equity is value − balance
+    holding_id      = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="SET NULL"), index=True)
+
+    holding = db.relationship("Holding")
 
 
 class InsurancePolicy(db.Model):

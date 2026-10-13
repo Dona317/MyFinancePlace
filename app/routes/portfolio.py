@@ -113,6 +113,7 @@ def detail(holding_id):
     holding = db.get_or_404(Holding, holding_id)
     points = wealth.price_history(holding)
     return render_template("portfolio/detail.html", holding=holding, operations=portfolio_ops.operations(holding),
+                           financed=[row for row in wealth.financed_assets() if row["holding"].id == holding.id],
                            perf=portfolio_ops.performance([holding]), kinds=portfolio_ops.KINDS,
                            kind_of=portfolio_ops.kind_of,
                            chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})

@@ -2,6 +2,7 @@
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
 
+{% from "partials/financed.html" import financed_table %}
 {% block page_title %}{{ _('Stato Patrimoniale') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Stato Patrimoniale') }}</li>{% endblock %}
 
@@ -124,6 +125,7 @@
   </div>
 </div>
 
+{{ financed_table(financed) }}
 {% endblock %}
 
 {% block scripts %}

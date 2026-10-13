@@ -289,6 +289,25 @@ def dividends(start: date, end: date) -> float:
     return _money(float(total))
 
 
+# ── Assets bought with a debt (F20) ────────────────────────────────────────────
+
+def financed_assets(on: date | None = None) -> list[dict]:
+    """The assets a debt is linked to: value, what is still owed on them, the part really owned (equity)."""
+    on = on or date.today()
+    owed = defaultdict(float)
+    debts = defaultdict(list)
+    for debt in Debt.query.filter(Debt.holding_id.isnot(None)).order_by(Debt.name):
+        owed[debt.holding_id] += debt_summary(debt, on)["balance"]
+        debts[debt.holding_id].append(debt)
+    rows = []
+    for holding in Holding.query.filter(Holding.id.in_(list(owed))).order_by(Holding.name):
+        value = _money(holding.value)
+        equity = _money(value - owed[holding.id])
+        rows.append({"holding": holding, "debts": debts[holding.id], "value": value, "owed": _money(owed[holding.id]),
+                     "equity": equity, "owned_pct": round(equity / value * 100, 1) if value else None})
+    return rows
+
+
 # ── Balance Sheet ──────────────────────────────────────────────────────────────
 
 def balance_sheet(on: date | None = None) -> dict:
