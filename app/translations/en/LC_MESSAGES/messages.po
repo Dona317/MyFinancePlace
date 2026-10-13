@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 20:54+0000\n"
+"POT-Creation-Date: 2026-10-13 21:01+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1950,6 +1950,15 @@ msgstr "Consolidated: %(name)s"
 msgid "Conta"
 msgstr "Counts"
 
+msgid "Conta dei contanti: contanti in più"
+msgstr "Cash count: extra cash"
+
+msgid "Conta dei contanti: spese non annotate"
+msgstr "Cash count: spending not written down"
+
+msgid "Conta i contanti"
+msgstr "Count the cash"
+
 msgid "Contabilità"
 msgstr "Accounting"
 
@@ -1958,6 +1967,12 @@ msgstr "Accounting — Sections"
 
 msgid "Contanti"
 msgstr "Cash"
+
+msgid "Contanti che hai ora"
+msgstr "Cash you have now"
+
+msgid "Contanti in negativo"
+msgstr "Cash below zero"
 
 msgid "Conti"
 msgstr "Accounts"
@@ -3511,6 +3526,9 @@ msgstr "The ratio must be a positive number other than 1 (e.g. 10 for “1 old =
 
 msgid "Il residuo di mutui, prestiti e carte secondo il piano di ammortamento (o il saldo che hai inserito)."
 msgstr "What is left on mortgages, loans and cards according to the amortization plan (or the balance you entered)."
+
+msgid "Il saldo dei contanti è sotto zero: manca un prelievo o un'entrata in contanti, oppure conta il portafoglio."
+msgstr "The cash balance is below zero: a withdrawal or a cash income is missing, or count the wallet."
 
 msgid "Il saldo e la riconciliazione del conto terranno conto di questi movimenti."
 msgstr "The account balance and reconciliation will include these movements."
@@ -6191,6 +6209,10 @@ msgstr "Record the commission as an expense:"
 msgid "Registrato fino al %(day)s + previsto"
 msgstr "Recorded up to %(day)s + expected"
 
+#, python-format
+msgid "Registrato «%(category)s» per %(amount)s."
+msgstr "Recorded “%(category)s” for %(amount)s."
+
 msgid "Regola"
 msgstr "Rule"
 
@@ -6787,6 +6809,16 @@ msgstr "Write the name of the limit."
 msgid "Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna"
 msgstr "Enter the balance the bank shows at a date: the app tells you whether it matches"
 
+msgid "Scrivi quanti contanti hai (zero o più)."
+msgstr "Write how much cash you have (zero or more)."
+
+msgid ""
+"Scrivi quanto hai nel portafoglio: se è meno del saldo la differenza diventa «Spese non annotate», se è di più "
+"«Contanti trovati»."
+msgstr ""
+"Write how much is in your wallet: if it is less than the balance the difference becomes “Spese non annotate” "
+"(unrecorded spending), if more “Contanti trovati” (cash found)."
+
 msgid "Scrivi solo quelli cambiati: gli altri restano come sono."
 msgstr "Only enter the ones that changed: the others stay as they are."
 
@@ -6913,6 +6945,9 @@ msgstr "Sections of %(name)s"
 #, python-format
 msgid "Sezioni di «%(name)s» aggiornate."
 msgstr "Sections of «%(name)s» updated."
+
+msgid "Si contano solo i conti di contanti."
+msgstr "Only cash accounts are counted."
 
 msgid ""
 "Si controllano a ogni aggiornamento dei prezzi; quando una scatta compare un promemoria (e una notifica nell'app "
@@ -7613,8 +7648,15 @@ msgstr ""
 msgid "Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto."
 msgstr "Everything matches: on %(date)s the app balance is %(amount)s, as on the statement."
 
+msgid "Tutto torna: nel portafoglio c'è quanto dice l'app."
+msgstr "It all adds up: the wallet holds what the app says."
+
 msgid "Tutto vale allo stesso modo per le"
 msgstr "The same applies to"
+
+#, python-format
+msgid "Ultima conta: %(day)s, %(amount)s."
+msgstr "Last count: %(day)s, %(amount)s."
 
 msgid "Ultima rata"
 msgstr "Last instalment"
@@ -8264,6 +8306,9 @@ msgstr "e.g. 4821"
 
 msgid "es. 50"
 msgstr "e.g. 50"
+
+msgid "es. 85"
+msgstr "e.g. 85"
 
 msgid "es. Animali"
 msgstr "e.g. Pets"

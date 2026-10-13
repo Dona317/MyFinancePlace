@@ -7,7 +7,7 @@ from decimal import Decimal
 
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import duplicates, history_classifier, merchant, owners
+from app.services import cash, duplicates, history_classifier, merchant, owners
 from app.services.parsing import clean_text, normalize, to_date, to_decimal, valid_amount
 
 from .categorize import categorize, is_transfer
@@ -113,6 +113,16 @@ def _own_transfer(row: StatementRow, own: owners.Recognizer) -> None:
         row.type, row.category, row.counterparty = "transfer", "Giroconto", None
 
 
+def _cash_withdrawal(row: StatementRow, wallet: list) -> None:
+    """An ATM withdrawal moves money to the cash wallet (F22): a giroconto to «Contanti», made the first time."""
+    if row.type == "transfer" or row.amount >= 0 or not cash.is_withdrawal(row.description, row.details):
+        return
+    if not wallet:
+        wallet.append(cash.wallet(create=True))
+    row.type, row.category, row.counterparty = "transfer", "Giroconto", None
+    row.own_account_id = wallet[0].id
+
+
 def _held_isins() -> set[str]:
     return {isin for (isin,) in Holding.query.with_entities(Holding.isin).filter(Holding.isin.isnot(None))}
 
@@ -130,6 +140,7 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
     seen: dict[str, int] = {}
     history = history_classifier.index()  # read once for the whole statement
     own, isins = owners.Recognizer(), _held_isins()
+    wallet = [w for w in [cash.wallet()] if w is not None]
     for row in rows:
         if is_transfer(row.description, row.details):
             row.type, row.category = "transfer", "Giroconto"
@@ -139,6 +150,7 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
             # the merchant named in the causale, unless a column of the file already gave it
             row.counterparty = row.counterparty or merchant.extract(row.description, row.details)
         _own_transfer(row, own)
+        _cash_withdrawal(row, wallet)
         _investment(row, isins)
 
         base = fingerprint(row, 0, bank_key)

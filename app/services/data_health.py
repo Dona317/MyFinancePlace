@@ -18,7 +18,7 @@ from sqlalchemy import or_
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import categories, currency, display, duplicates, wealth
+from app.services import cash, categories, currency, display, duplicates, wealth
 
 STALE_DAYS = 7
 RECONCILE_DAYS = 90
@@ -125,7 +125,16 @@ def _unreconciled(today: date) -> Check:
                                    url_for("accounts.index")) for a in found[:SHOWN]], url_for("accounts.index"))
 
 
-CHECKS = (_oversold, _missing_rates, _stale_prices, _half_transfers, _duplicates, _uncategorized, _unpriceable,
+def _negative_cash(today: date) -> Check:
+    """A cash wallet below zero: a withdrawal or an income in cash was not recorded (F22)."""
+    found = cash.negative()
+    return Check("cash", "warning", _("Contanti in negativo"),
+                 _("Il saldo dei contanti è sotto zero: manca un prelievo o un'entrata in contanti, oppure conta il portafoglio."),
+                 len(found), [Item(f"{a.name} — {display.money(balance)}", url_for("accounts.detail", account_id=a.id))
+                              for a, balance in found[:SHOWN]], url_for("accounts.index"))
+
+
+CHECKS = (_oversold, _negative_cash, _missing_rates, _stale_prices, _half_transfers, _duplicates, _uncategorized, _unpriceable,
           _unreconciled)
 SEVERE = (_oversold, _missing_rates)  # cheap enough to run on every page, for the reminders
 

@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, display, family, owners
+from app.services import accounts, cash, display, family, owners
 from app.services import currency as currency_service
 from app.services.tax_rules import REGIMES as TAX_REGIMES
 
@@ -93,6 +93,24 @@ def reconcile(account_id):
     recent = (Transaction.query.filter(Transaction.account_id == account.id, Transaction.date <= on)
               .order_by(Transaction.date.desc(), Transaction.id.desc()).limit(50).all())
     return _render_detail(account, recent, result)
+
+
+@accounts_bp.route("/<int:account_id>/count", methods=["POST"])
+def count_cash(account_id):
+    """The cash wallet counted (F22): the difference with the balance is recorded."""
+    account = db.get_or_404(Account, account_id)
+    try:
+        counted = form_decimal("counted", _("Contanti che hai ora"), required=True)
+        tx = cash.count(account, counted)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("accounts.detail", account_id=account.id))
+    db.session.commit()
+    if tx is None:
+        flash(_("Tutto torna: nel portafoglio c'è quanto dice l'app."), "success")
+    else:
+        flash(_("Registrato «%(category)s» per %(amount)s.", category=tx.category, amount=display.money(tx.amount)), "success")
+    return redirect(url_for("accounts.detail", account_id=account.id))
 
 
 @accounts_bp.route("/new", methods=["GET", "POST"])

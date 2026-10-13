@@ -48,7 +48,7 @@ def test_every_check_finds_its_problem(app, db):
         checks = _by_key(data_health.run(TODAY))
         severe = data_health.severe(TODAY)
     assert {k: c.count for k, c in checks.items()} == {
-        "oversold": 1, "rates": 1, "stale": 2, "transfers": 1, "duplicates": 1, "uncategorized": 1,
+        "oversold": 1, "cash": 0, "rates": 1, "stale": 2, "transfers": 1, "duplicates": 1, "uncategorized": 1,
         "unpriceable": 1, "reconcile": 1}
     assert checks["stale"].items[1].label == "Vecchio prezzo — 01/09/2026"
     assert checks["stale"].items[0].label.endswith("mai")  # «Senza codici» was never priced
