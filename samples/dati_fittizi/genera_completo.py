@@ -10,6 +10,8 @@ Accounts and how they are linked (every link is a «giroconto», a transfer betw
 - Conto deposito Illimity: monthly saving, quarterly interest, a withdrawal back to the current account each summer
 - Conto titoli Directa: monthly PAC (ETF bought on the 12th at a changing price), a bond, shares, dividends, coupons;
   the 80/20 model portfolio, the PAC and two portfolio rules (F19)
+- two holders and whose things are, the mortgage linked to the house, last year's trips as spending events, the
+  emergency fund following the savings account (F20)
 
 Investments are trades linked to their holding (transfers, cash flow «investing»): the ETF plan, a BTP bought with
 money from the savings account and its coupons, Enel shares with dividends and half of them sold at a gain, Bitcoin
@@ -46,10 +48,22 @@ from app.extensions import db  # noqa: E402
 from app.models.account import Account  # noqa: E402
 from app.models.budget import Budget  # noqa: E402
 from app.models.currency import ExchangeRate  # noqa: E402
+from app.models.event import SpendingEvent  # noqa: E402
 from app.models.portfolio_model import InvestmentPlan, PortfolioRule, SlotHolding  # noqa: E402
 from app.models.transaction import Transaction, TransactionSplit  # noqa: E402
 from app.models.wealth import Debt, Document, Goal, Holding, HoldingPrice, InsurancePolicy  # noqa: E402
-from app.services import backup, categories, document_store, portfolio_models, settings_store, transfer, wealth  # noqa: E402
+from app.services import (  # noqa: E402
+    backup,
+    categories,
+    document_store,
+    family,
+    owners,
+    portfolio_models,
+    settings_store,
+    spending_events,
+    transfer,
+    wealth,
+)
 
 HERE = Path(__file__).resolve().parent
 STATEMENTS = HERE / "estratti_da_importare"
@@ -286,6 +300,41 @@ def investment_rules(holdings: dict, accounts: dict, first: date) -> None:
                         PortfolioRule(kind="concentration", threshold=Decimal("40"))])
 
 
+HOLDERS = ["Marco Rossi", "Giulia Rossi"]
+OWNERS = {"conto": family.JOINT, "carta": "Marco Rossi", "deposito": family.JOINT, "titoli": "Giulia Rossi",
+          "vwce": "Giulia Rossi", "btp": "Giulia Rossi", "enel": "Giulia Rossi", "btc": "Marco Rossi",
+          "pensione": "Marco Rossi", "casa": family.JOINT, "mutuo": family.JOINT, "auto": "Marco Rossi",
+          "tv": "Marco Rossi"}
+COMPOSITION = {"vwce": ("Globale", "Diversificato"), "btp": ("Italia", "Obbligazioni governative"),
+               "enel": ("Italia", "Utilities"), "btc": ("Altro", "Altro")}
+
+
+def family_details(accounts: dict, holdings: dict, debts: dict, goals: dict, today: date) -> None:
+    """F20: two holders and whose things are, the mortgage linked to the house, where the investments invest, the
+    emergency fund following the savings account, and the trips of last year as spending events."""
+    owners.set_holders(HOLDERS)
+    for key, item in {**accounts, **holdings, **debts}.items():
+        if key in OWNERS:
+            item.owner = OWNERS[key]
+    debts["mutuo"].holding_id = holdings["casa"].id
+    for key, (region, sector) in COMPOSITION.items():
+        holdings[key].region, holdings[key].sector = region, sector
+    goals["emergenza"].account_id = accounts["deposito"].id
+    goals["emergenza"].monthly_contribution, goals["emergenza"].expected_return = Decimal("200"), Decimal("2.5")
+    goals["giappone"].monthly_contribution = Decimal("300")
+    last = today.year - 1
+    trips = [("Vacanze in Puglia", date(last, 8, 1), date(last, 8, 20), Decimal("1600")),
+             ("New York", date(last, 4, 20), date(last, 4, 28), Decimal("2000")),
+             ("Weekend a Londra", date(last, 10, 16), date(last, 10, 21), Decimal("700"))]
+    for name, start, end, budget in trips:
+        event = SpendingEvent(name=name, start=start, end=end, budget=budget)
+        db.session.add(event)
+        db.session.flush()
+        ids = [tx.id for tx in Transaction.query.filter(Transaction.date >= start, Transaction.date <= end,
+                                                        Transaction.category.in_(("Viaggi", "Ristoranti")))]
+        spending_events.assign(ids, event)
+
+
 def vwce_price(k: int) -> Decimal:
     """The ETF's price `k` months after the start: a slow rise with ups and downs."""
     return Decimal(str(round(95 * 1.008 ** k * (1 + 0.04 * math.sin(k / 2.5)), 2)))
@@ -422,11 +471,14 @@ def fill(today: date) -> dict:
                                 purchase_date=info["first"])
     db.session.add_all([*accounts.values(), *debts.values(), *holdings.values()])
     db.session.add_all(policies(today))
+    goals = {
+        "emergenza": Goal(name="Fondo d'emergenza", target_amount=Decimal("15000"), saved_amount=Decimal("9000"),
+                          target_date=today + timedelta(days=365), notes="Sul conto deposito"),
+        "giappone": Goal(name="Viaggio in Giappone", target_amount=Decimal("5000"), saved_amount=Decimal("1800"),
+                         target_date=today + timedelta(days=240)),
+    }
+    db.session.add_all(goals.values())
     db.session.add_all([
-        Goal(name="Fondo d'emergenza", target_amount=Decimal("15000"), saved_amount=Decimal("9000"),
-             target_date=today + timedelta(days=365), notes="Sul conto deposito"),
-        Goal(name="Viaggio in Giappone", target_amount=Decimal("5000"), saved_amount=Decimal("1800"),
-             target_date=today + timedelta(days=240)),
         Goal(name="Nuovo divano", target_amount=Decimal("1200"), saved_amount=Decimal("1200"), notes="Raggiunto"),
         Budget(category="Alimentari", amount=Decimal("450")), Budget(category="Ristoranti", amount=Decimal("160")),
         Budget(category="Svago", amount=Decimal("100")), Budget(category="Shopping", amount=Decimal("150")),
@@ -456,6 +508,8 @@ def fill(today: date) -> dict:
         rows.append(tx)
     db.session.add_all(rows)
     settings_store.set(wealth.OPENING_CASH_SETTING, "0")
+    db.session.flush()
+    family_details(accounts, holdings, debts, goals, today)
     db.session.commit()
     documents(rows)
     for back in range(33, -1, -3):  # the balance sheet at the end of a quarter

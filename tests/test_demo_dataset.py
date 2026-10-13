@@ -178,3 +178,20 @@ def test_model_portfolio_pac_and_rules(app, demo_data):
     with app.test_request_context():
         lines, _total = portfolio_models.standing(template)
     assert [[h.ticker for h in line.holdings] for line in lines] == [["VWCE"], ["IT0005497000"], ["BTC", "ENEL"]]
+
+
+def test_family_events_and_links(app, demo_data):
+    from app.models.event import SpendingEvent
+    from app.models.wealth import Debt, Goal, Holding
+    from app.services import family, spending_events
+
+    with app.test_request_context():
+        people = [r["person"] for r in family.by_person()]
+        trips = {s.event.name: s for s in spending_events.all_summaries()}
+    assert people == ["Marco Rossi", "Giulia Rossi"]  # everything has an owner: no «family» row
+    assert set(trips) == {"Vacanze in Puglia", "New York", "Weekend a Londra"}
+    assert all(s.count >= 1 and s.net > 0 for s in trips.values())
+    assert Debt.query.filter_by(name="Mutuo casa — Intesa").one().holding.name == "Appartamento Via Roma 12"
+    assert Holding.query.filter_by(ticker="VWCE").one().region == "Globale"
+    assert Goal.query.filter_by(name="Fondo d'emergenza").one().account_id is not None
+    assert SpendingEvent.query.count() == 3
