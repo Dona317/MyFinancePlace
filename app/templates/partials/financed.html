@@ -1,0 +1,28 @@
+{# Assets bought with a debt (F20): value, what is still owed, the part really owned #}
+{% macro financed_table(rows, title=none) -%}
+{% if rows %}
+<div class="card mb-16">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ title or _('Beni acquistati con un debito') }}</div>
+    <div class="card-header-sub">{{ _('Quanto del bene è davvero tuo: il valore meno il debito ancora da restituire.') }}</div>
+  </div></div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Bene') }}</th><th>{{ _('Debito') }}</th><th class="text-right">{{ _('Valore') }}</th>
+        <th class="text-right">{{ _('Residuo') }}</th><th class="text-right">{{ _('Tuo') }}</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><a href="{{ url_for('portfolio.detail', holding_id=r.holding.id) }}">{{ r.holding.name }}</a></td>
+          <td>{% for d in r.debts %}<a href="{{ url_for('debt.detail', debt_id=d.id) }}">{{ d.name }}</a>{{ ', ' if not loop.last }}{% endfor %}</td>
+          <td class="text-right nowrap">{{ r.value|money }}</td>
+          <td class="text-right nowrap">{{ r.owed|money }}</td>
+          <td class="text-right nowrap {{ 'text-negative' if r.equity < 0 }}"><strong>{{ r.equity|money }}</strong>{% if r.owned_pct is not none %} <span class="text-muted text-xs">({{ r.owned_pct|number(1) }} %)</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{%- endmacro %}

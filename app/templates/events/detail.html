@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block page_title %}{{ event.name }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('events.index') }}">{{ _('Eventi') }}</a></li><li>{{ event.name }}</li>{% endblock %}
+
+{% block content %}
+<div class="kpi-grid" style="margin-bottom:24px;">
+  {{ kpi('cash-coin', _('Costo'), value=summary.net|money, cls='kpi-primary', sub=_('%(count)s movimenti', count=summary.count)) }}
+  {{ kpi('calendar-event', _('Al giorno'), value=summary.per_day|money, sub=_('%(days)s giorni', days=summary.days)) }}
+  {% if event.budget is not none %}
+  {{ kpi('clipboard-check', _('Budget'), value=event.budget|money, cls='kpi-negative' if summary.left < 0 else 'kpi-positive',
+         sub=(_('superato di %(amount)s', amount=(summary.left|abs)|money) if summary.left < 0 else _('restano %(amount)s', amount=summary.left|money))) }}
+  {% endif %}
+  {% if summary.refunds %}{{ kpi('arrow-counterclockwise', _('Rimborsi'), value=summary.refunds|money) }}{% endif %}
+</div>
+
+<div class="grid-2" style="margin-bottom:24px;">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Per categoria') }}</div></div>
+    <div class="card-body">
+      {% for name, amount in summary.by_category %}
+      <div style="display:flex;justify-content:space-between;"><span>{{ name|tr }}</span><span class="nowrap">{{ amount|money }}</span></div>
+      {% else %}<span class="text-muted">{{ _('Ancora nessuna spesa.') }}</span>{% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Dettagli') }}</div></div>
+    <div class="card-body">
+      <form method="POST" id="event-edit-form">
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label" for="e-name">{{ _('Nome') }}</label>
+            <input type="text" name="name" id="e-name" class="form-control" value="{{ event.name }}" required /></div>
+          <div class="form-group"><label class="form-label" for="e-budget">{{ _('Budget (€)') }}</label>
+            <input type="text" inputmode="decimal" name="budget" id="e-budget" class="form-control" value="{{ event.budget|plain if event.budget is not none else '' }}" /></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label" for="e-start">{{ _('Dal') }}</label>
+            <input type="date" name="start" id="e-start" class="form-control" value="{{ event.start.isoformat() }}" required /></div>
+          <div class="form-group"><label class="form-label" for="e-end">{{ _('Al') }}</label>
+            <input type="date" name="end" id="e-end" class="form-control" value="{{ event.end.isoformat() if event.end else '' }}" /></div>
+        </div>
+        <div class="form-group"><label class="form-label" for="e-notes">{{ _('Note') }}</label>
+          <input type="text" name="notes" id="e-notes" class="form-control" value="{{ event.notes or '' }}" /></div>
+        <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% macro tx_table(items, form_id, button, event_value, title, empty) %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><div class="card-header-title">{{ title }}</div></div>
+  {% if items %}
+  <form method="POST" action="{{ url_for('events.assign') }}" id="{{ form_id }}">
+    <input type="hidden" name="event_id" value="{{ event_value }}" />
+    <input type="hidden" name="next" value="{{ url_for('events.detail', event_id=event.id) }}" />
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th style="width:32px;"></th><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th></tr></thead>
+        <tbody>
+          {% for tx in items %}
+          <tr>
+            <td><input type="checkbox" name="ids" value="{{ tx.id }}" class="check" aria-label="{{ _('Seleziona') }}" /></td>
+            <td class="nowrap">{{ tx.date|it_date }}</td>
+            <td><a href="{{ url_for('transactions.edit', tx_id=tx.id) }}">{{ tx.description }}</a></td>
+            <td>{{ (tx.category or '')|tr }}</td>
+            <td class="text-right nowrap {{ 'text-positive' if tx.type == 'income' }}">{{ '+' if tx.type == 'income' else '−' }}{{ tx.amount|money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body"><button type="submit" class="btn btn-ghost btn-sm">{{ button }}</button></div>
+  </form>
+  {% else %}
+  <div class="card-body text-muted">{{ empty }}</div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{{ tx_table(rows, 'remove-form', _('Togli dall\'evento le selezionate'), '', _('Movimenti dell\'evento'), _('Nessun movimento: aggiungili qui sotto o dalla lista delle transazioni.')) }}
+{{ tx_table(suggestions, 'add-form', _('Aggiungi le selezionate'), event.id, _('Movimenti nelle date dell\'evento, non ancora in un evento'), _('Nessun altro movimento in queste date.')) }}
+{% endblock %}

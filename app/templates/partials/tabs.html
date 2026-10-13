@@ -1,0 +1,8 @@
+{# A row of tabs: `items` are (key, url, label); the one whose key is `active` is the current page. #}
+{% macro tab_bar(items, active, label) -%}
+<nav class="report-tabs" aria-label="{{ label }}">
+  {%- for key, url, text in items %}
+  <a href="{{ url }}" class="report-tab{{ ' active' if key == active }}"{% if key == active %} aria-current="page"{% endif %}>{{ text }}</a>
+  {%- endfor %}
+</nav>
+{%- endmacro %}

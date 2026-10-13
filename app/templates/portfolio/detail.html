@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% from "partials/actions.html" import icon_link %}
+{% from "partials/kpi.html" import kpi %}
+{% block page_title %}{{ holding.name }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ holding.name }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('portfolio.edit', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
+  <a href="{{ url_for('portfolio.history', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-graph-up"></i> {{ _('Storico prezzi') }}</a>
+  <a href="{{ url_for('portfolio.link', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-link"></i> {{ _('Collega movimenti del conto') }}</a>
+  <a href="{{ url_for('portfolio.operation', holding_id=holding.id) }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuova operazione') }}</a>
+{% endblock %}
+
+{% block content %}
+{% from "partials/financed.html" import financed_table %}
+{{ financed_table(financed, _('Finanziato con un debito')) }}
+<p class="text-sm text-muted mb-16">
+  {{ holding.asset_class|tr }}
+  {% if holding.ticker %} · {{ holding.ticker }}{% endif %}
+  {% if holding.isin %} · ISIN {{ holding.isin }}{% endif %}
+  {% if holding.exchange %} · {{ holding.exchange }}{% endif %}
+  {% if holding.currency %} · {{ _('quotato in %(code)s', code=holding.currency) }}{% endif %}
+  {% if holding.multiplier and holding.multiplier != 1 %} · {{ _('moltiplicatore %(value)s', value=holding.multiplier|number(2)) }}{% endif %}
+  {% if holding.price_date %} · {{ _('prezzo del %(day)s', day=holding.price_date|it_date) }}{% endif %}
+</p>
+
+<div class="kpi-grid mb-24">
+  {{ kpi('briefcase', _('Valore'), value=holding.value|money, cls='kpi-primary',
+         sub=_('%(units)s quote × %(price)s', units=holding.quantity|number(4), price=holding.price|money)) }}
+  {{ kpi('graph-' ~ ('up' if perf.unrealized >= 0 else 'down') ~ '-arrow', _('Guadagno non realizzato'),
+         value=('+' if perf.unrealized > 0 else '') ~ perf.unrealized|money, cls=('kpi-positive' if perf.unrealized >= 0 else 'kpi-negative'),
+         sub=_('prezzo medio %(price)s', price=holding.avg_price|money)) }}
+  {{ kpi('check2-circle', _('Realizzato e incassato'), value=(perf.realized + perf.income - perf.costs)|money, cls='kpi-warning',
+         sub=_('vendite %(sales)s · dividendi e cedole %(income)s', sales=perf.realized|money, income=perf.income|money)) }}
+  {{ kpi('percent', _('Rendimento annuo'), value=(perf.xirr|number(2) ~ '%') if perf.xirr is not none else '—',
+         sub=_('ponderato per il denaro (XIRR), dalle operazioni')) }}
+</div>
+
+{% if chart.data|length >= 2 %}
+<div class="card mb-16">
+  <div class="card-header"><div class="card-header-title">{{ _('Prezzo') }}</div></div>
+  <div class="card-body"><div class="chart-container" style="height:240px;"><canvas id="priceChart"></canvas></div></div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Operazioni') }}</div>
+      <div class="card-header-sub">
+        {% if holding.opening_quantity %}
+        {{ _('Posizione iniziale: %(units)s quote a %(price)s%(when)s', units=holding.opening_quantity|number(4), price=(holding.opening_price or 0)|money,
+             when=(' ' ~ _('al %(day)s', day=holding.opening_date|it_date)) if holding.opening_date else '') }} ·
+        {% endif %}
+        {{ _('Quantità e prezzo medio si ricalcolano da queste operazioni.') }}
+      </div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr>
+        <th>{{ _('Data') }}</th><th>{{ _('Operazione') }}</th><th class="text-right">{{ _('Quote') }}</th>
+        <th class="text-right">{{ _('Prezzo') }}</th><th class="text-right">{{ _('Importo') }}</th><th>{{ _('Conto') }}</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for tx in operations %}
+        {% set k = kind_of(tx) %}
+        <tr>
+          <td class="nowrap">{{ tx.date|it_date }}</td>
+          <td><span class="badge {{ 'badge-positive' if k in ('sell', 'dividend', 'coupon') else ('badge-primary' if k == 'buy' else 'badge-muted') }}">{{ kinds[k] }}</span>
+            <div class="text-xs text-muted">{{ tx.description }}</div></td>
+          <td class="amount text-right">{{ tx.units|abs|number(4) if tx.units is not none else '' }}</td>
+          <td class="amount text-right">{{ tx.unit_price|money if tx.unit_price is not none else '' }}</td>
+          <td class="amount text-right">{{ tx.amount|money }}</td>
+          <td class="text-sm">{{ (tx.account or tx.counter_account).name if (tx.account or tx.counter_account) else '' }}</td>
+          <td><div class="cell-actions">
+            {{ icon_link(url_for('transactions.edit', tx_id=tx.id, next=request.path), 'bi-pencil', _('Modifica'), _('Modifica operazione')) }}
+          </div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-muted">{{ _('Nessuna operazione: aggiungi acquisti, vendite, dividendi e cedole con «Nuova operazione».') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<details class="card" style="margin-top:16px;">
+  <summary class="card-body" style="cursor:pointer;"><strong>{{ _('Frazionamento o raggruppamento delle azioni') }}</strong>
+    <span class="text-sm text-muted">{{ _('quando la società divide (o unisce) le azioni: le quantità e i prezzi precedenti si adeguano') }}</span></summary>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('portfolio.split', holding_id=holding.id) }}" id="split-form" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;"
+          data-confirm="{{ _('Adeguare quantità e prezzi precedenti?') }}">
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="split-ratio">{{ _('1 vecchia = quante nuove') }}</label>
+        <input type="text" inputmode="decimal" name="ratio" id="split-ratio" class="form-control" placeholder="10" required />
+        <div class="form-hint">{{ _('es. 10 per un frazionamento 1:10; 0,1 per un raggruppamento 10:1') }}</div>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="split-on">{{ _('Dal giorno') }}</label>
+        <input type="date" name="on" id="split-on" class="form-control" required />
+      </div>
+      <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-left-right"></i> {{ _('Applica') }}</button>
+    </form>
+  </div>
+</details>
+
+{% if taxonomies %}
+<details class="card" style="margin-top:16px;" id="classify" {{ 'open' if request.args.get('classify') }}>
+  <summary class="card-body" style="cursor:pointer;"><strong>{{ _('Classificazioni') }}</strong>
+    <span class="text-sm text-muted">{{ _('le tue (Impostazioni → Classificazioni): in Composizione ognuna ha il suo grafico') }}</span></summary>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('portfolio.classify', holding_id=holding.id) }}">
+      {% for t in taxonomies %}
+      {% set given = classified.get(t.id, {}) %}
+      <fieldset class="form-group">
+        <legend class="form-label">{{ t.name }}{% if t.multiple %} <span class="text-xs text-muted">{{ _('(in percentuale, fino a 100)') }}</span>{% endif %}</legend>
+        {% if t.multiple %}
+        <div class="d-flex gap-8 flex-wrap">
+          {% for c in t.categories %}
+          <label class="text-sm d-flex align-center gap-8">{{ c.name }}
+            <input type="text" inputmode="decimal" name="w-{{ c.id }}" class="form-control" style="width:80px;" value="{{ given[c.id]|plain if c.id in given else '' }}" aria-label="{{ t.name }}: {{ c.name }} (%%)" /></label>
+          {% endfor %}
+        </div>
+        {% else %}
+        <select name="t-{{ t.id }}" class="form-select" style="max-width:320px;" aria-label="{{ t.name }}">
+          <option value="">{{ _('— non indicato —') }}</option>
+          {% for c in t.categories %}<option value="{{ c.id }}" {{ 'selected' if c.id in given }}>{{ c.name }}</option>{% endfor %}
+        </select>
+        {% endif %}
+      </fieldset>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+    </form>
+  </div>
+</details>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if chart.data|length >= 2 %}
+<script>
+makeLineChart('priceChart', {{ chart.labels|tojson }}, [{ label: {{ holding.name|tojson }}, data: {{ chart.data|tojson }} }], { legend: false });
+</script>
+{% endif %}
+{% endblock %}

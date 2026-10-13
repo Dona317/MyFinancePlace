@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('Classificazioni dei titoli') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Classificazioni dei titoli') }}</li>{% endblock %}
+
+{% block content %}
+<p class="text-sm text-muted mb-16">{{ _('Oltre ad area geografica e settore, raggruppa i titoli come vuoi: per rischio, per tema, ESG, di chi è il PAC… Ogni titolo si mette in una categoria, oppure, se la classificazione lo consente, si divide tra più categorie in percentuale (un ETF al 60 %% in una e al 40 %% nell’altra).') }}</p>
+
+{% for t in taxonomies %}
+<div class="card mb-16" id="taxonomy-{{ t.id }}">
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('settings.taxonomy_edit', taxonomy_id=t.id) }}">
+      <div class="grid-2" style="gap:12px;">
+        <div class="form-group"><label class="form-label" for="t{{ t.id }}-name">{{ _('Nome') }}</label>
+          <input type="text" id="t{{ t.id }}-name" name="name" class="form-control" value="{{ t.name }}" required maxlength="80" /></div>
+        <label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="multiple" {{ 'checked' if t.multiple }} /> {{ _('Un titolo può stare in più categorie, in percentuale') }}</label>
+      </div>
+      <div class="table-wrapper"><table class="table-compact">
+        <thead><tr><th>{{ _('Categoria') }}</th><th class="text-center">{{ _('Elimina') }}</th></tr></thead>
+        <tbody>
+          {% for c in t.categories %}
+          <tr><td><input type="text" name="cat-{{ c.id }}" class="form-control" value="{{ c.name }}" maxlength="80" aria-label="{{ _('Nome della categoria') }}" /></td>
+            <td class="text-center"><input class="check" type="checkbox" name="delete-{{ c.id }}" aria-label="{{ _('Elimina %(name)s', name=c.name) }}" /></td></tr>
+          {% endfor %}
+          <tr><td colspan="2"><input type="text" name="new_category" class="form-control" maxlength="80" placeholder="{{ _('Nuova categoria') }}" aria-label="{{ _('Nuova categoria') }}" /></td></tr>
+        </tbody>
+      </table></div>
+      <button type="submit" class="btn btn-primary btn-sm mt-8"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+    </form>
+    <form method="POST" action="{{ url_for('settings.taxonomy_delete', taxonomy_id=t.id) }}" class="mt-8"
+          onsubmit='return confirm({{ _("Eliminare la classificazione «%(name)s»? I titoli restano.", name=t.name)|tojson }});'>
+      <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina la classificazione') }}</button>
+    </form>
+  </div>
+</div>
+{% else %}
+{{ empty_state(_('Nessuna classificazione tua: creane una qui sotto.'), icon='bi-tags') }}
+{% endfor %}
+
+<div class="card mt-16">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-plus-lg"></i> {{ _('Nuova classificazione') }}</div></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('settings.taxonomy_new') }}">
+      <div class="grid-2" style="gap:12px;">
+        <div class="form-group"><label class="form-label" for="new-name">{{ _('Nome') }}</label>
+          <input type="text" id="new-name" name="name" class="form-control" required maxlength="80" placeholder="{{ _('es. Rischio') }}" /></div>
+        <div class="form-group"><label class="form-label" for="new-categories">{{ _('Categorie (una per riga)') }}</label>
+          <textarea id="new-categories" name="categories" class="form-control" rows="4" placeholder="{{ _('Basso') }}&#10;{{ _('Medio') }}&#10;{{ _('Alto') }}"></textarea></div>
+      </div>
+      <label class="d-flex align-center gap-8 text-sm mb-8"><input class="check" type="checkbox" name="multiple" /> {{ _('Un titolo può stare in più categorie, in percentuale') }}</label>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,69 +1,130 @@
 {% extends "base.html" %}
+{% import "partials/fields.html" as f %}
 {% set is_edit = holding is not none %}
-{% block title %}{{ 'Modifica' if is_edit else 'Nuova' }} Posizione — MyFinancePlace{% endblock %}
-{% block page_title %}{{ 'Modifica' if is_edit else 'Nuova' }} Posizione{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">Portafoglio</a></li><li>{{ 'Modifica' if is_edit else 'Nuova' }}</li>{% endblock %}
+{% set h = holding or {} %}
+{% block page_title %}{{ _('Modifica posizione') if is_edit else _('Nuova posizione') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>{% endblock %}
 
 {% block content %}
-<div style="max-width:640px;">
+<div class="page-form">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ 'Modifica Posizione' if is_edit else 'Aggiungi Posizione al Portafoglio' }}</div>
+      <div class="card-header-title">{{ _('Modifica «') ~ holding.name ~ '»' if is_edit else _('Aggiungi Posizione al Portafoglio') }}</div>
     </div>
     <div class="card-body">
       <form method="POST">
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Ticker / Codice</label>
-            <input type="text" name="ticker" class="form-control" placeholder="es. AAPL, BTC, VWCE"
-                   value="{{ holding.ticker if is_edit else '' }}" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Nome Strumento</label>
-            <input type="text" name="name" class="form-control" placeholder="es. Apple Inc."
-                   value="{{ holding.name if is_edit else '' }}" />
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Classe di Attività</label>
-            <select name="asset_class" class="form-select">
-              {% for cls in ['Azione', 'ETF', 'Criptovaluta', 'Obbligazione', 'Conto Risparmio', 'Fondo Pensione', 'Altro'] %}
-              <option {{ 'selected' if is_edit and holding.asset_class == cls }}>{{ cls }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Data Acquisto</label>
-            <input type="date" name="purchase_date" class="form-control"
-                   value="{{ holding.purchase_date if is_edit else '' }}" />
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Quantità</label>
-            <input type="number" name="quantity" class="form-control" step="0.0001" min="0"
-                   placeholder="0" value="{{ holding.quantity if is_edit else '' }}" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Prezzo Medio di Acquisto (€)</label>
-            <input type="number" name="avg_price" class="form-control" step="0.01" min="0"
-                   placeholder="0.00" value="{{ holding.avg_price if is_edit else '' }}" required />
-          </div>
-        </div>
+        {% if online %}
         <div class="form-group">
-          <label class="form-label">Note</label>
-          <textarea name="notes" class="form-control" rows="2"
-                    placeholder="Note facoltative...">{{ holding.notes if is_edit else '' }}</textarea>
+          <label class="form-label" for="lookup-q">{{ _('Cerca lo strumento') }}</label>
+          <div class="d-flex gap-8">
+            <input type="text" id="lookup-q" class="form-control" placeholder="{{ _('ISIN, ticker o nome (es. IE00BK5BQT80, ENEL.MI, Vanguard All-World)') }}" autocomplete="off" />
+            <button type="button" id="lookup-go" class="btn btn-ghost"><i class="bi bi-search"></i> {{ _('Cerca') }}</button>
+          </div>
+          <div class="form-hint">{{ _('Con un ISIN cerca su tutti i siti attivi in Impostazioni → Fonti dei prezzi (Yahoo, OpenFIGI, justETF, Borsa Italiana, Morningstar); con un ticker o un nome solo su Yahoo. Scegli il risultato e il modulo si compila, fonte del prezzo compresa.') }}</div>
+          <ul id="lookup-results" class="lookup-results" hidden></ul>
         </div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
-          <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> Annulla</a>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if is_edit else 'Aggiungi al Portafoglio' }}
-          </button>
+        {% endif %}
+        <div class="grid-2">
+          {{ f.text(values, 'name', _('Nome'), h.name, required=true, placeholder=_('es. Vanguard FTSE All-World')) }}
+          {{ f.text(values, 'ticker', _('Ticker'), h.ticker, placeholder=_('es. VWCE.DE, ENEL.MI, BTC'),
+                    hint=_('Con il suffisso di borsa: .MI Milano, .DE Xetra, .L Londra; nessuno per gli USA.')) }}
         </div>
+        <div class="grid-2">
+          {{ f.select(values, 'asset_class', _('Classe'), asset_classes.keys()|list, h.asset_class or 'ETF') }}
+          {{ f.date(values, 'purchase_date', _("Data d'acquisto"), h.purchase_date,
+                    hint=_("Da quando conta nello stato patrimoniale dei mesi passati.")) }}
+        </div>
+        <div class="grid-2">
+          {{ f.number(values, 'quantity', _('Quantità posseduta (posizione iniziale)'), h.opening_quantity if h.opening_quantity is not none else h.quantity, required=true,
+                      hint=_('Quello che avevi prima delle operazioni registrate qui (0 se le registri tutte). Per conti deposito, fondi pensione e immobili: 1; per le obbligazioni il nominale.')) }}
+          {{ f.number(values, 'avg_price', _("Prezzo medio d'acquisto (€)"), h.opening_price if h.opening_price is not none else h.avg_price, required=true, placeholder='0,00',
+                      hint=_('Della posizione iniziale, per unità. Per un conto deposito: il capitale versato.')) }}
+        </div>
+        {{ f.number(values, 'current_price', _('Prezzo attuale (€)'), h.current_price, placeholder=_('uguale al prezzo di acquisto'),
+                    hint=_("Aggiornalo quando vuoi (anche tutti insieme da «Aggiorna prezzi»): vuoto = vale quanto l'hai pagato.")) }}
+        <div class="grid-2" style="gap:16px;">
+          {{ f.number(values, 'tax_rate', _('Aliquota sulle plusvalenze (%%)'), h.tax_rate, placeholder=_('26 (12,5 per i titoli di Stato)'),
+                      hint=_('Vuoto = quella della classe: 26%%, cripto 33%% dal 2026.')) }}
+          <div class="form-group">
+            <span class="form-label">{{ _('Dove è detenuto') }}</span>
+            {% set is_abroad = ('abroad' in values) if values else h.abroad %}
+            <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="abroad" class="check" {{ 'checked' if is_abroad }} /> {{ _("All'estero o in un wallet privato (IVAFE / IC invece del bollo)") }}</label>
+          </div>
+        </div>
+        <fieldset class="fee-rules mb-16">
+          <legend class="form-label">{{ _('Strumento e prezzo da internet') }}</legend>
+          <div class="grid-3">
+            {{ f.text(values, 'isin', 'ISIN', h.isin, placeholder='IE00BK5BQT80',
+                      hint=_('Basta l’ISIN: il ticker viene cercato da solo al primo aggiornamento.')) }}
+            {{ f.text(values, 'currency', _('Valuta di quotazione'), h.currency, placeholder='EUR') }}
+            {{ f.text(values, 'exchange', _('Borsa'), h.exchange, placeholder=_('es. Milano, Xetra')) }}
+          </div>
+          <div class="grid-2">
+            {{ f.number(values, 'multiplier', _('Moltiplicatore'), h.multiplier if h.multiplier is not none else 1, placeholder='1',
+                        hint=_('Per i derivati: quante unità vale un contratto (es. 100 per un’opzione su azioni). Altrimenti 1.')) }}
+            {{ f.select(values, 'price_source', _('Fonte del prezzo'), sources.items()|list, h.price_source or 'auto') }}
+          </div>
+          <p class="form-hint">{{ _('Automatica: Yahoo Finance (e Stooq se Yahoo non risponde) per azioni, ETF, fondi, obbligazioni e derivati; CoinGecko per le cripto. «Solo a mano» per titoli non quotati, polizze, conti deposito.') }}</p>
+        </fieldset>
+        {{ f.owner(values, h.owner) }}
+        {{ f.number(values, 'depreciation_rate', _('Svalutazione annua (%%)'), h.depreciation_rate, placeholder=(suggested_rates.get(h.asset_class)|string if h and suggested_rates.get(h.asset_class) else ''),
+                    hint=_('Per un’auto, un telefono, un computer: la percentuale di valore persa ogni anno dall’ultima valutazione (un’auto circa 15). Vuoto: il valore cambia solo con i prezzi o le valutazioni.')) }}
+        <div class="grid-2">
+          {{ f.select(values, 'region', _('Area geografica'), regions, h.region, blank=_('— non indicata —')) }}
+          {{ f.select(values, 'sector', _('Settore'), sectors, h.sector, blank=_('— non indicato —')) }}
+        </div>
+        {{ f.textarea(values, 'notes', _('Note'), h.notes, placeholder=_('Broker, conto titoli, note facoltative...')) }}
+        {{ f.actions(url_for('portfolio.index'), _('Salva Modifiche') if is_edit else _('Aggiungi al Portafoglio')) }}
       </form>
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if online %}
+<script>
+(function () {
+  const query = document.getElementById('lookup-q'), list = document.getElementById('lookup-results');
+  const set = (name, value) => { const el = document.getElementById('f-' + name); if (el && value) el.value = value; };
+  function show(items, error) {
+    list.innerHTML = '';
+    list.hidden = false;
+    if (error || !items.length) {
+      const li = document.createElement('li');
+      li.textContent = error || {{ _('Nessuno strumento trovato.')|tojson }};
+      list.appendChild(li);
+      return;
+    }
+    items.forEach(item => {
+      const li = document.createElement('li'), button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn-ghost btn-sm';
+      button.textContent = [item.symbol, item.name, item.exchange, item.asset_class].filter(Boolean).join(' · ')
+        + ' — ' + item.source_name;
+      button.addEventListener('click', () => {
+        set('ticker', item.symbol); set('name', item.name); set('exchange', item.exchange); set('isin', item.isin);
+        set('asset_class', item.asset_class); set('currency', item.currency);
+        set('price_source', item.price_source);
+        list.hidden = true;
+      });
+      li.appendChild(button);
+      list.appendChild(li);
+    });
+  }
+  async function search() {
+    if (!query.value.trim()) return;
+    try {
+      const answer = await fetch({{ url_for('portfolio.lookup')|tojson }} + '?q=' + encodeURIComponent(query.value.trim()));
+      const data = await answer.json();
+      show(data.results || [], data.error);
+    } catch (e) {
+      show([], {{ _('Ricerca non riuscita.')|tojson }});
+    }
+  }
+  document.getElementById('lookup-go').addEventListener('click', search);
+  query.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); search(); } });
+})();
+</script>
+{% endif %}
 {% endblock %}

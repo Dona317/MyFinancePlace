@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ _('Modelli AI') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Modelli AI') }}</li>{% endblock %}
+
+{% block content %}
+
+<!-- Modello attivo ───────────────────────────────────────────────────── -->
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-stars"></i> {{ _('Lettura AI degli estratti conto') }}</div>
+      <div class="card-header-sub">
+        {{ _('Usata solo quando un file non si riesce a leggere (scansioni, foto, formati non standard) e sempre dopo la tua conferma') }}
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('settings.ai_save') }}"
+          style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end;">
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">{{ _('Provider') }}</label>
+        <select name="provider" class="form-select" id="provider-select">
+          <option value="none" {{ 'selected' if not provider else '' }}>{{ _('Disattivata') }}</option>
+          <option value="ollama" {{ 'selected' if provider == 'ollama' else '' }}>{{ _('Locale (Ollama) — i dati restano sul computer') }}</option>
+          <option value="anthropic" {{ 'selected' if provider == 'anthropic' else '' }}>{{ _('Anthropic Claude (cloud) — i documenti vengono inviati') }}</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">{{ _('Modello per leggere i documenti') }}</label>
+        <input type="text" name="model" class="form-control" value="{{ model }}" list="model-options"
+               placeholder="{{ _('es. qwen2.5vl:7b') }}" autocomplete="off" />
+        <datalist id="model-options">
+          {% for name in ollama.installed %}<option value="{{ name }}">{% endfor %}
+          {% for name in anthropic_models %}<option value="{{ name }}">{% endfor %}
+        </datalist>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">{{ _('Modello per classificare') }} <span style="font-weight:400;color:var(--clr-text-muted);">{{ _('(facoltativo)') }}</span></label>
+        <input type="text" name="classify_model" class="form-control" value="{{ classify_by_provider.get(provider or '', '') }}"
+               list="model-options" placeholder="{{ _('vuoto = lo stesso') }}" autocomplete="off" />
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+    </form>
+    <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:10px;">
+      {{ _('La') }} <strong>{{ _('classificazione') }}</strong> {{ _('(categoria e controparte dalla causale) lavora solo sul testo: basta un modello piccolo o tiny, molto più veloce (es.') }} <code>{{ _('qwen3:1.7b') }}</code>, <code>{{ _('llama3.2:3b') }}</code>{% if provider == 'anthropic' %}, <code>{{ _('claude-haiku-4-5') }}</code>{% endif %}).
+    </p>
+    {% if provider == 'ollama' and model and ollama.running and model not in ollama.installed %}
+    <div class="alert alert-warning" style="margin-top:16px;">
+      <i class="bi bi-exclamation-triangle"></i> {{ _('Il modello %(model)s non è ancora installato: installalo dal catalogo qui sotto.', model=model) }}
+    </div>
+    {% endif %}
+    {% if provider == 'anthropic' %}
+    <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
+      {{ _('Con Claude serve la variabile') }} <code>{{ _('ANTHROPIC_API_KEY') }}</code> {{ _('nel file') }} <code>{{ _('.env') }}</code>; <code>{{ _('claude-haiku-4-5') }}</code> {{ _("è l'opzione più economica.") }}
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Stato Ollama ─────────────────────────────────────────────────────── -->
+<div class="card mb-16" id="ollama-status">
+  <div class="card-body" style="display:flex;align-items:flex-start;gap:14px;">
+    {% if ollama.running %}
+      <i class="bi bi-check-circle" style="font-size:22px;color:var(--clr-positive);"></i>
+      <div>
+        <div style="font-weight:700;">{{ _('Ollama attivo') }}{% if ollama.version %} {{ _('(versione %(version)s)', version=ollama.version) }}{% endif %}</div>
+        <div style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
+          {{ _('%(count)s modelli installati', count=ollama.installed|length) }} · {{ ollama_url }}
+        </div>
+      </div>
+    {% else %}
+      <i class="bi bi-exclamation-triangle" style="font-size:22px;color:var(--clr-warning);"></i>
+      <div style="font-size:var(--font-size-sm);">
+        <div style="font-weight:700;font-size:var(--font-size-md);">{{ _('Ollama non è in esecuzione') }}</div>
+        <p style="color:var(--clr-text-muted);margin:4px 0 8px;">{{ ollama.error }}</p>
+        <ol style="margin:0;padding-left:18px;line-height:1.8;">
+          <li>{{ _('Scarica e installa Ollama da') }} <a href="https://ollama.com/download" target="_blank" rel="noopener">{{ _('ollama.com/download') }}</a>
+              {{ _('(Windows, macOS, Linux:') }} <code>{{ _('curl -fsSL https://ollama.com/install.sh | sh') }}</code>)</li>
+          <li>{{ _('Avvialo (su Windows/macOS parte da solo; su Linux:') }} <code>{{ _('ollama serve') }}</code>)</li>
+          <li>{{ _('Ricarica questa pagina e installa un modello dal catalogo, oppure da terminale:') }}
+              <code>{{ _('python scripts/install_models.py --recommended') }}</code></li>
+        </ol>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Catalogo ─────────────────────────────────────────────────────────── -->
+{% macro model_row(m) %}
+{% set installed = m.name in ollama.installed %}
+{% set pull = pulls.get(m.name) %}
+<tr data-model="{{ m.name }}">
+  <td>
+    <div style="font-weight:600;color:var(--clr-text-primary);">{{ m.name }}
+      {% if provider == 'ollama' and model == m.name %}<span class="badge badge-primary">{{ _('In uso') }}</span>{% endif %}
+    </div>
+    {% if m.note %}<div class="text-xs text-muted">{{ m.note|tr }}</div>{% endif %}
+  </td>
+  <td>{{ m.family }}</td>
+  <td class="amount text-right">~{{ "%.1f"|format(m.size_gb) }} GB</td>
+  <td style="text-align:right;color:var(--clr-text-muted);">{{ m.ram_gb }} GB</td>
+  <td>
+    {% if m.vision %}<span class="badge badge-positive"><i class="bi bi-image"></i> {{ _('Scansioni e foto') }}</span>
+    {% else %}<span class="badge badge-muted"><i class="bi bi-file-text"></i> {{ _('Solo testo') }}</span>{% endif %}
+  </td>
+  <td class="model-status">
+    {% if pull and not pull.done %}
+      <div class="progress-bar-wrap" style="height:6px;"><div class="progress-bar-fill" style="width:{{ pull.percent }}%;"></div></div>
+      <span class="text-xs text-muted">{{ pull.status }} {{ pull.percent }}%</span>
+    {% elif pull and pull.error %}
+      <span class="badge badge-negative" title="{{ pull.error }}">{{ _('Errore download') }}</span>
+    {% elif installed %}
+      <span class="badge badge-positive">{{ _('Installato') }}</span>
+    {% else %}
+      <span class="badge badge-muted">{{ _('Non installato') }}</span>
+    {% endif %}
+  </td>
+  <td class="text-right nowrap">
+    {% if installed %}
+      {% if not (provider == 'ollama' and model == m.name) %}
+      <form method="POST" action="{{ url_for('settings.ai_save') }}" style="display:inline;">
+        <input type="hidden" name="provider" value="ollama" /><input type="hidden" name="model" value="{{ m.name }}" />
+        <button type="submit" class="btn btn-ghost btn-sm">{{ _('Usa') }}</button>
+      </form>
+      {% endif %}
+      <form method="POST" action="{{ url_for('settings.ai_delete') }}" style="display:inline;"
+            data-confirm="{{ _('Rimuovere il modello %(name)s (~%(size)s GB)?', name=m.name, size=m.size_gb) }}">
+        <input type="hidden" name="name" value="{{ m.name }}" />
+        <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--clr-negative);">{{ _('Rimuovi') }}</button>
+      </form>
+    {% else %}
+      <form method="POST" action="{{ url_for('settings.ai_pull') }}" style="display:inline;">
+        <input type="hidden" name="name" value="{{ m.name }}" />
+        <button type="submit" class="btn btn-outline btn-sm" {{ 'disabled' if not ollama.running or (pull and not pull.done) else '' }}>
+          <i class="bi bi-download"></i> {{ _('Installa') }}
+        </button>
+      </form>
+    {% endif %}
+  </td>
+</tr>
+{% endmacro %}
+
+{% for tier, label in tiers.items() %}
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ label }}</div>
+      <div class="card-header-sub">
+        {% if tier == 'medio' %}{{ _('Massima precisione: servono almeno 12–16 GB di RAM') }}
+        {% elif tier == 'piccolo' %}{{ _('Per portatili con 8 GB di RAM') }}
+        {% else %}{{ _('Per computer con poca memoria: leggono solo documenti di testo, non scansioni o foto') }}{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Modello') }}</th><th>{{ _('Famiglia') }}</th><th class="text-right">{{ _('Download') }}</th>
+          <th class="text-right">{{ _('RAM') }}</th><th>{{ _('Legge') }}</th><th style="min-width:140px;">{{ _('Stato') }}</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in catalog[tier] %}{{ model_row(m) }}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Altri modelli ────────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Altro modello Ollama') }}</div>
+      <div class="card-header-sub">{{ _('Installa qualsiasi modello dalla libreria di Ollama indicandone il nome (es.') }} <code>{{ _('qwen2.5vl:3b') }}</code>)</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('settings.ai_pull') }}" style="display:flex;gap:12px;">
+      <input type="text" name="name" class="form-control" placeholder="{{ _('nome:tag') }}" required style="max-width:320px;" />
+      <button type="submit" class="btn btn-outline" {{ 'disabled' if not ollama.running else '' }}><i class="bi bi-download"></i> {{ _('Installa') }}</button>
+    </form>
+    {% if extra_installed %}
+    <p style="font-size:var(--font-size-sm);margin-top:12px;">
+      {{ _('Già installati fuori dal catalogo:') }}
+      {% for name in extra_installed %}<code>{{ name }}</code>{{ _(' (vision)') if is_vision(name) else '' }}{{ ', ' if not loop.last else '' }}{% endfor %}
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Switching provider shows that provider's own model (never an Ollama tag for Claude or vice versa)
+const modelsByProvider = {{ models_by_provider|tojson }};
+const classifyByProvider = {{ classify_by_provider|tojson }};
+document.getElementById('provider-select').addEventListener('change', (e) => {
+  document.querySelector('input[name=model]').value = modelsByProvider[e.target.value] || '';
+  document.querySelector('input[name=classify_model]').value = classifyByProvider[e.target.value] || '';
+});
+
+// While downloads run, refresh their progress every 2 seconds; reload once they finish.
+const running = {{ pulls|tojson }};
+if (Object.values(running).some(p => !p.done)) {
+  const timer = setInterval(async () => {
+    const response = await fetch("{{ url_for('settings.ai_pull_status') }}");
+    const pulls = await response.json();
+    for (const [name, p] of Object.entries(pulls)) {
+      const cell = document.querySelector(`tr[data-model="${CSS.escape(name)}"] .model-status`);
+      if (cell && !p.done) {
+        const bar = document.createElement('div'), fill = document.createElement('div'), label = document.createElement('span');
+        bar.className = 'progress-bar-wrap'; bar.style.height = '6px';
+        fill.className = 'progress-bar-fill'; fill.style.width = `${Number(p.percent) || 0}%`;
+        label.style.cssText = 'font-size:var(--font-size-xs);color:var(--clr-text-muted);';
+        label.textContent = `${p.status} ${Number(p.percent) || 0}%`;  // text only: never HTML from Ollama
+        bar.appendChild(fill);
+        cell.replaceChildren(bar, label);
+      }
+    }
+    if (Object.values(pulls).every(p => p.done)) { clearInterval(timer); location.reload(); }
+  }, 2000);
+}
+</script>
+{% endblock %}

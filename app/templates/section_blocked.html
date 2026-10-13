@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ section.label }}{% endblock %}
+
+{% block content %}
+<div class="card">
+  {% call empty_state(text=_("Un amministratore ha bloccato questa sezione per il tuo utente. Se ti serve, chiedigli di sbloccarla in Impostazioni → Account e utenti."), icon='bi-lock', title=_('Non hai accesso a «%(name)s»', name=section.label)) %}
+    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary"><i class="bi bi-speedometer2"></i> {{ _('Torna alla Dashboard') }}</a>
+  {% endcall %}
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+name: Desktop app
+
+# Builds the desktop app (F16) for Windows, macOS and Linux, starts each build once (local PostgreSQL, migrations,
+# /health, clean stop) and keeps it as a downloadable artifact of the run.
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+            exe: desktop/dist/MyFinancePlace/MyFinancePlace.exe
+          - os: macos-14
+            name: macos-arm64
+            exe: desktop/dist/MyFinancePlace/MyFinancePlace
+          - os: ubuntu-22.04
+            name: linux-x64
+            exe: desktop/dist/MyFinancePlace/MyFinancePlace
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            desktop/requirements-desktop.txt
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          grep -v -E "^(rapidocr|pytest|gunicorn)" requirements.txt > requirements-build.txt  # optional OCR, tests, server
+          pip install -r requirements-build.txt -r desktop/requirements-desktop.txt
+
+      - name: Portable PostgreSQL
+        run: python -m desktop.fetch_postgres
+
+      - name: Build
+        shell: bash
+        run: |
+          pyinstaller --noconfirm --distpath desktop/dist --workpath desktop/build desktop/myfinanceplace.spec > build.log 2>&1 || {
+            grep -nE "Error|error:|Traceback|raise|not found" build.log | tail -30 | while IFS= read -r line; do echo "::error::$line"; done
+            tail -40 build.log | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          }
+          tail -3 build.log
+
+      - name: Start once (database, migrations, /health, stop)
+        timeout-minutes: 8
+        shell: bash
+        run: |
+          "${{ matrix.exe }}" --smoke --data-dir "$RUNNER_TEMP/mfp-data"
+          test -f "$RUNNER_TEMP/mfp-data/pgdata/PG_VERSION"
+          "${{ matrix.exe }}" --smoke --data-dir "$RUNNER_TEMP/mfp-data"   # second start: existing data
+
+      - name: Logs of the start
+        if: always()
+        shell: bash
+        run: cat "$RUNNER_TEMP/mfp-data/logs/"*.log 2>/dev/null | tail -100 || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MyFinancePlace-${{ matrix.name }}
+          path: ${{ runner.os == 'macOS' && 'desktop/dist/MyFinancePlace.app' || 'desktop/dist/MyFinancePlace' }}
+          retention-days: 30
+
+      # Windows installer (F14): build it, install it silently with «start with the computer», start the installed
+      # app once, uninstall it and check nothing is left behind (program and Run entry; the data stays)
+      - name: Installer (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y; $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          & $iscc /Q desktop\installer.iss
+          if ($LASTEXITCODE) { exit 1 }
+          $dir = "$env:RUNNER_TEMP\mfp-installed"
+          Start-Process desktop\dist\MyFinancePlace-Setup.exe -Wait -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=$dir", "/TASKS=autostart"
+          $run = (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run").MyFinancePlace
+          if ($run -notlike "*MyFinancePlace.exe*--background*") { Write-Error "autostart entry missing: $run"; exit 1 }
+          if (-not (Test-Path "HKCU:\Software\Classes\myfinanceplace\shell\open\command")) { Write-Error "link handler missing"; exit 1 }
+          & "$dir\MyFinancePlace.exe" --smoke --data-dir "$env:RUNNER_TEMP\mfp-installed-data" | Out-Host
+          if ($LASTEXITCODE) { exit 1 }
+          Start-Process "$dir\unins000.exe" -Wait -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\MyFinancePlace.exe") { Write-Error "program left after uninstall"; exit 1 }
+          if ((Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run").MyFinancePlace) { Write-Error "autostart left after uninstall"; exit 1 }
+          Write-Host "installer: install, start, uninstall OK"
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: MyFinancePlace-Setup-windows-x64
+          path: desktop/dist/MyFinancePlace-Setup.exe
+          retention-days: 30

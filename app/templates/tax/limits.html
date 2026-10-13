@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('Fisco') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('tax.index') }}">{{ _('Fisco') }}</a></li><li>{{ _('Tetti di versamento') }}</li>{% endblock %}
+
+{% macro limit_fields(prefix, limit=none) -%}
+<div class="grid-2" style="gap:12px;">
+  <div class="form-group">
+    <label class="form-label" for="{{ prefix }}-name">{{ _('Nome') }}</label>
+    <input type="text" id="{{ prefix }}-name" name="name" class="form-control" maxlength="120" value="{{ limit.name if limit else '' }}"
+           placeholder="{{ _('vuoto: il nome del tetto pronto') }}" />
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="{{ prefix }}-kind">{{ _('Tipo') }}</label>
+    <select id="{{ prefix }}-kind" name="kind" class="form-select">
+      {% for p in presets %}<option value="{{ p.kind }}" {{ 'selected' if limit and limit.kind == p.kind }}>{{ _(p.name) }}</option>{% endfor %}
+      <option value="custom" {{ 'selected' if limit and limit.kind == 'custom' }}>{{ _('Un tetto mio') }}</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="{{ prefix }}-yearly">{{ _('Tetto annuo (€)') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-yearly" name="yearly" class="form-control" value="{{ limit.yearly|plain if limit else '' }}"
+           placeholder="{{ _('vuoto: quello del tipo scelto') }}" />
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="{{ prefix }}-total">{{ _('Tetto totale (€, facoltativo)') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-total" name="total" class="form-control" value="{{ limit.total|plain if limit and limit.total is not none else '' }}" />
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="{{ prefix }}-since">{{ _('Totale contato dal') }}</label>
+    <input type="number" id="{{ prefix }}-since" name="since_year" class="form-control" min="1990" max="2100" value="{{ limit.since_year if limit and limit.since_year else '' }}" placeholder="{{ _('anno') }}" />
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="{{ prefix }}-category">{{ _('Categoria di spesa (facoltativa)') }}</label>
+    <select id="{{ prefix }}-category" name="category" class="form-select">
+      <option value="">—</option>
+      {% for name in category_names %}<option value="{{ name }}" {{ 'selected' if limit and limit.category == name }}>{{ name|category_label }}</option>{% endfor %}
+    </select>
+  </div>
+</div>
+<div class="grid-2" style="gap:12px;">
+  <fieldset class="form-group">
+    <legend class="form-label">{{ _('Conti su cui arrivano i versamenti') }}</legend>
+    {% for a in accounts %}<label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="account_ids" value="{{ a.id }}" {{ 'checked' if limit and a.id in limit.account_ids }} /> {{ a.name }}</label>
+    {% else %}<span class="text-sm text-muted">—</span>{% endfor %}
+  </fieldset>
+  <fieldset class="form-group">
+    <legend class="form-label">{{ _('Titoli o fondi in cui si versa') }}</legend>
+    {% for h in holdings %}<label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="holding_ids" value="{{ h.id }}" {{ 'checked' if limit and h.id in limit.holding_ids }} /> {{ h.name }}</label>
+    {% else %}<span class="text-sm text-muted">—</span>{% endfor %}
+  </fieldset>
+</div>
+<div class="form-group">
+  <label class="form-label" for="{{ prefix }}-notes">{{ _('Note') }}</label>
+  <input type="text" id="{{ prefix }}-notes" name="notes" class="form-control" value="{{ (limit.notes if limit else '') or '' }}" />
+</div>
+{%- endmacro %}
+
+{% block content %}
+{% include "tax/_tabs.html" %}
+
+<p class="text-sm text-muted mb-16">{{ _('Quanto puoi versare ogni anno in un fondo pensione (la parte deducibile) o in un PIR, e quanto hai già versato: contano i giroconti verso i conti scelti, i versamenti e gli acquisti dei titoli scelti (le vendite non liberano spazio) e le spese della categoria.') }}</p>
+
+{% for s in standings %}
+<div class="card mb-16" id="limit-{{ s.limit.id }}">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ s.limit.name }}</div>
+    <div class="card-header-sub">{{ _('Tetto %(year)s: %(amount)s', year=year, amount=s.limit.yearly|money) }}{% if s.limit.total is not none %} · {{ _('totale %(amount)s', amount=s.limit.total|money) }}{% endif %}{% if s.limit.notes %} · {{ s.limit.notes }}{% endif %}</div>
+  </div></div>
+  <div class="card-body">
+    <div class="d-flex gap-16 flex-wrap mb-8 text-sm">
+      <span>{{ _('Versato') }}: <strong>{{ s.paid|money }}</strong></span>
+      <span>{{ _('Ancora disponibile') }}: <strong class="{{ 'text-positive' if s.left > 0 }}">{{ s.left|money }}</strong></span>
+      {% if s.over > 0 %}<span class="text-negative">{{ _('Oltre il tetto: %(amount)s', amount=s.over|money) }}{% if s.deductible %} ({{ _('non deducibile') }}){% endif %}</span>{% endif %}
+    </div>
+    <div class="progress-bar-wrap" style="height:10px;" role="progressbar" aria-valuenow="{{ s.pct|round|int }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ s.limit.name }}">
+      <div class="progress-bar-fill {{ 'negative' if s.over > 0 else ('positive' if s.pct >= 100 else 'warning' if s.pct >= 80 else '') }}" style="width:{{ s.pct }}%;"></div>
+    </div>
+    {% if s.total_pct is not none %}
+    <div class="text-xs text-muted mt-8">{{ _('Totale versato: %(paid)s di %(total)s (%(pct)s%%)', paid=s.paid_total|money, total=s.limit.total|money, pct=s.total_pct|number(0)) }}</div>
+    {% endif %}
+    {% if s.movements %}
+    <details class="mt-8"><summary class="text-sm">{{ ngettext('%(num)s versamento nel %(year)s', '%(num)s versamenti nel %(year)s', s.movements|length, year=year) }}</summary>
+      <div class="table-wrapper"><table class="table-compact">
+        <tbody>{% for tx in s.movements %}<tr><td class="nowrap">{{ tx.date|it_date }}</td><td><a href="{{ url_for('transactions.edit', tx_id=tx.id) }}">{{ tx.description }}</a></td><td class="text-right nowrap">{{ (tx.amount_base if tx.amount_base is not none else tx.amount)|abs|money }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </details>
+    {% endif %}
+    <details class="mt-8">
+      <summary class="text-sm">{{ _('Modifica') }}</summary>
+      <form method="POST" action="{{ url_for('tax.limit_edit', limit_id=s.limit.id) }}" class="mt-8">
+        {{ limit_fields('l' ~ s.limit.id, s.limit) }}
+        <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
+      </form>
+      <form method="POST" action="{{ url_for('tax.limit_delete', limit_id=s.limit.id) }}" class="mt-8"
+            onsubmit='return confirm({{ _("Eliminare il tetto «%(name)s»?", name=s.limit.name)|tojson }});'>
+        <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina') }}</button>
+      </form>
+    </details>
+  </div>
+</div>
+{% else %}
+{{ empty_state(_('Nessun tetto: aggiungi qui sotto il fondo pensione o un PIR.'), icon='bi-piggy-bank') }}
+{% endfor %}
+
+<div class="card mt-16">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-plus-lg"></i> {{ _('Nuovo tetto') }}</div></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('tax.limit_new') }}">
+      {{ limit_fields('new') }}
+      <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

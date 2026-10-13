@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "partials/actions.html" import delete_button %}
+{% block page_title %}{{ _('Eventi') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Eventi') }}</li>{% endblock %}
+
+{% block content %}
+{% if in_events %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-body">
+    {{ _('Nel %(year)s: spesa ordinaria %(ordinary)s, negli eventi %(events)s.', year=year, ordinary=ordinary|money, events=in_events|money) }}
+  </div>
+</div>
+{% endif %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Nuovo evento') }}</div>
+      <div class="card-header-sub">{{ _('Un viaggio, un matrimonio, dei lavori in casa: raccogli i movimenti di categorie diverse per vederne il costo totale e confrontarlo con un budget.') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" id="event-form" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+      <div class="form-group" style="margin:0;min-width:220px;flex:1;">
+        <label class="form-label" for="e-name">{{ _('Nome') }}</label>
+        <input type="text" name="name" id="e-name" class="form-control" placeholder="{{ _('es. Viaggio in Giappone') }}" required />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="e-start">{{ _('Dal') }}</label>
+        <input type="date" name="start" id="e-start" class="form-control" required />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="e-end">{{ _('Al') }}</label>
+        <input type="date" name="end" id="e-end" class="form-control" />
+      </div>
+      <div class="form-group" style="margin:0;width:140px;">
+        <label class="form-label" for="e-budget">{{ _('Budget (€)') }}</label>
+        <input type="text" inputmode="decimal" name="budget" id="e-budget" class="form-control" placeholder="0,00" />
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea') }}</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if summaries %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Evento') }}</th><th>{{ _('Periodo') }}</th><th class="text-right">{{ _('Movimenti') }}</th>
+        <th class="text-right">{{ _('Costo') }}</th><th class="text-right">{{ _('Budget') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for s in summaries %}
+        <tr>
+          <td><a href="{{ url_for('events.detail', event_id=s.event.id) }}"><strong>{{ s.event.name }}</strong></a></td>
+          <td class="nowrap">{{ s.event.start|it_date }}{% if s.event.end and s.event.end != s.event.start %} – {{ s.event.end|it_date }}{% endif %}</td>
+          <td class="text-right">{{ s.count }}</td>
+          <td class="text-right nowrap">{{ s.net|money }}</td>
+          <td class="text-right nowrap {{ 'text-negative' if s.left is not none and s.left < 0 }}">{{ s.event.budget|money if s.event.budget is not none else '—' }}</td>
+          <td><div class="cell-actions">{{ delete_button(url_for('events.delete', event_id=s.event.id), _('Eliminare l\'evento «%(name)s»? I movimenti restano.', name=s.event.name), _('Elimina %(name)s', name=s.event.name)) }}</div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-muted">{{ _('Nessun evento.') }}</div>
+  {% endif %}
+</div>
+{% endblock %}

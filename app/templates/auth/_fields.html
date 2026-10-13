@@ -1,0 +1,11 @@
+{% macro password_field(id, name, label, autocomplete) %}
+<div class="form-group">
+  <label class="form-label" for="{{ id }}">{{ label }}</label>
+  <div style="position:relative;">
+    <input type="password" id="{{ id }}" name="{{ name }}" class="form-control" required autocomplete="{{ autocomplete }}" />
+    <button type="button" class="password-toggle" data-target="{{ id }}" aria-label="{{ _('Mostra la password') }}">
+      <i class="bi bi-eye"></i>
+    </button>
+  </div>
+</div>
+{% endmacro %}
