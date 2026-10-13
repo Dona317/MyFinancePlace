@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:07+0000\n"
+"POT-Creation-Date: 2026-10-13 10:08+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1299,6 +1299,9 @@ msgstr "Calculate"
 msgid "Calcolata dalla regola del conto, se ne ha una; correggila se serve."
 msgstr "Computed from the account's rule, if it has one; correct it if needed."
 
+msgid "Calendario delle spese"
+msgstr "Spending calendar"
+
 msgid "Calo dal prezzo medio (in percentuale)"
 msgstr "Fall from the average price (percent)"
 
@@ -1923,6 +1926,10 @@ msgstr "What it includes"
 msgid "Cosa comprende %(name)s"
 msgstr "What %(name)s includes"
 
+#, python-format
+msgid "Cosa è cambiato a %(month)s"
+msgstr "What changed in %(month)s"
+
 msgid "Costo"
 msgstr "Cost"
 
@@ -2217,6 +2224,9 @@ msgstr "Australian dollar"
 
 msgid "Dollaro canadese"
 msgstr "Canadian dollar"
+
+msgid "Dom"
+msgstr "Sun"
 
 msgid "Dove tieni i soldi, perché è importante..."
 msgstr "Where you keep the money, why it matters..."
@@ -2769,6 +2779,18 @@ msgstr "Debt Management"
 msgid "Gestione Finanze Personali"
 msgstr "Personal Finance Management"
 
+msgid "Gio"
+msgstr "Thu"
+
+msgid "Giorni con spese"
+msgstr "Days with spending"
+
+msgid "Giorni più cari:"
+msgstr "Most expensive days:"
+
+msgid "Giorni senza spese"
+msgstr "Days without spending"
+
 msgid "Giorno del mese"
 msgstr "Day of the month"
 
@@ -3271,6 +3293,12 @@ msgstr "In %(count)s sales more units were sold than recorded: check the purchas
 msgid "In attesa di avvio…"
 msgstr "Waiting to start…"
 
+msgid "In aumento"
+msgstr "Up"
+
+msgid "In calo"
+msgstr "Down"
+
 msgid "In corso"
 msgstr "Ongoing"
 
@@ -3721,6 +3749,9 @@ msgstr "Local (Ollama) — the data stays on the computer"
 msgid "Lug"
 msgstr "Jul"
 
+msgid "Lun"
+msgstr "Mon"
+
 msgid "MM/DD/YYYY (US)"
 msgstr "MM/DD/YYYY (US)"
 
@@ -3806,6 +3837,9 @@ msgstr "Older"
 
 msgid "Mensile"
 msgstr "Monthly"
+
+msgid "Mer"
+msgstr "Wed"
 
 msgid "Mese"
 msgstr "Month"
@@ -4182,6 +4216,9 @@ msgstr "No suggestions"
 
 msgid "Nessuna categoria prevista."
 msgstr "No category forecast."
+
+msgid "Nessuna categoria è cambiata di più di 10 €."
+msgstr "No category changed by more than €10."
 
 msgid "Nessuna controparte da aggiungere: le causali non nominano un esercente."
 msgstr "No counterparty to add: the causali name no merchant."
@@ -4638,6 +4675,9 @@ msgstr "Each part must have a target between 0 and 100 %."
 
 msgid "Ogni parte ha bisogno di un nome e di un obiettivo in %."
 msgstr "Each part needs a name and a target in %."
+
+msgid "Ogni quadrato è un giorno: più è scuro, più hai speso. Passa sopra per l'importo, clicca per i movimenti."
+msgstr "Each square is a day: the darker, the more you spent. Hover for the amount, click for the movements."
 
 msgid "Ogni transazione conserva importo e valuta originali; totali, report e previsioni usano il"
 msgstr "Every transaction keeps its original amount and currency; totals, reports and forecasts use the"
@@ -5681,17 +5721,27 @@ msgstr "Saving for travel"
 msgid "Rispetto agli stessi mesi del %(year)s"
 msgstr "Compared with the same months of %(year)s"
 
+#, python-format
+msgid "Rispetto al mese prima (%(before)s → %(now)s) e alla media dei 12 mesi precedenti."
+msgstr "Against the month before (%(before)s → %(now)s) and the average of the previous 12 months."
+
 msgid "Risposta di Ollama non valida."
 msgstr "Invalid response from Ollama."
 
 msgid "Risultato"
 msgstr "Result"
 
+msgid "Ritmo"
+msgstr "Rhythm"
+
 msgid "Ruolo"
 msgstr "Role"
 
 msgid "Rupia"
 msgstr "Rupee"
+
+msgid "Sab"
+msgstr "Sat"
 
 msgid "Saldo"
 msgstr "Balance"
@@ -6076,6 +6126,9 @@ msgstr "Largest expense"
 msgid "Spesa media %(amount)s al mese"
 msgstr "Average spending %(amount)s a month"
 
+msgid "Spesa media per giorno della settimana"
+msgstr "Average spending by weekday"
+
 msgid "Spesa non essenziale"
 msgstr "Non-essential spending"
 
@@ -6094,6 +6147,10 @@ msgstr "Total Spending"
 
 msgid "Spese con tag «detraibile» o «deducibile» da assegnare"
 msgstr "Expenses tagged «detraibile» or «deducibile» to assign"
+
+#, python-format
+msgid "Spese del %(year)s"
+msgstr "Spending in %(year)s"
 
 msgid "Spese e Tendenze"
 msgstr "Spending and Trends"
@@ -6888,6 +6945,9 @@ msgstr "See all"
 msgid "Veicolo"
 msgstr "Vehicle"
 
+msgid "Ven"
+msgstr "Fri"
+
 msgid "Vendi"
 msgstr "Sell"
 
@@ -7278,6 +7338,10 @@ msgstr "combined coverage limits"
 #, python-format
 msgid "massimo %(amount)s"
 msgstr "at most %(amount)s"
+
+#, python-format
+msgid "media %(amount)s"
+msgstr "average %(amount)s"
 
 #, python-format
 msgid "meno imposta nel 730 %(next)s"

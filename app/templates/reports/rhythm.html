@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "partials/tabs.html" import tab_bar %}
+{% from "partials/kpi.html" import kpi %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block page_title %}{{ _('Report') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('reports.index') }}">{{ _('Report') }}</a></li><li>{{ _('Ritmo') }}</li>{% endblock %}
+
+{% block content %}
+<div class="report-bar mb-16">
+  {% set tab_items = namespace(list=[]) %}
+  {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, url_for('reports.index', tab=key), label)] %}{% endfor %}
+  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo')), ('rhythm', url_for('reports.rhythm', year=year), _('Ritmo'))], 'rhythm', _('Tipo di report')) }}
+  <div class="report-controls">{% include "partials/year_select.html" %}</div>
+</div>
+
+<div class="kpi-grid" style="margin-bottom:24px;">
+  {{ kpi('cash-stack', _('Spese del %(year)s', year=year), value=calendar.total|money, cls='kpi-primary') }}
+  {{ kpi('calendar-check', _('Giorni con spese'), value=calendar.days_with ~ ' / ' ~ calendar.days) }}
+  {{ kpi('calendar', _('Giorni senza spese'), value=calendar.days - calendar.days_with) }}
+</div>
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Calendario delle spese') }}</div>
+    <div class="card-header-sub">{{ _('Ogni quadrato è un giorno: più è scuro, più hai speso. Passa sopra per l\'importo, clicca per i movimenti.') }}</div>
+  </div></div>
+  <div class="card-body" style="overflow-x:auto;">
+    <div class="rhythm-grid" role="img" aria-label="{{ _('Calendario delle spese') }}">
+      {% for week in calendar.weeks %}
+      <div class="rhythm-week">
+        {% for cell in week %}
+        {% if cell.day %}
+        <a class="rhythm-day level-{{ cell.level }}" href="{{ url_for('transactions.index', q='', month=cell.day.strftime('%Y-%m'), type='expense') }}"
+           title="{{ cell.day|it_date }} · {{ cell.amount|money }}"></a>
+        {% else %}<span class="rhythm-day rhythm-off"></span>{% endif %}
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    {% if calendar.busiest %}
+    <div class="text-sm text-muted" style="margin-top:12px;">{{ _('Giorni più cari:') }}
+      {% for day, amount in calendar.busiest %}{{ day|it_date }} ({{ amount|money }}){{ ', ' if not loop.last }}{% endfor %}</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Spesa media per giorno della settimana') }}</div></div>
+    <div class="card-body"><div style="height:240px;"><canvas id="weekdayChart"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Cosa è cambiato a %(month)s', month=month_labels[changes.month.month - 1] ~ ' ' ~ changes.month.year) }}</div>
+      <div class="card-header-sub">{{ _('Rispetto al mese prima (%(before)s → %(now)s) e alla media dei 12 mesi precedenti.', before=changes.total_before|money, now=changes.total_now|money) }}</div>
+    </div></div>
+    <div class="card-body">
+      {% for title, rows in ((_('In aumento'), changes.up), (_('In calo'), changes.down)) %}
+      {% if rows %}
+      <div class="font-semibold text-sm" style="margin-top:8px;">{{ title }}</div>
+      {% for r in rows %}
+      <div style="display:flex;justify-content:space-between;gap:8px;">
+        <span>{{ r.category|tr }}</span>
+        <span class="nowrap"><span class="{{ 'text-negative' if r.diff > 0 else 'text-positive' }}">{{ '+' if r.diff > 0 else '' }}{{ r.diff|money }}</span>
+          <span class="text-xs text-muted">{{ _('media %(amount)s', amount=r.average|money) }}</span></span>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+      {% if not changes.up and not changes.down %}<span class="text-muted">{{ _('Nessuna categoria è cambiata di più di 10 €.') }}</span>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+makeBarChart('weekdayChart', {{ [_('Lun'), _('Mar'), _('Mer'), _('Gio'), _('Ven'), _('Sab'), _('Dom')]|tojson }}, [{ label: {{ _('Media')|tojson }}, data: {{ weekdays|map('float')|list|tojson }} }]);
+</script>
+{% endblock %}

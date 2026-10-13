@@ -1385,3 +1385,14 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 /* Instrument search on the holding form (F19) */
 .lookup-results { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .lookup-results .btn { width: 100%; justify-content: flex-start; text-align: left; white-space: normal; }
+
+/* ── Spending calendar (Report → Ritmo): one square a day, weeks in columns, shaded by level 0–4 ─────────── */
+.rhythm-grid { display: flex; gap: 3px; }
+.rhythm-week { display: flex; flex-direction: column; gap: 3px; }
+.rhythm-day { width: 12px; height: 12px; border-radius: 2px; display: block;
+  background: var(--clr-border); }
+.rhythm-day.level-1 { background: color-mix(in srgb, var(--clr-negative) 25%, transparent); }
+.rhythm-day.level-2 { background: color-mix(in srgb, var(--clr-negative) 45%, transparent); }
+.rhythm-day.level-3 { background: color-mix(in srgb, var(--clr-negative) 70%, transparent); }
+.rhythm-day.level-4 { background: var(--clr-negative); }
+.rhythm-day.rhythm-off { background: transparent; }

@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request
 from flask_babel import gettext as _
 
 from app.routes.helpers import csv_text, download, year_arg
-from app.services import accounts, analytics, categories, i18n, reports, transfer
+from app.services import accounts, analytics, categories, i18n, periods, reports, spending_rhythm, transfer
 from app.services.analytics import UNCATEGORIZED
 from app.services.display import number
 
@@ -117,3 +117,15 @@ def summary_csv():
                      *("" if v is None else number(v, 1) for v in table["savings"]["months"]),
                      "" if table["savings"]["total"] is None else number(table["savings"]["total"], 1)])
     return download(csv_text(rows), f"riepilogo_{year}.csv", "text/csv")
+
+
+@reports_bp.route("/rhythm")
+def rhythm():
+    """When the money goes out: the calendar of the year, the weekdays, and what changed last month."""
+    today = date.today()
+    year = _summary_year()
+    start = date(year, 1, 1)
+    return render_template("reports/rhythm.html", year=year, years=analytics.available_years(), tabs=reports.TABS,
+                           calendar=spending_rhythm.calendar(year, today),
+                           weekdays=spending_rhythm.weekdays(start, min(date(year, 12, 31), today)),
+                           changes=spending_rhythm.changes(today), month_labels=periods.month_labels())

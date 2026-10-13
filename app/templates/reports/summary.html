@@ -38,7 +38,7 @@
 <div class="report-bar mb-16">
   {% set tab_items = namespace(list=[]) %}
   {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, url_for('reports.index', tab=key), label)] %}{% endfor %}
-  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo'))], 'summary', _('Tipo di report')) }}
+  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo')), ('rhythm', url_for('reports.rhythm'), _('Ritmo'))], 'summary', _('Tipo di report')) }}
   <div class="report-controls">
     {% include "partials/year_select.html" %}
     <a href="{{ url_for('reports.summary_csv', year=year) }}" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> {{ _('CSV') }}</a>
