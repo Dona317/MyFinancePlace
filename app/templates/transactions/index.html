@@ -87,6 +87,13 @@
       <option value="none" {{ 'selected' if filters.account == 'none' }}>{{ _('— Senza conto —') }}</option>
     </select>
     {% endif %}
+    {% set people = owner_choices() %}
+    {% if people %}
+    <select name="person" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Persona') }}">
+      <option value="">{{ _('Persona') }}</option>
+      {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if filters.person == key }}>{{ name }}</option>{% endfor %}
+    </select>
+    {% endif %}
     <input type="month" name="month" value="{{ filters.month }}" class="form-control" style="width:160px;" onchange="this.form.submit()" />
     <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);white-space:nowrap;">
       <input class="check" type="checkbox" name="recurring" value="1" {{ 'checked' if filters.recurring else '' }} onchange="this.form.submit()" /> {{ _('Solo ricorrenti') }}

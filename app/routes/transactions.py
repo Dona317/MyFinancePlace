@@ -25,6 +25,7 @@ from app.services import (
     category_rules,
     display,
     duplicates,
+    family,
     merchant,
     portfolio_ops,
     undo,
@@ -71,6 +72,9 @@ def _filtered_query(filters: dict):
     elif (filters.get("account") or "").isdigit():
         account_id = int(filters["account"])
         query = query.filter((Transaction.account_id == account_id) | (Transaction.counter_account_id == account_id))
+    if filters.get("person"):  # F20: the movements of the accounts a person owns (or co-owns)
+        ids = family.account_ids_of(filters["person"])
+        query = query.filter(Transaction.account_id.in_(ids) | Transaction.counter_account_id.in_(ids))
     if filters.get("tag"):
         query = query.filter(Transaction.tags.any(filters["tag"]))
     if filters.get("recurring"):
@@ -87,7 +91,8 @@ def _filtered_query(filters: dict):
 
 @transactions_bp.route("/")
 def index():
-    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring", "account", "tag")}
+    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring", "account", "tag",
+                                                            "person")}
     query = _filtered_query(filters)
     total = query.count()
     pages = max(1, -(-total // PAGE_SIZE))

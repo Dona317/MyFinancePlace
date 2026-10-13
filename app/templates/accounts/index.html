@@ -26,7 +26,7 @@
         {% set a = row.account %}
         <tr {% if not a.active %}class="text-muted"{% endif %}>
           <td>
-            <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>
+            <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>{% if a.owner %} <span class="badge badge-muted">{{ owner_label(a.owner) }}</span>{% endif %}
             {% if a.iban_tail %}<div class="text-xs text-muted font-mono">…{{ a.iban_tail }}</div>{% endif %}
             {% if not a.active %}<span class="badge badge-muted">{{ _('chiuso') }}</span>{% endif %}
           </td>

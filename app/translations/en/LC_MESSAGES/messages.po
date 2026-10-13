@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:08+0000\n"
+"POT-Creation-Date: 2026-10-13 10:11+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1553,6 +1553,9 @@ msgstr "Clients"
 msgid "CoinGecko non risponde (%(exc)s)"
 msgstr "CoinGecko does not answer (%(exc)s)"
 
+msgid "Cointestato"
+msgstr "Joint"
+
 msgid "Collega"
 msgstr "Link"
 
@@ -2881,6 +2884,9 @@ msgstr "Home"
 msgid "I PDF devono essere quelli originali dell'home banking (non scansioni)."
 msgstr "PDFs must be the originals from online banking (not scans)."
 
+msgid "I beni cointestati sono divisi in parti uguali tra i titolari; quelli senza intestatario restano alla famiglia."
+msgstr "Joint items are split equally among the holders; those without an owner stay with the family."
+
 msgid "I controlli guardano tutto l'archivio: titoli, movimenti, conti e cambi. Si aggiornano ogni volta che apri la pagina."
 msgstr ""
 "The checks look at the whole archive: holdings, movements, accounts and exchange rates. They are refreshed every time"
@@ -3390,6 +3396,9 @@ msgstr "Range across methods"
 
 msgid "Intesa Sanpaolo:"
 msgstr "Intesa Sanpaolo:"
+
+msgid "Intestatario"
+msgstr "Owner"
 
 #, python-format
 msgid "Intestazione dei movimenti non trovata: servono almeno le colonne %(expected)s."
@@ -4871,6 +4880,9 @@ msgstr "Net worth"
 msgid "Patrimonio netto oggi: %(amount)s"
 msgstr "Net worth today: %(amount)s"
 
+msgid "Patrimonio per persona"
+msgstr "Net worth by person"
+
 msgid "Pensione integrativa"
 msgstr "Supplementary pension"
 
@@ -4942,6 +4954,9 @@ msgstr "Period"
 
 msgid "Permanent Portfolio"
 msgstr "Permanent Portfolio"
+
+msgid "Persona"
+msgstr "Person"
 
 msgid "Personalizza"
 msgstr "Customize"
@@ -6610,6 +6625,9 @@ msgstr "Yours"
 msgid "Tuo"
 msgstr "Yours"
 
+msgid "Tutta la famiglia"
+msgstr "The whole family"
+
 msgid "Tutte"
 msgstr "All"
 
@@ -7831,6 +7849,9 @@ msgstr "— No account —"
 
 msgid "— come la principale / variabile —"
 msgstr "— as the main one / variable —"
+
+msgid "— famiglia —"
+msgstr "— family —"
 
 msgid "— nessun conto —"
 msgstr "— no account —"

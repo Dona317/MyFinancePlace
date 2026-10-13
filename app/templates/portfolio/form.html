@@ -66,6 +66,7 @@
           </div>
           <p class="form-hint">{{ _('Automatica: Yahoo Finance (e Stooq se Yahoo non risponde) per azioni, ETF, fondi, obbligazioni e derivati; CoinGecko per le cripto. «Solo a mano» per titoli non quotati, polizze, conti deposito.') }}</p>
         </fieldset>
+        {{ f.owner(values, h.owner) }}
         {{ f.textarea(values, 'notes', _('Note'), h.notes, placeholder=_('Broker, conto titoli, note facoltative...')) }}
         {{ f.actions(url_for('portfolio.index'), _('Salva Modifiche') if is_edit else _('Aggiungi al Portafoglio')) }}
       </form>

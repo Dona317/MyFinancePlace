@@ -8,7 +8,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.wealth import Debt, Holding
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_int, form_text, save_form
-from app.services import wealth
+from app.services import family, wealth
 
 debt_bp = APIBlueprint(
     "debt",
@@ -31,6 +31,7 @@ def _debt_from_form(debt: Debt) -> Debt:
     debt.monthly_payment = form_decimal("monthly_payment", _("Rata mensile"))
     debt.balance = form_decimal("balance", _("Saldo residuo"))
     debt.notes = form_text("notes", _("Note"))
+    debt.owner = family.from_form()
     holding_id = request.form.get("holding_id", type=int)
     debt.holding_id = holding_id if holding_id and db.session.get(Holding, holding_id) else None
     if not debt.principal:

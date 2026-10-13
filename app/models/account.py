@@ -13,6 +13,7 @@ class Account(db.Model):
     iban_tail        = db.Column(db.String(10))                                     # last digits, to recognize it
     iban             = db.Column(db.String(34))  # the full IBAN: a bonifico to it is a giroconto (services.owners)
     notes            = db.Column(db.Text)
+    owner            = db.Column(db.String(80))  # whose it is (F20): a holder's name, «joint», empty = family
     active           = db.Column(db.Boolean, nullable=False, default=True)
     reconciled_on    = db.Column(db.Date)            # last time the balance was checked against a statement
     reconciled_balance = db.Column(db.Numeric(38, 2))  # the balance the statement showed that day

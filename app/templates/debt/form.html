@@ -35,6 +35,7 @@
         {{ f.select(values, 'holding_id', _('Bene finanziato (facoltativo)'), holdings,
                     d.holding_id, blank=_('— nessuno —')) }}
         {% endif %}
+        {{ f.owner(values, d.owner) }}
         {{ f.textarea(values, 'notes', _('Note'), d.notes) }}
         {{ f.actions(url_for('debt.detail', debt_id=debt.id) if is_edit else url_for('debt.index'),
                      _('Salva Modifiche') if is_edit else _('Aggiungi Debito')) }}

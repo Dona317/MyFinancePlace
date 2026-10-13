@@ -25,6 +25,7 @@ class Holding(db.Model):
     price_date    = db.Column(db.Date)                            # when the current price was last updated
     purchase_date = db.Column(db.Date)
     notes         = db.Column(db.Text)
+    owner         = db.Column(db.String(80))  # whose it is (F20): a holder's name, «joint», empty = family
     # Taxes (F15): the rate on its capital gains when not the usual one for its class (12.5 for government bonds),
     # and whether it is held abroad (IVAFE instead of the stamp duty)
     tax_rate      = db.Column(db.Numeric(5, 2))
@@ -94,6 +95,7 @@ class Debt(db.Model):
     notes           = db.Column(db.Text)
     # The asset it financed (F20: the mortgage of the house, the loan of the car): its equity is value − balance
     holding_id      = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="SET NULL"), index=True)
+    owner           = db.Column(db.String(80))  # whose it is (F20): a holder's name, «joint», empty = family
 
     holding = db.relationship("Holding")
 

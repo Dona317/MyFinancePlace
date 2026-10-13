@@ -10,7 +10,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, broker, display, portfolio_ops, price_feed, wealth
+from app.services import accounts, broker, display, family, portfolio_ops, price_feed, wealth
 from app.services.i18n import _l
 from app.services.ui_settings import current_settings
 
@@ -62,6 +62,7 @@ def _holding_from_form(holding: Holding) -> Holding:
     holding.current_price = price
     holding.purchase_date = form_date("purchase_date", _("Data di acquisto"))
     holding.notes = form_text("notes", _("Note"))
+    holding.owner = family.from_form()
     rate = form_decimal("tax_rate", _("Aliquota sulle plusvalenze"))
     if rate is not None and not 0 < rate <= 100:
         raise ValueError(_("Aliquota sulle plusvalenze: indica una percentuale tra 0 e 100 (es. 12,5)."))
@@ -84,7 +85,8 @@ def _render_form(holding, values):
 def index():
     price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
     selected = request.args.get("asset_class", "")
-    holdings = wealth.holdings_on()
+    person = request.args.get("person", "")
+    holdings = family.holdings_of(person, wealth.holdings_on())
     today = date.today()
     snapshots = Snapshot.query.order_by(Snapshot.taken_on, Snapshot.id).all()
     return render_template(
@@ -94,6 +96,7 @@ def index():
         dividends_ytd=wealth.dividends(date(today.year, 1, 1), date(today.year + 1, 1, 1)),
         asset_classes=wealth.ASSET_CLASSES,
         selected=selected,
+        person=person,
         trend={"labels": [s.taken_on.strftime("%d/%m/%y") for s in snapshots],
                "data": [float(s.investments) for s in snapshots]},
     )

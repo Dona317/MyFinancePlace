@@ -5,7 +5,7 @@ import os
 from flask import Flask
 
 from app.extensions import db
-from app.services import display, notifications, sections, studio
+from app.services import display, family, notifications, sections, studio
 from app.services.ui_settings import current_font, current_language, current_settings
 
 
@@ -37,6 +37,9 @@ def register_context(app: Flask) -> None:
             app.logger.exception("reminders unavailable")
             db.session.rollback()
             return 0
+
+    # globals, not context: the form macros imported without context use them too (F20: whose things are)
+    app.jinja_env.globals.update(owner_choices=family.choices, owner_label=family.label)
 
     @app.context_processor
     def inject_settings():

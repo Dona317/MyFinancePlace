@@ -5,7 +5,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.routes.helpers import form_decimal, year_arg
-from app.services import analytics, settings_store, wealth
+from app.services import analytics, family, owners, settings_store, wealth
 from app.services.parsing import to_date
 
 accounting_bp = APIBlueprint(
@@ -38,6 +38,7 @@ def balance_sheet():
         "accounting/balance_sheet.html",
         sheet=wealth.balance_sheet(on),
         financed=wealth.financed_assets(on),
+        people=family.by_person(on) if owners.holders() else [],
         choices=sorted(choices, reverse=True),
         opening_cash=wealth.opening_cash(),
         today=choices[0],

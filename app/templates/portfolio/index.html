@@ -86,6 +86,13 @@
         <option value="{{ cls }}" {{ 'selected' if cls == selected }}>{{ cls|tr }}</option>
         {% endfor %}
       </select>
+      {% set people = owner_choices() %}
+      {% if people %}
+      <select name="person" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Persona') }}">
+        <option value="">{{ _('Tutta la famiglia') }}</option>
+        {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if key == person }}>{{ name }}</option>{% endfor %}
+      </select>
+      {% endif %}
       <noscript><button class="btn btn-ghost btn-sm">{{ _('Filtra') }}</button></noscript>
     </form>
   </div>
