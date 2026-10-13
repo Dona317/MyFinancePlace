@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('In evidenza') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('In evidenza') }}</li>{% endblock %}
+
+{% macro move_rows(moves) -%}
+{% for m in moves %}
+<tr><td><a href="{{ url_for('portfolio.detail', holding_id=m.holding.id) }}">{{ m.holding.name }}</a></td>
+  <td class="text-right nowrap {{ 'text-positive' if m.pct > 0 else 'text-negative' }}">{{ ('+' if m.pct > 0 else '') ~ m.pct|number(1) }}%</td>
+  <td class="text-right nowrap text-muted">{{ ('+' if m.gain > 0 else '') ~ m.gain|money }}</td></tr>
+{% endfor %}
+{%- endmacro %}
+
+{% block content %}
+{% set nav_active = 'highlights' %}{% include "portfolio/_nav.html" %}
+{% if not data.heaviest.count %}
+{{ empty_state(_('Nessun investimento: aggiungi i titoli in Posizioni.'), icon='bi-briefcase') }}
+{% else %}
+<div class="grid-2 highlights mb-16">
+  {% for key, title in (('ytd', _('Dal 1° gennaio')), ('year', _('Ultimi 12 mesi'))) %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ title }}</div>
+      <div class="card-header-sub">{{ _('Variazione del prezzo; il guadagno è con le quote di oggi.') }}</div>
+    </div></div>
+    {% set moves = data[key] %}
+    {% if moves.best or moves.worst %}
+    <div class="table-wrapper"><table class="table-compact">
+      {% if moves.best %}<thead><tr><th colspan="3">{{ _('Migliori') }}</th></tr></thead><tbody>{{ move_rows(moves.best) }}</tbody>{% endif %}
+      {% if moves.worst %}<thead><tr><th colspan="3">{{ _('Peggiori') }}</th></tr></thead><tbody>{{ move_rows(moves.worst) }}</tbody>{% endif %}
+    </table></div>
+    {% else %}<div class="card-body">{{ empty_state(_('Servono i prezzi di allora: aggiorna i prezzi o aggiungi lo storico.'), compact=True) }}</div>{% endif %}
+  </div>
+  {% endfor %}
+
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('I più pesanti') }}</div>
+      <div class="card-header-sub">{{ _('I primi %(count)s fanno il %(pct)s%% del portafoglio (%(total)s titoli in tutto).', count=data.heaviest.rows|length, pct=data.heaviest.top_share|number(1), total=data.heaviest.count) }}</div>
+    </div></div>
+    <div class="card-body">
+      {% for h, share in data.heaviest.rows %}
+      <div class="d-flex gap-8 align-center text-sm mb-8">
+        <a href="{{ url_for('portfolio.detail', holding_id=h.id) }}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ h.name }}</a>
+        <span class="nowrap">{{ share|number(1) }}%</span>
+      </div>
+      <div class="progress-bar-wrap mb-8" style="height:6px;"><div class="progress-bar-fill {{ 'warning' if share > 40 }}" style="width:{{ share }}%;"></div></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Distanza dal modello') }}</div></div>
+    <div class="card-body text-sm">
+      {% if data.model %}
+      <p class="mb-8"><a href="{{ url_for('portfolio.rebalance') }}">{{ data.model.template.name }}</a> ·
+        {% if data.model.out_of_band %}<span class="text-negative">{{ ngettext('%(num)s parte fuori dalla tolleranza', '%(num)s parti fuori dalla tolleranza', data.model.out_of_band) }}</span>
+        {% else %}<span class="text-positive">{{ _('tutto nella tolleranza') }}</span>{% endif %}</p>
+      <table class="table-compact"><tbody>
+        {% for line in data.model.gaps %}
+        <tr><td>{{ line.label }}</td><td class="text-right nowrap">{{ line.weight|number(1) }}% / {{ line.target|number(1) }}%</td>
+          <td class="text-right nowrap {{ 'text-negative' if line.drift|abs > data.model.template.band }}">{{ ('+' if line.drift > 0 else '') ~ line.drift|number(1) }}</td></tr>
+        {% endfor %}
+      </tbody></table>
+      {% else %}
+      {{ empty_state(_('Nessun portafoglio modello attivo.'), compact=True) }}
+      <a href="{{ url_for('portfolio.models_index') }}">{{ _('Scegline uno') }}</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Rendite attese nei prossimi 12 mesi') }}</div>
+      <div class="card-header-sub">{{ _('Stima: quanto è arrivato negli ultimi 12 mesi.') }}</div>
+    </div></div>
+    <div class="card-body text-sm">
+      <p class="mb-8"><strong>{{ data.income.next_12|money }}</strong> · {{ _('circa %(amount)s al mese', amount=data.income.monthly|money) }}</p>
+      {% for row in data.income.top %}
+      <div class="d-flex gap-8 mb-8"><span style="flex:1;">{{ row.holding.name }}</span><span class="nowrap">{{ row.last_12|money }}</span></div>
+      {% endfor %}
+      <a href="{{ url_for('portfolio.income') }}">{{ _('Tutte le rendite') }}</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Prezzi da controllare') }}</div></div>
+    <div class="card-body text-sm">
+      {% for h, why in data.stale %}
+      <div class="d-flex gap-8 mb-8"><a href="{{ url_for('portfolio.history', holding_id=h.id) }}" style="flex:1;">{{ h.name }}</a>
+        <span class="text-muted nowrap">{% if why == 'manual' %}{{ _('solo a mano') }}{% elif h.price_date %}{{ _('fermo dal %(day)s', day=h.price_date|it_date) }}{% else %}{{ _('mai aggiornato') }}{% endif %}</span></div>
+      {% else %}
+      <span class="text-positive"><i class="bi bi-check-circle"></i> {{ _('Tutti i prezzi sono degli ultimi 30 giorni.') }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

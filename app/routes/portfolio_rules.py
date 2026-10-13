@@ -22,6 +22,7 @@ from app.services import (
     investment_plans,
     performance,
     periods,
+    portfolio_highlights,
     portfolio_models,
     portfolio_ops,
     portfolio_rules,
@@ -204,6 +205,11 @@ def split(holding_id):
     flash(_("Frazionamento 1:%(ratio)s applicato dal %(day)s: %(count)s operazioni precedenti adeguate.",
             ratio=display.plain(ratio), day=display.day(on), count=adjusted), "success")
     return redirect(url_for("portfolio.detail", holding_id=holding.id))
+
+
+@portfolio_bp.route("/highlights")
+def highlights_page():
+    return render_template("portfolio/highlights.html", data=portfolio_highlights.highlights())
 
 
 @portfolio_bp.route("/composition")

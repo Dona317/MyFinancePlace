@@ -3,6 +3,7 @@
 <div class="portfolio-tabs mb-16">
 {{ tab_bar([
   ('holdings', url_for('portfolio.index'), _('Posizioni')),
+  ('highlights', url_for('portfolio.highlights_page'), _('In evidenza')),
   ('performance', url_for('portfolio.performance_page'), _('Rendimenti')),
   ('income', url_for('portfolio.income'), _('Rendite')),
   ('composition', url_for('portfolio.composition_page'), _('Composizione')),

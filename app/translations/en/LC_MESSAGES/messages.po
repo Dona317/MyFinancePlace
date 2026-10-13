@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 20:51+0000\n"
+"POT-Creation-Date: 2026-10-13 20:53+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -411,6 +411,12 @@ msgstr[0] ""
 msgstr[1] ""
 "%(num)s transactions in another currency are counted at the day's exchange rate: enter the amount the bank charged "
 "for an exact balance."
+
+#, python-format
+msgid "%(num)s parte fuori dalla tolleranza"
+msgid_plural "%(num)s parti fuori dalla tolleranza"
+msgstr[0] "%(num)s part outside the tolerance"
+msgstr[1] "%(num)s parts outside the tolerance"
 
 #, python-format
 msgid "%(num)s riga del file non letta: aggiungila a mano se serve."
@@ -2231,6 +2237,9 @@ msgstr "Give the event a name."
 msgid "Dal"
 msgstr "From"
 
+msgid "Dal 1° gennaio"
+msgstr "Since 1 January"
+
 msgid "Dal giorno"
 msgstr "From the day"
 
@@ -2383,6 +2392,9 @@ msgstr "Switched off for everybody in Settings → Modules"
 
 msgid "Disdetto: non compare più nelle previsioni"
 msgstr "Cancelled: no longer in the forecast"
+
+msgid "Distanza dal modello"
+msgstr "Distance from the model"
 
 msgid "Distanza date"
 msgstr "Date distance"
@@ -3253,6 +3265,9 @@ msgstr ""
 "The movements don't add up with the document's balances: opening balance %(opening)s + movements %(movements)s ≠ "
 "closing balance %(closing)s (difference %(difference)s). Some row is probably missing or wrong."
 
+msgid "I più pesanti"
+msgstr "The heaviest"
+
 msgid ""
 "I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet, altrimenti queste fonti non vengono "
 "usate."
@@ -3262,6 +3277,10 @@ msgstr ""
 
 msgid "I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."
 msgstr "Prices from the internet are off: turn them on in Settings → Data from the internet."
+
+#, python-format
+msgid "I primi %(count)s fanno il %(pct)s%% del portafoglio (%(total)s titoli in tutto)."
+msgstr "The first %(count)s make %(pct)s%% of the portfolio (%(total)s holdings in all)."
 
 msgid "I tuoi modelli"
 msgstr "Your models"
@@ -3680,6 +3699,9 @@ msgstr "Down"
 
 msgid "In corso"
 msgstr "Ongoing"
+
+msgid "In evidenza"
+msgstr "Highlights"
 
 msgid "In scadenza"
 msgstr "Expiring"
@@ -4343,6 +4365,9 @@ msgstr "Put in the event"
 msgid "Mezza riga / riga intera"
 msgstr "Half row / full row"
 
+msgid "Migliori"
+msgstr "Best"
+
 msgid "Minimo (€)"
 msgstr "Minimum (€)"
 
@@ -4641,6 +4666,9 @@ msgstr "No groups: create one below with the archives of the people in the famil
 msgid "Nessun investimento."
 msgstr "No investments."
 
+msgid "Nessun investimento: aggiungi i titoli in Posizioni."
+msgstr "No investments: add the holdings in Positions."
+
 msgid "Nessun modello AI configurato (Impostazioni → Modelli AI)."
 msgstr "No AI model configured (Settings → AI models)."
 
@@ -4683,6 +4711,9 @@ msgstr "No goals."
 
 msgid "Nessun passaggio tra gli archivi del gruppo negli ultimi 12 mesi."
 msgstr "No moves between the group's archives in the last 12 months."
+
+msgid "Nessun portafoglio modello attivo."
+msgstr "No active model portfolio."
 
 msgid "Nessun possibile duplicato"
 msgstr "No possible duplicates"
@@ -5453,6 +5484,9 @@ msgstr "Net worth by person"
 msgid "Patrimonio, spese, volatilità e prelievo non possono essere negativi."
 msgstr "Wealth, expenses, volatility and withdrawal cannot be negative."
 
+msgid "Peggiori"
+msgstr "Worst"
+
 msgid "Pensione all'anno (€)"
 msgstr "Pension a year (€)"
 
@@ -5797,6 +5831,9 @@ msgstr "Prices updated: %(changed)s."
 
 msgid "Prezzi attuali"
 msgstr "Current prices"
+
+msgid "Prezzi da controllare"
+msgstr "Prices to check"
 
 msgid "Prezzi da internet: spenti"
 msgstr "Prices from the internet: off"
@@ -6207,6 +6244,9 @@ msgstr "Income"
 
 msgid "Rendite 12 mesi"
 msgstr "Passive income, 12 months"
+
+msgid "Rendite attese nei prossimi 12 mesi"
+msgstr "Income expected in the next 12 months"
 
 msgid "Renminbi"
 msgstr "Renminbi"
@@ -6683,6 +6723,9 @@ msgstr "Choose another model"
 msgid "Sceglilo nelle Impostazioni."
 msgstr "Choose it in Settings."
 
+msgid "Scegline uno"
+msgstr "Choose one"
+
 msgid "Scheda con il valore netto totale (attività − passività)"
 msgstr "Card with the total net worth (assets − liabilities)"
 
@@ -6802,6 +6845,9 @@ msgstr "At least a month of history and the holdings' prices are needed: record 
 
 msgid "Servono dei movimenti per fare una previsione"
 msgstr "Some movements are needed to make a forecast"
+
+msgid "Servono i prezzi di allora: aggiorna i prezzi o aggiungi lo storico."
+msgstr "The prices of then are needed: update the prices or add the history."
 
 msgid "Set"
 msgstr "Sep"
@@ -7015,6 +7061,9 @@ msgstr "Lifestyle"
 
 msgid "Stile di Vita — Sotto-sezioni"
 msgstr "Lifestyle — Sections"
+
+msgid "Stima: quanto è arrivato negli ultimi 12 mesi."
+msgstr "Estimate: what came in over the last 12 months."
 
 msgid "Stime per pianificare, con le regole dell'anno scelto: la dichiarazione la verifica il CAF o il commercialista."
 msgstr "Estimates for planning, with the rules of the chosen year: the return is checked by the CAF or the accountant."
@@ -7469,6 +7518,9 @@ msgstr "All classes"
 msgid "Tutte le parti sono entro ± %(band)s punti dal peso obiettivo"
 msgstr "All parts are within ± %(band)s points of their target weight"
 
+msgid "Tutte le rendite"
+msgstr "All passive income"
+
 msgid "Tutte le transazioni"
 msgstr "All transactions"
 
@@ -7496,6 +7548,9 @@ msgid ""
 msgstr ""
 "All the app data in one file: transactions, portfolio, debts, policies, goals, snapshots, settings and the files of "
 "the document archive"
+
+msgid "Tutti i prezzi sono degli ultimi 30 giorni."
+msgstr "All prices are from the last 30 days."
 
 msgid "Tutti i tipi"
 msgstr "All types"
@@ -7820,6 +7875,9 @@ msgstr "Change %"
 msgid "Variazione Netta Cassa"
 msgstr "Net Change in Cash"
 
+msgid "Variazione del prezzo; il guadagno è con le quote di oggi."
+msgstr "Price change; the gain uses today's units."
+
 msgid "Variazione netta cassa (A+B+C)"
 msgstr "Net change in cash (A+B+C)"
 
@@ -7999,6 +8057,10 @@ msgstr "categories"
 
 msgid "chiuso"
 msgstr "closed"
+
+#, python-format
+msgid "circa %(amount)s al mese"
+msgstr "about %(amount)s a month"
 
 msgid "classificazione"
 msgstr "classification"
@@ -8218,6 +8280,10 @@ msgstr "e.g. qwen2.5vl:7b"
 msgid "es. veterinario, cibo, toelettatura"
 msgstr "e.g. vet, food, grooming"
 
+#, python-format
+msgid "fermo dal %(day)s"
+msgstr "unchanged since %(day)s"
+
 msgid "fino alla pensione"
 msgstr "until retirement"
 
@@ -8325,6 +8391,9 @@ msgstr "llama3.2:3b"
 
 msgid "mai"
 msgstr "never"
+
+msgid "mai aggiornato"
+msgstr "never updated"
 
 msgid "mancano entrate o ci sono uscite in più nell'app"
 msgstr "income is missing or there are extra expenses in the app"
@@ -8585,6 +8654,9 @@ msgstr "the ISIN is needed"
 msgid "servono le entrate degli ultimi 12 mesi"
 msgstr "the income of the last 12 months is needed"
 
+msgid "solo a mano"
+msgstr "by hand only"
+
 msgid "solo con cripto"
 msgstr "crypto only"
 
@@ -8671,6 +8743,9 @@ msgstr "all"
 
 msgid "tutti confermati"
 msgstr "all confirmed"
+
+msgid "tutto nella tolleranza"
+msgstr "all within the tolerance"
 
 msgid "uguale al prezzo di acquisto"
 msgstr "same as the purchase price"

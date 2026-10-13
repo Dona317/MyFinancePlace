@@ -1356,7 +1356,7 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
   max-width: 220px; }
 .client-chip:hover { background: var(--clr-primary-light); }
 .group-chip { padding: 4px 10px; font-weight: 500; }
-.consolidated .grid-2 > * { min-width: 0; }  /* tables scroll inside their card on a phone */
+.consolidated .grid-2 > *, .highlights > * { min-width: 0; }  /* tables scroll inside their card on a phone */
 .client-chip span.client-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .client-badge { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%;
   color: #fff; font-size: 11px; font-weight: 700; flex: none; }
