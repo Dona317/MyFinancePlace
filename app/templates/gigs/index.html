@@ -28,7 +28,7 @@
     <input type="text" inputmode="decimal" id="{{ prefix }}-expenses" name="expenses" class="form-control" value="{{ g.expenses|plain if g and g.expenses else '' }}" placeholder="0" /></div>
   <div class="form-group"><label class="form-label" for="{{ prefix }}-method">{{ _('Pagamento') }}</label>
     <select id="{{ prefix }}-method" name="method" class="form-select">
-      {% for key, label in methods.items() %}<option value="{{ key }}" {{ 'selected' if g and g.method == key }}>{{ _(label) }}</option>{% endfor %}
+      {% for key, label in methods.items() %}<option value="{{ key }}" {{ 'selected' if (g.method if g else 'transfer') == key }}>{{ _(label) }}</option>{% endfor %}
     </select></div>
   {% set people = owner_choices() %}
   {% if people %}

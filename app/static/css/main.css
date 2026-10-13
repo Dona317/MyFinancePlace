@@ -1155,7 +1155,7 @@ td.amount { white-space: nowrap; }
 /* ── Report page ────────────────────────────────────────────────────────────── */
 .report-bar { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap;
               border-bottom: 1px solid var(--clr-border); }
-.report-tabs { display: flex; gap: 4px; }
+.report-tabs { display: flex; gap: 4px; flex-wrap: wrap; }  /* many tabs (Fisco) wrap on a phone */
 .report-tab { padding: 10px 14px; font-weight: 600; font-size: var(--font-size-sm); color: var(--clr-text-muted);
               border-bottom: 2px solid transparent; margin-bottom: -1px; text-decoration: none; }
 .report-tab:hover { color: var(--clr-text-primary); text-decoration: none; }
