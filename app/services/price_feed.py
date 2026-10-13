@@ -248,6 +248,31 @@ def _yahoo(holding: Holding, with_history: bool = False) -> tuple[Decimal, date,
     return value, on, history
 
 
+def benchmark_history(ticker: str) -> dict[str, float]:
+    """Monthly closes of the last ten years of a benchmark (in euro), {ISO date: price} (F20: performance)."""
+    ticker = ticker.strip().upper()
+    data = _get_json(YAHOO.format(ticker=urllib.parse.quote(ticker), range="10y", interval="1mo"))
+    results = (data.get("chart") or {}).get("result") or []
+    if not results:
+        raise ValueError(_("ticker «%(ticker)s» non trovato (per Borsa Italiana aggiungi .MI, per Xetra .DE)",
+                           ticker=ticker))
+    code = _currency_code((results[0].get("meta") or {}).get("currency"))
+    stamps = results[0].get("timestamp") or []
+    closes = (((results[0].get("indicators") or {}).get("quote") or [{}])[0]).get("close") or []
+    prices = {}
+    for stamp, close in zip(stamps, closes):
+        if close is None:
+            continue
+        day = _day(stamp)
+        try:
+            prices[day.isoformat()] = float(_to_euro(Decimal(str(close)), code, day))
+        except MissingRate:
+            continue
+    if not prices:
+        raise ValueError(_("nessun prezzo per «%(ticker)s»", ticker=ticker))
+    return prices
+
+
 def _stooq_symbol(ticker: str) -> tuple[str, str]:
     base, _dot, suffix = ticker.strip().upper().partition(".")
     if suffix not in STOOQ_MARKETS:

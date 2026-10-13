@@ -12,7 +12,18 @@ from app.models.account import Account
 from app.models.portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate
 from app.routes.helpers import year_arg
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, income_report, investment_plans, periods, portfolio_models, portfolio_rules
+from app.services import (
+    accounts,
+    family,
+    income_report,
+    investment_plans,
+    performance,
+    periods,
+    portfolio_models,
+    portfolio_ops,
+    portfolio_rules,
+    price_feed,
+)
 from app.services.parsing import to_date, to_decimal
 
 
@@ -147,3 +158,27 @@ def income():
     report = income_report.report(year_arg(today.year), today)
     return render_template("portfolio/income.html", report=report, kinds=income_report.KINDS,
                            month_labels=periods.month_labels())
+
+
+# ── Performance (F20) ──────────────────────────────────────────────────────────
+
+@portfolio_bp.route("/performance", methods=["GET", "POST"])
+def performance_page():
+    if request.method == "POST":
+        ticker = (request.form.get("ticker") or "").strip().upper()
+        if not ticker:
+            performance.save_benchmark("", {}, date.today())
+            flash(_("Benchmark tolto."), "success")
+        else:
+            try:
+                performance.save_benchmark(ticker, price_feed.benchmark_history(ticker), date.today())
+                db.session.commit()
+                flash(_("Storico di %(ticker)s scaricato.", ticker=ticker), "success")
+            except (ValueError, OSError) as exc:
+                flash(_("Benchmark non aggiornato: %(error)s", error=exc), "error")
+        return redirect(url_for("portfolio.performance_page", person=request.args.get("person", "")))
+    person = request.args.get("person", "")
+    holdings = family.holdings_of(person, portfolio_models.investments())
+    return render_template("portfolio/performance.html", report=performance.report(holdings), person=person,
+                           xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
+                           benchmark=performance.benchmark_settings())

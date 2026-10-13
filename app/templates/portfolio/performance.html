@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block page_title %}{{ _('Rendimenti') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Rendimenti') }}</li>{% endblock %}
+
+{% macro pct(value) %}{% if value is none %}—{% else %}<span class="{{ 'text-positive' if value > 0 else ('text-negative' if value < 0) }}">{{ '+' if value > 0 else '' }}{{ value|number(2) }} %</span>{% endif %}{% endmacro %}
+
+{% block topbar_actions %}
+{% set people = owner_choices() %}
+{% if people %}
+<form method="GET" class="inline-filter">
+  <select name="person" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Persona') }}">
+    <option value="">{{ _('Tutta la famiglia') }}</option>
+    {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if key == person }}>{{ name }}</option>{% endfor %}
+  </select>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if not report.returns %}
+<div class="card"><div class="card-body text-muted">{{ _('Servono almeno un mese di storia e i prezzi dei titoli: registra le operazioni o aggiorna i prezzi da internet.') }}</div></div>
+{% else %}
+<div class="kpi-grid" style="margin-bottom:24px;">
+  {{ kpi('graph-up-arrow', _('Rendimento (TWR)'), value=pct(report.twr), cls='kpi-primary',
+         sub=(_('%(pct)s all\'anno', pct=report.annualized|number(2) ~ ' %') if report.annualized is not none else _('da %(first)s', first=report.labels[0]))) }}
+  {{ kpi('cash-coin', _('Rendimento sui tuoi soldi (XIRR)'), value=(xirr|number(2) ~ ' %') if xirr is not none else '—', sub=_('all\'anno, conta quando hai versato')) }}
+  {{ kpi('bar-chart-steps', _('Volatilità'), value=(report.volatility|number(2) ~ ' %') if report.volatility is not none else '—', sub=_('all\'anno')) }}
+  {{ kpi('graph-down-arrow', _('Calo massimo'), value=pct(report.max_drawdown), cls='kpi-negative', sub=_('dal punto più alto')) }}
+</div>
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Rendimento cumulato') }}</div>
+    <div class="card-header-sub">{{ _('Il TWR misura quanto hanno reso i titoli, senza l\'effetto di quando e quanto hai versato: è il numero da confrontare con un indice.') }}</div>
+  </div></div>
+  <div class="card-body"><div style="height:300px;"><canvas id="perfChart"></canvas></div></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Per periodo') }}</div></div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{{ _('Periodo') }}</th><th class="text-right">{{ _('Portafoglio') }}</th><th class="text-right">{{ benchmark.ticker or _('Benchmark') }}</th></tr></thead>
+        <tbody>
+          {% for label, (mine, theirs) in report.windows.items() %}
+          <tr><td>{{ label }}</td><td class="text-right">{{ pct(mine) }}</td><td class="text-right">{{ pct(theirs) }}</td></tr>
+          {% endfor %}
+          <tr><td>{{ _('Dall\'inizio') }}</td><td class="text-right">{{ pct(report.twr) }}</td><td class="text-right">{{ pct(report.benchmark_twr) }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body text-sm text-muted">
+      {{ _('Mese migliore: %(month)s (%(pct)s %%)', month=report.best[0], pct=report.best[1]|number(2)) }} ·
+      {{ _('peggiore: %(month)s (%(pct)s %%)', month=report.worst[0], pct=report.worst[1]|number(2)) }}
+    </div>
+  </div>
+{% endif %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Benchmark') }}</div>
+      <div class="card-header-sub">{{ _('Un indice o ETF con cui confrontarti, es. VWCE.MI (tutto il mondo) o SWDA.MI (paesi sviluppati). Si scaricano 10 anni di prezzi mensili.') }}</div>
+    </div></div>
+    <div class="card-body">
+      <form method="POST" id="benchmark-form" style="display:flex;gap:8px;align-items:end;">
+        <div class="form-group" style="margin:0;flex:1;">
+          <label class="form-label" for="ticker">{{ _('Ticker') }}</label>
+          <input type="text" name="ticker" id="ticker" class="form-control" value="{{ benchmark.ticker or '' }}" placeholder="VWCE.MI" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Scarica') }}</button>
+      </form>
+      {% if benchmark.updated %}<div class="text-xs text-muted" style="margin-top:8px;">{{ _('Aggiornato il %(day)s', day=benchmark.updated) }}</div>{% endif %}
+    </div>
+  </div>
+{% if report.returns %}</div>{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if report.returns %}
+<script>
+makeLineChart('perfChart', {{ report.labels|tojson }}, [
+  { label: {{ _('Portafoglio (TWR)')|tojson }}, data: {{ report.cumulative|tojson }} },
+  {% if report.benchmark_twr is not none %}{ label: {{ (benchmark.ticker or _('Benchmark'))|tojson }}, data: {{ report.benchmark|tojson }}, dash: [6, 4] },{% endif %}
+]);
+</script>
+{% endif %}
+{% endblock %}

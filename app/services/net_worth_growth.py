@@ -38,7 +38,7 @@ class Month:
         return round(self.change - self.savings - self.markets - self.debt_repaid - self.new_assets, 2)
 
 
-def _units_after(on: date) -> dict[int, float]:
+def units_after(on: date) -> dict[int, float]:
     """Units bought minus sold after `on`, by holding: what is held today less these is what was held then."""
     rows = db.session.query(Transaction.holding_id, func.sum(Transaction.units)).filter(
         Transaction.holding_id.isnot(None), Transaction.units.isnot(None), Transaction.date > on).group_by(
@@ -49,7 +49,7 @@ def _units_after(on: date) -> dict[int, float]:
 def _holdings_value(on: date) -> float:
     """The holdings at the quantity they had then (today's less the trades since) and the price they had then."""
     prices = wealth.prices_on(on) if on < date.today() else {}
-    later = _units_after(on)
+    later = units_after(on)
     total = 0.0
     for h in wealth.holdings_on(on):
         now = float(h.quantity or 0)

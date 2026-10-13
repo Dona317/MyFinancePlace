@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:13+0000\n"
+"POT-Creation-Date: 2026-10-13 10:15+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -417,6 +417,10 @@ msgid "%(pct)s %% della crescita"
 msgstr "%(pct)s %% of the growth"
 
 #, python-format
+msgid "%(pct)s all'anno"
+msgstr "%(pct)s a year"
+
+#, python-format
 msgid "%(pct)s%% rispetto al periodo precedente (%(amount)s)"
 msgstr "%(pct)s%% compared with the previous period (%(amount)s)"
 
@@ -693,6 +697,10 @@ msgstr "Update it whenever you like (also all at once from «Update prices»): e
 
 msgid "Aggiornato"
 msgstr "Updated"
+
+#, python-format
+msgid "Aggiornato il %(day)s"
+msgstr "Updated on %(day)s"
 
 msgid "Aggiungi"
 msgstr "Add"
@@ -1198,6 +1206,16 @@ msgstr "Low — almost identical"
 msgid "Basta l’ISIN: il ticker viene cercato da solo al primo aggiornamento."
 msgstr "The ISIN is enough: the ticker is looked up by itself at the first update."
 
+msgid "Benchmark"
+msgstr "Benchmark"
+
+#, python-format
+msgid "Benchmark non aggiornato: %(error)s"
+msgstr "Benchmark not updated: %(error)s"
+
+msgid "Benchmark tolto."
+msgstr "Benchmark removed."
+
 msgid "Bene"
 msgstr "Asset"
 
@@ -1308,6 +1326,9 @@ msgstr "Spending calendar"
 
 msgid "Calo dal prezzo medio (in percentuale)"
 msgstr "Fall from the average price (percent)"
+
+msgid "Calo massimo"
+msgstr "Maximum drawdown"
 
 msgid "Cambi presenti"
 msgstr "Rates available"
@@ -2066,6 +2087,9 @@ msgstr "From saving"
 
 msgid "Dal tuo storico: come hai categorizzato transazioni simili"
 msgstr "From your history: how you categorized similar transactions"
+
+msgid "Dall'inizio"
+msgstr "Since the start"
 
 msgid "Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio (o quanto preso dai risparmi)"
 msgstr "From income categories to expense categories; the difference is what you saved (or took from savings)"
@@ -2991,6 +3015,13 @@ msgstr ""
 "The PDF contains no text (it is probably a scan): download the original PDF or the Excel/CSV of the movements from "
 "online banking."
 
+msgid ""
+"Il TWR misura quanto hanno reso i titoli, senza l'effetto di quando e quanto hai versato: è il numero da confrontare "
+"con un indice."
+msgstr ""
+"TWR measures what the holdings earned, without the effect of when and how much you invested: it is the number to "
+"compare with an index."
+
 #, python-format
 msgid "Il backup contiene un valore non valido (%(exc)s)."
 msgstr "The backup contains an invalid value (%(exc)s)."
@@ -3890,6 +3921,10 @@ msgstr "Last Month"
 
 msgid "Mese corrente"
 msgstr "This month"
+
+#, python-format
+msgid "Mese migliore: %(month)s (%(pct)s %%)"
+msgstr "Best month: %(month)s (%(pct)s %%)"
 
 msgid "Mese per mese"
 msgstr "Month by month"
@@ -4952,6 +4987,9 @@ msgstr "For liabilities the difference is shown from the net worth's point of vi
 msgid "Per le università non statali vale il limite ministeriale per area e corso."
 msgstr "For non-state universities the ministry's limit by area and course applies."
 
+msgid "Per periodo"
+msgstr "By period"
+
 msgid "Per portatili con 8 GB di RAM"
 msgstr "For laptops with 8 GB of RAM"
 
@@ -5089,6 +5127,9 @@ msgstr "Model portfolios"
 
 msgid "Portafoglio"
 msgstr "Portfolio"
+
+msgid "Portafoglio (TWR)"
+msgstr "Portfolio (TWR)"
 
 msgid "Portafoglio Investimenti"
 msgstr "Investment Portfolio"
@@ -5538,11 +5579,23 @@ msgstr "Make active"
 msgid "Rendiconto Finanziario"
 msgstr "Cash Flow Statement"
 
+msgid "Rendimenti"
+msgstr "Performance"
+
+msgid "Rendimento (TWR)"
+msgstr "Return (TWR)"
+
 msgid "Rendimento annuo"
 msgstr "Yearly return"
 
+msgid "Rendimento cumulato"
+msgstr "Cumulative return"
+
 msgid "Rendimento sugli ultimi 12 mesi: sul prezzo pagato e sul valore di oggi."
 msgstr "Yield over the last 12 months: on the price paid and on today's value."
+
+msgid "Rendimento sui tuoi soldi (XIRR)"
+msgstr "Return on your money (XIRR)"
 
 msgid "Rendite"
 msgstr "Income"
@@ -6089,6 +6142,9 @@ msgstr "At least 3 complete months of spending are needed for the average."
 msgid "Servono almeno due prezzi per il grafico: aggiungili qui sotto."
 msgstr "At least two prices are needed for the chart: add them below."
 
+msgid "Servono almeno un mese di storia e i prezzi dei titoli: registra le operazioni o aggiorna i prezzi da internet."
+msgstr "At least a month of history and the holdings' prices are needed: record the operations or update the prices online."
+
 msgid "Servono dei movimenti per fare una previsione"
 msgstr "Some movements are needed to make a forecast"
 
@@ -6288,6 +6344,10 @@ msgstr "Estimates for planning, with the rules of the chosen year: the return is
 
 msgid "Storico"
 msgstr "History"
+
+#, python-format
+msgid "Storico di %(ticker)s scaricato."
+msgstr "History of %(ticker)s downloaded."
 
 #, python-format
 msgid "Storico disponibile: %(n)s mesi completi."
@@ -6799,6 +6859,13 @@ msgstr "One file"
 msgid "Un importo investito ogni mese o trimestre, diviso secondo il portafoglio modello."
 msgstr "An amount invested every month or quarter, split according to the model portfolio."
 
+msgid ""
+"Un indice o ETF con cui confrontarti, es. VWCE.MI (tutto il mondo) o SWDA.MI (paesi sviluppati). Si scaricano 10 anni"
+" di prezzi mensili."
+msgstr ""
+"An index or ETF to compare with, e.g. VWCE.MI (whole world) or SWDA.MI (developed markets). Ten years of monthly "
+"prices are downloaded."
+
 msgid "Un modello AI può provare a leggere i movimenti. Prima di salvare potrai"
 msgstr "An AI model can try to read the movements. Before saving you will be able to"
 
@@ -7041,6 +7108,9 @@ msgstr "Item"
 msgid "Voci con spese"
 msgstr "Items with expenses"
 
+msgid "Volatilità"
+msgstr "Volatility"
+
 msgid "Vuota per polizze senza scadenza fissa."
 msgstr "Empty for policies without a fixed expiry."
 
@@ -7085,6 +7155,12 @@ msgstr "at the rate of its day (or the closest day before)."
 
 msgid "al mese, per rispettare le date"
 msgstr "a month, to meet the dates"
+
+msgid "all'anno"
+msgstr "a year"
+
+msgid "all'anno, conta quando hai versato"
+msgstr "a year, counts when you invested"
 
 #, python-format
 msgid "anno %(year)s"
@@ -7159,6 +7235,10 @@ msgstr "crypto «%(coin)s» not found on CoinGecko (use its id, e.g. bitcoin)"
 msgid "curl -fsSL https://ollama.com/install.sh | sh"
 msgstr "curl -fsSL https://ollama.com/install.sh | sh"
 
+#, python-format
+msgid "da %(first)s"
+msgstr "since %(first)s"
+
 msgid "da ISIN a ticker e borsa (Bloomberg), per azioni, ETF, obbligazioni e derivati"
 msgstr "from ISIN to ticker and exchange (Bloomberg), for shares, ETFs, bonds and derivatives"
 
@@ -7180,6 +7260,9 @@ msgstr "from %(year)s: %(left)s of %(amount)s, until 31/12/%(until)s"
 
 msgid "dal piano di ammortamento"
 msgstr "from the amortization plan"
+
+msgid "dal punto più alto"
+msgstr "from the highest point"
 
 msgid "dal tuo estratto conto"
 msgstr "from your bank statement"
@@ -7496,6 +7579,10 @@ msgstr "page %(page)s of %(pages)s"
 #, python-format
 msgid "patrimonio netto al %(day)s"
 msgstr "net worth on %(day)s"
+
+#, python-format
+msgid "peggiore: %(month)s (%(pct)s %%)"
+msgstr "worst: %(month)s (%(pct)s %%)"
 
 msgid "per completarli tutti"
 msgstr "to complete them all"
