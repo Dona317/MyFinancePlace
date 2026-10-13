@@ -82,9 +82,9 @@ def test_each_user_hides_sections_from_their_own_menu(people, client, db):
     people(client, "mario")
     page = client.get("/settings/menu").get_data(as_text=True)
     assert 'name="debt"  disabled' in page or ('name="debt"' in page and "Bloccata da un amministratore" in page)
-    form = {s.key: "on" for s in sections.SECTIONS if s.key not in ("budget", "goals", "lifestyle", "debt")}
+    form = {s.key: "on" for s in sections.SECTIONS if s.key not in ("budget", "goals", "lifestyle", "events", "debt")}
     client.post("/settings/menu", data=form)
-    assert _mario().hidden_sections == ["lifestyle", "budget", "goals", "debt"]
+    assert _mario().hidden_sections == ["lifestyle", "budget", "goals", "events", "debt"]
     menu = client.get("/dashboard").get_data(as_text=True)
     assert "/lifestyle/budget" not in menu and 'data-section="stiledivita"' not in menu  # a whole empty group goes
     assert client.get("/lifestyle/budget").status_code == 200  # hidden only from the menu: still reachable

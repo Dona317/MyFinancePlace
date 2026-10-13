@@ -89,3 +89,23 @@ def test_page(client, db, etf, monkeypatch):
 
 def test_page_without_history(client, db):
     assert "Servono almeno un mese di storia" in client.get("/portfolio/performance").get_data(as_text=True)
+
+
+def test_windows_over_a_year(app, db):
+    h = Holding(name="Lungo", asset_class="ETF", quantity=10, avg_price=100, current_price=100,
+                purchase_date=date(2024, 12, 1), opening_quantity=10, opening_price=100, opening_date=date(2024, 12, 1))
+    db.session.add(h)
+    db.session.flush()
+    price = 100.0
+    for month in range(1, 16):  # +1 % a month from January 2025 to March 2026
+        price *= 1.01
+        year, m = 2025 + (month - 1) // 12, (month - 1) % 12 + 1
+        last = date(year, m, 28)
+        db.session.add(HoldingPrice(holding_id=h.id, on=last, price=round(price, 4)))
+    db.session.commit()
+    with app.test_request_context():
+        performance.save_benchmark("X", {"2025-01-01": 10.0, "2026-03-01": 11.0}, TODAY)
+        r = performance.report([h], date(2026, 3, 31))
+    mine, theirs = r.windows["1A"]
+    assert mine == round((1.01 ** 12 - 1) * 100, 2) and theirs is not None
+    assert r.annualized is not None and r.windows["3A"] == (None, None)
