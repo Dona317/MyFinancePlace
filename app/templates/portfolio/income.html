@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block page_title %}{{ _('Rendite') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Rendite') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+<form method="GET" class="inline-filter">
+  <select name="year" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Anno') }}">
+    {% for y in report.years %}<option value="{{ y }}" {{ 'selected' if y == report.year }}>{{ y }}</option>{% endfor %}
+  </select>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid" style="margin-bottom:24px;">
+  {{ kpi('cash-coin', _('Nel %(year)s', year=report.year), value=report.total|money, cls='kpi-primary') }}
+  {{ kpi('calendar-month', _('Ultimi 12 mesi'), value=report.last_12|money, sub=_('%(amount)s al mese in media', amount=report.monthly_average|money)) }}
+  {{ kpi('graph-up-arrow', _('Prossimi 12 mesi (stima)'), value=report.last_12|money, sub=_('se si ripetono quelle degli ultimi 12')) }}
+</div>
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><div class="card-header-title">{{ _('Mese per mese') }}</div></div>
+  <div class="card-body"><div style="height:260px;"><canvas id="incomeChart"></canvas></div></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Per titolo') }}</div>
+      <div class="card-header-sub">{{ _('Rendimento sugli ultimi 12 mesi: sul prezzo pagato e sul valore di oggi.') }}</div></div>
+    {% if report.holdings %}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{{ _('Titolo') }}</th><th class="text-right">{{ report.year }}</th><th class="text-right">{{ _('12 mesi') }}</th>
+          <th class="text-right">{{ _('Sul costo') }}</th><th class="text-right">{{ _('Sul valore') }}</th></tr></thead>
+        <tbody>
+          {% for r in report.holdings %}
+          <tr>
+            <td><a href="{{ url_for('portfolio.detail', holding_id=r.holding.id) }}">{{ r.holding.name }}</a></td>
+            <td class="text-right nowrap">{{ r.year|money }}</td>
+            <td class="text-right nowrap">{{ r.last_12|money }}</td>
+            <td class="text-right nowrap">{{ (r.yield_on_cost|number(2) ~ ' %') if r.yield_on_cost is not none else '—' }}</td>
+            <td class="text-right nowrap">{{ (r.yield_on_value|number(2) ~ ' %') if r.yield_on_value is not none else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<div class="card-body text-muted">{{ _('Nessun dividendo o cedola registrato sui titoli.') }}</div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Anno per anno') }}</div></div>
+    <div class="card-body">
+      {% for y, amount in report.by_year %}
+      <div style="display:flex;justify-content:space-between;"><span>{{ y }}</span><span class="nowrap">{{ amount|money }}</span></div>
+      {% else %}<span class="text-muted">{{ _('Ancora nessuna rendita: dividendi, cedole e interessi compaiono qui quando li registri.') }}</span>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+makeBarChart('incomeChart', {{ month_labels|tojson }}, [
+  {% for key, label in kinds.items() %}{ label: {{ _(label)|tojson }}, data: {{ report.months[key]|map('float')|list|tojson }} },{% endfor %}
+], { stacked: true });
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 """
 Rules and investment plans (F19e), on the portfolio's blueprint: the watches on the investments, the PACs, and the
-page that confirms an instalment's purchases.
+page that confirms an instalment's purchases; and the passive income page (F20).
 """
 from datetime import date
 
@@ -10,8 +10,9 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate
+from app.routes.helpers import year_arg
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, investment_plans, portfolio_models, portfolio_rules
+from app.services import accounts, income_report, investment_plans, periods, portfolio_models, portfolio_rules
 from app.services.parsing import to_date, to_decimal
 
 
@@ -136,3 +137,13 @@ def plan_run(plan_id):
         return redirect(url_for("portfolio.models_index"))
     return render_template("portfolio/plan_run.html", plan=plan, purchases=purchases, today=date.today(),
                            is_due=investment_plans.is_due(plan, date.today()))
+
+
+# ── Passive income (F20) ───────────────────────────────────────────────────────
+
+@portfolio_bp.route("/income")
+def income():
+    today = date.today()
+    report = income_report.report(year_arg(today.year), today)
+    return render_template("portfolio/income.html", report=report, kinds=income_report.KINDS,
+                           month_labels=periods.month_labels())

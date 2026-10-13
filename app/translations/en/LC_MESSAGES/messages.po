@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:03+0000\n"
+"POT-Creation-Date: 2026-10-13 10:05+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -60,6 +60,10 @@ msgstr "%% · max 35%%"
 #, python-format
 msgid "%(amount)s al mese"
 msgstr "%(amount)s a month"
+
+#, python-format
+msgid "%(amount)s al mese in media"
+msgstr "%(amount)s a month on average"
 
 #, python-format
 msgid "%(amount)s al mese per arrivarci in tempo"
@@ -557,6 +561,9 @@ msgstr "1 unit = € …"
 msgid "1 unità in euro"
 msgstr "1 unit in euro"
 
+msgid "12 mesi"
+msgstr "12 months"
+
 msgid "26 (12,5 per i titoli di Stato)"
 msgstr "26 (12.5 for government bonds)"
 
@@ -875,6 +882,9 @@ msgstr "Amount"
 msgid "Analizza file"
 msgstr "Analyze file"
 
+msgid "Ancora nessuna rendita: dividendi, cedole e interessi compaiono qui quando li registri."
+msgstr "No income yet: dividends, coupons and interest appear here once recorded."
+
 msgid "Ancora nessuna spesa."
 msgstr "No spending yet."
 
@@ -912,6 +922,9 @@ msgstr "This year"
 
 msgid "Anno fiscale"
 msgstr "Tax year"
+
+msgid "Anno per anno"
+msgstr "Year by year"
 
 msgid "Anno prima"
 msgstr "Year before"
@@ -1430,6 +1443,9 @@ msgstr "Original bank description"
 
 msgid "Cedola"
 msgstr "Coupon"
+
+msgid "Cedole"
+msgstr "Coupons"
 
 msgid "Cerca"
 msgstr "Search"
@@ -2150,6 +2166,9 @@ msgstr "Date distance"
 
 msgid "Distribuzione per Tipo"
 msgstr "Split by Type"
+
+msgid "Dividendi"
+msgstr "Dividends"
 
 msgid "Dividendi (anno)"
 msgstr "Dividends (year)"
@@ -4034,6 +4053,10 @@ msgid "Natura di %(name)s"
 msgstr "Nature of %(name)s"
 
 #, python-format
+msgid "Nel %(year)s"
+msgstr "In %(year)s"
+
+#, python-format
 msgid "Nel %(year)s: spesa ordinaria %(ordinary)s, negli eventi %(events)s."
 msgstr "In %(year)s: ordinary spending %(ordinary)s, in events %(events)s."
 
@@ -4077,6 +4100,9 @@ msgstr "No active debts."
 
 msgid "Nessun debito registrato"
 msgstr "No debts recorded"
+
+msgid "Nessun dividendo o cedola registrato sui titoli."
+msgstr "No dividend or coupon recorded on the holdings."
 
 msgid "Nessun documento corrisponde ai filtri."
 msgstr "No document matches the filters."
@@ -4836,6 +4862,9 @@ msgstr "To restore a full backup, confirm that the current data will be replaced
 msgid "Per scansioni e foto serve un modello \"vision\" (es."
 msgstr "Scans and photos need a \"vision\" model (e.g."
 
+msgid "Per titolo"
+msgstr "By holding"
+
 msgid ""
 "Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una "
 "vendita su questo conto, la commissione viene calcolata e proposta. Vuoto = la inserisci tu."
@@ -5190,6 +5219,9 @@ msgstr "Upcoming recurring"
 msgid "Prossimi %(days)s giorni"
 msgstr "Next %(days)s days"
 
+msgid "Prossimi 12 mesi (stima)"
+msgstr "Next 12 months (estimate)"
+
 msgid "Prossimo"
 msgstr "Next"
 
@@ -5397,6 +5429,12 @@ msgstr "Cash Flow Statement"
 
 msgid "Rendimento annuo"
 msgstr "Yearly return"
+
+msgid "Rendimento sugli ultimi 12 mesi: sul prezzo pagato e sul valore di oggi."
+msgstr "Yield over the last 12 months: on the price paid and on today's value."
+
+msgid "Rendite"
+msgstr "Income"
 
 msgid "Renminbi"
 msgstr "Renminbi"
@@ -6183,6 +6221,12 @@ msgstr "Suggested by AI (unsure)"
 
 msgid "Sui tuoi dati il metodo più preciso nel complesso è"
 msgstr "On your data the most accurate method overall is"
+
+msgid "Sul costo"
+msgstr "On cost"
+
+msgid "Sul valore"
+msgstr "On value"
 
 msgid "Sì, leggi con l'AI"
 msgstr "Yes, read with AI"
@@ -7413,6 +7457,9 @@ msgstr "overdue"
 
 msgid "scansioni e foto non sono leggibili."
 msgstr "scans and photos cannot be read."
+
+msgid "se si ripetono quelle degli ultimi 12"
+msgstr "if the last 12 months repeat"
 
 msgid "senza categoria"
 msgstr "no category"
