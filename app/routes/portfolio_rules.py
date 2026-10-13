@@ -10,10 +10,13 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate
+from app.models.wealth import Holding
 from app.routes.helpers import year_arg
 from app.routes.portfolio import portfolio_bp
 from app.services import (
     accounts,
+    composition,
+    display,
     family,
     income_report,
     investment_plans,
@@ -182,3 +185,29 @@ def performance_page():
     return render_template("portfolio/performance.html", report=performance.report(holdings), person=person,
                            xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
                            benchmark=performance.benchmark_settings())
+
+
+# ── Splits and composition (F20) ───────────────────────────────────────────────
+
+@portfolio_bp.route("/<int:holding_id>/split", methods=["POST"])
+def split(holding_id):
+    holding = db.get_or_404(Holding, holding_id)
+    ratio, on = to_decimal(request.form.get("ratio")), to_date(request.form.get("on")) or date.today()
+    try:
+        adjusted = composition.split(holding, ratio, on)
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return redirect(url_for("portfolio.detail", holding_id=holding.id))
+    db.session.commit()
+    flash(_("Frazionamento 1:%(ratio)s applicato dal %(day)s: %(count)s operazioni precedenti adeguate.",
+            ratio=display.plain(ratio), day=display.day(on), count=adjusted), "success")
+    return redirect(url_for("portfolio.detail", holding_id=holding.id))
+
+
+@portfolio_bp.route("/composition")
+def composition_page():
+    person = request.args.get("person", "")
+    holdings = family.holdings_of(person, portfolio_models.investments())
+    return render_template("portfolio/composition.html", exposure=composition.exposure(holdings), person=person,
+                           unset=composition.UNSET)

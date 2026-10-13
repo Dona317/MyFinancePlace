@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block page_title %}{{ _('Composizione') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Composizione') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+{% set people = owner_choices() %}
+{% if people %}
+<form method="GET" class="inline-filter">
+  <select name="person" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Persona') }}">
+    <option value="">{{ _('Tutta la famiglia') }}</option>
+    {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if key == person }}>{{ name }}</option>{% endfor %}
+  </select>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<p class="text-sm text-muted mb-16">{{ _('Dove e in cosa investi: area geografica e settore si indicano nella scheda di ogni titolo (un ETF su tutto il mondo è «Globale» e «Diversificato»).') }}</p>
+<div class="grid-2">
+  {% for key, title in (('region', _('Per area geografica')), ('sector', _('Per settore'))) %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ title }}</div></div>
+    <div class="card-body">
+      {% if exposure[key] %}
+      <div style="height:220px;"><canvas id="chart-{{ key }}"></canvas></div>
+      <table class="table-compact" style="margin-top:12px;">
+        <tbody>
+          {% for name, value, pct in exposure[key] %}
+          <tr><td>{{ name|tr }}{% if name == unset %} <i class="bi bi-info-circle text-muted" title="{{ _('Indicalo nella scheda del titolo') }}"></i>{% endif %}</td>
+            <td class="text-right nowrap">{{ value|money }}</td><td class="text-right nowrap">{{ pct|number(1) }} %</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<span class="text-muted">{{ _('Nessun investimento.') }}</span>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% for key in ('region', 'sector') %}{% if exposure[key] %}
+makeDoughnutChart('chart-{{ key }}', {{ exposure[key]|map(attribute=0)|map('tr')|list|tojson }}, {{ exposure[key]|map(attribute=1)|list|tojson }});
+{% endif %}{% endfor %}
+</script>
+{% endblock %}

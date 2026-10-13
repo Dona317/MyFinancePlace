@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:18+0000\n"
+"POT-Creation-Date: 2026-10-13 10:20+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -579,6 +579,9 @@ msgstr "1 unit = € …"
 msgid "1 unità in euro"
 msgstr "1 unit in euro"
 
+msgid "1 vecchia = quante nuove"
+msgstr "1 old = how many new"
+
 #, python-format
 msgid "10%% migliore"
 msgstr "Best 10%%"
@@ -694,6 +697,9 @@ msgstr "Purchase"
 
 msgid "Acquisto casa"
 msgstr "Buying a home"
+
+msgid "Adeguare quantità e prezzi precedenti?"
+msgstr "Adjust the earlier quantities and prices?"
 
 msgid "Affitto studenti fuori sede"
 msgstr "Rent of students living away from home"
@@ -1056,6 +1062,12 @@ msgstr "Main archive"
 msgid "Archivio vuoto"
 msgstr "Archive empty"
 
+msgid "Area geografica"
+msgstr "Region"
+
+msgid "Asia e Pacifico"
+msgstr "Asia-Pacific"
+
 msgid "Asilo nido"
 msgstr "Nursery school"
 
@@ -1248,6 +1260,9 @@ msgstr "Benefit"
 
 msgid "Beni acquistati con un debito"
 msgstr "Assets bought with a debt"
+
+msgid "Beni di consumo"
+msgstr "Consumer goods"
 
 msgid "Bentornato"
 msgstr "Welcome back"
@@ -2114,6 +2129,9 @@ msgstr "Give the event a name."
 msgid "Dal"
 msgstr "From"
 
+msgid "Dal giorno"
+msgstr "From the day"
+
 msgid "Dal risparmio"
 msgstr "From saving"
 
@@ -2267,6 +2285,9 @@ msgstr "Date distance"
 msgid "Distribuzione per Tipo"
 msgstr "Split by Type"
 
+msgid "Diversificato"
+msgstr "Diversified"
+
 msgid "Dividendi"
 msgstr "Dividends"
 
@@ -2308,6 +2329,13 @@ msgstr "Canadian dollar"
 
 msgid "Dom"
 msgstr "Sun"
+
+msgid ""
+"Dove e in cosa investi: area geografica e settore si indicano nella scheda di ogni titolo (un ETF su tutto il mondo è"
+" «Globale» e «Diversificato»)."
+msgstr ""
+"Where and in what you invest: region and sector are set on each holding's form (an ETF on the whole world is “Global”"
+" and “Diversified”)."
 
 msgid "Dove tieni i soldi, perché è importante..."
 msgstr "Where you keep the money, why it matters..."
@@ -2445,6 +2473,9 @@ msgid "Eliminata «%(label)s»."
 msgid_plural "Eliminate %(num)d transazioni."
 msgstr[0] "«%(label)s» deleted."
 msgstr[1] "%(num)d transactions deleted."
+
+msgid "Energia"
+msgstr "Energy"
 
 msgid "Entrambe"
 msgstr "Both"
@@ -2623,6 +2654,9 @@ msgstr "Age today"
 msgid "Euro"
 msgstr "Euro"
 
+msgid "Europa"
+msgstr "Europe"
+
 msgid "Eventi"
 msgstr "Events"
 
@@ -2705,6 +2739,9 @@ msgstr "Filter by type"
 
 msgid "Filtri"
 msgstr "Filters"
+
+msgid "Finanza"
+msgstr "Financials"
 
 msgid "Finanziato con un debito"
 msgstr "Financed with a debt"
@@ -2829,6 +2866,13 @@ msgstr "Pictures of your financial situation over time"
 msgid "Franco svizzero"
 msgstr "Swiss franc"
 
+#, python-format
+msgid "Frazionamento 1:%(ratio)s applicato dal %(day)s: %(count)s operazioni precedenti adeguate."
+msgstr "1:%(ratio)s split applied from %(day)s: %(count)s earlier operations adjusted."
+
+msgid "Frazionamento o raggruppamento delle azioni"
+msgstr "Stock split or reverse split"
+
 msgid "Frequenza"
 msgstr "Frequency"
 
@@ -2930,6 +2974,9 @@ msgstr "The targets add up to %(total)s %%: they must make 100 %%."
 
 msgid "Gli stati patrimoniali e l’andamento del patrimonio valutano la posizione all’ultimo prezzo noto a quella data."
 msgstr "Balance sheets and the net worth trend value the holding at the latest price known on that date."
+
+msgid "Globale"
+msgstr "Global"
 
 msgid "Grafico Entrate per Categoria"
 msgstr "Income by Category Chart"
@@ -3215,6 +3262,9 @@ msgstr "The price must be greater than zero."
 msgid "Il prezzo non si può cercare su internet: aggiungi l'ISIN o scegli il prezzo manuale."
 msgstr "The price cannot be looked up online: add the ISIN or choose the manual price."
 
+msgid "Il rapporto deve essere un numero positivo diverso da 1 (es. 10 per «1 vecchia = 10 nuove»)."
+msgstr "The ratio must be a positive number other than 1 (e.g. 10 for “1 old = 10 new”)."
+
 msgid "Il residuo di mutui, prestiti e carte secondo il piano di ammortamento (o il saldo che hai inserito)."
 msgstr "What is left on mortgages, loans and cards according to the amortization plan (or the balance you entered)."
 
@@ -3244,6 +3294,9 @@ msgstr "Property"
 
 msgid "Immobili"
 msgstr "Property"
+
+msgid "Immobiliare"
+msgstr "Real estate"
 
 msgid "Imparata"
 msgstr "Learned"
@@ -3439,11 +3492,17 @@ msgstr "Enter an amount greater than zero."
 msgid "Indica una soglia maggiore di zero."
 msgstr "Enter a threshold greater than zero."
 
+msgid "Indicalo nella scheda del titolo"
+msgstr "Set it on the holding's form"
+
 msgid "Indicatori"
 msgstr "Indicators"
 
 msgid "Indipendenza finanziaria"
 msgstr "Financial independence"
+
+msgid "Industria"
+msgstr "Industrials"
 
 #, python-format
 msgid "Inflazione (%%)"
@@ -3569,6 +3628,9 @@ msgstr "Education"
 
 msgid "Istruzione (infanzia, primaria, secondaria)"
 msgstr "Schooling (nursery to secondary)"
+
+msgid "Italia"
+msgstr "Italy"
 
 msgid "Item"
 msgstr "Item"
@@ -3973,6 +4035,9 @@ msgstr "Wed"
 msgid "Mercati"
 msgstr "Markets"
 
+msgid "Mercati emergenti"
+msgstr "Emerging markets"
+
 msgid "Mese"
 msgstr "Month"
 
@@ -4298,6 +4363,9 @@ msgstr "No documents. Upload the invoice or receipt in Documents and link it to 
 msgid "Nessun evento."
 msgstr "No events."
 
+msgid "Nessun investimento."
+msgstr "No investments."
+
 msgid "Nessun modello AI configurato (Impostazioni → Modelli AI)."
 msgstr "No AI model configured (Settings → AI models)."
 
@@ -4563,6 +4631,9 @@ msgstr "You have no access to «%(name)s»"
 msgid "Non importate: %(rows)s"
 msgstr "Not imported: %(rows)s"
 
+msgid "Non indicato"
+msgstr "Not set"
+
 msgid "Non installato"
 msgstr "Not installed"
 
@@ -4600,6 +4671,9 @@ msgstr "I cannot find the date and amount columns: choose them yourself."
 
 msgid "Non è stato salvato nulla. Se hai usato un modulo di questa app, ricarica la pagina e riprova."
 msgstr "Nothing was saved. If you used a form of this app, reload the page and try again."
+
+msgid "Nord America"
+msgstr "North America"
 
 msgid "Normale"
 msgstr "Normal"
@@ -4734,6 +4808,12 @@ msgstr "Medium-term bonds"
 
 msgid "Obbligazioni globali"
 msgstr "Global bonds"
+
+msgid "Obbligazioni governative"
+msgstr "Government bonds"
+
+msgid "Obbligazioni societarie"
+msgstr "Corporate bonds"
 
 msgid "Obiettivi"
 msgstr "Goals"
@@ -5035,6 +5115,9 @@ msgstr "Retirement and financial independence"
 msgid "Pensione integrativa"
 msgstr "Supplementary pension"
 
+msgid "Per area geografica"
+msgstr "By region"
+
 msgid "Per calcolare il piano servono la <strong>data di inizio</strong> e la <strong>durata</strong> (o la rata mensile)."
 msgstr ""
 "To work out the plan you need the <strong>start date</strong> and the <strong>term</strong> (or the monthly "
@@ -5080,6 +5163,9 @@ msgstr "To restore a full backup, confirm that the current data will be replaced
 
 msgid "Per scansioni e foto serve un modello \"vision\" (es."
 msgstr "Scans and photos need a \"vision\" model (e.g."
+
+msgid "Per settore"
+msgstr "By sector"
 
 msgid "Per titolo"
 msgstr "By holding"
@@ -6272,6 +6358,9 @@ msgstr "Sep"
 msgid "Settimanale"
 msgstr "Weekly"
 
+msgid "Settore"
+msgstr "Sector"
+
 msgid "Sezione"
 msgstr "Section"
 
@@ -6584,6 +6673,9 @@ msgstr "Savings rate"
 
 msgid "Tasso di risparmio mese per mese"
 msgstr "Savings rate month by month"
+
+msgid "Tecnologia"
+msgstr "Technology"
 
 msgid "Tema scuro per l'intera interfaccia — disponibile prossimamente"
 msgstr "Dark theme for the whole interface — coming soon"
@@ -7116,6 +7208,9 @@ msgstr "User “%(name)s” deleted."
 msgid "Utenti"
 msgstr "Users"
 
+msgid "Utilities"
+msgstr "Utilities"
+
 msgid "VARIAZIONE NETTA CASSA (A+B+C)"
 msgstr "NET CHANGE IN CASH (A+B+C)"
 
@@ -7486,6 +7581,9 @@ msgstr "e.g. %(ticker)s"
 msgid "es. 0,92"
 msgstr "e.g. 0.92"
 
+msgid "es. 10 per un frazionamento 1:10; 0,1 per un raggruppamento 10:1"
+msgstr "e.g. 10 for a 1:10 split; 0.1 for a 10:1 reverse split"
+
 msgid "es. 2.345,67"
 msgstr "e.g. 2,345.67"
 
@@ -7804,6 +7902,9 @@ msgstr "any file with Date, Description and Amount columns (or Income/Expenses, 
 #, python-format
 msgid "quando il patrimonio mediano copre il fabbisogno (%(needed)s)"
 msgstr "when the median wealth covers the need (%(needed)s)"
+
+msgid "quando la società divide (o unisce) le azioni: le quantità e i prezzi precedenti si adeguano"
+msgstr "when the company splits (or merges) its shares: earlier quantities and prices are adjusted"
 
 msgid "quantità × prezzo medio"
 msgstr "quantity × average price"
@@ -8169,6 +8270,12 @@ msgstr "— none —"
 
 msgid "— nessuno: lo aggiorno a mano —"
 msgstr "— none: I update it by hand —"
+
+msgid "— non indicata —"
+msgstr "— not set —"
+
+msgid "— non indicato —"
+msgstr "— not set —"
 
 msgid "— quello attivo —"
 msgstr "— the active one —"

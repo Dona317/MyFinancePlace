@@ -26,6 +26,8 @@ class Holding(db.Model):
     purchase_date = db.Column(db.Date)
     notes         = db.Column(db.Text)
     owner         = db.Column(db.String(80))  # whose it is (F20): a holder's name, «joint», empty = family
+    region        = db.Column(db.Text)            # where it invests (F20): Italia, Europa, Globale…
+    sector        = db.Column(db.Text)            # in what: Tecnologia, Finanza, Obbligazioni governative…
     # Taxes (F15): the rate on its capital gains when not the usual one for its class (12.5 for government bonds),
     # and whether it is held abroad (IVAFE instead of the stamp duty)
     tax_rate      = db.Column(db.Numeric(5, 2))

@@ -10,7 +10,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, broker, display, family, portfolio_ops, price_feed, wealth
+from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, wealth
 from app.services.i18n import _l
 from app.services.ui_settings import current_settings
 
@@ -63,6 +63,9 @@ def _holding_from_form(holding: Holding) -> Holding:
     holding.purchase_date = form_date("purchase_date", _("Data di acquisto"))
     holding.notes = form_text("notes", _("Note"))
     holding.owner = family.from_form()
+    region, sector = request.form.get("region") or None, request.form.get("sector") or None
+    holding.region = region if region in composition.REGIONS else None
+    holding.sector = sector if sector in composition.SECTORS else None
     rate = form_decimal("tax_rate", _("Aliquota sulle plusvalenze"))
     if rate is not None and not 0 < rate <= 100:
         raise ValueError(_("Aliquota sulle plusvalenze: indica una percentuale tra 0 e 100 (es. 12,5)."))
@@ -78,7 +81,8 @@ def _holding_from_form(holding: Holding) -> Holding:
 
 def _render_form(holding, values):
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
-                           sources=SOURCE_LABELS, online=current_settings()["prices_online"])
+                           sources=SOURCE_LABELS, online=current_settings()["prices_online"],
+                           regions=composition.REGIONS, sectors=composition.SECTORS)
 
 
 @portfolio_bp.route("/")

@@ -85,6 +85,26 @@
     </table>
   </div>
 </div>
+
+<details class="card" style="margin-top:16px;">
+  <summary class="card-body" style="cursor:pointer;"><strong>{{ _('Frazionamento o raggruppamento delle azioni') }}</strong>
+    <span class="text-sm text-muted">{{ _('quando la società divide (o unisce) le azioni: le quantità e i prezzi precedenti si adeguano') }}</span></summary>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('portfolio.split', holding_id=holding.id) }}" id="split-form" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;"
+          data-confirm="{{ _('Adeguare quantità e prezzi precedenti?') }}">
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="split-ratio">{{ _('1 vecchia = quante nuove') }}</label>
+        <input type="text" inputmode="decimal" name="ratio" id="split-ratio" class="form-control" placeholder="10" required />
+        <div class="form-hint">{{ _('es. 10 per un frazionamento 1:10; 0,1 per un raggruppamento 10:1') }}</div>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="split-on">{{ _('Dal giorno') }}</label>
+        <input type="date" name="on" id="split-on" class="form-control" required />
+      </div>
+      <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-left-right"></i> {{ _('Applica') }}</button>
+    </form>
+  </div>
+</details>
 {% endblock %}
 
 {% block scripts %}
