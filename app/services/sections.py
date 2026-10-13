@@ -53,7 +53,7 @@ SECTIONS = [
     Section("assistant", _l("Assistente"), "stars", _l("Strumenti"), ("assistant.",)),
     Section("health", _l("Salute dei dati"), "clipboard-check", _l("Strumenti"), ("health.",)),
     Section("clients", _l("Clienti"), "people", _l("Strumenti"), ("clients.",)),
-    Section("groups", _l("Gruppi e famiglia"), "diagram-3", _l("Strumenti"), ("groups.",)),
+    Section("groups", _l("Gruppi e famiglia"), "house-heart", _l("Strumenti"), ("groups.",)),
     Section("notifications", _l("Notifiche"), "bell", _l("Strumenti"), ("notifications.",)),
 ]
 BY_KEY = {section.key: section for section in SECTIONS}

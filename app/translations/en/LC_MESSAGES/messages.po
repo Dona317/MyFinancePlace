@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 11:13+0000\n"
+"POT-Creation-Date: 2026-10-13 11:16+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -7934,6 +7934,10 @@ msgstr "the answer changed"
 #, python-format
 msgid "la «regola del 4 %%»: 3–3,5 per orizzonti lunghi"
 msgstr "the “4 %% rule”: 3–3.5 for long horizons"
+
+#, python-format
+msgid "liquidità %(cash)s · investimenti %(investments)s"
+msgstr "cash %(cash)s · investments %(investments)s"
 
 msgid "liquidità e investimenti, senza la casa"
 msgstr "cash and investments, without the house"

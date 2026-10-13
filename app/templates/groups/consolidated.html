@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="consolidated">
 <p class="text-sm text-muted mb-16">
   {{ _('Somma in sola lettura degli archivi del gruppo, ognuno con i suoi conti, titoli e debiti. Per correggere un dato apri l’archivio della persona.') }}
 </p>
@@ -24,13 +25,13 @@
 {% endif %}
 
 <div class="kpi-grid" style="margin-bottom:24px;">
-  {{ kpi('bank', _('Patrimonio netto'), value=data.net_worth|money, cls='kpi-positive' if data.net_worth >= 0 else 'kpi-negative') }}
-  {{ kpi('wallet2', _('Liquidità'), value=data.cash|money) }}
-  {{ kpi('graph-up-arrow', _('Investimenti'), value=data.investments|money) }}
+  {{ kpi('bank', _('Patrimonio netto'), value=data.net_worth|money, cls='kpi-positive' if data.net_worth >= 0 else 'kpi-negative',
+         sub=_('liquidità %(cash)s · investimenti %(investments)s', cash=data.cash|money, investments=data.investments|money)) }}
   {{ kpi('credit-card', _('Debiti'), value=data.liabilities|money, cls='kpi-negative' if data.liabilities else 'kpi-neutral') }}
   {{ kpi('arrow-down-circle', _('Entrate 12 mesi'), value=data.income_12|money, cls='kpi-positive') }}
   {{ kpi('arrow-up-circle', _('Uscite 12 mesi'), value=data.expenses_12|money, cls='kpi-negative',
          sub=(_('passaggi interni esclusi: %(amount)s', amount=data.internal_total|money) if data.internal_total else none)) }}
+  {{ kpi('cash-coin', _('Rendite 12 mesi'), value=data.passive_12|money) }}
 </div>
 
 <div class="card mb-24">
@@ -60,11 +61,11 @@
       </tbody>
       <tfoot>
         <tr>
-          <th>{{ _('Totale') }}</th>
+          <td><strong>{{ _('Totale') }}</strong></td>
           {% for value in (data.cash, data.investments, data.other_assets, data.liabilities, data.net_worth, data.income_12, data.expenses_12, data.passive_12) %}
-          <th class="text-right nowrap">{{ value|money }}</th>
+          <td class="text-right nowrap"><strong>{{ value|money }}</strong></td>
           {% endfor %}
-          <th></th>
+          <td></td>
         </tr>
       </tfoot>
     </table>
@@ -161,6 +162,7 @@
     {% endfor %}</tbody>
   </table></div>
   {% else %}<div class="card-body">{{ empty_state(_('Nessun passaggio tra gli archivi del gruppo negli ultimi 12 mesi.'), compact=True) }}</div>{% endif %}
+</div>
 </div>
 {% endblock %}
 

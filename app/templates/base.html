@@ -240,7 +240,7 @@
         {% if shown('groups') and working_client() %}
         <a href="{{ url_for('groups.index') }}"
            class="nav-item {% if request.endpoint.startswith('groups.') %}active{% endif %}">
-          <i class="bi bi-diagram-3"></i> <span class="nav-label">{{ _('Gruppi e famiglia') }}</span>
+          <i class="bi bi-house-heart"></i> <span class="nav-label">{{ _('Gruppi e famiglia') }}</span>
         </a>
         {% endif %}
         <a href="{{ url_for('settings.index') }}"
@@ -327,7 +327,7 @@
         {% if allowed('groups') %}{% for group in client_groups(working_on) %}
         <a href="{{ url_for('groups.consolidated', group_id=group.id) }}" class="client-chip group-chip"
            title="{{ _('Consolidato del gruppo «%(name)s»', name=group.name) }}" aria-label="{{ _('Consolidato del gruppo «%(name)s»', name=group.name) }}">
-          <i class="bi bi-diagram-3" style="color:{{ group.color }}" aria-hidden="true"></i>
+          <i class="bi bi-house-heart" style="color:{{ group.color }}" aria-hidden="true"></i>
           <span class="client-name">{{ group.name }}</span>
         </a>
         {% endfor %}{% endif %}
