@@ -436,7 +436,9 @@ msgstr "%(pct)s%% on capital"
 msgid ""
 "%(runs)s simulazioni con rendimenti casuali: la linea centrale è il caso mediano, le altre il 10%% peggiore e il 10%%"
 " migliore."
-msgstr "%(runs)s simulations with random returns: the middle line is the median case, the others the worst and best 10%%."
+msgstr ""
+"%(runs)s simulations with random returns: the middle line is the median case, the others the worst 10%% and the best "
+"10%%."
 
 #, python-format
 msgid "%(share)s%% delle entrate degli ultimi 12 mesi viene da fonti stabili"
