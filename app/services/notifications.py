@@ -13,6 +13,7 @@ from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
 from app.services import (
     budgets,
+    data_health,
     display,
     forecast,
     investment_plans,
@@ -137,10 +138,17 @@ def _portfolio(today: date) -> list[Notification]:
     return items
 
 
+def _data_health(today: date) -> list[Notification]:
+    """The problems that make the numbers wrong (a negative holding, a currency without rates)."""
+    return [Notification(f"health-{check.key}-{check.count}", "danger", "exclamation-triangle", check.title,
+                         check.hint, today, url_for("health.index")) for check in data_health.severe(today)]
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
-           (_goals, "goals"), (_portfolio, "portfolio"))
+           (_goals, "goals"), (_portfolio, "portfolio"),
+           (_data_health, "health"))
 
 
 def dismissed() -> list[str]:

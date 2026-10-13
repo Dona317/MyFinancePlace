@@ -209,6 +209,12 @@
           <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
+        {% if shown('health') %}
+        <a href="{{ url_for('health.index') }}"
+           class="nav-item {% if request.endpoint.startswith('health.') %}active{% endif %}">
+          <i class="bi bi-clipboard-check"></i> <span class="nav-label">{{ _('Salute dei dati') }}</span>
+        </a>
+        {% endif %}
         {% if shown('clients') %}
         <a href="{{ url_for('clients.index') }}"
            class="nav-item {% if request.endpoint.startswith('clients.') %}active{% endif %}">

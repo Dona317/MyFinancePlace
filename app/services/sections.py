@@ -49,6 +49,7 @@ SECTIONS = [
     Section("tax", _l("Fisco"), "percent", _l("Gestione"), ("tax.",), "module_tax"),
     Section("snapshots", _l("Istantanee"), "camera", _l("Strumenti"), ("snapshots.",), "module_snapshots"),
     Section("export", _l("Esporta e importa"), "box-arrow-up", _l("Strumenti"), ("export.",), "module_export"),
+    Section("health", _l("Salute dei dati"), "clipboard-check", _l("Strumenti"), ("health.",)),
     Section("clients", _l("Clienti"), "people", _l("Strumenti"), ("clients.",)),
     Section("notifications", _l("Notifiche"), "bell", _l("Strumenti"), ("notifications.",)),
 ]

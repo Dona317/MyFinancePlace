@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-12 18:04+0000\n"
+"POT-Creation-Date: 2026-10-13 10:00+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -100,6 +100,10 @@ msgstr "%(count)s columns found (header on row %(line)s), %(rows)s rows."
 #, python-format
 msgid "%(count)s completati"
 msgstr "%(count)s completed"
+
+#, python-format
+msgid "%(count)s controlli hanno trovato qualcosa da sistemare."
+msgstr "%(count)s checks found something to fix."
 
 #, python-format
 msgid "%(count)s da confermare"
@@ -209,6 +213,10 @@ msgstr "%(count)s transactions found"
 #, python-format
 msgid "%(count)s volte, ultima il %(last)s · prossima il %(next)s"
 msgstr "%(count)s times, last on %(last)s · next on %(next)s"
+
+#, python-format
+msgid "%(currency)s: %(count)s movimenti"
+msgstr "%(currency)s: %(count)s movements"
 
 #, python-format
 msgid "%(days)s giorni"
@@ -1729,6 +1737,9 @@ msgstr ""
 "Current accounts: €34.20 when the average balance is above €5,000. Deposit accounts and securities: 0.2% of the "
 "value. Abroad: IVAFE."
 
+msgid "Conti da riconciliare"
+msgstr "Accounts to reconcile"
+
 msgid "Conti deposito e risparmio"
 msgstr "Savings and deposit accounts"
 
@@ -2666,6 +2677,9 @@ msgstr "Personal Finance Management"
 msgid "Giorno del mese"
 msgstr "Day of the month"
 
+msgid "Giroconti con un solo conto"
+msgstr "Transfers with one account only"
+
 #, python-format
 msgid "Giroconto con «%(name)s»"
 msgstr "Transfer with «%(name)s»"
@@ -2750,11 +2764,19 @@ msgstr "Home"
 msgid "I PDF devono essere quelli originali dell'home banking (non scansioni)."
 msgstr "PDFs must be the originals from online banking (not scans)."
 
+msgid "I controlli guardano tutto l'archivio: titoli, movimenti, conti e cambi. Si aggiornano ogni volta che apri la pagina."
+msgstr ""
+"The checks look at the whole archive: holdings, movements, accounts and exchange rates. They are refreshed every time"
+" you open the page."
+
 msgid "I guadagni di ETF e fondi esteri vanno nel quadro RM; le cripto in una sezione a parte del quadro RT."
 msgstr "Gains on foreign ETFs and funds go in quadro RM; crypto in a separate section of quadro RT."
 
 msgid "I metodi"
 msgstr "The methods"
+
+msgid "I movimenti in queste valute non si possono convertire in euro."
+msgstr "Movements in these currencies cannot be converted to euro."
 
 #, python-format
 msgid ""
@@ -2963,6 +2985,9 @@ msgstr "The most accurate on expenses"
 
 msgid "Il prezzo deve essere maggiore di zero."
 msgstr "The price must be greater than zero."
+
+msgid "Il prezzo non si può cercare su internet: aggiungi l'ISIN o scegli il prezzo manuale."
+msgstr "The price cannot be looked up online: add the ISIN or choose the manual price."
 
 msgid "Il residuo di mutui, prestiti e carte secondo il piano di ammortamento (o il saldo che hai inserito)."
 msgstr "What is left on mortgages, loans and cards according to the amortization plan (or the balance you entered)."
@@ -3607,6 +3632,9 @@ msgstr "May"
 msgid "Mai"
 msgstr "Never"
 
+msgid "Manca il conto di partenza o di arrivo: il saldo di uno dei due conti è sbagliato."
+msgstr "The source or destination account is missing: one of the two balances is wrong."
+
 msgid "Mancano"
 msgstr "Missing"
 
@@ -3871,6 +3899,9 @@ msgstr "Show all categories (%(count)s)"
 msgid "Mostra tutti"
 msgstr "Show all"
 
+msgid "Movimenti con stesso importo, data vicina e descrizione simile."
+msgstr "Movements with the same amount, close dates and a similar description."
+
 msgid ""
 "Movimenti del conto corrente che sono acquisti o vendite di questo titolo: spunta, indica le quote o il prezzo e "
 "diventano sue operazioni. Un'uscita è un acquisto, un'entrata una vendita."
@@ -3890,6 +3921,9 @@ msgstr "Movements read with artificial intelligence"
 
 msgid "Movimenti nuovi"
 msgstr "New movements"
+
+msgid "Movimenti senza categoria"
+msgstr "Movements without a category"
 
 #, python-format
 msgid "Movimento %(number)s: data o importo non validi"
@@ -4003,6 +4037,9 @@ msgstr "No price changed."
 
 msgid "Nessun prezzo registrato: finché non ne aggiungi, il passato usa il prezzo attuale."
 msgstr "No price recorded: until you add some, the past uses the current price."
+
+msgid "Nessun problema che cambi i numeri."
+msgstr "No problem that changes the numbers."
 
 msgid "Nessun promemoria"
 msgstr "No reminders"
@@ -4862,6 +4899,9 @@ msgstr "Holdings"
 msgid "Possibile duplicato di: %(tx)s"
 msgstr "Possible duplicate of: %(tx)s"
 
+msgid "Possibili doppioni"
+msgstr "Possible duplicates"
+
 msgid "Possibili duplicati"
 msgstr "Possible duplicates"
 
@@ -4944,6 +4984,9 @@ msgstr "Recorded prices (%(count)s)"
 msgid "Prezzi salvati: %(count)s."
 msgstr "Prices saved: %(count)s."
 
+msgid "Prezzi vecchi"
+msgstr "Stale prices"
+
 msgid "Prezzo"
 msgstr "Price"
 
@@ -4987,6 +5030,10 @@ msgstr "Price per unit"
 
 msgid "Prezzo per quota (€)"
 msgstr "Price per unit (€)"
+
+#, python-format
+msgid "Prezzo più vecchio di %(days)s giorni: aggiornali o inseriscili a mano."
+msgstr "Price older than %(days)s days: update it or enter it by hand."
 
 msgid "Prezzo sopra (€)"
 msgstr "Price above (€)"
@@ -5535,6 +5582,10 @@ msgstr "Opening balance of the accounts"
 msgid "Saldo iniziale dei conti aggiornato."
 msgstr "Opening balance of the accounts updated."
 
+#, python-format
+msgid "Saldo mai confrontato con l'estratto conto, o non da più di %(days)s giorni."
+msgstr "Balance never checked against the statement, or not for more than %(days)s days."
+
 msgid "Saldo previsto"
 msgstr "Expected balance"
 
@@ -5556,6 +5607,9 @@ msgstr "Health"
 
 msgid "Salute Finanziaria"
 msgstr "Financial Health"
+
+msgid "Salute dei dati"
+msgstr "Data health"
 
 msgid "Salva"
 msgstr "Save"
@@ -5811,6 +5865,9 @@ msgstr "They are checked at every price update; when one trips a reminder appear
 
 msgid "Simili"
 msgstr "Similar"
+
+msgid "Sistema"
+msgstr "Fix"
 
 msgid "Soglia"
 msgstr "Threshold"
@@ -6132,6 +6189,12 @@ msgstr "Holders and IBANs saved: bank transfers between your accounts will be im
 msgid "Titoli"
 msgstr "Holdings"
 
+msgid "Titoli con quantità negativa"
+msgstr "Holdings with a negative quantity"
+
+msgid "Titoli senza ISIN né ticker"
+msgstr "Holdings without ISIN or ticker"
+
 msgid "Titolo"
 msgstr "Security"
 
@@ -6396,6 +6459,10 @@ msgstr "Last 12 months"
 msgid "Ultimi 12 mesi completi"
 msgstr "Last 12 complete months"
 
+#, python-format
+msgid "Ultimi 12 mesi, in «%(name)s» o senza categoria: i report li contano a parte."
+msgstr "Last 12 months, in “%(name)s” or without a category: reports count them apart."
+
 msgid "Ultimi 3 mesi"
 msgstr "Last 3 months"
 
@@ -6479,6 +6546,9 @@ msgstr "One category only"
 
 msgid "Una transazione del file non ha data, descrizione o importo."
 msgstr "A transaction in the file has no date, description or amount."
+
+msgid "Una vendita supera le quote possedute: manca un acquisto o la posizione iniziale."
+msgstr "A sale exceeds the units held: a purchase or the opening position is missing."
 
 msgid "Università"
 msgstr "University"
@@ -6605,6 +6675,9 @@ msgstr "Currencies and Rates"
 
 msgid "Valute e cambi"
 msgstr "Currencies and rates"
+
+msgid "Valute senza tassi di cambio"
+msgstr "Currencies without exchange rates"
 
 msgid "Valute usate dalle tue transazioni"
 msgstr "Currencies used by your transactions"
@@ -6861,6 +6934,10 @@ msgstr "of which rolled over: %(amount)s"
 
 msgid "e Colonna Entrate / Avere"
 msgstr "and Money in / Credit column"
+
+#, python-format
+msgid "e altri %(count)s"
+msgstr "and %(count)s more"
 
 msgid "entrate"
 msgstr "income"
