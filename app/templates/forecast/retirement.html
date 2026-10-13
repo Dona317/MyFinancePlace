@@ -33,6 +33,16 @@
   </div></div>
   <div class="card-body"><div style="height:320px;"><canvas id="retirementChart"></canvas></div></div>
 </div>
+{% if result.without %}
+<div class="card" style="margin-bottom:24px;" id="glide">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Con e senza passaggio alle obbligazioni') }}</div>
+    <div class="card-header-sub">{{ _('Stesse simulazioni: con il passaggio la probabilità di successo è %(with)s%%, senza %(without)s%%. Il caso del 10%% peggiore all’ultima età: %(p10)s con, %(p10_without)s senza.',
+                                     with=result.success|number(1), without=result.without.success|number(1), p10=result.p10[-1]|money, p10_without=result.without.p10_end|money) }}</div>
+  </div></div>
+  <div class="card-body"><div style="height:200px;"><canvas id="glideChart"></canvas></div></div>
+</div>
+{% endif %}
 {% endif %}
 
 <div class="card">
@@ -61,6 +71,16 @@
         {{ field('inflation', _('Inflazione (%%)'), plan.inflation) }}
         {{ field('withdrawal_rate', _('Prelievo sicuro (%%)'), plan.withdrawal_rate, _('la «regola del 4 %%»: 3–3,5 per orizzonti lunghi')) }}
       </div>
+      <fieldset class="mb-16">
+        <legend class="form-label">{{ _('Passaggio graduale alle obbligazioni (facoltativo)') }}</legend>
+        <p class="form-hint">{{ _('Dopo la pensione la quota in obbligazioni sale in linea retta fino all’ultima età: una crisi nei primi anni di prelievi pesa meno. Rendimento e volatilità qui sopra diventano quelli della parte in azioni. Tutte e due le quote a 0: nessun passaggio.') }}</p>
+        <div class="grid-3">
+          {{ field('bonds_at_retirement', _('Obbligazioni alla pensione (%%)'), plan.bonds_at_retirement, _('es. 20')) }}
+          {{ field('bonds_at_horizon', _('Obbligazioni alla fine (%%)'), plan.bonds_at_horizon, _('es. 50')) }}
+          {{ field('bond_return', _('Rendimento obbligazioni (%%)'), plan.bond_return) }}
+          {{ field('bond_volatility', _('Volatilità obbligazioni (%%)'), plan.bond_volatility) }}
+        </div>
+      </fieldset>
       <div style="display:flex;gap:8px;">
         <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> {{ _('Ricalcola') }}</button>
         <button type="submit" name="reset" value="1" class="btn btn-ghost">{{ _('Riparti dai dati dell\'archivio') }}</button>
@@ -78,6 +98,11 @@ makeLineChart('retirementChart', {{ result.ages|tojson }}, [
   { label: {{ _('Mediana')|tojson }}, data: {{ result.p50|tojson }}, fill: false, pointRadius: 0 },
   { label: {{ _('10%% migliore')|tojson }}, data: {{ result.p90|tojson }}, fill: false, pointRadius: 0, dash: [4, 4] },
 ]);
+{% if result.without %}
+makeLineChart('glideChart', {{ result.ages|tojson }}, [
+  { label: {{ _('Quota in obbligazioni (%%)')|tojson }}, data: {{ result.bonds|tojson }}, pointRadius: 0 },
+], { percent: true, legend: false });
+{% endif %}
 </script>
 {% endif %}
 {% endblock %}

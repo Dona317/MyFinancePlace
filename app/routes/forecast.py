@@ -76,7 +76,8 @@ def mark_recurring(tx_id):
 # ── Retirement / FIRE (F20) ────────────────────────────────────────────────────
 
 RETIREMENT_FIELDS = ("age", "retire_at", "horizon", "wealth", "yearly_saving", "expenses", "pension", "expected_return",
-                     "volatility", "inflation", "withdrawal_rate")
+                     "volatility", "inflation", "withdrawal_rate", "bonds_at_retirement", "bonds_at_horizon", "bond_return",
+                     "bond_volatility")
 
 
 @forecast_bp.route("/retirement", methods=["GET", "POST"])

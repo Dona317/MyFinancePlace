@@ -122,12 +122,31 @@ class Retirement:
     volatility: float = 12.0          # % a year
     inflation: float = 2.0            # % a year
     withdrawal_rate: float = 4.0      # % of the wealth taken each year (the «4 % rule»)
+    # The glide path (F22): the share in bonds at retirement and at the end, rising in a straight line in between, so
+    # that a crash in the first years of withdrawals hurts less. Both 0: no glide (expected_return/volatility only)
+    bonds_at_retirement: float = 0.0  # %
+    bonds_at_horizon: float = 0.0     # %
+    bond_return: float = 3.0          # % a year, nominal
+    bond_volatility: float = 5.0      # % a year
+
+    @property
+    def glides(self) -> bool:
+        return bool(self.bonds_at_retirement or self.bonds_at_horizon)
+
+    def bond_share(self, age: int) -> float:
+        """The share in bonds at an age: the retirement one before, then a straight line to the horizon's."""
+        if age <= self.retire_at:
+            return self.bonds_at_retirement / 100
+        step = (age - self.retire_at) / (self.horizon - self.retire_at)
+        return (self.bonds_at_retirement + (self.bonds_at_horizon - self.bonds_at_retirement) * step) / 100
 
     def check(self) -> None:
         if not 18 <= self.age < self.retire_at < self.horizon <= 110:
             raise ValueError(_("Le età devono essere in ordine: oggi < pensione < fine dell'orizzonte (al massimo 110)."))
         if self.volatility < 0 or self.withdrawal_rate <= 0 or self.wealth < 0 or self.expenses < 0:
             raise ValueError(_("Patrimonio, spese, volatilità e prelievo non possono essere negativi."))
+        if not (0 <= self.bonds_at_retirement <= 100 and 0 <= self.bonds_at_horizon <= 100) or self.bond_volatility < 0:
+            raise ValueError(_("Quote in obbligazioni tra 0 e 100; la loro volatilità non può essere negativa."))
 
 
 def suggested(today: date | None = None) -> Retirement:
@@ -160,10 +179,21 @@ def _percentile(values: list[float], q: float) -> float:
     return ordered[min(int(q * len(ordered)), len(ordered) - 1)]
 
 
-def simulate(plan: Retirement, runs: int = RUNS, seed: int = SEED) -> dict:
+def simulate(plan: Retirement, runs: int = RUNS, seed: int = SEED, glide: bool = True) -> dict:
+    """The Monte Carlo of the plan; with a glide path, also the same run without it, to compare."""
     plan.check()
+    result = _simulate(plan, runs, seed, glide and plan.glides)
+    if glide and plan.glides:
+        without = _simulate(plan, runs, seed, False)
+        result["without"] = {"success": without["success"], "p10_end": without["p10"][-1], "p50_end": without["p50"][-1]}
+        result["bonds"] = [round(plan.bond_share(age) * 100, 1) for age in result["ages"]]
+    return result
+
+
+def _simulate(plan: Retirement, runs: int, seed: int, glide: bool) -> dict:
     rng = random.Random(seed)
     mean, vol = (plan.expected_return - plan.inflation) / 100, plan.volatility / 100
+    bond_mean, bond_vol = (plan.bond_return - plan.inflation) / 100, plan.bond_volatility / 100
     ages = list(range(plan.age, plan.horizon + 1))
     paths, successes, ran_out = [], 0, []
     gap = max(plan.expenses - plan.pension, 0.0)
@@ -171,6 +201,9 @@ def simulate(plan: Retirement, runs: int = RUNS, seed: int = SEED) -> dict:
         value, path, broke = plan.wealth, [plan.wealth], None
         for age in ages[1:]:
             r = rng.gauss(mean, vol)
+            if glide:
+                share = plan.bond_share(age)
+                r = (1 - share) * r + share * rng.gauss(bond_mean, bond_vol)
             value = value * (1 + r) + (plan.yearly_saving if age <= plan.retire_at else -gap)
             if value < 0 and broke is None:
                 broke = age

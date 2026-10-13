@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 20:53+0000\n"
+"POT-Creation-Date: 2026-10-13 20:54+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1841,6 +1841,9 @@ msgstr "With %(amount)s a month you do not reach it in 50 years"
 msgid "Con Claude serve la variabile"
 msgstr "With Claude you need the variable"
 
+msgid "Con e senza passaggio alle obbligazioni"
+msgstr "With and without the shift to bonds"
+
 msgid "Con il segno meno è un'uscita (-45,20), senza è un'entrata (1.200)."
 msgstr "With a minus sign it is an expense (-45.20), without it is income (1,200)."
 
@@ -2452,6 +2455,14 @@ msgstr "Question"
 
 msgid "Domanda o dati troppo lunghi."
 msgstr "Question or data too long."
+
+msgid ""
+"Dopo la pensione la quota in obbligazioni sale in linea retta fino all’ultima età: una crisi nei primi anni di "
+"prelievi pesa meno. Rendimento e volatilità qui sopra diventano quelli della parte in azioni. Tutte e due le quote a "
+"0: nessun passaggio."
+msgstr ""
+"After retirement the share in bonds rises in a straight line up to the last age: a crash in the first years of "
+"withdrawals weighs less. Return and volatility above become those of the equity part. Both shares at 0: no shift."
 
 msgid ""
 "Dove e in cosa investi: area geografica e settore si indicano nella scheda di ogni titolo (un ETF su tutto il mondo è"
@@ -5158,6 +5169,14 @@ msgstr "Long-term bonds"
 msgid "Obbligazioni a medio termine"
 msgstr "Medium-term bonds"
 
+#, python-format
+msgid "Obbligazioni alla fine (%%)"
+msgstr "Bonds at the end (%%)"
+
+#, python-format
+msgid "Obbligazioni alla pensione (%%)"
+msgstr "Bonds at retirement (%%)"
+
 msgid "Obbligazioni globali"
 msgstr "Global bonds"
 
@@ -5422,6 +5441,9 @@ msgstr "Switch to dark mode"
 
 msgid "Passaggi interni"
 msgstr "Internal moves"
+
+msgid "Passaggio graduale alle obbligazioni (facoltativo)"
+msgstr "Gradual shift to bonds (optional)"
 
 msgid "Passività"
 msgstr "Liabilities"
@@ -6084,11 +6106,18 @@ msgstr ""
 msgid "Quota"
 msgstr "Share"
 
+#, python-format
+msgid "Quota in obbligazioni (%%)"
+msgstr "Share in bonds (%%)"
+
 msgid "Quote"
 msgstr "Units"
 
 msgid "Quote frazionarie (il broker le permette)"
 msgstr "Fractional units (the broker allows them)"
+
+msgid "Quote in obbligazioni tra 0 e 100; la loro volatilità non può essere negativa."
+msgstr "Bond shares between 0 and 100; their volatility cannot be negative."
 
 msgid "RAM"
 msgstr "RAM"
@@ -6232,6 +6261,10 @@ msgstr "Expected return: between −20 and 30 % a year."
 
 msgid "Rendimento cumulato"
 msgstr "Cumulative return"
+
+#, python-format
+msgid "Rendimento obbligazioni (%%)"
+msgstr "Bond return (%%)"
 
 msgid "Rendimento sugli ultimi 12 mesi: sul prezzo pagato e sul valore di oggi."
 msgstr "Yield over the last 12 months: on the price paid and on today's value."
@@ -7049,6 +7082,14 @@ msgstr ""
 
 msgid "Stessa descrizione, ritmo regolare e importo stabile, ma non segnate come ricorrenti"
 msgstr "Same description, regular rhythm and stable amount, but not marked as recurring"
+
+#, python-format
+msgid ""
+"Stesse simulazioni: con il passaggio la probabilità di successo è %(with)s%%, senza %(without)s%%. Il caso del 10%% "
+"peggiore all’ultima età: %(p10)s con, %(p10_without)s senza."
+msgstr ""
+"Same simulations: with the shift the probability of success is %(with)s%%, without %(without)s%%. The worst 10%% case"
+" at the last age: %(p10)s with, %(p10_without)s without."
 
 msgid "Stesso importo, data vicina e descrizione simile a una transazione già salvata"
 msgstr "Same amount, close date and description similar to an already saved transaction"
@@ -7945,6 +7986,10 @@ msgstr "Volatility"
 msgid "Volatilità (%%)"
 msgstr "Volatility (%%)"
 
+#, python-format
+msgid "Volatilità obbligazioni (%%)"
+msgstr "Bond volatility (%%)"
+
 msgid "Vuota per polizze senza scadenza fissa."
 msgstr "Empty for policies without a fixed expiry."
 
@@ -8205,6 +8250,9 @@ msgstr "e.g. 10 for a 1:10 split; 0.1 for a 10:1 reverse split"
 msgid "es. 2.345,67"
 msgstr "e.g. 2,345.67"
 
+msgid "es. 20"
+msgstr "e.g. 20"
+
 msgid "es. 3,25"
 msgstr "e.g. 3.25"
 
@@ -8213,6 +8261,9 @@ msgstr "e.g. 300 for 25 years"
 
 msgid "es. 4821"
 msgstr "e.g. 4821"
+
+msgid "es. 50"
+msgstr "e.g. 50"
 
 msgid "es. Animali"
 msgstr "e.g. Pets"
