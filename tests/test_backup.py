@@ -57,7 +57,7 @@ def test_backup_contains_every_table_and_the_files(client, everything):
     assert backup.counts(data) == {
         "app_settings": 1, "accounts": 0, "categories": 0, "category_rules": 0, "exchange_rates": 0, "transactions": 8, "transaction_splits": 0, "duplicate_dismissals": 1, "holdings": 1, "holding_prices": 0, "debts": 1,
         "insurance_policies": 1, "goals": 1, "budgets": 0, "documents": 1, "snapshots": 1,
-        "portfolio_templates": 0, "template_slots": 0, "slot_holdings": 0, "portfolio_rules": 0, "investment_plans": 0, "spending_events": 0, "contribution_limits": 0,
+        "portfolio_templates": 0, "template_slots": 0, "slot_holdings": 0, "portfolio_rules": 0, "investment_plans": 0, "spending_events": 0, "contribution_limits": 0, "taxonomies": 0, "taxonomy_categories": 0, "holding_categories": 0,
     }
 
 

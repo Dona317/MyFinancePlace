@@ -26,6 +26,7 @@ from app.services import (
     portfolio_ops,
     portfolio_rules,
     price_feed,
+    taxonomies,
 )
 from app.services.parsing import to_date, to_decimal
 
@@ -210,4 +211,5 @@ def composition_page():
     person = request.args.get("person", "")
     holdings = family.holdings_of(person, portfolio_models.investments())
     return render_template("portfolio/composition.html", exposure=composition.exposure(holdings), person=person,
-                           unset=composition.UNSET)
+                           unset=composition.UNSET,
+                           own=[(t, taxonomies.exposure(t, holdings)) for t in taxonomies.all_taxonomies()])

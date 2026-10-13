@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 20:48+0000\n"
+"POT-Creation-Date: 2026-10-13 20:51+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -510,6 +510,9 @@ msgstr ""
 "them to that movement, which becomes a transfer with both the source and the destination account, without counting "
 "them twice. Untick «link» if they are different movements."
 
+msgid "(in percentuale, fino a 100)"
+msgstr "(in percent, up to 100)"
+
 msgid "(nessuna rata in scadenza: puoi comunque investire ora)"
 msgstr "(no instalment due: you can still invest now)"
 
@@ -907,6 +910,9 @@ msgstr "Allocation by Class"
 msgid "Alta — descrizioni anche poco simili"
 msgstr "High — even loosely similar descriptions"
 
+msgid "Alto"
+msgstr "High"
+
 msgid "Altre"
 msgstr "Others"
 
@@ -1276,6 +1282,9 @@ msgstr "Base"
 msgid "Bassa — quasi identiche"
 msgstr "Low — almost identical"
 
+msgid "Basso"
+msgstr "Low"
+
 msgid "Basta l’ISIN: il ticker viene cercato da solo al primo aggiornamento."
 msgstr "The ISIN is enough: the ticker is looked up by itself at the first update."
 
@@ -1541,6 +1550,9 @@ msgstr "Category: choose one."
 msgid "Categorie"
 msgstr "Categories"
 
+msgid "Categorie (una per riga)"
+msgstr "Categories (one per line)"
+
 msgid "Categorie collegate alle voci"
 msgstr "Categories linked to the items"
 
@@ -1640,6 +1652,27 @@ msgstr "Classifying…"
 
 msgid "Classificazione non riuscita."
 msgstr "Classification failed."
+
+#, python-format
+msgid "Classificazione «%(name)s» creata: scegli le categorie nella scheda di ogni titolo."
+msgstr "Classification “%(name)s” created: choose the categories on each holding's page."
+
+#, python-format
+msgid "Classificazione «%(name)s» eliminata."
+msgstr "Classification “%(name)s” deleted."
+
+#, python-format
+msgid "Classificazione «%(name)s» salvata."
+msgstr "Classification “%(name)s” saved."
+
+msgid "Classificazioni"
+msgstr "Classifications"
+
+msgid "Classificazioni dei titoli"
+msgstr "Holding classifications"
+
+msgid "Classificazioni salvate."
+msgstr "Classifications saved."
 
 msgid "Clicca per partire da un modello: potrai cambiare nome e importo"
 msgstr "Click to start from a template: you can change name and amount"
@@ -2469,6 +2502,9 @@ msgstr "Delete the group"
 msgid "Elimina istantanea"
 msgstr "Delete snapshot"
 
+msgid "Elimina la classificazione"
+msgstr "Delete the classification"
+
 msgid "Elimina la regola"
 msgstr "Delete the rule"
 
@@ -2532,6 +2568,10 @@ msgstr "Delete the snapshot of %(date)s?"
 #, python-format
 msgid "Eliminare l'obiettivo «%(name)s»?"
 msgstr "Delete the goal “%(name)s”?"
+
+#, python-format
+msgid "Eliminare la classificazione «%(name)s»? I titoli restano."
+msgstr "Delete the classification “%(name)s”? The holdings stay."
 
 #, python-format
 msgid "Eliminare la fonte «%(name)s»?"
@@ -2726,6 +2766,10 @@ msgstr "An account called «%(name)s» already exists."
 #, python-format
 msgid "Esiste già un utente «%(name)s»."
 msgstr "A user “%(name)s” already exists."
+
+#, python-format
+msgid "Esiste già una classificazione «%(name)s»."
+msgstr "A classification “%(name)s” already exists."
 
 msgid "Espandi il menu"
 msgstr "Expand the menu"
@@ -4040,6 +4084,9 @@ msgstr "Transactions in other currencies are converted with the"
 msgid "Le tue categorie"
 msgstr "Your categories"
 
+msgid "Le tue classificazioni (rischio, tema, ESG…)"
+msgstr "Your classifications (risk, theme, ESG…)"
+
 msgid "Le tue ipotesi"
 msgstr "Your assumptions"
 
@@ -4234,6 +4281,9 @@ msgstr "Simple average of the last N months."
 
 msgid "Mediana"
 msgstr "Median"
+
+msgid "Medio"
+msgstr "Medium"
 
 msgid "Meno recenti"
 msgstr "Older"
@@ -4664,6 +4714,9 @@ msgstr "No category forecast."
 msgid "Nessuna categoria è cambiata di più di 10 €."
 msgstr "No category changed by more than €10."
 
+msgid "Nessuna classificazione tua: creane una qui sotto."
+msgstr "No classifications of your own: create one below."
+
 msgid "Nessuna controparte da aggiungere: le causali non nominano un esercente."
 msgstr "No counterparty to add: the causali name no merchant."
 
@@ -4847,6 +4900,9 @@ msgstr "Group name"
 msgid "Nome del modello non valido."
 msgstr "Invalid model name."
 
+msgid "Nome della categoria"
+msgstr "Category name"
+
 msgid "Nome della fonte: fino a 40 lettere, cifre, spazi, punti o trattini."
 msgstr "Source name: up to 40 letters, digits, spaces, dots or dashes."
 
@@ -4966,6 +5022,9 @@ msgstr "New Transaction"
 
 msgid "Nuova categoria"
 msgstr "New category"
+
+msgid "Nuova classificazione"
+msgstr "New classification"
 
 msgid "Nuova operazione"
 msgstr "New operation"
@@ -5186,6 +5245,16 @@ msgstr "Ollama is not running"
 #, python-format
 msgid "Ollama non è raggiungibile su %(base_url)s: è installato e avviato (`ollama serve`)?"
 msgstr "Ollama is not reachable at %(base_url)s: is it installed and running (`ollama serve`)?"
+
+#, python-format
+msgid ""
+"Oltre ad area geografica e settore, raggruppa i titoli come vuoi: per rischio, per tema, ESG, di chi è il PAC… Ogni "
+"titolo si mette in una categoria, oppure, se la classificazione lo consente, si divide tra più categorie in "
+"percentuale (un ETF al 60 %% in una e al 40 %% nell’altra)."
+msgstr ""
+"Besides region and sector, group the holdings as you like: by risk, theme, ESG, whose PAC it is… Each holding goes in"
+" one category or, when the classification allows it, is split among several by percentage (an ETF 60 %% in one and 40"
+" %% in the other)."
 
 #, python-format
 msgid "Oltre il 20%% sopra la media"
@@ -5993,6 +6062,13 @@ msgstr "Professional liability"
 msgid "Raggiunto"
 msgstr "Reached"
 
+msgid ""
+"Raggruppamenti tuoi oltre ad area e settore (rischio, tema, ESG…), anche in percentuale: ognuno ha il suo grafico in "
+"Portafoglio → Composizione."
+msgstr ""
+"Your own groupings besides region and sector (risk, theme, ESG…), also by percentage: each has its chart in Portfolio"
+" → Composition."
+
 msgid "Rata"
 msgstr "Installment"
 
@@ -6618,6 +6694,10 @@ msgstr "Drift"
 
 msgid "Scostamento dal portafoglio modello (punti)"
 msgstr "Drift from the model portfolio (points)"
+
+#, python-format
+msgid "Scrivi il nome %(what)s."
+msgstr "Write the name %(what)s."
 
 msgid "Scrivi il nome del cliente."
 msgstr "Enter the client's name."
@@ -7543,6 +7623,9 @@ msgstr "One ETF on every stock market in the world: the highest expected growth,
 msgid "Un tetto mio"
 msgstr "A limit of my own"
 
+msgid "Un titolo può stare in più categorie, in percentuale"
+msgstr "A holding can be in several categories, by percentage"
+
 msgid ""
 "Un viaggio, un matrimonio, dei lavori in casa: raccogli i movimenti di categorie diverse per vederne il costo totale "
 "e confrontarlo con un budget."
@@ -8003,6 +8086,12 @@ msgstr "of this month's income"
 msgid "del totale spese"
 msgstr "of total spending"
 
+msgid "della categoria"
+msgstr "of the category"
+
+msgid "della classificazione"
+msgstr "of the classification"
+
 msgid "detraibile"
 msgstr "tax-deductible"
 
@@ -8098,6 +8187,9 @@ msgstr "e.g. Monthly PAC"
 
 msgid "es. POL-2024-001234"
 msgstr "e.g. POL-2024-001234"
+
+msgid "es. Rischio"
+msgstr "e.g. Risk"
 
 msgid "es. Sito del mio fondo"
 msgstr "e.g. My fund's site"
@@ -8217,6 +8309,9 @@ msgstr "the answer changed"
 #, python-format
 msgid "la «regola del 4 %%»: 3–3,5 per orizzonti lunghi"
 msgstr "the “4 %% rule”: 3–3.5 for long horizons"
+
+msgid "le tue (Impostazioni → Classificazioni): in Composizione ognuna ha il suo grafico"
+msgstr "your own (Settings → Classifications): each has its chart in Composition"
 
 #, python-format
 msgid "liquidità %(cash)s · investimenti %(investments)s"
@@ -8657,6 +8752,10 @@ msgid "«%(iban)s» non è un IBAN valido: controlla le cifre."
 msgstr "«%(iban)s» is not a valid IBAN: check the digits."
 
 #, python-format
+msgid "«%(name)s» c'è già."
+msgstr "“%(name)s” is already there."
+
+#, python-format
 msgid "«%(name)s» copiato: cambialo come vuoi. È un esempio, non un consiglio d'investimento."
 msgstr "“%(name)s” copied: change it as you like. It is an example, not investment advice."
 
@@ -8693,12 +8792,24 @@ msgid "«%(name)s»: aggiunti %(amount)s."
 msgstr "«%(name)s»: %(amount)s added."
 
 #, python-format
+msgid "«%(name)s»: le percentuali superano 100."
+msgstr "“%(name)s”: the percentages exceed 100."
+
+#, python-format
+msgid "«%(name)s»: le percentuali vanno da 0 a 100."
+msgstr "“%(name)s”: percentages go from 0 to 100."
+
+#, python-format
 msgid "«%(name)s»: scrivi nome e cognome (una sola parola riconoscerebbe troppi movimenti)."
 msgstr "«%(name)s»: write first and last name (a single word would match too many movements)."
 
 #, python-format
 msgid "«%(name)s»: tolti %(amount)s."
 msgstr "«%(name)s»: %(amount)s taken out."
+
+#, python-format
+msgid "«%(name)s»: un titolo sta in una sola categoria."
+msgstr "“%(name)s”: a holding is in one category only."
 
 #, python-format
 msgid "«%(old)s» rinominata in «%(name)s»."

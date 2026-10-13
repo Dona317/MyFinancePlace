@@ -37,13 +37,34 @@
     </div>
   </div>
   {% endfor %}
+  {% for t, rows in own %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ t.name }}</div></div>
+    <div class="card-body">
+      {% if rows %}
+      <div style="height:220px;"><canvas id="chart-t{{ t.id }}"></canvas></div>
+      <table class="table-compact" style="margin-top:12px;">
+        <tbody>
+          {% for name, value, pct in rows %}
+          <tr><td>{{ name|tr if name == unset else name }}</td><td class="text-right nowrap">{{ value|money }}</td><td class="text-right nowrap">{{ pct|number(1) }} %</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<span class="text-muted">{{ _('Nessun investimento.') }}</span>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
 </div>
+<p class="text-sm text-muted mt-16"><a href="{{ url_for('settings.taxonomies_page') }}"><i class="bi bi-tags"></i> {{ _('Le tue classificazioni (rischio, tema, ESG…)') }}</a></p>
 {% endblock %}
 
 {% block scripts %}
 <script>
 {% for key in ('region', 'sector') %}{% if exposure[key] %}
 makeDoughnutChart('chart-{{ key }}', {{ exposure[key]|map(attribute=0)|map('tr')|list|tojson }}, {{ exposure[key]|map(attribute=1)|list|tojson }});
+{% endif %}{% endfor %}
+{% for t, rows in own %}{% if rows %}
+makeDoughnutChart('chart-t{{ t.id }}', {{ rows|map(attribute=0)|map('tr')|list|tojson }}, {{ rows|map(attribute=1)|list|tojson }});
 {% endif %}{% endfor %}
 </script>
 {% endblock %}

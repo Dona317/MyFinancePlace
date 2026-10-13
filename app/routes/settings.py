@@ -10,6 +10,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.category import Category, CategoryRule
 from app.models.currency import ExchangeRate
+from app.models.taxonomy import Taxonomy
 from app.models.wealth import Holding
 from app.routes.helpers import delete_and_redirect, flash_errors, form_choice, form_date, form_decimal, form_text
 from app.services import (
@@ -24,6 +25,7 @@ from app.services import (
     instrument_sources,
     owners,
     settings_store,
+    taxonomies,
 )
 from app.services.bank_import import CATEGORY_RULES
 from app.services.instrument_sources import custom
@@ -406,3 +408,46 @@ def custom_source_delete():
     db.session.commit()
     flash(_("Fonte eliminata: i titoli che la usavano tornano alla fonte automatica."), "success")
     return redirect(url_for("settings.price_sources"))
+
+
+# ── Classifications of the holdings (F22) ──────────────────────────────────────
+
+@settings_bp.route("/taxonomies")
+def taxonomies_page():
+    return render_template("settings/taxonomies.html", taxonomies=taxonomies.all_taxonomies())
+
+
+@settings_bp.route("/taxonomies/new", methods=["POST"])
+def taxonomy_new():
+    with flash_errors(rollback=True):
+        taxonomy = taxonomies.create(request.form.get("name", ""), "multiple" in request.form, request.form.get("categories", ""))
+        db.session.commit()
+        flash(_("Classificazione «%(name)s» creata: scegli le categorie nella scheda di ogni titolo.", name=taxonomy.name), "success")
+    return redirect(url_for("settings.taxonomies_page"))
+
+
+@settings_bp.route("/taxonomies/<int:taxonomy_id>", methods=["POST"])
+def taxonomy_edit(taxonomy_id):
+    taxonomy = db.get_or_404(Taxonomy, taxonomy_id)
+    with flash_errors(rollback=True):
+        taxonomies.update(taxonomy, request.form.get("name", ""), "multiple" in request.form)
+        for category in list(taxonomy.categories):
+            if f"delete-{category.id}" in request.form:
+                db.session.delete(category)
+            else:
+                taxonomies.rename_category(category, request.form.get(f"cat-{category.id}", category.name))
+        if (request.form.get("new_category") or "").strip():
+            taxonomies.add_category(taxonomy, request.form["new_category"])
+        db.session.commit()
+        flash(_("Classificazione «%(name)s» salvata.", name=taxonomy.name), "success")
+    return redirect(url_for("settings.taxonomies_page"))
+
+
+@settings_bp.route("/taxonomies/<int:taxonomy_id>/delete", methods=["POST"])
+def taxonomy_delete(taxonomy_id):
+    taxonomy = db.get_or_404(Taxonomy, taxonomy_id)
+    name = taxonomy.name
+    db.session.delete(taxonomy)
+    db.session.commit()
+    flash(_("Classificazione «%(name)s» eliminata.", name=name), "success")
+    return redirect(url_for("settings.taxonomies_page"))

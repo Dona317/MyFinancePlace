@@ -105,6 +105,37 @@
     </form>
   </div>
 </details>
+
+{% if taxonomies %}
+<details class="card" style="margin-top:16px;" id="classify" {{ 'open' if request.args.get('classify') }}>
+  <summary class="card-body" style="cursor:pointer;"><strong>{{ _('Classificazioni') }}</strong>
+    <span class="text-sm text-muted">{{ _('le tue (Impostazioni → Classificazioni): in Composizione ognuna ha il suo grafico') }}</span></summary>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('portfolio.classify', holding_id=holding.id) }}">
+      {% for t in taxonomies %}
+      {% set given = classified.get(t.id, {}) %}
+      <fieldset class="form-group">
+        <legend class="form-label">{{ t.name }}{% if t.multiple %} <span class="text-xs text-muted">{{ _('(in percentuale, fino a 100)') }}</span>{% endif %}</legend>
+        {% if t.multiple %}
+        <div class="d-flex gap-8 flex-wrap">
+          {% for c in t.categories %}
+          <label class="text-sm d-flex align-center gap-8">{{ c.name }}
+            <input type="text" inputmode="decimal" name="w-{{ c.id }}" class="form-control" style="width:80px;" value="{{ given[c.id]|plain if c.id in given else '' }}" aria-label="{{ t.name }}: {{ c.name }} (%%)" /></label>
+          {% endfor %}
+        </div>
+        {% else %}
+        <select name="t-{{ t.id }}" class="form-select" style="max-width:320px;" aria-label="{{ t.name }}">
+          <option value="">{{ _('— non indicato —') }}</option>
+          {% for c in t.categories %}<option value="{{ c.id }}" {{ 'selected' if c.id in given }}>{{ c.name }}</option>{% endfor %}
+        </select>
+        {% endif %}
+      </fieldset>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+    </form>
+  </div>
+</details>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}

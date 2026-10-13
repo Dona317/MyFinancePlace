@@ -10,9 +10,10 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, valuations, wealth
+from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, taxonomies, valuations, wealth
 from app.services.i18n import _l
 from app.services.instrument_sources import custom
+from app.services.parsing import to_decimal
 from app.services.ui_settings import current_settings
 
 portfolio_bp = APIBlueprint(
@@ -135,6 +136,7 @@ def detail(holding_id):
     return render_template("portfolio/detail.html", holding=holding, operations=portfolio_ops.operations(holding),
                            financed=[row for row in wealth.financed_assets() if row["holding"].id == holding.id],
                            perf=portfolio_ops.performance([holding]), kinds=portfolio_ops.KINDS,
+                           taxonomies=taxonomies.all_taxonomies(), classified=taxonomies.of_holding(holding),
                            kind_of=portfolio_ops.kind_of,
                            chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})
 
@@ -245,6 +247,27 @@ def lookup():
         return jsonify({"error": _("Ricerca non riuscita: %(error)s", error=" · ".join(errors)), "results": []}), 502
     return jsonify({"results": [c.as_dict() | {"source_name": SOURCE_LABELS.get(c.source, c.source)} for c in found[:10]],
                     "errors": errors})
+
+
+@portfolio_bp.route("/<int:holding_id>/classify", methods=["POST"])
+def classify(holding_id):
+    """The holding in the user's classifications (F22): one category, or percentages among several."""
+    holding = db.get_or_404(Holding, holding_id)
+    try:
+        for taxonomy in taxonomies.all_taxonomies():
+            if taxonomy.multiple:
+                weights = {c.id: to_decimal(request.form.get(f"w-{c.id}")) for c in taxonomy.categories}
+            else:
+                chosen = request.form.get(f"t-{taxonomy.id}", type=int)
+                weights = {chosen: Decimal(100)} if chosen else {}
+            taxonomies.assign(holding, taxonomy, weights)
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return redirect(url_for("portfolio.detail", holding_id=holding.id, classify=1))
+    db.session.commit()
+    flash(_("Classificazioni salvate."), "success")
+    return redirect(url_for("portfolio.detail", holding_id=holding.id))
 
 
 @portfolio_bp.route("/<int:holding_id>/history", methods=["GET", "POST"])

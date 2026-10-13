@@ -141,6 +141,13 @@
           </div>
           <a href="{{ url_for('settings.price_sources') }}" class="btn btn-ghost btn-sm">{{ _('Scegli') }} <i class="bi bi-chevron-right"></i></a>
         </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <div class="toggle-label">{{ _('Classificazioni dei titoli') }}</div>
+            <div class="toggle-hint">{{ _('Raggruppamenti tuoi oltre ad area e settore (rischio, tema, ESG…), anche in percentuale: ognuno ha il suo grafico in Portafoglio → Composizione.') }}</div>
+          </div>
+          <a href="{{ url_for('settings.taxonomies_page') }}" class="btn btn-ghost btn-sm">{{ _('Modifica') }} <i class="bi bi-chevron-right"></i></a>
+        </div>
       </div>
     </div>
 
