@@ -10,7 +10,17 @@ from app.models.limit import ContributionLimit
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
 from app.routes.helpers import csv_text, download, flash_errors, year_arg
-from app.services import accounts, capital_gains, categories, contribution_limits, display, stamp_duty, tax_730, tax_rules
+from app.services import (
+    accounts,
+    capital_gains,
+    categories,
+    contribution_limits,
+    display,
+    gigs,
+    stamp_duty,
+    tax_730,
+    tax_rules,
+)
 from app.services.parsing import to_decimal
 
 tax_bp = Blueprint("tax", __name__, url_prefix="/tax")
@@ -83,6 +93,14 @@ def investments():
 def duties():
     year = year_arg(date.today().year)
     return _page("tax/duties.html", "duties", year, data=stamp_duty.year_summary(year))
+
+
+# ── Occasional work for the tax return (F22) ──────────────────────────────────
+
+@tax_bp.route("/gigs")
+def gigs_page():
+    year = year_arg(date.today().year - 1)  # the return filed this year is about last year
+    return _page("tax/gigs.html", "gigs", year, data=gigs.year(year), threshold=gigs.INPS_THRESHOLD)
 
 
 # ── Contribution limits (F22) ──────────────────────────────────────────────────

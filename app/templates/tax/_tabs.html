@@ -4,7 +4,8 @@
   {{ tab_bar([('730', url_for('tax.deductions', year=year), _('730: spese detraibili')),
                ('investments', url_for('tax.investments', year=year), _('Plusvalenze')),
                ('duties', url_for('tax.duties', year=year), _('Bollo e IVAFE')),
-               ('limits', url_for('tax.limits', year=year), _('Tetti di versamento'))], tab, _('Sezioni del fisco')) }}
+               ('limits', url_for('tax.limits', year=year), _('Tetti di versamento')),
+               ('gigs', url_for('tax.gigs_page', year=year), _('Lavori occasionali'))], tab, _('Sezioni del fisco')) }}
   {% include "partials/year_select.html" %}
 </div>
 <p class="text-xs text-muted mb-16"><i class="bi bi-info-circle"></i> {{ _("Stime per pianificare, con le regole dell'anno scelto: la dichiarazione la verifica il CAF o il commercialista.") }}</p>

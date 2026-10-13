@@ -46,6 +46,7 @@ SECTIONS = [
     Section("portfolio", _l("Portafoglio"), "briefcase", _l("Gestione"), ("portfolio.",), "module_portfolio"),
     Section("debt", _l("Debiti"), "credit-card", _l("Gestione"), ("debt.",), "module_debt"),
     Section("insurance", _l("Assicurazioni"), "shield-check", _l("Gestione"), ("insurance.",), "module_insurance"),
+    Section("gigs", _l("Lavoretti"), "tools", _l("Gestione"), ("gigs.", "tax.gigs")),
     Section("documents", _l("Documenti"), "folder2-open", _l("Gestione"), ("documents.",), "module_documents"),
     Section("tax", _l("Fisco"), "percent", _l("Gestione"), ("tax.",), "module_tax"),
     Section("snapshots", _l("Istantanee"), "camera", _l("Strumenti"), ("snapshots.",), "module_snapshots"),

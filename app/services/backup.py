@@ -30,6 +30,7 @@ from app.models import (
     Document,
     DuplicateDismissal,
     ExchangeRate,
+    Gig,
     Goal,
     Holding,
     HoldingCategory,
@@ -59,7 +60,7 @@ SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 # Insertion order: a table comes after the tables it points to (documents and dismissals → transactions)
 MODELS = [AppSetting, Account, Category, CategoryRule, ExchangeRate, Holding, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
           InsurancePolicy, Goal, Budget, Document, Snapshot, PortfolioTemplate, TemplateSlot, SlotHolding,
-          PortfolioRule, InvestmentPlan, ContributionLimit, Taxonomy, TaxonomyCategory, HoldingCategory]  # parents before the rows that point to them
+          PortfolioRule, InvestmentPlan, ContributionLimit, Taxonomy, TaxonomyCategory, HoldingCategory, Gig]  # parents before the rows that point to them
 
 
 class BackupError(Exception):

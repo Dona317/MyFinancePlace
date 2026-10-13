@@ -17,6 +17,7 @@ from app.services import (
     data_health,
     display,
     forecast,
+    gigs,
     investment_plans,
     portfolio_rules,
     request_cache,
@@ -153,11 +154,19 @@ def _limits(today: date) -> list[Notification]:
                          url_for("tax.limits", year=s.year)) for s in contribution_limits.reminders(today)]
 
 
+def _gigs(today: date) -> list[Notification]:
+    """Odd jobs not paid a month after they were done."""
+    return [Notification(f"gig-{g.id}", "warning", "tools", _("Da incassare: %(client)s", client=g.client),
+                         _("%(job)s del %(day)s, %(amount)s", job=g.description, day=display.day(g.date),
+                           amount=_money(gigs.net(g))), g.date, url_for("gigs.index", year=g.date.year))
+            for g in gigs.late(today)]
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
-           (_data_health, "health"), (_limits, "tax"))
+           (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"))
 
 
 def dismissed() -> list[str]:

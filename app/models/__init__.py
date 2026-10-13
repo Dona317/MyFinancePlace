@@ -6,6 +6,7 @@ from .client import Client, ClientGroup
 from .currency import ExchangeRate
 from .duplicate import DuplicateDismissal
 from .event import SpendingEvent
+from .gig import Gig
 from .limit import ContributionLimit
 from .portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate, SlotHolding, TemplateSlot
 from .setting import AppSetting
@@ -18,5 +19,5 @@ __all__ = [
     "Account", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule",
     "ExchangeRate", "Budget", "User", "Client", "ClientGroup", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
-    "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory",
+    "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig",
 ]

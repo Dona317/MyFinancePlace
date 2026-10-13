@@ -179,6 +179,12 @@
           <i class="bi bi-credit-card"></i> <span class="nav-label">{{ _('Debiti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
+        {% if shown('gigs') %}
+        <a href="{{ url_for('gigs.index') }}"
+           class="nav-item {% if request.endpoint.startswith('gigs.') %}active{% endif %}">
+          <i class="bi bi-tools"></i> <span class="nav-label">{{ _('Lavoretti') }}</span>
+        </a>
+        {% endif %}
         {% if shown('insurance') %}
         <a href="{{ url_for('insurance.index') }}"
            class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">

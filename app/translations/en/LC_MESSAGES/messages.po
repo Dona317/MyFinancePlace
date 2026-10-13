@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 21:01+0000\n"
+"POT-Creation-Date: 2026-10-13 21:04+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -88,6 +88,10 @@ msgstr "%(changed)s transactions set to no account."
 #, python-format
 msgid "%(changed)s transazioni messe sul conto «%(name)s»."
 msgstr "%(changed)s transactions moved to account «%(name)s»."
+
+#, python-format
+msgid "%(client)s: %(job)s"
+msgstr "%(client)s: %(job)s"
 
 #, python-format
 msgid "%(count)s acquisti del PAC registrati."
@@ -255,6 +259,18 @@ msgid "%(field)s: «%(chosen)s» non contiene %(what)s, uso «%(used)s»."
 msgstr "%(field)s: “%(chosen)s” does not contain %(what)s, using “%(used)s”."
 
 #, python-format
+msgid "%(gross)s di %(threshold)s lordi nell’anno"
+msgstr "%(gross)s of %(threshold)s gross in the year"
+
+#, python-format
+msgid "%(hours)s ore"
+msgstr "%(hours)s hours"
+
+#, python-format
+msgid "%(job)s del %(day)s, %(amount)s"
+msgstr "%(job)s of %(day)s, %(amount)s"
+
+#, python-format
 msgid "%(kind)s registrata: %(description)s."
 msgstr "%(kind)s recorded: %(description)s."
 
@@ -397,6 +413,12 @@ msgid "%(num)s documento caricato."
 msgid_plural "%(num)s documenti caricati."
 msgstr[0] "%(num)s document uploaded."
 msgstr[1] "%(num)s documents uploaded."
+
+#, python-format
+msgid "%(num)s lavoro"
+msgid_plural "%(num)s lavori"
+msgstr[0] "%(num)s job"
+msgstr[1] "%(num)s jobs"
 
 #, python-format
 msgid ""
@@ -1334,6 +1356,9 @@ msgstr "Blocked by an administrator"
 msgid "Bollo e IVAFE"
 msgstr "Stamp duty and IVAFE"
 
+msgid "Bonifico"
+msgstr "Bank transfer"
+
 msgid "Borsa"
 msgstr "Exchange"
 
@@ -1602,6 +1627,9 @@ msgstr "Search by description or tag..."
 msgid "Cerca per nome o note..."
 msgstr "Search by name or notes..."
 
+msgid "Chi l’ha fatto"
+msgstr "Who did it"
+
 msgid ""
 "Chi è intestatario o cointestatario dei conti. Vale anche con nome e cognome invertiti, come li scrivono molte banche"
 " («ROSSI MARIO»)."
@@ -1718,6 +1746,9 @@ msgstr "Link the selected movements"
 msgid "Collega la loro categoria a una voce qui sotto, oppure cambia la categoria della spesa."
 msgstr "Link their category to an item below, or change the expense's category."
 
+msgid "Collega l’entrata"
+msgstr "Link the income"
+
 msgid "Collega movimenti"
 msgstr "Link movements"
 
@@ -1806,6 +1837,12 @@ msgstr "Offset"
 
 msgid "Compensato"
 msgstr "Offset"
+
+msgid "Compensi lordi"
+msgstr "Gross fees"
+
+msgid "Compenso lordo (€)"
+msgstr "Gross fee (€)"
 
 #, python-format
 msgid "Compila controparti (%(count)s)"
@@ -2220,6 +2257,13 @@ msgstr "Where the numbers come from"
 msgid "Da dove viene ogni mese"
 msgstr "Where each month comes from"
 
+msgid "Da incassare"
+msgstr "To collect"
+
+#, python-format
+msgid "Da incassare: %(client)s"
+msgstr "To collect: %(client)s"
+
 #, python-format
 msgid "Da inizio %(year)s"
 msgstr "Since the start of %(year)s"
@@ -2580,6 +2624,10 @@ msgid "Eliminare il gruppo «%(name)s»? Gli archivi e i loro dati restano."
 msgstr "Delete the group “%(name)s”? The archives and their data stay."
 
 #, python-format
+msgid "Eliminare il lavoro «%(job)s»?"
+msgstr "Delete the job “%(job)s”?"
+
+#, python-format
 msgid "Eliminare il modello «%(name)s»?"
 msgstr "Delete the model “%(name)s”?"
 
@@ -2659,6 +2707,9 @@ msgstr "Both"
 
 msgid "Entrata"
 msgstr "Income"
+
+msgid "Entrata già registrata"
+msgstr "Income already recorded"
 
 #, python-format
 msgid "Entrata ricorrente: %(description)s"
@@ -3376,6 +3427,9 @@ msgstr "The classic balanced mix: equities to grow, bonds to cushion the falls."
 msgid "Il budget non può essere negativo."
 msgstr "The budget cannot be negative."
 
+msgid "Il compenso lordo deve essere positivo."
+msgstr "The gross fee must be positive."
+
 #, python-format
 msgid "Il database ha rifiutato il backup: %(value)s"
 msgstr "The database rejected the backup: %(value)s"
@@ -3449,6 +3503,12 @@ msgstr "The format was not recognized: %(reason)s"
 
 msgid "Il giorno va da 1 a 31."
 msgstr "The day goes from 1 to 31."
+
+msgid "Il lavoro torna da incassare."
+msgstr "The job is back to be collected."
+
+msgid "Il lavoro è già incassato."
+msgstr "The job is already collected."
 
 msgid "Il mio menu"
 msgstr "My menu"
@@ -3737,6 +3797,10 @@ msgstr "Expiring"
 
 msgid "In uso"
 msgstr "In use"
+
+#, python-format
+msgid "Incassato: %(amount)s."
+msgstr "Collected: %(amount)s."
 
 msgid "Incasso netto"
 msgstr "Net proceeds"
@@ -4069,6 +4133,29 @@ msgstr ""
 msgid "Lasciala vuota per calcolarla (ammortamento alla francese)."
 msgstr "Leave it empty to have it calculated (French amortization)."
 
+msgid "Lavoretti"
+msgstr "Odd jobs"
+
+#, python-format
+msgid "Lavori del %(year)s"
+msgstr "Jobs of %(year)s"
+
+msgid "Lavori occasionali"
+msgstr "Occasional work"
+
+msgid "Lavoro"
+msgstr "Job"
+
+msgid "Lavoro aggiornato."
+msgstr "Job updated."
+
+msgid "Lavoro eliminato: un incasso già registrato resta tra le transazioni."
+msgstr "Job deleted: a payment already recorded stays among the transactions."
+
+#, python-format
+msgid "Lavoro «%(job)s» registrato."
+msgstr "Job “%(job)s” recorded."
+
 msgid "Le 300 transazioni più recenti: cambia l'anno fiscale e salva per vederne altre."
 msgstr "The 300 most recent transactions: change the tax year and save to see others."
 
@@ -4103,6 +4190,15 @@ msgid ""
 msgstr ""
 "The Portfolio holdings (also savings accounts, pension funds and property), at the latest price: for past dates only "
 "those already bought count."
+
+msgid ""
+"Le prestazioni occasionali sono «redditi diversi»: nel 730 il quadro D (rigo D5, codice 2), nel modello Redditi il "
+"quadro RL. Il reddito è il lordo meno le spese del lavoro; le ritenute già versate dai committenti si scalano "
+"dall’imposta."
+msgstr ""
+"Occasional work is “redditi diversi” (other income): in the 730 section D (line D5, code 2), in the Redditi form "
+"section RL. The income is the gross less the job's expenses; the withholdings already paid by the clients are "
+"deducted from the tax."
 
 msgid "Le scelte vengono ricordate"
 msgstr "Your choices are remembered"
@@ -4246,6 +4342,13 @@ msgstr "The same security in several archives (same ISIN or ticker) is a single 
 
 msgid "Locale (Ollama) — i dati restano sul computer"
 msgstr "Local (Ollama) — the data stays on the computer"
+
+msgid "Lordo"
+msgstr "Gross"
+
+#, python-format
+msgid "Lordo %(year)s"
+msgstr "Gross %(year)s"
 
 msgid "Lug"
 msgstr "Jul"
@@ -4697,6 +4800,10 @@ msgstr "No investments."
 
 msgid "Nessun investimento: aggiungi i titoli in Posizioni."
 msgstr "No investments: add the holdings in Positions."
+
+#, python-format
+msgid "Nessun lavoro registrato nel %(year)s."
+msgstr "No jobs recorded in %(year)s."
 
 msgid "Nessun modello AI configurato (Impostazioni → Modelli AI)."
 msgstr "No AI model configured (Settings → AI models)."
@@ -5152,6 +5259,9 @@ msgstr "New event"
 msgid "Nuovo gruppo"
 msgstr "New group"
 
+msgid "Nuovo lavoro"
+msgstr "New job"
+
 msgid "Nuovo modello"
 msgstr "New model"
 
@@ -5341,6 +5451,10 @@ msgid "Oltre l'importo: {amount}"
 msgstr "Over the amount: {amount}"
 
 #, python-format
+msgid "Oltre la soglia di %(threshold)s: su %(amount)s si versano i contributi alla Gestione separata INPS."
+msgstr "Over the %(threshold)s threshold: INPS Gestione separata contributions are due on %(amount)s."
+
+#, python-format
 msgid "Oltre questo scostamento dal peso obiettivo una parte va ribilanciata (es. 5: un 60 %% tra 55 e 65 va bene)."
 msgstr "Beyond this drift from the target weight a part needs rebalancing (e.g. 5: a 60 %% between 55 and 65 is fine)."
 
@@ -5371,6 +5485,12 @@ msgstr "Sorted by expiry"
 
 msgid "Ordine"
 msgstr "Order"
+
+msgid "Ore"
+msgstr "Hours"
+
+msgid "Ore e spese non possono essere negative."
+msgstr "Hours and expenses cannot be negative."
 
 msgid "Origine"
 msgstr "Origin"
@@ -5403,6 +5523,9 @@ msgstr "Ordinary PIR"
 
 msgid "Pagamenti in contanti: per molte voci serve un pagamento tracciabile"
 msgstr "Cash payments: most items need a traceable payment"
+
+msgid "Pagamento"
+msgstr "Payment"
 
 msgid "Pagato"
 msgstr "Paid"
@@ -5559,6 +5682,12 @@ msgstr ""
 
 msgid "Per categoria"
 msgstr "By category"
+
+msgid "Per chi"
+msgstr "For whom"
+
+msgid "Per committente"
+msgstr "By client"
 
 msgid "Per computer con poca memoria: leggono solo documenti di testo, non scansioni o foto"
 msgstr "For computers with little memory: they only read text documents, not scans or photos"
@@ -5821,6 +5950,13 @@ msgstr "Yearly premium of the active policies"
 
 msgid "Premio per rata (€)"
 msgstr "Premium per installment (€)"
+
+msgid ""
+"Prestazioni occasionali: oltre 5.000 € lordi l’anno (tutti i committenti insieme) si paga la Gestione separata sulla "
+"parte eccedente. Per la dichiarazione vedi Fisco → Lavori occasionali."
+msgstr ""
+"Occasional work: above 5,000 € gross a year (all clients together) Gestione separata contributions are due on the "
+"part above. For the tax return see Tax → Occasional work."
 
 msgid "Prestiti a lungo termine"
 msgstr "Long-term loans"
@@ -6190,6 +6326,9 @@ msgstr "Real"
 msgid "Realizzato e incassato"
 msgstr "Realized and received"
 
+msgid "Reddito"
+msgstr "Income"
+
 msgid "Regime amministrato: il broker trattiene le imposte e tiene le minusvalenze"
 msgstr "Administered regime: the broker withholds the taxes and keeps the losses"
 
@@ -6201,6 +6340,9 @@ msgstr "Declarative regime: to report in quadro RT"
 
 msgid "Regime fiscale"
 msgstr "Tax regime"
+
+msgid "Registra"
+msgstr "Record"
 
 msgid "Registra la commissione come spesa:"
 msgstr "Record the commission as an expense:"
@@ -6562,6 +6704,16 @@ msgstr "Answer generated by an AI model: check the numbers on the pages shown."
 msgid "Risultato"
 msgstr "Result"
 
+#, python-format
+msgid "Ritenuta d’acconto del 20%% (il committente è un’azienda o un professionista)"
+msgstr "20%% withholding tax (the client is a company or a professional)"
+
+msgid "Ritenute"
+msgstr "Withholdings"
+
+msgid "Ritenute subite"
+msgstr "Withholdings suffered"
+
 msgid "Ritmo"
 msgstr "Rhythm"
 
@@ -6809,6 +6961,12 @@ msgstr "Write the name of the limit."
 msgid "Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna"
 msgstr "Enter the balance the bank shows at a date: the app tells you whether it matches"
 
+msgid "Scrivi la data del lavoro."
+msgstr "Write the date of the job."
+
+msgid "Scrivi per chi e che lavoro."
+msgstr "Write for whom and what job."
+
 msgid "Scrivi quanti contanti hai (zero o più)."
 msgstr "Write how much cash you have (zero or more)."
 
@@ -6844,6 +7002,9 @@ msgstr "Mark as seen"
 #, python-format
 msgid "Segna come visto: %(title)s"
 msgstr "Mark as seen: %(title)s"
+
+msgid "Segna incassato"
+msgstr "Mark as collected"
 
 msgid "Segna tutti come visti"
 msgstr "Mark all as seen"
@@ -6946,6 +7107,9 @@ msgstr "Sections of %(name)s"
 msgid "Sezioni di «%(name)s» aggiornate."
 msgstr "Sections of «%(name)s» updated."
 
+msgid "Si collega solo un'entrata."
+msgstr "Only an income can be linked."
+
 msgid "Si contano solo i conti di contanti."
 msgstr "Only cash accounts are counted."
 
@@ -6965,6 +7129,9 @@ msgstr "Fix"
 
 msgid "Soglia"
 msgstr "Threshold"
+
+msgid "Soglia INPS"
+msgstr "INPS threshold"
 
 #, python-format
 msgid "Solo %(month)s (€)"
@@ -7048,6 +7215,12 @@ msgstr "Expenses tagged «detraibile» or «deducibile» to assign"
 #, python-format
 msgid "Spese del %(year)s"
 msgstr "Spending in %(year)s"
+
+msgid "Spese del lavoro"
+msgstr "Job expenses"
+
+msgid "Spese del lavoro (€)"
+msgstr "Job expenses (€)"
 
 msgid "Spese e Tendenze"
 msgstr "Spending and Trends"
@@ -7412,6 +7585,9 @@ msgstr "Back to Snapshots"
 
 msgid "Torna alle transazioni"
 msgstr "Back to transactions"
+
+msgid "Torna da incassare"
+msgstr "Back to be collected"
 
 msgid "Torta con la distribuzione delle entrate dell'anno"
 msgstr "Pie with the year's income split"
@@ -8197,6 +8373,9 @@ msgstr "to confirm (AI)"
 msgid "da conservare fuori da questo computer (chiavetta, cloud). Fallo almeno una volta al mese e prima di aggiornare l'app."
 msgstr "to keep outside this computer (USB stick, cloud). Do it at least once a month and before updating the app."
 
+msgid "da incassare"
+msgstr "to collect"
+
 msgid "dal"
 msgstr "since"
 
@@ -8355,6 +8534,9 @@ msgstr "e.g. My fund's site"
 msgid "es. Spesa al supermercato"
 msgstr "e.g. Grocery shopping"
 
+msgid "es. Studio Bianchi, sig.ra Rossi"
+msgstr "e.g. Studio Bianchi, Mrs Rossi"
+
 msgid "es. VWCE.DE, ENEL.MI, BTC"
 msgstr "e.g. VWCE.DE, ENEL.MI, BTC"
 
@@ -8372,6 +8554,9 @@ msgstr "e.g. appraisal, OMI value, used-car list price"
 
 msgid "es. qwen2.5vl:7b"
 msgstr "e.g. qwen2.5vl:7b"
+
+msgid "es. ripetizioni, sito web, trasloco"
+msgstr "e.g. tutoring, website, moving"
 
 msgid "es. veterinario, cibo, toelettatura"
 msgstr "e.g. vet, food, grooming"
@@ -8413,6 +8598,9 @@ msgstr "day %(day)s"
 msgid "già accantonato"
 msgstr "already set aside"
 
+msgid "già versate dai committenti"
+msgstr "already paid by the clients"
+
 #, python-format
 msgid "i soldi bastano fino a %(age)s anni in %(pct)s simulazioni su 100"
 msgstr "the money lasts until %(age)s in %(pct)s simulations out of 100"
@@ -8436,6 +8624,10 @@ msgstr "invalid amount: '%(value)s'"
 
 msgid "in corso"
 msgstr "in progress"
+
+#, python-format
+msgid "incassato il %(day)s"
+msgstr "collected on %(day)s"
 
 #, python-format
 msgid "indirizzo «%(host)s» non trovato"
@@ -8484,6 +8676,9 @@ msgstr "cash and investments, without the house"
 
 msgid "llama3.2:3b"
 msgstr "llama3.2:3b"
+
+msgid "lordo meno spese"
+msgstr "gross less expenses"
 
 msgid "mai"
 msgstr "never"
@@ -8599,6 +8794,10 @@ msgstr "ollama serve"
 
 msgid "ollama.com/download"
 msgstr "ollama.com/download"
+
+#, python-format
+msgid "oltre di %(amount)s: sulla parte in più si versano i contributi alla Gestione separata"
+msgstr "%(amount)s over: Gestione separata contributions are due on the part above"
 
 msgid "oppure Colonna Uscite / Dare"
 msgstr "or Money out / Debit column"
@@ -8876,6 +9075,9 @@ msgstr "sales at a gain in %(year)s"
 #, python-format
 msgid "vendite in perdita nel %(year)s"
 msgstr "sales at a loss in %(year)s"
+
+msgid "vicino alla soglia"
+msgstr "near the threshold"
 
 #, python-format
 msgid "vs %(year)s"
