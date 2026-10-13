@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:11+0000\n"
+"POT-Creation-Date: 2026-10-13 10:13+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -411,6 +411,10 @@ msgid "%(num)s transazione ha ora la controparte, letta dalla causale."
 msgid_plural "%(num)s transazioni hanno ora la controparte, letta dalla causale."
 msgstr[0] "%(num)s transaction now has its counterparty, read from the causale."
 msgstr[1] "%(num)s transactions now have their counterparty, read from the causale."
+
+#, python-format
+msgid "%(pct)s %% della crescita"
+msgstr "%(pct)s %% of the growth"
 
 #, python-format
 msgid "%(pct)s%% rispetto al periodo precedente (%(amount)s)"
@@ -1969,6 +1973,12 @@ msgstr "Take your first snapshot to start tracking how your wealth changes over 
 msgid "Crea utente"
 msgstr "Create user"
 
+msgid "Crescita del patrimonio"
+msgstr "Net worth growth"
+
+msgid "Crescita media al mese"
+msgstr "Average growth per month"
+
 msgid "Criptovaluta"
 msgstr "Crypto"
 
@@ -2013,6 +2023,9 @@ msgstr "Where income comes from and where it goes: income categories → expense
 msgid "Da dove vengono i numeri"
 msgstr "Where the numbers come from"
 
+msgid "Da dove viene ogni mese"
+msgstr "Where each month comes from"
+
 #, python-format
 msgid "Da inizio %(year)s"
 msgstr "Since the start of %(year)s"
@@ -2030,6 +2043,9 @@ msgstr "From all snapshots"
 msgid "Da un foglio di calcolo o dal CSV del broker: una riga per data, separata da «;», tab o spazio."
 msgstr "From a spreadsheet or the broker's CSV: one line per date, separated by «;», a tab or a space."
 
+msgid "Dai mercati"
+msgstr "From the markets"
+
 msgid "Dai risparmi"
 msgstr "From savings"
 
@@ -2044,6 +2060,9 @@ msgstr "Give the event a name."
 
 msgid "Dal"
 msgstr "From"
+
+msgid "Dal risparmio"
+msgstr "From saving"
 
 msgid "Dal tuo storico: come hai categorizzato transazioni simili"
 msgstr "From your history: how you categorized similar transactions"
@@ -2110,6 +2129,9 @@ msgstr "Remaining Debt in the Coming Years"
 
 msgid "Debito Totale"
 msgstr "Total Debt"
+
+msgid "Debito rimborsato"
+msgstr "Debt repaid"
 
 #, python-format
 msgid "Debito «%(name)s» aggiornato."
@@ -3586,6 +3608,13 @@ msgstr "A percentage threshold goes from 0 to 100."
 msgid "La tolleranza va da 0 a 50 punti."
 msgstr "The tolerance goes from 0 to 50 points."
 
+msgid ""
+"La variazione del patrimonio netto divisa in risparmio (entrate meno uscite), mercati (guadagni e perdite dei "
+"titoli), debito rimborsato (la quota capitale delle rate) e nuovi beni."
+msgstr ""
+"The change of the net worth split into saving (income minus expenses), markets (gains and losses of the holdings), "
+"debt repaid (the capital part of the instalments) and new assets."
+
 msgid "Lasciala vuota per calcolarla (ammortamento alla francese)."
 msgstr "Leave it empty to have it calculated (French amortization)."
 
@@ -3849,6 +3878,9 @@ msgstr "Monthly"
 
 msgid "Mer"
 msgstr "Wed"
+
+msgid "Mercati"
+msgstr "Markets"
 
 msgid "Mese"
 msgstr "Month"
@@ -4538,6 +4570,9 @@ msgstr "New transaction"
 
 msgid "Nuova transazione: descrizione (premi «n»)"
 msgstr "New transaction: description (press «n»)"
+
+msgid "Nuovi beni"
+msgstr "New assets"
 
 #, python-format
 msgid "Nuovi titoli: %(names)s."
@@ -5348,6 +5383,9 @@ msgstr "How much of the asset is really yours: its value minus the debt still to
 
 msgid "Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata."
 msgstr "How much of each month's income is left. Choose the years to compare: the choice is remembered."
+
+msgid "Quanto viene dal risparmio, quanto dai mercati, quanto dal debito rimborsato."
+msgstr "How much comes from saving, from the markets, from repaying debt."
 
 msgid "Quanto è arrivato sul conto (dividendo, cedola) o quanto è uscito (commissione, imposta)."
 msgstr "What reached the account (dividend, coupon) or what left it (commission, tax)."
@@ -6696,6 +6734,10 @@ msgstr "Last digits of IBAN / card"
 
 msgid "Ultime cifre IBAN o carta"
 msgstr "Last digits of IBAN or card"
+
+#, python-format
+msgid "Ultimi %(count)s mesi"
+msgstr "Last %(count)s months"
 
 msgid "Ultimi 12 mesi"
 msgstr "Last 12 months"

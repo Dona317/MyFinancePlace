@@ -86,6 +86,10 @@
           <i class="bi bi-receipt"></i> <span class="nav-label">{{ _('Conto Economico') }}</span> <span class="nav-badge nav-badge-next">v2</span>
         </a>
         {% endif %}
+        <a href="{{ url_for('accounting.growth') }}"
+           class="nav-item nav-sub {% if request.endpoint == 'accounting.growth' %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">{{ _('Crescita del patrimonio') }}</span>
+        </a>
         {% if settings.accounting_cash_flow %}
         <a href="{{ url_for('accounting.cash_flow') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.cash_flow' %}active{% endif %}">

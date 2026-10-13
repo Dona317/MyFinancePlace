@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block page_title %}{{ _('Crescita del patrimonio') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Crescita del patrimonio') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+<form method="GET" class="inline-filter">
+  <select name="months" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Periodo') }}">
+    {% for n in (6, 12, 24, 36) %}<option value="{{ n }}" {{ 'selected' if n == months }}>{{ _('Ultimi %(count)s mesi', count=n) }}</option>{% endfor %}
+  </select>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid" style="margin-bottom:24px;">
+  {{ kpi('speedometer2', _('Crescita media al mese'), value=('+' if velocity.monthly > 0 else '') ~ velocity.monthly|money,
+         cls='kpi-positive' if velocity.monthly >= 0 else 'kpi-negative') }}
+  {{ kpi('piggy-bank', _('Dal risparmio'), value=velocity.savings|money,
+         sub=(_('%(pct)s %% della crescita', pct=velocity.savings_share|number(0)) if velocity.savings_share is not none else none)) }}
+  {{ kpi('graph-up-arrow', _('Dai mercati'), value=velocity.markets|money) }}
+</div>
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Da dove viene ogni mese') }}</div>
+    <div class="card-header-sub">{{ _('La variazione del patrimonio netto divisa in risparmio (entrate meno uscite), mercati (guadagni e perdite dei titoli), debito rimborsato (la quota capitale delle rate) e nuovi beni.') }}</div>
+  </div></div>
+  <div class="card-body"><div style="height:300px;"><canvas id="growthChart"></canvas></div></div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Mese') }}</th><th class="text-right">{{ _('Risparmio') }}</th><th class="text-right">{{ _('Mercati') }}</th>
+        <th class="text-right">{{ _('Debito rimborsato') }}</th><th class="text-right">{{ _('Nuovi beni') }}</th><th class="text-right">{{ _('Altro') }}</th>
+        <th class="text-right">{{ _('Variazione') }}</th><th class="text-right">{{ _('Patrimonio netto') }}</th></tr></thead>
+      <tbody>
+        {% for r in rows|reverse %}
+        <tr>
+          <td class="nowrap">{{ r.end|it_date }}</td>
+          {% for value in (r.savings, r.markets, r.debt_repaid, r.new_assets, r.other) %}
+          <td class="text-right nowrap {{ 'text-negative' if value < 0 }}">{{ value|money if value else '—' }}</td>
+          {% endfor %}
+          <td class="text-right nowrap {{ 'text-positive' if r.change > 0 else ('text-negative' if r.change < 0) }}"><strong>{{ ('+' if r.change > 0 else '') ~ r.change|money }}</strong></td>
+          <td class="text-right nowrap">{{ r.net_worth|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+makeBarChart('growthChart', {{ labels|tojson }}, [
+  { label: {{ _('Risparmio')|tojson }}, data: {{ rows|map(attribute='savings')|list|tojson }} },
+  { label: {{ _('Mercati')|tojson }}, data: {{ rows|map(attribute='markets')|list|tojson }} },
+  { label: {{ _('Debito rimborsato')|tojson }}, data: {{ rows|map(attribute='debt_repaid')|list|tojson }} },
+  { label: {{ _('Nuovi beni')|tojson }}, data: {{ rows|map(attribute='new_assets')|list|tojson }} },
+  { label: {{ _('Altro')|tojson }}, data: {{ rows|map(attribute='other')|list|tojson }} },
+  { type: 'line', label: {{ _('Variazione')|tojson }}, data: {{ rows|map(attribute='change')|list|tojson }}, color: 'primary' },
+], { stacked: true });
+</script>
+{% endblock %}

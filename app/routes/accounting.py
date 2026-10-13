@@ -5,7 +5,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.routes.helpers import form_decimal, year_arg
-from app.services import analytics, family, owners, settings_store, wealth
+from app.services import analytics, family, net_worth_growth, owners, settings_store, wealth
 from app.services.parsing import to_date
 
 accounting_bp = APIBlueprint(
@@ -72,3 +72,13 @@ def cash_flow():
     year = year_arg(date.today().year)
     report = analytics.cash_flow(year)
     return render_template("accounting/cash_flow.html", report=report, years=years, year=year)
+
+
+@accounting_bp.route("/growth")
+def growth():
+    """Where the net worth growth comes from: saving, markets, debt repaid, new assets."""
+    months = request.args.get("months", 12, type=int)
+    months = months if months in (6, 12, 24, 36) else 12
+    rows = net_worth_growth.months(months)
+    return render_template("accounting/growth.html", rows=rows, velocity=net_worth_growth.velocity(rows), months=months,
+                           labels=[r.end.strftime("%m/%y") for r in rows])
