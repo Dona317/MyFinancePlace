@@ -144,6 +144,16 @@
         <button type="submit" class="btn btn-ghost btn-sm" id="bulk-assign" disabled><i class="bi bi-bank"></i> {{ _('Assegna') }}</button>
       </form>
       {% endif %}
+      {% if transactions and events %}
+      <form method="POST" action="{{ url_for('events.assign') }}" id="event-form" class="inline-filter">
+        <input type="hidden" name="next" value="{{ request.full_path }}" />
+        <select name="event_id" class="form-select" aria-label="{{ _('Evento per le selezionate') }}">
+          {% for e in events %}<option value="{{ e.id }}">{{ e.name }}</option>{% endfor %}
+          <option value="">{{ _('— nessun evento —') }}</option>
+        </select>
+        <button type="submit" class="btn btn-ghost btn-sm" id="bulk-event" disabled><i class="bi bi-airplane"></i> {{ _('Metti nell\'evento') }}</button>
+      </form>
+      {% endif %}
       <a href="{{ url_for('export.export_csv') }}" class="btn btn-ghost btn-sm">
         <i class="bi bi-filetype-csv"></i> CSV
       </a>
@@ -277,7 +287,7 @@ const bulkBoxes = document.querySelectorAll('.bulk-select');
 const bulkButton = document.getElementById('bulk-delete');
 // "Assegna" sends the same selection as the bulk delete: copy the ticked ids into its form
 // "Assegna" and "Conferma selezionate" send the same selection as the bulk delete: copy the ticked ids into them
-['assign-form', 'confirm-form'].map(id => document.getElementById(id)).filter(Boolean).forEach(form => {
+['assign-form', 'confirm-form', 'event-form'].map(id => document.getElementById(id)).filter(Boolean).forEach(form => {
   form.addEventListener('submit', () => {
     form.querySelectorAll('input[name=ids]').forEach(el => el.remove());
     document.querySelectorAll('.bulk-select:checked').forEach(box => {
@@ -294,7 +304,7 @@ const refreshBulk = () => {
     bulkButton.disabled = count === 0;
     document.getElementById('bulk-count').textContent = count;
   }
-  ['bulk-assign', 'bulk-confirm'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = count === 0; });
+  ['bulk-assign', 'bulk-confirm', 'bulk-event'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = count === 0; });
   if (classifyButton) {
     const unclassified = Number(classifyButton.dataset.unclassified);
     document.getElementById('ai-classify-label').textContent = count

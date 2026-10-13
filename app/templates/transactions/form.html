@@ -143,7 +143,7 @@
         </div>
         {% endif %}
 
-        {% if holdings or debts %}
+        {% if holdings or debts or events %}
         <div class="grid-2">
           {% if holdings %}
           <div class="form-group">
@@ -160,6 +160,15 @@
             <select id="f-debt" name="debt_id" class="form-select">
               <option value="">{{ _('— Nessuno —') }}</option>
               {% for d in debts %}<option value="{{ d.id }}" {{ 'selected' if v.debt_id == d.id|string }}>{{ d.name }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          {% if events %}
+          <div class="form-group">
+            <label class="form-label" for="f-event">{{ _('Evento') }} <span class="text-muted" style="font-weight:400;">{{ _('(viaggio, matrimonio…)') }}</span></label>
+            <select id="f-event" name="event_id" class="form-select">
+              <option value="">{{ _('— Nessuno —') }}</option>
+              {% for e in events %}<option value="{{ e.id }}" {{ 'selected' if v.event_id == e.id|string }}>{{ e.name }}</option>{% endfor %}
             </select>
           </div>
           {% endif %}

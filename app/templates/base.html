@@ -110,7 +110,7 @@
       {% endif %}
 
       <!-- STILE DI VITA -->
-      {% if shown_any('lifestyle', 'budget', 'goals') %}
+      {% if shown_any('lifestyle', 'budget', 'goals', 'events') %}
       <div class="nav-section" data-section="stiledivita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-stiledivita">
           <span class="nav-label">{{ _('Stile di Vita') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
@@ -132,6 +132,12 @@
         <a href="{{ url_for('lifestyle.goals') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
           <i class="bi bi-trophy"></i> <span class="nav-label">{{ _('Obiettivi') }}</span>
+        </a>
+        {% endif %}
+        {% if shown('events') %}
+        <a href="{{ url_for('events.index') }}"
+           class="nav-item {% if request.endpoint.startswith('events.') %}active{% endif %}">
+          <i class="bi bi-airplane"></i> <span class="nav-label">{{ _('Eventi') }}</span>
         </a>
         {% endif %}
         </div></div>

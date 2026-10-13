@@ -40,6 +40,7 @@ SECTIONS = [
     Section("lifestyle", _l("Spese e Tendenze"), "pie-chart", _l("Stile di Vita"), ("lifestyle.index",)),
     Section("budget", _l("Budget"), "clipboard-check", _l("Stile di Vita"), ("lifestyle.budget",)),
     Section("goals", _l("Obiettivi"), "trophy", _l("Stile di Vita"), ("lifestyle.goal",), "lifestyle_goals"),
+    Section("events", _l("Eventi"), "airplane", _l("Stile di Vita"), ("events.",)),
     Section("transactions", _l("Transazioni"), "list-ul", _l("Gestione"), ("transactions.",)),
     Section("accounts", _l("Conti e Carte"), "bank", _l("Gestione"), ("accounts.",)),
     Section("portfolio", _l("Portafoglio"), "briefcase", _l("Gestione"), ("portfolio.",), "module_portfolio"),

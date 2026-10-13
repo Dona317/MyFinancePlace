@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app.extensions import db
 from app.models.account import Account
+from app.models.event import SpendingEvent
 from app.models.transaction import Transaction, TransactionSplit
 from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import back_to, form_date, form_decimal, form_ids, form_text, safe_next
@@ -108,6 +109,7 @@ def index():
         categories=categories,
         all_categories=known_categories(),
         accounts=accounts.active(),
+        events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         duplicate_groups=len(duplicates.find_groups()),
         ai_tag=AI_TAG, to_confirm=Transaction.query.filter(Transaction.tags.any(AI_TAG)).count(),
         unclassified=_unclassified_query().count(),
@@ -211,6 +213,7 @@ def _render_form(tx: Transaction | None):
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
         currencies=currency_service.CURRENCIES, tag_pool=all_tags(), fee_rules=broker.rules(accounts.all_accounts()),
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
+        events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )
 

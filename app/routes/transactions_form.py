@@ -6,6 +6,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.account import Account
+from app.models.event import SpendingEvent
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
@@ -59,6 +60,7 @@ def tx_from_form(tx: Transaction) -> Transaction:
     # what the money is for, in the cash-flow statement: an investment or a debt (one of the two)
     tx.holding_id = linked_id("holding_id", Holding)
     tx.debt_id = linked_id("debt_id", Debt) if not tx.holding_id else None
+    tx.event_id = linked_id("event_id", SpendingEvent)
     # units × price only mean something for a trade of a holding
     tx.units, tx.unit_price = (units, unit_price) if tx.holding_id and units is not None else (None, None)
     if tx.units is not None:
@@ -147,6 +149,7 @@ def form_values(tx: Transaction | None = None) -> dict:
         return {key: form.get(key, "") for key in (
             "date", "amount", "currency", "description", "category", "tags",
             "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
+            "event_id",
             "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount")} | {
             "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows(),
             "record_fee": "record_fee" in form}
@@ -161,7 +164,7 @@ def form_values(tx: Transaction | None = None) -> dict:
         "tags": ", ".join(tx.tags or []), "is_recurring": bool(tx.is_recurring), "recurrence": tx.recurrence or "",
         "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else "", "notes": tx.notes or "",
         "account_id": str(tx.account_id or ""), "counter_account_id": str(tx.counter_account_id or ""),
-        "holding_id": str(tx.holding_id or ""), "debt_id": str(tx.debt_id or ""),
+        "holding_id": str(tx.holding_id or ""), "debt_id": str(tx.debt_id or ""), "event_id": str(tx.event_id or ""),
         "account_amount": _plain(tx.account_amount), "counter_amount": _plain(tx.counter_amount),
         "splits": [(s.category or "", _plain(s.amount)) for s in tx.splits],
         "units": display.plain(abs(tx.units)) if tx.units is not None else "",

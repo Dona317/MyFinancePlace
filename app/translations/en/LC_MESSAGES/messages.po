@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:00+0000\n"
+"POT-Creation-Date: 2026-10-13 10:03+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -126,6 +126,14 @@ msgid "%(count)s modelli installati"
 msgstr "%(count)s models installed"
 
 #, python-format
+msgid "%(count)s movimenti"
+msgstr "%(count)s movements"
+
+#, python-format
+msgid "%(count)s movimenti aggiunti a «%(name)s»."
+msgstr "%(count)s movements added to “%(name)s”."
+
+#, python-format
 msgid "%(count)s movimenti classificati con %(model)s: i suggerimenti sono evidenziati"
 msgstr "%(count)s movements classified with %(model)s: the suggestions are highlighted"
 
@@ -161,6 +169,10 @@ msgid ""
 msgstr ""
 "%(count)s unbooked movements (pending or cancelled) were left out: import the pending ones once the bank has booked "
 "them."
+
+#, python-format
+msgid "%(count)s movimenti tolti dagli eventi."
+msgstr "%(count)s movements taken out of events."
 
 #, python-format
 msgid "%(count)s operazioni importate."
@@ -495,6 +507,9 @@ msgstr "(the detected ones are in the «Look recurring» panel)"
 msgid "(versione %(version)s)"
 msgstr "(version %(version)s)"
 
+msgid "(viaggio, matrimonio…)"
+msgstr "(trip, wedding…)"
+
 msgid "+ importo"
 msgstr "+ amount"
 
@@ -721,6 +736,9 @@ msgstr ""
 msgid "Aggiungi la tua prima transazione oppure importa da Excel."
 msgstr "Add your first transaction or import from Excel."
 
+msgid "Aggiungi le selezionate"
+msgstr "Add the selected ones"
+
 msgid ""
 "Aggiungi mutui, prestiti e carte di credito: l'app calcola rata, piano di ammortamento e debito residuo, e li sottrae"
 " dal patrimonio netto."
@@ -772,6 +790,9 @@ msgid ""
 msgstr ""
 "On %(date)s the app shows <strong>%(app)s</strong>, the statement <strong>%(statement)s</strong>: difference "
 "<strong>%(difference)s</strong>"
+
+msgid "Al giorno"
+msgstr "Per day"
 
 #, python-format
 msgid "Al massimo %(count)s titolari."
@@ -853,6 +874,9 @@ msgstr "Amount"
 
 msgid "Analizza file"
 msgstr "Analyze file"
+
+msgid "Ancora nessuna spesa."
+msgstr "No spending yet."
 
 msgid "Andamento"
 msgstr "Trend"
@@ -1188,6 +1212,9 @@ msgstr "Budget %(category)s almost used up"
 #, python-format
 msgid "Budget %(category)s superato"
 msgstr "Budget %(category)s exceeded"
+
+msgid "Budget (€)"
+msgstr "Budget (€)"
 
 msgid "Budget Mensili"
 msgstr "Monthly Budgets"
@@ -1868,8 +1895,14 @@ msgstr "What it includes"
 msgid "Cosa comprende %(name)s"
 msgstr "What %(name)s includes"
 
+msgid "Costo"
+msgstr "Cost"
+
 msgid "Costo medio"
 msgstr "Average cost"
+
+msgid "Crea"
+msgstr "Create"
 
 msgid "Crea Istantanea"
 msgstr "Take Snapshot"
@@ -1967,6 +2000,9 @@ msgstr "Give the plan a name."
 
 msgid "Dai un nome al portafoglio modello."
 msgstr "Give the model portfolio a name."
+
+msgid "Dai un nome all'evento."
+msgstr "Give the event a name."
 
 msgid "Dal"
 msgstr "From"
@@ -2075,6 +2111,9 @@ msgstr "Description and bank reference"
 
 msgid "Detrazioni stimate"
 msgstr "Estimated tax credits"
+
+msgid "Dettagli"
+msgstr "Details"
 
 msgid "Dettaglio Spese"
 msgstr "Spending Details"
@@ -2236,6 +2275,10 @@ msgstr "Delete the plan “%(name)s”?"
 #, python-format
 msgid "Eliminare il prezzo del %(day)s?"
 msgstr "Delete the price of %(day)s?"
+
+#, python-format
+msgid "Eliminare l'evento «%(name)s»? I movimenti restano."
+msgstr "Delete the event “%(name)s”? Its movements stay."
 
 #, python-format
 msgid "Eliminare l'istantanea del %(date)s?"
@@ -2451,6 +2494,24 @@ msgstr "Label (e.g. Year end)"
 
 msgid "Euro"
 msgstr "Euro"
+
+msgid "Eventi"
+msgstr "Events"
+
+msgid "Evento"
+msgstr "Event"
+
+msgid "Evento creato: aggiungi i suoi movimenti."
+msgstr "Event created: add its movements."
+
+msgid "Evento eliminato; i suoi movimenti restano."
+msgstr "Event deleted; its movements stay."
+
+msgid "Evento per le selezionate"
+msgstr "Event for the selected ones"
+
+msgid "Evento salvato."
+msgstr "Event saved."
 
 msgid ""
 "Excel, CSV, PDF, OFX, QIF, CAMT.053, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati "
@@ -2855,6 +2916,9 @@ msgstr "The backup comes from a newer version of the app: update the app before 
 
 msgid "Il bilanciato classico: azioni per crescere, obbligazioni per attutire i cali."
 msgstr "The classic balanced mix: equities to grow, bonds to cushion the falls."
+
+msgid "Il budget non può essere negativo."
+msgstr "The budget cannot be negative."
 
 #, python-format
 msgid "Il database ha rifiutato il backup: %(value)s"
@@ -3742,6 +3806,9 @@ msgstr "Months of autonomy"
 msgid "Metodo"
 msgstr "Method"
 
+msgid "Metti nell'evento"
+msgstr "Put in the event"
+
 msgid "Mezza riga / riga intera"
 msgstr "Half row / full row"
 
@@ -3899,6 +3966,9 @@ msgstr "Show all categories (%(count)s)"
 msgid "Mostra tutti"
 msgstr "Show all"
 
+msgid "Movimenti"
+msgstr "Movements"
+
 msgid "Movimenti con stesso importo, data vicina e descrizione simile."
 msgstr "Movements with the same amount, close dates and a similar description."
 
@@ -3909,6 +3979,9 @@ msgstr ""
 "Current account movements that are purchases or sales of this holding: tick them, enter the units or the price and "
 "they become its operations. Money out is a purchase, money in a sale."
 
+msgid "Movimenti dell'evento"
+msgstr "The event's movements"
+
 #, python-format
 msgid "Movimenti fino al %(date)s"
 msgstr "Movements up to %(date)s"
@@ -3918,6 +3991,9 @@ msgstr "Movements read from the scan with OCR"
 
 msgid "Movimenti letti con intelligenza artificiale"
 msgstr "Movements read with artificial intelligence"
+
+msgid "Movimenti nelle date dell'evento, non ancora in un evento"
+msgstr "Movements in the event's dates, not yet in an event"
 
 msgid "Movimenti nuovi"
 msgstr "New movements"
@@ -3958,6 +4034,10 @@ msgid "Natura di %(name)s"
 msgstr "Nature of %(name)s"
 
 #, python-format
+msgid "Nel %(year)s: spesa ordinaria %(ordinary)s, negli eventi %(events)s."
+msgstr "In %(year)s: ordinary spending %(ordinary)s, in events %(events)s."
+
+#, python-format
 msgid "Nel file .zip manca %(DATA_FILE)s: non è un backup di MyFinancePlace."
 msgstr "The .zip file has no %(DATA_FILE)s: it is not a MyFinancePlace backup."
 
@@ -3973,6 +4053,9 @@ msgstr "No PACs."
 
 msgid "Nessun acquisto da confermare: indica quote e prezzo."
 msgstr "No purchases to confirm: enter units and price."
+
+msgid "Nessun altro movimento in queste date."
+msgstr "No other movements in these dates."
 
 msgid "Nessun cambio salvato: le transazioni in altre valute contano 1:1 finché non ne aggiungi uno."
 msgstr "No saved rates: transactions in other currencies count 1:1 until you add one."
@@ -4001,6 +4084,9 @@ msgstr "No document matches the filters."
 msgid "Nessun documento. Carica la fattura o lo scontrino in Documenti e collegalo a questa transazione."
 msgstr "No documents. Upload the invoice or receipt in Documents and link it to this transaction."
 
+msgid "Nessun evento."
+msgstr "No events."
+
 msgid "Nessun modello AI configurato (Impostazioni → Modelli AI)."
 msgstr "No AI model configured (Settings → AI models)."
 
@@ -4025,6 +4111,9 @@ msgstr "No movements on this account. Assign it to transactions or choose the ac
 
 msgid "Nessun movimento trovato nel file."
 msgstr "No movements found in the file."
+
+msgid "Nessun movimento: aggiungili qui sotto o dalla lista delle transazioni."
+msgstr "No movements: add them below or from the transactions list."
 
 msgid "Nessun obiettivo ancora"
 msgstr "No goals yet"
@@ -4391,6 +4480,9 @@ msgstr "New client"
 msgid "Nuovo conto o carta"
 msgstr "New account or card"
 
+msgid "Nuovo evento"
+msgstr "New event"
+
 msgid "Nuovo modello"
 msgstr "New model"
 
@@ -4705,6 +4797,9 @@ msgid "Per calcolare il piano servono la <strong>data di inizio</strong> e la <s
 msgstr ""
 "To work out the plan you need the <strong>start date</strong> and the <strong>term</strong> (or the monthly "
 "installment)."
+
+msgid "Per categoria"
+msgstr "By category"
 
 msgid "Per computer con poca memoria: leggono solo documenti di testo, non scansioni o foto"
 msgstr "For computers with little memory: they only read text documents, not scans or photos"
@@ -5456,6 +5551,9 @@ msgstr "Left"
 msgid "Rimborsato"
 msgstr "Repaid"
 
+msgid "Rimborsi"
+msgstr "Refunds"
+
 #, python-format
 msgid "Rimuovere il modello %(name)s (~%(size)s GB)?"
 msgstr "Remove the model %(name)s (~%(size)s GB)?"
@@ -5783,6 +5881,9 @@ msgstr "Marked as different transactions: they will no longer be suggested as du
 
 msgid "Sei sicuro?"
 msgstr "Are you sure?"
+
+msgid "Seleziona"
+msgstr "Select"
 
 msgid "Seleziona l'estratto conto da importare."
 msgstr "Select the bank statement to import."
@@ -6204,6 +6305,9 @@ msgstr "Portfolio holding"
 msgid "Titolo nel file"
 msgstr "Instrument in the file"
 
+msgid "Togli dall'evento le selezionate"
+msgstr "Take the selected ones out of the event"
+
 msgid "Togli il filtro"
 msgstr "Remove the filter"
 
@@ -6521,6 +6625,13 @@ msgstr "A model says how much each part of the portfolio should weigh. The activ
 
 msgid "Un solo ETF su tutte le borse del mondo: massima crescita attesa, ma il valore può anche dimezzarsi."
 msgstr "One ETF on every stock market in the world: the highest expected growth, but the value can also halve."
+
+msgid ""
+"Un viaggio, un matrimonio, dei lavori in casa: raccogli i movimenti di categorie diverse per vederne il costo totale "
+"e confrontarlo con un budget."
+msgstr ""
+"A trip, a wedding, home works: gather movements of different categories to see their total cost and compare it with a"
+" budget."
 
 msgid ""
 "Un'istantanea fotografa liquidità, investimenti e debiti di oggi. Creane una al mese per seguire l'evoluzione del "
@@ -7009,6 +7120,9 @@ msgstr "e.g. VWCE.DE, ENEL.MI, BTC"
 msgid "es. Vanguard FTSE All-World"
 msgstr "e.g. Vanguard FTSE All-World"
 
+msgid "es. Viaggio in Giappone"
+msgstr "e.g. Trip to Japan"
+
 msgid "es. decathlon"
 msgstr "e.g. decathlon"
 
@@ -7268,6 +7382,10 @@ msgid "regole"
 msgstr "rules"
 
 #, python-format
+msgid "restano %(amount)s"
+msgstr "%(amount)s left"
+
+#, python-format
 msgid "riga %(line)s: %(error)s"
 msgstr "row %(line)s: %(error)s"
 
@@ -7348,6 +7466,10 @@ msgstr "out of %(total)s transactions, from the model"
 
 msgid "suddivisa"
 msgstr "split"
+
+#, python-format
+msgid "superato di %(amount)s"
+msgstr "exceeded by %(amount)s"
 
 #, python-format
 msgid "tasso %(rate)s%%"
@@ -7580,6 +7702,9 @@ msgstr "— as the main one / variable —"
 
 msgid "— nessun conto —"
 msgstr "— no account —"
+
+msgid "— nessun evento —"
+msgstr "— no event —"
 
 msgid "— nessuna —"
 msgstr "— none —"

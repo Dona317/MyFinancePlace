@@ -42,6 +42,8 @@ class Transaction(db.Model):
     # A broker commission: the trade it was charged for (deleted with it)
     fee_for_id = db.Column(db.Integer, db.ForeignKey("transactions.id", ondelete="CASCADE"), index=True)
     debt_id    = db.Column(db.Integer, db.ForeignKey("debts.id", ondelete="SET NULL"), index=True)
+    # The spending event it belongs to (F20: a trip, a wedding…)
+    event_id   = db.Column(db.Integer, db.ForeignKey("spending_events.id", ondelete="SET NULL"), index=True)
 
     # loaded on first use (only the account page shows them): joining them on every query slowed down
     # the pages that read the whole history

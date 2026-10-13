@@ -38,6 +38,7 @@ from app.models import (
     PortfolioTemplate,
     SlotHolding,
     Snapshot,
+    SpendingEvent,
     TemplateSlot,
     Transaction,
     TransactionSplit,
@@ -52,7 +53,7 @@ KEEP_SAFETY_COPIES = 10
 SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 
 # Insertion order: a table comes after the tables it points to (documents and dismissals → transactions)
-MODELS = [AppSetting, Account, Category, CategoryRule, ExchangeRate, Holding, HoldingPrice, Debt, Transaction, TransactionSplit, DuplicateDismissal,
+MODELS = [AppSetting, Account, Category, CategoryRule, ExchangeRate, Holding, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
           InsurancePolicy, Goal, Budget, Document, Snapshot, PortfolioTemplate, TemplateSlot, SlotHolding,
           PortfolioRule, InvestmentPlan]  # parents before the rows that point to them
 
