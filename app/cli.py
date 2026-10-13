@@ -81,3 +81,21 @@ def clients_create(name):
     except studio.StudioError as exc:
         raise click.ClickException(str(exc)) from exc
     click.echo(f"Created {client.name} in database {client.database}.")
+
+
+mcp_cli = AppGroup("mcp", help="Read-only access for an AI assistant on this computer (F22).")
+
+
+@mcp_cli.command("serve")
+@click.option("--client", "slug", default=None, help="The archive to read (slug, see `flask clients list`).")
+def mcp_serve(slug):
+    """Answer an MCP client (Claude Desktop…) on stdin/stdout, read only."""
+    from flask import current_app
+
+    from app.services import mcp_server
+
+    try:
+        client = mcp_server.find_client(slug)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    mcp_server.serve(current_app._get_current_object(), client)

@@ -3,7 +3,7 @@ from flask import Flask
 
 
 def register_blueprints(app: Flask) -> None:
-    from app.cli import clients_cli, users_cli
+    from app.cli import clients_cli, mcp_cli, users_cli
     from app.routes.accounting import accounting_bp
     from app.routes.accounts import accounts_bp
     from app.routes.assistant import assistant_bp
@@ -36,3 +36,4 @@ def register_blueprints(app: Flask) -> None:
         app.register_blueprint(blueprint)
     app.cli.add_command(users_cli)
     app.cli.add_command(clients_cli)
+    app.cli.add_command(mcp_cli)

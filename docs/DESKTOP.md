@@ -54,6 +54,32 @@ Gli avvii successivi richiedono circa 2 secondi.
 - Come: Windows 10/11 con le notifiche native (PowerShell e le API di Windows, niente da installare), macOS con
   `osascript`, Linux con `notify-send`. Le scelte stanno in `desktop.json` nella cartella dei dati.
 
+## Assistente AI in sola lettura (MCP, F22)
+
+Un assistente sul tuo computer (per esempio Claude Desktop) può leggere i tuoi numeri per rispondere a domande:
+saldi, spese per categoria, movimenti, patrimonio, investimenti, debiti, obiettivi e il consolidato di un gruppo.
+**Non può cambiare nulla**: non c'è nessuno strumento che scrive, e ogni lettura avviene in una transazione del
+database in sola lettura.
+
+Nel file di configurazione di Claude Desktop (`claude_desktop_config.json`: Impostazioni → Sviluppatore → Modifica
+configurazione) aggiungi:
+
+```json
+{
+  "mcpServers": {
+    "myfinanceplace": {
+      "command": "C:\\Program Files\\MyFinancePlace\\MyFinancePlace.exe",
+      "args": ["--mcp"]
+    }
+  }
+}
+```
+
+Su Mac il comando è `/Applications/MyFinancePlace.app/Contents/MacOS/MyFinancePlace`. Per leggere un archivio diverso dal
+principale aggiungi `"--client", "<slug>"` (lo slug è nella pagina Clienti). Se l'app è aperta, l'assistente legge dal
+suo database; altrimenti il database si avvia per la durata della conversazione: in quel caso chiudi l'assistente prima
+di aprire l'app. Con il server (non desktop) il comando è `flask --app run mcp serve [--client <slug>]`.
+
 ## Dove sono i dati
 
 | Sistema | Cartella |

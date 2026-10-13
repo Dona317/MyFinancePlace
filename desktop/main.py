@@ -48,6 +48,8 @@ def _arguments(argv):
     parser.add_argument("--browser", action="store_true", help="apre il browser invece della finestra")
     parser.add_argument("--smoke", action="store_true", help="avvia, controlla /health e chiude")
     parser.add_argument("--stop", action="store_true", help="chiude l'app aperta (installatore)")
+    parser.add_argument("--mcp", action="store_true", help="accesso in sola lettura per un assistente AI (MCP su stdin/stdout)")
+    parser.add_argument("--client", help="con --mcp: l'archivio da leggere (slug)")
     return parser.parse_args(argv)
 
 
@@ -261,6 +263,8 @@ def main(argv=None) -> int:
     root = paths.data_dir(args.data_dir)
     _logging(root)
     target = link_target(args.link)
+    if args.mcp:
+        return _mcp(root, args.client)
 
     running = _running(root)
     if args.stop:
@@ -291,7 +295,8 @@ def main(argv=None) -> int:
                         {"DESKTOP_DIR": str(root), "DESKTOP_COMMAND": launch_command(args.data_dir),
                          "DESKTOP_TOKEN": token})
         server, url = serve(app, args.port)
-        (root / "running.json").write_text(json.dumps({"url": url, "pid": os.getpid(), "token": token}),
+        (root / "running.json").write_text(json.dumps({"url": url, "pid": os.getpid(), "token": token,
+                                                       "db_port": database.port}),
                                            encoding="utf-8")
         log.info("MyFinancePlace on %s (data in %s)", url, root)
         print(url, flush=True)
@@ -316,6 +321,34 @@ def main(argv=None) -> int:
         (root / "running.json").unlink(missing_ok=True)
         database.stop()
         log.info("closed")
+
+
+def _mcp(root: Path, slug: str | None) -> int:
+    """`--mcp` (F22): answer an MCP client on stdin/stdout, read only. On the database of the app when it is open,
+    else on one started for the time of the session (stdout is the protocol: everything else goes to the log)."""
+    from app.services import mcp_server
+
+    bin_dir = paths.postgres_bin()
+    if bin_dir is None:
+        log.error("PostgreSQL binaries not found (pgsql/bin, or MFP_PG_BIN)")
+        return 2
+    database, running = EmbeddedPostgres(bin_dir, root), _running(root)
+    started = not (running and running.get("db_port"))
+    try:
+        if started:
+            database.start()
+        else:
+            database.port = running["db_port"]
+        app = build_app(database.url(), _secret_key(root), root / "instance")
+        with app.app_context():
+            mcp_server.serve(app, mcp_server.find_client(slug))
+        return 0
+    except (DatabaseError, OSError, ValueError) as exc:
+        log.error("%s", exc)
+        return 6
+    finally:
+        if started:
+            database.stop()
 
 
 def _page(app, target: str) -> str:
