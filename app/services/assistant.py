@@ -27,6 +27,7 @@ from app.services import (
     data_health,
     income_report,
     periods,
+    personal_loans,
     spending_events,
     wealth,
 )
@@ -107,6 +108,8 @@ def facts(today: date | None = None) -> dict:
                        "entro": g.target_date.isoformat() if g.target_date else None} for g in Goal.query.all()],
         "eventi": [{"nome": s.event.name, "costo": float(s.net), "budget": float(s.event.budget) if s.event.budget else None}
                    for s in spending_events.all_summaries()][:15],
+        "prestiti_tra_persone": [{"persona": p.name, "saldo": float(p.balance), "nota": "positivo: ti deve"}
+                                 for p in personal_loans.people() if p.balance][:15],
         "problemi_nei_dati": [{"controllo": c.title, "quanti": c.count} for c in data_health.severe(today)],
         "categoria_senza_nome": categories.FALLBACK,
     }

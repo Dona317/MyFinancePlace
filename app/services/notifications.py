@@ -19,6 +19,7 @@ from app.services import (
     forecast,
     gigs,
     investment_plans,
+    personal_loans,
     portfolio_rules,
     request_cache,
     sections,
@@ -162,11 +163,24 @@ def _gigs(today: date) -> list[Notification]:
             for g in gigs.late(today)]
 
 
+def _loans(today: date) -> list[Notification]:
+    """Money between people due within a week (or already due)."""
+    items = []
+    for person in personal_loans.due_soon(today):
+        owes_me = person.balance > 0
+        title = (_("%(person)s ti deve %(amount)s", person=person.name, amount=_money(person.balance)) if owes_me
+                 else _("Devi %(amount)s a %(person)s", person=person.name, amount=_money(-person.balance)))
+        items.append(Notification(f"loan-{person.name}-{person.due}", "warning" if person.due <= today else "info",
+                                  "arrow-left-right", title, _("Entro il %(day)s", day=display.day(person.due)),
+                                  person.due, url_for("loans.index")))
+    return items
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
-           (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"))
+           (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"))
 
 
 def dismissed() -> list[str]:

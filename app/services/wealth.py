@@ -10,6 +10,7 @@ from datetime import date, timedelta
 from sqlalchemy import case, func
 
 from app.extensions import db
+from app.models.personal_loan import PersonalLoan
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
 from app.services import accounts, settings_store
@@ -312,6 +313,17 @@ def financed_assets(on: date | None = None) -> list[dict]:
 
 # ── Balance Sheet ──────────────────────────────────────────────────────────────
 
+PEOPLE_OWE_ME, I_OWE_PEOPLE = N_("Crediti verso persone"), N_("Debiti verso persone")
+
+
+def _people_balances(on: date) -> tuple[float, float]:
+    """What people owe me and what I owe them on a date (services.personal_loans)."""
+    rows = (db.session.query(PersonalLoan.person, func.sum(PersonalLoan.amount)).filter(PersonalLoan.date <= on)
+            .group_by(PersonalLoan.person))
+    balances = [float(total or 0) for _person, total in rows]
+    return sum(b for b in balances if b > 0), -sum(b for b in balances if b < 0)
+
+
 def balance_sheet(on: date | None = None) -> dict:
     """
     Assets and liabilities on a date. Holdings are valued at the latest price recorded by that date (their current
@@ -341,11 +353,16 @@ def balance_sheet(on: date | None = None) -> dict:
             line = N_("Prestiti a lungo termine")
         liabilities[line] += summary["balance"]
         debt_rows.append({"name": debt.name, "type": debt.type, "line": line, "balance": summary["balance"]})
+    owed, owing = _people_balances(on)  # F22: money between people
+    if owed:
+        assets[PEOPLE_OWE_ME] += owed
+    if owing:
+        liabilities[I_OWE_PEOPLE] += owing
 
     current_assets = {k: _money(v) for k, v in assets.items() if k in CURRENT_ASSET_LINES}
     other_assets = {k: _money(v) for k, v in assets.items() if k not in CURRENT_ASSET_LINES and v}
     current_liabilities = {k: _money(v) for k, v in liabilities.items()
-                           if k in ("Carte di credito", "Prestiti in scadenza entro 12 mesi")}
+                           if k in ("Carte di credito", "Prestiti in scadenza entro 12 mesi", I_OWE_PEOPLE)}
     long_liabilities = {k: _money(v) for k, v in liabilities.items() if k not in current_liabilities}
 
     total_assets = _money(sum(assets.values()))

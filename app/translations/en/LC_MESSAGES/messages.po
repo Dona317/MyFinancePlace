@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 21:04+0000\n"
+"POT-Creation-Date: 2026-10-13 21:08+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -473,6 +473,10 @@ msgstr "%(pct)s%% compared with the previous period (%(amount)s)"
 #, python-format
 msgid "%(pct)s%% sul capitale"
 msgstr "%(pct)s%% on capital"
+
+#, python-format
+msgid "%(person)s ti deve %(amount)s"
+msgstr "%(person)s owes you %(amount)s"
 
 #, python-format
 msgid ""
@@ -1878,6 +1882,9 @@ msgstr "With %(amount)s a month you do not reach it in 50 years"
 msgid "Con Claude serve la variabile"
 msgstr "With Claude you need the variable"
 
+msgid "Con chi (separati da virgole)"
+msgstr "With whom (separated by commas)"
+
 msgid "Con e senza passaggio alle obbligazioni"
 msgstr "With and without the shift to bonds"
 
@@ -2165,6 +2172,9 @@ msgstr "What %(name)s includes"
 msgid "Cosa è cambiato a %(month)s"
 msgstr "What changed in %(month)s"
 
+msgid "Cosa è successo"
+msgstr "What happened"
+
 msgid "Costo"
 msgstr "Cost"
 
@@ -2204,6 +2214,9 @@ msgstr "Take your first snapshot to start tracking how your wealth changes over 
 msgid "Crea utente"
 msgstr "Create user"
 
+msgid "Crediti verso persone"
+msgstr "Owed to me by people"
+
 msgid "Crescita del patrimonio"
 msgstr "Net worth growth"
 
@@ -2237,6 +2250,9 @@ msgstr "To assign"
 #, python-brace-format
 msgid "Da assegnare: {amount}"
 msgstr "Left to assign: {amount}"
+
+msgid "Da chi"
+msgstr "From whom"
 
 msgid "Da comprare / vendere"
 msgstr "To buy / sell"
@@ -2274,6 +2290,9 @@ msgstr "From now on transactions from «%(counterparty)s» will go to «%(catego
 
 msgid "Da quando conta nello stato patrimoniale dei mesi passati."
 msgstr "From when it counts in the balance sheet of past months."
+
+msgid "Da restituire entro (facoltativo)"
+msgstr "To be given back by (optional)"
 
 msgid "Da tutte le istantanee"
 msgstr "From all snapshots"
@@ -2365,6 +2384,9 @@ msgstr "Data from the internet"
 msgid "Debiti"
 msgstr "Debts"
 
+msgid "Debiti verso persone"
+msgstr "Owed by me to people"
+
 msgid "Debito"
 msgstr "Debt"
 
@@ -2428,6 +2450,13 @@ msgstr "Spending Details"
 msgid "Dettaglio per Categoria"
 msgstr "Details by Category"
 
+msgid "Devi"
+msgstr "You owe"
+
+#, python-format
+msgid "Devi %(amount)s a %(person)s"
+msgstr "You owe %(amount)s to %(person)s"
+
 msgid "Di Harry Browne: quattro parti uguali che reagiscono in modo diverso a crescita, inflazione, recessione e deflazione."
 msgstr "By Harry Browne: four equal parts that react differently to growth, inflation, recession and deflation."
 
@@ -2475,6 +2504,12 @@ msgstr "Dividends (year)"
 
 msgid "Dividendo"
 msgstr "Dividend"
+
+msgid "Dividi"
+msgstr "Share"
+
+msgid "Dividi una spesa"
+msgstr "Share an expense"
 
 #, python-format
 msgid "Diviso secondo «%(model)s», ai prezzi più recenti. Correggi quote e prezzi con quelli eseguiti dal broker."
@@ -2677,6 +2712,9 @@ msgstr "Delete the rule “%(keyword)s”?"
 
 msgid "Eliminare la regola?"
 msgstr "Delete the rule?"
+
+msgid "Eliminare la voce?"
+msgstr "Delete the entry?"
 
 #, python-format
 msgid "Eliminare l’utente «%(name)s»? I dati restano."
@@ -3237,6 +3275,9 @@ msgstr "Already seen (%(count)s)"
 msgid "Gli amministratori vedono sempre tutte le sezioni."
 msgstr "Administrators always see every section."
 
+msgid "Gli ho restituito"
+msgstr "I gave it back"
+
 #, python-format
 msgid ""
 "Gli obiettivi devono fare 100 %%. Un titolo conta in una parte se lo scegli lì, oppure se ha il suo ISIN o ticker, "
@@ -3302,6 +3343,9 @@ msgstr "They take precedence over the default rules. «Learned» = created when 
 
 msgid "Ho capito: un backup completo"
 msgstr "I understand: a full backup"
+
+msgid "Ho prestato o anticipato"
+msgstr "I lent or paid in advance"
 
 msgid "Home"
 msgstr "Home"
@@ -3674,6 +3718,9 @@ msgstr "Amount (negative = expense)"
 msgid "Importo (più alti prima)"
 msgstr "Amount (largest first)"
 
+msgid "Importo (€)"
+msgstr "Amount (€)"
+
 msgid "Importo accreditato sul conto d'arrivo"
 msgstr "Amount credited to the receiving account"
 
@@ -3804,6 +3851,12 @@ msgstr "Collected: %(amount)s."
 
 msgid "Incasso netto"
 msgstr "Net proceeds"
+
+msgid "Indica almeno una persona e la sua quota."
+msgstr "Give at least one person and their share."
+
+msgid "Indica almeno una persona."
+msgstr "Give at least one person."
 
 msgid "Indica dove leggere il prezzo (percorso, etichetta o colonna)."
 msgstr "Say where to read the price (path, label or column)."
@@ -4029,6 +4082,9 @@ msgstr "You hid it in Settings: turn it back on to use it again. Your data has n
 msgid "L'importo dell'ultima transazione della serie: segue subito un aumento o un rinnovo."
 msgstr "The amount of the latest transaction of the series: follows a rise or a renewal straight away."
 
+msgid "L'importo deve essere positivo."
+msgstr "The amount must be positive."
+
 msgid "L'importo di ogni pagamento: il premio annuo si calcola dalla frequenza."
 msgstr "The amount of each payment: the yearly premium is worked out from the frequency."
 
@@ -4120,6 +4176,9 @@ msgstr "The expiry cannot be before the start."
 msgid "La soglia in percentuale va da 0 a 100."
 msgstr "A percentage threshold goes from 0 to 100."
 
+msgid "La spesa è già suddivisa in categorie: dividila con le persone prima di suddividerla."
+msgstr "The expense is already split into categories: share it with people before splitting it."
+
 msgid "La tolleranza va da 0 a 50 punti."
 msgstr "The tolerance goes from 0 to 50 points."
 
@@ -4199,6 +4258,10 @@ msgstr ""
 "Occasional work is “redditi diversi” (other income): in the 730 section D (line D5, code 2), in the Redditi form "
 "section RL. The income is the gross less the job's expenses; the withholdings already paid by the clients are "
 "deducted from the tax."
+
+#, python-format
+msgid "Le quote degli altri devono essere meno del totale (%(total)s)."
+msgstr "The others' shares must be less than the total (%(total)s)."
 
 msgid "Le scelte vengono ricordate"
 msgstr "Your choices are remembered"
@@ -4496,6 +4559,12 @@ msgstr "Put in the event"
 
 msgid "Mezza riga / riga intera"
 msgstr "Half row / full row"
+
+msgid "Mi ha prestato"
+msgstr "They lent me"
+
+msgid "Mi ha restituito"
+msgstr "They gave it back"
 
 msgid "Migliori"
 msgstr "Best"
@@ -4854,6 +4923,9 @@ msgstr "No active model portfolio."
 msgid "Nessun possibile duplicato"
 msgstr "No possible duplicates"
 
+msgid "Nessun prestito: registra qui sotto chi ti deve soldi o a chi li devi."
+msgstr "No loans: record below who owes you money or whom you owe."
+
 msgid "Nessun prezzo cambiato."
 msgstr "No price changed."
 
@@ -4895,6 +4967,9 @@ msgstr "No income in this period."
 
 msgid "Nessuna entrata negli ultimi 12 mesi completi."
 msgstr "No income in the last 12 complete months."
+
+msgid "Nessuna entrata negli ultimi 60 giorni."
+msgstr "No income in the last 60 days."
 
 #, python-format
 msgid "Nessuna entrata o uscita nel %(year)s."
@@ -4969,6 +5044,9 @@ msgstr "No spending in this period."
 
 msgid "Nessuna spesa negli ultimi 12 mesi."
 msgstr "No spending in the last 12 months."
+
+msgid "Nessuna spesa negli ultimi 60 giorni."
+msgstr "No expenses in the last 60 days."
 
 msgid "Nessuna spesa nelle categorie collegate alle voci del 730 per questo anno. Collega le categorie qui sotto."
 msgstr "No expenses in the categories linked to the 730 items this year. Link the categories below."
@@ -5221,6 +5299,9 @@ msgstr "New transaction"
 
 msgid "Nuova transazione: descrizione (premi «n»)"
 msgstr "New transaction: description (press «n»)"
+
+msgid "Nuova voce"
+msgstr "New entry"
 
 msgid "Nuovi beni"
 msgstr "New assets"
@@ -5692,6 +5773,9 @@ msgstr "By client"
 msgid "Per computer con poca memoria: leggono solo documenti di testo, non scansioni o foto"
 msgstr "For computers with little memory: they only read text documents, not scans or photos"
 
+msgid "Per cosa"
+msgstr "What for"
+
 #, python-format
 msgid "Per eliminare il cliente e il suo archivio scrivi «%(name)s»"
 msgstr "To delete the client and its archive type “%(name)s”"
@@ -5969,6 +6053,9 @@ msgstr "Loans due within 12 months"
 
 msgid "Prestiti ricevuti (+) e rate rimborsate (−)"
 msgstr "Loans received (+) and installments repaid (−)"
+
+msgid "Prestiti tra persone"
+msgstr "Loans between people"
 
 msgid "Prestito Auto"
 msgstr "Car Loan"
@@ -6260,6 +6347,9 @@ msgstr ""
 msgid "Quota"
 msgstr "Share"
 
+msgid "Quota di ognuno (€, facoltativa)"
+msgstr "Each one's share (€, optional)"
+
 #, python-format
 msgid "Quota in obbligazioni (%%)"
 msgstr "Share in bonds (%%)"
@@ -6347,9 +6437,16 @@ msgstr "Record"
 msgid "Registra la commissione come spesa:"
 msgstr "Record the commission as an expense:"
 
+msgid "Registra la restituzione"
+msgstr "Record the repayment"
+
 #, python-format
 msgid "Registrato fino al %(day)s + previsto"
 msgstr "Recorded up to %(day)s + expected"
+
+#, python-format
+msgid "Registrato per %(person)s."
+msgstr "Recorded for %(person)s."
 
 #, python-format
 msgid "Registrato «%(category)s» per %(amount)s."
@@ -6470,6 +6567,10 @@ msgid ""
 msgstr ""
 "Stays in the balances but not in reports, budgets, spending rhythm and the consolidated view: refunds of work "
 "expenses, money spent for others"
+
+#, python-format
+msgid "Restituzione di %(person)s registrata."
+msgstr "Repayment from %(person)s recorded."
 
 msgid "Retta di regressione sugli ultimi N mesi, proiettata in avanti: coglie spese in crescita o in calo."
 msgstr "Regression line over the last N months, projected forward: catches rising or falling spending."
@@ -6902,6 +7003,9 @@ msgstr "Choose at least one account, holding or category the payments go into."
 msgid "Scegli almeno un file da caricare."
 msgstr "Choose at least one file to upload."
 
+msgid "Scegli cosa è successo."
+msgstr "Choose what happened."
+
 msgid "Scegli dai tag già usati o scrivine uno nuovo e premi Invio. La controparte (es. il negozio) va nei tag."
 msgstr "Pick from the tags already used or type a new one and press Enter. The counterparty (e.g. the shop) goes in the tags."
 
@@ -6957,6 +7061,9 @@ msgstr "Write the name of the group."
 
 msgid "Scrivi il nome del tetto."
 msgstr "Write the name of the limit."
+
+msgid "Scrivi il nome della persona."
+msgstr "Write the person's name."
 
 msgid "Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna"
 msgstr "Enter the balance the bank shows at a date: the app tells you whether it matches"
@@ -7118,6 +7225,9 @@ msgid ""
 "desktop)."
 msgstr "They are checked at every price update; when one trips a reminder appears (and a notification in the desktop app)."
 
+msgid "Si divide solo una spesa."
+msgstr "Only an expense can be shared."
+
 msgid "Simili"
 msgstr "Similar"
 
@@ -7132,6 +7242,16 @@ msgstr "Threshold"
 
 msgid "Soglia INPS"
 msgstr "INPS threshold"
+
+msgid ""
+"Soldi prestati, anticipati per altri, presi in prestito, restituiti: il saldo di ogni persona. Nello stato "
+"patrimoniale quello che ti devono è un credito, quello che devi un debito."
+msgstr ""
+"Money lent, paid for others, borrowed, given back: each person's balance. In the balance sheet what they owe you is a"
+" receivable, what you owe a debt."
+
+msgid "Soldi restituiti"
+msgstr "Money given back"
 
 #, python-format
 msgid "Solo %(month)s (€)"
@@ -7179,6 +7299,9 @@ msgstr "Paused"
 
 msgid "Sottocategoria di"
 msgstr "Subcategory of"
+
+msgid "Spesa"
+msgstr "Expense"
 
 msgid "Spesa maggiore"
 msgstr "Largest expense"
@@ -7490,6 +7613,9 @@ msgstr "Limit “%(name)s” added."
 
 msgid "Three-fund portfolio"
 msgstr "Three-fund portfolio"
+
+msgid "Ti devono"
+msgstr "Owed to you"
 
 msgid "Ticker"
 msgstr "Ticker"
@@ -7963,11 +8089,21 @@ msgstr "A category cannot be a subcategory of itself."
 msgid "Una data passata aggiunge i prezzi allo storico senza cambiare quelli più recenti."
 msgstr "A past date adds the prices to the history without changing the newer ones."
 
+msgid "Una restituzione è un'entrata."
+msgstr "A repayment is an income."
+
 msgid "Una soglia di prezzo vale per un titolo: sceglilo."
 msgstr "A price threshold is for one holding: choose it."
 
 msgid "Una sola categoria"
 msgstr "One category only"
+
+msgid ""
+"Una spesa pagata anche per altri: la loro quota diventa un credito e va in «Anticipi per altri», fuori dalle analisi;"
+" nella sua categoria resta solo la tua parte."
+msgstr ""
+"An expense paid for others too: their share becomes a receivable and goes to “Anticipi per altri”, out of the "
+"analyses; only your part stays in its category."
 
 msgid "Una transazione del file non ha data, descrizione o importo."
 msgstr "A transaction in the file has no date, description or amount."
@@ -7977,6 +8113,9 @@ msgstr "A sale exceeds the units held: a purchase or the opening position is mis
 
 msgid "Università"
 msgstr "University"
+
+msgid "Un’entrata da chi ti ridà i soldi: scala il suo debito e non conta come tua entrata."
+msgstr "An income from someone giving money back: it reduces what they owe and does not count as your income."
 
 msgid "Usa"
 msgstr "Use"
@@ -8193,6 +8332,9 @@ msgstr "Life"
 
 msgid "Voce"
 msgstr "Item"
+
+msgid "Voce eliminata."
+msgstr "Entry deleted."
 
 msgid "Voci con spese"
 msgstr "Items with expenses"
@@ -8455,6 +8597,10 @@ msgstr "income"
 msgid "entrate con categoria «Dividendi» o «Cedole»"
 msgstr "income with category «Dividendi» or «Cedole»"
 
+#, python-format
+msgid "entro il %(day)s"
+msgstr "by %(day)s"
+
 msgid "equivalente mensile"
 msgstr "monthly equivalent"
 
@@ -8509,6 +8655,9 @@ msgstr "e.g. Emergency fund"
 
 msgid "es. Generali, UnipolSai..."
 msgstr "e.g. Generali, UnipolSai..."
+
+msgid "es. Luca, Sara"
+msgstr "e.g. Luca, Sara"
 
 msgid "es. Mario Rossi"
 msgstr "e.g. John Smith"
@@ -8602,6 +8751,10 @@ msgid "già versate dai committenti"
 msgstr "already paid by the clients"
 
 #, python-format
+msgid "gli devi %(amount)s"
+msgstr "you owe %(amount)s"
+
+#, python-format
 msgid "i soldi bastano fino a %(age)s anni in %(pct)s simulazioni su 100"
 msgstr "the money lasts until %(age)s in %(pct)s simulations out of 100"
 
@@ -8624,6 +8777,9 @@ msgstr "invalid amount: '%(value)s'"
 
 msgid "in corso"
 msgstr "in progress"
+
+msgid "in pari"
+msgstr "settled"
 
 #, python-format
 msgid "incassato il %(day)s"
@@ -8726,6 +8882,9 @@ msgstr "multiplier %(value)s"
 
 msgid "movimenti"
 msgstr "movements"
+
+msgid "movimento"
+msgstr "movement"
 
 msgid "nel file"
 msgstr "in the file"
@@ -9011,6 +9170,10 @@ msgid "testo"
 msgstr "text"
 
 #, python-format
+msgid "ti deve %(amount)s"
+msgstr "owes you %(amount)s"
+
+#, python-format
 msgid "ticker «%(ticker)s» non trovato (per Borsa Italiana aggiungi .MI, per Xetra .DE)"
 msgstr "ticker «%(ticker)s» not found (add .MI for Borsa Italiana, .DE for Xetra)"
 
@@ -9089,6 +9252,9 @@ msgstr "empty = unchanged"
 msgid "vuoto: il nome del tetto pronto"
 msgstr "empty: the ready-made limit's name"
 
+msgid "vuoto: in parti uguali con te"
+msgstr "empty: equal parts with you"
+
 msgid "vuoto: quello del tipo scelto"
 msgstr "empty: the chosen type's"
 
@@ -9103,6 +9269,10 @@ msgstr "«%(description)s» added in %(category)s."
 #, python-format
 msgid "«%(description)s» di nuovo attivo."
 msgstr "«%(description)s» active again."
+
+#, python-format
+msgid "«%(description)s» divisa: %(people)s ti devono %(amount)s in tutto."
+msgstr "“%(description)s” shared: %(people)s owe you %(amount)s in all."
 
 #, python-format
 msgid "«%(description)s» non è più attivo?"
