@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block page_title %}{{ _('Pensione e indipendenza finanziaria') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('forecast.index') }}">{{ _('Previsioni') }}</a></li><li>{{ _('Pensione e FIRE') }}</li>{% endblock %}
+
+{% macro field(name, label, value, hint=none) %}
+<div class="form-group">
+  <label class="form-label" for="r-{{ name }}">{{ label }}</label>
+  <input type="text" inputmode="decimal" id="r-{{ name }}" name="{{ name }}" class="form-control" value="{{ value|plain }}" />
+  {% if hint %}<div class="form-hint">{{ hint }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% block content %}
+{% if result %}
+<div class="kpi-grid" style="margin-bottom:24px;">
+  {{ kpi('shield-check', _('Probabilità di successo'), value=result.success|number(1) ~ ' %',
+         cls='kpi-positive' if result.success >= 85 else ('kpi-warning' if result.success >= 60 else 'kpi-negative'),
+         sub=_('i soldi bastano fino a %(age)s anni in %(pct)s simulazioni su 100', age=plan.horizon, pct=result.success|number(0))) }}
+  {{ kpi('piggy-bank', _('Patrimonio a %(age)s anni', age=plan.retire_at), value=result.median_at_retirement|money,
+         sub=_('mediana, in euro di oggi')) }}
+  {{ kpi('cash-coin', _('Prelievo sostenibile'), value=result.sustainable|money,
+         sub=_('all\'anno al %(rate)s %%, contro un fabbisogno di %(gap)s', rate=plan.withdrawal_rate|number(1), gap=result.gap|money)) }}
+  {{ kpi('hourglass-split', _('Indipendenza finanziaria'), value=(_('a %(age)s anni', age=result.fire_age) if result.fire_age else '—'),
+         sub=_('quando il patrimonio mediano copre il fabbisogno (%(needed)s)', needed=result.needed|money)) }}
+</div>
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Il patrimonio negli anni') }}</div>
+    <div class="card-header-sub">{{ _('%(runs)s simulazioni con rendimenti casuali: la linea centrale è il caso mediano, le altre il 10%% peggiore e il 10%% migliore.', runs=runs) }}</div>
+  </div></div>
+  <div class="card-body"><div style="height:320px;"><canvas id="retirementChart"></canvas></div></div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Le tue ipotesi') }}</div>
+    <div class="card-header-sub">{{ _('Tutto in euro di oggi. Le prime cifre vengono dal tuo archivio (patrimonio, spese e risparmio degli ultimi 12 mesi): cambiale come vuoi. È una stima, non una consulenza.') }}</div>
+  </div></div>
+  <div class="card-body">
+    <form method="POST" id="retirement-form">
+      <div class="grid-3">
+        {{ field('age', _('Età oggi'), plan.age) }}
+        {{ field('retire_at', _('Età della pensione'), plan.retire_at) }}
+        {{ field('horizon', _('Fino a (età)'), plan.horizon) }}
+      </div>
+      <div class="grid-3">
+        {{ field('wealth', _('Patrimonio investibile (€)'), plan.wealth, _('liquidità e investimenti, senza la casa')) }}
+        {{ field('yearly_saving', _('Risparmio all\'anno (€)'), plan.yearly_saving, _('fino alla pensione')) }}
+        {{ field('expenses', _('Spese all\'anno in pensione (€)'), plan.expenses) }}
+      </div>
+      <div class="grid-3">
+        {{ field('pension', _('Pensione all\'anno (€)'), plan.pension, _('INPS e fondo pensione, netti')) }}
+        {{ field('expected_return', _('Rendimento atteso (%%)'), plan.expected_return) }}
+        {{ field('volatility', _('Volatilità (%%)'), plan.volatility, _('azionario 15–18, bilanciato 8–10')) }}
+      </div>
+      <div class="grid-3">
+        {{ field('inflation', _('Inflazione (%%)'), plan.inflation) }}
+        {{ field('withdrawal_rate', _('Prelievo sicuro (%%)'), plan.withdrawal_rate, _('la «regola del 4 %%»: 3–3,5 per orizzonti lunghi')) }}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> {{ _('Ricalcola') }}</button>
+        <button type="submit" name="reset" value="1" class="btn btn-ghost">{{ _('Riparti dai dati dell\'archivio') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if result %}
+<script>
+makeLineChart('retirementChart', {{ result.ages|tojson }}, [
+  { label: {{ _('10%% peggiore')|tojson }}, data: {{ result.p10|tojson }}, fill: false, pointRadius: 0, dash: [4, 4] },
+  { label: {{ _('Mediana')|tojson }}, data: {{ result.p50|tojson }}, fill: false, pointRadius: 0 },
+  { label: {{ _('10%% migliore')|tojson }}, data: {{ result.p90|tojson }}, fill: false, pointRadius: 0, dash: [4, 4] },
+]);
+</script>
+{% endif %}
+{% endblock %}

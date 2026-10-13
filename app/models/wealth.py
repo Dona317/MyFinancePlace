@@ -135,6 +135,11 @@ class Goal(db.Model):
     target_date   = db.Column(db.Date)
     notes         = db.Column(db.Text)
     created_at    = db.Column(db.Date, nullable=False, default=date.today)
+    # The projection (F20): the account whose balance is what is saved (then kept in sync), the monthly saving and
+    # the yearly return expected on it
+    account_id           = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"))
+    monthly_contribution = db.Column(db.Numeric(38, 2))
+    expected_return      = db.Column(db.Numeric(6, 2))   # % a year
 
     @property
     def progress(self) -> float:

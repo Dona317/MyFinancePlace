@@ -49,7 +49,18 @@
       <div class="progress-bar-wrap">
         <div class="progress-bar-fill {{ 'positive' if goal.completed }}" style="width:{{ goal.progress }}%;"></div>
       </div>
-      {% if monthly %}<div class="text-xs text-muted mt-8">{{ _('%(amount)s al mese per arrivarci in tempo', amount=monthly|money) }}</div>{% endif %}
+      {% set plan = plans.get(goal.id) %}
+      {% if plan and plan.needed is not none and (plan.yearly_return or plan.monthly) %}
+      <div class="text-xs text-muted mt-8">{{ _('%(amount)s al mese per arrivarci in tempo, al %(rate)s %% all\'anno', amount=plan.needed|money, rate=plan.yearly_return|number(1)) }}</div>
+      {% elif monthly %}<div class="text-xs text-muted mt-8">{{ _('%(amount)s al mese per arrivarci in tempo', amount=monthly|money) }}</div>{% endif %}
+      {% if plan and plan.monthly %}
+      <div class="text-xs mt-8">
+        {% if plan.reached_on %}{{ _('Con %(amount)s al mese lo raggiungi a %(month)s', amount=plan.monthly|money, month=plan.reached_on.strftime('%m/%Y')) }}
+        {% else %}<span class="text-negative">{{ _('Con %(amount)s al mese non lo raggiungi in 50 anni', amount=plan.monthly|money) }}</span>{% endif %}
+        <span class="text-muted">({% for rate, day in plan.scenarios %}{{ rate|number(1) }} %: {{ day.strftime('%m/%Y') if day else '—' }}{{ ' · ' if not loop.last }}{% endfor %})</span>
+      </div>
+      {% endif %}
+      {% if goal.account_id %}<div class="text-xs text-muted mt-8"><i class="bi bi-link"></i> {{ _('Segue il saldo del conto') }}</div>{% endif %}
       {% if goal.notes %}<div class="text-xs text-muted mt-8">{{ goal.notes }}</div>{% endif %}
       <div class="goal-foot">
         <form method="POST" action="{{ url_for('lifestyle.goal_contribute', goal_id=goal.id) }}">

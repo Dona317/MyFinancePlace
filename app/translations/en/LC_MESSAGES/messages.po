@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:15+0000\n"
+"POT-Creation-Date: 2026-10-13 10:18+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -68,6 +68,10 @@ msgstr "%(amount)s a month on average"
 #, python-format
 msgid "%(amount)s al mese per arrivarci in tempo"
 msgstr "%(amount)s a month to get there on time"
+
+#, python-format
+msgid "%(amount)s al mese per arrivarci in tempo, al %(rate)s %% all'anno"
+msgstr "%(amount)s a month to get there on time, at %(rate)s %% a year"
 
 #, python-format
 msgid "%(amount)s il %(day)s"
@@ -429,6 +433,12 @@ msgid "%(pct)s%% sul capitale"
 msgstr "%(pct)s%% on capital"
 
 #, python-format
+msgid ""
+"%(runs)s simulazioni con rendimenti casuali: la linea centrale è il caso mediano, le altre il 10%% peggiore e il 10%%"
+" migliore."
+msgstr "%(runs)s simulations with random returns: the middle line is the median case, the others the worst and best 10%%."
+
+#, python-format
 msgid "%(share)s%% delle entrate degli ultimi 12 mesi viene da fonti stabili"
 msgstr "%(share)s%% of the income of the last 12 months comes from stable sources"
 
@@ -568,6 +578,14 @@ msgstr "1 unit = € …"
 
 msgid "1 unità in euro"
 msgstr "1 unit in euro"
+
+#, python-format
+msgid "10%% migliore"
+msgstr "Best 10%%"
+
+#, python-format
+msgid "10%% peggiore"
+msgstr "Worst 10%%"
 
 msgid "12 mesi"
 msgstr "12 months"
@@ -1706,6 +1724,14 @@ msgstr "What can be cut: variable spending, %(amount)s a month on average."
 msgid "Con"
 msgstr "With"
 
+#, python-format
+msgid "Con %(amount)s al mese lo raggiungi a %(month)s"
+msgstr "With %(amount)s a month you reach it in %(month)s"
+
+#, python-format
+msgid "Con %(amount)s al mese non lo raggiungi in 50 anni"
+msgstr "With %(amount)s a month you do not reach it in 50 years"
+
 msgid "Con Claude serve la variabile"
 msgstr "With Claude you need the variable"
 
@@ -1864,6 +1890,12 @@ msgstr "Broker account"
 
 msgid "Conto deposito"
 msgstr "Savings account"
+
+msgid "Conto deposito 2–3, obbligazioni 3, azioni 6–7: una stima, non una promessa."
+msgstr "Savings account 2–3, bonds 3, equities 6–7: an estimate, not a promise."
+
+msgid "Conto dove metti i soldi"
+msgstr "Account where the money goes"
 
 msgid "Conto economico, mesi e rendiconto dell'anno"
 msgstr "Income statement, months and summary of the year"
@@ -2582,6 +2614,12 @@ msgstr "Label"
 msgid "Etichetta (es. Fine anno)"
 msgstr "Label (e.g. Year end)"
 
+msgid "Età della pensione"
+msgstr "Retirement age"
+
+msgid "Età oggi"
+msgstr "Age today"
+
 msgid "Euro"
 msgstr "Euro"
 
@@ -2691,6 +2729,9 @@ msgstr "Fineco:"
 
 msgid "Finestra mobile"
 msgstr "Rolling window"
+
+msgid "Fino a (età)"
+msgstr "Until (age)"
 
 msgid "Fiorino"
 msgstr "Forint"
@@ -2985,6 +3026,9 @@ msgstr "Accounts' IBANs"
 msgid "IC cripto-attività"
 msgstr "IC crypto-assets"
 
+msgid "INPS e fondo pensione, netti"
+msgstr "State and pension fund, net"
+
 msgid "ISIN"
 msgstr "ISIN"
 
@@ -3149,6 +3193,9 @@ msgstr "The model finishes the part it is reading, then the reading stops."
 
 msgid "Il netto di ogni mese (sotto lo zero se negativo) e le tre barre dell'anno"
 msgstr "Each month's net (below zero when negative) and the year's three bars"
+
+msgid "Il patrimonio negli anni"
+msgstr "Wealth over the years"
 
 msgid "Il piano ha bisogno di un portafoglio modello: creane uno o rendine uno attivo."
 msgstr "The plan needs a model portfolio: create one or make one active."
@@ -3394,6 +3441,13 @@ msgstr "Enter a threshold greater than zero."
 
 msgid "Indicatori"
 msgstr "Indicators"
+
+msgid "Indipendenza finanziaria"
+msgstr "Financial independence"
+
+#, python-format
+msgid "Inflazione (%%)"
+msgstr "Inflation (%%)"
 
 msgid "Infortuni"
 msgstr "Accident"
@@ -3664,6 +3718,9 @@ msgstr "Fees are computed with the account's rule."
 msgid "Le due password non coincidono."
 msgstr "The two passwords do not match."
 
+msgid "Le età devono essere in ordine: oggi < pensione < fine dell'orizzonte (al massimo 110)."
+msgstr "The ages must be in order: today < retirement < end of the horizon (110 at most)."
+
 msgid "Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti."
 msgstr "Images are not supported: download the PDF, Excel or CSV of the movements from online banking."
 
@@ -3711,6 +3768,9 @@ msgstr "Transactions in other currencies are converted with the"
 
 msgid "Le tue categorie"
 msgstr "Your categories"
+
+msgid "Le tue ipotesi"
+msgstr "Your assumptions"
 
 msgid "Le tue regole"
 msgstr "Your rules"
@@ -4943,6 +5003,13 @@ msgstr "Password: at least %(count)s characters."
 msgid "Patrimonio Netto"
 msgstr "Net Worth"
 
+#, python-format
+msgid "Patrimonio a %(age)s anni"
+msgstr "Wealth at %(age)s"
+
+msgid "Patrimonio investibile (€)"
+msgstr "Investable wealth (€)"
+
 msgid "Patrimonio netto"
 msgstr "Net worth"
 
@@ -4952,6 +5019,18 @@ msgstr "Net worth today: %(amount)s"
 
 msgid "Patrimonio per persona"
 msgstr "Net worth by person"
+
+msgid "Patrimonio, spese, volatilità e prelievo non possono essere negativi."
+msgstr "Wealth, expenses, volatility and withdrawal cannot be negative."
+
+msgid "Pensione all'anno (€)"
+msgstr "Pension a year (€)"
+
+msgid "Pensione e FIRE"
+msgstr "Retirement and FIRE"
+
+msgid "Pensione e indipendenza finanziaria"
+msgstr "Retirement and financial independence"
 
 msgid "Pensione integrativa"
 msgstr "Supplementary pension"
@@ -5175,6 +5254,13 @@ msgstr "Possible duplicates"
 msgid "Possibili duplicati"
 msgstr "Possible duplicates"
 
+#, python-format
+msgid "Prelievo sicuro (%%)"
+msgstr "Safe withdrawal (%%)"
+
+msgid "Prelievo sostenibile"
+msgstr "Sustainable withdrawal"
+
 msgid "Premi per Tipo"
 msgstr "Premiums by Type"
 
@@ -5334,12 +5420,18 @@ msgstr "Before: %(amount)s"
 msgid "Primo avvio"
 msgstr "First start"
 
+msgid "Probabilità di successo"
+msgstr "Probability of success"
+
 msgid "Profit & Loss"
 msgstr "Profit & Loss"
 
 #, python-format
 msgid "Programmate fino a fine %(month)s"
 msgstr "Scheduled up to the end of %(month)s"
+
+msgid "Proiezione (facoltativa)"
+msgstr "Projection (optional)"
 
 msgid "Promemoria"
 msgstr "Reminders"
@@ -5588,6 +5680,20 @@ msgstr "Return (TWR)"
 msgid "Rendimento annuo"
 msgstr "Yearly return"
 
+msgid "Rendimento atteso"
+msgstr "Expected return"
+
+#, python-format
+msgid "Rendimento atteso (%% all'anno)"
+msgstr "Expected return (%% a year)"
+
+#, python-format
+msgid "Rendimento atteso (%%)"
+msgstr "Expected return (%%)"
+
+msgid "Rendimento atteso: tra −20 e 30 % all'anno."
+msgstr "Expected return: between −20 and 30 % a year."
+
 msgid "Rendimento cumulato"
 msgstr "Cumulative return"
 
@@ -5633,6 +5739,9 @@ msgstr "Rebalance"
 
 msgid "Ribilanciamento"
 msgstr "Rebalancing"
+
+msgid "Ricalcola"
+msgstr "Recalculate"
 
 msgid "Ricarica questa pagina e installa un modello dal catalogo, oppure da terminale:"
 msgstr "Reload this page and install a model from the catalog, or from a terminal:"
@@ -5769,6 +5878,9 @@ msgstr "Remove row"
 msgid "Rinominare una categoria aggiorna tutte le sue transazioni; dare il nome di un'altra le unisce"
 msgstr "Renaming a category updates all its transactions; giving it the name of another one merges them"
 
+msgid "Riparti dai dati dell'archivio"
+msgstr "Start again from the archive"
+
 msgid "Ripeti"
 msgstr "Redo"
 
@@ -5816,6 +5928,9 @@ msgstr "Savings"
 
 msgid "Risparmio Netto"
 msgstr "Net Savings"
+
+msgid "Risparmio all'anno (€)"
+msgstr "Saving a year (€)"
 
 msgid "Risparmio netto"
 msgstr "Net savings"
@@ -6091,6 +6206,9 @@ msgstr "Mark all as seen"
 msgid "Segnate come transazioni diverse: non verranno più proposte come duplicati."
 msgstr "Marked as different transactions: they will no longer be suggested as duplicates."
 
+msgid "Segue il saldo del conto"
+msgstr "Follows the account balance"
+
 msgid "Sei sicuro?"
 msgstr "Are you sure?"
 
@@ -6182,6 +6300,9 @@ msgstr "They are checked at every price update; when one trips a reminder appear
 msgid "Simili"
 msgstr "Similar"
 
+msgid "Simulazione aggiornata."
+msgstr "Simulation updated."
+
 msgid "Sistema"
 msgstr "Fix"
 
@@ -6253,6 +6374,9 @@ msgstr "Discretionary Spending"
 
 msgid "Spese Totali"
 msgstr "Total Spending"
+
+msgid "Spese all'anno in pensione (€)"
+msgstr "Expenses a year in retirement (€)"
 
 msgid "Spese con tag «detraibile» o «deducibile» da assegnare"
 msgstr "Expenses tagged «detraibile» or «deducibile» to assign"
@@ -6779,6 +6903,13 @@ msgstr "All assigned"
 msgid "Tutto azionario globale"
 msgstr "All global equities"
 
+msgid ""
+"Tutto in euro di oggi. Le prime cifre vengono dal tuo archivio (patrimonio, spese e risparmio degli ultimi 12 mesi): "
+"cambiale come vuoi. È una stima, non una consulenza."
+msgstr ""
+"Everything in today's euro. The first figures come from your archive (wealth, expenses and saving of the last 12 "
+"months): change them as you like. It is an estimate, not advice."
+
 #, python-format
 msgid "Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto."
 msgstr "Everything matches: on %(date)s the app balance is %(amount)s, as on the statement."
@@ -7087,6 +7218,12 @@ msgstr "Check"
 msgid "Versa"
 msgstr "Deposit"
 
+msgid "Versamento mensile"
+msgstr "Monthly saving"
+
+msgid "Versamento mensile (€)"
+msgstr "Monthly saving (€)"
+
 msgid "Verso il conto"
 msgstr "To account"
 
@@ -7111,6 +7248,10 @@ msgstr "Items with expenses"
 msgid "Volatilità"
 msgstr "Volatility"
 
+#, python-format
+msgid "Volatilità (%%)"
+msgstr "Volatility (%%)"
+
 msgid "Vuota per polizze senza scadenza fissa."
 msgstr "Empty for policies without a fixed expiry."
 
@@ -7132,6 +7273,10 @@ msgstr "Yen"
 
 msgid "Złoty"
 msgstr "Złoty"
+
+#, python-format
+msgid "a %(age)s anni"
+msgstr "at %(age)s"
 
 msgid "ai prezzi attuali"
 msgstr "at current prices"
@@ -7159,6 +7304,10 @@ msgstr "a month, to meet the dates"
 msgid "all'anno"
 msgstr "a year"
 
+#, python-format
+msgid "all'anno al %(rate)s %%, contro un fabbisogno di %(gap)s"
+msgstr "a year at %(rate)s %%, against a need of %(gap)s"
+
 msgid "all'anno, conta quando hai versato"
 msgstr "a year, counts when you invested"
 
@@ -7180,6 +7329,9 @@ msgstr "main archive"
 
 msgid "assegnale"
 msgstr "assign them"
+
+msgid "azionario 15–18, bilanciato 8–10"
+msgstr "equities 15–18, balanced 8–10"
 
 msgid "azioni, ETF, fondi e derivati di molte borse: ricerca, prezzo e storico"
 msgstr "shares, ETFs, funds and derivatives of many exchanges: search, price and history"
@@ -7400,6 +7552,9 @@ msgstr "e.g. qwen2.5vl:7b"
 msgid "es. veterinario, cibo, toelettatura"
 msgstr "e.g. vet, food, grooming"
 
+msgid "fino alla pensione"
+msgstr "until retirement"
+
 msgid "fiscale"
 msgstr "tax"
 
@@ -7429,6 +7584,10 @@ msgstr "day %(day)s"
 
 msgid "già accantonato"
 msgstr "already set aside"
+
+#, python-format
+msgid "i soldi bastano fino a %(age)s anni in %(pct)s simulazioni su 100"
+msgstr "the money lasts until %(age)s in %(pct)s simulations out of 100"
 
 #, python-format
 msgid "il %(day)s"
@@ -7463,6 +7622,13 @@ msgstr "the page changed"
 msgid "la risposta è cambiata"
 msgstr "the answer changed"
 
+#, python-format
+msgid "la «regola del 4 %%»: 3–3,5 per orizzonti lunghi"
+msgstr "the “4 %% rule”: 3–3.5 for long horizons"
+
+msgid "liquidità e investimenti, senza la casa"
+msgstr "cash and investments, without the house"
+
 msgid "llama3.2:3b"
 msgstr "llama3.2:3b"
 
@@ -7485,6 +7651,9 @@ msgstr "at most %(amount)s"
 #, python-format
 msgid "media %(amount)s"
 msgstr "average %(amount)s"
+
+msgid "mediana, in euro di oggi"
+msgstr "median, in today's euro"
 
 #, python-format
 msgid "meno imposta nel 730 %(next)s"
@@ -7631,6 +7800,10 @@ msgstr "python scripts/install_models.py --recommended"
 
 msgid "qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite, Dare/Avere)."
 msgstr "any file with Date, Description and Amount columns (or Income/Expenses, Debit/Credit)."
+
+#, python-format
+msgid "quando il patrimonio mediano copre il fabbisogno (%(needed)s)"
+msgstr "when the median wealth covers the need (%(needed)s)"
 
 msgid "quantità × prezzo medio"
 msgstr "quantity × average price"
@@ -7993,6 +8166,9 @@ msgstr "— none —"
 
 msgid "— nessuno —"
 msgstr "— none —"
+
+msgid "— nessuno: lo aggiorno a mano —"
+msgstr "— none: I update it by hand —"
 
 msgid "— quello attivo —"
 msgstr "— the active one —"

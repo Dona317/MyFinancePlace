@@ -6,10 +6,11 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
+from app.models.account import Account
 from app.models.budget import Budget
 from app.models.wealth import Goal
 from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form, year_arg
-from app.services import analytics, budgets, categories, display
+from app.services import accounts, analytics, budgets, categories, display, planning
 from app.services.periods import add_months
 
 lifestyle_bp = APIBlueprint(
@@ -118,18 +119,28 @@ def _goal_from_form(goal: Goal) -> Goal:
     goal.saved_amount = form_decimal("saved_amount", _("Già risparmiato")) or 0
     goal.target_date = form_date("target_date", _("Data obiettivo"))
     goal.notes = form_text("notes", _("Note"))
+    account_id = request.form.get("account_id", type=int)
+    goal.account_id = account_id if account_id and db.session.get(Account, account_id) else None
+    goal.monthly_contribution = form_decimal("monthly_contribution", _("Versamento mensile"))
+    rate = form_decimal("expected_return", _("Rendimento atteso"), allow_negative=True)
+    if rate is not None and not -20 <= rate <= 30:
+        raise ValueError(_("Rendimento atteso: tra −20 e 30 % all'anno."))
+    goal.expected_return = rate
     if not goal.target_amount:
         raise ValueError(_("Importo obiettivo: deve essere maggiore di zero."))
     return goal
 
 
 def _render_goal_form(goal, values):
-    return render_template("lifestyle/goal_form.html", goal=goal, values=values)
+    return render_template("lifestyle/goal_form.html", goal=goal, values=values,
+                           accounts=[(a.id, a.name) for a in accounts.active()])
 
 
 @lifestyle_bp.route("/goals")
 def goals():
     all_goals = Goal.query.order_by(Goal.target_date.is_(None), Goal.target_date, Goal.name).all()
+    planning.sync(all_goals)  # a goal linked to an account has what the account holds
+    db.session.commit()
     active = [g for g in all_goals if not g.completed]
     return render_template(
         "lifestyle/goals.html",
@@ -140,6 +151,7 @@ def goals():
         target_total=sum(float(g.target_amount) for g in all_goals),
         monthly_total=sum(g.monthly_needed() or 0 for g in active),
         suggestions=_suggestions(),
+        plans={g.id: planning.goal_plan(g) for g in active},
         today=date.today(),
     )
 

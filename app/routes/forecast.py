@@ -7,7 +7,8 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.routes.helpers import back_to
-from app.services import analytics, forecast
+from app.services import analytics, forecast, planning
+from app.services.parsing import to_decimal
 
 forecast_bp = APIBlueprint(
     "forecast",
@@ -70,3 +71,36 @@ def mark_recurring(tx_id):
     db.session.commit()
     flash(_("«%(description)s» è ora una transazione ricorrente (%(value)s).", description=tx.description, value=forecast.FREQUENCIES[frequency][0].lower()), "success")
     return back_to("forecast.index")
+
+
+# ── Retirement / FIRE (F20) ────────────────────────────────────────────────────
+
+RETIREMENT_FIELDS = ("age", "retire_at", "horizon", "wealth", "yearly_saving", "expenses", "pension", "expected_return",
+                     "volatility", "inflation", "withdrawal_rate")
+
+
+@forecast_bp.route("/retirement", methods=["GET", "POST"])
+def retirement():
+    """Will the money last? A Monte Carlo of the years to come, in today's euro."""
+    plan = planning.load()
+    if request.method == "POST":
+        if request.form.get("reset"):
+            plan = planning.suggested()
+        else:
+            for name in RETIREMENT_FIELDS:
+                value = to_decimal(request.form.get(name))
+                if value is not None:
+                    setattr(plan, name, int(value) if name in ("age", "retire_at", "horizon") else float(value))
+        try:
+            planning.save(plan)
+            db.session.commit()
+            flash(_("Simulazione aggiornata."), "success")
+        except ValueError as exc:
+            flash(str(exc), "error")
+        return redirect(url_for("forecast.retirement"))
+    try:
+        result = planning.simulate(plan)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        result = None
+    return render_template("forecast/retirement.html", plan=plan, result=result, runs=planning.RUNS)

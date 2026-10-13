@@ -5,6 +5,9 @@
 
 {% block page_title %}{{ _('Previsioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Previsioni') }}</li>{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('forecast.retirement') }}" class="btn btn-ghost btn-sm"><i class="bi bi-hourglass-split"></i> {{ _('Pensione e FIRE') }}</a>
+{% endblock %}
 
 {% block content %}
 {% set cur = fc.current %}

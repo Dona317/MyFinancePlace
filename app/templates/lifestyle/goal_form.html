@@ -24,6 +24,17 @@
         </div>
         {{ f.date(values, 'target_date', _('Entro il'), g.target_date,
                   hint=_('Facoltativa: con una data calcoliamo quanto mettere da parte ogni mese.')) }}
+        <fieldset class="trade-box mb-16">
+          <legend class="form-label">{{ _('Proiezione (facoltativa)') }}</legend>
+          {% if accounts %}
+          {{ f.select(values, 'account_id', _('Conto dove metti i soldi'), accounts, g.account_id, blank=_('— nessuno: lo aggiorno a mano —')) }}
+          {% endif %}
+          <div class="grid-2">
+            {{ f.number(values, 'monthly_contribution', _('Versamento mensile (€)'), g.monthly_contribution, placeholder='200') }}
+            {{ f.number(values, 'expected_return', _('Rendimento atteso (%% all\'anno)'), g.expected_return, placeholder='2',
+                        hint=_('Conto deposito 2–3, obbligazioni 3, azioni 6–7: una stima, non una promessa.')) }}
+          </div>
+        </fieldset>
         {{ f.textarea(values, 'notes', _('Note'), g.notes, placeholder=_('Dove tieni i soldi, perché è importante...')) }}
         {{ f.actions(url_for('lifestyle.goals'), _('Salva Modifiche') if is_edit else _('Crea Obiettivo')) }}
       </form>
