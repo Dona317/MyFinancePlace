@@ -8,7 +8,7 @@ from sqlalchemy import event, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.util import find_tables
 
-STUDIO_TABLES = {"users", "clients"}  # always in the studio database, whichever client is open
+STUDIO_TABLES = {"users", "clients", "client_groups", "client_group_members"}  # always in the studio database, whichever client is open
 
 
 class ClientSession(FlaskSession):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 10:36+0000\n"
+"POT-Creation-Date: 2026-10-13 11:13+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1049,6 +1049,9 @@ msgstr "Open"
 msgid "Aprili in MyFinancePlace → Notifiche."
 msgstr "Open them in MyFinancePlace → Notifications."
 
+msgid "Archivi del gruppo (almeno due)"
+msgstr "Archives in the group (at least two)"
+
 msgid "Archiviato (nascosto dal selettore, dati intatti)"
 msgstr "Archived (hidden from the switcher, data kept)"
 
@@ -1057,6 +1060,17 @@ msgstr "Archive"
 
 msgid "Archivio Documenti"
 msgstr "Document Archive"
+
+msgid "Archivio di partenza"
+msgstr "Start archive"
+
+#, python-format
+msgid "Archivio di partenza di %(name)s"
+msgstr "Start archive of %(name)s"
+
+#, python-format
+msgid "Archivio di partenza di «%(name)s» aggiornato."
+msgstr "Start archive of “%(name)s” updated."
 
 msgid "Archivio principale"
 msgstr "Main archive"
@@ -1853,6 +1867,17 @@ msgstr "Method comparison"
 msgid "Consigliato: il più preciso nel leggere documenti e tabelle"
 msgstr "Recommended: the most accurate at reading documents and tables"
 
+msgid "Consolidato"
+msgstr "Consolidated"
+
+#, python-format
+msgid "Consolidato del gruppo «%(name)s»"
+msgstr "Consolidated view of the group “%(name)s”"
+
+#, python-format
+msgid "Consolidato: %(name)s"
+msgstr "Consolidated: %(name)s"
+
 msgid "Conta"
 msgstr "Counts"
 
@@ -2039,6 +2064,9 @@ msgstr "Take at least one snapshot: you can compare it with today's situation."
 
 msgid "Crea il cliente e aprilo"
 msgstr "Create the client and open it"
+
+msgid "Crea il gruppo"
+msgstr "Create the group"
 
 msgid "Crea il tuo account"
 msgstr "Create your account"
@@ -2269,6 +2297,9 @@ msgstr "Details by Category"
 msgid "Di Harry Browne: quattro parti uguali che reagiscono in modo diverso a crescita, inflazione, recessione e deflazione."
 msgstr "By Harry Browne: four equal parts that react differently to growth, inflation, recession and deflation."
 
+msgid "Di chi"
+msgstr "Whose"
+
 msgid "Dic"
 msgstr "Dec"
 
@@ -2396,6 +2427,9 @@ msgstr "Delete %(name)s"
 msgid "Elimina cambio"
 msgstr "Delete rate"
 
+msgid "Elimina il gruppo"
+msgstr "Delete the group"
+
 msgid "Elimina istantanea"
 msgstr "Delete snapshot"
 
@@ -2430,6 +2464,10 @@ msgstr "Delete the account «%(name)s»? Its transactions remain, without an acc
 #, python-format
 msgid "Eliminare il debito «%(name)s»?"
 msgstr "Delete the debt «%(name)s»?"
+
+#, python-format
+msgid "Eliminare il gruppo «%(name)s»? Gli archivi e i loro dati restano."
+msgstr "Delete the group “%(name)s”? The archives and their data stay."
 
 #, python-format
 msgid "Eliminare il modello «%(name)s»?"
@@ -2519,6 +2557,9 @@ msgstr "Income %(month)s"
 msgid "Entrate %(year)s"
 msgstr "Income %(year)s"
 
+msgid "Entrate 12 mesi"
+msgstr "Income, 12 months"
+
 msgid "Entrate Mensili"
 msgstr "Monthly Income"
 
@@ -2530,6 +2571,9 @@ msgstr "Income of the month"
 
 msgid "Entrate e spese con tag"
 msgstr "Tagged income and expenses"
+
+msgid "Entrate e uscite"
+msgstr "Income and expenses"
 
 msgid "Entrate e uscite cumulate"
 msgstr "Cumulative income and expenses"
@@ -3012,6 +3056,20 @@ msgstr "Income/expenses chart of the last 12 months"
 
 msgid "Grafico per categoria"
 msgstr "Chart by category"
+
+msgid "Gruppi e famiglia"
+msgstr "Groups and family"
+
+msgid "Gruppo"
+msgstr "Group"
+
+#, python-format
+msgid "Gruppo «%(name)s» eliminato: gli archivi restano com'erano."
+msgstr "Group “%(name)s” deleted: the archives stay as they were."
+
+#, python-format
+msgid "Gruppo «%(name)s» salvato."
+msgstr "Group “%(name)s” saved."
 
 msgid "Guadagno"
 msgstr "Gain"
@@ -3614,6 +3672,12 @@ msgstr "Investments and assets"
 msgid "Investimenti netti"
 msgstr "Net investments"
 
+msgid "Investimenti per classe"
+msgstr "Investments by class"
+
+msgid "Investimenti uniti"
+msgstr "Merged investments"
+
 #, python-format
 msgid "Investimenti: %(total)s"
 msgstr "Investments: %(total)s"
@@ -3970,6 +4034,9 @@ msgstr ""
 msgid "Lo stesso movimento è già stato importato dall'estratto conto dell'altro conto"
 msgstr "The same movement was already imported from the other account's statement"
 
+msgid "Lo stesso titolo in più archivi (stesso ISIN o ticker) è una riga sola."
+msgstr "The same security in several archives (same ISIN or ticker) is a single row."
+
 msgid "Locale (Ollama) — i dati restano sul computer"
 msgstr "Local (Ollama) — the data stays on the computer"
 
@@ -4306,6 +4373,13 @@ msgstr "New movements"
 msgid "Movimenti senza categoria"
 msgstr "Movements without a category"
 
+msgid ""
+"Movimenti tra due archivi del gruppo, riconosciuti dall’IBAN di un conto o dal nome di un titolare dell’altro "
+"archivio (Impostazioni → Titolari e IBAN): restano fuori da entrate e uscite consolidate."
+msgstr ""
+"Movements between two archives of the group, recognized by the IBAN of an account or the name of a holder of the "
+"other archive (Settings → Holders and IBANs): they are left out of the consolidated income and expenses."
+
 #, python-format
 msgid "Movimento %(number)s: data o importo non validi"
 msgstr "Transaction %(number)s: invalid date or amount"
@@ -4387,6 +4461,9 @@ msgstr "No active debts."
 msgid "Nessun debito registrato"
 msgstr "No debts recorded"
 
+msgid "Nessun debito."
+msgstr "No debts."
+
 msgid "Nessun dividendo o cedola registrato sui titoli."
 msgstr "No dividend or coupon recorded on the holdings."
 
@@ -4398,6 +4475,9 @@ msgstr "No documents. Upload the invoice or receipt in Documents and link it to 
 
 msgid "Nessun evento."
 msgstr "No events."
+
+msgid "Nessun gruppo: creane uno qui sotto con gli archivi delle persone della famiglia."
+msgstr "No groups: create one below with the archives of the people in the family."
 
 msgid "Nessun investimento."
 msgstr "No investments."
@@ -4438,6 +4518,12 @@ msgstr "No movements: add them below or from the transactions list."
 
 msgid "Nessun obiettivo ancora"
 msgstr "No goals yet"
+
+msgid "Nessun obiettivo."
+msgstr "No goals."
+
+msgid "Nessun passaggio tra gli archivi del gruppo negli ultimi 12 mesi."
+msgstr "No moves between the group's archives in the last 12 months."
 
 msgid "Nessun possibile duplicato"
 msgstr "No possible duplicates"
@@ -4549,6 +4635,9 @@ msgstr ""
 msgid "Nessuna spesa in questo periodo."
 msgstr "No spending in this period."
 
+msgid "Nessuna spesa negli ultimi 12 mesi."
+msgstr "No spending in the last 12 months."
+
 msgid "Nessuna spesa nelle categorie collegate alle voci del 730 per questo anno. Collega le categorie qui sotto."
 msgstr "No expenses in the categories linked to the 730 items this year. Link the categories below."
 
@@ -4640,6 +4729,9 @@ msgstr "Client name"
 msgid "Nome del database non valido."
 msgstr "Invalid database name."
 
+msgid "Nome del gruppo"
+msgstr "Group name"
+
 msgid "Nome del modello non valido."
 msgstr "Invalid model name."
 
@@ -4698,6 +4790,10 @@ msgstr "You cannot sell more units than you hold (%(units)s)."
 #, python-format
 msgid "Non riesco a scaricare i cambi della BCE (%(exc)s). Controlla la connessione o inseriscili a mano."
 msgstr "Cannot download the ECB rates (%(exc)s). Check the connection or enter them by hand."
+
+#, python-format
+msgid "Non sommati perché in un’altra valuta (%(currency)s per il gruppo): %(names)s."
+msgstr "Not added up because they are in another currency (%(currency)s for the group): %(names)s."
 
 msgid "Non sono duplicati"
 msgstr "Not duplicates"
@@ -4815,6 +4911,9 @@ msgstr "New account or card"
 
 msgid "Nuovo evento"
 msgstr "New event"
+
+msgid "Nuovo gruppo"
+msgstr "New group"
 
 msgid "Nuovo modello"
 msgstr "New model"
@@ -5087,6 +5186,9 @@ msgstr "Switch to light mode"
 msgid "Passa alla modalità scura"
 msgstr "Switch to dark mode"
 
+msgid "Passaggi interni"
+msgstr "Internal moves"
+
 msgid "Passività"
 msgstr "Liabilities"
 
@@ -5135,6 +5237,9 @@ msgstr "Investable wealth (€)"
 msgid "Patrimonio netto"
 msgstr "Net worth"
 
+msgid "Patrimonio netto negli ultimi 12 mesi"
+msgstr "Net worth over the last 12 months"
+
 #, python-format
 msgid "Patrimonio netto oggi: %(amount)s"
 msgstr "Net worth today: %(amount)s"
@@ -5156,6 +5261,16 @@ msgstr "Retirement and financial independence"
 
 msgid "Pensione integrativa"
 msgstr "Supplementary pension"
+
+msgid ""
+"Per aggiungere una persona alla famiglia: crea il suo archivio in Clienti, il suo utente in Impostazioni → Account e "
+"utenti (con l’archivio di partenza) e metti l’archivio nel gruppo."
+msgstr ""
+"To add a person to the family: create their archive in Clients, their user in Settings → Account and users (with the "
+"start archive) and put the archive in the group."
+
+msgid "Per archivio"
+msgstr "By archive"
 
 msgid "Per area geografica"
 msgstr "By region"
@@ -5221,6 +5336,9 @@ msgid ""
 msgstr ""
 "For a brokerage account: fixed + percent of the amount, between a minimum and a maximum. When you record a purchase "
 "or a sale on this account, the commission is computed and proposed. Empty = you enter it."
+
+msgid "Per un gruppo servono almeno due archivi: crea prima l’archivio di ogni persona in Clienti."
+msgstr "A group needs at least two archives: first create each person's archive in Clients."
 
 msgid "Per un patrimonio netto corretto, tieni aggiornate queste tre fonti"
 msgstr "For a correct net worth, keep these three sources up to date"
@@ -5837,6 +5955,9 @@ msgstr "Return on your money (XIRR)"
 msgid "Rendite"
 msgstr "Income"
 
+msgid "Rendite 12 mesi"
+msgstr "Passive income, 12 months"
+
 msgid "Renminbi"
 msgstr "Renminbi"
 
@@ -6053,6 +6174,9 @@ msgstr "Restore all the default settings?"
 
 msgid "Riprova"
 msgstr "Try again"
+
+msgid "Risparmiato"
+msgstr "Saved"
 
 msgid "Risparmio"
 msgstr "Savings"
@@ -6311,6 +6435,9 @@ msgstr "Drift from the model portfolio (points)"
 msgid "Scrivi il nome del cliente."
 msgstr "Enter the client's name."
 
+msgid "Scrivi il nome del gruppo."
+msgstr "Write the name of the group."
+
 msgid "Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna"
 msgstr "Enter the balance the bank shows at a date: the app tells you whether it matches"
 
@@ -6486,6 +6613,13 @@ msgstr "Transactions only, can be re-imported"
 msgid "Somma di tutti i debiti in corso"
 msgstr "Sum of all active debts"
 
+msgid ""
+"Somma in sola lettura degli archivi del gruppo, ognuno con i suoi conti, titoli e debiti. Per correggere un dato apri"
+" l’archivio della persona."
+msgstr ""
+"Read-only sum of the group's archives, each with its own accounts, securities and debts. To correct a figure open the"
+" person's archive."
+
 msgid "Sospendi"
 msgstr "Pause"
 
@@ -6542,6 +6676,9 @@ msgstr "Spending by Category"
 
 msgid "Spese per categoria"
 msgstr "Spending by category"
+
+msgid "Spese per categoria, ultimi 12 mesi"
+msgstr "Spending by category, last 12 months"
 
 msgid "Spese sanitarie"
 msgstr "Medical expenses"
@@ -7136,6 +7273,17 @@ msgstr ""
 msgid "Un file"
 msgstr "One file"
 
+msgid "Un gruppo mette insieme almeno due archivi."
+msgstr "A group brings together at least two archives."
+
+msgid ""
+"Un gruppo mette insieme gli archivi di più persone (la tua famiglia, i genitori…): ognuno tiene il suo archivio, il "
+"consolidato li somma in sola lettura. I soldi passati da un archivio all’altro del gruppo non contano due volte."
+msgstr ""
+"A group brings together the archives of several people (your family, your parents…): each keeps their own archive, "
+"the consolidated view adds them up read only. Money moved from one archive of the group to another does not count "
+"twice."
+
 msgid "Un importo investito ogni mese o trimestre, diviso secondo il portafoglio modello."
 msgstr "An amount invested every month or quarter, split according to the model portfolio."
 
@@ -7223,6 +7371,9 @@ msgstr "Expenses %(month)s"
 #, python-format
 msgid "Uscite %(year)s"
 msgstr "Expenses %(year)s"
+
+msgid "Uscite 12 mesi"
+msgstr "Expenses, 12 months"
 
 msgid "Uscite Mensili"
 msgstr "Monthly Expenses"
@@ -7662,6 +7813,9 @@ msgstr "e.g. Global equities"
 msgid "es. Esselunga, deducibile, vacanza"
 msgstr "e.g. Tesco, deductible, holiday"
 
+msgid "es. Famiglia Rossi"
+msgstr "e.g. Rossi family"
+
 msgid "es. Fineco, Carta Amex, Contanti"
 msgstr "e.g. Fineco, Amex Card, Cash"
 
@@ -7878,6 +8032,9 @@ msgstr "not listed on Stooq (exchange .%(suffix)s)"
 msgid "non scadute"
 msgstr "not expired"
 
+msgid "non sommato"
+msgstr "not added up"
+
 msgid "nuova password"
 msgstr "new password"
 
@@ -7899,6 +8056,10 @@ msgstr "or Money out / Debit column"
 #, python-format
 msgid "pagina %(page)s di %(pages)s"
 msgstr "page %(page)s of %(pages)s"
+
+#, python-format
+msgid "passaggi interni esclusi: %(amount)s"
+msgstr "internal moves left out: %(amount)s"
 
 #, python-format
 msgid "patrimonio netto al %(day)s"
@@ -8197,6 +8358,10 @@ msgstr "«%(name)s» is not a non-monthly category with spending in the last yea
 #, python-format
 msgid "«%(name)s» è archiviato: riattivalo per aprirlo."
 msgstr "“%(name)s” is archived: reactivate it to open it."
+
+#, python-format
+msgid "«%(name)s» è archiviato: riattivalo prima."
+msgstr "“%(name)s” is archived: reactivate it first."
 
 #, python-format
 msgid "«%(name)s» è già una sottocategoria: scegli una categoria principale."

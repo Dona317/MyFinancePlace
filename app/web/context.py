@@ -5,7 +5,7 @@ import os
 from flask import Flask
 
 from app.extensions import db
-from app.services import display, family, notifications, sections, studio
+from app.services import display, family, groups, notifications, sections, studio
 from app.services.ui_settings import current_font, current_language, current_settings
 
 
@@ -29,6 +29,15 @@ def register_context(app: Flask) -> None:
             db.session.rollback()
             return None
 
+    def client_groups(client):
+        """The groups of the open archive, next to its badge (F21)."""
+        try:
+            return groups.of(client)
+        except Exception:  # noqa: BLE001 - never breaks a page
+            app.logger.exception("groups unavailable")
+            db.session.rollback()
+            return []
+
     def notification_count() -> int:
         """Reminders not yet seen, for the bell (never breaks a page)."""
         try:
@@ -44,5 +53,5 @@ def register_context(app: Flask) -> None:
     @app.context_processor
     def inject_settings():
         return {"settings": current_settings(), "notification_count": notification_count, "display": display.prefs(),
-                "current_language": current_language, "working_client": working_client, "ui_font": current_font,
+                "current_language": current_language, "working_client": working_client, "client_groups": client_groups, "ui_font": current_font,
                 "shown": sections.in_menu, "allowed": sections.allowed, "shown_any": lambda *keys: any(sections.in_menu(k) for k in keys)}

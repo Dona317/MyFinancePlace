@@ -2,7 +2,7 @@
 from .account import Account
 from .budget import Budget
 from .category import Category, CategoryRule
-from .client import Client
+from .client import Client, ClientGroup
 from .currency import ExchangeRate
 from .duplicate import DuplicateDismissal
 from .event import SpendingEvent
@@ -14,6 +14,6 @@ from .wealth import Debt, Document, Goal, Holding, HoldingPrice, InsurancePolicy
 
 __all__ = [
     "Account", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule",
-    "ExchangeRate", "Budget", "User", "Client", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
+    "ExchangeRate", "Budget", "User", "Client", "ClientGroup", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
 ]

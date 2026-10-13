@@ -1355,6 +1355,7 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
   border: 1px solid var(--clr-border); color: var(--clr-text-primary); text-decoration: none; font-size: 13px; font-weight: 600;
   max-width: 220px; }
 .client-chip:hover { background: var(--clr-primary-light); }
+.group-chip { padding: 4px 10px; font-weight: 500; }
 .client-chip span.client-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .client-badge { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%;
   color: #fff; font-size: 11px; font-weight: 700; flex: none; }
@@ -1366,7 +1367,7 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .client-color span { display: inline-block; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
 .client-color input:checked + span { border-color: var(--clr-text-primary); box-shadow: 0 0 0 2px var(--clr-bg-card) inset; }
 .client-color input:focus-visible + span { outline: 2px solid var(--clr-primary); outline-offset: 2px; }
-@media (max-width: 640px) { .client-chip span.client-name { display: none; } .client-chip { padding: 2px; } }
+@media (max-width: 640px) { .client-chip span.client-name { display: none; } .client-chip { padding: 2px; } .group-chip { padding: 4px 6px; } }
 
 /* ── Fisco (F15) ─────────────────────────────────────────────────────────── */
 .tax-map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }

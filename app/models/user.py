@@ -22,6 +22,8 @@ class User(UserMixin, db.Model):
     # sections of the menu (services/sections.py): blocked by an administrator, hidden by the user from their menu
     blocked_sections = db.Column(ARRAY(db.String(40)), nullable=False, default=list, server_default="{}")
     hidden_sections  = db.Column(ARRAY(db.String(40)), nullable=False, default=list, server_default="{}")
+    # the archive opened at sign-in (F21: each member of the family on their own archive); None: the primary one
+    default_client_id = db.Column(db.Integer, db.ForeignKey("clients.id", ondelete="SET NULL"))
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)

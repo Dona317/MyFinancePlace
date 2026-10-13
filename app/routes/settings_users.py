@@ -7,7 +7,7 @@ from app.extensions import db
 from app.models.user import MIN_PASSWORD, User
 from app.routes.helpers import flash_errors
 from app.routes.settings import settings_bp
-from app.services import sections, users
+from app.services import groups, sections, studio, users
 
 
 def _admin_only():
@@ -18,7 +18,8 @@ def _admin_only():
 @settings_bp.route("/account")
 def account():
     user_list = User.query.order_by(db.func.lower(User.username)).all() if current_user.is_authenticated and current_user.is_admin else []
-    return render_template("settings/account.html", users=user_list, min_password=MIN_PASSWORD)
+    archives = studio.clients() if user_list and studio.is_studio() else []
+    return render_template("settings/account.html", users=user_list, min_password=MIN_PASSWORD, archives=archives)
 
 
 @settings_bp.route("/account/password", methods=["POST"])
@@ -49,6 +50,17 @@ def user_reset_password(user_id):
     with flash_errors():
         users.reset_password(user, request.form.get("password", ""))
         flash(_("Nuova password impostata per «%(name)s».", name=user.username), "success")
+    return redirect(url_for("settings.account"))
+
+
+@settings_bp.route("/users/<int:user_id>/start", methods=["POST"])
+def user_start(user_id):
+    """The archive the user opens at sign-in (F21: each member of the family on their own)."""
+    _admin_only()
+    user = db.get_or_404(User, user_id)
+    with flash_errors(groups.GroupError):
+        groups.set_start(user, request.form.get("client_id", type=int))
+        flash(_("Archivio di partenza di «%(name)s» aggiornato.", name=user.username), "success")
     return redirect(url_for("settings.account"))
 
 

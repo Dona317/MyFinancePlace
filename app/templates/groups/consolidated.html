@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% from "partials/empty.html" import empty_state %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% set group = data.group %}
+{% block page_title %}{{ _('Consolidato: %(name)s', name=group.name) }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('groups.index') }}">{{ _('Gruppi e famiglia') }}</a></li><li>{{ group.name }}</li>{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-ghost btn-sm" href="{{ url_for('groups.export_csv', group_id=group.id) }}"><i class="bi bi-filetype-csv"></i> {{ _('CSV') }}</a>
+{% endblock %}
+
+{% block content %}
+<p class="text-sm text-muted mb-16">
+  {{ _('Somma in sola lettura degli archivi del gruppo, ognuno con i suoi conti, titoli e debiti. Per correggere un dato apri l’archivio della persona.') }}
+</p>
+
+{% if data.excluded %}
+<div class="alert alert-warning mb-16" role="status">
+  <i class="bi bi-exclamation-triangle"></i>
+  {{ _('Non sommati perché in un’altra valuta (%(currency)s per il gruppo): %(names)s.', currency=data.currency,
+       names=data.excluded|map(attribute='client.name')|join(', ')) }}
+</div>
+{% endif %}
+
+<div class="kpi-grid" style="margin-bottom:24px;">
+  {{ kpi('bank', _('Patrimonio netto'), value=data.net_worth|money, cls='kpi-positive' if data.net_worth >= 0 else 'kpi-negative') }}
+  {{ kpi('wallet2', _('Liquidità'), value=data.cash|money) }}
+  {{ kpi('graph-up-arrow', _('Investimenti'), value=data.investments|money) }}
+  {{ kpi('credit-card', _('Debiti'), value=data.liabilities|money, cls='kpi-negative' if data.liabilities else 'kpi-neutral') }}
+  {{ kpi('arrow-down-circle', _('Entrate 12 mesi'), value=data.income_12|money, cls='kpi-positive') }}
+  {{ kpi('arrow-up-circle', _('Uscite 12 mesi'), value=data.expenses_12|money, cls='kpi-negative',
+         sub=(_('passaggi interni esclusi: %(amount)s', amount=data.internal_total|money) if data.internal_total else none)) }}
+</div>
+
+<div class="card mb-24">
+  <div class="card-header"><div class="card-header-title">{{ _('Per archivio') }}</div></div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Archivio') }}</th><th class="text-right">{{ _('Liquidità') }}</th><th class="text-right">{{ _('Investimenti') }}</th>
+        <th class="text-right">{{ _('Altri beni') }}</th><th class="text-right">{{ _('Debiti') }}</th><th class="text-right">{{ _('Patrimonio netto') }}</th>
+        <th class="text-right">{{ _('Entrate 12 mesi') }}</th><th class="text-right">{{ _('Uscite 12 mesi') }}</th><th class="text-right">{{ _('Rendite 12 mesi') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for m in data.members %}
+        <tr{% if not m.included %} class="text-muted"{% endif %}>
+          <td class="nowrap"><span class="client-badge" style="background:{{ m.client.color }}">{{ m.client.initials }}</span> {{ m.client.name }}
+            {% if not m.included %}<span class="badge badge-neutral">{{ m.currency }} · {{ _('non sommato') }}</span>{% endif %}</td>
+          {% for value in (m.cash, m.investments, m.other_assets, m.liabilities) %}<td class="text-right nowrap">{{ value|money }}</td>{% endfor %}
+          <td class="text-right nowrap"><strong>{{ m.net_worth|money }}</strong></td>
+          {% for value in (m.income_12, m.expenses_12, m.passive_12) %}<td class="text-right nowrap">{{ value|money }}</td>{% endfor %}
+          <td class="text-right">
+            {% if not m.client.archived and m.client != working_client() %}
+            <form method="POST" action="{{ url_for('groups.open_member', group_id=group.id, client_id=m.client.id) }}">
+              <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-box-arrow-in-right"></i> {{ _('Apri') }}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>{{ _('Totale') }}</th>
+          {% for value in (data.cash, data.investments, data.other_assets, data.liabilities, data.net_worth, data.income_12, data.expenses_12, data.passive_12) %}
+          <th class="text-right nowrap">{{ value|money }}</th>
+          {% endfor %}
+          <th></th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<div class="grid-2 mb-24" style="gap:16px;">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Patrimonio netto negli ultimi 12 mesi') }}</div></div>
+    <div class="card-body"><div style="height:280px;"><canvas id="groupTrend"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Entrate e uscite') }}</div></div>
+    <div class="card-body"><div style="height:280px;"><canvas id="groupFlows"></canvas></div></div>
+  </div>
+</div>
+
+<div class="grid-2 mb-24" style="gap:16px;">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Spese per categoria, ultimi 12 mesi') }}</div></div>
+    <div class="card-body">
+      {% if data.spending %}<div style="height:280px;"><canvas id="groupSpending"></canvas></div>
+      {% else %}{{ empty_state(_('Nessuna spesa negli ultimi 12 mesi.'), compact=True) }}{% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Investimenti per classe') }}</div></div>
+    <div class="card-body">
+      {% if data.allocation %}<div style="height:280px;"><canvas id="groupAllocation"></canvas></div>
+      {% else %}{{ empty_state(_('Nessun investimento.'), compact=True) }}{% endif %}
+    </div>
+  </div>
+</div>
+
+{% if data.holdings %}
+<div class="card mb-24">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Investimenti uniti') }}</div>
+    <div class="card-header-sub">{{ _('Lo stesso titolo in più archivi (stesso ISIN o ticker) è una riga sola.') }}</div>
+  </div></div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Titolo') }}</th><th>{{ _('Classe') }}</th><th>{{ _('Di chi') }}</th><th class="text-right">{{ _('Quote') }}</th>
+        <th class="text-right">{{ _('Valore') }}</th><th class="text-right">{{ _('Guadagno') }}</th></tr></thead>
+      <tbody>
+        {% for h in data.holdings %}
+        <tr>
+          <td>{{ h.name }}{% if h.isin %} <span class="text-xs text-muted">{{ h.isin }}</span>{% endif %}</td>
+          <td>{{ h.asset_class|tr if h.asset_class else '—' }}</td>
+          <td class="text-sm">{{ h.members|join(', ') }}</td>
+          <td class="text-right nowrap">{{ h.units|number(4) }}</td>
+          <td class="text-right nowrap">{{ h.value|money }}</td>
+          <td class="text-right nowrap {{ 'text-positive' if h.gain > 0 else ('text-negative' if h.gain < 0) }}">{{ h.gain|money }} ({{ h.gain_pct|number(1) }}%)</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="grid-2 mb-24" style="gap:16px;">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Debiti') }}</div></div>
+    {% if data.debts %}
+    <div class="table-wrapper"><table>
+      <thead><tr><th>{{ _('Debito') }}</th><th>{{ _('Di chi') }}</th><th class="text-right">{{ _('Residuo') }}</th></tr></thead>
+      <tbody>{% for d in data.debts %}<tr><td>{{ d.name }} <span class="text-xs text-muted">{{ d.type|tr }}</span></td><td class="text-sm">{{ d.member }}</td><td class="text-right nowrap">{{ d.balance|money }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="card-body">{{ empty_state(_('Nessun debito.'), compact=True) }}</div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Obiettivi') }}</div></div>
+    {% if data.goals %}
+    <div class="table-wrapper"><table>
+      <thead><tr><th>{{ _('Obiettivo') }}</th><th>{{ _('Di chi') }}</th><th class="text-right">{{ _('Risparmiato') }}</th><th class="text-right">{{ _('Obiettivo') }}</th></tr></thead>
+      <tbody>{% for g in data.goals %}<tr><td>{{ g.name }}</td><td class="text-sm">{{ g.member }}</td><td class="text-right nowrap">{{ g.saved|money }} ({{ g.progress|number(0) }}%)</td><td class="text-right nowrap">{{ g.target|money }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="card-body">{{ empty_state(_('Nessun obiettivo.'), compact=True) }}</div>{% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Passaggi interni') }}</div>
+    <div class="card-header-sub">{{ _('Movimenti tra due archivi del gruppo, riconosciuti dall’IBAN di un conto o dal nome di un titolare dell’altro archivio (Impostazioni → Titolari e IBAN): restano fuori da entrate e uscite consolidate.') }}</div>
+  </div></div>
+  {% if data.internal %}
+  <div class="table-wrapper"><table>
+    <thead><tr><th>{{ _('Data') }}</th><th>{{ _('Archivio') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Con') }}</th><th class="text-right">{{ _('Importo') }}</th></tr></thead>
+    <tbody>{% for move in data.internal %}
+      <tr><td class="nowrap">{{ move.date|it_date }}</td><td class="text-sm">{{ move.member }}</td><td>{{ move.description }}</td><td class="text-sm">{{ move.other_name }}</td>
+        <td class="text-right nowrap {{ 'text-positive' if move.type == 'income' else 'text-negative' }}">{{ ('+' if move.type == 'income' else '−') ~ move.amount|money }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<div class="card-body">{{ empty_state(_('Nessun passaggio tra gli archivi del gruppo negli ultimi 12 mesi.'), compact=True) }}</div>{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+makeLineChart('groupTrend', {{ data.labels|tojson }}, [
+  { label: {{ _('Gruppo')|tojson }}, data: {{ data.trend|tojson }}, color: 'primary' },
+  {% for m in data.members if m.included %}{ label: {{ m.client.name|tojson }}, data: {{ m.trend|tojson }}, fill: false, dash: [6, 4], pointRadius: 2 },
+  {% endfor %}
+]);
+makeBarChart('groupFlows', {{ data.months|tojson }}, [
+  { label: {{ _('Entrate')|tojson }}, data: {{ data.income|tojson }}, color: 'positive' },
+  { label: {{ _('Uscite')|tojson }}, data: {{ data.expenses|tojson }}, color: 'negative' },
+]);
+{% if data.spending %}makeDoughnutChart('groupSpending', {{ data.spending|map(attribute=0)|list|tojson }}, {{ data.spending|map(attribute=1)|list|tojson }});{% endif %}
+{% if data.allocation %}makeDoughnutChart('groupAllocation', {{ data.allocation|map(attribute=0)|map('tr')|list|tojson }}, {{ data.allocation|map(attribute=1)|list|tojson }});{% endif %}
+</script>
+{% endblock %}

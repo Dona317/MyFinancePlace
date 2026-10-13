@@ -4,7 +4,7 @@ from flask_babel import gettext as _
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.routes.helpers import back_to
-from app.services import users
+from app.services import groups, users
 
 auth_bp = APIBlueprint(
     "auth",
@@ -27,6 +27,7 @@ def login():
             flash(_("Nome utente o password non corretti."), "error")
             return render_template("auth/login.html", username=request.form.get("username", "")), 401
         login_user(user, remember="remember" in request.form)
+        groups.open_start(user)  # F21: each member of the family starts on their own archive
         return back_to("dashboard.dashboard")
     return render_template("auth/login.html", username="")
 

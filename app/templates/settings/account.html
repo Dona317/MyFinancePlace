@@ -67,7 +67,7 @@
   <div class="card-header"><div class="card-header-title"><i class="bi bi-people"></i> {{ _('Utenti') }}</div></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>{{ _('Nome utente') }}</th><th>{{ _('Ruolo') }}</th><th>{{ _('Sezioni') }}</th><th>{{ _('Ultimo accesso') }}</th><th>{{ _('Reimposta password') }}</th><th></th></tr></thead>
+      <thead><tr><th>{{ _('Nome utente') }}</th><th>{{ _('Ruolo') }}</th><th>{{ _('Sezioni') }}</th>{% if archives %}<th>{{ _('Archivio di partenza') }}</th>{% endif %}<th>{{ _('Ultimo accesso') }}</th><th>{{ _('Reimposta password') }}</th><th></th></tr></thead>
       <tbody>
       {% for u in users %}
         <tr>
@@ -81,6 +81,18 @@
               · {{ _('Modifica') }}</a>
             {% endif %}
           </td>
+          {% if archives %}
+          <td>
+            <form method="POST" action="{{ url_for('settings.user_start', user_id=u.id) }}">
+              <select name="client_id" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Archivio di partenza di %(name)s', name=u.username) }}">
+                {% for archive in archives if not archive.archived or archive.id == u.default_client_id %}
+                <option value="{{ archive.id }}" {{ 'selected' if archive.id == u.default_client_id or (archive.is_primary and not u.default_client_id) }}>{{ archive.name }}</option>
+                {% endfor %}
+              </select>
+              <noscript><button type="submit" class="btn btn-secondary btn-sm">{{ _('Salva') }}</button></noscript>
+            </form>
+          </td>
+          {% endif %}
           <td class="text-sm text-muted">{{ u.last_login.strftime('%d/%m/%Y %H:%M') if u.last_login else '—' }}</td>
           <td>
             <form method="POST" action="{{ url_for('settings.user_reset_password', user_id=u.id) }}" class="d-flex gap-8" style="flex-wrap:wrap;">
