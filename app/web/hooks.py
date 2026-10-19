@@ -12,6 +12,7 @@ from app.extensions import db, login_manager
 from app.models.user import User
 from app.services import sections, studio, users
 from app.services.ui_settings import current_settings, module_setting
+from app.version import __version__
 
 PUBLIC_ENDPOINTS = {"static", "auth.login", "auth.setup", "health", "desktop.show", "desktop.quit_app"}  # desktop.*: token-checked
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
@@ -85,7 +86,7 @@ def health():
     """For the desktop launcher and monitoring: the app answers and reaches its database."""
     try:
         db.session.execute(text("SELECT 1"))
-        return {"ok": True}
+        return {"ok": True, "version": __version__}
     except Exception:  # noqa: BLE001 - reported, not raised
         db.session.rollback()
         return {"ok": False}, 503

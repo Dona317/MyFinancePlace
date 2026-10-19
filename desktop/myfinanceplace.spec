@@ -6,6 +6,9 @@ from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 ROOT = Path(SPECPATH).parent
+VERSION = {}
+exec((ROOT / "app" / "version.py").read_text(), VERSION)  # noqa: S102 - our own one-line file
+VERSION = VERSION["__version__"]
 PGSQL = ROOT / "desktop" / "vendor" / "pgsql"
 if not (PGSQL / "bin").is_dir():
     raise SystemExit("PostgreSQL binaries missing: run  python -m desktop.fetch_postgres  first")
@@ -49,4 +52,4 @@ exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="MyFinancePlace", cons
 coll = COLLECT(exe, a.binaries, a.datas, name="MyFinancePlace", upx=False)
 if sys.platform == "darwin":
     app = BUNDLE(coll, name="MyFinancePlace.app", bundle_identifier="app.myfinanceplace.desktop",
-                 info_plist={"NSHighResolutionCapable": True, "CFBundleShortVersionString": "1.0.0"})
+                 info_plist={"NSHighResolutionCapable": True, "CFBundleShortVersionString": VERSION, "CFBundleVersion": VERSION})

@@ -15,7 +15,7 @@ from itsdangerous import BadSignature, URLSafeSerializer
 from app.services import autostart
 
 FILE = "desktop.json"
-DEFAULTS = {"notify": True}
+DEFAULTS = {"notify": True, "updates": True}
 BACKGROUND = "--background"
 
 
@@ -38,9 +38,9 @@ def prefs() -> dict:
     return read_prefs(current_app.config["DESKTOP_DIR"]) | {"autostart": autostart.is_enabled()}
 
 
-def save(notify: bool, start_with_computer: bool) -> None:
+def save(notify: bool, start_with_computer: bool, updates: bool = True) -> None:
     folder = Path(current_app.config["DESKTOP_DIR"])
-    (folder / FILE).write_text(json.dumps({"notify": notify}), encoding="utf-8")
+    (folder / FILE).write_text(json.dumps({"notify": notify, "updates": updates}), encoding="utf-8")
     if start_with_computer:
         autostart.enable([*current_app.config["DESKTOP_COMMAND"], BACKGROUND])
     else:

@@ -6,7 +6,7 @@ the reminders the user dismissed (by key: a key includes the date, so next month
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
-from flask import url_for
+from flask import current_app, url_for
 from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
@@ -16,6 +16,7 @@ from app.services import (
     contribution_limits,
     data_health,
     deadlines,
+    desktop,
     display,
     document_expiry,
     encrypted_backup,
@@ -27,6 +28,7 @@ from app.services import (
     request_cache,
     sections,
     settings_store,
+    updates,
     wealth,
 )
 from app.services.i18n import tr
@@ -212,13 +214,26 @@ def _backup(today: date) -> list[Notification]:
                          _("Il backup automatico non è riuscito"), detail, today, url_for("export.index") + "#auto-backup")]
 
 
+def _update(today: date) -> list[Notification]:
+    """A newer version of the desktop app (checked by the desktop app once a day, when switched on)."""
+    if not desktop.available() or not desktop.read_prefs(current_app.config["DESKTOP_DIR"])["updates"]:
+        return []
+    found = updates.newer(current_app.config["DESKTOP_DIR"])
+    if not found:
+        return []
+    return [Notification(f"update-{found['version']}", "info", "arrow-up-circle",
+                         _("Disponibile la versione %(version)s", version=found["version"]),
+                         _("Scaricala e installala sopra a questa: i dati restano."), today,
+                         url_for("desktop.settings_page") + "#version")]
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
            (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"),
            (_deadlines, "deadlines"), (_documents, "documents"),
-           (_backup, "export"))
+           (_backup, "export"), (_update, "notifications"))
 
 
 def dismissed() -> list[str]:

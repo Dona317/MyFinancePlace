@@ -8,7 +8,8 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.client import Client
-from app.services import desktop, studio
+from app.services import desktop, studio, updates
+from app.version import __version__
 
 desktop_bp = APIBlueprint("desktop", __name__, url_prefix="/desktop", tag="Desktop")
 
@@ -21,14 +22,18 @@ def _only_on_desktop():
 @desktop_bp.route("/settings")
 def settings_page():
     _only_on_desktop()
-    return render_template("settings/desktop.html", prefs=desktop.prefs())
+    folder = current_app.config["DESKTOP_DIR"]
+    return render_template("settings/desktop.html", prefs=desktop.prefs(), version=__version__,
+                           update=updates.newer(folder), checked=updates.stored(folder).get("checked"),
+                           releases=updates.RELEASES_PAGE)
 
 
 @desktop_bp.route("/settings", methods=["POST"])
 def settings_save():
     _only_on_desktop()
     try:
-        desktop.save(notify="notify" in request.form, start_with_computer="autostart" in request.form)
+        desktop.save(notify="notify" in request.form, start_with_computer="autostart" in request.form,
+                     updates="updates" in request.form)
         flash(_("Impostazioni dell'app salvate."), "success")
     except OSError as exc:
         flash(_("Avvio automatico non modificato: %(exc)s", exc=exc), "error")

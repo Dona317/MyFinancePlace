@@ -6,11 +6,12 @@ from pathlib import Path
 import pytest
 
 from app import create_app
+from app.version import __version__
 from desktop import database, main, paths
 
 
 def test_health(client):
-    assert client.get("/health").get_json() == {"ok": True}
+    assert client.get("/health").get_json() == {"ok": True, "version": __version__}
 
 
 def test_health_reports_a_broken_database(client, monkeypatch):

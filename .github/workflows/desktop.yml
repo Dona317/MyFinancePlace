@@ -1,10 +1,17 @@
 name: Desktop app
 
 # Builds the desktop app (F16) for Windows, macOS and Linux, starts each build once (local PostgreSQL, migrations,
-# /health, clean stop) and keeps it as a downloadable artifact of the run.
+# /health, clean stop) and keeps it as a downloadable artifact of the run. Called by release.yml (F23) for a tag,
+# it also makes the zips that go into the GitHub Release.
 on:
   push:
+    branches: ["**"]  # a tag is built by release.yml
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      release:
+        type: boolean
+        default: false
 
 concurrency:
   group: desktop-${{ github.ref }}
@@ -62,6 +69,11 @@ jobs:
           }
           tail -3 build.log
 
+      - name: Version
+        id: version
+        shell: bash
+        run: echo "number=$(python -c 'v = {}; exec(open("app/version.py").read(), v); print(v["__version__"])')" >> "$GITHUB_OUTPUT"
+
       - name: Start once (database, migrations, /health, stop)
         timeout-minutes: 8
         shell: bash
@@ -89,7 +101,7 @@ jobs:
         run: |
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y; $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
-          & $iscc /Q desktop\installer.iss
+          & $iscc /Q /DAppVersion=${{ steps.version.outputs.number }} desktop\installer.iss
           if ($LASTEXITCODE) { exit 1 }
           $dir = "$env:RUNNER_TEMP\mfp-installed"
           Start-Process desktop\dist\MyFinancePlace-Setup.exe -Wait -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=$dir", "/TASKS=autostart"
@@ -110,3 +122,26 @@ jobs:
           name: MyFinancePlace-Setup-windows-x64
           path: desktop/dist/MyFinancePlace-Setup.exe
           retention-days: 30
+
+      # For a release (release.yml): one zip per system, made here so the Mac and Linux files keep their permissions
+      - name: Release zip (Windows)
+        if: inputs.release && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path desktop\dist\MyFinancePlace -DestinationPath "MyFinancePlace-${{ steps.version.outputs.number }}-${{ matrix.name }}.zip"
+          Copy-Item desktop\dist\MyFinancePlace-Setup.exe "MyFinancePlace-${{ steps.version.outputs.number }}-Setup-windows-x64.exe"
+
+      - name: Release zip (macOS)
+        if: inputs.release && runner.os == 'macOS'
+        run: ditto -c -k --keepParent desktop/dist/MyFinancePlace.app "MyFinancePlace-${{ steps.version.outputs.number }}-${{ matrix.name }}.zip"
+
+      - name: Release zip (Linux)
+        if: inputs.release && runner.os == 'Linux'
+        run: cd desktop/dist && zip -qry "../../MyFinancePlace-${{ steps.version.outputs.number }}-${{ matrix.name }}.zip" MyFinancePlace
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.release
+        with:
+          name: release-${{ matrix.name }}
+          path: MyFinancePlace-${{ steps.version.outputs.number }}-*
+          retention-days: 7

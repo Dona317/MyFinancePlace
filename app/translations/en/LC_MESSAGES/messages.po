@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-19 12:17+0000\n"
+"POT-Creation-Date: 2026-10-19 12:22+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1256,6 +1256,9 @@ msgstr "Starting to read…"
 
 msgid "Avvio e notifiche"
 msgstr "Start and notifications"
+
+msgid "Avvisami delle nuove versioni"
+msgstr "Tell me about new versions"
 
 msgid "Avvisi di oggi"
 msgstr "Today's alerts"
@@ -2601,6 +2604,10 @@ msgstr "Switched off for everybody in Settings → Modules"
 
 msgid "Disdetto: non compare più nelle previsioni"
 msgstr "Cancelled: no longer in the forecast"
+
+#, python-format
+msgid "Disponibile la versione %(version)s"
+msgstr "Version %(version)s available"
 
 msgid "Distanza dal modello"
 msgstr "Distance from the model"
@@ -6123,6 +6130,13 @@ msgid "Per Google Calendar, Outlook o il calendario del telefono"
 msgstr "For Google Calendar, Outlook or the phone's calendar"
 
 msgid ""
+"Per aggiornare: scarica l’installatore (Windows) o lo zip (Mac, Linux) e installalo sopra a questa versione; i dati "
+"restano e si aggiornano da soli al primo avvio."
+msgstr ""
+"To update: download the installer (Windows) or the zip (Mac, Linux) and install it over this version; the data stays "
+"and is upgraded on its own at the first start."
+
+msgid ""
 "Per aggiungere una persona alla famiglia: crea il suo archivio in Clienti, il suo utente in Impostazioni → Account e "
 "utenti (con l’archivio di partenza) e metti l’archivio nel gruppo."
 msgstr ""
@@ -6734,6 +6748,10 @@ msgstr "This year"
 
 msgid "Questa sezione è disattivata"
 msgstr "This section is turned off"
+
+#, python-format
+msgid "Questa è la versione %(version)s."
+msgstr "This is version %(version)s."
 
 msgid "Questo Mese"
 msgstr "This Month"
@@ -7440,6 +7458,12 @@ msgstr ""
 
 msgid "Scarica il backup"
 msgstr "Download the backup"
+
+msgid "Scaricala dalla pagina della versione"
+msgstr "Download it from the release page"
+
+msgid "Scaricala e installala sopra a questa: i dati restano."
+msgstr "Download it and install it over this one: the data stays."
 
 #, python-format
 msgid "Scaricati %(count)s cambi di riferimento BCE degli ultimi 90 giorni; transazioni ricalcolate."
@@ -8420,6 +8444,9 @@ msgid ""
 " saltate."
 msgstr "All transactions in structured JSON. Re-import it from «Restore» below: transactions already present are skipped."
 
+msgid "Tutte le versioni"
+msgstr "All versions"
+
 msgid "Tutti gli anni"
 msgstr "All years"
 
@@ -8655,6 +8682,13 @@ msgstr "A sale exceeds the units held: a purchase or the opening position is mis
 msgid "Una volta"
 msgstr "Once"
 
+msgid ""
+"Una volta al giorno una sola richiesta a GitHub per sapere qual è l'ultima versione; nessun dato tuo viene inviato e "
+"niente si installa da solo."
+msgstr ""
+"Once a day a single request to GitHub to learn the latest version; none of your data is sent and nothing installs by "
+"itself."
+
 msgid "Università"
 msgstr "University"
 
@@ -8867,6 +8901,9 @@ msgstr "Monthly saving (€)"
 
 msgid "Versato"
 msgstr "Paid in"
+
+msgid "Versione"
+msgstr "Version"
 
 msgid "Verso il conto"
 msgstr "To account"
@@ -10041,12 +10078,20 @@ msgstr "· no exchange rate!"
 msgid "· superato"
 msgstr "· exceeded"
 
+#, python-format
+msgid "È disponibile la versione %(version)s."
+msgstr "Version %(version)s is available."
+
 msgid ""
 "È il primo avvio: questo sarà l'amministratore. Potrai aggiungere altri utenti da Impostazioni → Account e utenti; "
 "tutti vedranno gli stessi dati."
 msgstr ""
 "This is the first start: this will be the administrator. You can add more users in Settings → Account and users; "
 "everyone will see the same data."
+
+#, python-format
+msgid "È la più recente (controllato il %(day)s)."
+msgstr "It is the latest (checked on %(day)s)."
 
 msgid "È un PDF scansionato: contiene solo immagini delle pagine, senza testo leggibile."
 msgstr "It is a scanned PDF: it only contains images of the pages, with no readable text."

@@ -98,6 +98,27 @@ per cifrare ma non per aprire. Ogni file è cifrato con AES-256-GCM e una chiave
 aprono: va scritta in un posto sicuro. Per ripristinare: **Ripristina**, con il file `.mfpbackup` e la password.
 Cambiare password richiede quella attuale; i file già salvati restano con la password di prima.
 
+## Versioni stabili e avviso di aggiornamento (F23)
+
+Il numero di versione è in `app/version.py`: si vede in **Impostazioni → App desktop → Versione** e in `/health`,
+e va nell'installatore Windows e nel pacchetto Mac.
+
+**Pubblicare una versione** (la prima volta e ogni volta):
+1. in `app/version.py` scrivi il nuovo numero (per esempio `1.1.0`) e fai il commit;
+2. crea il tag con lo stesso numero preceduto da `v` e mandalo su GitHub:
+   `git tag v1.1.0 && git push origin v1.1.0`
+   (solo il tag: la release la crea il workflow, non va creata a mano da GitHub);
+3. il workflow **Release** controlla che tag e `app/version.py` coincidano, costruisce e prova l'app per Windows,
+   macOS e Linux e pubblica in **Releases** l'installatore Windows e gli zip, con le note prese dai commit.
+
+I file delle release non scadono (gli artifact delle Actions sì, dopo 30 giorni) e il link
+`https://github.com/Dona317/MyFinancePlace/releases/latest` porta sempre all'ultima.
+
+**Avviso**: l'app desktop, una volta al giorno, chiede a GitHub qual è l'ultima release (una sola richiesta, nessun
+dato inviato). Se è più nuova lo dice nelle notifiche e in Impostazioni → App desktop, con il link per scaricarla.
+Non si aggiorna da sola: si installa la nuova versione sopra alla vecchia e i dati restano. Si spegne con
+«Avvisami delle nuove versioni». Finché il repository è privato GitHub risponde «non trovato» e l'avviso tace.
+
 ## Dove sono i dati
 
 | Sistema | Cartella |

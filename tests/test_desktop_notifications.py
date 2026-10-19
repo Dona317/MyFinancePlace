@@ -129,11 +129,11 @@ def test_start_with_the_computer_and_notifications_switches(desktop_app, client,
     assert 'name="autostart"' in page and 'name="notify" checked' in page
     client.post("/desktop/settings", data={"autostart": "on"})
     assert desktop_app.autostart_calls[-1] == ("on", ["C:/MFP/MyFinancePlace.exe", "--background"])
-    assert json.loads((tmp_path / "desktop.json").read_text()) == {"notify": False}
+    assert json.loads((tmp_path / "desktop.json").read_text()) == {"notify": False, "updates": False}
     assert 'name="autostart" checked' in client.get("/desktop/settings").get_data(as_text=True)
     client.post("/desktop/settings", data={"notify": "on"})
     assert desktop_app.autostart_calls[-1] == ("off",)
-    assert desktop.read_prefs(tmp_path) == {"notify": True}
+    assert desktop.read_prefs(tmp_path) == {"notify": True, "updates": False}
 
 
 def test_autostart_failure_is_reported(desktop_app, client, monkeypatch):
@@ -145,11 +145,11 @@ def test_autostart_failure_is_reported(desktop_app, client, monkeypatch):
 
 
 def test_prefs_file_unreadable_or_odd(tmp_path):
-    assert desktop.read_prefs(tmp_path) == {"notify": True}
+    assert desktop.read_prefs(tmp_path) == {"notify": True, "updates": True}
     (tmp_path / "desktop.json").write_text("[1, 2]")
-    assert desktop.read_prefs(tmp_path) == {"notify": True}
+    assert desktop.read_prefs(tmp_path) == {"notify": True, "updates": True}
     (tmp_path / "desktop.json").write_text('{"notify": "no", "other": false}')
-    assert desktop.read_prefs(tmp_path) == {"notify": True}
+    assert desktop.read_prefs(tmp_path) == {"notify": True, "updates": True}
 
 
 # ── Bringing the window up ─────────────────────────────────────────────────────

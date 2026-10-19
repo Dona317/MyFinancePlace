@@ -175,6 +175,16 @@ def write_backups(app) -> int:
         return encrypted_backup.run_all_archives()
 
 
+def check_updates(root: Path) -> dict | None:
+    """Once a day, when switched on: is there a newer release? (F23)"""
+    from app.services import desktop, updates
+
+    if not desktop.read_prefs(root)["updates"]:
+        return None
+    updates.check(root)
+    return updates.newer(root)
+
+
 def _reminders_loop(app, root: Path, stop: threading.Event) -> None:
     wait = FIRST_REMINDERS_AFTER
     while not stop.wait(wait):
@@ -189,6 +199,12 @@ def _reminders_loop(app, root: Path, stop: threading.Event) -> None:
                 log.info("automatic backup written")
         except Exception:  # noqa: BLE001 - the status in the app says what went wrong
             log.exception("automatic backup not written")
+        try:
+            found = check_updates(root)
+            if found:
+                log.info("version %s available", found["version"])
+        except Exception:  # noqa: BLE001 - only a notice: the next round tries again
+            log.exception("new version not checked")
         try:
             sent = send_reminders(app, root)
             if sent:
