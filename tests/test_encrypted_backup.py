@@ -161,3 +161,13 @@ def test_pages_and_restore(client, db, tmp_path):
     assert Account.query.filter_by(name="Dopo il backup").count() == 0
     html = client.post("/export/backup/encrypted", data={"action": "off"}, follow_redirects=True).get_data(as_text=True)
     assert "Backup automatico spento" in html
+
+
+def test_every_archive_when_due(app, db, tmp_path):
+    with app.test_request_context():
+        assert encrypted_backup.run_all_archives() == 0  # not set up
+        encrypted_backup.configure(str(tmp_path), "daily", 3, "password1")
+        db.session.commit()
+        assert encrypted_backup.run_all_archives() == 1
+        assert encrypted_backup.run_all_archives() == 0  # done for today
+    assert len(list(tmp_path.glob("*.mfpbackup"))) == 1
