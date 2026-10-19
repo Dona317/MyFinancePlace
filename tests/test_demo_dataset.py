@@ -181,10 +181,22 @@ def test_policies_reminders_and_documents(client, demo_data):
         reminders = [n.title for n in notifications._policies(TODAY)]
     assert any("Reale Mutua" in title for title in reminders)  # renews on 15 November: within 60 days
     documents = Document.query.all()
-    assert len(documents) == 5 and all(document_store.read(d.stored_name).startswith(b"%PDF") for d in documents)
+    assert len(documents) == 8 and all(document_store.read(d.stored_name).startswith(b"%PDF") for d in documents)
     receipt = next(d for d in documents if d.doc_type == "Ricevuta")
     assert receipt.transaction is not None and receipt.transaction.description == "Visita dentista"
     for url in ("/insurance/", "/documents/", f"/documents/{receipt.id}/file", "/notifications/"):
+        assert client.get(url).status_code == 200, url
+
+
+def test_deadlines_warranties_and_bills(client, demo_data):
+    """F23: the hand-written deadlines, a warranty and an identity card about to expire, a year of bills."""
+    from app.models.reminder import Reminder
+    from app.services import document_expiry, utilities
+
+    assert Reminder.query.count() == 3
+    assert [d.subject for d, kind, _ in document_expiry.reminders(TODAY)] == ["Smartphone di Giulia", "Carta d'identità di Marco"]
+    assert utilities.summary("power", TODAY).count == 12 and utilities.summary("gas", TODAY).unit_cost is not None
+    for url in ("/deadlines/", "/documents/expiring", "/utilities/?utility=gas", "/reports/year"):
         assert client.get(url).status_code == 200, url
 
 

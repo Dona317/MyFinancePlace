@@ -58,6 +58,7 @@ from app.services import (  # noqa: E402
     cash,
     categories,
     contribution_limits,
+    deadlines,
     document_store,
     family,
     gigs,
@@ -68,6 +69,7 @@ from app.services import (  # noqa: E402
     spending_events,
     taxonomies,
     transfer,
+    utilities,
     valuations,
     wealth,
 )
@@ -520,6 +522,7 @@ def fill(today: date) -> dict:
     everyday_extras(accounts, holdings, rows, cutoff)
     db.session.commit()
     documents(rows)
+    house_and_deadlines(rows, today)
     for back in range(33, -1, -3):  # the balance sheet at the end of a quarter
         year, month = divmod(cutoff.year * 12 + cutoff.month - 1 - back, 12)
         on = date(year, month + 1, 1) - timedelta(days=1)
@@ -665,6 +668,41 @@ def documents(rows: list[Transaction]) -> None:
         db.session.add(Document(filename=filename, stored_name=stored, mimetype="application/pdf", size=len(raw),
                                 doc_type=doc_type, fiscal_year=year, category=category,
                                 transaction_id=tx.id if tx else None))
+    db.session.commit()
+
+
+# ── F23: deadlines written by hand, warranties, an identity card to renew, the bills with their consumption ──
+
+def house_and_deadlines(rows: list[Transaction], today: date) -> None:
+    deadlines.save(None, title="Bollo auto Fiat Panda", due=today + timedelta(days=45), repeat="yearly",
+                   amount=Decimal("198.40"), notes="Si paga con pagoPA")
+    deadlines.save(None, title="Revisione auto", due=today + timedelta(days=75), repeat="none", amount=Decimal("79"),
+                   notes=None)
+    deadlines.save(None, title="Abbonamento ATM", due=today.replace(day=28), repeat="monthly", amount=Decimal("39"),
+                   notes=None)
+    for filename, doc_type, subject, warranty, expires, lines in (
+        ("Scontrino lavatrice.pdf", "Scontrino", "Lavatrice Bosch Serie 6", today + timedelta(days=400), None,
+         ["MediaWorld - Lavatrice Bosch Serie 6", "Totale: 549,00 EUR"]),
+        ("Fattura smartphone.pdf", "Fattura", "Smartphone di Giulia", today + timedelta(days=25), None,
+         ["Fattura n. 2024/1182", "Smartphone 128 GB", "Totale: 329,00 EUR"]),
+        ("Carta d'identità Marco.pdf", "Documento d'identità", "Carta d'identità di Marco", None,
+         today + timedelta(days=50), ["Carta d'identità elettronica", "Marco Rossi"]),
+    ):
+        raw = _pdf(lines)
+        stored = document_store.new_name(filename)
+        document_store.write(stored, raw)
+        db.session.add(Document(filename=filename, stored_name=stored, mimetype="application/pdf", size=len(raw),
+                                doc_type=doc_type, subject=subject, warranty_until=warranty, expires_on=expires))
+    # the last twelve Enel bills (power and gas together), each split into its two readings
+    enel = [t for t in rows if t.description == "Enel Energia bolletta luce e gas"][-12:]
+    for tx in enel:
+        end = tx.date.replace(day=1) - timedelta(days=1)
+        start, amount = end.replace(day=1), Decimal(tx.amount)
+        power, gas = (amount * Decimal("0.4")).quantize(Decimal("0.01")), (amount * Decimal("0.6")).quantize(Decimal("0.01"))
+        utilities.save(None, utility="power", start=start, end=end, amount=power, supplier="Enel Energia",
+                       consumption=(power / Decimal("0.29")).quantize(Decimal("1")), notes="Dalla bolletta luce e gas")
+        utilities.save(None, utility="gas", start=start, end=end, amount=gas, supplier="Enel Energia",
+                       consumption=(gas / Decimal("1.15")).quantize(Decimal("1")), notes="Dalla bolletta luce e gas")
     db.session.commit()
 
 
