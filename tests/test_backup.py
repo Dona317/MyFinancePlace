@@ -104,7 +104,7 @@ def test_restore_keeps_a_copy_of_the_replaced_data(client, db, everything):
     with zipfile.ZipFile(io.BytesIO(saved.data)) as zipped:
         data = json.loads(zipped.read("backup.json"))
     assert any(t["description"] == "Solo prima del ripristino" for t in data["tables"]["transactions"])
-    assert "Backup automatici (1)" in client.get("/export/").get_data(as_text=True)
+    assert "Copie prima dei ripristini (1)" in client.get("/export/").get_data(as_text=True)
     assert client.get("/export/backup/automatic/..%2F..%2Fsecret.zip").status_code == 404
 
 

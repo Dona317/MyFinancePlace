@@ -167,6 +167,14 @@ def read_prices(app) -> int:
         return price_feed.refresh_all_archives()
 
 
+def write_backups(app) -> int:
+    """The automatic encrypted backups of every archive that has one due (F23)."""
+    from app.services import encrypted_backup
+
+    with app.app_context(), app.test_request_context("/"):
+        return encrypted_backup.run_all_archives()
+
+
 def _reminders_loop(app, root: Path, stop: threading.Event) -> None:
     wait = FIRST_REMINDERS_AFTER
     while not stop.wait(wait):
@@ -176,6 +184,11 @@ def _reminders_loop(app, root: Path, stop: threading.Event) -> None:
                 log.info("%s investment price(s) read", read)
         except Exception:  # noqa: BLE001 - no prices this round: the reminders still go
             log.exception("prices not read")
+        try:
+            if write_backups(app):
+                log.info("automatic backup written")
+        except Exception:  # noqa: BLE001 - the status in the app says what went wrong
+            log.exception("automatic backup not written")
         try:
             sent = send_reminders(app, root)
             if sent:

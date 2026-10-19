@@ -18,6 +18,7 @@ from app.services import (
     deadlines,
     display,
     document_expiry,
+    encrypted_backup,
     forecast,
     gigs,
     investment_plans,
@@ -201,12 +202,23 @@ def _documents(today: date) -> list[Notification]:
     return items
 
 
+def _backup(today: date) -> list[Notification]:
+    """The automatic backup failed, or has not run for two periods."""
+    state = encrypted_backup.status()
+    if not state.overdue:
+        return []
+    detail = state.last_error or _("L'ultimo è del %(day)s.", day=display.day(state.last_ok))
+    return [Notification(f"backup-{state.last_ok or 'never'}-{state.last_error or ''}"[:120], "warning", "shield-lock",
+                         _("Il backup automatico non è riuscito"), detail, today, url_for("export.index") + "#auto-backup")]
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
            (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"),
-           (_deadlines, "deadlines"), (_documents, "documents"))
+           (_deadlines, "deadlines"), (_documents, "documents"),
+           (_backup, "export"))
 
 
 def dismissed() -> list[str]:

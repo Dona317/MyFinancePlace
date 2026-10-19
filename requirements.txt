@@ -16,6 +16,7 @@ olefile==0.47        # bank statement import (Word 97-2003 .doc, read in pure Py
 fpdf2==2.8.8         # downloadable PDF report (pure Python)
 rapidocr-onnxruntime==1.4.4  # light OCR of scans and photos (ONNX models bundled, offline, CPU)
 anthropic==1.8.0     # optional AI reading of scans/photos (LLM_PROVIDER=anthropic)
+cryptography>=41.0  # the automatic encrypted backup (AES-256-GCM, scrypt, X25519)
 gunicorn==23.0.0     # production server (wsgi.py, gunicorn.conf.py)
 pytest
 pytest-cov

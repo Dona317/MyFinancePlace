@@ -5,7 +5,7 @@ from flask import redirect, render_template, url_for
 
 from app.models.transaction import Transaction
 from app.routes.helpers import year_arg
-from app.services import analytics, budgets, i18n, price_feed, sankey, valuations
+from app.services import analytics, budgets, encrypted_backup, i18n, price_feed, sankey, valuations
 from app.services.ui_settings import autonomy_target
 
 dashboard_bp = APIBlueprint(
@@ -32,6 +32,7 @@ def index():
 def dashboard():
     valuations.refresh_daily()  # the depreciation of the cars and the like, once a day
     price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
+    encrypted_backup.run_in_background()  # the automatic encrypted backup, when due
     today = date.today()
     kpis = analytics.dashboard_kpis(today)
     cash_flow = analytics.last_12_months(today)

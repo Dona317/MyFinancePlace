@@ -80,6 +80,7 @@
 .bi-clock::before { content: "\f293"; }
 .bi-clock-history::before { content: "\f292"; }
 .bi-cloud::before { content: "\f2c1"; }
+.bi-cloud-arrow-up::before { content: "\f297"; }
 .bi-cloud-check::before { content: "\f299"; }
 .bi-cloud-download::before { content: "\f29b"; }
 .bi-cloud-upload::before { content: "\f2c0"; }
@@ -217,6 +218,7 @@
 .bi-share::before { content: "\f52e"; }
 .bi-shield-check::before { content: "\f52f"; }
 .bi-shield-exclamation::before { content: "\f530"; }
+.bi-shield-lock::before { content: "\f538"; }
 .bi-shield-plus::before { content: "\f53a"; }
 .bi-shield-slash::before { content: "\f53d"; }
 .bi-shift::before { content: "\f541"; }

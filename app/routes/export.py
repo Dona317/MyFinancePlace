@@ -22,6 +22,7 @@ from app.services import (
     backup,
     bank_import,
     column_guess,
+    encrypted_backup,
     statement_readers,
     transfer,
     upload_store,
@@ -52,6 +53,8 @@ def index():
         ai_reader=ai_extraction.describe(),
         **ai_classification.template_context(),
         safety_copies=backup.list_safety_copies(),
+        auto=encrypted_backup.status(),
+        frequencies=encrypted_backup.FREQUENCIES,
     )
 
 
@@ -71,7 +74,10 @@ def restore():
         flash(_("Scegli il file di backup da ripristinare."), "error")
         return redirect(url_for("export.index") + "#backup")
     try:
-        data, files = backup.read_upload(upload.read())
+        raw = upload.read()
+        if encrypted_backup.is_encrypted(raw):
+            raw = encrypted_backup.decrypt(raw, request.form.get("password", ""))
+        data, files = backup.read_upload(raw)
         if not backup.is_full_backup(data):
             added, skipped = backup.import_transactions(data)
             flash(_("Export JSON importato: %(added)s transazioni aggiunte, %(skipped)s già presenti ignorate.", added=added, skipped=skipped), "success")
@@ -85,10 +91,34 @@ def restore():
         flash(str(exc), "error")
         return redirect(url_for("export.index") + "#backup")
     flash(
-        _("Backup ripristinato: %(transactions)s transazioni, %(holdings)s posizioni, %(debts)s debiti, %(policies)s polizze, %(goals)s obiettivi, %(documents)s documenti, %(snapshots)s istantanee. I dati di prima sono salvati in «%(safety)s» (vedi Backup automatici).", transactions=restored['transactions'], holdings=restored['holdings'], debts=restored['debts'], policies=restored['insurance_policies'], goals=restored['goals'], documents=restored['documents'], snapshots=restored['snapshots'], safety=safety),
+        _("Backup ripristinato: %(transactions)s transazioni, %(holdings)s posizioni, %(debts)s debiti, %(policies)s polizze, %(goals)s obiettivi, %(documents)s documenti, %(snapshots)s istantanee. I dati di prima sono salvati in «%(safety)s» (vedi Copie prima dei ripristini).", transactions=restored['transactions'], holdings=restored['holdings'], debts=restored['debts'], policies=restored['insurance_policies'], goals=restored['goals'], documents=restored['documents'], snapshots=restored['snapshots'], safety=safety),
         "success",
     )
     return redirect(url_for("export.index") + "#backup")
+
+
+@export_bp.route("/backup/encrypted", methods=["POST"])
+def auto_backup():
+    """The automatic encrypted backup: folder, frequency, copies to keep, password; or switched off."""
+    form = request.form
+    if form.get("action") == "off":
+        encrypted_backup.disable()
+        db.session.commit()
+        flash(_("Backup automatico spento: i file già salvati restano nella cartella."), "success")
+        return redirect(url_for("export.index") + "#auto-backup")
+    try:
+        encrypted_backup.configure(form.get("folder", ""), form.get("frequency", ""), form.get("keep", type=int),
+                                   form.get("password"), form.get("current_password"))
+        db.session.commit()
+        if form.get("action") == "now" or encrypted_backup.due():
+            path = encrypted_backup.run()
+            flash(_("Backup cifrato salvato: %(file)s.", file=str(path)), "success")
+        else:
+            flash(_("Backup automatico impostato."), "success")
+    except backup.BackupError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+    return redirect(url_for("export.index") + "#auto-backup")
 
 
 @export_bp.route("/backup/automatic/<name>")

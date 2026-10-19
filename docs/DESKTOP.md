@@ -80,6 +80,24 @@ principale aggiungi `"--client", "<slug>"` (lo slug è nella pagina Clienti). Se
 suo database; altrimenti il database si avvia per la durata della conversazione: in quel caso chiudi l'assistente prima
 di aprire l'app. Con il server (non desktop) il comando è `flask --app run mcp serve [--client <slug>]`.
 
+## Backup automatico cifrato (F23)
+
+In **Esporta e importa → Backup automatico cifrato** si sceglie:
+- la **cartella**: un percorso completo sul computer (una cartella di OneDrive o Google Drive sincronizzata, una
+  chiavetta, un disco esterno);
+- **ogni quanto**: ogni giorno, settimana o mese;
+- le **copie da tenere**: le più vecchie si cancellano da sole (solo i file `.mfpbackup` scritti dall'app);
+- la **password**, di almeno 8 caratteri.
+
+Con l'app desktop il backup parte dal ciclo orario anche con la finestra chiusa, per ogni archivio; con l'app web
+alla prima visita del giorno. «Esegui ora» lo fa subito. Se una cartella non è scrivibile (la chiavetta non c'è),
+riprova dopo un'ora e intanto un promemoria lo dice.
+
+La password **non viene salvata**: l'app tiene solo una chiave pubblica ricavata da lei (scrypt → X25519), che basta
+per cifrare ma non per aprire. Ogni file è cifrato con AES-256-GCM e una chiave nuova. Senza password i backup non si
+aprono: va scritta in un posto sicuro. Per ripristinare: **Ripristina**, con il file `.mfpbackup` e la password.
+Cambiare password richiede quella attuale; i file già salvati restano con la password di prima.
+
 ## Dove sono i dati
 
 | Sistema | Cartella |

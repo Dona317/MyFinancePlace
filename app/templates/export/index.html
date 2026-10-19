@@ -118,8 +118,11 @@
         <form method="POST" action="{{ url_for('export.restore') }}" enctype="multipart/form-data"
               data-confirm="{{ _('Ripristinare questo file? Se è un backup completo, TUTTI i dati attuali saranno sostituiti (una copia viene salvata prima).') }}">
           <div class="form-group">
-            <input type="file" name="file" class="form-control" accept=".zip,.json" required aria-label="{{ _('File di backup') }}" />
-            <div class="form-hint">{{ _('Backup completo (.zip) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti).') }}</div>
+            <input type="file" name="file" class="form-control" accept=".zip,.json,.mfpbackup" required aria-label="{{ _('File di backup') }}" />
+            <div class="form-hint">{{ _('Backup completo (.zip), backup cifrato (.mfpbackup) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti).') }}</div>
+          </div>
+          <div class="form-group">
+            <input type="password" name="password" class="form-control" autocomplete="off" placeholder="{{ _('Password (solo per un backup cifrato)') }}" aria-label="{{ _('Password del backup cifrato') }}" />
           </div>
           <label class="d-flex align-center gap-8 text-sm mb-16">
             <input type="checkbox" name="confirm" value="1" />
@@ -131,7 +134,7 @@
     </div>
     {% if safety_copies %}
     <details class="mt-16">
-      <summary class="text-sm font-semibold" style="cursor:pointer;">{{ _('Backup automatici (%(count)s)', count=safety_copies|length) }}</summary>
+      <summary class="text-sm font-semibold" style="cursor:pointer;">{{ _('Copie prima dei ripristini (%(count)s)', count=safety_copies|length) }}</summary>
       <p class="text-xs text-muted mt-8">{{ _("Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10.") }}</p>
       <ul class="backup-list">
         {% for copy in safety_copies %}
@@ -143,6 +146,54 @@
       </ul>
     </details>
     {% endif %}
+  </div>
+</div>
+
+<!-- Backup automatico cifrato (F23) ───────────────────────────────── -->
+<div class="card mb-24" id="auto-backup">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-shield-lock"></i> {{ _('Backup automatico cifrato') }}</div>
+      <div class="card-header-sub">{{ _('Il backup completo, cifrato con la tua password, salvato da solo in una cartella: una cartella di OneDrive o Google Drive sincronizzata, una chiavetta, un disco esterno.') }}</div>
+    </div>
+    {% if auto.enabled %}<span class="badge {{ 'badge-negative' if auto.overdue else 'badge-positive' }}">{{ _('da controllare') if auto.overdue else _('attivo') }}</span>{% endif %}
+  </div>
+  <div class="card-body">
+    {% if auto.enabled or auto.last_ok %}
+    <p class="text-sm mb-16">
+      {% if auto.last_ok %}{{ _('Ultimo backup riuscito: %(day)s alle %(time)s, «%(file)s».', day=auto.last_ok|it_date, time=auto.last_ok.strftime('%H:%M'), file=auto.last_file) }}{% else %}{{ _('Nessun backup ancora.') }}{% endif %}
+      {% if auto.last_error %}<br><span class="text-negative"><i class="bi bi-exclamation-triangle"></i> {{ _('Ultimo tentativo non riuscito: %(error)s', error=auto.last_error) }}</span>{% endif %}
+    </p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('export.auto_backup') }}">
+      <div class="grid-3">
+        <div class="form-group"><label class="form-label" for="ab-folder">{{ _('Cartella') }}</label>
+          <input type="text" id="ab-folder" name="folder" class="form-control" required value="{{ auto.folder or '' }}" placeholder="{{ _('es. C:\\Users\\Anna\\OneDrive\\Backup') }}" />
+          <div class="form-hint">{{ _('Il percorso completo, sul computer dove gira l’app.') }}</div></div>
+        <div class="form-group"><label class="form-label" for="ab-frequency">{{ _('Ogni quanto') }}</label>
+          <select id="ab-frequency" name="frequency" class="form-select">{% for key, (label, every) in frequencies.items() %}<option value="{{ key }}" {{ 'selected' if key == (auto.frequency or 'weekly') }}>{{ _(label) }}</option>{% endfor %}</select></div>
+        <div class="form-group"><label class="form-label" for="ab-keep">{{ _('Copie da tenere') }}</label>
+          <input type="number" id="ab-keep" name="keep" class="form-control" min="1" max="100" value="{{ auto.keep or 8 }}" />
+          <div class="form-hint">{{ _('Le più vecchie si cancellano da sole.') }}</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label" for="ab-password">{{ _('Nuova password') if auto.enabled else _('Password') }}</label>
+          <input type="password" id="ab-password" name="password" class="form-control" autocomplete="new-password" minlength="8" {{ 'required' if not auto.enabled }} placeholder="{{ _('lascia vuoto per non cambiarla') if auto.enabled else _('almeno 8 caratteri') }}" />
+          <div class="form-hint">{{ _('Non viene salvata da nessuna parte: senza password i backup non si aprono, nemmeno noi possiamo recuperarli. Scrivila in un posto sicuro.') }}</div></div>
+        {% if auto.enabled %}
+        <div class="form-group"><label class="form-label" for="ab-current">{{ _('Password attuale (per cambiarla)') }}</label>
+          <input type="password" id="ab-current" name="current_password" class="form-control" autocomplete="current-password" /></div>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-8 flex-wrap">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+        {% if auto.enabled %}
+        <button type="submit" name="action" value="now" class="btn btn-secondary"><i class="bi bi-cloud-arrow-up"></i> {{ _('Esegui ora') }}</button>
+        <button type="submit" name="action" value="off" class="btn btn-ghost" formnovalidate>{{ _('Spegni') }}</button>
+        {% endif %}
+      </div>
+    </form>
+    <p class="text-xs text-muted mt-16 mb-0">{{ _('Nell’app desktop il backup parte da solo anche con la finestra chiusa; nell’app web alla prima visita del giorno. Per ripristinare: «Ripristina» qui sopra, con il file .mfpbackup e la password.') }}</p>
   </div>
 </div>
 

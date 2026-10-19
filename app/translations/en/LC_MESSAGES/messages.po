@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-19 12:12+0000\n"
+"POT-Creation-Date: 2026-10-19 12:17+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1303,12 +1303,25 @@ msgstr "BTPs and MOT bonds, ETFs, shares and certificates of Milan: the price to
 msgid "Backup Completo e Ripristino"
 msgstr "Full Backup and Restore"
 
-#, python-format
-msgid "Backup automatici (%(count)s)"
-msgstr "Automatic backups (%(count)s)"
+msgid "Backup automatico cifrato"
+msgstr "Automatic encrypted backup"
 
-msgid "Backup completo (.zip) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti)."
-msgstr "Full backup (.zip) or JSON export of the transactions (.json, added to the existing ones)."
+msgid "Backup automatico impostato."
+msgstr "Automatic backup set up."
+
+msgid "Backup automatico spento: i file già salvati restano nella cartella."
+msgstr "Automatic backup off: the files already saved stay in the folder."
+
+#, python-format
+msgid "Backup cifrato salvato: %(file)s."
+msgstr "Encrypted backup saved: %(file)s."
+
+msgid ""
+"Backup completo (.zip), backup cifrato (.mfpbackup) oppure export JSON delle transazioni (.json, le aggiunge a quelle"
+" esistenti)."
+msgstr ""
+"Full backup (.zip), encrypted backup (.mfpbackup) or JSON export of the transactions (.json, added to the existing "
+"ones)."
 
 msgid "Backup incompleto: mancano le tabelle."
 msgstr "Incomplete backup: tables are missing."
@@ -1317,11 +1330,11 @@ msgstr "Incomplete backup: tables are missing."
 msgid ""
 "Backup ripristinato: %(transactions)s transazioni, %(holdings)s posizioni, %(debts)s debiti, %(policies)s polizze, "
 "%(goals)s obiettivi, %(documents)s documenti, %(snapshots)s istantanee. I dati di prima sono salvati in «%(safety)s» "
-"(vedi Backup automatici)."
+"(vedi Copie prima dei ripristini)."
 msgstr ""
 "Backup restored: %(transactions)s transactions, %(holdings)s holdings, %(debts)s debts, %(policies)s policies, "
 "%(goals)s goals, %(documents)s documents, %(snapshots)s snapshots. The previous data is saved in «%(safety)s» (see "
-"Automatic backups)."
+"Copies before restores)."
 
 msgid "Banca"
 msgstr "Bank"
@@ -1576,6 +1589,13 @@ msgstr "Prepaid card"
 
 msgid "Carte di credito"
 msgstr "Credit cards"
+
+msgid "Cartella"
+msgstr "Folder"
+
+#, python-format
+msgid "Cartella non scrivibile (%(error)s)."
+msgstr "Folder not writable (%(error)s)."
 
 msgid "Casa"
 msgstr "Home"
@@ -2217,6 +2237,13 @@ msgstr "Total Coverage"
 
 msgid "Copia"
 msgstr "Copy"
+
+msgid "Copie da tenere"
+msgstr "Copies to keep"
+
+#, python-format
+msgid "Copie prima dei ripristini (%(count)s)"
+msgstr "Copies before restores (%(count)s)"
 
 msgid "Corona ceca"
 msgstr "Czech koruna"
@@ -2990,6 +3017,9 @@ msgstr "Left out of the analyses"
 msgid "Escluse dalle analisi: %(amount)s"
 msgstr "Left out of the analyses: %(amount)s"
 
+msgid "Esegui ora"
+msgstr "Run now"
+
 msgid ""
 "Esempi da copiare e modificare, con ETF quotati a Milano. Non sono consigli d'investimento: scegli in base ai tuoi "
 "obiettivi e al tuo orizzonte."
@@ -3616,12 +3646,28 @@ msgstr ""
 "TWR measures what the holdings earned, without the effect of when and how much you invested: it is the number to "
 "compare with an index."
 
+msgid "Il backup automatico non è impostato."
+msgstr "The automatic backup is not set up."
+
+msgid "Il backup automatico non è riuscito"
+msgstr "The automatic backup failed"
+
+msgid ""
+"Il backup completo, cifrato con la tua password, salvato da solo in una cartella: una cartella di OneDrive o Google "
+"Drive sincronizzata, una chiavetta, un disco esterno."
+msgstr ""
+"The full backup, encrypted with your password, saved on its own to a folder: a synced OneDrive or Google Drive "
+"folder, a USB stick, an external disk."
+
 #, python-format
 msgid "Il backup contiene un valore non valido (%(exc)s)."
 msgstr "The backup contains an invalid value (%(exc)s)."
 
 msgid "Il backup viene da una versione più recente dell'app: aggiorna l'app prima di ripristinarlo."
 msgstr "The backup comes from a newer version of the app: update the app before restoring it."
+
+msgid "Il backup è cifrato: scrivi la password."
+msgstr "The backup is encrypted: enter the password."
 
 msgid "Il bilanciato classico: azioni per crescere, obbligazioni per attutire i cali."
 msgstr "The classic balanced mix: equities to grow, bonds to cushion the falls."
@@ -3676,6 +3722,9 @@ msgstr "The XML file contains a DOCTYPE or ENTITY declaration: it is not read."
 #, python-format
 msgid "Il file contiene un valore non valido (%(exc)s)."
 msgstr "The file contains an invalid value (%(exc)s)."
+
+msgid "Il file di backup è danneggiato."
+msgstr "The backup file is damaged."
 
 msgid "Il file non contiene tabelle leggibili."
 msgstr "The file contains no readable tables."
@@ -3770,6 +3819,9 @@ msgstr "Each month's net (below zero when negative) and the year's three bars"
 
 msgid "Il patrimonio negli anni"
 msgstr "Wealth over the years"
+
+msgid "Il percorso completo, sul computer dove gira l’app."
+msgstr "The full path, on the computer where the app runs."
 
 msgid "Il periodo finisce prima di cominciare."
 msgstr "The period ends before it starts."
@@ -4280,6 +4332,10 @@ msgstr "The amount of each payment: the yearly premium is worked out from the fr
 msgid "L'importo non può essere negativo."
 msgstr "The amount cannot be negative."
 
+#, python-format
+msgid "L'ultimo è del %(day)s."
+msgstr "The last one is from %(day)s."
+
 msgid "La"
 msgstr "The"
 
@@ -4342,6 +4398,10 @@ msgstr "The share of each month's income left over, compared with the year befor
 
 msgid "La password attuale non è corretta."
 msgstr "The current password is not correct."
+
+#, python-format
+msgid "La password deve avere almeno %(n)s caratteri."
+msgstr "The password must be at least %(n)s characters long."
 
 msgid "La più alta"
 msgstr "Largest"
@@ -4432,6 +4492,9 @@ msgstr "The descriptions will be sent to Anthropic (cloud) for classification. C
 msgid "Le commissioni si calcolano con la regola del conto."
 msgstr "Fees are computed with the account's rule."
 
+msgid "Le copie da tenere vanno da 1 a 100."
+msgstr "Copies to keep go from 1 to 100."
+
 msgid "Le due password non coincidono."
 msgstr "The two passwords do not match."
 
@@ -4440,6 +4503,9 @@ msgstr "The ages must be in order: today < retirement < end of the horizon (110 
 
 msgid "Le immagini non sono supportate: scarica dall'home banking il PDF, l'Excel o il CSV dei movimenti."
 msgstr "Images are not supported: download the PDF, Excel or CSV of the movements from online banking."
+
+msgid "Le più vecchie si cancellano da sole."
+msgstr "The oldest are deleted automatically."
 
 msgid ""
 "Le plusvalenze si calcolano dalle operazioni inserite in quote (Transazioni → Operazione su investimento). Il regime "
@@ -5054,6 +5120,13 @@ msgstr ""
 "On the chosen day a reminder appears: you confirm the purchases, split as the model portfolio says, at the day's "
 "prices."
 
+msgid ""
+"Nell’app desktop il backup parte da solo anche con la finestra chiusa; nell’app web alla prima visita del giorno. Per"
+" ripristinare: «Ripristina» qui sopra, con il file .mfpbackup e la password."
+msgstr ""
+"In the desktop app the backup runs on its own even with the window closed; in the web app on the first visit of the "
+"day. To restore: «Restore» above, with the .mfpbackup file and the password."
+
 msgid "Nessun PAC."
 msgstr "No PACs."
 
@@ -5062,6 +5135,9 @@ msgstr "No purchases to confirm: enter units and price."
 
 msgid "Nessun altro movimento in queste date."
 msgstr "No other movements in these dates."
+
+msgid "Nessun backup ancora."
+msgstr "No backup yet."
 
 msgid "Nessun cambio salvato: le transazioni in altre valute contano 1:1 finché non ne aggiungi uno."
 msgstr "No saved rates: transactions in other currencies count 1:1 until you add one."
@@ -5479,8 +5555,18 @@ msgstr "Cannot find the operation columns: at least date, quantity and instrumen
 msgid "Non trovo le colonne di data e importo: sceglile a mano."
 msgstr "I cannot find the date and amount columns: choose them yourself."
 
+msgid ""
+"Non viene salvata da nessuna parte: senza password i backup non si aprono, nemmeno noi possiamo recuperarli. Scrivila"
+" in un posto sicuro."
+msgstr ""
+"It is not saved anywhere: without the password the backups cannot be opened, not even by us. Write it down somewhere "
+"safe."
+
 msgid "Non è stato salvato nulla. Se hai usato un modulo di questa app, ricarica la pagina e riprova."
 msgstr "Nothing was saved. If you used a form of this app, reload the page and try again."
+
+msgid "Non è un backup cifrato di MyFinancePlace."
+msgstr "Not a MyFinancePlace encrypted backup."
 
 msgid "Nord America"
 msgstr "North America"
@@ -5732,6 +5818,9 @@ msgstr ""
 "Each client has an archive of its own: separate accounts, transactions, documents, settings and backups. You always "
 "work on one client at a time, the one shown at the top."
 
+msgid "Ogni giorno"
+msgstr "Every day"
+
 msgid "Ogni mese"
 msgstr "Every month"
 
@@ -5749,6 +5838,12 @@ msgstr "Each part needs a name and a target in %."
 
 msgid "Ogni quadrato è un giorno: più è scuro, più hai speso. Passa sopra per l'importo, clicca per i movimenti."
 msgstr "Each square is a day: the darker, the more you spent. Hover for the amount, click for the movements."
+
+msgid "Ogni quanto"
+msgstr "How often"
+
+msgid "Ogni settimana"
+msgstr "Every week"
 
 msgid "Ogni transazione conserva importo e valuta originali; totali, report e previsioni usano il"
 msgstr "Every transaction keeps its original amount and currency; totals, reports and forecasts use the"
@@ -5955,17 +6050,29 @@ msgstr "Password (at least %(count)s characters)"
 msgid "Password (almeno 8 caratteri)"
 msgstr "Password (at least 8 characters)"
 
+msgid "Password (solo per un backup cifrato)"
+msgstr "Password (only for an encrypted backup)"
+
 msgid "Password attuale"
 msgstr "Current password"
 
+msgid "Password attuale (per cambiarla)"
+msgstr "Current password (to change it)"
+
 msgid "Password cambiata."
 msgstr "Password changed."
+
+msgid "Password del backup cifrato"
+msgstr "Password of the encrypted backup"
 
 msgid "Password dimenticata? Chiedi a un amministratore di reimpostarla (Impostazioni → Account e utenti)."
 msgstr "Forgot your password? Ask an administrator to reset it (Settings → Account and users)."
 
 msgid "Password persa da tutti gli amministratori? Dal server:"
 msgstr "Every administrator lost their password? On the server:"
+
+msgid "Password sbagliata, oppure il file è stato modificato o è danneggiato."
+msgstr "Wrong password, or the file was modified or is damaged."
 
 #, python-format
 msgid "Password: almeno %(count)s caratteri."
@@ -6032,6 +6139,9 @@ msgid "Per calcolare il piano servono la <strong>data di inizio</strong> e la <s
 msgstr ""
 "To work out the plan you need the <strong>start date</strong> and the <strong>term</strong> (or the monthly "
 "installment)."
+
+msgid "Per cambiare la password scrivi anche quella attuale."
+msgstr "To change the password, also enter the current one."
 
 msgid "Per categoria"
 msgstr "By category"
@@ -7359,6 +7469,9 @@ msgstr "Choose the backup file to restore."
 msgid "Scegli l'utenza."
 msgstr "Choose the utility."
 
+msgid "Scegli la cartella dove salvare i backup."
+msgstr "Choose the folder to save the backups to."
+
 msgid ""
 "Scegli le sezioni da vedere nel tuo menu: le altre spariscono solo per te, i dati restano e le riattivi qui quando "
 "vuoi. Dashboard e Impostazioni ci sono sempre."
@@ -7369,11 +7482,17 @@ msgstr ""
 msgid "Scegli o crea prima un portafoglio modello."
 msgstr "First choose or create a model portfolio."
 
+msgid "Scegli ogni quanto fare il backup."
+msgstr "Choose how often to back up."
+
 msgid "Scegli quale transazione tenere."
 msgstr "Choose which transaction to keep."
 
 msgid "Scegli un altro modello"
 msgstr "Choose another model"
+
+msgid "Scegli una password: senza, i backup non si potranno aprire."
+msgstr "Choose a password: without it the backups could not be opened."
 
 msgid "Sceglilo nelle Impostazioni."
 msgstr "Choose it in Settings."
@@ -7414,6 +7533,9 @@ msgstr "Write the name of the limit."
 
 msgid "Scrivi il nome della persona."
 msgstr "Write the person's name."
+
+msgid "Scrivi il percorso completo della cartella (per esempio D:\\Backup o /home/anna/OneDrive/Backup)."
+msgstr "Enter the full path of the folder (for example D:\\Backup or /home/anna/OneDrive/Backup)."
 
 msgid "Scrivi il periodo della bolletta (dal, al)."
 msgstr "Write the period of the bill (from, to)."
@@ -7681,6 +7803,9 @@ msgstr "Paused"
 
 msgid "Sottocategoria di"
 msgstr "Subcategory of"
+
+msgid "Spegni"
+msgstr "Turn off"
 
 msgid "Spesa"
 msgstr "Expense"
@@ -8393,6 +8518,10 @@ msgstr "Latest movements"
 msgid "Ultimo accesso"
 msgstr "Last sign-in"
 
+#, python-format
+msgid "Ultimo backup riuscito: %(day)s alle %(time)s, «%(file)s»."
+msgstr "Last successful backup: %(day)s at %(time)s, «%(file)s»."
+
 msgid "Ultimo giorno per presentare il 730"
 msgstr "Last day to file the 730"
 
@@ -8405,6 +8534,10 @@ msgstr "Last payment"
 #, python-format
 msgid "Ultimo prezzo %(price)s"
 msgstr "Last price %(price)s"
+
+#, python-format
+msgid "Ultimo tentativo non riuscito: %(error)s"
+msgstr "Last attempt failed: %(error)s"
 
 #, python-format
 msgid "Un altro promemoria"
@@ -8829,6 +8962,9 @@ msgstr "a year at %(rate)s %%, against a need of %(gap)s"
 msgid "all'anno, conta quando hai versato"
 msgstr "a year, counts when you invested"
 
+msgid "almeno 8 caratteri"
+msgstr "at least 8 characters"
+
 #, python-format
 msgid "ancora %(num)s giorno"
 msgid_plural "ancora %(num)s giorni"
@@ -8862,6 +8998,9 @@ msgstr "main archive"
 
 msgid "assegnale"
 msgstr "assign them"
+
+msgid "attivo"
+msgstr "active"
 
 msgid "azionario 15–18, bilanciato 8–10"
 msgstr "equities 15–18, balanced 8–10"
@@ -8949,6 +9088,9 @@ msgstr "to confirm (AI)"
 
 msgid "da conservare fuori da questo computer (chiavetta, cloud). Fallo almeno una volta al mese e prima di aggiornare l'app."
 msgstr "to keep outside this computer (USB stick, cloud). Do it at least once a month and before updating the app."
+
+msgid "da controllare"
+msgstr "needs attention"
 
 msgid "da incassare"
 msgstr "to collect"
@@ -9082,6 +9224,9 @@ msgstr "e.g. Pets"
 
 msgid "es. Azioni globali"
 msgstr "e.g. Global equities"
+
+msgid "es. C:\\Users\\Anna\\OneDrive\\Backup"
+msgstr "e.g. C:\\Users\\Anna\\OneDrive\\Backup"
 
 msgid "es. Enel, A2A, Hera"
 msgstr "e.g. Enel, A2A, Hera"
@@ -9281,6 +9426,9 @@ msgstr "the answer changed"
 #, python-format
 msgid "la «regola del 4 %%»: 3–3,5 per orizzonti lunghi"
 msgstr "the “4 %% rule”: 3–3.5 for long horizons"
+
+msgid "lascia vuoto per non cambiarla"
+msgstr "leave empty to keep it"
 
 msgid "le tue (Impostazioni → Classificazioni): in Composizione ognuna ha il suo grafico"
 msgstr "your own (Settings → Classifications): each has its chart in Composition"
