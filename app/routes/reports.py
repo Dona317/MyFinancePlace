@@ -1,11 +1,26 @@
+import re
 from datetime import date, timedelta
 
 from flask import Blueprint, render_template, request
 from flask_babel import gettext as _
 
+from app.extensions import db
+from app.models.client import ClientGroup
 from app.models.transaction import Transaction
 from app.routes.helpers import csv_text, download, year_arg
-from app.services import accounts, analytics, categories, i18n, periods, reports, spending_rhythm, transfer
+from app.services import (
+    accounts,
+    analytics,
+    annual_review,
+    categories,
+    groups,
+    i18n,
+    periods,
+    reports,
+    spending_rhythm,
+    studio,
+    transfer,
+)
 from app.services.analytics import UNCATEGORIZED
 from app.services.display import number
 from app.services.totals import analysed, excluded_total
@@ -137,3 +152,27 @@ def rhythm():
                            calendar=spending_rhythm.calendar(year, today),
                            weekdays=spending_rhythm.weekdays(start, min(date(year, 12, 31), today)),
                            changes=spending_rhythm.changes(today), month_labels=periods.month_labels())
+
+
+@reports_bp.route("/year")
+def year_review():
+    """The year in review (F23): net worth, where its change came from, spending against the year before, and more."""
+    year = _summary_year()
+    return render_template("reports/year_review.html", data=annual_review.review(year), year=year,
+                           years=analytics.available_years(), tabs=reports.TABS,
+                           groups=groups.of(studio.current()))
+
+
+@reports_bp.route("/year.pdf")
+def year_review_pdf():
+    year = _summary_year()
+    return download(annual_review.build_pdf(annual_review.review(year)), f"bilancio_{year}.pdf", "application/pdf")
+
+
+@reports_bp.route("/year/group/<int:group_id>.pdf")
+def year_review_group_pdf(group_id):
+    """The same review for every archive of a group (F21), with the group's totals first."""
+    group = db.get_or_404(ClientGroup, group_id)
+    year = _summary_year()
+    slug = re.sub(r"[^a-z0-9]+", "_", group.name.lower()).strip("_") or "gruppo"
+    return download(annual_review.build_group_pdf(group, year), f"bilancio_{year}_{slug}.pdf", "application/pdf")

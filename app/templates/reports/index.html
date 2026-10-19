@@ -16,7 +16,7 @@
 <div class="report-bar mb-16">
   {% set tab_items = namespace(list=[]) %}
   {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, link({'tab': key, 'category': ''}), label)] %}{% endfor %}
-  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary'), _('Riepilogo')), ('rhythm', url_for('reports.rhythm'), _('Ritmo'))], f.tab, _('Tipo di report')) }}
+  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary'), _('Riepilogo')), ('rhythm', url_for('reports.rhythm'), _('Ritmo')), ('year', url_for('reports.year_review'), _('Bilancio dell’anno'))], f.tab, _('Tipo di report')) }}
   <form method="GET" class="report-controls" id="report-form">
     <input type="hidden" name="tab" value="{{ f.tab }}">
     {% if f.category %}<input type="hidden" name="category" value="{{ f.category }}">{% endif %}

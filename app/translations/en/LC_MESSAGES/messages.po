@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-19 12:22+0000\n"
+"POT-Creation-Date: 2026-10-19 12:26+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -54,6 +54,10 @@ msgid "%% sul Totale"
 msgstr "%% of Total"
 
 #, python-format
+msgid "%% uscite"
+msgstr "%% of expenses"
+
+#, python-format
 msgid "%% · max 35%%"
 msgstr "%% · max 35%%"
 
@@ -88,6 +92,10 @@ msgstr "%(amount)s more"
 #, python-format
 msgid "%(amount)s pagati quest'anno"
 msgstr "%(amount)s paid this year"
+
+#, python-format
+msgid "%(change)s sul %(year)s"
+msgstr "%(change)s on %(year)s"
 
 #, python-format
 msgid "%(changed)s transazioni messe senza conto."
@@ -363,8 +371,16 @@ msgid "%(name)s: puoi ancora versare %(amount)s"
 msgstr "%(name)s: you can still pay in %(amount)s"
 
 #, python-format
+msgid "%(name)s: rimborsati"
+msgstr "%(name)s: repaid"
+
+#, python-format
 msgid "%(name)s: ultimo giorno"
 msgstr "%(name)s: last day"
+
+#, python-format
+msgid "%(name)s: versato"
+msgstr "%(name)s: paid in"
 
 #, python-format
 msgid "%(num)d categoria confermata."
@@ -989,6 +1005,9 @@ msgstr ""
 msgid "Altro"
 msgstr "Other"
 
+msgid "Altro (giroconti, rettifiche)"
+msgstr "Other (transfers, adjustments)"
+
 msgid "Altro modello Ollama"
 msgstr "Other Ollama model"
 
@@ -1024,6 +1043,9 @@ msgstr "Monthly Trend by Category"
 
 msgid "Andamento Patrimonio Netto"
 msgstr "Net Worth Trend"
+
+msgid "Andamento dei mercati"
+msgstr "Market performance"
 
 msgid "Andamento del Portafoglio"
 msgstr "Portfolio Trend"
@@ -1397,6 +1419,9 @@ msgstr "Welcome back"
 
 msgid "Benvenuto! Il tuo account amministratore è pronto."
 msgstr "Welcome! Your administrator account is ready."
+
+msgid "Bilancio dell’anno"
+msgstr "Year in review"
 
 msgid "Bloccata da un amministratore"
 msgstr "Blocked by an administrator"
@@ -2382,6 +2407,9 @@ msgstr "Where income comes from and where it goes: income categories → expense
 msgid "Da dove vengono i numeri"
 msgstr "Where the numbers come from"
 
+msgid "Da dove viene la variazione"
+msgstr "Where the change comes from"
+
 msgid "Da dove viene ogni mese"
 msgstr "Where each month comes from"
 
@@ -2504,6 +2532,9 @@ msgstr "Data read from the bill: check it and save."
 
 msgid "Debiti"
 msgstr "Debts"
+
+msgid "Debiti rimborsati (quota capitale)"
+msgstr "Debts repaid (principal)"
 
 msgid "Debiti verso persone"
 msgstr "Owed by me to people"
@@ -4234,6 +4265,9 @@ msgstr "Investments by class"
 msgid "Investimenti uniti"
 msgstr "Merged investments"
 
+msgid "Investimenti, debiti, fisco"
+msgstr "Investments, debts, taxes"
+
 #, python-format
 msgid "Investimenti: %(total)s"
 msgstr "Investments: %(total)s"
@@ -4467,6 +4501,9 @@ msgstr "Jobs of %(year)s"
 msgid "Lavori occasionali"
 msgstr "Occasional work"
 
+msgid "Lavori occasionali: lordo"
+msgstr "Odd jobs: gross"
+
 msgid "Lavoro"
 msgstr "Job"
 
@@ -4560,6 +4597,10 @@ msgstr "The expenses of the categories linked to each item, with threshold and c
 
 msgid "Le spese in Bollette › Luce, Gas, Acqua e Internet non ancora registrate: scrivi solo il consumo."
 msgstr "Expenses in Bills › Power, Gas, Water and Internet not recorded yet: just write the consumption."
+
+#, python-format
+msgid "Le spese più grandi, rispetto al %(year)s"
+msgstr "The biggest expenses, compared with %(year)s"
 
 #, python-format
 msgid "Le sue %(count)s transazioni andranno in «Altro»."
@@ -4711,6 +4752,10 @@ msgstr "Jul"
 
 msgid "Lun"
 msgstr "Mon"
+
+#, python-format
+msgid "L’anno non è finito: i numeri arrivano fino a oggi, %(day)s."
+msgstr "The year is not over: the numbers go up to today, %(day)s."
 
 msgid "MM/DD/YYYY (US)"
 msgstr "MM/DD/YYYY (US)"
@@ -5235,6 +5280,9 @@ msgstr "No movements: add them below or from the transactions list."
 msgid "Nessun obiettivo ancora"
 msgstr "No goals yet"
 
+msgid "Nessun obiettivo né evento."
+msgstr "No goals or events."
+
 msgid "Nessun obiettivo."
 msgstr "No goals."
 
@@ -5371,6 +5419,9 @@ msgid ""
 msgstr ""
 "No recurring series. Flag a transaction as recurring (rent, Netflix, salary) or import a few months of transactions: "
 "regular series show up here by themselves."
+
+msgid "Nessuna spesa in questo anno."
+msgstr "No expenses this year."
 
 msgid "Nessuna spesa in questo periodo."
 msgstr "No spending in this period."
@@ -5759,6 +5810,9 @@ msgstr "Personal Goals"
 msgid "Obiettivi Suggeriti"
 msgstr "Suggested Goals"
 
+msgid "Obiettivi ed eventi"
+msgstr "Goals and events"
+
 msgid "Obiettivo"
 msgstr "Target"
 
@@ -5967,6 +6021,13 @@ msgstr "PAC “%(name)s”"
 msgid "PAC «%(name)s»: %(amount)s da investire"
 msgstr "PAC “%(name)s”: %(amount)s to invest"
 
+msgid "PDF"
+msgstr "PDF"
+
+#, python-format
+msgid "PDF di «%(group)s»"
+msgstr "PDF of «%(group)s»"
+
 msgid "PIR alternativo"
 msgstr "Alternative PIR"
 
@@ -6092,6 +6153,13 @@ msgstr "Net Worth"
 msgid "Patrimonio a %(age)s anni"
 msgstr "Wealth at %(age)s"
 
+#, python-format
+msgid "Patrimonio al 31/12/%(year)s"
+msgstr "Net worth on 31/12/%(year)s"
+
+msgid "Patrimonio alla fine"
+msgstr "Net worth at the end"
+
 msgid "Patrimonio investibile (€)"
 msgstr "Investable wealth (€)"
 
@@ -6110,6 +6178,9 @@ msgstr "Net worth by person"
 
 msgid "Patrimonio, spese, volatilità e prelievo non possono essere negativi."
 msgstr "Wealth, expenses, volatility and withdrawal cannot be negative."
+
+msgid "Patrimonio: inizio e fine"
+msgstr "Net worth: start and end"
 
 msgid "Peggiori"
 msgstr "Worst"
@@ -6961,6 +7032,9 @@ msgstr "Return on your money (XIRR)"
 msgid "Rendite"
 msgstr "Income"
 
+msgid "Rendite (dividendi, cedole, interessi)"
+msgstr "Investment income (dividends, coupons, interest)"
+
 msgid "Rendite 12 mesi"
 msgstr "Passive income, 12 months"
 
@@ -7207,6 +7281,9 @@ msgstr "Saved"
 
 msgid "Risparmio"
 msgstr "Savings"
+
+msgid "Risparmio (entrate meno uscite)"
+msgstr "Savings (income minus expenses)"
 
 msgid "Risparmio Netto"
 msgstr "Net Savings"
@@ -9533,6 +9610,10 @@ msgstr "movements"
 msgid "movimento"
 msgstr "movement"
 
+#, python-format
+msgid "nel %(year)s: %(amount)s"
+msgstr "in %(year)s: %(amount)s"
+
 msgid "nel file"
 msgstr "in the file"
 
@@ -9732,6 +9813,10 @@ msgid "risposta troppo grande"
 msgstr "answer too large"
 
 #, python-format
+msgid "ritenute subite %(amount)s"
+msgstr "withholding suffered %(amount)s"
+
+#, python-format
 msgid "saldo %(amount)s"
 msgstr "balance %(amount)s"
 
@@ -9788,6 +9873,10 @@ msgstr "sum of the active installments"
 msgid "sostituisce tutti i dati attuali"
 msgstr "replaces all current data"
 
+#, python-format
+msgid "spazio deducibile non usato: %(amount)s"
+msgstr "unused deductible room: %(amount)s"
+
 msgid "spese con tag «detraibile» fuori dalle voci"
 msgstr "expenses tagged «detraibile» outside the items"
 
@@ -9826,6 +9915,10 @@ msgstr "exceeded by %(amount)s"
 #, python-format
 msgid "tasso %(rate)s%%"
 msgstr "rate %(rate)s%%"
+
+#, python-format
+msgid "tasso di risparmio %(rate)s %%"
+msgstr "savings rate %(rate)s %%"
 
 msgid "testo"
 msgstr "text"

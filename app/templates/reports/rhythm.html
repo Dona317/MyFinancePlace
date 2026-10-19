@@ -9,7 +9,7 @@
 <div class="report-bar mb-16">
   {% set tab_items = namespace(list=[]) %}
   {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, url_for('reports.index', tab=key), label)] %}{% endfor %}
-  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo')), ('rhythm', url_for('reports.rhythm', year=year), _('Ritmo'))], 'rhythm', _('Tipo di report')) }}
+  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo')), ('rhythm', url_for('reports.rhythm', year=year), _('Ritmo')), ('year', url_for('reports.year_review'), _('Bilancio dell’anno'))], 'rhythm', _('Tipo di report')) }}
   <div class="report-controls">{% include "partials/year_select.html" %}</div>
 </div>
 

@@ -100,6 +100,7 @@
 .bi-dash-circle::before { content: "\f2e6"; }
 .bi-database::before { content: "\f8c4"; }
 .bi-diagram-2::before { content: "\f2ec"; }
+.bi-diagram-3::before { content: "\f2ee"; }
 .bi-display::before { content: "\f302"; }
 .bi-dot::before { content: "\f309"; }
 .bi-download::before { content: "\f30a"; }
@@ -135,6 +136,7 @@
 .bi-forward::before { content: "\f3dc"; }
 .bi-funnel::before { content: "\f3e1"; }
 .bi-gear::before { content: "\f3e5"; }
+.bi-github::before { content: "\f3ed"; }
 .bi-globe::before { content: "\f3ee"; }
 .bi-graph-down-arrow::before { content: "\f672"; }
 .bi-graph-up::before { content: "\f3f2"; }

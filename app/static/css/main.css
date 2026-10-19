@@ -1436,3 +1436,6 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .utility-candidate-head strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .utility-candidate-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; align-items: center; }
 .utility-read select { flex: 1; min-width: 0; }
+
+/* ── Bilancio dell'anno (F23) ────────────────────────────────────────────────────────────────────────────── */
+.review-grid > * { min-width: 0; }
