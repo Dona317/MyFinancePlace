@@ -48,6 +48,7 @@ SECTIONS = [
     Section("insurance", _l("Assicurazioni"), "shield-check", _l("Gestione"), ("insurance.",), "module_insurance"),
     Section("gigs", _l("Lavoretti"), "tools", _l("Gestione"), ("gigs.", "tax.gigs")),
     Section("loans", _l("Prestiti tra persone"), "arrow-left-right", _l("Gestione"), ("loans.",)),
+    Section("utilities", _l("Bollette"), "lightning-charge", _l("Gestione"), ("utilities.",)),
     Section("documents", _l("Documenti"), "folder2-open", _l("Gestione"), ("documents.",), "module_documents"),
     Section("tax", _l("Fisco"), "percent", _l("Gestione"), ("tax.",), "module_tax"),
     Section("deadlines", _l("Scadenzario"), "calendar-event", _l("Strumenti"), ("deadlines.",)),

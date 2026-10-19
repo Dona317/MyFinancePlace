@@ -31,11 +31,12 @@ def register_blueprints(app: Flask) -> None:
     from app.routes.subscriptions import subscriptions_bp
     from app.routes.tax import tax_bp
     from app.routes.transactions import transactions_bp
+    from app.routes.utilities import utilities_bp
 
     for blueprint in (auth_bp, dashboard_bp, accounting_bp, lifestyle_bp, transactions_bp, portfolio_bp, debt_bp,
                       documents_bp, snapshots_bp, export_bp, settings_bp, insurance_bp, forecast_bp, accounts_bp,
                       notifications_bp, reports_bp, subscriptions_bp, clients_bp, tax_bp, desktop_bp, health_bp, events_bp, assistant_bp,
-                      groups_bp, gigs_bp, loans_bp, deadlines_bp):
+                      groups_bp, gigs_bp, loans_bp, deadlines_bp, utilities_bp):
         app.register_blueprint(blueprint)
     app.cli.add_command(users_cli)
     app.cli.add_command(clients_cli)

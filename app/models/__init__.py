@@ -15,11 +15,12 @@ from .setting import AppSetting
 from .taxonomy import HoldingCategory, Taxonomy, TaxonomyCategory
 from .transaction import Transaction, TransactionSplit
 from .user import User
+from .utility import UtilityReading
 from .wealth import Debt, Document, Goal, Holding, HoldingPrice, InsurancePolicy, Snapshot
 
 __all__ = [
     "Account", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule",
     "ExchangeRate", "Budget", "User", "Client", "ClientGroup", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
-    "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan", "Reminder",
+    "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan", "Reminder", "UtilityReading",
 ]

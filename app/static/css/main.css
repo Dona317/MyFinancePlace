@@ -1426,3 +1426,13 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
   .deadline-cell { min-height: 0; border-right: 0; border-top: 1px solid var(--clr-border); padding: 8px 12px; }
   .deadline-weekday { display: inline; }
 }
+
+/* ── Bollette (F23) ──────────────────────────────────────────────────────────────────────────────────────── */
+.utilities-grid > * { min-width: 0; }
+.offer-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
+.utility-candidates { list-style: none; margin: 0; padding: 0; }
+.utility-candidates li { padding: 12px 20px; border-top: 1px solid var(--clr-border-light); }
+.utility-candidate-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; font-size: var(--font-size-sm); margin-bottom: 8px; }
+.utility-candidate-head strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.utility-candidate-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; align-items: center; }
+.utility-read select { flex: 1; min-width: 0; }

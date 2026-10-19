@@ -5,6 +5,7 @@
   font-variant: normal; text-transform: none; line-height: 1; vertical-align: -.125em;
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
+.bi-123::before { content: "\f67f"; }
 .bi-airplane::before { content: "\f7cd"; }
 .bi-align-center::before { content: "\f104"; }
 .bi-alt::before { content: "\f109"; }
@@ -46,6 +47,7 @@
 .bi-briefcase::before { content: "\f1cc"; }
 .bi-bucket::before { content: "\f1da"; }
 .bi-building-check::before { content: "\f868"; }
+.bi-calculator::before { content: "\f1e0"; }
 .bi-calendar::before { content: "\f1f6"; }
 .bi-calendar-check::before { content: "\f1e2"; }
 .bi-calendar-event::before { content: "\f1e8"; }
@@ -83,6 +85,7 @@
 .bi-cloud-upload::before { content: "\f2c0"; }
 .bi-code::before { content: "\f2c8"; }
 .bi-coin::before { content: "\f634"; }
+.bi-collection::before { content: "\f2cc"; }
 .bi-columns::before { content: "\f2ce"; }
 .bi-command::before { content: "\f2cf"; }
 .bi-cookie::before { content: "\f6ee"; }
@@ -99,11 +102,14 @@
 .bi-display::before { content: "\f302"; }
 .bi-dot::before { content: "\f309"; }
 .bi-download::before { content: "\f30a"; }
+.bi-droplet::before { content: "\f30d"; }
 .bi-ear::before { content: "\f689"; }
 .bi-escape::before { content: "\f7ee"; }
 .bi-exclamation-circle::before { content: "\f333"; }
 .bi-exclamation-triangle::before { content: "\f33b"; }
+.bi-exclude::before { content: "\f33d"; }
 .bi-explicit::before { content: "\f69c"; }
+.bi-exposure::before { content: "\f8ec"; }
 .bi-eye::before { content: "\f341"; }
 .bi-eye-slash::before { content: "\f340"; }
 .bi-file::before { content: "\f3c0"; }
@@ -120,6 +126,7 @@
 .bi-filetype-json::before { content: "\f791"; }
 .bi-filter::before { content: "\f3ca"; }
 .bi-fingerprint::before { content: "\f671"; }
+.bi-fire::before { content: "\f7f6"; }
 .bi-flag::before { content: "\f3cc"; }
 .bi-folder::before { content: "\f3d7"; }
 .bi-folder2-open::before { content: "\f3d8"; }
@@ -136,6 +143,7 @@
 .bi-grid-3x3-gap::before { content: "\f3f9"; }
 .bi-grip-vertical::before { content: "\f3fe"; }
 .bi-hash::before { content: "\f40a"; }
+.bi-highlights::before { content: "\f8ee"; }
 .bi-hourglass-split::before { content: "\f41f"; }
 .bi-house::before { content: "\f425"; }
 .bi-house-heart::before { content: "\f776"; }
@@ -151,6 +159,7 @@
 .bi-layout-sidebar::before { content: "\f45f"; }
 .bi-layout-text-window::before { content: "\f464"; }
 .bi-lightbulb::before { content: "\f46b"; }
+.bi-lightning-charge::before { content: "\f46d"; }
 .bi-line::before { content: "\f660"; }
 .bi-link::before { content: "\f471"; }
 .bi-list::before { content: "\f479"; }
@@ -169,6 +178,8 @@
 .bi-paperclip::before { content: "\f4b3"; }
 .bi-paragraph::before { content: "\f4b4"; }
 .bi-pass::before { content: "\f809"; }
+.bi-passport::before { content: "\f8f5"; }
+.bi-pause::before { content: "\f4c4"; }
 .bi-pen::before { content: "\f4c8"; }
 .bi-pencil::before { content: "\f4cb"; }
 .bi-people::before { content: "\f4d0"; }
@@ -186,13 +197,16 @@
 .bi-plus::before { content: "\f4fe"; }
 .bi-plus-circle::before { content: "\f4fa"; }
 .bi-plus-lg::before { content: "\f64d"; }
+.bi-power::before { content: "\f4ff"; }
 .bi-printer::before { content: "\f501"; }
+.bi-question::before { content: "\f50c"; }
 .bi-question-circle::before { content: "\f505"; }
 .bi-question-diamond::before { content: "\f507"; }
 .bi-quote::before { content: "\f6b0"; }
 .bi-receipt::before { content: "\f50f"; }
 .bi-record::before { content: "\f51a"; }
 .bi-record-circle-fill::before { content: "\f517"; }
+.bi-recycle::before { content: "\f64f"; }
 .bi-repeat::before { content: "\f813"; }
 .bi-reply::before { content: "\f520"; }
 .bi-safe::before { content: "\f65a"; }
@@ -221,6 +235,7 @@
 .bi-tags::before { content: "\f5b2"; }
 .bi-terminal::before { content: "\f5c3"; }
 .bi-text-center::before { content: "\f5c4"; }
+.bi-text-left::before { content: "\f5c7"; }
 .bi-text-right::before { content: "\f5c9"; }
 .bi-textarea::before { content: "\f5cc"; }
 .bi-threads::before { content: "\f8d9"; }
@@ -237,7 +252,11 @@
 .bi-upload::before { content: "\f603"; }
 .bi-wallet::before { content: "\f614"; }
 .bi-wallet2::before { content: "\f615"; }
+.bi-watch::before { content: "\f616"; }
+.bi-water::before { content: "\f617"; }
+.bi-wifi::before { content: "\f61c"; }
 .bi-window::before { content: "\f620"; }
+.bi-windows::before { content: "\f65e"; }
 .bi-x::before { content: "\f62a"; }
 .bi-x-circle::before { content: "\f623"; }
 .bi-x-lg::before { content: "\f659"; }

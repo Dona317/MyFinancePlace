@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-19 12:05+0000\n"
+"POT-Creation-Date: 2026-10-19 12:12+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -76,6 +76,14 @@ msgstr "%(amount)s a month to get there on time, at %(rate)s %% a year"
 #, python-format
 msgid "%(amount)s il %(day)s"
 msgstr "%(amount)s on %(day)s"
+
+#, python-format
+msgid "%(amount)s in meno"
+msgstr "%(amount)s less"
+
+#, python-format
+msgid "%(amount)s in più"
+msgstr "%(amount)s more"
 
 #, python-format
 msgid "%(amount)s pagati quest'anno"
@@ -745,6 +753,9 @@ msgstr "Account and users"
 msgid "Accumulato"
 msgstr "Accumulated"
 
+msgid "Acqua"
+msgstr "Water"
+
 msgid "Acquisti (−) e vendite (+) di investimenti"
 msgstr "Purchases (−) and sales (+) of investments"
 
@@ -909,6 +920,12 @@ msgstr "At most %(count)s holders."
 
 msgid "Al mese"
 msgstr "A month"
+
+msgid "Al mese (€)"
+msgstr "Per month (€)"
+
+msgid "Al mese, in media"
+msgstr "Per month, on average"
 
 #, python-format
 msgid "Al modello vanno solo le intestazioni e le prime %(count)s righe"
@@ -1221,6 +1238,9 @@ msgstr ""
 "Automatic: Yahoo Finance (and Stooq when Yahoo does not answer) for shares, ETFs, funds, bonds and derivatives; "
 "CoinGecko for crypto. «By hand only» for unlisted securities, policies, deposit accounts."
 
+msgid "Autunno"
+msgstr "Autumn"
+
 msgid "Avvia all'accensione del computer"
 msgstr "Start with the computer"
 
@@ -1364,6 +1384,22 @@ msgstr "Welcome! Your administrator account is ready."
 
 msgid "Bloccata da un amministratore"
 msgstr "Blocked by an administrator"
+
+msgid "Bolletta aggiornata."
+msgstr "Bill updated."
+
+msgid "Bolletta eliminata."
+msgstr "Bill deleted."
+
+msgid "Bolletta registrata."
+msgstr "Bill recorded."
+
+msgid "Bollette"
+msgstr "Utility bills"
+
+#, python-format
+msgid "Bollette di %(utility)s"
+msgstr "%(utility)s bills"
 
 msgid "Bollo auto, revisione, tagliando, rinnovi: quello che l’app non può sapere da sola."
 msgstr "Car tax, MOT, service, renewals: what the app cannot know by itself."
@@ -1519,6 +1555,9 @@ msgstr ""
 
 msgid "Carica il file"
 msgstr "Upload the file"
+
+msgid "Carica prima la bolletta in Documenti."
+msgstr "Upload the bill to Documents first."
 
 msgid "Carica un file"
 msgstr "Upload a file"
@@ -1944,6 +1983,9 @@ msgstr ""
 "With a local model and no graphics card it can take about a minute per page. The page refreshes by itself and at the "
 "end shows the movements to check."
 
+msgid "Con un’altra offerta"
+msgstr "With another offer"
+
 msgid "Condizioni particolari, franchigie, esclusioni..."
 msgstr "Special conditions, deductibles, exclusions..."
 
@@ -2007,6 +2049,15 @@ msgstr "Consolidated view of the group “%(name)s”"
 #, python-format
 msgid "Consolidato: %(name)s"
 msgstr "Consolidated: %(name)s"
+
+msgid "Consumo"
+msgstr "Consumption"
+
+msgid "Consumo (kWh, Smc o m³)"
+msgstr "Consumption (kWh, Smc or m³)"
+
+msgid "Consumo per stagione"
+msgstr "Consumption by season"
 
 msgid "Conta"
 msgstr "Counts"
@@ -2202,8 +2253,15 @@ msgstr "What happened"
 msgid "Costo"
 msgstr "Cost"
 
+msgid "Costo al mese per bolletta"
+msgstr "Monthly cost per bill"
+
 msgid "Costo medio"
 msgstr "Average cost"
+
+#, python-format
+msgid "Costo per %(unit)s"
+msgstr "Cost per %(unit)s"
 
 msgid "Crea"
 msgstr "Create"
@@ -2330,6 +2388,9 @@ msgstr "From a spreadsheet or the broker's CSV: one line per date, separated by 
 msgid "Dai mercati"
 msgstr "From the markets"
 
+msgid "Dai movimenti"
+msgstr "From the movements"
+
 msgid "Dai risparmi"
 msgstr "From savings"
 
@@ -2407,6 +2468,9 @@ msgstr "Target date"
 
 msgid "Dati da internet"
 msgstr "Data from the internet"
+
+msgid "Dati letti dalla bolletta: controllali e salva."
+msgstr "Data read from the bill: check it and save."
 
 msgid "Debiti"
 msgstr "Debts"
@@ -2731,6 +2795,9 @@ msgstr "Delete the snapshot of %(date)s?"
 msgid "Eliminare l'obiettivo «%(name)s»?"
 msgstr "Delete the goal “%(name)s”?"
 
+msgid "Eliminare la bolletta?"
+msgstr "Delete the bill?"
+
 #, python-format
 msgid "Eliminare la classificazione «%(name)s»? I titoli restano."
 msgstr "Delete the classification “%(name)s”? The holdings stay."
@@ -2965,6 +3032,9 @@ msgstr "Tax Export by Year"
 
 msgid "Espressione regolare non valida."
 msgstr "Invalid regular expression."
+
+msgid "Estate"
+msgstr "Summer"
 
 msgid "Estratto conto"
 msgstr "Bank statement"
@@ -3229,6 +3299,9 @@ msgstr "Number format"
 msgid "Formato: JSON, HTML o CSV."
 msgstr "Format: JSON, HTML or CSV."
 
+msgid "Fornitore"
+msgstr "Supplier"
+
 msgid "Fotografie della situazione finanziaria nel tempo"
 msgstr "Pictures of your financial situation over time"
 
@@ -3275,6 +3348,9 @@ msgstr "Warranty ending: %(what)s"
 
 msgid "Garanzie attive"
 msgstr "Active warranties"
+
+msgid "Gas"
+msgstr "Gas"
 
 msgid "Gen"
 msgstr "Jan"
@@ -3556,6 +3632,9 @@ msgstr "The budget cannot be negative."
 msgid "Il compenso lordo deve essere positivo."
 msgstr "The gross fee must be positive."
 
+msgid "Il consumo non può essere negativo."
+msgstr "Consumption cannot be negative."
+
 #, python-format
 msgid "Il database ha rifiutato il backup: %(value)s"
 msgstr "The database rejected the backup: %(value)s"
@@ -3662,6 +3741,9 @@ msgstr "The local model took too long: try again or split the work."
 msgid "Il modello non ha dato una risposta leggibile: riprova."
 msgstr "The model did not give a readable answer: try again."
 
+msgid "Il modello non ha letto la bolletta: scrivi i dati a mano."
+msgstr "The model could not read the bill: enter the data by hand."
+
 msgid "Il modello non ha restituito dati leggibili: riprova o usa un file di qualità migliore."
 msgstr "The model returned no readable data: try again or use a better quality file."
 
@@ -3688,6 +3770,9 @@ msgstr "Each month's net (below zero when negative) and the year's three bars"
 
 msgid "Il patrimonio negli anni"
 msgstr "Wealth over the years"
+
+msgid "Il periodo finisce prima di cominciare."
+msgstr "The period ends before it starts."
 
 msgid "Il piano ha bisogno di un portafoglio modello: creane uno o rendine uno attivo."
 msgstr "The plan needs a model portfolio: create one or make one active."
@@ -3905,9 +3990,16 @@ msgstr "Settings reset to the defaults."
 msgid "Impostazioni salvate con successo."
 msgstr "Settings saved successfully."
 
+msgid "Imposte e oneri cambiano poco tra le offerte: confronta prezzi con la stessa voce (tutto compreso o solo energia)."
+msgstr "Taxes and charges vary little between offers: compare prices of the same kind (all-inclusive or energy only)."
+
 #, python-format
 msgid "In %(count)s vendite le quote vendute sono più di quelle registrate: controlla gli acquisti."
 msgstr "In %(count)s sales more units were sold than recorded: check the purchases."
+
+#, python-format
+msgid "In %(months)s mesi hai pagato %(actual)s; con l’altra offerta avresti pagato %(other)s:"
+msgstr "In %(months)s months you paid %(actual)s; with the other offer you would have paid %(other)s:"
 
 msgid "In attesa di avvio…"
 msgstr "Waiting to start…"
@@ -4043,6 +4135,9 @@ msgstr "Interest Still to Pay"
 msgid "Interessi del mutuo prima casa"
 msgstr "Interest on the main-home mortgage"
 
+msgid "Internet e telefono"
+msgstr "Internet and phone"
+
 msgid "Intervallo tra i metodi"
 msgstr "Range across methods"
 
@@ -4055,6 +4150,9 @@ msgstr "Owner"
 #, python-format
 msgid "Intestazione dei movimenti non trovata: servono almeno le colonne %(expected)s."
 msgstr "Movements header not found: at least these columns are needed: %(expected)s."
+
+msgid "Inverno"
+msgstr "Winter"
 
 msgid "Investi ora"
 msgstr "Invest now"
@@ -4230,6 +4328,12 @@ msgstr "The OCR reading looks incomplete."
 msgid "La lettura con intelligenza artificiale non è attiva (LLM_PROVIDER)."
 msgstr "Reading with artificial intelligence is not active (LLM_PROVIDER)."
 
+msgid "La lettura con intelligenza artificiale non è attiva: scrivi i dati a mano."
+msgstr "AI reading is not active: enter the data by hand."
+
+msgid "La lettura con l’AI è spenta (Impostazioni → Modelli AI): scrivi i dati a mano."
+msgstr "AI reading is off (Settings → AI models): enter the data by hand."
+
 msgid "La lettura si è interrotta prima di finire (l'applicazione è stata riavviata)."
 msgstr "The reading stopped before finishing (the application was restarted)."
 
@@ -4312,6 +4416,13 @@ msgstr "Job “%(job)s” recorded."
 msgid "Le 300 transazioni più recenti: cambia l'anno fiscale e salva per vederne altre."
 msgstr "The 300 most recent transactions: change the tax year and save to see others."
 
+msgid ""
+"Le bollette con il periodo e il consumo: quanto paghi al mese e per unità, come cambia con le stagioni e quanto "
+"avresti speso con un’altra offerta."
+msgstr ""
+"Bills with their period and consumption: what you pay per month and per unit, how it changes with the seasons and "
+"what you would have spent with another offer."
+
 msgid "Le causali dei movimenti verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?"
 msgstr "The descriptions of the movements will be sent to Anthropic (cloud) for classification. Continue?"
 
@@ -4374,6 +4485,9 @@ msgstr ""
 msgid "Le spese delle categorie collegate a ogni voce, con franchigia e massimale"
 msgstr "The expenses of the categories linked to each item, with threshold and ceiling"
 
+msgid "Le spese in Bollette › Luce, Gas, Acqua e Internet non ancora registrate: scrivi solo il consumo."
+msgstr "Expenses in Bills › Power, Gas, Water and Internet not recorded yet: just write the consumption."
+
 #, python-format
 msgid "Le sue %(count)s transazioni andranno in «Altro»."
 msgstr "Its %(count)s transactions will move to «Other»."
@@ -4417,6 +4531,12 @@ msgstr "Reads the merchant's name from the bank causale and adds it as the first
 
 msgid "Leggere il file con l'intelligenza artificiale?"
 msgstr "Read the file with artificial intelligence?"
+
+msgid "Leggi"
+msgstr "Read"
+
+msgid "Leggi una bolletta"
+msgstr "Read a bill"
 
 msgid "Lettura AI"
 msgstr "AI reading"
@@ -4509,6 +4629,9 @@ msgstr "Gross"
 #, python-format
 msgid "Lordo %(year)s"
 msgstr "Gross %(year)s"
+
+msgid "Luce"
+msgstr "Power"
 
 msgid "Lug"
 msgstr "Jul"
@@ -4759,6 +4882,9 @@ msgstr "Change undone."
 
 msgid "Modifica e collega"
 msgstr "Edit and link"
+
+msgid "Modifica la bolletta"
+msgstr "Edit the bill"
 
 msgid "Modifica modello"
 msgstr "Edit model"
@@ -5011,6 +5137,9 @@ msgstr ""
 "No movements to link: they must be in the Investments category, or name the holding's ISIN, ticker or name in the "
 "description."
 
+msgid "Nessun movimento da registrare."
+msgstr "No movements to record."
+
 msgid "Nessun movimento su questo conto. Assegnalo alle transazioni o scegli il conto quando importi un estratto."
 msgstr "No movements on this account. Assign it to transactions or choose the account when you import a statement."
 
@@ -5058,6 +5187,9 @@ msgstr "No suggestions"
 
 msgid "Nessun tetto: aggiungi qui sotto il fondo pensione o un PIR."
 msgstr "No limits: add the pension fund or a PIR below."
+
+msgid "Nessuna bolletta: registrane una qui sotto, o parti da un movimento della categoria Bollette."
+msgstr "No bills: record one below, or start from a movement in the Bills category."
 
 msgid "Nessuna categoria prevista."
 msgstr "No category forecast."
@@ -5389,6 +5521,9 @@ msgstr "New Insurance Policy"
 msgid "Nuova Transazione"
 msgstr "New Transaction"
 
+msgid "Nuova bolletta"
+msgstr "New bill"
+
 msgid "Nuova categoria"
 msgstr "New category"
 
@@ -5583,6 +5718,9 @@ msgstr "Today (current data)"
 
 msgid "Ogni anno"
 msgstr "Every year"
+
+msgid "Ogni bolletta divisa giorno per giorno sui mesi che copre."
+msgstr "Each bill spread day by day over the months it covers."
 
 msgid "Ogni campo è modificabile. Deseleziona le righe da escludere, eliminale con"
 msgstr "Every field can be edited. Untick the rows to leave out, delete them with"
@@ -6339,6 +6477,9 @@ msgstr "First IMU instalment on homes other than the main residence"
 msgid "Prima: %(amount)s"
 msgstr "Before: %(amount)s"
 
+msgid "Primavera"
+msgstr "Spring"
+
 msgid "Primo avvio"
 msgstr "First start"
 
@@ -6502,6 +6643,9 @@ msgstr "Share"
 
 msgid "Quota di ognuno (€, facoltativa)"
 msgstr "Each one's share (€, optional)"
+
+msgid "Quota fissa al mese (€)"
+msgstr "Fixed fee per month (€)"
 
 #, python-format
 msgid "Quota in obbligazioni (%%)"
@@ -6830,6 +6974,9 @@ msgstr "Summary"
 #, python-format
 msgid "Riepilogo %(year)s"
 msgstr "Summary %(year)s"
+
+msgid "Rifiuti (TARI)"
+msgstr "Waste (TARI)"
 
 #, python-format
 msgid "Riga %(line)s: data non riconosciuta («%(value)s»)"
@@ -7209,6 +7356,9 @@ msgstr "Choose the broker file to import."
 msgid "Scegli il file di backup da ripristinare."
 msgstr "Choose the backup file to restore."
 
+msgid "Scegli l'utenza."
+msgstr "Choose the utility."
+
 msgid ""
 "Scegli le sezioni da vedere nel tuo menu: le altre spariscono solo per te, i dati restano e le riattivi qui quando "
 "vuoi. Dashboard e Impostazioni ci sono sempre."
@@ -7265,6 +7415,12 @@ msgstr "Write the name of the limit."
 msgid "Scrivi il nome della persona."
 msgstr "Write the person's name."
 
+msgid "Scrivi il periodo della bolletta (dal, al)."
+msgstr "Write the period of the bill (from, to)."
+
+msgid "Scrivi il prezzo per unità (e la quota fissa al mese) dell'altra offerta."
+msgstr "Write the price per unit (and the monthly fixed fee) of the other offer."
+
 msgid "Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna"
 msgstr "Enter the balance the bank shows at a date: the app tells you whether it matches"
 
@@ -7276,6 +7432,14 @@ msgstr "Write the date."
 
 msgid "Scrivi per chi e che lavoro."
 msgstr "Write for whom and what job."
+
+#, python-format
+msgid ""
+"Scrivi prezzo per %(unit)s e quota fissa al mese dell’offerta (dalla scheda sintetica): ecco quanto avresti pagato "
+"negli ultimi 12 mesi con i tuoi consumi."
+msgstr ""
+"Write the offer's price per %(unit)s and monthly fixed fee (from its summary sheet): here is what you would have paid"
+" in the last 12 months with your consumption."
 
 msgid "Scrivi quanti contanti hai (zero o più)."
 msgstr "Write how much cash you have (zero or more)."
@@ -7385,6 +7549,9 @@ msgstr "At least two prices are needed for the chart: add them below."
 msgid "Servono almeno un mese di storia e i prezzi dei titoli: registra le operazioni o aggiorna i prezzi da internet."
 msgstr "At least a month of history and the holdings' prices are needed: record the operations or update the prices online."
 
+msgid "Servono bollette con il consumo negli ultimi 12 mesi."
+msgstr "Bills with consumption in the last 12 months are needed."
+
 msgid "Servono dei movimenti per fare una previsione"
 msgstr "Some movements are needed to make a forecast"
 
@@ -7436,6 +7603,9 @@ msgstr "They are checked at every price update; when one trips a reminder appear
 
 msgid "Si divide solo una spesa."
 msgstr "Only an expense can be shared."
+
+msgid "Si leggono solo bollette in PDF o in foto."
+msgstr "Only bills as PDF or photo can be read."
 
 msgid "Si ripete"
 msgstr "Repeats"
@@ -7599,6 +7769,9 @@ msgstr "Income stability"
 
 msgid "Stagionale"
 msgstr "Seasonal"
+
+msgid "Stagione"
+msgstr "Season"
 
 #, python-format
 msgid "Stai lavorando su «%(name)s»: clicca per cambiare cliente"
@@ -8178,6 +8351,9 @@ msgstr "It all adds up: the wallet holds what the app says."
 msgid "Tutto vale allo stesso modo per le"
 msgstr "The same applies to"
 
+msgid "Ultima bolletta"
+msgstr "Last bill"
+
 #, python-format
 msgid "Ultima conta: %(day)s, %(amount)s."
 msgstr "Last count: %(day)s, %(amount)s."
@@ -8305,6 +8481,13 @@ msgstr ""
 "A snapshot captures today's cash, investments and debts. Take one a month to follow how your wealth changes and "
 "compare two moments."
 
+msgid ""
+"Una bolletta in PDF o in foto caricata in Documenti: il modello AI propone periodo, consumo e importo, che controlli "
+"prima di salvare."
+msgstr ""
+"A bill as PDF or photo uploaded to Documents: the AI model suggests period, consumption and amount, which you check "
+"before saving."
+
 msgid "Una categoria conta per una sola voce; le sue sottocategorie la seguono"
 msgstr "A category counts for one item only; its subcategories follow it"
 
@@ -8422,6 +8605,12 @@ msgstr "User “%(name)s” deleted."
 
 msgid "Utenti"
 msgstr "Users"
+
+msgid "Utenza"
+msgstr "Utility"
+
+msgid "Utenze"
+msgstr "Utilities"
 
 msgid "Utilities"
 msgstr "Utilities"
@@ -8680,6 +8869,9 @@ msgstr "equities 15–18, balanced 8–10"
 msgid "azioni, ETF, fondi e derivati di molte borse: ricerca, prezzo e storico"
 msgstr "shares, ETFs, funds and derivatives of many exchanges: search, price and history"
 
+msgid "bolletta"
+msgstr "bill"
+
 #, python-format
 msgid "budget del mese + %(amount)s riportati"
 msgstr "month's budgets + %(amount)s rolled over"
@@ -8837,6 +9029,10 @@ msgstr "and Money in / Credit column"
 msgid "e altri %(count)s"
 msgstr "and %(count)s more"
 
+#, python-format
+msgid "e costo per %(unit)s"
+msgstr "and cost per %(unit)s"
+
 msgid "entrate"
 msgstr "income"
 
@@ -8886,6 +9082,9 @@ msgstr "e.g. Pets"
 
 msgid "es. Azioni globali"
 msgstr "e.g. Global equities"
+
+msgid "es. Enel, A2A, Hera"
+msgstr "e.g. Enel, A2A, Hera"
 
 msgid "es. Esselunga, deducibile, vacanza"
 msgstr "e.g. Tesco, deductible, holiday"
@@ -8968,6 +9167,10 @@ msgstr "done"
 #, python-format
 msgid "fermo dal %(day)s"
 msgstr "unchanged since %(day)s"
+
+#, python-format
+msgid "fino al %(day)s"
+msgstr "until %(day)s"
 
 msgid "fino alla pensione"
 msgstr "until retirement"
@@ -9475,6 +9678,9 @@ msgstr "all"
 msgid "tutti confermati"
 msgstr "all confirmed"
 
+msgid "tutto compreso: energia, trasporto, imposte, quote fisse"
+msgstr "all-inclusive: energy, transport, taxes, fixed fees"
+
 msgid "tutto nella tolleranza"
 msgstr "all within the tolerance"
 
@@ -9521,6 +9727,9 @@ msgstr "vs %(year)s"
 
 msgid "vuoto = lo stesso"
 msgstr "empty = unchanged"
+
+msgid "vuoto per un canone fisso"
+msgstr "empty for a flat fee"
 
 msgid "vuoto: il nome del tetto pronto"
 msgstr "empty: the ready-made limit's name"
@@ -9759,6 +9968,14 @@ msgstr "— all —"
 
 msgid "— è una categoria principale —"
 msgstr "— it is a main category —"
+
+#, python-format
+msgid "€ per %(unit)s"
+msgstr "€ per %(unit)s"
+
+#, python-format
+msgid "€/%(unit)s"
+msgstr "€/%(unit)s"
 
 msgid "← Torna a Esporta"
 msgstr "← Back to Export"
