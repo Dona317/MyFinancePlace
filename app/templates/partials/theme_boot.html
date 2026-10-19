@@ -1,0 +1,4 @@
+{# Apply the theme before paint: the user's choice, else the operating system's preference #}
+<script>(function(){var t=null;try{t=localStorage.getItem('mfp-theme');}catch(e){}
+  if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);}());</script>

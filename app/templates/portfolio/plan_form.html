@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% import "partials/fields.html" as f %}
+{% block page_title %}{{ plan.name if plan else _("Nuovo piano d'accumulo") }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rules') }}">{{ _('Regole e PAC') }}</a></li><li>{{ _('PAC') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _("Piano d'accumulo (PAC)") }}</div>
+        <div class="card-header-sub">{{ _('Nel giorno scelto compare un promemoria: confermi gli acquisti, divisi come dice il portafoglio modello, ai prezzi del giorno.') }}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="POST" id="plan-form">
+        {{ f.text(values, 'name', _('Nome'), plan.name if plan else none, required=true, placeholder=_('es. PAC mensile')) }}
+        <div class="grid-2">
+          {{ f.number(values, 'amount', _('Importo per rata (€)'), plan.amount if plan else none, required=true, placeholder='300') }}
+          {{ f.select(values, 'frequency', _('Frequenza'), frequencies.items()|list, plan.frequency if plan else 'monthly') }}
+        </div>
+        <div class="grid-2">
+          {{ f.number(values, 'day', _('Giorno del mese'), plan.day if plan else 1, placeholder='1') }}
+          <div class="form-group">
+            <label class="form-label" for="f-account_id">{{ _('Conto del broker') }}</label>
+            {% set chosen = values.account_id if 'account_id' in values else (plan.account_id if plan else '') %}
+            <select id="f-account_id" name="account_id" class="form-select">
+              <option value="">{{ _('— nessun conto —') }}</option>
+              {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id|string == chosen|string }}>{{ a.name }}</option>{% endfor %}
+            </select>
+            <div class="form-hint">{{ _('Le commissioni si calcolano con la regola del conto.') }}</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-template_id">{{ _('Portafoglio modello') }}</label>
+          {% set chosen_t = values.template_id if 'template_id' in values else (plan.template_id if plan else '') %}
+          <select id="f-template_id" name="template_id" class="form-select">
+            <option value="">{{ _('— quello attivo —') }}</option>
+            {% for t in templates %}<option value="{{ t.id }}" {{ 'selected' if t.id|string == chosen_t|string }}>{{ t.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="grid-2">
+          {{ f.date(values, 'start', _('Inizio'), plan.start if plan else today, required=true) }}
+          {{ f.date(values, 'end', _('Fine (facoltativa)'), plan.end if plan else none) }}
+        </div>
+        {% set frac = (values.get('fractional') if values else (plan.fractional if plan else true)) %}
+        <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="fractional" value="1" class="check" {{ "checked" if frac }} />
+          {{ _('Quote frazionarie (il broker le permette)') }}</label>
+        {{ f.actions(url_for('portfolio.rules'), _('Salva piano')) }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

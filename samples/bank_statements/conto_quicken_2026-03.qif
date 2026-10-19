@@ -1,0 +1,155 @@
+!Type:Bank
+D01/03/2026
+T-610.00
+PBonifico a IMMOBILIARE CASA BELLA SRL pe
+MBonifico SEPA
+LCasa:Affitto
+^
+D01/03/2026
+T-37.26
+PPAGAMENTO POS PIZZERIA NAPOLI
+MPagamento carta
+LSvago
+^
+D02/03/2026
+T-30.39
+PPAGAMENTO POS DELIVEROO ITALY
+MPagamento carta
+LSvago
+^
+D05/03/2026
+T-17.99
+PNETFLIX.COM AMSTERDAM
+MPagamento carta
+^
+D06/03/2026
+T-10.99
+PSPOTIFY AB STOCKHOLM
+MPagamento carta
+^
+D08/03/2026
+T-3.22
+PPAGAMENTO POS BAR CENTRALE
+MPagamento carta
+LSvago
+^
+D09/03/2026
+T-12.92
+PPAGAMENTO POS CINEMA ANTEO
+MPagamento carta
+LSvago
+^
+D10/03/2026
+T-61.78
+PPAGAMENTO POS ESSELUNGA MILANO
+MPagamento carta
+LAlimentari
+^
+D10/03/2026
+T-25.62
+PPAGAMENTO POS LIBRERIA FELTRINELLI
+MPagamento carta
+^
+D11/03/2026
+T-62.98
+PPAGAMENTO POS LIDL ITALIA
+MPagamento carta
+LAlimentari
+^
+D12/03/2026
+T-75.22
+PENEL ENERGIA SPA bolletta luce 03/2026
+MAddebito SDD
+LBollette
+^
+D14/03/2026
+T-59.21
+PA2A ENERGIA gas
+MAddebito SDD
+LBollette
+^
+D18/03/2026
+T-9.99
+PILIAD ITALIA SPA ricarica
+MAddebito SDD
+^
+D19/03/2026
+T-87.53
+PPAGAMENTO POS ESSELUNGA MILANO
+MPagamento carta
+LAlimentari
+^
+D20/03/2026
+T-200.00
+PGiroconto verso conto deposito
+MGiroconto
+^
+D22/03/2026
+T-36.10
+PPAGAMENTO POS RISTORANTE DA LUIGI
+MPagamento carta
+LSvago
+^
+D23/03/2026
+T-30.26
+PPAGAMENTO POS CONAD CITY
+MPagamento carta
+LAlimentari
+^
+D23/03/2026
+T-40.55
+PPAGAMENTO POS CARREFOUR EXPRESS
+MPagamento carta
+LAlimentari
+^
+D25/03/2026
+T-16.42
+PPAGAMENTO POS CINEMA ANTEO
+MPagamento carta
+LSvago
+^
+D26/03/2026
+T-38.62
+PPAGAMENTO POS PIZZERIA NAPOLI
+MPagamento carta
+LSvago
+^
+D27/03/2026
+T1,890.00
+PBonifico da ACME SPA per STIPENDIO 03/20
+MBonifico SEPA
+LStipendio
+^
+D27/03/2026
+T-44.47
+PPAGAMENTO POS Q8 VIA EMILIA
+MPagamento carta
+LTrasporto:Carburante
+^
+D27/03/2026
+T-39.80
+PPAGAMENTO POS LIDL ITALIA
+MPagamento carta
+LAlimentari
+^
+D28/03/2026
+T-1.64
+PCOMMISSIONI BONIFICO
+MCommissioni
+^
+D28/03/2026
+T-39.99
+PPAGAMENTO POS PIZZERIA NAPOLI
+MPagamento carta
+LSvago
+^
+D28/03/2026
+T-60.40
+PPAGAMENTO POS DECATHLON
+MPagamento carta
+^
+D31/03/2026
+T-300.00
+PGiroconto verso conto deposito
+L[Conto deposito]
+^

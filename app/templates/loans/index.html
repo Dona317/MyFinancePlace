@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('Prestiti tra persone') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Prestiti tra persone') }}</li>{% endblock %}
+
+{% block content %}
+<datalist id="loan-people">{% for p in people %}<option value="{{ p.name }}">{% endfor %}</datalist>
+<p class="text-sm text-muted mb-16">{{ _('Soldi prestati, anticipati per altri, presi in prestito, restituiti: il saldo di ogni persona. Nello stato patrimoniale quello che ti devono è un credito, quello che devi un debito.') }}</p>
+<div class="kpi-grid mb-16">
+  {{ kpi('arrow-down-circle', _('Ti devono'), value=totals.owed_to_me|money, cls='kpi-positive' if totals.owed_to_me else 'kpi-neutral') }}
+  {{ kpi('arrow-up-circle', _('Devi'), value=totals.i_owe|money, cls='kpi-negative' if totals.i_owe else 'kpi-neutral') }}
+</div>
+
+{% for p in people %}
+<details class="card mb-8" id="person-{{ loop.index }}" {{ 'open' if p.balance and loop.index <= 3 }}>
+  <summary class="card-body d-flex gap-8 align-center" style="cursor:pointer;">
+    <strong style="flex:1;">{{ p.name }}</strong>
+    {% if p.balance > 0 %}<span class="text-positive nowrap">{{ _('ti deve %(amount)s', amount=p.balance|money) }}</span>
+    {% elif p.balance < 0 %}<span class="text-negative nowrap">{{ _('gli devi %(amount)s', amount=(-p.balance)|money) }}</span>
+    {% else %}<span class="text-muted">{{ _('in pari') }}</span>{% endif %}
+    {% if p.due %}<span class="badge {{ 'badge-negative' if p.due <= today else 'badge-neutral' }}">{{ _('entro il %(day)s', day=p.due|it_date) }}</span>{% endif %}
+  </summary>
+  <div class="table-wrapper"><table class="table-compact">
+    <tbody>
+    {% for e in p.entries|reverse %}
+      <tr><td class="nowrap">{{ e.date|it_date }}</td><td>{{ e.description or '' }}{% if e.transaction %} <a class="text-xs" href="{{ url_for('transactions.edit', tx_id=e.transaction.id) }}">{{ _('movimento') }}</a>{% endif %}</td>
+        <td class="text-right nowrap {{ 'text-positive' if e.amount > 0 else 'text-negative' }}">{{ ('+' if e.amount > 0 else '') ~ e.amount|money }}</td>
+        <td class="text-right"><form method="POST" action="{{ url_for('loans.delete', entry_id=e.id) }}" data-confirm="{{ _('Eliminare la voce?') }}">
+          <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina') }}"><i class="bi bi-trash3"></i></button></form></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</details>
+{% else %}
+{{ empty_state(_('Nessun prestito: registra qui sotto chi ti deve soldi o a chi li devi.'), icon='bi-arrow-left-right') }}
+{% endfor %}
+
+<div class="grid-2 mt-16 loans-forms">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-plus-lg"></i> {{ _('Nuova voce') }}</div></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('loans.create') }}">
+        <div class="grid-2" style="gap:12px;">
+          <div class="form-group"><label class="form-label" for="l-person">{{ _('Persona') }}</label>
+            <input type="text" id="l-person" name="person" class="form-control" list="loan-people" required maxlength="80" /></div>
+          <div class="form-group"><label class="form-label" for="l-kind">{{ _('Cosa è successo') }}</label>
+            <select id="l-kind" name="kind" class="form-select">{% for key, (label, sign) in kinds.items() %}<option value="{{ key }}">{{ _(label) }}</option>{% endfor %}</select></div>
+          <div class="form-group"><label class="form-label" for="l-amount">{{ _('Importo (€)') }}</label>
+            <input type="text" inputmode="decimal" id="l-amount" name="amount" class="form-control" required /></div>
+          <div class="form-group"><label class="form-label" for="l-date">{{ _('Data') }}</label>
+            <input type="date" id="l-date" name="date" class="form-control" value="{{ today.isoformat() }}" /></div>
+          <div class="form-group"><label class="form-label" for="l-due">{{ _('Da restituire entro (facoltativo)') }}</label>
+            <input type="date" id="l-due" name="due" class="form-control" /></div>
+          <div class="form-group"><label class="form-label" for="l-description">{{ _('Per cosa') }}</label>
+            <input type="text" id="l-description" name="description" class="form-control" maxlength="200" /></div>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Registra') }}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title"><i class="bi bi-people"></i> {{ _('Dividi una spesa') }}</div>
+      <div class="card-header-sub">{{ _('Una spesa pagata anche per altri: la loro quota diventa un credito e va in «Anticipi per altri», fuori dalle analisi; nella sua categoria resta solo la tua parte.') }}</div>
+    </div></div>
+    <div class="card-body">
+      {% if expenses %}
+      <form method="POST" action="{{ url_for('loans.share') }}">
+        <div class="form-group"><label class="form-label" for="s-tx">{{ _('Spesa') }}</label>
+          <select id="s-tx" name="transaction_id" class="form-select">{% for tx in expenses %}<option value="{{ tx.id }}">{{ tx.date|it_date }} · {{ tx.description }} · {{ tx.magnitude|money }}</option>{% endfor %}</select></div>
+        <div class="grid-2" style="gap:12px;">
+          <div class="form-group"><label class="form-label" for="s-people">{{ _('Con chi (separati da virgole)') }}</label>
+            <input type="text" id="s-people" name="people" class="form-control" required placeholder="{{ _('es. Luca, Sara') }}" /></div>
+          <div class="form-group"><label class="form-label" for="s-each">{{ _('Quota di ognuno (€, facoltativa)') }}</label>
+            <input type="text" inputmode="decimal" id="s-each" name="each" class="form-control" placeholder="{{ _('vuoto: in parti uguali con te') }}" /></div>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-people"></i> {{ _('Dividi') }}</button>
+      </form>
+      {% else %}<p class="text-sm text-muted mb-0">{{ _('Nessuna spesa negli ultimi 60 giorni.') }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title"><i class="bi bi-arrow-down-circle"></i> {{ _('Soldi restituiti') }}</div>
+      <div class="card-header-sub">{{ _('Un’entrata da chi ti ridà i soldi: scala il suo debito e non conta come tua entrata.') }}</div>
+    </div></div>
+    <div class="card-body">
+      {% if incomes %}
+      <form method="POST" action="{{ url_for('loans.repaid') }}">
+        <div class="form-group"><label class="form-label" for="r-tx">{{ _('Entrata') }}</label>
+          <select id="r-tx" name="transaction_id" class="form-select">{% for tx in incomes %}<option value="{{ tx.id }}">{{ tx.date|it_date }} · {{ tx.description }} · {{ tx.magnitude|money }}</option>{% endfor %}</select></div>
+        <div class="form-group"><label class="form-label" for="r-person">{{ _('Da chi') }}</label>
+          <input type="text" id="r-person" name="person" class="form-control" list="loan-people" required /></div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Registra la restituzione') }}</button>
+      </form>
+      {% else %}<p class="text-sm text-muted mb-0">{{ _('Nessuna entrata negli ultimi 60 giorni.') }}</p>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% from "partials/tabs.html" import tab_bar %}
+{% from "partials/kpi.html" import kpi %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('Report') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('reports.index') }}">{{ _('Report') }}</a></li><li>{{ _('Bilancio dell’anno') }}</li>{% endblock %}
+
+{% macro pct(value) -%}
+{% if value is none %}—{% else %}{{ ('+' if value > 0 else '') ~ value|number(1) }} %{% endif %}
+{%- endmacro %}
+
+{% block content %}
+{% set d = data %}
+<div class="report-bar mb-16">
+  {% set tab_items = namespace(list=[]) %}
+  {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, url_for('reports.index', tab=key), label)] %}{% endfor %}
+  {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo')), ('rhythm', url_for('reports.rhythm', year=year), _('Ritmo')), ('year', url_for('reports.year_review', year=year), _('Bilancio dell’anno'))], 'year', _('Tipo di report')) }}
+  <div class="report-controls">
+    {% include "partials/year_select.html" %}
+    <a href="{{ url_for('reports.year_review_pdf', year=year) }}" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> {{ _('PDF') }}</a>
+    {% for g in groups %}<a href="{{ url_for('reports.year_review_group_pdf', group_id=g.id, year=year) }}" class="btn btn-ghost btn-sm"><i class="bi bi-file-earmark-pdf"></i> {{ _('PDF di «%(group)s»', group=g.name) }}</a>{% endfor %}
+  </div>
+</div>
+
+{% if not d.complete %}<p class="text-sm text-muted mb-16">{{ _('L’anno non è finito: i numeri arrivano fino a oggi, %(day)s.', day=d.until|it_date) }}</p>{% endif %}
+
+<div class="kpi-grid mb-16">
+  {{ kpi('bank', _('Patrimonio al 31/12/%(year)s', year=year - 1), value=d.net_worth.start|money) }}
+  {{ kpi('graph-up-arrow', _('Patrimonio alla fine'), value=d.net_worth.end|money, sub=(d.net_worth.change|money) ~ ' (' ~ pct(d.net_worth.pct) ~ ')', cls='kpi-positive' if d.net_worth.change >= 0 else 'kpi-negative') }}
+  {{ kpi('arrow-down-circle', _('Entrate'), value=d.summary.income|money, sub=_('%(change)s sul %(year)s', change=pct(d.changes.income), year=year - 1) if d.changes.income is not none else none) }}
+  {{ kpi('arrow-up-circle', _('Uscite'), value=d.summary.expenses|money, sub=_('%(change)s sul %(year)s', change=pct(d.changes.expenses), year=year - 1) if d.changes.expenses is not none else none) }}
+  {{ kpi('piggy-bank', _('Risparmio'), value=d.summary.net|money, sub=_('tasso di risparmio %(rate)s %%', rate=d.summary.savings_rate|number(1)) if d.summary.income and d.summary.savings_rate > -100 else none) }}
+</div>
+
+<div class="grid-2 mb-16 review-grid">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-diagram-3"></i> {{ _('Da dove viene la variazione') }}</div></div>
+    <div class="table-wrapper"><table class="table-compact"><tbody>
+      <tr><td>{{ _('Risparmio (entrate meno uscite)') }}</td><td class="text-right nowrap">{{ d.growth.savings|money }}</td></tr>
+      <tr><td>{{ _('Andamento dei mercati') }}</td><td class="text-right nowrap">{{ d.growth.markets|money }}</td></tr>
+      <tr><td>{{ _('Debiti rimborsati (quota capitale)') }}</td><td class="text-right nowrap">{{ d.growth.debt_repaid|money }}</td></tr>
+      <tr><td>{{ _('Nuovi beni') }}</td><td class="text-right nowrap">{{ d.growth.new_assets|money }}</td></tr>
+      <tr><td>{{ _('Altro (giroconti, rettifiche)') }}</td><td class="text-right nowrap">{{ d.growth.other|money }}</td></tr>
+      <tr class="font-semibold"><td>{{ _('Variazione') }}</td><td class="text-right nowrap">{{ d.growth.change|money }}</td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-bank"></i> {{ _('Patrimonio: inizio e fine') }}</div></div>
+    <div class="table-wrapper"><table class="table-compact">
+      <thead><tr><th></th><th class="text-right">31/12/{{ year - 1 }}</th><th class="text-right">{{ d.until|it_date }}</th></tr></thead>
+      <tbody>
+      {% for label, a, b in d.net_worth.lines %}<tr><td>{{ _(label) }}</td><td class="text-right nowrap">{{ a|money }}</td><td class="text-right nowrap">{{ b|money }}</td></tr>{% endfor %}
+      <tr><td>{{ _('Debiti') }}</td><td class="text-right nowrap">{{ (-d.net_worth.liabilities[0])|money }}</td><td class="text-right nowrap">{{ (-d.net_worth.liabilities[1])|money }}</td></tr>
+      <tr class="font-semibold"><td>{{ _('Patrimonio netto') }}</td><td class="text-right nowrap">{{ d.net_worth.start|money }}</td><td class="text-right nowrap">{{ d.net_worth.end|money }}</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="card mb-16">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-pie-chart"></i> {{ _('Le spese più grandi, rispetto al %(year)s', year=year - 1) }}</div></div>
+  {% if d.categories %}
+  <div class="table-wrapper"><table class="table-compact">
+    <thead><tr><th>{{ _('Categoria') }}</th><th class="text-right">{{ year }}</th><th class="text-right">{{ _('%% uscite') }}</th><th class="text-right">{{ year - 1 }}</th><th class="text-right">{{ _('Variazione') }}</th></tr></thead>
+    <tbody>
+    {% for c in d.categories %}
+      <tr><td>{{ c.category|tr }}</td><td class="text-right nowrap">{{ c.amount|money }}</td><td class="text-right">{{ c.share|number(1) }} %</td>
+        <td class="text-right nowrap">{{ c.before|money if c.before is not none else '—' }}</td>
+        <td class="text-right nowrap {{ 'text-negative' if c.change and c.change > 0 else 'text-positive' if c.change else '' }}">{{ pct(c.change) }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<div class="card-body">{{ empty_state(_('Nessuna spesa in questo anno.'), compact=true) }}</div>{% endif %}
+</div>
+
+<div class="grid-2 mb-16 review-grid">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-briefcase"></i> {{ _('Investimenti, debiti, fisco') }}</div></div>
+    <div class="table-wrapper"><table class="table-compact"><tbody>
+      <tr><td>{{ _('Rendite (dividendi, cedole, interessi)') }}<div class="text-xs text-muted">{{ _('nel %(year)s: %(amount)s', year=year - 1, amount=d.income.previous|money) }}</div></td><td class="text-right nowrap">{{ d.income.total|money }}</td></tr>
+      {% for row in d.income.holdings %}<tr><td class="text-xs text-muted">· {{ row.name }}</td><td class="text-right nowrap text-xs">{{ row.amount|money }}</td></tr>{% endfor %}
+      {% for debt in d.debts %}<tr><td>{{ _('%(name)s: rimborsati', name=debt.name) }}<div class="text-xs text-muted">{{ _('restano %(amount)s', amount=debt.after|money) }}</div></td><td class="text-right nowrap">{{ debt.repaid|money }}</td></tr>{% endfor %}
+      {% if d.gigs %}<tr><td>{{ _('Lavori occasionali: lordo') }}<div class="text-xs text-muted">{{ _('ritenute subite %(amount)s', amount=d.gigs.withheld|money) }}</div></td><td class="text-right nowrap">{{ d.gigs.gross|money }}</td></tr>{% endif %}
+      {% for s in d.limits %}<tr><td>{{ _('%(name)s: versato', name=s.name) }}{% if s.deductible and s.left %}<div class="text-xs text-muted">{{ _('spazio deducibile non usato: %(amount)s', amount=s.left|money) }}</div>{% endif %}</td><td class="text-right nowrap">{{ s.paid|money }}</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-trophy"></i> {{ _('Obiettivi ed eventi') }}</div></div>
+    {% if d.goals or d.events %}
+    <div class="table-wrapper"><table class="table-compact"><tbody>
+      {% for g in d.goals %}<tr><td>{{ g.name }}{% if g.completed %} <span class="badge badge-positive">{{ _('raggiunto') }}</span>{% endif %}</td><td class="text-right nowrap">{{ g.saved|money }} / {{ g.target|money }}</td></tr>{% endfor %}
+      {% for e in d.events %}<tr><td><i class="bi bi-airplane"></i> {{ e.name }}</td><td class="text-right nowrap">{{ e.spent|money }}{% if e.budget %} <span class="text-xs text-muted">/ {{ e.budget|money }}</span>{% endif %}</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<div class="card-body">{{ empty_state(_('Nessun obiettivo né evento.'), compact=true) }}</div>{% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('Gruppi e famiglia') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Gruppi e famiglia') }}</li>{% endblock %}
+
+{% macro member_choice(prefix, chosen) -%}
+<fieldset class="form-group">
+  <legend class="form-label">{{ _('Archivi del gruppo (almeno due)') }}</legend>
+  <div class="d-flex gap-8 flex-wrap">
+    {% for client in clients %}
+    <label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="members" value="{{ client.id }}" {{ 'checked' if client.id in chosen }} />
+      <span class="client-badge" style="background:{{ client.color }}">{{ client.initials }}</span> {{ client.name }}</label>
+    {% endfor %}
+  </div>
+</fieldset>
+{%- endmacro %}
+
+{% macro color_choice(current) -%}
+<div class="form-group">
+  <span class="form-label">{{ _('Colore') }}</span>
+  <div class="d-flex gap-8">
+    {% for color in colors %}
+    <label class="client-color"><input type="radio" name="color" value="{{ color }}" {{ 'checked' if color == current }} /><span style="background:{{ color }}"></span></label>
+    {% endfor %}
+  </div>
+</div>
+{%- endmacro %}
+
+{% block content %}
+<p class="text-sm text-muted mb-16">
+  {{ _('Un gruppo mette insieme gli archivi di più persone (la tua famiglia, i genitori…): ognuno tiene il suo archivio, il consolidato li somma in sola lettura. I soldi passati da un archivio all’altro del gruppo non contano due volte.') }}
+</p>
+
+{% if groups %}
+<div class="client-grid mb-24">
+  {% for group in groups %}
+  <div class="card client-card" id="group-{{ group.id }}">
+    <div class="card-body">
+      <div class="d-flex align-center gap-8 mb-8">
+        <span class="client-badge" style="background:{{ group.color }}"><i class="bi bi-house-heart"></i></span>
+        <div>
+          <div class="fw-600">{{ group.name }}</div>
+          <div class="text-xs text-muted">{{ group.members|map(attribute='name')|join(' · ') }}</div>
+        </div>
+      </div>
+      {% if group.notes %}<p class="text-sm text-muted mb-8">{{ group.notes }}</p>{% endif %}
+      <a class="btn btn-primary btn-sm" href="{{ url_for('groups.consolidated', group_id=group.id) }}"><i class="bi bi-bar-chart-line"></i> {{ _('Consolidato') }}</a>
+      <details class="mt-8">
+        <summary class="text-sm">{{ _('Modifica') }}</summary>
+        <form method="POST" action="{{ url_for('groups.edit', group_id=group.id) }}" class="mt-8">
+          <div class="form-group">
+            <label class="form-label" for="name-{{ group.id }}">{{ _('Nome') }}</label>
+            <input type="text" id="name-{{ group.id }}" name="name" class="form-control" value="{{ group.name }}" required maxlength="120" />
+          </div>
+          {{ member_choice('g' ~ group.id, group.members|map(attribute='id')|list) }}
+          {{ color_choice(group.color) }}
+          <div class="form-group">
+            <label class="form-label" for="notes-{{ group.id }}">{{ _('Note') }}</label>
+            <textarea id="notes-{{ group.id }}" name="notes" class="form-control" rows="2">{{ group.notes or '' }}</textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
+        </form>
+        <form method="POST" action="{{ url_for('groups.delete', group_id=group.id) }}" class="mt-8"
+              onsubmit='return confirm({{ _("Eliminare il gruppo «%(name)s»? Gli archivi e i loro dati restano.", name=group.name)|tojson }});'>
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina il gruppo') }}</button>
+        </form>
+      </details>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+{{ empty_state(_('Nessun gruppo: creane uno qui sotto con gli archivi delle persone della famiglia.'), icon='bi-house-heart') }}
+{% endif %}
+
+<div class="card mt-16">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-plus-lg"></i> {{ _('Nuovo gruppo') }}</div></div>
+  <div class="card-body">
+    {% if clients|length < 2 %}
+    <p class="text-sm text-muted">{{ _('Per un gruppo servono almeno due archivi: crea prima l’archivio di ogni persona in Clienti.') }}</p>
+    {% else %}
+    <form method="POST" action="{{ url_for('groups.create') }}">
+      <div class="grid-2" style="gap:16px;">
+        <div class="form-group">
+          <label class="form-label" for="new-name">{{ _('Nome del gruppo') }}</label>
+          <input type="text" id="new-name" name="name" class="form-control" required maxlength="120" placeholder="{{ _('es. Famiglia Rossi') }}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="new-notes">{{ _('Note') }}</label>
+          <input type="text" id="new-notes" name="notes" class="form-control" />
+        </div>
+      </div>
+      {{ member_choice('new', []) }}
+      {{ color_choice(colors[(groups|length) % (colors|length)]) }}
+      <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea il gruppo') }}</button>
+    </form>
+    {% endif %}
+    <p class="text-xs text-muted mt-8">{{ _('Per aggiungere una persona alla famiglia: crea il suo archivio in Clienti, il suo utente in Impostazioni → Account e utenti (con l’archivio di partenza) e metti l’archivio nel gruppo.') }}</p>
+  </div>
+</div>
+{% endblock %}

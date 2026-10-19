@@ -1,0 +1,27 @@
+{# The net worth by person (F20): needs `people` from services.family.by_person #}
+{% if people %}
+<div class="card mb-16">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Patrimonio per persona') }}</div>
+    <div class="card-header-sub">{{ _('I beni cointestati sono divisi in parti uguali tra i titolari; quelli senza intestatario restano alla famiglia.') }}</div>
+  </div></div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Persona') }}</th><th class="text-right">{{ _('Liquidità') }}</th><th class="text-right">{{ _('Investimenti') }}</th>
+        <th class="text-right">{{ _('Altri beni') }}</th><th class="text-right">{{ _('Debiti') }}</th><th class="text-right">{{ _('Patrimonio netto') }}</th></tr></thead>
+      <tbody>
+        {% for p in people %}
+        <tr>
+          <td>{{ p.label }}</td>
+          <td class="text-right nowrap">{{ p.cash|money }}</td>
+          <td class="text-right nowrap">{{ p.investments|money }}</td>
+          <td class="text-right nowrap">{{ p.other|money }}</td>
+          <td class="text-right nowrap">{{ p.debts|money }}</td>
+          <td class="text-right nowrap"><strong>{{ p.net|money }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}

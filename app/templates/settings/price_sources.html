@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('Fonti dei prezzi') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Fonti dei prezzi') }}</li>{% endblock %}
+
+{% macro custom_fields(prefix, s=none) -%}
+<div class="grid-2" style="gap:12px;">
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-name">{{ _('Nome') }}</label>
+    <input type="text" id="{{ prefix }}-name" name="name" class="form-control" maxlength="40" required value="{{ s.name if s else '' }}" placeholder="{{ _('es. Sito del mio fondo') }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-format">{{ _('Formato') }}</label>
+    <select id="{{ prefix }}-format" name="format" class="form-select">{% for f in formats %}<option value="{{ f }}" {{ 'selected' if s and s.format == f }}>{{ f|upper }}</option>{% endfor %}</select></div>
+</div>
+<div class="form-group"><label class="form-label" for="{{ prefix }}-url">{{ _('Indirizzo') }}</label>
+  <input type="url" id="{{ prefix }}-url" name="url" class="form-control" required value="{{ s.url if s else '' }}" placeholder="https://esempio.it/api/quote?isin={ISIN}" />
+  <div class="form-hint">{{ _('{ISIN} e {TICKER} diventano i codici del titolo, {DATA} la data di oggi (AAAA-MM-GG).') }}</div></div>
+<div class="grid-2" style="gap:12px;">
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-path">{{ _('Dove leggere il prezzo') }}</label>
+    <input type="text" id="{{ prefix }}-path" name="path" class="form-control" required value="{{ s.path if s else '' }}" placeholder="data.price" />
+    <div class="form-hint">{{ _('JSON: chiavi e posizioni separate da punti (data.quotes.0.nav). HTML: l’etichetta prima del prezzo, oppure «re:» e un’espressione regolare con il prezzo nel primo gruppo. CSV: nome o numero della colonna (si legge l’ultima riga).') }}</div></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-date">{{ _('Dove leggere la data (solo JSON, facoltativo)') }}</label>
+    <input type="text" id="{{ prefix }}-date" name="date_path" class="form-control" value="{{ s.date_path if s else '' }}" placeholder="data.date" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-currency">{{ _('Valuta') }}</label>
+    <input type="text" id="{{ prefix }}-currency" name="currency" class="form-control" maxlength="3" value="{{ s.currency if s else 'EUR' }}" /></div>
+  <label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="divide_100" {{ 'checked' if s and s.divide_100 }} /> {{ _('Prezzo in %% del nominale (obbligazioni): dividi per 100') }}</label>
+</div>
+<div class="d-flex gap-8 flex-wrap align-center mt-8">
+  <input type="text" name="test_isin" class="form-control" style="max-width:170px;" placeholder="ISIN" aria-label="{{ _('ISIN per la prova') }}" />
+  <input type="text" name="test_ticker" class="form-control" style="max-width:130px;" placeholder="Ticker" aria-label="{{ _('Ticker per la prova') }}" />
+  <button type="submit" name="test" value="1" class="btn btn-outline btn-sm" formnovalidate><i class="bi bi-play"></i> {{ _('Prova') }}</button>
+  <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva la fonte') }}</button>
+</div>
+{%- endmacro %}
+
+{% block content %}
+{% if not online %}
+<div class="alert alert-warning mb-16" style="display:block;">
+  <i class="bi bi-exclamation-triangle"></i> {{ _('I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet, altrimenti queste fonti non vengono usate.') }}
+</div>
+{% endif %}
+<p class="text-sm text-muted mb-16">
+  {{ _("Con un ISIN la ricerca chiede a questi siti, nell'ordine scelto, e mostra tutti i risultati. I prezzi di ogni giorno vengono da Yahoo (azioni, ETF, derivati; per gli ETF justETF, Morningstar e Stooq di riserva), da Borsa Italiana per le obbligazioni e da Morningstar per i fondi, tra i siti attivi. Si invia solo l'ISIN, al massimo una richiesta al secondo per sito; le ricerche restano salvate per un mese.") }}
+</p>
+<form method="POST">
+  <div class="settings-section">
+    <div class="settings-section-body">
+      {% for r in rows %}
+      <div class="toggle-wrap">
+        <div class="toggle-info">
+          <div class="toggle-label">{{ r.name }}</div>
+          <div class="toggle-hint">{{ r.description }}</div>
+        </div>
+        <div class="d-flex align-center gap-8">
+          <label class="text-xs text-muted" for="order-{{ r.key }}">{{ _('Ordine') }}</label>
+          <input type="number" min="1" max="9" id="order-{{ r.key }}" name="order-{{ r.key }}" value="{{ r.position }}" class="form-control" style="width:64px;" />
+          <label class="toggle-switch">
+            <input type="checkbox" name="on-{{ r.key }}" value="1" {{ 'checked' if r.on }} aria-label="{{ r.name }}" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <p class="form-hint mb-16">{{ _("justETF, Borsa Italiana e Morningstar sono pagine web, non servizi pensati per le app: se cambiano, quella fonte dà errore («la pagina è cambiata») e le altre continuano.") }}</p>
+  <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+  <a href="{{ url_for('settings.index') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+</form>
+
+<div class="card mt-24">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-globe"></i> {{ _('Fonti tue') }}</div>
+    <div class="card-header-sub">{{ _('Per un fondo o una polizza che nessun sito trova: un indirizzo e dove leggere il prezzo. Solo indirizzi su internet (mai il computer o la rete di casa), al massimo una richiesta al secondo; si invia solo il codice del titolo. Poi sceglila come «Fonte del prezzo» nel titolo.') }}</div>
+  </div></div>
+  <div class="card-body">
+    {% for s in custom_sources %}
+    <details class="mb-8" id="custom-{{ loop.index }}">
+      <summary><strong>{{ s.name }}</strong> <span class="text-xs text-muted">{{ s.format|upper }} · {{ s.url }}</span></summary>
+      <form method="POST" action="{{ url_for('settings.custom_source_save') }}" class="mt-8">
+        <input type="hidden" name="old_name" value="{{ s.name }}" />
+        {{ custom_fields('c' ~ loop.index, s) }}
+      </form>
+      <form method="POST" action="{{ url_for('settings.custom_source_delete') }}" class="mt-8"
+            onsubmit='return confirm({{ _("Eliminare la fonte «%(name)s»?", name=s.name)|tojson }});'>
+        <input type="hidden" name="name" value="{{ s.name }}" />
+        <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina') }}</button>
+      </form>
+    </details>
+    {% endfor %}
+    <details {{ 'open' if not custom_sources }}>
+      <summary class="text-sm">{{ _('Aggiungi una fonte') }}</summary>
+      <form method="POST" action="{{ url_for('settings.custom_source_save') }}" class="mt-8">{{ custom_fields('new') }}</form>
+    </details>
+  </div>
+</div>
+{% endblock %}

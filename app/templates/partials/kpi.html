@@ -1,0 +1,14 @@
+{# One key figure: icon, label, value and an optional line below. `amount` leaves the value to the browser, which
+   formats it in the chosen currency; a line below with markup goes in a {% call %} block instead of `sub`. #}
+{% macro kpi(icon, label, value='—', sub=none, cls='kpi-neutral', value_class='', amount=none, value_style='') -%}
+<div class="kpi-card {{ cls }}">
+  <div class="kpi-icon"><i class="bi bi-{{ icon }}"></i></div>
+  <div class="kpi-label">{{ label }}</div>
+  <div class="kpi-value{{ ' ' ~ value_class if value_class }}"{% if amount is not none %} data-amount="{{ amount }}"{% endif %}{% if value_style %} style="{{ value_style }}"{% endif %}>{{ value }}</div>
+  {%- if caller %}
+  <div class="kpi-sub">{{ caller() }}</div>
+  {%- elif sub is not none %}
+  <div class="kpi-sub">{{ sub }}</div>
+  {%- endif %}
+</div>
+{%- endmacro %}

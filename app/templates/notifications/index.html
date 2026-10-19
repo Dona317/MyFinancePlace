@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('Promemoria') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Promemoria') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  {% if items %}
+  <form method="POST" action="{{ url_for('notifications.dismiss') }}">
+    <input type="hidden" name="all" value="1" />
+    <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-check2-all"></i> {{ _('Segna tutti come visti') }}</button>
+  </form>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card mb-16">
+  {% if items %}
+  <ul class="notification-list">
+    {% for n in items %}
+    <li class="notification notification-{{ n.level }}">
+      <i class="bi bi-{{ n.icon }}"></i>
+      <a href="{{ n.url }}" class="notification-body">
+        <span class="cell-title">{{ n.title }}</span>
+        <span class="text-sm text-muted">{{ n.detail }}</span>
+      </a>
+      <form method="POST" action="{{ url_for('notifications.dismiss') }}">
+        <input type="hidden" name="key" value="{{ n.key }}" />
+        <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Segna come visto') }}" aria-label="{{ _('Segna come visto: %(title)s', title=n.title) }}"><i class="bi bi-x-lg"></i></button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  {{ empty_state(text=_('Qui compaiono le polizze in scadenza, le spese ricorrenti e le rate dei prossimi 7 giorni, i budget quasi esauriti e gli obiettivi in ritardo.'), icon='bi-bell-slash', title=_('Nessun promemoria')) }}
+  {% endif %}
+</div>
+{% if hidden %}
+<details class="card">
+  <summary class="card-header" style="cursor:pointer;"><div class="card-header-title text-muted">{{ _('Già visti (%(count)s)', count=hidden|length) }}</div></summary>
+  <ul class="notification-list">
+    {% for n in hidden %}
+    <li class="notification text-muted"><i class="bi bi-{{ n.icon }}"></i><a href="{{ n.url }}" class="notification-body"><span>{{ n.title }}</span><span class="text-xs">{{ n.detail }}</span></a></li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+{% endblock %}

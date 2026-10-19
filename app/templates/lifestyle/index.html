@@ -1,48 +1,24 @@
 {% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/kpi.html" import kpi %}
 
-{% block title %}Spese e Tendenze — MyFinancePlace{% endblock %}
-{% block page_title %}Stile di Vita{% endblock %}
-{% block breadcrumb %}<li>Spese e Tendenze</li>{% endblock %}
+{% block title %}{{ _('Spese e Tendenze') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Stile di Vita') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Spese e Tendenze') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <select class="form-select" style="width:auto;">
-    <option>Anno 2024</option><option>Anno 2023</option>
-  </select>
-  <select class="form-select" style="width:auto;">
-    <option>Tutti i mesi</option>
-    <option>Ultimo trimestre</option>
-    <option>Ultimi 6 mesi</option>
-  </select>
+  {% include "partials/year_select.html" %}
 {% endblock %}
 
 {% block content %}
 
 <!-- KPI Spese ────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
-    <div class="kpi-icon"><i class="bi bi-cart3"></i></div>
-    <div class="kpi-label">Spese Totali</div>
-    <div class="kpi-value text-negative">€ 0</div>
-    <div class="kpi-sub">Anno in corso</div>
-  </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
-    <div class="kpi-icon"><i class="bi bi-calendar3"></i></div>
-    <div class="kpi-label">Media Mensile</div>
-    <div class="kpi-value">€ 0</div>
-    <div class="kpi-sub">Ultimi 12 mesi</div>
-  </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
-    <div class="kpi-icon"><i class="bi bi-graph-up"></i></div>
-    <div class="kpi-label">Categoria Top</div>
-    <div class="kpi-value" style="font-size:var(--font-size-xl);">—</div>
-    <div class="kpi-sub">Spesa maggiore</div>
-  </div>
-  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
-    <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">Spese Discrezionali</div>
-    <div class="kpi-value">0%</div>
-    <div class="kpi-sub">del totale spese</div>
-  </div>
+  {{ kpi('cart3', _('Spese Totali'), amount=report.total_expenses, cls='kpi-negative', value_class='text-negative', sub=(_('Anno %(year)s', year=year))) }}
+  {{ kpi('calendar3', _('Media Mensile'), amount=report.monthly_average, cls='kpi-primary', sub=(_('Gen → %(month)s %(year)s', month=report.reference_month, year=year))) }}
+  {{ kpi('graph-up', _('Categoria Top'), value=(report.top_category or '—'), value_style='font-size:var(--font-size-xl);', cls='kpi-warning', sub=(_('Spesa maggiore'))) }}
+  {{ kpi('piggy-bank', _('Spese Discrezionali'), value="%.1f"|format(report.discretionary_share) ~ '%', cls='kpi-positive', sub=_('del totale spese')) }}
 </div>
 
 <!-- Grafici principali ──────────────────────────────────────────────── -->
@@ -50,8 +26,8 @@
 
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Spese per Categoria</div>
-      <div class="card-header-sub">Anno corrente</div>
+      <div class="card-header-title">{{ _('Spese per Categoria') }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s', year=year) }}</div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:280px;"><canvas id="categoryDoughnut"></canvas></div>
@@ -60,7 +36,7 @@
 
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Andamento Mensile per Categoria</div>
+      <div class="card-header-title">{{ _('Andamento Mensile per Categoria') }}</div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:280px;"><canvas id="categoryTrend"></canvas></div>
@@ -69,62 +45,97 @@
 
 </div>
 
+<!-- Fisse / non mensili / variabili (F8) ─────────────────────────────── -->
+{% set nat = report.natures %}
+<div class="card mb-16 nature-card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Natura delle spese') }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s · la natura si sceglie in Impostazioni → Categorie', year=year) }}</div>
+    </div>
+    <a href="{{ url_for('settings.categories_page') }}" class="btn btn-ghost btn-sm">{{ _('Categorie') }}</a>
+  </div>
+  <div class="card-body">
+    {% if nat.total %}
+    <div class="nature-bar" role="img" aria-label="{% for p in nat.parts %}{{ p.label }} {{ '%.0f'|format(p.share) }}%{{ ', ' if not loop.last }}{% endfor %}">
+      {% for p in nat.parts if p.amount %}<span class="nature-{{ p.key }}" style="width:{{ p.share }}%;"></span>{% endfor %}
+    </div>
+    <div class="nature-legend">
+      {% for p in nat.parts %}
+      <div class="nature-item">
+        <span class="nature-dot nature-{{ p.key }}"></span>
+        <span class="nature-label">{{ p.label }}</span>
+        <span class="amount">{{ p.amount|money }}</span>
+        <span class="text-muted text-xs">{{ '%.0f'|format(p.share) }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="text-sm text-muted mt-8 mb-0">{{ _('Comprimibile: le spese variabili, %(amount)s in media al mese.', amount=(nat.amounts.variable / report.months_elapsed)|money) }}</p>
+    {% else %}
+    <p class="text-sm text-muted mb-0">{{ _('Nessuna spesa registrata in questo periodo.') }}</p>
+    {% endif %}
+  </div>
+</div>
+
 <!-- Tabella dettaglio categorie ─────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
-    <div class="card-header-title">Dettaglio per Categoria</div>
-    <div class="card-header-sub">Confronto con il mese precedente</div>
+    <div class="card-header-title">{{ _('Dettaglio per Categoria') }}</div>
+    <div class="card-header-sub">{{ _('%(month)s %(year)s vs mese precedente', month=report.reference_month, year=year) }}</div>
   </div>
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>Categoria</th>
-          <th style="text-align:right;">Questo Mese</th>
-          <th style="text-align:right;">Mese Scorso</th>
-          <th style="text-align:right;">Variazione</th>
-          <th style="min-width:140px;">% sul Totale</th>
+          <th>{{ _('Categoria') }}</th>
+          <th class="text-right">{{ _('Questo Mese') }}</th>
+          <th class="text-right">{{ _('Mese Scorso') }}</th>
+          <th class="text-right">{{ _('Variazione') }}</th>
+          <th style="min-width:140px;">{{ _('%% sul Totale') }}</th>
         </tr>
       </thead>
       <tbody>
-        {% set categories = [
-          ('Casa',          'bi-house',        'chart-1'),
-          ('Alimentari',    'bi-bag',           'chart-2'),
-          ('Trasporto',     'bi-car-front',     'chart-3'),
-          ('Salute',        'bi-heart-pulse',   'chart-4'),
-          ('Svago',         'bi-controller',    'chart-5'),
-          ('Abbonamenti',   'bi-collection',    'chart-6'),
-          ('Altro',         'bi-three-dots',    'chart-8'),
-        ] %}
-        {% for name, icon, color in categories %}
+        {% for row in report.rows %}
         <tr>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
               <div style="width:28px;height:28px;border-radius:6px;background:var(--clr-primary-light);display:flex;align-items:center;justify-content:center;color:var(--clr-primary);font-size:13px;">
-                <i class="bi {{ icon }}"></i>
+                <i class="bi bi-tag"></i>
               </div>
-              {{ name }}
+              {{ row.category }}
             </div>
           </td>
-          <td class="amount" style="text-align:right;">€ 0</td>
-          <td class="amount" style="text-align:right;color:var(--clr-text-muted);">€ 0</td>
-          <td style="text-align:right;"><span class="badge badge-muted">—</span></td>
+          <td class="amount text-right">{{ row.this_month|money }}</td>
+          <td class="amount" style="text-align:right;color:var(--clr-text-muted);">{{ row.last_month|money }}</td>
+          <td class="text-right">
+            {% if row.change is none %}
+              <span class="badge badge-muted">—</span>
+            {% elif row.change > 0 %}
+              <span class="badge badge-negative">+{{ "%.1f"|format(row.change) }}%</span>
+            {% else %}
+              <span class="badge badge-positive">{{ "%.1f"|format(row.change) }}%</span>
+            {% endif %}
+          </td>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
               <div class="progress-bar-wrap" style="flex:1;height:6px;">
-                <div class="progress-bar-fill" style="width:0%;"></div>
+                <div class="progress-bar-fill" style="width:{{ row.share }}%;"></div>
               </div>
-              <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);width:32px;text-align:right;">0%</span>
+              <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);width:40px;text-align:right;">{{ "%.0f"|format(row.share) }}%</span>
             </div>
           </td>
         </tr>
+        {% else %}
+        <tr><td colspan="5">
+          {{ empty_state(text=_('Nessuna spesa registrata in questo periodo.'), icon='bi-inbox', compact=True) }}
+        </td></tr>
         {% endfor %}
       </tbody>
       <tfoot>
         <tr>
-          <td>Totale</td>
-          <td class="amount" style="text-align:right;">€ 0</td>
-          <td class="amount" style="text-align:right;">€ 0</td>
+          <td>{{ _('Totale') }}</td>
+          <td class="amount text-right">{{ report.this_month_total|money }}</td>
+          <td class="amount text-right">{{ report.last_month_total|money }}</td>
           <td></td>
           <td></td>
         </tr>
@@ -137,16 +148,9 @@
 
 {% block scripts %}
 <script>
-const mesi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-makeDoughnutChart('categoryDoughnut',
-  ['Casa','Alimentari','Trasporto','Salute','Svago','Abbonamenti','Altro'],
-  [35, 20, 12, 8, 15, 5, 5]
-);
-makeLineChart('categoryTrend', mesi, [
-  { label:'Casa',       data:[800,800,800,800,800,800,800,800,800,800,800,800], fill:false },
-  { label:'Alimentari', data:[450,470,420,490,460,430,460,450,440,480,460,450], fill:false },
-  { label:'Trasporto',  data:[200,220,180,210,250,190,210,200,195,220,195,210], fill:false },
-  { label:'Svago',      data:[300,250,350,200,400,280,320,290,260,310,280,300], fill:false },
-]);
+const breakdown = {{ report.breakdown|tojson }};
+const trend = {{ report.trend|tojson }};
+makeDoughnutChart('categoryDoughnut', breakdown.map(c => c.category), breakdown.map(c => c.amount));
+makeLineChart('categoryTrend', trend.labels, trend.datasets.map(d => ({ ...d, fill: false })));
 </script>
 {% endblock %}

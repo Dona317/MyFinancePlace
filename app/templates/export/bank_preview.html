@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% import "partials/fields.html" as f %}
+
+{% block page_title %}{{ _('Anteprima Importazione') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('export.index') }}">{{ _('Esporta') }}</a></li><li>{{ _('Estratto conto') }}</li>{% endblock %}
+
+{% block content %}
+<datalist id="tag-pool">{% for tag in tag_pool %}<option value="{{ tag }}">{% endfor %}</datalist>
+
+<!-- Riepilogo ───────────────────────────────────────────────────────── -->
+<div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
+  <div class="kpi-card kpi-primary">
+    <div class="kpi-icon"><i class="bi bi-bank2"></i></div>
+    <div class="kpi-label">{{ _('Banca') }}</div>
+    <div class="kpi-value" style="font-size:var(--font-size-xl);">{{ preview.bank.name }}</div>
+    <div class="kpi-sub" title="{{ filename }}">{{ filename|truncate(32, true) }}</div>
+  </div>
+  {% call kpi('list-check', _('Movimenti nuovi'), value=preview.new_rows|length) %}{% if preview.period %}{{ (preview.period[0]|it_date) }} → {{ (preview.period[1]|it_date) }}{% endif %}{% endcall %}
+  {{ kpi('arrow-down-circle', _('Entrate'), value=preview.total_income|money, cls='kpi-positive', value_class='text-positive') }}
+  {{ kpi('arrow-up-circle', _('Uscite'), value=preview.total_expenses|money, cls='kpi-negative', value_class='text-negative') }}
+</div>
+
+{% if preview.notes or preview.unread %}
+<div class="alert {{ 'alert-warning' if preview.unread else 'alert-info' }} mb-16" style="display:block;">
+  <i class="bi bi-magic"></i>
+  {% for note in preview.notes %}<div>{{ note }}</div>{% endfor %}
+  {% if preview.unread %}
+  <details><summary>{{ ngettext("%(num)s riga del file non letta: aggiungila a mano se serve.", "%(num)s righe del file non lette: aggiungile a mano se servono.", preview.unread|length) }}</summary>
+    <ul class="text-xs" style="margin:6px 0 0 16px;">{% for line in preview.unread[:50] %}<li>{{ line }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+</div>
+{% endif %}
+{% if preview.ocr %}
+<div class="alert {{ 'alert-warning' if preview.ocr_doubtful else 'alert-info' }} mb-16" style="display:block;">
+  <i class="bi bi-eye"></i>
+  <strong>{{ _('Movimenti letti con OCR dalla scansione') }}</strong>.
+  {% if preview.ocr_doubtful %}{{ _('Alcune righe potrebbero mancare o essere unite: confronta con il documento.') }}
+  {% else %}{{ _('Controlla date, importi e descrizioni prima di confermare.') }}{% endif %}
+  {% if ai_retry %}<a href="{{ url_for('export.bank_ai', token=ai_retry) }}" class="btn btn-outline btn-sm" style="margin-left:8px;"><i class="bi bi-stars"></i> {{ _("Rileggi con l'AI") }}</a>{% endif %}
+</div>
+{% endif %}
+{% if preview.ai_model %}
+<div class="alert alert-warning mb-16" style="display:block;">
+  <i class="bi bi-stars"></i>
+  <strong>{{ _('Movimenti letti con intelligenza artificiale') }}</strong> ({{ preview.ai_model }}).
+  {{ _('Il modello può sbagliare: controlla date, importi e segni prima di confermare.') }}
+  {% if preview.discarded %}{{ _('%(count)s righe con data o importo non validi sono state scartate.', count=preview.discarded) }}{% endif %}
+</div>
+{% endif %}
+{% if preview.balance_check %}
+{% set bc = preview.balance_check %}
+<div class="alert {{ 'alert-success' if bc.ok else 'alert-error' }} mb-16" id="balance-check"
+     data-opening="{{ bc.opening }}" data-closing="{{ bc.closing }}">
+  <i class="bi bi-{{ 'check-circle' if bc.ok else 'exclamation-triangle' }}"></i>
+  <span id="balance-text">
+  {% if bc.ok %}
+    {{ _('Quadratura verificata: saldo iniziale %(opening)s + movimenti %(movements)s = saldo finale %(closing)s.', opening=bc.opening|money, movements=bc.movements_total|money, closing=bc.closing|money) }}
+  {% else %}
+    {{ _('I movimenti non tornano con i saldi del documento: saldo iniziale %(opening)s + movimenti %(movements)s ≠ saldo finale %(closing)s (differenza %(difference)s). Probabilmente manca o è sbagliata qualche riga.',
+       opening=bc.opening|money, movements=bc.movements_total|money, closing=bc.closing|money, difference=bc.difference|money) }}
+  {% endif %}
+  </span>
+</div>
+{% elif preview.ai_model %}
+<div class="alert alert-info mb-16">
+  <i class="bi bi-info-circle"></i> {{ _('Il documento non riporta saldo iniziale e finale: non è stato possibile verificare la quadratura.') }}
+</div>
+{% endif %}
+
+{% set paired = preview.rows|selectattr('pairs_with')|rejectattr('duplicate')|list %}
+{% if paired %}
+<div class="alert alert-info mb-16" style="display:block;">
+  <i class="bi bi-arrow-left-right"></i>
+  <strong>{{ ngettext("%(num)d movimento tra i tuoi conti è già stato importato dall'altro conto", "%(num)d movimenti tra i tuoi conti sono già stati importati dall'altro conto", paired|length) }}</strong>
+  {{ _("(giroconti o bonifici con lo stesso importo, verso opposto, fino a 15 giorni di distanza): importandoli si collegano a quel movimento, che diventa un giroconto con il conto di partenza e quello di arrivo, senza contarli due volte. Togli la spunta «collega» se sono movimenti diversi.") }}
+</div>
+{% endif %}
+
+{% set similar = preview.rows|selectattr('similar_to')|rejectattr('duplicate')|list %}
+{% if similar %}
+<div class="alert alert-warning mb-16" style="display:block;">
+  <i class="bi bi-exclamation-triangle"></i>
+  <strong>{{ ngettext('%(num)d movimento sembra già presente', '%(num)d movimenti sembrano già presenti', similar|length) }}</strong>
+  {{ _('(stesso importo, data vicina, descrizione simile): sono deselezionati. Controllali e riselezionali se sono movimenti diversi.') }}
+</div>
+{% endif %}
+
+{% if preview.duplicates or preview.pending_skipped %}
+<div class="alert alert-info mb-16">
+  <i class="bi bi-info-circle"></i>
+  {% set d, p = preview.duplicates, preview.pending_skipped %}
+  {% if d == 1 %}{{ _('1 movimento era già stato importato e verrà ignorato.') }}
+  {% elif d %}{{ _('%(count)s movimenti erano già stati importati e verranno ignorati.', count=d) }}{% endif %}
+  {% if p == 1 %}{{ _('1 movimento non contabilizzato (in attesa o annullato) è stato escluso: se è in attesa, importalo quando la banca lo avrà registrato.') }}
+  {% elif p %}{{ _('%(count)s movimenti non contabilizzati (in attesa o annullati) sono stati esclusi: quelli in attesa importali quando la banca li avrà registrati.', count=p) }}{% endif %}
+</div>
+{% endif %}
+
+{% macro type_select(name, selected, disabled=false) %}
+<select name="{{ name }}" class="form-select row-field row-type" style="padding:6px 8px;" {{ 'disabled' if disabled else '' }}>
+  {% for val, lbl in [('expense',_('Uscita')),('income',_('Entrata')),('transfer',_('Trasferimento'))] %}
+  <option value="{{ val }}" {{ 'selected' if selected == val else '' }}>{{ lbl }}</option>
+  {% endfor %}
+</select>
+{% endmacro %}
+
+<form method="POST" action="{{ url_for('export.bank_confirm') }}" id="preview-form">
+  <input type="hidden" name="payload" value="{{ payload }}" />
+  {% if accounts %}
+  <div class="card mb-16">
+    <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;">
+      <label class="form-label" for="import-account" style="margin:0;"><i class="bi bi-bank"></i> {{ _('Conto dei movimenti') }}</label>
+      <select id="import-account" name="account_id" class="form-select" style="width:auto;">
+        <option value="">{{ _('— Nessuno —') }}</option>
+        {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == suggested_account }}>{{ a.name }}</option>{% endfor %}
+      </select>
+      <span class="text-xs text-muted">{{ _('Il saldo e la riconciliazione del conto terranno conto di questi movimenti.') }}</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Controlla e correggi i movimenti') }}</div>
+        <div class="card-header-sub">{{ _('Ogni campo è modificabile. Deseleziona le righe da escludere, eliminale con') }} <i class="bi bi-trash3"></i> {{ _('o aggiungine di nuove.') }}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        {% if ai_classifier %}
+        <button type="button" class="btn btn-outline btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
+                title="Suggerisce categoria e controparte dalla causale ({{ ai_classifier }})">
+          <i class="bi bi-stars"></i> {{ _('Classifica con AI') }}
+        </button>
+        {% else %}
+        <a href="{{ url_for('settings.ai_models_page') }}" style="font-size:var(--font-size-xs);white-space:nowrap;">
+          <i class="bi bi-stars"></i> {{ _('Attiva la classificazione AI') }}</a>
+        {% endif %}
+        <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="toggle-all" style="accent-color:var(--clr-primary);" /> {{ _('Seleziona tutti') }}
+        </label>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table id="preview-table">
+        <thead>
+          <tr>
+            <th style="width:32px;"></th>
+            <th style="width:150px;">{{ _('Data') }}</th>
+            <th>{{ _('Descrizione') }}</th>
+            <th style="width:170px;">{{ _('Categoria') }}</th>
+            <th style="width:140px;">{{ _('Tipo') }}</th>
+            <th style="width:130px;text-align:right;">{{ _('Importo €') }}</th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in preview.rows %}
+          {% set i = loop.index0 %}
+          {% if row.duplicate %}
+          <tr class="statement-row" style="opacity:.45;" data-signed="{{ row.amount }}">
+            <td><i class="bi bi-check2-all text-muted" title="{{ _('Già importato') }}"></i></td>
+            <td style="white-space:nowrap;font-size:var(--font-size-xs);">{{ (row.date|it_date) }}</td>
+            <td>{{ row.description }} <span class="badge badge-muted">{{ _('Già importato') }}</span></td>
+            <td>{{ row.category }}</td>
+            <td>—</td>
+            <td class="amount text-right nowrap">{{ row.amount|money }}</td>
+            <td></td>
+          </tr>
+          {% else %}
+          {% set checked = not row.similar_to %}
+          <tr class="preview-row statement-row {{ '' if checked else 'row-off' }}" data-sign="{{ -1 if row.amount < 0 else 1 }}"
+              data-index="{{ i }}" data-causale="{{ row.causale or '' }}">
+            <td>
+              <input type="checkbox" name="include" value="{{ i }}" class="row-include check" {{ 'checked' if checked else '' }} />
+            </td>
+            <td><input type="date" name="date-{{ i }}" value="{{ row.date.isoformat() }}" class="form-control row-field"
+                       style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} /></td>
+            <td>
+              <input type="text" name="description-{{ i }}" value="{{ row.description }}" class="form-control row-field"
+                     style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} />
+              {% if row.details %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:2px;">{{ row.details|truncate(90) }}</div>{% endif %}
+              <input type="text" name="counterparty-{{ i }}" value="{{ row.counterparty or '' }}" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
+                     style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" {{ '' if checked else 'disabled' }} />
+              {% if row.pairs_with %}
+              <label class="badge badge-neutral" style="margin-top:4px;white-space:normal;cursor:pointer;" title="{{ _("Lo stesso movimento è già stato importato dall'estratto conto dell'altro conto") }}">
+                <input type="checkbox" name="pair-{{ i }}" value="1" class="row-field" checked />
+                <i class="bi bi-arrow-left-right"></i> {{ _('Collega al giroconto: %(tx)s', tx=row.pairs_with) }}
+              </label>
+              {% endif %}
+              {% if row.own_account_id and not row.pairs_with %}
+              {% set other = accounts|selectattr('id', 'equalto', row.own_account_id)|first %}
+              <div class="badge badge-neutral" style="margin-top:4px;white-space:normal;" title="{{ _("L'IBAN del movimento è quello di un tuo conto (Impostazioni → Titolari e IBAN)") }}">
+                <i class="bi bi-arrow-left-right"></i> {{ _('Giroconto con «%(name)s»', name=other.name if other else '?') }}
+              </div>
+              {% endif %}
+              {% if row.similar_to %}
+              <div class="badge badge-negative" style="margin-top:4px;white-space:normal;" title="{{ _('Stesso importo, data vicina e descrizione simile a una transazione già salvata') }}">
+                <i class="bi bi-exclamation-triangle"></i> {{ _('Possibile duplicato di: %(tx)s', tx=row.similar_to) }}
+              </div>
+              {% endif %}
+            </td>
+            <td><input type="text" name="category-{{ i }}" value="{{ row.category }}" list="category-options"
+                       class="form-control row-field row-category" style="padding:6px 8px;" {{ '' if checked else 'disabled' }} /></td>
+            <td>{{ type_select('type-' ~ i, row.type, not checked) }}</td>
+            <td><input type="number" name="amount-{{ i }}" value="{{ '%.2f'|format(row.amount|abs) }}" step="0.01" min="0.01"
+                       class="form-control row-field row-amount" style="padding:6px 8px;text-align:right;" required {{ '' if checked else 'disabled' }} />
+              {% if row.currency and row.currency != 'EUR' %}<div class="text-xs text-muted" style="text-align:right;">in {{ row.currency }}</div>{% endif %}</td>
+            <td><button type="button" class="btn btn-ghost btn-icon btn-sm row-remove" title="{{ _('Rimuovi riga') }}" style="color:var(--clr-negative);">
+              <i class="bi bi-trash3"></i></button></td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div id="ai-classify-status" class="alert" style="display:none;margin:0 20px 12px;"></div>
+    <div class="card-body" style="border-top:1px solid var(--clr-border);padding-top:12px;padding-bottom:12px;">
+      <button type="button" class="btn btn-outline btn-sm" id="add-row"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi riga') }}</button>
+      <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-left:8px;">{{ _('per un movimento mancante o letto male') }}</span>
+      {% if preview.balance_check %}
+      <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:6px;">
+        {{ _("La quadratura considera tutte le righe dell'estratto conto, anche quelle deselezionate o già importate; non quelle eliminate con") }} <i class="bi bi-trash3"></i>.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <template id="new-row-template">
+    <tr class="preview-row statement-row" data-sign="-1" data-index="__i__" data-causale="">
+      <td><input type="checkbox" name="include" value="__i__" class="row-include check" checked /></td>
+      <td><input type="date" name="date-__i__" class="form-control row-field" style="padding:6px 8px;" required /></td>
+      <td><input type="text" name="description-__i__" class="form-control row-field" style="padding:6px 8px;" required placeholder="{{ _('Descrizione') }}" />
+          <input type="text" name="counterparty-__i__" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
+                 style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" />
+          <span class="badge badge-primary" style="margin-top:4px;">{{ _('Aggiunta a mano') }}</span></td>
+      <td><input type="text" name="category-__i__" list="category-options" class="form-control row-field row-category" style="padding:6px 8px;" placeholder="{{ _('Categoria') }}" /></td>
+      <td>{{ type_select('type-__i__', 'expense') }}</td>
+      <td><input type="number" name="amount-__i__" step="0.01" min="0.01" class="form-control row-field row-amount" style="padding:6px 8px;text-align:right;" required /></td>
+      <td><button type="button" class="btn btn-ghost btn-icon btn-sm row-remove" title="{{ _('Rimuovi riga') }}" style="color:var(--clr-negative);"><i class="bi bi-trash3"></i></button></td>
+    </tr>
+  </template>
+
+  {{ f.category_datalist("category-options", categories) }}
+
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+    <a href="{{ url_for('export.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
+    <button type="submit" class="btn btn-primary" id="import-button">
+      <i class="bi bi-check2-all"></i> {{ _('Salva') }} <span id="selected-count">0</span> {{ _('movimenti') }}
+    </button>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+  .row-off td { opacity: .5; }
+  .row-off td:first-child { opacity: 1; }
+  .ai-suggested { border-color: var(--chart-5) !important; box-shadow: 0 0 0 2px rgba(124, 92, 252, .15); }
+  .ai-low { border-color: var(--clr-warning) !important; box-shadow: 0 0 0 2px rgba(230, 145, 20, .18); }
+</style>
+<script>
+const table = document.querySelector('#preview-table tbody');
+const counter = document.getElementById('selected-count');
+const importButton = document.getElementById('import-button');
+const balance = document.getElementById('balance-check');
+let nextIndex = {{ preview.rows|length }};
+
+const euro = (v) => formatMoney(v, 'EUR');
+
+function setRowEnabled(row, enabled) {
+  row.classList.toggle('row-off', !enabled);
+  row.querySelectorAll('.row-field').forEach(f => { f.disabled = !enabled; });  // disabled = not sent, not validated
+}
+
+function refresh() {
+  const included = [...table.querySelectorAll('.preview-row')].filter(r => r.querySelector('.row-include').checked);
+  counter.textContent = included.length;
+  importButton.disabled = included.length === 0;
+  if (!balance) return;
+  // Live balance check: does what was read match the document? opening + every movement of the
+  // statement = closing. Rows you only deselect (e.g. already saved) still count; rows removed
+  // with the bin do not ("this row is not in the document").
+  const total = [...table.querySelectorAll('.statement-row')].reduce((sum, row) => {
+    if (row.dataset.signed !== undefined) return sum + Number(row.dataset.signed);  // already imported
+    const amount = parseAmount(row.querySelector('.row-amount').value);
+    const type = row.querySelector('.row-type').value;
+    const sign = type === 'income' ? 1 : type === 'expense' ? -1 : Number(row.dataset.sign);
+    return sum + sign * Math.abs(amount);
+  }, 0);
+  const opening = parseFloat(balance.dataset.opening), closing = parseFloat(balance.dataset.closing);
+  const difference = Math.round((closing - (opening + total)) * 100) / 100;
+  const ok = Math.abs(difference) < 0.005;
+  balance.classList.toggle('alert-success', ok);
+  balance.classList.toggle('alert-error', !ok);
+  document.getElementById('balance-text').textContent = ok
+    ? fmt({{ _('Quadratura verificata: saldo iniziale %(opening)s + movimenti %(movements)s = saldo finale %(closing)s.', opening='%(opening)s', movements='%(movements)s', closing='%(closing)s')|tojson }}, {opening: euro(opening), movements: euro(total), closing: euro(closing)})
+    : fmt({{ _('I movimenti non tornano con i saldi del documento: saldo iniziale %(opening)s + movimenti %(movements)s ≠ saldo finale %(closing)s (differenza %(difference)s). Correggi o aggiungi le righe mancanti.', opening='%(opening)s', movements='%(movements)s', closing='%(closing)s', difference='%(difference)s')|tojson }}, {opening: euro(opening), movements: euro(total), closing: euro(closing), difference: euro(difference)});
+}
+
+table.addEventListener('change', (e) => {
+  if (e.target.classList.contains('row-include')) setRowEnabled(e.target.closest('tr'), e.target.checked);
+  refresh();
+});
+table.addEventListener('input', refresh);
+table.addEventListener('click', (e) => {
+  const button = e.target.closest('.row-remove');
+  if (button) { button.closest('tr').remove(); refresh(); }
+});
+
+document.getElementById('toggle-all').addEventListener('change', (e) => {
+  table.querySelectorAll('.preview-row').forEach(row => {
+    row.querySelector('.row-include').checked = e.target.checked;
+    setRowEnabled(row, e.target.checked);
+  });
+  refresh();
+});
+
+document.getElementById('add-row').addEventListener('click', () => {
+  const html = document.getElementById('new-row-template').innerHTML.replaceAll('__i__', nextIndex++);
+  table.insertAdjacentHTML('beforeend', html);
+  const row = table.lastElementChild;
+  row.querySelector('input[type=date]').focus();
+  refresh();
+});
+
+// ── AI classification: suggest category and counterparty from the bank's causale ──────────────
+const classifyButton = document.getElementById('ai-classify');
+const classifyStatus = document.getElementById('ai-classify-status');
+
+function showStatus(kind, text) {
+  classifyStatus.className = `alert alert-${kind}`;
+  classifyStatus.style.display = 'block';
+  classifyStatus.textContent = text;
+}
+
+classifyButton?.addEventListener('click', async () => {
+  if (classifyButton.dataset.cloud === 'true' &&
+      !confirm({{ _('Le causali dei movimenti verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')|tojson }})) return;
+  const rows = [...table.querySelectorAll('.preview-row')].map(row => {
+    const type = row.querySelector('.row-type').value;
+    const amount = Math.abs(parseAmount(row.querySelector('.row-amount').value));
+    const sign = type === 'income' ? 1 : type === 'expense' ? -1 : Number(row.dataset.sign);
+    return {
+      index: Number(row.dataset.index),
+      text: row.dataset.causale || row.querySelector('input[name^=description]').value,
+      amount: sign * amount,
+    };
+  }).filter(r => r.text.trim());
+  if (!rows.length) return;
+
+  classifyButton.disabled = true;
+  showStatus('info', fmt({{ _('Classificazione di %(count)s movimenti in corso…', count='%(count)s')|tojson }}, {count: rows.length}));
+  try {
+    const response = await fetch("{{ url_for('export.bank_classify') }}", {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rows }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || {{ _('Classificazione non riuscita.')|tojson }});
+    let applied = 0, unsure = 0, kept = 0;
+    for (const [index, s] of Object.entries(data.suggestions)) {
+      const row = table.querySelector(`.preview-row[data-index="${index}"]`);
+      if (!row) continue;
+      const category = row.querySelector('.row-category'), counterparty = row.querySelector('.row-counterparty');
+      if (s.counterparty && !counterparty.value) {
+        counterparty.value = s.counterparty;
+        counterparty.classList.add('ai-suggested');
+      }
+      // A first classification never makes things worse: a specific category is not replaced by
+      // "Altro", and an unsure suggestion only fills rows that have no real category yet
+      const current = category.value.trim();
+      const hasCategory = current && current !== 'Altro';
+      if (hasCategory && current !== s.category && (s.category === 'Altro' || s.confidence === 'bassa')) {
+        kept++;
+        continue;
+      }
+      category.value = s.category;
+      category.dataset.aiValue = s.category;  // remembered: accepted unchanged → tagged "da confermare (AI)"
+      category.classList.add(s.confidence === 'bassa' ? 'ai-low' : 'ai-suggested');
+      category.title = s.from_history ? {{ _("Dal tuo storico: come hai categorizzato transazioni simili")|tojson }}
+        : s.confidence === 'bassa' ? {{ _("Suggerito dall'AI (poco sicuro)")|tojson }} : fmt({{ _("Suggerito dall'AI (confidenza %(level)s)", level='%(level)s')|tojson }}, {level: s.confidence});
+      applied++;
+      if (s.confidence === 'bassa') unsure++;
+    }
+    showStatus(unsure ? 'warning' : 'success',
+      fmt({{ _('%(count)s movimenti classificati con %(model)s: i suggerimenti sono evidenziati', count='%(count)s', model='%(model)s')|tojson }}, {count: applied, model: data.model}) +
+      (unsure ? fmt({{ _(', %(count)s poco sicuri in arancione', count='%(count)s')|tojson }}, {count: unsure}) : '') +
+      (kept ? fmt({{ _('; per %(count)s è rimasta la categoria già assegnata (il modello non era sicuro)', count='%(count)s')|tojson }}, {count: kept}) : '') +
+      {{ _('. Controllali prima di salvare.')|tojson }});
+  } catch (error) {
+    showStatus('error', error.message);
+  } finally {
+    classifyButton.disabled = false;
+  }
+});
+
+// A category edited by hand is no longer "AI-suggested"
+table.addEventListener('input', (e) => {
+  if (e.target.classList.contains('row-category') && e.target.value !== e.target.dataset.aiValue) {
+    e.target.classList.remove('ai-suggested', 'ai-low');
+  }
+});
+
+document.getElementById('preview-form').addEventListener('submit', () => {
+  table.querySelectorAll('.preview-row').forEach(row => {
+    const category = row.querySelector('.row-category');
+    if (category.dataset.aiValue && category.value === category.dataset.aiValue && !category.disabled) {
+      const marker = document.createElement('input');
+      marker.type = 'hidden';
+      marker.name = `aicat-${row.dataset.index}`;
+      marker.value = '1';
+      row.appendChild(marker);
+    }
+  });
+});
+
+refresh();
+</script>
+{% endblock %}

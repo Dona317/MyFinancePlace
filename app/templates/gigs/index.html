@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('Lavoretti') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Lavoretti') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+<form method="GET" class="inline-filter">
+  <select name="year" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Anno') }}">
+    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
+  </select>
+</form>
+{% endblock %}
+
+{% macro gig_fields(prefix, g=none) -%}
+<div class="grid-3" style="gap:12px;">
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-client">{{ _('Per chi') }}</label>
+    <input type="text" id="{{ prefix }}-client" name="client" class="form-control" list="gig-clients" required maxlength="120" value="{{ g.client if g else '' }}" placeholder="{{ _('es. Studio Bianchi, sig.ra Rossi') }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-description">{{ _('Lavoro') }}</label>
+    <input type="text" id="{{ prefix }}-description" name="description" class="form-control" required maxlength="200" value="{{ g.description if g else '' }}" placeholder="{{ _('es. ripetizioni, sito web, trasloco') }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-date">{{ _('Data') }}</label>
+    <input type="date" id="{{ prefix }}-date" name="date" class="form-control" required value="{{ (g.date if g else today).isoformat() }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-gross">{{ _('Compenso lordo (€)') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-gross" name="gross" class="form-control" required value="{{ g.gross|plain if g else '' }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-hours">{{ _('Ore') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-hours" name="hours" class="form-control" value="{{ g.hours|plain if g and g.hours is not none else '' }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-expenses">{{ _('Spese del lavoro (€)') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-expenses" name="expenses" class="form-control" value="{{ g.expenses|plain if g and g.expenses else '' }}" placeholder="0" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-method">{{ _('Pagamento') }}</label>
+    <select id="{{ prefix }}-method" name="method" class="form-select">
+      {% for key, label in methods.items() %}<option value="{{ key }}" {{ 'selected' if (g.method if g else 'transfer') == key }}>{{ _(label) }}</option>{% endfor %}
+    </select></div>
+  {% set people = owner_choices() %}
+  {% if people %}
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-owner">{{ _('Chi l’ha fatto') }}</label>
+    <select id="{{ prefix }}-owner" name="owner" class="form-select"><option value="">{{ _('— famiglia —') }}</option>
+      {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if g and g.owner == key }}>{{ name }}</option>{% endfor %}
+    </select></div>
+  {% endif %}
+  <label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="withholding" {{ 'checked' if g and g.withholding_rate }} />
+    {{ _('Ritenuta d’acconto del 20%% (il committente è un’azienda o un professionista)') }}</label>
+</div>
+<div class="form-group"><label class="form-label" for="{{ prefix }}-notes">{{ _('Note') }}</label>
+  <input type="text" id="{{ prefix }}-notes" name="notes" class="form-control" value="{{ (g.notes if g else '') or '' }}" /></div>
+{%- endmacro %}
+
+{% block content %}
+<datalist id="gig-clients">{% for c in clients %}<option value="{{ c }}">{% endfor %}</datalist>
+<div class="kpi-grid mb-16">
+  {{ kpi('cash-stack', _('Lordo %(year)s', year=year), value=data.gross|money) }}
+  {{ kpi('percent', _('Ritenute'), value=data.withheld|money, sub=_('già versate dai committenti')) }}
+  {{ kpi('wallet2', _('Netto'), value=data.net|money, cls='kpi-positive') }}
+  {{ kpi('hourglass-split', _('Da incassare'), value=data.to_collect|money, cls='kpi-warning' if data.to_collect else 'kpi-neutral') }}
+</div>
+
+<div class="card mb-16">
+  <div class="card-body">
+    <div class="d-flex gap-8 flex-wrap text-sm mb-8">
+      <strong>{{ _('Soglia INPS') }}</strong>
+      <span>{{ _('%(gross)s di %(threshold)s lordi nell’anno', gross=data.gross|money, threshold=threshold|money) }}</span>
+      {% if data.over_threshold %}<span class="text-negative">{{ _('oltre di %(amount)s: sulla parte in più si versano i contributi alla Gestione separata', amount=data.over_threshold|money) }}</span>
+      {% elif data.near_threshold %}<span class="text-warning">{{ _('vicino alla soglia') }}</span>{% endif %}
+    </div>
+    <div class="progress-bar-wrap" style="height:8px;" role="progressbar" aria-valuenow="{{ data.threshold_pct|round|int }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ _('Soglia INPS') }}">
+      <div class="progress-bar-fill {{ 'negative' if data.over_threshold else ('warning' if data.near_threshold else 'positive') }}" style="width:{{ data.threshold_pct }}%;"></div>
+    </div>
+    <p class="text-xs text-muted mt-8 mb-0">{{ _('Prestazioni occasionali: oltre 5.000 € lordi l’anno (tutti i committenti insieme) si paga la Gestione separata sulla parte eccedente. Per la dichiarazione vedi Fisco → Lavori occasionali.') }}</p>
+  </div>
+</div>
+
+<div class="card mb-16">
+  <div class="card-header"><div class="card-header-title">{{ _('Lavori del %(year)s', year=year) }}</div></div>
+  {% if data.gigs %}
+  <div class="table-wrapper"><table class="table-compact">
+    <thead><tr><th>{{ _('Data') }}</th><th>{{ _('Per chi') }}</th><th>{{ _('Lavoro') }}</th><th class="text-right">{{ _('Lordo') }}</th>
+      <th class="text-right">{{ _('Netto') }}</th><th>{{ _('Stato') }}</th><th></th></tr></thead>
+    <tbody>
+    {% for g in data.gigs %}
+      <tr id="gig-{{ g.id }}">
+        <td class="nowrap">{{ g.date|it_date }}</td>
+        <td>{{ g.client }}{% if g.owner %} <span class="text-xs text-muted">· {{ owner_label(g.owner) }}</span>{% endif %}</td>
+        <td>{{ g.description }}{% if g.hours %} <span class="text-xs text-muted">{{ _('%(hours)s ore', hours=g.hours|number(1)) }}</span>{% endif %}</td>
+        <td class="text-right nowrap">{{ g.gross|money }}</td>
+        <td class="text-right nowrap">{{ gigs_service.net(g)|money }}</td>
+        <td class="nowrap">
+          {% if g.paid_on %}<span class="badge badge-success">{{ _('incassato il %(day)s', day=g.paid_on|it_date) }}</span>
+          {% else %}{% set days = (today - g.date).days %}<span class="badge {{ 'badge-danger' if days > 30 else 'badge-warning' }}">{{ _('da incassare') }}{% if days > 30 %} · {{ _('%(days)s giorni', days=days) }}{% endif %}</span>{% endif %}
+        </td>
+        <td class="text-right">
+          <details class="gig-actions"><summary class="btn btn-ghost btn-sm">{{ _('Azioni') }}</summary>
+            <div class="card-body">
+              {% if not g.paid_on %}
+              <form method="POST" action="{{ url_for('gigs.collect', gig_id=g.id) }}" class="d-flex gap-8 flex-wrap align-center mb-8">
+                <select name="account_id" class="form-select" style="max-width:200px;" aria-label="{{ _('Conto') }}">
+                  {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if (g.method == 'cash' and a.id == wallet_id) }}>{{ a.name }}</option>{% endfor %}
+                </select>
+                <input type="date" name="on" class="form-control" style="max-width:160px;" value="{{ today.isoformat() }}" aria-label="{{ _('Data') }}" />
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Segna incassato') }}</button>
+              </form>
+              {% set found = gigs_service.candidates(g) %}
+              {% if found %}
+              <form method="POST" action="{{ url_for('gigs.collect', gig_id=g.id) }}" class="d-flex gap-8 flex-wrap align-center mb-8">
+                <select name="transaction_id" class="form-select" style="max-width:320px;" aria-label="{{ _('Entrata già registrata') }}">
+                  {% for tx in found %}<option value="{{ tx.id }}">{{ tx.date|it_date }} · {{ tx.description }} · {{ tx.amount|money }}</option>{% endfor %}
+                </select>
+                <button type="submit" class="btn btn-ghost btn-sm">{{ _('Collega l’entrata') }}</button>
+              </form>
+              {% endif %}
+              {% else %}
+              <form method="POST" action="{{ url_for('gigs.unpay', gig_id=g.id) }}" class="mb-8"><button type="submit" class="btn btn-ghost btn-sm">{{ _('Torna da incassare') }}</button></form>
+              {% endif %}
+              <form method="POST" action="{{ url_for('gigs.edit', gig_id=g.id) }}" class="text-left">
+                {{ gig_fields('g' ~ g.id, g) }}
+                <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
+              </form>
+              <form method="POST" action="{{ url_for('gigs.delete', gig_id=g.id) }}" class="mt-8"
+                    onsubmit='return confirm({{ _("Eliminare il lavoro «%(job)s»?", job=g.description)|tojson }});'>
+                <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina') }}</button>
+              </form>
+            </div>
+          </details>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<div class="card-body">{{ empty_state(_('Nessun lavoro registrato nel %(year)s.', year=year), icon='bi-tools', compact=True) }}</div>{% endif %}
+</div>
+
+{% if data.by_client %}
+<div class="card mb-16">
+  <div class="card-header"><div class="card-header-title">{{ _('Per committente') }}</div></div>
+  <div class="table-wrapper"><table class="table-compact"><tbody>
+    {% for name, total, count in data.by_client %}<tr><td>{{ name }}</td><td class="text-right">{{ ngettext('%(num)s lavoro', '%(num)s lavori', count) }}</td><td class="text-right nowrap">{{ total|money }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-plus-lg"></i> {{ _('Nuovo lavoro') }}</div></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('gigs.create') }}">
+      {{ gig_fields('new') }}
+      <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Registra') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

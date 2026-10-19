@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "partials/actions.html" import icon_link %}
+{% from "partials/empty.html" import empty_state %}
+{% block page_title %}{{ _('Archivio Documenti') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('documents.index') }}">{{ _('Documenti') }}</a></li><li>{{ _('In scadenza') }}</li>{% endblock %}
+
+{% macro what(doc) -%}
+<a class="cell-title" href="{{ url_for('documents.file', doc_id=doc.id) }}" target="_blank" rel="noopener">{{ doc.subject or doc.filename }}</a>
+{% if doc.subject %}<div class="text-xs text-muted">{{ doc.filename }}</div>{% endif %}
+{%- endmacro %}
+
+{% block content %}
+{% set active = 'expiring' %}{% include "documents/_tabs.html" %}
+
+<div class="card mb-16">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-shield-check"></i> {{ _('Garanzie attive') }}</div>
+    <div class="card-header-sub">{{ _('Scontrini e fatture con «garanzia fino al»: un promemoria arriva 30 giorni prima della fine.') }}</div>
+  </div></div>
+  {% if warranties %}
+  <div class="table-wrapper"><table>
+    <thead><tr><th>{{ _('Che cosa') }}</th><th>{{ _('Fino al') }}</th><th>{{ _('Acquisto') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+    <tbody>
+    {% for doc in warranties %}
+      <tr>
+        <td>{{ what(doc) }}</td>
+        <td class="nowrap">{{ doc.warranty_until|it_date }}{% set left = (doc.warranty_until - today).days %}
+          <div class="text-xs {{ 'text-negative' if left <= 30 else 'text-muted' }}">{{ ngettext('ancora %(num)s giorno', 'ancora %(num)s giorni', left) }}</div></td>
+        <td class="text-xs">{% if doc.transaction %}<a href="{{ url_for('transactions.edit', tx_id=doc.transaction.id, next=request.full_path) }}">{{ doc.transaction.date|it_date }} · {{ doc.transaction.description|truncate(30) }}</a>
+          <div class="text-muted">{{ doc.transaction.magnitude|money }}</div>{% else %}—{% endif %}</td>
+        <td><div class="cell-actions">{{ icon_link(url_for('documents.edit', doc_id=doc.id, next=request.full_path), 'bi-pencil', _('Modifica')) }}</div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="card-body">{{ empty_state(_('Nessuna garanzia: modifica uno scontrino o una fattura e scrivi «garanzia fino al» (di solito due anni dall’acquisto).'), icon='bi-shield-check', compact=true) }}</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-file-earmark-text"></i> {{ _('Documenti in scadenza') }}</div>
+    <div class="card-header-sub">{{ _('Scaduti o in scadenza nei prossimi %(months)s mesi: un promemoria arriva 60 giorni prima.', months=months) }}</div>
+  </div></div>
+  {% if documents %}
+  <div class="table-wrapper"><table>
+    <thead><tr><th>{{ _('Che cosa') }}</th><th>{{ _('Scade il') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+    <tbody>
+    {% for doc in documents %}
+      <tr>
+        <td>{{ what(doc) }}</td>
+        <td class="nowrap">{{ doc.expires_on|it_date }}
+          {% if doc.expires_on < today %}<span class="badge badge-negative">{{ _('scaduto') }}</span>{% elif (doc.expires_on - today).days <= 60 %}<span class="badge badge-warning">{{ _('da rinnovare') }}</span>{% endif %}</td>
+        <td><div class="cell-actions">{{ icon_link(url_for('documents.edit', doc_id=doc.id, next=request.full_path), 'bi-pencil', _('Modifica')) }}</div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="card-body">{{ empty_state(_('Niente in scadenza. Carica la scansione di carta d’identità, patente o passaporto e scrivi la data di scadenza.'), icon='bi-file-earmark-text', compact=true) }}</div>
+  {% endif %}
+</div>
+{% endblock %}
