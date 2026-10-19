@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-13 21:08+0000\n"
+"POT-Creation-Date: 2026-10-19 12:01+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -355,6 +355,10 @@ msgid "%(name)s: puoi ancora versare %(amount)s"
 msgstr "%(name)s: you can still pay in %(amount)s"
 
 #, python-format
+msgid "%(name)s: ultimo giorno"
+msgstr "%(name)s: last day"
+
+#, python-format
 msgid "%(num)d categoria confermata."
 msgid_plural "%(num)d categorie confermate."
 msgstr[0] "%(num)d category confirmed."
@@ -477,6 +481,10 @@ msgstr "%(pct)s%% on capital"
 #, python-format
 msgid "%(person)s ti deve %(amount)s"
 msgstr "%(person)s owes you %(amount)s"
+
+#, python-format
+msgid "%(person)s ti restituisce"
+msgstr "%(person)s pays you back"
 
 #, python-format
 msgid ""
@@ -1357,6 +1365,9 @@ msgstr "Welcome! Your administrator account is ready."
 msgid "Bloccata da un amministratore"
 msgstr "Blocked by an administrator"
 
+msgid "Bollo auto, revisione, tagliando, rinnovi: quello che l’app non può sapere da sola."
+msgstr "Car tax, MOT, service, renewals: what the app cannot know by itself."
+
 msgid "Bollo e IVAFE"
 msgstr "Stamp duty and IVAFE"
 
@@ -2168,6 +2179,9 @@ msgstr "What it includes"
 msgid "Cosa comprende %(name)s"
 msgstr "What %(name)s includes"
 
+msgid "Cosa scade"
+msgstr "What is due"
+
 #, python-format
 msgid "Cosa è cambiato a %(month)s"
 msgstr "What changed in %(month)s"
@@ -2287,6 +2301,9 @@ msgstr "Since the start of %(year)s"
 #, python-format
 msgid "Da ora le transazioni di «%(counterparty)s» andranno in «%(category)s»."
 msgstr "From now on transactions from «%(counterparty)s» will go to «%(category)s»."
+
+msgid "Da pagare nel mese"
+msgstr "To pay this month"
 
 msgid "Da quando conta nello stato patrimoniale dei mesi passati."
 msgstr "From when it counts in the balance sheet of past months."
@@ -2713,6 +2730,9 @@ msgstr "Delete the rule “%(keyword)s”?"
 msgid "Eliminare la regola?"
 msgstr "Delete the rule?"
 
+msgid "Eliminare la scadenza?"
+msgstr "Delete the deadline?"
+
 msgid "Eliminare la voce?"
 msgstr "Delete the entry?"
 
@@ -2992,6 +3012,9 @@ msgstr "Medicines and devices even in cash; visits and the rest only with a trac
 
 msgid "Fatto"
 msgstr "Done"
+
+msgid "Fatto: passa alla prossima"
+msgstr "Done: move on to the next one"
 
 msgid "Fattura"
 msgstr "Invoice"
@@ -3415,6 +3438,21 @@ msgstr "Accounts' IBANs"
 msgid "IC cripto-attività"
 msgstr "IC crypto-assets"
 
+msgid ""
+"IMU (16 giugno e 16 dicembre), saldo e acconti IRPEF (30 giugno e 30 novembre), 730 (30 settembre), modello Redditi "
+"con bollo e IVAFE dei conti all’estero (31 ottobre). Se una data cade di sabato o festivo slitta al primo giorno "
+"lavorativo."
+msgstr ""
+"IMU (16 June and 16 December), IRPEF balance and advances (30 June and 30 November), 730 (30 September), Redditi "
+"return with stamp duty and IVAFE on foreign accounts (31 October). A date falling on a Saturday or holiday moves to "
+"the next working day."
+
+msgid "IMU: acconto"
+msgstr "IMU: first instalment"
+
+msgid "IMU: saldo"
+msgstr "IMU: balance"
+
 msgid "INPS e fondo pensione, netti"
 msgstr "State and pension fund, net"
 
@@ -3721,6 +3759,9 @@ msgstr "Amount (largest first)"
 msgid "Importo (€)"
 msgstr "Amount (€)"
 
+msgid "Importo (€, facoltativo)"
+msgstr "Amount (€, optional)"
+
 msgid "Importo accreditato sul conto d'arrivo"
 msgstr "Amount credited to the receiving account"
 
@@ -4002,6 +4043,12 @@ msgstr "Investment"
 msgid "Investito"
 msgstr "Invested"
 
+msgid "Invio del 730"
+msgstr "730 filing"
+
+msgid "Invio del modello Redditi"
+msgstr "Redditi return filing"
+
 msgid "Ispirato a Ray Dalio: tante obbligazioni, oro e materie prime per ogni fase dell'economia."
 msgstr "Inspired by Ray Dalio: plenty of bonds, gold and commodities for every phase of the economy."
 
@@ -4087,6 +4134,9 @@ msgstr "The amount must be positive."
 
 msgid "L'importo di ogni pagamento: il premio annuo si calcola dalla frequenza."
 msgstr "The amount of each payment: the yearly premium is worked out from the frequency."
+
+msgid "L'importo non può essere negativo."
+msgstr "The amount cannot be negative."
 
 msgid "La"
 msgstr "The"
@@ -4302,6 +4352,9 @@ msgstr "Your assumptions"
 
 msgid "Le tue regole"
 msgstr "Your rules"
+
+msgid "Le tue scadenze"
+msgstr "Your deadlines"
 
 msgid "Legge"
 msgstr "Reads"
@@ -4526,6 +4579,9 @@ msgstr "Last Month"
 msgid "Mese corrente"
 msgstr "This month"
 
+msgid "Mese dopo"
+msgstr "Next month"
+
 #, python-format
 msgid "Mese migliore: %(month)s (%(pct)s %%)"
 msgstr "Best month: %(month)s (%(pct)s %%)"
@@ -4537,6 +4593,9 @@ msgid "Mese per mese, in euro, per categoria"
 msgstr "Month by month, in euro, by category"
 
 msgid "Mese precedente"
+msgstr "Previous month"
+
+msgid "Mese prima"
 msgstr "Previous month"
 
 msgid "Mese scorso"
@@ -4707,6 +4766,9 @@ msgstr "Mostly equities, with a cushion of bonds."
 msgid "Mostra la password"
 msgstr "Show the password"
 
+msgid "Mostra le scadenze fiscali"
+msgstr "Show the tax deadlines"
+
 msgid "Mostra le transazioni con questo tag"
 msgstr "Show the transactions with this tag"
 
@@ -4784,6 +4846,9 @@ msgstr "N months"
 msgid "Nascondi"
 msgstr "Hide"
 
+msgid "Nascondi le scadenze fiscali"
+msgstr "Hide the tax deadlines"
+
 msgid "Natura"
 msgstr "Nature"
 
@@ -4796,6 +4861,9 @@ msgstr "Nature of spending"
 #, python-format
 msgid "Natura di %(name)s"
 msgstr "Nature of %(name)s"
+
+msgid "Nei prossimi 60 giorni"
+msgstr "In the next 60 days"
 
 #, python-format
 msgid "Nel %(year)s"
@@ -5029,6 +5097,9 @@ msgstr "No readable row with these columns."
 msgid "Nessuna scadenza"
 msgstr "No expiry"
 
+msgid "Nessuna scadenza in questo mese."
+msgstr "No deadlines this month."
+
 msgid "Nessuna serie ricorrente da confermare."
 msgstr "No recurring series to confirm."
 
@@ -5123,6 +5194,9 @@ msgstr "Nothing to buy: no part of the model is below its target."
 
 msgid "Niente da ripetere."
 msgstr "Nothing to redo."
+
+msgid "Niente in arrivo."
+msgstr "Nothing coming up."
 
 msgid "No, annulla"
 msgstr "No, cancel"
@@ -5418,6 +5492,10 @@ msgid "Obiettivo di mesi di autonomia"
 msgstr "Months of autonomy target"
 
 #, python-format
+msgid "Obiettivo «%(name)s»"
+msgstr "Goal «%(name)s»"
+
+#, python-format
 msgid "Obiettivo «%(name)s» aggiornato."
 msgstr "Goal «%(name)s» updated."
 
@@ -5452,6 +5530,9 @@ msgstr "Today %(amount)s"
 
 msgid "Oggi (dati attuali)"
 msgstr "Today (current data)"
+
+msgid "Ogni anno"
+msgstr "Every year"
 
 msgid "Ogni campo è modificabile. Deseleziona le righe da escludere, eliminale con"
 msgstr "Every field can be edited. Untick the rows to leave out, delete them with"
@@ -5743,6 +5824,9 @@ msgstr "Retirement and financial independence"
 msgid "Pensione integrativa"
 msgstr "Supplementary pension"
 
+msgid "Per Google Calendar, Outlook o il calendario del telefono"
+msgstr "For Google Calendar, Outlook or the phone's calendar"
+
 msgid ""
 "Per aggiungere una persona alla famiglia: crea il suo archivio in Clienti, il suo utente in Impostazioni → Account e "
 "utenti (con l’archivio di partenza) e metti l’archivio nel gruppo."
@@ -5766,6 +5850,12 @@ msgstr "By category"
 
 msgid "Per chi"
 msgstr "For whom"
+
+msgid "Per chi non usa il 730; anche bollo e IVAFE dei conti all'estero"
+msgstr "For those not using the 730; also stamp duty and IVAFE on foreign accounts"
+
+msgid "Per chi presenta il modello Redditi o ha imposte da versare con il 730"
+msgstr "For those filing the Redditi return or owing tax with the 730"
 
 msgid "Per committente"
 msgstr "By client"
@@ -6189,6 +6279,9 @@ msgstr "Before importing you can check and edit every movement."
 msgid "Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10."
 msgstr "Before every restore the app saves the data about to be replaced. The last 10 are kept."
 
+msgid "Prima rata dell'IMU sulle case diverse dall'abitazione principale"
+msgstr "First IMU instalment on homes other than the main residence"
+
 #, python-format
 msgid "Prima: %(amount)s"
 msgstr "Before: %(amount)s"
@@ -6235,6 +6328,9 @@ msgstr "Next %(days)s days"
 
 msgid "Prossimi 12 mesi (stima)"
 msgstr "Next 12 months (estimate)"
+
+msgid "Prossimi 60 giorni"
+msgstr "Next 60 days"
 
 msgid "Prossimo"
 msgstr "Next"
@@ -6569,6 +6665,10 @@ msgstr ""
 "expenses, money spent for others"
 
 #, python-format
+msgid "Restituisci a %(person)s"
+msgstr "Pay back %(person)s"
+
+#, python-format
 msgid "Restituzione di %(person)s registrata."
 msgstr "Repayment from %(person)s recorded."
 
@@ -6833,6 +6933,9 @@ msgstr "Balance"
 msgid "Saldo Cumulativo"
 msgstr "Cumulative Balance"
 
+msgid "Saldo IRPEF e primo acconto"
+msgstr "IRPEF balance and first advance"
+
 msgid "Saldo Iniziale"
 msgstr "Opening Balance"
 
@@ -6939,6 +7042,10 @@ msgstr "Save prices"
 msgid "Salva regola"
 msgstr "Save rule"
 
+#, python-format
+msgid "Scade il %(day)s"
+msgstr "Due on %(day)s"
+
 msgid "Scade oggi"
 msgstr "Expires today"
 
@@ -6948,6 +7055,22 @@ msgstr "Expires in %(days)s days"
 
 msgid "Scadenza"
 msgstr "Expiry"
+
+msgid "Scadenza eliminata."
+msgstr "Deadline deleted."
+
+#, python-format
+msgid "Scadenza «%(title)s» salvata."
+msgstr "Deadline «%(title)s» saved."
+
+msgid "Scadenzario"
+msgstr "Deadlines"
+
+msgid "Scadenze fiscali"
+msgstr "Tax deadlines"
+
+msgid "Scadenze nel mese"
+msgstr "Deadlines this month"
 
 msgid "Scaduta"
 msgstr "Expired"
@@ -6961,6 +7084,9 @@ msgstr "Download"
 #, python-format
 msgid "Scarica %(name)s"
 msgstr "Download %(name)s"
+
+msgid "Scarica .ics"
+msgstr "Download .ics"
 
 msgid "Scarica CSV"
 msgstr "Download CSV"
@@ -7049,6 +7175,9 @@ msgstr "Drift"
 msgid "Scostamento dal portafoglio modello (punti)"
 msgstr "Drift from the model portfolio (points)"
 
+msgid "Scrivi cosa scade."
+msgstr "Write what is due."
+
 #, python-format
 msgid "Scrivi il nome %(what)s."
 msgstr "Write the name %(what)s."
@@ -7070,6 +7199,9 @@ msgstr "Enter the balance the bank shows at a date: the app tells you whether it
 
 msgid "Scrivi la data del lavoro."
 msgstr "Write the date of the job."
+
+msgid "Scrivi la data."
+msgstr "Write the date."
 
 msgid "Scrivi per chi e che lavoro."
 msgstr "Write for whom and what job."
@@ -7096,6 +7228,12 @@ msgid ""
 msgstr ""
 "If the bank description or the counterparty contains the word, the transaction goes to the category. Applies to "
 "imports and to «Apply»"
+
+msgid "Seconda rata dell'IMU"
+msgstr "Second IMU instalment"
+
+msgid "Secondo acconto IRPEF"
+msgstr "Second IRPEF advance"
 
 msgid "Secondo i piani di ammortamento"
 msgstr "According to the amortization plans"
@@ -7227,6 +7365,9 @@ msgstr "They are checked at every price update; when one trips a reminder appear
 
 msgid "Si divide solo una spesa."
 msgstr "Only an expense can be shared."
+
+msgid "Si ripete"
+msgstr "Repeats"
 
 msgid "Simili"
 msgstr "Similar"
@@ -7859,6 +8000,9 @@ msgstr "Transfer between my accounts"
 msgid "Trasferimento verso %(account)s"
 msgstr "Transfer to %(account)s"
 
+msgid "Trattenuto in busta paga con il 730, altrimenti con F24"
+msgstr "Withheld from the payslip with the 730, otherwise paid with F24"
+
 msgid "Tre fondi indicizzati: paesi sviluppati, emergenti e obbligazioni."
 msgstr "Three index funds: developed markets, emerging markets and bonds."
 
@@ -7946,6 +8090,13 @@ msgstr ""
 "Everything in today's euro. The first figures come from your archive (wealth, expenses and saving of the last 12 "
 "months): change them as you like. It is an estimate, not advice."
 
+msgid ""
+"Tutto quello che scade, in un posto: movimenti ricorrenti, rate, polizze, PAC, obiettivi, soldi tra persone, tasse e "
+"le scadenze che scrivi tu."
+msgstr ""
+"Everything that falls due, in one place: recurring movements, instalments, policies, savings plans, goals, money "
+"between people, taxes and the deadlines you write yourself."
+
 #, python-format
 msgid "Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto."
 msgstr "Everything matches: on %(date)s the app balance is %(amount)s, as on the statement."
@@ -7994,6 +8145,9 @@ msgstr "Latest movements"
 
 msgid "Ultimo accesso"
 msgstr "Last sign-in"
+
+msgid "Ultimo giorno per presentare il 730"
+msgstr "Last day to file the 730"
 
 msgid "Ultimo importo"
 msgstr "Latest amount"
@@ -8110,6 +8264,9 @@ msgstr "A transaction in the file has no date, description or amount."
 
 msgid "Una vendita supera le quote possedute: manca un acquisto o la posizione iniziale."
 msgstr "A sale exceeds the units held: a purchase or the opening position is missing."
+
+msgid "Una volta"
+msgstr "Once"
 
 msgid "Università"
 msgstr "University"
@@ -8409,6 +8566,12 @@ msgstr "a year at %(rate)s %%, against a need of %(gap)s"
 msgid "all'anno, conta quando hai versato"
 msgstr "a year, counts when you invested"
 
+msgid "ancora da mettere da parte"
+msgstr "still to set aside"
+
+msgid "ancora deducibili"
+msgstr "still deductible"
+
 msgid "anno"
 msgstr "year"
 
@@ -8695,6 +8858,9 @@ msgstr "e.g. Vanguard FTSE All-World"
 msgid "es. Viaggio in Giappone"
 msgstr "e.g. Trip to Japan"
 
+msgid "es. bollo auto, revisione, abbonamento ai mezzi"
+msgstr "e.g. car tax, MOT, transit pass"
+
 msgid "es. decathlon"
 msgstr "e.g. decathlon"
 
@@ -8709,6 +8875,9 @@ msgstr "e.g. tutoring, website, moving"
 
 msgid "es. veterinario, cibo, toelettatura"
 msgstr "e.g. vet, food, grooming"
+
+msgid "fatto"
+msgstr "done"
 
 #, python-format
 msgid "fermo dal %(day)s"
@@ -9048,6 +9217,13 @@ msgstr "qwen2.5vl:7b"
 msgid "qwen3:1.7b"
 msgstr "qwen3:1.7b"
 
+msgid "raggiunto"
+msgstr "reached"
+
+#, python-format
+msgid "rata %(n)s"
+msgstr "instalment %(n)s"
+
 msgid "reddito di capitale (ETF, fondi)"
 msgstr "investment income (ETFs, funds)"
 
@@ -9086,6 +9262,9 @@ msgstr "balance at year end"
 
 msgid "saldo inserito da te"
 msgstr "balance entered by you"
+
+msgid "scadenza o rinnovo"
+msgstr "expiry or renewal"
 
 msgid "scaduto"
 msgstr "overdue"

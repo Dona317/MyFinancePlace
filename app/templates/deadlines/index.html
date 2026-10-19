@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/actions.html" import icon_link, delete_button %}
+{% block page_title %}{{ _('Scadenzario') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Scadenzario') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-secondary" href="{{ url_for('deadlines.calendar_file') }}" title="{{ _('Per Google Calendar, Outlook o il calendario del telefono') }}">
+  <i class="bi bi-calendar3"></i> {{ _('Scarica .ics') }}</a>
+{% endblock %}
+
+{% macro reminder_fields(prefix, r=none) -%}
+<div class="grid-2" style="gap:12px;">
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-title">{{ _('Cosa scade') }}</label>
+    <input type="text" id="{{ prefix }}-title" name="title" class="form-control" required maxlength="200" value="{{ r.title if r else '' }}" placeholder="{{ _('es. bollo auto, revisione, abbonamento ai mezzi') }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-due">{{ _('Data') }}</label>
+    <input type="date" id="{{ prefix }}-due" name="due" class="form-control" required value="{{ r.due.isoformat() if r else '' }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-repeat">{{ _('Si ripete') }}</label>
+    <select id="{{ prefix }}-repeat" name="repeat" class="form-select">{% for key, label in repeats.items() %}<option value="{{ key }}" {{ 'selected' if r and r.repeat == key }}>{{ _(label) }}</option>{% endfor %}</select></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-amount">{{ _('Importo (€, facoltativo)') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-amount" name="amount" class="form-control" value="{{ r.amount|plain if r and r.amount is not none else '' }}" /></div>
+</div>
+<div class="form-group"><label class="form-label" for="{{ prefix }}-notes">{{ _('Nota') }}</label>
+  <input type="text" id="{{ prefix }}-notes" name="notes" class="form-control" maxlength="300" value="{{ r.notes or '' if r else '' }}" /></div>
+{%- endmacro %}
+
+{% macro item_line(d, with_day=false) -%}
+<li class="deadline-item deadline-{{ d.kind }}">
+  <i class="bi bi-{{ d.icon }}"></i>
+  {% if with_day %}<span class="deadline-day nowrap">{{ d.day|it_date }}</span>{% endif %}
+  <span class="deadline-title">{% if d.url %}<a href="{{ d.url }}">{{ d.title }}</a>{% else %}{{ d.title }}{% endif %}
+    {% if d.detail %}<span class="text-muted text-xs">· {{ d.detail }}</span>{% endif %}</span>
+  {% if d.amount %}<span class="nowrap {{ 'text-negative' if d.outgoing else 'text-positive' }}">{{ d.amount|money }}</span>{% endif %}
+</li>
+{%- endmacro %}
+
+{% block content %}
+<p class="text-sm text-muted mb-16">{{ _('Tutto quello che scade, in un posto: movimenti ricorrenti, rate, polizze, PAC, obiettivi, soldi tra persone, tasse e le scadenze che scrivi tu.') }}</p>
+<div class="kpi-grid mb-16">
+  {{ kpi('calendar-event', _('Scadenze nel mese'), value=grid['items']|length) }}
+  {{ kpi('arrow-up-circle', _('Da pagare nel mese'), value=grid.to_pay|money, cls='kpi-negative' if grid.to_pay else 'kpi-neutral') }}
+  {{ kpi('calendar-check', _('Nei prossimi 60 giorni'), value=upcoming|length) }}
+</div>
+
+<div class="card mb-16">
+  <div class="card-header deadline-month-bar">
+    <a class="btn btn-ghost btn-icon" href="{{ url_for('deadlines.index', month=grid.previous.strftime('%Y-%m')) }}" aria-label="{{ _('Mese prima') }}"><i class="bi bi-chevron-left"></i></a>
+    <div class="card-header-title">{{ month_title }}</div>
+    <a class="btn btn-ghost btn-icon" href="{{ url_for('deadlines.index', month=grid.next.strftime('%Y-%m')) }}" aria-label="{{ _('Mese dopo') }}"><i class="bi bi-chevron-right"></i></a>
+  </div>
+  <div class="deadline-grid" role="table">
+    {% set weekdays = [_('Lun'), _('Mar'), _('Mer'), _('Gio'), _('Ven'), _('Sab'), _('Dom')] %}
+    <div class="deadline-week deadline-head" role="row">{% for name in weekdays %}<div role="columnheader">{{ name }}</div>{% endfor %}</div>
+    {% for week in grid.weeks %}
+    <div class="deadline-week" role="row">
+      {% for day, items in week %}
+      <div role="cell" class="deadline-cell{{ ' deadline-out' if not day }}{{ ' deadline-today' if day == today }}{{ ' deadline-empty' if day and not items }}">
+        {% if day %}<div class="deadline-date">{{ day.day }}<span class="deadline-weekday"> {{ weekdays[loop.index0] }}</span></div>
+        {% if items %}<ul class="deadline-list">{% for d in items %}{{ item_line(d) }}{% endfor %}</ul>{% endif %}{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if not grid['items'] %}<div class="card-body">{{ empty_state(_('Nessuna scadenza in questo mese.'), icon='bi-calendar-event', compact=true) }}</div>{% endif %}
+</div>
+
+<div class="grid-2 deadline-columns">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-calendar2-week"></i> {{ _('Prossimi 60 giorni') }}</div></div>
+    <div class="card-body">
+      {% if upcoming %}<ul class="deadline-list">{% for d in upcoming %}{{ item_line(d, true) }}{% endfor %}</ul>
+      {% else %}{{ empty_state(_('Niente in arrivo.'), icon='bi-calendar-check', compact=true) }}{% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card mb-16">
+      <div class="card-header"><div>
+        <div class="card-header-title"><i class="bi bi-calendar-check"></i> {{ _('Le tue scadenze') }}</div>
+        <div class="card-header-sub">{{ _('Bollo auto, revisione, tagliando, rinnovi: quello che l’app non può sapere da sola.') }}</div>
+      </div></div>
+      {% if reminders %}
+      <div class="table-wrapper"><table class="table-compact"><tbody>
+        {% for r in reminders %}
+        <tr id="reminder-{{ r.id }}" class="{{ 'text-muted' if r.done }}">
+          <td class="nowrap">{{ r.due|it_date }}</td>
+          <td>{{ r.title }}{% if r.repeat != 'none' %} <span class="badge badge-muted">{{ _(repeats[r.repeat]) }}</span>{% endif %}{% if r.done %} <span class="badge badge-positive">{{ _('fatto') }}</span>{% endif %}</td>
+          <td class="text-right nowrap">{{ r.amount|money if r.amount is not none else '' }}</td>
+          <td><div class="cell-actions">
+            <form method="POST" action="{{ url_for('deadlines.done', reminder_id=r.id) }}">
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Fatto: passa alla prossima') if r.repeat != 'none' else _('Fatto') }}" aria-label="{{ _('Fatto') }}"><i class="bi bi-check-lg"></i></button></form>
+            {{ icon_link(url_for('deadlines.index', edit=r.id) ~ '#reminder-form', 'bi-pencil', _('Modifica')) }}
+            {{ delete_button(url_for('deadlines.delete', reminder_id=r.id), _('Eliminare la scadenza?'), _('Elimina')) }}
+          </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody></table></div>
+      {% endif %}
+      <div class="card-body" id="reminder-form">
+        {% if edit %}
+        <form method="POST" action="{{ url_for('deadlines.edit', reminder_id=edit.id) }}">
+          {{ reminder_fields('e', edit) }}
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+          <a class="btn btn-ghost" href="{{ url_for('deadlines.index') }}">{{ _('Annulla') }}</a>
+        </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('deadlines.create') }}">
+          {{ reminder_fields('n') }}
+          <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><i class="bi bi-percent"></i> {{ _('Scadenze fiscali') }}</div></div>
+      <div class="card-body">
+        <p class="text-sm text-muted">{{ _('IMU (16 giugno e 16 dicembre), saldo e acconti IRPEF (30 giugno e 30 novembre), 730 (30 settembre), modello Redditi con bollo e IVAFE dei conti all’estero (31 ottobre). Se una data cade di sabato o festivo slitta al primo giorno lavorativo.') }}</p>
+        <form method="POST" action="{{ url_for('deadlines.fiscal') }}">
+          <input type="hidden" name="on" value="{{ '0' if fiscal else '1' }}" />
+          <button type="submit" class="btn btn-secondary btn-sm">{{ _('Nascondi le scadenze fiscali') if fiscal else _('Mostra le scadenze fiscali') }}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

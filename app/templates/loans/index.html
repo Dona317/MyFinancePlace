@@ -19,7 +19,7 @@
     {% if p.balance > 0 %}<span class="text-positive nowrap">{{ _('ti deve %(amount)s', amount=p.balance|money) }}</span>
     {% elif p.balance < 0 %}<span class="text-negative nowrap">{{ _('gli devi %(amount)s', amount=(-p.balance)|money) }}</span>
     {% else %}<span class="text-muted">{{ _('in pari') }}</span>{% endif %}
-    {% if p.due %}<span class="badge {{ 'badge-danger' if p.due <= today else 'badge-neutral' }}">{{ _('entro il %(day)s', day=p.due|it_date) }}</span>{% endif %}
+    {% if p.due %}<span class="badge {{ 'badge-negative' if p.due <= today else 'badge-neutral' }}">{{ _('entro il %(day)s', day=p.due|it_date) }}</span>{% endif %}
   </summary>
   <div class="table-wrapper"><table class="table-compact">
     <tbody>

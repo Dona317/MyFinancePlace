@@ -15,6 +15,7 @@ from app.services import (
     budgets,
     contribution_limits,
     data_health,
+    deadlines,
     display,
     forecast,
     gigs,
@@ -176,11 +177,19 @@ def _loans(today: date) -> list[Notification]:
     return items
 
 
+def _deadlines(today: date) -> list[Notification]:
+    """The deadlines written by hand, a week ahead (the others already have their own reminders)."""
+    return [Notification(f"reminder-{r.id}-{day}", "warning" if day <= today else "info", "calendar-check", r.title,
+                         _("Scade il %(day)s", day=display.day(day)) + (f" · {_money(r.amount)}" if r.amount else ""),
+                         day, url_for("deadlines.index", month=f"{day:%Y-%m}")) for r, day in deadlines.due_reminders(today)]
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
-           (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"))
+           (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"),
+           (_deadlines, "deadlines"))
 
 
 def dismissed() -> list[str]:

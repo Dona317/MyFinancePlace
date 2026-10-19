@@ -1401,3 +1401,26 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 
 /* ── Portfolio pages as tabs: they wrap on narrow screens instead of overflowing ─────────────────────────── */
 .portfolio-tabs .report-tabs { flex-wrap: wrap; border-bottom: 1px solid var(--clr-border); }
+
+/* ── Scadenzario (F23): a month grid on a wide screen, one row per day with something on the phone ───────────── */
+.deadline-month-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.deadline-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--clr-border); }
+.deadline-head { font-size: var(--font-size-xs); color: var(--clr-text-muted); text-align: center; padding: 6px 0; }
+.deadline-cell { min-height: 92px; padding: 6px; border-right: 1px solid var(--clr-border); min-width: 0; }
+.deadline-cell:last-child { border-right: 0; }
+.deadline-out { background: var(--clr-bg-input); }
+.deadline-today .deadline-date { color: var(--clr-primary); font-weight: 700; }
+.deadline-date { font-size: var(--font-size-xs); color: var(--clr-text-muted); margin-bottom: 4px; }
+.deadline-weekday { display: none; }
+.deadline-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.deadline-item { display: flex; gap: 6px; align-items: baseline; font-size: var(--font-size-xs); min-width: 0; }
+.deadline-item .deadline-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.deadline-columns > * { min-width: 0; }
+.card-body .deadline-item { font-size: var(--font-size-sm); }
+.deadline-fiscal i, .deadline-reminder i { color: var(--clr-primary); }
+@media (max-width: 768px) {
+  .deadline-week { display: block; border-top: 0; }
+  .deadline-week.deadline-head, .deadline-out, .deadline-empty { display: none; }
+  .deadline-cell { min-height: 0; border-right: 0; border-top: 1px solid var(--clr-border); padding: 8px 12px; }
+  .deadline-weekday { display: inline; }
+}

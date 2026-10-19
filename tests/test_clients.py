@@ -50,7 +50,7 @@ def test_new_client_gets_a_migrated_database_of_its_own(office, client):
         head = connection.execute(text("SELECT version_num FROM alembic_version")).scalar()
         categories = connection.execute(text("SELECT count(*) FROM categories")).scalar()
     engine.dispose()
-    assert head == "c9e1a3b5d7f0" and categories > 10  # current schema, default categories
+    assert head == "d1f3a5c7e9b2" and categories > 10  # current schema, default categories
     page = client.get("/dashboard").get_data(as_text=True)
     assert 'id="client-chip"' in page and "Mario Rossi" in page  # the open client is always in sight
     assert client.get("/clients/").status_code == 200

@@ -219,6 +219,12 @@
           <span class="nav-label">{{ _('Strumenti') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-strumenti"><div>
+        {% if shown('deadlines') %}
+        <a href="{{ url_for('deadlines.index') }}"
+           class="nav-item {% if request.endpoint.startswith('deadlines.') %}active{% endif %}">
+          <i class="bi bi-calendar-event"></i> <span class="nav-label">{{ _('Scadenzario') }}</span>
+        </a>
+        {% endif %}
         {% if shown('snapshots') %}
         <a href="{{ url_for('snapshots.index') }}"
            class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">

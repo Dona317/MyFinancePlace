@@ -10,6 +10,7 @@ from .gig import Gig
 from .limit import ContributionLimit
 from .personal_loan import PersonalLoan
 from .portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate, SlotHolding, TemplateSlot
+from .reminder import Reminder
 from .setting import AppSetting
 from .taxonomy import HoldingCategory, Taxonomy, TaxonomyCategory
 from .transaction import Transaction, TransactionSplit
@@ -20,5 +21,5 @@ __all__ = [
     "Account", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule",
     "ExchangeRate", "Budget", "User", "Client", "ClientGroup", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
-    "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan",
+    "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan", "Reminder",
 ]

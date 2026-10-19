@@ -50,6 +50,7 @@ SECTIONS = [
     Section("loans", _l("Prestiti tra persone"), "arrow-left-right", _l("Gestione"), ("loans.",)),
     Section("documents", _l("Documenti"), "folder2-open", _l("Gestione"), ("documents.",), "module_documents"),
     Section("tax", _l("Fisco"), "percent", _l("Gestione"), ("tax.",), "module_tax"),
+    Section("deadlines", _l("Scadenzario"), "calendar-event", _l("Strumenti"), ("deadlines.",)),
     Section("snapshots", _l("Istantanee"), "camera", _l("Strumenti"), ("snapshots.",), "module_snapshots"),
     Section("export", _l("Esporta e importa"), "box-arrow-up", _l("Strumenti"), ("export.",), "module_export"),
     Section("assistant", _l("Assistente"), "stars", _l("Strumenti"), ("assistant.",)),
