@@ -8,6 +8,7 @@
 {% block breadcrumb %}<li>{{ _('Documenti') }}</li>{% endblock %}
 
 {% block content %}
+{% set active = 'all' %}{% include "documents/_tabs.html" %}
 
 <!-- Caricamento ───────────────────────────────────────────────────────── -->
 <div class="card mb-16">
@@ -107,6 +108,9 @@
                 <a class="cell-title" href="{{ url_for('documents.file', doc_id=doc.id) }}" target="_blank" rel="noopener">{{ doc.filename }}</a>
                 <div class="text-xs text-muted">{{ doc.size|filesize }} · {{ _('caricato il %(date)s', date=doc.uploaded_at|it_date) }}</div>
                 {% if doc.notes %}<div class="text-xs text-muted">{{ doc.notes }}</div>{% endif %}
+                {% if doc.subject or doc.warranty_until or doc.expires_on %}<div class="text-xs">{{ doc.subject or '' }}
+                  {% if doc.warranty_until %}<span class="badge badge-muted">{{ _('garanzia fino al %(day)s', day=doc.warranty_until|it_date) }}</span>{% endif %}
+                  {% if doc.expires_on %}<span class="badge badge-muted">{{ _('scade il %(day)s', day=doc.expires_on|it_date) }}</span>{% endif %}</div>{% endif %}
               </div>
             </div>
           </td>

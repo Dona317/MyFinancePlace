@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-19 12:01+0000\n"
+"POT-Creation-Date: 2026-10-19 12:05+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1529,6 +1529,9 @@ msgstr "Credit Card"
 msgid "Carta di credito"
 msgstr "Credit card"
 
+msgid "Carta d’identità, patente, passaporto, tessera sanitaria…"
+msgstr "Identity card, driving licence, passport, health card…"
+
 msgid "Carta prepagata"
 msgstr "Prepaid card"
 
@@ -1641,6 +1644,9 @@ msgstr "Search by description or tag..."
 
 msgid "Cerca per nome o note..."
 msgstr "Search by name or notes..."
+
+msgid "Che cosa"
+msgstr "What"
 
 msgid "Chi l’ha fatto"
 msgstr "Who did it"
@@ -2151,6 +2157,10 @@ msgstr "Counterparty (tag)"
 msgid "Controvalore nella valuta dei totali al cambio del giorno"
 msgstr "Value in the totals currency at the rate of the day"
 
+#, python-format
+msgid "Coperta fino al %(day)s"
+msgstr "Covered until %(day)s"
+
 msgid "Copertura Totale"
 msgstr "Total Coverage"
 
@@ -2538,8 +2548,22 @@ msgstr "Documents"
 msgid "Documenti collegati"
 msgstr "Linked documents"
 
+msgid "Documenti in scadenza"
+msgstr "Expiring documents"
+
 msgid "Documento"
 msgstr "Document"
+
+msgid "Documento d'identità"
+msgstr "Identity document"
+
+#, python-format
+msgid "Documento in scadenza: %(what)s"
+msgstr "Document expiring: %(what)s"
+
+#, python-format
+msgid "Documento scaduto: %(what)s"
+msgstr "Document expired: %(what)s"
 
 #, python-format
 msgid "Documento «%(filename)s» aggiornato."
@@ -3070,6 +3094,10 @@ msgstr "End (optional)"
 msgid "Fine Ricorrenza"
 msgstr "Recurrence End"
 
+#, python-format
+msgid "Fine garanzia: %(what)s"
+msgstr "Warranty ends: %(what)s"
+
 msgid "Fine ricorrenza"
 msgstr "Recurrence end"
 
@@ -3084,6 +3112,9 @@ msgstr "Rolling window"
 
 msgid "Fino a (età)"
 msgstr "Until (age)"
+
+msgid "Fino al"
+msgstr "Until"
 
 msgid "Fiorino"
 msgstr "Forint"
@@ -3231,6 +3262,19 @@ msgstr "Outside the model"
 
 msgid "Fuori tolleranza"
 msgstr "Outside tolerance"
+
+msgid "Garanzia"
+msgstr "Warranty"
+
+msgid "Garanzia fino al"
+msgstr "Warranty until"
+
+#, python-format
+msgid "Garanzia in scadenza: %(what)s"
+msgstr "Warranty ending: %(what)s"
+
+msgid "Garanzie attive"
+msgstr "Active warranties"
 
 msgid "Gen"
 msgstr "Jan"
@@ -5046,6 +5090,9 @@ msgstr "No income or expenses in %(year)s."
 msgid "Nessuna entrata registrata"
 msgstr "No income recorded"
 
+msgid "Nessuna garanzia: modifica uno scontrino o una fattura e scrivi «garanzia fino al» (di solito due anni dall’acquisto)."
+msgstr "No warranties: edit a receipt or an invoice and fill in «warranty until» (usually two years from the purchase)."
+
 msgid "Nessuna istantanea ancora"
 msgstr "No snapshots yet"
 
@@ -5197,6 +5244,9 @@ msgstr "Nothing to redo."
 
 msgid "Niente in arrivo."
 msgstr "Nothing coming up."
+
+msgid "Niente in scadenza. Carica la scansione di carta d’identità, patente o passaporto e scrivi la data di scadenza."
+msgstr "Nothing expiring. Upload a scan of your identity card, driving licence or passport and enter its expiry date."
 
 msgid "No, annulla"
 msgstr "No, cancel"
@@ -5904,6 +5954,9 @@ msgstr "To restore a full backup, confirm that the current data will be replaced
 msgid "Per scansioni e foto serve un modello \"vision\" (es."
 msgstr "Scans and photos need a \"vision\" model (e.g."
 
+msgid "Per scontrini e fatture di un acquisto."
+msgstr "For receipts and invoices of a purchase."
+
 msgid "Per settore"
 msgstr "By sector"
 
@@ -6315,6 +6368,10 @@ msgstr "{count} files ready"
 #, python-brace-format
 msgid "Pronto: {name}"
 msgstr "Ready: {name}"
+
+#, python-format
+msgid "Proposta: %(day)s, due anni dallo scontrino collegato."
+msgstr "Suggested: %(day)s, two years from the linked receipt."
 
 msgid "Prossima Scadenza"
 msgstr "Next Expiry"
@@ -7042,6 +7099,9 @@ msgstr "Save prices"
 msgid "Salva regola"
 msgstr "Save rule"
 
+msgid "Scade il"
+msgstr "Expires on"
+
 #, python-format
 msgid "Scade il %(day)s"
 msgstr "Due on %(day)s"
@@ -7052,6 +7112,10 @@ msgstr "Expires today"
 #, python-format
 msgid "Scade tra %(days)s giorni"
 msgstr "Expires in %(days)s days"
+
+#, python-format
+msgid "Scade: %(what)s"
+msgstr "Expires: %(what)s"
 
 msgid "Scadenza"
 msgstr "Expiry"
@@ -7074,6 +7138,10 @@ msgstr "Deadlines this month"
 
 msgid "Scaduta"
 msgstr "Expired"
+
+#, python-format
+msgid "Scaduti o in scadenza nei prossimi %(months)s mesi: un promemoria arriva 60 giorni prima."
+msgstr "Expired or expiring in the next %(months)s months: a reminder comes 60 days before."
 
 msgid "Scansioni e foto"
 msgstr "Scans and photos"
@@ -7165,6 +7233,9 @@ msgstr "Choose one"
 
 msgid "Scheda con il valore netto totale (attività − passività)"
 msgstr "Card with the total net worth (assets − liabilities)"
+
+msgid "Scontrini e fatture con «garanzia fino al»: un promemoria arriva 30 giorni prima della fine."
+msgstr "Receipts and invoices with «warranty until»: a reminder comes 30 days before the end."
 
 msgid "Scontrino"
 msgstr "Receipt"
@@ -8277,6 +8348,9 @@ msgstr "An income from someone giving money back: it reduces what they owe and d
 msgid "Usa"
 msgstr "Use"
 
+msgid "Usa la proposta"
+msgstr "Use the suggestion"
+
 msgid "Usata"
 msgstr "Used"
 
@@ -8566,6 +8640,12 @@ msgstr "a year at %(rate)s %%, against a need of %(gap)s"
 msgid "all'anno, conta quando hai versato"
 msgstr "a year, counts when you invested"
 
+#, python-format
+msgid "ancora %(num)s giorno"
+msgid_plural "ancora %(num)s giorni"
+msgstr[0] "%(num)s day left"
+msgstr[1] "%(num)s days left"
+
 msgid "ancora da mettere da parte"
 msgstr "still to set aside"
 
@@ -8680,6 +8760,9 @@ msgstr "to keep outside this computer (USB stick, cloud). Do it at least once a 
 
 msgid "da incassare"
 msgstr "to collect"
+
+msgid "da rinnovare"
+msgstr "to renew"
 
 msgid "dal"
 msgstr "since"
@@ -8864,6 +8947,9 @@ msgstr "e.g. car tax, MOT, transit pass"
 msgid "es. decathlon"
 msgstr "e.g. decathlon"
 
+msgid "es. lavatrice Bosch, carta d’identità di Anna"
+msgstr "e.g. Bosch washing machine, Anna's identity card"
+
 msgid "es. perizia, quotazione OMI, listino dell’usato"
 msgstr "e.g. appraisal, OMI value, used-car list price"
 
@@ -8901,6 +8987,10 @@ msgstr "generic format"
 #, python-format
 msgid "franchigia %(amount)s"
 msgstr "threshold %(amount)s"
+
+#, python-format
+msgid "garanzia fino al %(day)s"
+msgstr "warranty until %(day)s"
 
 #, python-format
 msgid "generato il %(day)s %(time)s"
@@ -9262,6 +9352,10 @@ msgstr "balance at year end"
 
 msgid "saldo inserito da te"
 msgstr "balance entered by you"
+
+#, python-format
+msgid "scade il %(day)s"
+msgstr "expires on %(day)s"
 
 msgid "scadenza o rinnovo"
 msgstr "expiry or renewal"

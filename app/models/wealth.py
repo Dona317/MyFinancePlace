@@ -186,6 +186,10 @@ class Document(db.Model):
     transaction_id = db.Column(db.Integer, db.ForeignKey("transactions.id", ondelete="SET NULL"), index=True)
     notes          = db.Column(db.Text)
     uploaded_at    = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    # F23: what it is about (the washing machine of a receipt, «carta d'identità»), when it expires, the warranty
+    subject        = db.Column(db.Text)
+    expires_on     = db.Column(db.Date)
+    warranty_until = db.Column(db.Date)
 
     transaction = db.relationship("Transaction", lazy="joined")
 

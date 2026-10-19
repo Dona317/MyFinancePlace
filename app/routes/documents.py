@@ -9,8 +9,8 @@ from sqlalchemy import extract
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.wealth import Document
-from app.routes.helpers import back_to, form_int, form_text, safe_next
-from app.services import document_store
+from app.routes.helpers import back_to, form_date, form_int, form_text, safe_next
+from app.services import document_expiry, document_store
 from app.services.categories import known_categories
 
 documents_bp = APIBlueprint(
@@ -112,6 +112,8 @@ def edit(doc_id):
             document.filename = form_text("filename", _("Nome"), required=True)
             document.fiscal_year = form_int("fiscal_year", _("Anno fiscale"), minimum=1900, maximum=2999)
             tx_id = form_int("transaction_id", _("Transazione collegata"))
+            document.expires_on = form_date("expires_on", _("Scade il"))
+            document.warranty_until = form_date("warranty_until", _("Garanzia fino al"))
         except ValueError as exc:
             db.session.rollback()
             flash(str(exc), "error")
@@ -119,6 +121,7 @@ def edit(doc_id):
         document.doc_type = request.form.get("doc_type") if request.form.get("doc_type") in document_store.DOC_TYPES else None
         document.category = form_text("category", _("Categoria"))
         document.notes = form_text("notes", _("Note"))
+        document.subject = form_text("subject", _("Che cosa"))
         document.transaction_id = tx_id if tx_id and db.session.get(Transaction, tx_id) else None
         db.session.commit()
         flash(_("Documento «%(filename)s» aggiornato.", filename=document.filename), "success")
@@ -131,7 +134,17 @@ def edit(doc_id):
         categories=known_categories(document.category),
         transactions=_transaction_choices(document),
         next_url=safe_next(),
+        suggested_warranty=document_expiry.suggested_warranty(document),
     )
+
+
+@documents_bp.route("/expiring")
+def expiring():
+    """Warranties still running and documents expiring in the next months."""
+    today = date.today()
+    return render_template("documents/expiring.html", warranties=document_expiry.warranties(today),
+                           documents=document_expiry.expiring(today), today=today,
+                           months=document_expiry.EXPIRING_MONTHS)
 
 
 @documents_bp.route("/<int:doc_id>/delete", methods=["POST"])

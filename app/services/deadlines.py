@@ -17,8 +17,8 @@ from app.extensions import db
 from app.models.portfolio_model import InvestmentPlan
 from app.models.reminder import Reminder
 from app.models.transaction import Transaction
-from app.models.wealth import Debt, Goal, InsurancePolicy
-from app.services import contribution_limits, forecast, investment_plans, periods, personal_loans, settings_store, wealth
+from app.models.wealth import Debt, Document, Goal, InsurancePolicy
+from app.services import contribution_limits, document_expiry, forecast, investment_plans, periods, personal_loans, settings_store, wealth
 from app.services.i18n import N_, tr
 
 FISCAL_SETTING = "deadlines.fiscal"
@@ -173,6 +173,18 @@ def _limits(start: date, end: date) -> list[Deadline]:
     return found
 
 
+def _documents(start: date, end: date) -> list[Deadline]:
+    """Warranties ending and documents expiring (F23b)."""
+    found = []
+    for doc in Document.query.filter(Document.warranty_until.between(start, end)):
+        found.append(Deadline(doc.warranty_until, "warranty", _("Fine garanzia: %(what)s", what=document_expiry.label(doc)),
+                              url=url_for("documents.edit", doc_id=doc.id), key=f"warranty{doc.id}"))
+    for doc in Document.query.filter(Document.expires_on.between(start, end)):
+        found.append(Deadline(doc.expires_on, "document", _("Scade: %(what)s", what=document_expiry.label(doc)),
+                              url=url_for("documents.edit", doc_id=doc.id), key=f"document{doc.id}"))
+    return found
+
+
 def _fiscal(start: date, end: date) -> list[Deadline]:
     if not fiscal_on():
         return []
@@ -191,7 +203,7 @@ def _reminders(start: date, end: date) -> list[Deadline]:
             for r in Reminder.query.order_by(Reminder.due) for day in occurrences(r, start, end)]
 
 
-SOURCES = [_recurring, _installments, _policies, _plans, _goals, _loans, _limits, _fiscal, _reminders]
+SOURCES = [_recurring, _installments, _policies, _plans, _goals, _loans, _limits, _documents, _fiscal, _reminders]
 
 
 def between(start: date, end: date) -> list[Deadline]:

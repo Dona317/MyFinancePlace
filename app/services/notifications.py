@@ -17,6 +17,7 @@ from app.services import (
     data_health,
     deadlines,
     display,
+    document_expiry,
     forecast,
     gigs,
     investment_plans,
@@ -184,12 +185,28 @@ def _deadlines(today: date) -> list[Notification]:
                          day, url_for("deadlines.index", month=f"{day:%Y-%m}")) for r, day in deadlines.due_reminders(today)]
 
 
+def _documents(today: date) -> list[Notification]:
+    """A warranty ending within 30 days, a document expiring within 60 (or expired: renew it)."""
+    items = []
+    for doc, kind, day in document_expiry.reminders(today):
+        what = document_expiry.label(doc)
+        if kind == "warranty":
+            title, detail = _("Garanzia in scadenza: %(what)s", what=what), _("Coperta fino al %(day)s", day=display.day(day))
+        else:
+            title = _("Documento scaduto: %(what)s", what=what) if day < today else _("Documento in scadenza: %(what)s", what=what)
+            detail = _("Scade il %(day)s", day=display.day(day))
+        items.append(Notification(f"doc-{doc.id}-{kind}-{day}", "warning" if day <= today + timedelta(days=7) else "info",
+                                  "shield-check" if kind == "warranty" else "file-earmark-text", title, detail, day,
+                                  url_for("documents.expiring")))
+    return items
+
+
 # each source, and the setting that must be on for it (a module switched off gives no reminders)
 # Each kind of reminder and the section it belongs to: none from a section switched off or blocked for the user
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
            (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"),
-           (_deadlines, "deadlines"))
+           (_deadlines, "deadlines"), (_documents, "documents"))
 
 
 def dismissed() -> list[str]:
