@@ -188,7 +188,7 @@ with sync_playwright() as p:
     pg.check("#backup input[name=confirm]")
     go("#backup button:has-text('Ripristina')")
     check("restored", "Backup ripristinato" in pg.content() and "3 debiti" in pg.content())
-    check("safety copy listed", "Backup automatici (1)" in pg.content())
+    check("safety copy listed", "Copie prima dei ripristini (1)" in pg.content())
     check("no JavaScript errors", not errors, errors[:3])
     b.close()
 sys.exit(summary("wealth"))
