@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.budget import Budget
 from app.models.wealth import Goal
 from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form
-from app.services import analytics, budgets, categories, display
+from app.services import analytics, analytics_clusters, budgets, categories, display
 from app.services.periods import add_months
 from flask_babel import gettext as _
 
@@ -25,7 +25,8 @@ def index():
     years = analytics.available_years()
     year = request.args.get("year", type=int) or date.today().year
     report = analytics.lifestyle_report(year)
-    return render_template("lifestyle/index.html", report=report, years=years, year=year)
+    groups = analytics_clusters.cluster_breakdown(*analytics.year_bounds(year))
+    return render_template("lifestyle/index.html", report=report, years=years, year=year, groups=groups)
 
 
 # ── Monthly budgets ────────────────────────────────────────────────────────────

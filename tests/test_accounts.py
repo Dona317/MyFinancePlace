@@ -76,9 +76,11 @@ def test_crud_and_validation(client, db):
 def test_filter_and_bulk_assign(client, two_accounts):
     fineco, card = two_accounts
     html = client.get(f"/transactions/?account={card.id}").get_data(as_text=True)
-    assert "Amazon" in html and "Ricarica carta" in html and "Affitto" not in html
+    rows = html.split("<tbody>")[1].split("</tbody>")[0]
+    assert "Amazon" in rows and "Ricarica carta" in rows and "Affitto" not in rows
     html = client.get("/transactions/?account=none").get_data(as_text=True)
-    assert "Contanti" in html and "Amazon" not in html
+    rows = html.split("<tbody>")[1].split("</tbody>")[0]
+    assert "Contanti" in rows and "Amazon" not in rows
     loose = Transaction.query.filter_by(description="Contanti").one()
     client.post("/transactions/assign-account", data={"ids": [str(loose.id)], "account_id": str(card.id)})
     assert Transaction.query.filter_by(description="Contanti").one().account_id == card.id

@@ -192,10 +192,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   overlay && overlay.addEventListener("click", closeSidebar);
 
-  // ESC closes the open modal and the phone sidebar
+  /* ── The user's menu in the sidebar footer: account, settings, sign out ── */
+  const userBtn = document.getElementById("user-menu-btn");
+  const userMenu = document.getElementById("user-menu");
+  const setUserMenu = (open) => {
+    if (!userBtn || !userMenu) return;
+    userMenu.hidden = !open;
+    userBtn.setAttribute("aria-expanded", String(open));
+  };
+  userBtn?.addEventListener("click", e => {
+    e.stopPropagation();
+    setUserMenu(userMenu?.hidden);
+  });
+  // a click anywhere else closes it
+  document.addEventListener("click", e => {
+    if (userMenu && !userMenu.hidden && !userMenu.contains(e.target) && e.target !== userBtn) setUserMenu(false);
+  });
+
+  // ESC closes the open modal, the user's menu and the phone sidebar
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
     document.querySelectorAll(".modal-overlay.open").forEach(m => closeModal(m.id));
+    setUserMenu(false);
     closeSidebar();
   });
 

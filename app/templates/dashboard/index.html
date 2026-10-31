@@ -5,6 +5,20 @@
 {% block page_title %}{{ _('Dashboard') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
 
+{# A block of the dashboard that can be moved and resized («Personalizza»): the bar only shows in that mode #}
+{% macro panel_bar() -%}
+<div class="dash-panel-bar" aria-hidden="false">
+  <button type="button" class="dash-handle" title="{{ _('Trascina per spostare') }}" aria-label="{{ _('Trascina per spostare') }}"><i class="bi bi-grip-vertical"></i></button>
+  <button type="button" class="dash-size" title="{{ _('Cambia larghezza') }}"><i class="bi bi-arrows-expand"></i> <span>{{ _('Larghezza') }}</span></button>
+</div>
+{%- endmacro %}
+
+{% block topbar_actions %}
+  <button type="button" class="btn btn-ghost btn-sm" id="dash-edit-toggle" aria-pressed="false">
+    <i class="bi bi-sliders"></i> <span>{{ _('Personalizza') }}</span>
+  </button>
+{% endblock %}
+
 {% block content %}
 
 {% if budget_alerts %}
@@ -16,6 +30,17 @@
 </div>
 {% endif %}
 
+<!-- Window of the figures at the top: a menu that is remembered for the next visits ─────────── -->
+<div class="dash-toolbar mb-16">
+  <form method="POST" action="{{ url_for('dashboard.save_kpi_period') }}" class="dash-select">
+    <input type="hidden" name="year" value="{{ year }}" />
+    <label for="kpi-period" class="dash-select-title">{{ _('Dati in alto') }}</label>
+    <select id="kpi-period" name="period" class="form-select" onchange="this.form.submit()">
+      {% for key, label in kpi_periods %}<option value="{{ key }}" {{ 'selected' if key == kpi_period }}>{{ label }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
 <!-- KPI Row ─────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24">
 
@@ -24,11 +49,11 @@
   {% endif %}
 
   {% if settings.dashboard_income %}
-  {{ kpi('arrow-down-circle', _('Entrate Mensili'), amount=kpis.monthly_income, cls='kpi-positive', sub=(_('Questo mese'))) }}
+  {{ kpi('arrow-down-circle', _('Entrate Mensili'), amount=kpis.monthly_income, cls='kpi-positive', sub=kpi_label) }}
   {% endif %}
 
   {% if settings.dashboard_expenses %}
-  {{ kpi('arrow-up-circle', _('Uscite Mensili'), amount=kpis.monthly_expenses, cls='kpi-negative', sub=(_('Questo mese'))) }}
+  {{ kpi('arrow-up-circle', _('Uscite Mensili'), amount=kpis.monthly_expenses, cls='kpi-negative', sub=kpi_label) }}
   {% endif %}
 
   {% if settings.dashboard_savings_rate %}
@@ -55,44 +80,57 @@
 
 </div>
 
-<!-- Charts Row ──────────────────────────────────────────────────────────── -->
-{% if settings.dashboard_cashflow_chart %}
-<div class="card mb-16">
-  <div class="card-header">
-    <div>
-      <div class="card-header-title">{{ _('Flusso di Cassa — Ultimi 12 Mesi') }}</div>
-      <div class="card-header-sub">{{ _('Entrate vs Uscite') }}</div>
-    </div>
-    <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">
-      {{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i>
-    </a>
-  </div>
-  <div class="card-body">
-    <div class="chart-container" style="height:240px;">
-      <canvas id="cashFlowChart"></canvas>
-    </div>
-  </div>
+<!-- The blocks below can be reordered and resized («Personalizza»): the order and sizes are kept in this browser ── -->
+<template id="panel-bar-template">{{ panel_bar() }}</template>
+<div class="dash-customize" id="dash-customize" hidden>
+  <span class="dash-customize-hint"><i class="bi bi-info-circle"></i> {{ _('Trascina il ⠿ per cambiare ordine; «Larghezza» alterna mezza pagina e pagina intera.') }}</span>
+  <button type="button" class="btn btn-ghost btn-sm" id="dash-add-chart"><i class="bi bi-bar-chart-steps"></i> {{ _('Aggiungi grafico') }}</button>
+  <button type="button" class="btn btn-ghost btn-sm" id="dash-reset"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina') }}</button>
 </div>
-{% endif %}
+
+<div class="dash-grid" id="dash-grid">
 
 {% set show_pies = settings.dashboard_expense_pie or settings.dashboard_income_pie %}
 {% if show_pies or settings.dashboard_category_trends or settings.dashboard_cumulative %}
 <!-- The year by category: totals (doughnut), month by month (lines), running totals ─────────── -->
-<div class="dash-year-head">
+<div class="dash-year-head dash-fixed">
   <h2>{{ _('Il %(year)s per categoria', year=year) }}</h2>
-  <form method="GET">
-    <label class="sr-only" for="dash-year">{{ _('Anno') }}</label>
+  <form method="GET" class="dash-select">
+    <label for="dash-year" class="dash-select-title">{{ _('Anno') }}</label>
     <select id="dash-year" name="year" class="form-select" onchange="this.form.submit()">
       {% for y in ([year] + years)|unique|sort(reverse=true) %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
     </select>
   </form>
 </div>
+{% endif %}
 
-{% macro category_pair(kind, title, trend_title, breakdown, show_pie) %}
+{% if settings.dashboard_cashflow_chart %}
+<section class="dash-panel" data-panel="cashflow" data-size="full">
+  {{ panel_bar() }}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Flusso di Cassa — Ultimi 12 Mesi') }}</div>
+        <div class="card-header-sub">{{ _('Entrate vs Uscite') }}</div>
+      </div>
+      <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">
+        {{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:240px;">
+        <canvas id="cashFlowChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% macro category_panels(kind, title, trend_title, breakdown, show_pie) %}
 {% set show_trend = settings.dashboard_category_trends %}
-{% if show_pie or show_trend %}
-<div class="dash-pair{{ ' single' if not (show_pie and show_trend) }} mb-16">
-  {% if show_pie %}
+{% if show_pie %}
+<section class="dash-panel" data-panel="{{ kind }}-pie" data-size="half">
+  {{ panel_bar() }}
   <div class="card">
     <div class="card-header">
       <div>
@@ -120,8 +158,11 @@
       {% endif %}
     </div>
   </div>
-  {% endif %}
-  {% if show_trend %}
+</section>
+{% endif %}
+{% if show_trend %}
+<section class="dash-panel" data-panel="{{ kind }}-trend" data-size="half">
+  {{ panel_bar() }}
   <div class="card">
     <div class="card-header">
       <div>
@@ -136,67 +177,72 @@
       <div class="chart-container" style="height:{{ 360 if show_pie else 280 }}px;"><canvas id="{{ kind }}TrendChart"></canvas></div>
     </div>
   </div>
-  {% endif %}
-</div>
+</section>
 {% endif %}
 {% endmacro %}
 
-{{ category_pair('expense', _('Uscite per categoria'), _('Uscite per categoria nel tempo'), expense_breakdown, settings.dashboard_expense_pie) }}
-{{ category_pair('income', _('Entrate per categoria'), _('Entrate per categoria nel tempo'), income_breakdown, settings.dashboard_income_pie) }}
+{{ category_panels('expense', _('Uscite per categoria'), _('Uscite per categoria nel tempo'), expense_breakdown, settings.dashboard_expense_pie) }}
+{{ category_panels('income', _('Entrate per categoria'), _('Entrate per categoria nel tempo'), income_breakdown, settings.dashboard_income_pie) }}
 
 {% if settings.dashboard_cumulative %}
-<div class="card mb-16">
-  <div class="card-header">
-    <div>
-      <div class="card-header-title">{{ _('Entrate e uscite: mese per mese e cumulate') }}</div>
-      <div class="card-header-sub">
-        {{ _('Anno %(year)s', year=year) }} ·
-        <span class="text-positive">{{ _('Entrate') }} {{ cumulative.total_income|money }}</span> ·
-        <span class="text-negative">{{ _('Uscite') }} {{ cumulative.total_expenses|money }}</span> ·
-        {{ _('Netto') }} {{ (cumulative.total_income - cumulative.total_expenses)|money }}
+<section class="dash-panel" data-panel="cumulative" data-size="full">
+  {{ panel_bar() }}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Entrate e uscite: mese per mese e cumulate') }}</div>
+        <div class="card-header-sub">
+          {{ _('Anno %(year)s', year=year) }} ·
+          <span class="text-positive">{{ _('Entrate') }} {{ cumulative.total_income|money }}</span> ·
+          <span class="text-negative">{{ _('Uscite') }} {{ cumulative.total_expenses|money }}</span> ·
+          {{ _('Netto') }} {{ (cumulative.total_income - cumulative.total_expenses)|money }}
+        </div>
       </div>
     </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:300px;"><canvas id="cumulativeChart"></canvas></div>
+    </div>
   </div>
-  <div class="card-body">
-    <div class="chart-container" style="height:300px;"><canvas id="cumulativeChart"></canvas></div>
-  </div>
-</div>
-{% endif %}
+</section>
 {% endif %}
 
 {% if settings.dashboard_sankey and sankey %}
-<div class="card mb-16">
-  <div class="card-header"><div>
-    <div class="card-header-title">{{ _('Dove va il denaro — %(year)s', year=year) }}</div>
-    <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio (o quanto preso dai risparmi)') }}</div>
-  </div></div>
-  <div class="card-body">
-    {% set s = sankey %}
-    <svg class="sankey" viewBox="-260 -34 {{ s.width + 520 }} {{ s.height + 44 }}" role="img"
-         aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
-      {% for b in s.bands %}
-      <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
-        <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
-      {% endfor %}
-      {% for n in s.nodes %}
-      <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
-            style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
-        <title>{{ n.label|tr }}: {{ n.amount|money }}</title></rect>
-      {% set right = n.kind == 'expense' %}
-      {% set middle = n.kind == 'total' %}
-      <text x="{{ n.x + s.node_width / 2 if middle else (n.x + s.node_width + 8 if right else n.x - 8) }}"
-            y="{{ n.y - 12 if middle else n.y + n.h / 2 }}"
-            text-anchor="{{ 'middle' if middle else ('start' if right else 'end') }}" dominant-baseline="middle"
-            class="sankey-label{{ ' sankey-special' if n.special }}">
-        <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" dx="6">{{ n.amount|money }}</tspan></text>
-      {% endfor %}
-    </svg>
+<section class="dash-panel" data-panel="sankey" data-size="full">
+  {{ panel_bar() }}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Dove va il denaro — %(year)s', year=year) }}</div>
+      <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio (o quanto preso dai risparmi)') }}</div>
+    </div></div>
+    <div class="card-body">
+      {% set s = sankey %}
+      <svg class="sankey" viewBox="-260 -34 {{ s.width + 520 }} {{ s.height + 44 }}" role="img"
+           aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
+        {% for b in s.bands %}
+        <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
+          <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
+        {% endfor %}
+        {% for n in s.nodes %}
+        <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
+              style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
+          <title>{{ n.label|tr }}: {{ n.amount|money }}</title></rect>
+        {% set right = n.kind == 'expense' %}
+        {% set middle = n.kind == 'total' %}
+        <text x="{{ n.x + s.node_width / 2 if middle else (n.x + s.node_width + 8 if right else n.x - 8) }}"
+              y="{{ n.y - 12 if middle else n.y + n.h / 2 }}"
+              text-anchor="{{ 'middle' if middle else ('start' if right else 'end') }}" dominant-baseline="middle"
+              class="sankey-label{{ ' sankey-special' if n.special }}">
+          <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" dx="6">{{ n.amount|money }}</tspan></text>
+        {% endfor %}
+      </svg>
+    </div>
   </div>
-</div>
+</section>
 {% endif %}
 
 {% if settings.dashboard_net %}
-<div class="row-2-1 mb-16 net-row">
+<section class="dash-panel" data-panel="net" data-size="half">
+  {{ panel_bar() }}
   <div class="card">
     <div class="card-header"><div>
       <div class="card-header-title">{{ _('Netto mese per mese') }}</div>
@@ -204,6 +250,9 @@
     </div></div>
     <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="netChart"></canvas></div></div>
   </div>
+</section>
+<section class="dash-panel" data-panel="year-total" data-size="half">
+  {{ panel_bar() }}
   <div class="card">
     <div class="card-header"><div>
       <div class="card-header-title">{{ _('Totale dell\'anno %(year)s', year=year) }}</div>
@@ -211,15 +260,13 @@
     </div></div>
     <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="yearChart"></canvas></div></div>
   </div>
-</div>
+</section>
 {% endif %}
 
-<!-- Bottom Row ───────────────────────────────────────────────────────────── -->
-{% if settings.dashboard_recent_tx or settings.dashboard_health %}
-<div style="display:grid;grid-template-columns:{% if settings.dashboard_recent_tx and settings.dashboard_health %}1fr 1fr 1fr{% else %}1fr{% endif %};gap:16px;">
-
-  {% if settings.dashboard_recent_tx %}
-  <div class="card" style="{% if settings.dashboard_health %}grid-column:span 2;{% endif %}">
+{% if settings.dashboard_recent_tx %}
+<section class="dash-panel" data-panel="recent" data-size="{{ 'half' if settings.dashboard_health else 'full' }}">
+  {{ panel_bar() }}
+  <div class="card">
     <div class="card-header">
       <div class="card-header-title">{{ _('Transazioni Recenti') }}</div>
       <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">
@@ -266,9 +313,12 @@
       </table>
     </div>
   </div>
-  {% endif %}
+</section>
+{% endif %}
 
-  {% if settings.dashboard_health %}
+{% if settings.dashboard_health %}
+<section class="dash-panel" data-panel="health" data-size="{{ 'half' if settings.dashboard_recent_tx else 'full' }}">
+  {{ panel_bar() }}
   <div class="card">
     <div class="card-header">
       <div class="card-header-title">{{ _('Salute Finanziaria') }}</div>
@@ -310,10 +360,51 @@
       </a>
     </div>
   </div>
-  {% endif %}
-
-</div>
+</section>
 {% endif %}
+
+</div><!-- /dash-grid -->
+
+<!-- Chart builder: a chart of the months, of the metric and the period chosen; added to the grid as a block ─── -->
+<div class="modal-overlay" id="chart-modal" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 class="modal-title" id="chart-modal-title"><i class="bi bi-bar-chart-steps"></i> {{ _('Nuovo grafico') }}</h2>
+      <button type="button" class="modal-close" data-close="chart-modal" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form id="chart-form">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="dash-select-title" for="chart-metric">{{ _('Cosa misurare') }}</label>
+          <select id="chart-metric" class="form-select">
+            <option value="income">{{ _('Entrate') }}</option>
+            <option value="expenses">{{ _('Uscite') }}</option>
+            <option value="net">{{ _('Netto (entrate − uscite)') }}</option>
+            <option value="savings_rate">{{ _('Tasso di risparmio (percentuale)') }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="dash-select-title" for="chart-period">{{ _('Periodo') }}</label>
+          <select id="chart-period" class="form-select">
+            <option value="year">{{ _('Anno %(year)s', year=year) }}</option>
+            <option value="last_12">{{ _('Ultimi 12 mesi') }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="dash-select-title" for="chart-type">{{ _('Tipo di grafico') }}</label>
+          <select id="chart-type" class="form-select">
+            <option value="bar">{{ _('Barre') }}</option>
+            <option value="line">{{ _('Linee') }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" data-close="chart-modal">{{ _('Annulla') }}</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 {% endblock %}
 
@@ -365,5 +456,173 @@ makeBarChart('cumulativeChart', cumulative.labels, [
   { label: {{ _('Uscite cumulate')|tojson }}, data: cumulative.expenses_cumulative, color: 'negative', type: 'line', axis: 'right', dash: [6, 4] },
 ], { legend: true });
 {% endif %}
+
+/* ── Personalizza: order, size and custom charts, kept in this browser ─────────────────────── */
+(function () {
+  const LAYOUT_KEY = 'mfp-dashboard-layout', CUSTOM_KEY = 'mfp-dashboard-custom';
+  const grid = document.getElementById('dash-grid');
+  const toggle = document.getElementById('dash-edit-toggle');
+  const bar = document.getElementById('dash-customize');
+  const text = {
+    chart: {{ _('Grafico')|tojson }}, remove: {{ _('Togli il grafico')|tojson }},
+    metric: {
+      income: {{ _('Entrate')|tojson }}, expenses: {{ _('Uscite')|tojson }},
+      net: {{ _('Netto')|tojson }}, savings_rate: {{ _('Tasso di risparmio')|tojson }},
+    },
+    loadError: {{ _('Dati non disponibili')|tojson }},
+  };
+  const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch (e) { return fallback; } };
+  const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* private mode */ } };
+  const isFixed = (el) => el.classList.contains('dash-fixed');
+
+  // The custom charts the user added: a block each, built here and drawn with the figures of the server
+  let custom = read(CUSTOM_KEY, []);
+  const barTemplate = document.getElementById('panel-bar-template');
+  const createPanel = (item) => {
+    const section = document.createElement('section');
+    section.className = 'dash-panel';
+    section.id = item.id;
+    section.dataset.panel = item.id;
+    section.dataset.size = item.size || 'half';
+    section.dataset.custom = '1';
+    section.appendChild(barTemplate.content.cloneNode(true));
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'dash-remove';
+    remove.title = text.remove;
+    remove.setAttribute('aria-label', text.remove);
+    remove.innerHTML = '<i class="bi bi-trash3"></i>';
+    section.querySelector('.dash-panel-bar').appendChild(remove);
+    section.insertAdjacentHTML('beforeend',
+      '<div class="card"><div class="card-header"><div><div class="card-header-title"></div>'
+      + '<div class="card-header-sub"></div></div></div><div class="card-body">'
+      + '<div class="chart-container" style="height:260px;"><canvas></canvas></div></div></div>');
+    section.querySelector('.card-header-title').textContent = item.title;
+    section.querySelector('.card-header-sub').textContent = item.subtitle;
+    section.querySelector('canvas').id = item.id + '-canvas';
+    grid.appendChild(section);
+    return section;
+  };
+  const drawChart = async (item) => {
+    const section = document.getElementById(item.id);
+    if (!section) return;
+    try {
+      const res = await fetch({{ url_for('dashboard.series')|tojson }} + '?metric=' + item.metric + '&period=' + item.period + '&year=' + {{ year|tojson }});
+      if (!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      const datasets = [{ label: item.title, data: data.values, color: item.metric === 'expenses' ? 'negative' : 'positive' }];
+      if (item.type === 'line') makeLineChart(item.id + '-canvas', data.labels, datasets);
+      else makeBarChart(item.id + '-canvas', data.labels, datasets, { legend: false });
+    } catch (e) {
+      section.querySelector('.card-body').textContent = text.loadError;
+    }
+  };
+
+  // Apply the saved order and sizes, then the custom charts
+  const applyLayout = () => {
+    const layout = read(LAYOUT_KEY, { order: [], sizes: {} });
+    const panels = [...grid.querySelectorAll(':scope > .dash-panel:not(.dash-fixed)')];
+    const rank = (el) => { const i = layout.order.indexOf(el.dataset.panel); return i < 0 ? 1e6 + panels.indexOf(el) : i; };
+    [...panels].sort((a, b) => rank(a) - rank(b)).forEach(el => grid.appendChild(el));
+    panels.forEach(el => { if (layout.sizes[el.dataset.panel]) el.dataset.size = layout.sizes[el.dataset.panel]; });
+  };
+  const saveLayout = () => {
+    const panels = [...grid.querySelectorAll(':scope > .dash-panel:not(.dash-fixed)')];
+    const sizes = {};
+    panels.forEach(el => { sizes[el.dataset.panel] = el.dataset.size; });
+    write(LAYOUT_KEY, { order: panels.map(el => el.dataset.panel), sizes });
+  };
+  custom.forEach(createPanel);
+  applyLayout();
+  custom.forEach(drawChart);
+
+  // «Personalizza» switches the blocks to move and resize
+  const setEditing = (on) => {
+    grid.classList.toggle('dash-editing', on);
+    bar.hidden = !on;
+    toggle.setAttribute('aria-pressed', String(on));
+    toggle.querySelector('span').textContent = on ? {{ _('Fine')|tojson }} : {{ _('Personalizza')|tojson }};
+    grid.querySelectorAll('.dash-panel:not(.dash-fixed)').forEach(el => { el.draggable = on; });
+  };
+  toggle?.addEventListener('click', () => setEditing(!grid.classList.contains('dash-editing')));
+
+  // Sizes: half page and full page, one click each
+  grid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.dash-size');
+    if (!btn) return;
+    const panel = btn.closest('.dash-panel');
+    panel.dataset.size = panel.dataset.size === 'full' ? 'half' : 'full';
+    if (panel.dataset.custom) {
+      custom = custom.map(item => item.id === panel.id ? { ...item, size: panel.dataset.size } : item);
+      write(CUSTOM_KEY, custom);
+    } else saveLayout();
+  });
+
+  // Order: drag a block by its ⠿ handle onto another one
+  let dragging = null;
+  grid.addEventListener('dragstart', (e) => {
+    const panel = e.target.closest('.dash-panel');
+    if (!panel || isFixed(panel) || !grid.classList.contains('dash-editing')) return;
+    dragging = panel;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', panel.dataset.panel);
+    panel.classList.add('dash-dragging');
+  });
+  grid.addEventListener('dragover', (e) => {
+    if (!dragging) return;
+    const target = e.target.closest('.dash-panel');
+    if (!target || target === dragging || isFixed(target)) return;
+    e.preventDefault();
+    const rect = target.getBoundingClientRect();
+    const after = e.clientY > rect.top + rect.height / 2;
+    grid.insertBefore(dragging, after ? target.nextSibling : target);
+  });
+  grid.addEventListener('dragend', () => {
+    if (!dragging) return;
+    dragging.classList.remove('dash-dragging');
+    dragging = null;
+    saveLayout();
+  });
+
+  // Reset: the default order and sizes, and no custom charts
+  document.getElementById('dash-reset')?.addEventListener('click', () => {
+    if (!confirm({{ _('Riportare il cruscotto alla disposizione iniziale? I grafici aggiunti vengono tolti.')|tojson }})) return;
+    try { localStorage.removeItem(LAYOUT_KEY); localStorage.removeItem(CUSTOM_KEY); } catch (e) { /* private mode */ }
+    location.reload();
+  });
+
+  // Add a chart: the metric, the period and the type; it appears at the end of the grid
+  document.getElementById('dash-add-chart')?.addEventListener('click', () => openModal('chart-modal'));
+  document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.close)));
+  document.getElementById('chart-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const metric = document.getElementById('chart-metric').value;
+    const period = document.getElementById('chart-period').value;
+    const type = document.getElementById('chart-type').value;
+    const periodName = period === 'year' ? {{ year|tojson }} : {{ _('ultimi 12 mesi')|tojson }};
+    const item = {
+      id: 'custom-' + Date.now(), metric, period, type, size: 'half',
+      title: text.metric[metric] + ' · ' + periodName,
+      subtitle: text.chart + ' · ' + (type === 'line' ? {{ _('linee')|tojson }} : {{ _('barre')|tojson }}),
+    };
+    custom.push(item);
+    write(CUSTOM_KEY, custom);
+    closeModal('chart-modal');
+    createPanel(item);
+    setEditing(true);
+    drawChart(item);
+  });
+
+  // Remove a custom chart (the ones of the dashboard are switched off in Impostazioni instead)
+  grid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.dash-remove');
+    if (!btn) return;
+    const panel = btn.closest('.dash-panel');
+    custom = custom.filter(item => item.id !== panel.id);
+    write(CUSTOM_KEY, custom);
+    panel.remove();
+    saveLayout();
+  });
+})();
 </script>
 {% endblock %}

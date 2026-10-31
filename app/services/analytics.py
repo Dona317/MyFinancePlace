@@ -174,9 +174,11 @@ def months_to_show(year: int, today: date | None = None) -> int:
 
 # ── Page-level reports ─────────────────────────────────────────────────────────
 
-def dashboard_kpis(today: date | None = None) -> dict:
+def dashboard_kpis(today: date | None = None, window: tuple[date, date] | None = None) -> dict:
+    """The dashboard's figures. Income, expenses and savings rate cover `window` ([start, end), by default this
+    month); the balances are as of today."""
     today = today or date.today()
-    month_start, month_end = month_bounds(today.year, today.month)
+    month_start, month_end = window or month_bounds(today.year, today.month)
     month = totals(month_start, month_end)
     sheet = wealth.balance_sheet(today)
 

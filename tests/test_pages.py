@@ -30,9 +30,14 @@ def test_income_statement_shows_categories(client, sample_data):
     assert "€ 5.800,00" in html
 
 
+def table_of(html):
+    """The rows of the transactions list only (the bulk-edit form lists every category too)."""
+    return html.split("<tbody>")[1].split("</tbody>")[0] if "<tbody>" in html else ""
+
+
 def test_transaction_filters(client, sample_data):
     html = client.get("/transactions/?q=esselunga").get_data(as_text=True)
-    assert "Spesa" in html and "Affitto" not in html
+    assert "Spesa" in table_of(html) and "Affitto" not in table_of(html)
 
     html = client.get("/transactions/?type=income&month=2026-05").get_data(as_text=True)
     assert "1 transazioni trovate" in html
@@ -87,30 +92,32 @@ def test_sidebar_sections_are_collapsible(client, app):
     assert 'id="sidebar-toggle"' in sidebar and 'class="sidebar-toggle-btn"' in sidebar
     assert 'id="sidebar-open"' in html and 'id="sidebar-open"' not in sidebar
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
-    assert len(re.findall(r'class="nav-item', html)) == len(re.findall(r'<span class="nav-label">', html)) - len(sections)
+    # (the «Nuova Transazione» button carries a label too: it is not a link of the menu)
+    assert len(re.findall(r'class="nav-item', html)) == len(re.findall(r'<span class="nav-label">', html)) - len(sections) - 1
 
 
-def test_theme_toggle_in_topbar(client, app):
+def test_theme_toggle_is_in_the_sidebar_footer(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
-    topbar = html.split('class="topbar-actions"')[1]
-    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', topbar, re.S)
-    assert toggle, "light/dark toggle missing from the top right"
+    footer = html.split('<div class="sidebar-footer">')[1].split("</aside>")[0]
+    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', footer, re.S)
+    assert toggle, "light/dark toggle missing from the sidebar footer"
     # a single icon: the sun in light mode, the moon in dark mode (CSS shows one of the two)
     assert "bi-sun-fill theme-icon-light" in toggle.group(1) and "bi-moon-stars-fill theme-icon-dark" in toggle.group(1)
     assert 'aria-label="Passa alla modalità scura"' in toggle.group(1)
     assert "data-theme-choice" not in html and "theme-switch" not in html
+    # the top bar no longer carries the switch, the reminders bell or a settings gear
+    assert 'id="theme-toggle"' not in html.split('class="topbar-actions"')[1].split("</header>")[0]
     # the theme is applied before paint: the saved choice, else the system preference
     head = html.split("</head>")[0]
     assert "mfp-theme" in head and "prefers-color-scheme: dark" in head
 
 
-def test_settings_button_next_to_theme_switch(client, app):
+def test_settings_are_not_a_button_of_the_page(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
-    after_switch = html.split('class="topbar-actions"')[1].split('id="theme-toggle"')[1]
-    button = re.search(r'<a href="(/settings/)" class="btn btn-ghost btn-icon topbar-settings"(.*?)>', after_switch, re.S)
-    assert button and 'aria-label="Impostazioni"' in button.group(2) and "aria-current" not in button.group(2)
-    # highlighted while on the settings pages
-    assert 'aria-current="page"' in client.get("/settings/").get_data(as_text=True).split("topbar-settings")[1][:300]
+    assert "topbar-settings" not in html
+    # the settings entry is no longer a menu item of the sections (the signed-in user's menu has it)
+    nav = html.split('<nav class="sidebar-nav">')[1].split("</nav>")[0]
+    assert 'href="/settings/"' not in nav
 
 
 def test_theme_tokens_are_well_formed():

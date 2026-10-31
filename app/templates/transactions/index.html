@@ -57,6 +57,13 @@
     <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> {{ _('Filtra') }}</button>
     <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Azzera') }}</a>
   </form>
+  <!-- Search history: the last 100 searches of this browser, to run them again -->
+  <details class="search-history" id="search-history">
+    <summary><i class="bi bi-clock-history"></i> {{ _('Cronologia ricerche') }} <span class="search-history-count" id="search-history-count"></span></summary>
+    <ul class="search-history-list" id="search-history-list"></ul>
+    <div class="search-history-empty text-sm text-muted" id="search-history-empty">{{ _('Nessuna ricerca ancora: le ricerche con un filtro si ricordano qui (fino a 100).') }}</div>
+    <button type="button" class="btn btn-ghost btn-sm" id="search-history-clear"><i class="bi bi-x-circle"></i> {{ _('Cancella cronologia') }}</button>
+  </details>
 </div>
 
 <!-- Tabella transazioni ─────────────────────────────────────────────── -->
@@ -82,6 +89,19 @@
       </form>
       {% endif %}
       {% if transactions %}
+      <button type="button" class="btn btn-ghost btn-sm" id="open-bulk-edit" title="{{ _('Cambia tipo, categoria, gruppo, conto o data di molte transazioni insieme') }}">
+        <i class="bi bi-pencil-square"></i> {{ _('Modifica massiva') }}
+      </button>
+      <a href="{{ url_for('transactions.review_page', **request.args.to_dict()) }}" class="btn btn-ghost btn-sm"
+         title="{{ _('Legge le transazioni di questa ricerca e segnala i probabili errori') }}">
+        <i class="bi bi-search-heart"></i> {{ _('Controlla registro') }}
+      </a>
+      <form method="POST" action="{{ url_for('transactions.cash_transfers') }}" class="inline-filter">
+        <input type="hidden" name="next" value="{{ request.full_path }}" />
+        <button type="submit" class="btn btn-ghost btn-sm" title="{{ _('Prelievi e versamenti dalla banca diventano giroconti con il conto Contanti') }}">
+          <i class="bi bi-cash-coin"></i> {{ _('Prelievi → Contanti') }}
+        </button>
+      </form>
       <button type="submit" form="bulk-form" class="btn btn-ghost btn-sm" id="bulk-delete" disabled
               style="color:var(--clr-negative);">
         <i class="bi bi-trash3"></i> {{ _('Elimina selezionate (') }}<span id="bulk-count">0</span>)
@@ -141,7 +161,8 @@
               <i class="bi bi-bank"></i> {{ tx.bank_description|truncate(90) }}</div>
             {% endif %}
           </td>
-          <td>{% if tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}</td>
+          <td>{% if tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}
+            {% if tx.cluster in cluster_choices %}<div class="text-xs text-muted cluster-tag" title="{{ _('Gruppo di spesa') }}">{{ cluster_choices[tx.cluster]|tr }}</div>{% endif %}</td>
           <td class="tag-cell">
             {% for tag in tx.tags %}
             {% if tag == ai_tag %}
@@ -196,6 +217,68 @@
   <form method="POST" action="{{ url_for('transactions.classify') }}" id="classify-form">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
   </form>
+  <!-- Modifica massiva: the ticked transactions, or every transaction of the search when none is ticked -->
+  <div class="modal-overlay" id="bulk-modal" role="dialog" aria-modal="true" aria-labelledby="bulk-modal-title">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 class="modal-title" id="bulk-modal-title"><i class="bi bi-pencil-square"></i> {{ _('Modifica massiva') }}</h2>
+        <button type="button" class="modal-close" data-close="bulk-modal" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <form method="POST" action="{{ url_for('transactions.bulk_edit') }}" id="bulk-edit-form">
+        <input type="hidden" name="next" value="{{ request.full_path }}" />
+        <input type="hidden" name="scope" id="bulk-scope" value="search" />
+        {% for key in ['q', 'type', 'category', 'month', 'recurring', 'account', 'tag'] %}
+        <input type="hidden" name="{{ key }}" value="{{ filters[key] or '' }}" />
+        {% endfor %}
+        <div class="modal-body">
+          <p class="text-sm mb-16" id="bulk-target"></p>
+          <div class="grid-2">
+            <div class="form-group">
+              <div class="dash-select-title mb-8">{{ _('Tipo') }}</div>
+              <select name="type_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                <option value="income">{{ _('Trasforma in entrate') }}</option>
+                <option value="expense">{{ _('Trasforma in uscite') }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="dash-select-title mb-8">{{ _('Categoria') }}</div>
+              <select name="category_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                {% for name in all_categories_list %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="dash-select-title mb-8">{{ _('Gruppo di spesa') }}</div>
+              <select name="cluster_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                <option value="auto">{{ _('Automatico (dalle regole)') }}</option>
+                {% for key, name in cluster_choices.items() %}<option value="{{ key }}">{{ name|tr }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="dash-select-title mb-8">{{ _('Mezzo di pagamento (conto)') }}</div>
+              <select name="account_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+                <option value="none">{{ _('— nessun conto —') }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="dash-select-title mb-8">{{ _('Data') }}</div>
+              <input type="date" name="date_to" class="form-control" />
+              <div class="form-hint">{{ _('Vuota: le date restano come sono.') }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close="bulk-modal">{{ _('Annulla') }}</button>
+          <button type="submit" class="btn btn-primary" id="bulk-edit-submit"><i class="bi bi-check2"></i> {{ _('Applica') }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <form method="POST" action="{{ url_for('transactions.delete_selected') }}" id="bulk-form"
         data-confirm="{{ _('Eliminare definitivamente le transazioni selezionate?') }}">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
@@ -244,6 +327,58 @@ const bulkButton = document.getElementById('bulk-delete');
     });
   });
 });
+// Bulk edit: the ticked transactions, or the whole search (no ticks), copied into the form when it is sent
+const bulkEditForm = document.getElementById('bulk-edit-form');
+const describeBulk = () => {
+  const count = [...bulkBoxes].filter(b => b.checked).length;
+  document.getElementById('bulk-scope').value = count ? 'selection' : 'search';
+  document.getElementById('bulk-target').textContent = count
+    ? fmt({{ _('Modifica le %(count)s transazioni selezionate.', count='%(count)s')|tojson }}, {count: count})
+    : fmt({{ _('Nessuna selezione: modifica tutte le %(count)s transazioni di questa ricerca (fino a 5000).', count='%(count)s')|tojson }}, {count: {{ total }}});
+};
+document.getElementById('open-bulk-edit')?.addEventListener('click', () => { describeBulk(); openModal('bulk-modal'); });
+document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.close)));
+bulkEditForm?.addEventListener('submit', () => {
+  bulkEditForm.querySelectorAll('input[name=ids]').forEach(el => el.remove());
+  document.querySelectorAll('.bulk-select:checked').forEach(box => {
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden'; hidden.name = 'ids'; hidden.value = box.value;
+    bulkEditForm.appendChild(hidden);
+  });
+});
+
+// Search history: the searches made with a filter, kept in this browser (newest first, at most 100)
+const HISTORY_KEY = 'mfp-search-history', HISTORY_MAX = 100;
+const readHistory = () => { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) { return []; } };
+const writeHistory = (list) => { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, HISTORY_MAX))); } catch (e) { /* private mode */ } };
+const searchLabel = (params) => [...params].filter(([k, v]) => v && k !== 'page').map(([k, v]) => k + ': ' + v).join(' · ');
+const searchQuery = window.location.search.replace(/([?&])page=\d+&?/, '$1').replace(/[?&]$/, '');
+const currentLabel = searchLabel(new URLSearchParams(searchQuery));
+if (currentLabel) {
+  const others = readHistory().filter(item => item.qs !== searchQuery);
+  writeHistory([{ qs: searchQuery, label: currentLabel }, ...others]);
+}
+const renderHistory = () => {
+  const list = readHistory();
+  const ul = document.getElementById('search-history-list');
+  ul.replaceChildren(...list.map((item, i) => {
+    const li = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = {{ url_for('transactions.index')|tojson }} + item.qs;
+    link.textContent = item.label;
+    const remove = document.createElement('button');
+    remove.type = 'button'; remove.className = 'btn btn-ghost btn-icon btn-sm';
+    remove.title = {{ _('Togli dalla cronologia')|tojson }}; remove.innerHTML = '<i class="bi bi-x"></i>';
+    remove.addEventListener('click', () => { const rest = readHistory(); rest.splice(i, 1); writeHistory(rest); renderHistory(); });
+    li.append(link, remove);
+    return li;
+  }));
+  document.getElementById('search-history-empty').hidden = list.length > 0;
+  document.getElementById('search-history-count').textContent = list.length ? '(' + list.length + ')' : '';
+};
+document.getElementById('search-history-clear')?.addEventListener('click', () => { writeHistory([]); renderHistory(); });
+renderHistory();
+
 const classifyButton = document.getElementById('ai-classify');
 const refreshBulk = () => {
   const count = [...bulkBoxes].filter(b => b.checked).length;
