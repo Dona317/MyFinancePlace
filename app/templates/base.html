@@ -163,7 +163,7 @@
         {% endif %}
         {% if shown('accounts') %}
         <a href="{{ url_for('accounts.index') }}"
-           class="nav-item {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
+           class="nav-item nav-sub {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
           <i class="bi bi-bank"></i> <span class="nav-label">{{ _('Conti e Carte') }}</span>
         </a>
         {% endif %}
@@ -267,10 +267,6 @@
           <i class="bi bi-house-heart"></i> <span class="nav-label">{{ _('Gruppi e famiglia') }}</span>
         </a>
         {% endif %}
-        <a href="{{ url_for('settings.index') }}"
-           class="nav-item {% if 'settings' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-gear"></i> <span class="nav-label">{{ _('Impostazioni') }}</span>
-        </a>
         </div></div>
       </div>
 
@@ -296,23 +292,50 @@
     </div>
     {% endif %}
 
-    <!-- User footer -->
+    <!-- Footer, fixed under the scrolling menu: always visible without scrolling. Reminders and light/dark, then the
+         user (account, sign out) with the settings next to it -->
     <div class="sidebar-footer">
       {% set signed_in = current_user is defined and current_user.is_authenticated %}
-      <div class="sidebar-user">
-        <div class="sidebar-user-avatar">{{ current_user.username[0]|upper if signed_in else 'U' }}</div>
-        <div class="sidebar-user-info">
-          <div class="sidebar-user-name">{{ current_user.username if signed_in else _('Utente') }}</div>
-          <div class="sidebar-user-role">
-            {% if signed_in %}{{ _('Amministratore') if current_user.is_admin else _('Utente') }}{% else %}{{ _('Account Personale') }}{% endif %}
-          </div>
-        </div>
-        {% if signed_in %}
-        <a href="{{ url_for('settings.account') }}" class="sidebar-logout" title="{{ _('Il tuo account') }}"><i class="bi bi-person-gear"></i></a>
-        <form method="POST" action="{{ url_for('auth.logout') }}" style="margin:0;">
-          <button type="submit" class="sidebar-logout" title="{{ _('Esci') }}" aria-label="{{ _('Esci') }}"><i class="bi bi-box-arrow-right"></i></button>
-        </form>
+      <div class="sidebar-tools">
+        <button type="button" id="theme-toggle" class="theme-switch" role="switch" aria-checked="false"
+                aria-label="{{ _('Passa alla modalità scura') }}" title="{{ _('Passa alla modalità scura') }}">
+          <span class="theme-switch-track"><span class="theme-switch-thumb">
+            <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
+            <i class="bi bi-moon-stars-fill theme-icon-dark" aria-hidden="true"></i>
+          </span></span>
+        </button>
+        {% if shown('notifications') %}
+        {% set reminder_count = notification_count() %}
+        <a href="{{ url_for('notifications.index') }}" class="sidebar-tool topbar-bell"
+           title="{{ _('Promemoria') }}" aria-label="{{ _('Promemoria') }}{{ ' (%d)'|format(reminder_count) if reminder_count }}"
+           {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
+          <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
+        </a>
         {% endif %}
+      </div>
+      <div class="sidebar-user-row">
+        <div class="sidebar-user-wrap">
+          <button type="button" class="sidebar-user" id="user-menu-btn" aria-haspopup="menu" aria-expanded="false"
+                  aria-controls="user-menu" title="{{ current_user.username if signed_in else _('Utente') }}" {{ 'disabled' if not signed_in }}>
+            <span class="sidebar-user-avatar">{{ current_user.username[0]|upper if signed_in else 'U' }}</span>
+            <span class="sidebar-user-info">
+              <span class="sidebar-user-name">{{ current_user.username if signed_in else _('Utente') }}</span>
+              <span class="sidebar-user-role">{% if signed_in %}{{ _('Amministratore') if current_user.is_admin else _('Utente') }}{% else %}{{ _('Account Personale') }}{% endif %}</span>
+            </span>
+          </button>
+          {% if signed_in %}
+          <div class="user-menu" id="user-menu" role="menu" hidden>
+            <a href="{{ url_for('settings.account') }}" class="user-menu-item" role="menuitem"><i class="bi bi-person-gear"></i> {{ _('Il tuo account') }}</a>
+            <form method="POST" action="{{ url_for('auth.logout') }}" class="user-menu-form">
+              <button type="submit" class="user-menu-item" role="menuitem"><i class="bi bi-box-arrow-right"></i> {{ _('Esci') }}</button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        <a href="{{ url_for('settings.index') }}" class="sidebar-tool sidebar-settings" title="{{ _('Impostazioni') }}"
+           aria-label="{{ _('Impostazioni') }}" {% if request.endpoint and request.endpoint.startswith('settings.') %}aria-current="page"{% endif %}>
+          <i class="bi bi-gear"></i>
+        </a>
       </div>
     </div>
 
@@ -327,6 +350,12 @@
       <button id="sidebar-open" type="button" class="btn btn-ghost btn-icon sidebar-open-btn"
               aria-controls="sidebar" aria-label="{{ _('Espandi il menu') }}" title="{{ _('Espandi il menu') }}">
         <i class="bi bi-list" style="font-size:20px;"></i>
+      </button>
+
+      <!-- Back to the page seen before (in the app or in a browser): hidden when there is none -->
+      <button id="nav-back" type="button" class="btn btn-ghost btn-icon nav-back" hidden
+              aria-label="{{ _('Torna indietro') }}" title="{{ _('Torna alla pagina precedente') }}">
+        <i class="bi bi-arrow-left"></i>
       </button>
 
       <div class="topbar-title">
@@ -356,30 +385,6 @@
         </a>
         {% endfor %}{% endif %}
         {% endif %}
-
-        <!-- Light / dark mode -->
-        <button type="button" id="theme-toggle" class="btn btn-ghost btn-icon theme-toggle"
-                aria-label="{{ _('Passa alla modalità scura') }}" title="{{ _('Passa alla modalità scura') }}">
-          <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
-          <i class="bi bi-moon-stars-fill theme-icon-dark" aria-hidden="true"></i>
-        </button>
-
-        <!-- Reminders -->
-        {% if shown('notifications') %}
-        {% set reminder_count = notification_count() %}
-        <a href="{{ url_for('notifications.index') }}" class="btn btn-ghost btn-icon topbar-bell"
-           title="{{ _('Promemoria') }}" aria-label="{{ _('Promemoria') }}{{ ' (%d)'|format(reminder_count) if reminder_count }}"
-           {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
-          <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
-        </a>
-        {% endif %}
-
-        <!-- Settings -->
-        <a href="{{ url_for('settings.index') }}" class="btn btn-ghost btn-icon topbar-settings"
-           title="{{ _('Impostazioni') }}" aria-label="{{ _('Impostazioni') }}"
-           {% if request.endpoint and request.endpoint.startswith('settings.') %}aria-current="page"{% endif %}>
-          <i class="bi bi-gear"></i>
-        </a>
 
         <span class="text-xs text-muted">
           {{ moment().format('D MMM YYYY') if moment is defined else '' }}
@@ -413,6 +418,7 @@
 <script>window.MFP_TEXT = {{ {
   "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
   "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
+  "ok": _("OK"), "cancel": _("Annulla"),
 }|tojson }};</script>
 <!-- Chart.js and its helpers: only on the pages with charts -->
 {% block chart_scripts %}{% endblock %}

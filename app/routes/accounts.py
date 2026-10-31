@@ -30,6 +30,8 @@ def _account_from_form(account: Account) -> Account:
     account.opening_balance = form_decimal("opening_balance", _("Saldo iniziale"), allow_negative=True) or 0
     account.iban_tail = (form_text("iban_tail", _("Ultime cifre IBAN / carta")) or "")[-10:] or None
     owners.set_iban(account, request.form.get("iban"))
+    account.bank = form_text("bank", _("Banca"))
+    account.account_number = (form_text("account_number", _("Numero conto")) or "").replace(" ", "") or None
     account.notes = form_text("notes", _("Note"))
     account.owner = family.from_form()
     account.active = "active" in request.form
@@ -129,6 +131,15 @@ def edit(account_id):
                          lambda a: _("Conto «%(name)s» aggiornato.", name=a.name),
                          lambda a: url_for("accounts.detail", account_id=a.id))
     return _render_form(account, {})
+
+
+@accounts_bp.route("/<int:account_id>/favorite", methods=["POST"])
+def favorite(account_id):
+    """The star: this account becomes the favourite one (proposed when importing a statement); again, none is."""
+    account = db.get_or_404(Account, account_id)
+    accounts.set_favorite(None if account.favorite else account)
+    db.session.commit()
+    return redirect(request.form.get("next") or url_for("accounts.index"))
 
 
 @accounts_bp.route("/<int:account_id>/delete", methods=["POST"])

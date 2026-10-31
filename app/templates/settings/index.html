@@ -22,8 +22,7 @@
     {% if hint %}<div class="toggle-hint">{{ hint }}</div>{% endif %}
   </div>
   <label class="toggle-switch">
-    <input type="checkbox" name="{{ key }}" {% if settings[key] %}checked{% endif %}
-           onchange="this.form.submit()" />
+    <input type="checkbox" name="{{ key }}" {% if settings[key] %}checked{% endif %} />
     <span class="toggle-slider"></span>
   </label>
 </div>
@@ -35,19 +34,22 @@
 
   <!-- ── Left nav ───────────────────────────────────────────────────────── -->
   <nav class="settings-nav">
-    <a href="#dashboard"   class="settings-nav-item active" onclick="scrollTo(this)">
+    <a href="#dashboard" data-tab="dashboard"   class="settings-nav-item active">
       <i class="bi bi-speedometer2"></i> {{ _('Dashboard') }}
     </a>
-    <a href="#moduli"      class="settings-nav-item" onclick="scrollTo(this)">
+    <a href="#online" data-tab="online" class="settings-nav-item">
+      <i class="bi bi-globe"></i> {{ _('Dati da internet') }}
+    </a>
+    <a href="#moduli" data-tab="moduli"      class="settings-nav-item">
       <i class="bi bi-grid-3x3-gap"></i> {{ _('Moduli') }}
     </a>
-    <a href="#contabilita" class="settings-nav-item" onclick="scrollTo(this)">
+    <a href="#contabilita" data-tab="contabilita" class="settings-nav-item">
       <i class="bi bi-bar-chart-line"></i> {{ _('Contabilità') }}
     </a>
-    <a href="#lifestyle"   class="settings-nav-item" onclick="scrollTo(this)">
+    <a href="#lifestyle" data-tab="lifestyle"   class="settings-nav-item">
       <i class="bi bi-pie-chart"></i> {{ _('Stile di Vita') }}
     </a>
-    <a href="#visualizza"  class="settings-nav-item" onclick="scrollTo(this)">
+    <a href="#visualizza" data-tab="visualizza"  class="settings-nav-item">
       <i class="bi bi-palette"></i> {{ _('Visualizzazione') }}
     </a>
     <a href="{{ url_for('settings.account') }}" class="settings-nav-item">
@@ -84,6 +86,7 @@
   <div>
 
     <!-- ── DASHBOARD ───────────────────────────────────────────────────── -->
+    <div class="settings-tab" data-tab="dashboard">
     <div class="settings-section" id="dashboard">
       <div class="settings-section-header">
         <i class="bi bi-speedometer2" style="color:var(--clr-primary);"></i>
@@ -91,11 +94,50 @@
       </div>
       <div class="settings-section-body">
         {{ toggle('dashboard_net_worth',    _('Patrimonio Netto'),    _('Scheda con il valore netto totale (attività − passività)')) }}
-        {{ toggle('dashboard_income',       _('Entrate Mensili'),     _('Totale entrate del mese in corso')) }}
-        {{ toggle('dashboard_expenses',     _('Uscite Mensili'),      _('Totale uscite del mese in corso')) }}
-        {{ toggle('dashboard_savings_rate', _('Tasso di Risparmio'),  _('Percentuale del reddito lordo risparmiata')) }}
+        {{ toggle('dashboard_income',       _('Entrate'),             _('Totale delle entrate nel periodo della scheda (scelto nella scheda)')) }}
+        {{ toggle('dashboard_expenses',     _('Uscite'),              _('Totale delle uscite nel periodo della scheda (scelto nella scheda)')) }}
+        {{ toggle('dashboard_savings_rate', _('Tasso di Risparmio'),  _('Parte delle entrate risparmiata nel periodo della scheda')) }}
         {{ toggle('dashboard_investments',  _('Investimenti'),        _('Valore totale del portafoglio investimenti')) }}
-        {{ toggle('dashboard_debt',         _('Debito Totale'),       _('Somma di tutti i debiti in corso')) }}
+        {{ toggle('dashboard_debt',         _('Debito Totale'),       _('Somma di tutti i debiti in corso, con il TAN medio')) }}
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-header">
+        <i class="bi bi-calendar3" style="color:var(--clr-primary);"></i>
+        {{ _('Dashboard — Periodi e previsioni delle schede') }}
+      </div>
+      <div class="settings-section-body">
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <label class="toggle-label" for="s-window">{{ _('Periodo predefinito delle schede') }}</label>
+            <div class="toggle-hint">{{ _('Per entrate, uscite e tasso di risparmio, finché non scegli un periodo nella scheda. Gli ultimi N mesi li scrivi tu.') }}</div>
+          </div>
+          <div class="window-default">
+            <select id="s-window" name="dashboard_default_window" class="form-select" style="width:auto;">
+              {% for key, label in window_presets %}<option value="{{ key }}" {{ 'selected' if default_window.period == key }}>{{ label }}</option>{% endfor %}
+              <option value="last_n" {{ 'selected' if default_window.period == 'last_n' }}>{{ _('Ultimi N mesi') }}</option>
+            </select>
+            <input type="number" name="dashboard_default_months" min="1" max="120" class="form-control" style="width:80px;"
+                   value="{{ default_window.n or 3 }}" aria-label="{{ _('Numero di mesi') }}" />
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <div class="toggle-label">{{ _('Periodi scelti nelle schede') }}</div>
+            <div class="toggle-hint">{{ _('Riporta tutte le schede al periodo predefinito (il mese in corso).') }}</div>
+          </div>
+          <button type="submit" form="reset-windows-form" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina i periodi') }}</button>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <label class="toggle-label" for="s-forecast">{{ _('Previsione sotto le schede') }}</label>
+            <div class="toggle-hint">{{ _('Entrate, uscite e risparmio previsti, quando ci sono almeno 3 mesi di storico. Un clic porta alle Previsioni.') }}</div>
+          </div>
+          <select id="s-forecast" name="dashboard_forecast" class="form-select" style="width:auto;">
+            {% for key, label in forecasts.items() %}<option value="{{ key }}" {{ 'selected' if forecast_choice == key }}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
       </div>
     </div>
 
@@ -105,28 +147,40 @@
         {{ _('Dashboard — Sezioni') }}
       </div>
       <div class="settings-section-body">
-        {{ toggle('dashboard_cashflow_chart', _('Grafico Flusso di Cassa'),   _('Grafico entrate/uscite degli ultimi 12 mesi')) }}
-        {{ toggle('dashboard_expense_pie',    _('Grafico Spese per Categoria'),_("Torta con la distribuzione delle spese dell'anno")) }}
-        {{ toggle('dashboard_income_pie',     _('Grafico Entrate per Categoria'),_("Torta con la distribuzione delle entrate dell'anno")) }}
-        {{ toggle('dashboard_category_trends', _('Categorie nel tempo'), _('Linee mese per mese per ogni categoria di entrata e di uscita')) }}
-        {{ toggle('dashboard_cumulative',     _('Entrate e uscite cumulate'), _("Istogramma mese per mese con i totali progressivi dell'anno")) }}
-        {{ toggle('dashboard_net',            _('Netto mensile e totale annuo'), _("Il netto di ogni mese (sotto lo zero se negativo) e le tre barre dell'anno")) }}
-        {{ toggle('dashboard_savings_trend', _('Tasso di risparmio mese per mese'), _("La parte delle entrate di ogni mese che resta, confrontata con l'anno prima")) }}
-        {{ toggle('dashboard_sankey',         _('Flusso del denaro (Sankey)'), _("Da dove arrivano le entrate e dove vanno: categorie di entrata → uscite e risparmio")) }}
-        {{ toggle('dashboard_recent_tx',      _('Transazioni Recenti'),        _('Tabella con le ultime transazioni registrate')) }}
-        {{ toggle('dashboard_health',         _('Salute Finanziaria'),         _('Barre di progresso per risparmio, debito e mesi di autonomia')) }}
+        <p class="toggle-hint" style="padding-top:10px;">{{ _('Nello stesso ordine della dashboard: per spostarli, «Modifica» nella dashboard.') }}</p>
+        {% set section_texts = {
+          'dashboard_cashflow_chart': (_('Flusso di cassa e risparmio'), _('Entrate, uscite e risparmio degli ultimi 12 mesi, con il risparmio cumulato')),
+          'dashboard_net_worth_trend': (_('Andamento del patrimonio'), _('Liquidità, investimenti, altri beni e debiti a fine mese, con il patrimonio netto')),
+          'dashboard_expense_pie': (_('Grafico Spese per Categoria'), _("Torta con la distribuzione delle spese: anno, semestre o trimestre")),
+          'dashboard_category_trends': (_('Categorie nel tempo'), _('Linee mese per mese per ogni categoria di entrata e di uscita')),
+          'dashboard_income_pie': (_('Grafico Entrate per Categoria'), _("Torta con la distribuzione delle entrate: anno, semestre o trimestre")),
+          'dashboard_sankey': (_('Flusso del denaro (Sankey)'), _("Da dove arrivano le entrate e dove vanno: categorie di entrata → uscite e risparmio")),
+          'dashboard_net': (_("Totale dell'anno"), _("Le tre barre dell'anno: entrate, uscite e netto")),
+          'dashboard_savings_trend': (_('Tasso di risparmio mese per mese'), _("La parte delle entrate di ogni mese che resta, confrontata con l'anno prima")),
+          'dashboard_recent_tx': (_('Transazioni'), _('Le ultime registrate o le più grandi del periodo, anche di una sola categoria')),
+          'dashboard_health': (_('Salute Finanziaria'), _('Risparmio, debito, mesi di autonomia e l’impatto di un imprevisto')),
+        } %}
+        {% for key in dashboard_order %}
+        {{ toggle(key, section_texts[key][0], section_texts[key][1]) }}
+        {% if key == 'dashboard_cashflow_chart' %}
+        {{ toggle('dashboard_cumulative', _('Entrate e uscite cumulate nel flusso di cassa'), _('Mostra anche le linee dei totali progressivi (si accendono e spengono dalla legenda del grafico)')) }}
+        {% endif %}
+        {% endfor %}
         <div class="toggle-wrap">
           <div class="toggle-info">
             <label class="toggle-label" for="s-autonomy">{{ _('Obiettivo di mesi di autonomia') }}</label>
             <div class="toggle-hint">{{ _('Quanti mesi di spese vuoi coprire con la liquidità (di solito da 3 a 12)') }}</div>
           </div>
-          <select id="s-autonomy" name="autonomy_target" class="form-select" style="width:auto;" onchange="this.form.submit()">
+          <select id="s-autonomy" name="autonomy_target" class="form-select" style="width:auto;">
             {% for n in autonomy_targets %}<option value="{{ n }}" {{ 'selected' if settings.autonomy_target == n|string }}>{{ _('%(n)s mesi', n=n) }}</option>{% endfor %}
           </select>
         </div>
       </div>
     </div>
 
+    </div><!-- /tab dashboard -->
+
+    <div class="settings-tab" data-tab="online">
     <div class="settings-section" id="online">
       <div class="settings-section-header">
         <i class="bi bi-globe" style="color:var(--clr-primary);"></i>
@@ -151,7 +205,10 @@
       </div>
     </div>
 
+    </div><!-- /tab online -->
+
     <!-- ── MODULI ──────────────────────────────────────────────────────── -->
+    <div class="settings-tab" data-tab="moduli">
     <div class="settings-section" id="moduli">
       <div class="settings-section-header">
         <i class="bi bi-grid-3x3-gap" style="color:var(--clr-primary);"></i>
@@ -171,7 +228,10 @@
       </div>
     </div>
 
+    </div><!-- /tab moduli -->
+
     <!-- ── CONTABILITÀ ─────────────────────────────────────────────────── -->
+    <div class="settings-tab" data-tab="contabilita">
     <div class="settings-section" id="contabilita">
       <div class="settings-section-header">
         <i class="bi bi-bar-chart-line" style="color:var(--clr-primary);"></i>
@@ -184,7 +244,10 @@
       </div>
     </div>
 
+    </div><!-- /tab contabilita -->
+
     <!-- ── LIFESTYLE ───────────────────────────────────────────────────── -->
+    <div class="settings-tab" data-tab="lifestyle">
     <div class="settings-section" id="lifestyle">
       <div class="settings-section-header">
         <i class="bi bi-pie-chart" style="color:var(--clr-primary);"></i>
@@ -195,7 +258,10 @@
       </div>
     </div>
 
+    </div><!-- /tab lifestyle -->
+
     <!-- ── VISUALIZZAZIONE ─────────────────────────────────────────────── -->
+    <div class="settings-tab" data-tab="visualizza">
     <div class="settings-section" id="visualizza">
       <div class="settings-section-header">
         <i class="bi bi-palette" style="color:var(--clr-primary);"></i>
@@ -206,7 +272,7 @@
         <div class="grid-4" style="gap:16px;">
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="s-language">{{ _('Lingua') }}{% if current_language() != 'en' %} · Language{% endif %}</label>
-            <select id="s-language" name="language" class="form-select" onchange="this.form.submit()">
+            <select id="s-language" name="language" class="form-select">
               {% for code, label in languages.items() %}
               <option value="{{ code }}" lang="{{ code }}" {{ 'selected' if settings.language == code }}>{{ label }}</option>
               {% endfor %}
@@ -214,7 +280,7 @@
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="s-currency">{{ _('Valuta dei totali') }}</label>
-            <select id="s-currency" name="currency" class="form-select" onchange="this.form.submit()">
+            <select id="s-currency" name="currency" class="form-select">
               {% for code, (sym, name) in currencies.items() %}
               <option value="{{ code }}" {{ 'selected' if settings.currency == code }}>{{ sym }} {{ code }} — {{ name|tr }}</option>
               {% endfor %}
@@ -223,7 +289,7 @@
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="s-locale">{{ _('Formato numeri') }}</label>
-            <select id="s-locale" name="locale" class="form-select" onchange="this.form.submit()">
+            <select id="s-locale" name="locale" class="form-select">
               {% for code, (label, _thousands, _decimal) in locales.items() %}
               <option value="{{ code }}" {{ 'selected' if settings.locale == code }}>{{ label }}</option>
               {% endfor %}
@@ -231,7 +297,7 @@
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="s-font">{{ _('Carattere') }}</label>
-            <select id="s-font" name="font" class="form-select" onchange="this.form.submit()">
+            <select id="s-font" name="font" class="form-select">
               {% for key, (label, family) in fonts.items() %}
               <option value="{{ key }}" style="font-family:{{ family }}, sans-serif;" {{ 'selected' if ui_font() == key }}>{{ label }}{{ ' (' ~ _('predefinito') ~ ')' if loop.first }}</option>
               {% endfor %}
@@ -239,7 +305,7 @@
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="s-date">{{ _('Formato data') }}</label>
-            <select id="s-date" name="date_format" class="form-select" onchange="this.form.submit()">
+            <select id="s-date" name="date_format" class="form-select">
               <option value="DD/MM/YYYY" {{ 'selected' if settings.date_format == 'DD/MM/YYYY' }}>{{ _('DD/MM/YYYY (italiano)') }}</option>
               <option value="YYYY-MM-DD" {{ 'selected' if settings.date_format == 'YYYY-MM-DD' }}>{{ _('YYYY-MM-DD (ISO)') }}</option>
               <option value="MM/DD/YYYY" {{ 'selected' if settings.date_format == 'MM/DD/YYYY' }}>{{ _('MM/DD/YYYY (US)') }}</option>
@@ -270,38 +336,54 @@
       </div>
     </div>
 
+    </div><!-- /tab visualizza -->
+
+    <!-- Save / cancel: nothing changes until «Salva»; «Annulla» puts back what is saved -->
+    <div class="settings-actions" id="settings-actions">
+      <span class="settings-dirty text-xs" id="settings-dirty" hidden><i class="bi bi-dot"></i> {{ _('Modifiche non salvate') }}</span>
+      <button type="button" class="btn btn-ghost" id="settings-cancel">{{ _('Annulla') }}</button>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> {{ _('Salva') }}</button>
+    </div>
+    <input type="hidden" name="tab" id="settings-tab-field" value="dashboard" />
+
   </div><!-- /right content -->
 </div><!-- /settings-layout -->
+</form>
+<form method="POST" action="{{ url_for('dashboard.reset_windows') }}" id="reset-windows-form"
+      data-confirm="{{ _('Riportare tutte le schede al periodo predefinito?') }}">
+  <input type="hidden" name="next" value="{{ url_for('settings.index', _anchor='dashboard') }}" />
 </form>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Highlight active nav item on scroll
-const sections = document.querySelectorAll('.settings-section[id]');
-const navItems = document.querySelectorAll('.settings-nav-item');
+/* Tabs: one group of settings at a time; the tab is in the address (#moduli) and survives «Salva» */
+const form = document.getElementById('settings-form');
+const tabs = [...document.querySelectorAll('.settings-tab')];
+const links = [...document.querySelectorAll('.settings-nav-item[data-tab]')];
+const tabField = document.getElementById('settings-tab-field');
+const showTab = (name) => {
+  if (!tabs.some(t => t.dataset.tab === name)) name = 'dashboard';
+  tabs.forEach(t => { t.hidden = t.dataset.tab !== name; });
+  links.forEach(l => l.classList.toggle('active', l.dataset.tab === name));
+  tabField.value = name;
+};
+links.forEach(link => link.addEventListener('click', e => {
+  e.preventDefault();
+  showTab(link.dataset.tab);
+  history.replaceState(null, '', '#' + link.dataset.tab);
+}));
+showTab(location.hash.slice(1));
 
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      navItems.forEach(n => n.classList.remove('active'));
-      const active = document.querySelector(`.settings-nav-item[href="#${entry.target.id}"]`);
-      if (active) active.classList.add('active');
-    }
-  });
-}, { threshold: 0.4 });
-
-sections.forEach(s => observer.observe(s));
-
-// Smooth scroll to section
-function scrollTo(link) {
-  const id = link.getAttribute('href').slice(1);
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    event.preventDefault();
-  }
-}
+/* Changes wait for «Salva»; «Annulla» puts back the saved values; leaving with changes asks first */
+const dirtyNote = document.getElementById('settings-dirty');
+let dirty = false;
+const markDirty = (on) => { dirty = on; dirtyNote.hidden = !on; };
+form.addEventListener('input', () => markDirty(true));
+form.addEventListener('change', () => markDirty(true));
+document.getElementById('settings-cancel').addEventListener('click', () => { form.reset(); markDirty(false); });
+form.addEventListener('submit', () => { dirty = false; });
+window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
 {% endblock %}

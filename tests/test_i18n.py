@@ -23,7 +23,7 @@ def use_english(db):
 
 def test_italian_is_the_default(client, db):
     html = client.get("/dashboard").get_data(as_text=True)
-    assert '<html lang="it"' in html and "Transazioni Recenti" in html and "Recent Transactions" not in html
+    assert '<html lang="it"' in html and "Ultime registrate" in html and "Last recorded" not in html
 
 
 def test_english_everywhere_once_chosen(client, db):
@@ -36,8 +36,8 @@ def test_english_everywhere_once_chosen(client, db):
     assert "Settings saved successfully." in html  # the flash message, too
     assert '<html lang="en"' in html and 'value="en" lang="en" selected' in html
     dashboard = client.get("/dashboard").get_data(as_text=True)
-    assert "Recent Transactions" in dashboard and "Income by category" in dashboard
-    assert "Transazioni Recenti" not in dashboard
+    assert "Last recorded" in dashboard and "Income by category" in dashboard
+    assert "Ultime registrate" not in dashboard
     # texts used by the scripts, and the theme button
     assert '"to_dark": "Switch to dark mode"' in dashboard and 'aria-label="Switch to dark mode"' in dashboard
     # chart month labels

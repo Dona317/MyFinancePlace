@@ -1,7 +1,7 @@
 """Jinja filters: amounts, numbers and dates follow Settings → Visualizzazione (services.display)."""
 from flask import Flask
 
-from app.services import categories, display, i18n
+from app.services import accounts, categories, display, i18n
 
 TONES = {"expense": "negative", "income": "positive"}
 
@@ -26,6 +26,7 @@ def register_filters(app: Flask) -> None:
         "tr": i18n.tr,                                                 # a word stored in Italian, translated
         "it_date": display.day,
         "tone": lambda tx_type: TONES.get(tx_type, ""),                # red expenses, green income
+        "masked": accounts.masked,                                     # an IBAN or account number: '•••• 3456'
     }
     for name, function in filters.items():
         app.add_template_filter(function, name)

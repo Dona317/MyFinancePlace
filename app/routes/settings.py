@@ -20,6 +20,7 @@ from app.services import (
     categories,
     category_rules,
     currency,
+    dashboard_prefs,
     desktop,
     display,
     instrument_sources,
@@ -57,7 +58,10 @@ settings_bp = APIBlueprint(
 def index():
     return render_template("settings/index.html", settings=current_settings(), defaults=DEFAULT_SETTINGS,
                            currencies=currency.CURRENCIES, locales=display.LOCALES, languages=LANGUAGES, preview_date=date(2026, 5, 25),
-                           autonomy_targets=AUTONOMY_TARGETS, desktop_app=desktop.available(), fonts=FONTS)
+                           autonomy_targets=AUTONOMY_TARGETS, desktop_app=desktop.available(), fonts=FONTS,
+                           dashboard_order=dashboard_prefs.settings_order(), window_presets=dashboard_prefs.preset_choices(),
+                           default_window=dashboard_prefs.default_window(), forecasts=dashboard_prefs.FORECASTS,
+                           forecast_choice=dashboard_prefs.forecast_choice())
 
 
 @settings_bp.route("/save", methods=["POST"])
@@ -71,12 +75,19 @@ def save():
             new_settings[key] = (form.get(key) or default).strip()
     old_base = currency.base()
     settings_store.set(SETTINGS_KEY, json.dumps(new_settings))
+    # the dashboard's own choices: the default window of the cards and the forecast under them
+    if form.get("dashboard_forecast"):
+        dashboard_prefs.save_forecast_choice(form["dashboard_forecast"])
+    period = form.get("dashboard_default_window")
+    if period:
+        dashboard_prefs.set_default_window({"period": period, "n": form.get("dashboard_default_months")})
     session.pop("settings", None)  # older versions kept them in the browser session
     flash(_("Impostazioni salvate con successo."), "success")
     if currency.base() != old_base:
         currency.recompute()
         flash(_("Totali ora in %(value)s: controvalori ricalcolati con i cambi salvati.", value=currency.base()), "success")
-    return redirect(url_for("settings.index"))
+    tab = form.get("tab", "")
+    return redirect(url_for("settings.index", _anchor=tab if re.fullmatch(r"[a-z]{2,20}", tab) else None))
 
 
 @settings_bp.route("/reset", methods=["POST"])

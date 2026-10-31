@@ -19,6 +19,7 @@ DEFAULT_SETTINGS = {
     "dashboard_debt":           True,
     # ── Dashboard sections ───────────────────────────────────────────────
     "dashboard_cashflow_chart": True,
+    "dashboard_net_worth_trend": True,
     "dashboard_expense_pie":    True,
     "dashboard_income_pie":     True,
     "dashboard_category_trends": True,

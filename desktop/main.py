@@ -222,8 +222,9 @@ class Window:
 
         self.base, self.keep_running, self.quitting = url, keep_running, False
         self.webview = webview
+        # text_select: the texts of the app can be selected and copied (pywebview blocks it by default)
         self.window = webview.create_window("MyFinancePlace", url, width=1366, height=880, min_size=(380, 600),
-                                            hidden=hidden)
+                                            hidden=hidden, text_select=True)
         self.window.events.closing += self._closing
 
     def _closing(self):

@@ -6,6 +6,9 @@
 {% block breadcrumb %}<li>{{ _('Transazioni') }}</li>{% endblock %}
 
 {% block topbar_actions %}
+  <a href="{{ url_for('accounts.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Conti bancari, carte e contanti: banca, numero, IBAN, preferito') }}">
+    <i class="bi bi-bank"></i> {{ _('Conti') }}
+  </a>
   <a href="{{ url_for('transactions.duplicates_page') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-intersect"></i> {{ _('Cerca duplicati') }}
   </a>
@@ -322,10 +325,10 @@ const refreshBulk = () => {
 };
 
 // AI classification: the selected transactions, or (none selected) those without a category
-classifyButton?.addEventListener('click', () => {
+classifyButton?.addEventListener('click', async () => {
   const selected = [...bulkBoxes].filter(b => b.checked).map(b => b.value);
   if (classifyButton.dataset.cloud === 'true' &&
-      !confirm({{ _('Le causali verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')|tojson }})) return;
+      !(await mfpConfirm({{ _('Le causali verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')|tojson }}))) return;
   const form = document.getElementById('classify-form');
   selected.forEach(id => {
     const input = document.createElement('input');

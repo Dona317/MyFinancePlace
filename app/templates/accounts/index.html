@@ -20,14 +20,31 @@
   {% if rows %}
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>{{ _('Conto') }}</th><th>{{ _('Tipo') }}</th><th class="text-right">{{ _('Saldo') }}</th><th>{{ _('Riconciliato') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <thead><tr><th style="width:36px;"><span class="sr-only">{{ _('Preferito') }}</span></th><th>{{ _('Conto') }}</th><th>{{ _('Tipo') }}</th><th class="text-right">{{ _('Saldo') }}</th><th>{{ _('Riconciliato') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
       <tbody>
         {% for row in rows %}
         {% set a = row.account %}
         <tr {% if not a.active %}class="text-muted"{% endif %}>
           <td>
+            {% if a.active %}
+            <form method="POST" action="{{ url_for('accounts.favorite', account_id=a.id) }}" class="inline-filter">
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm star-btn{{ ' on' if a.favorite }}" aria-pressed="{{ 'true' if a.favorite else 'false' }}"
+                      title="{{ _('Conto preferito: proposto quando importi un estratto conto') if a.favorite else _('Rendi preferito: proposto quando importi un estratto conto') }}">
+                <i class="bi bi-star{{ '-fill' if a.favorite }}"></i>
+              </button>
+            </form>
+            {% endif %}
+          </td>
+          <td>
             <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>{% if a.owner %} <span class="badge badge-muted">{{ owner_label(a.owner) }}</span>{% endif %}
-            {% if a.iban_tail %}<div class="text-xs text-muted font-mono">…{{ a.iban_tail }}</div>{% endif %}
+            <div class="text-xs text-muted account-codes">
+              {% if a.bank %}<span>{{ a.bank }}</span>{% endif %}
+              {% if a.account_number %}<span class="font-mono">{{ _('N.') }} {{ a.account_number|masked }}
+                <button type="button" class="copy-btn" data-copy="{{ a.account_number }}" title="{{ _('Copia il numero conto intero') }}" aria-label="{{ _('Copia il numero conto intero') }}"><i class="bi bi-copy"></i></button></span>{% endif %}
+              {% if a.iban %}<span class="font-mono">IBAN {{ a.iban|masked }}
+                <button type="button" class="copy-btn" data-copy="{{ a.iban }}" title="{{ _('Copia l’IBAN intero') }}" aria-label="{{ _('Copia l’IBAN intero') }}"><i class="bi bi-copy"></i></button></span>
+              {% elif a.iban_tail %}<span class="font-mono">…{{ a.iban_tail }}</span>{% endif %}
+            </div>
             {% if not a.active %}<span class="badge badge-muted">{{ _('chiuso') }}</span>{% endif %}
           </td>
           <td>{{ kinds.get(a.kind, a.kind) }}{% if a.currency != 'EUR' %} · {{ a.currency }}{% endif %}</td>

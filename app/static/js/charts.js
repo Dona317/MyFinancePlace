@@ -15,6 +15,7 @@ function readTheme() {
     negative:  get("--clr-negative"),
     neutral:   get("--clr-neutral"),
     warning:   get("--clr-warning"),
+    purple:    get("--chart-5"),
     textMuted: get("--clr-text-muted"),
     border:    get("--clr-border"),
     card:      get("--clr-bg-card") || "#FFFFFF",
@@ -145,6 +146,10 @@ function buildBarChart(ctx, labels, datasets, opts) {
         borderWidth: ds.type === "line" ? 2 : 0,
         tension: 0.3,
         borderRadius: 4,
+        hidden: ds.hidden || false,                      // drawn only after a click on its legend entry
+        stack: ds.stack,                                 // bars with the same stack pile up (opts.stacked)
+        order: ds.order ?? (ds.type === "line" ? 0 : 1), // lines over the bars
+        pointRadius: ds.type === "line" ? (ds.pointRadius ?? 3) : undefined,
       })),
     },
     options: {

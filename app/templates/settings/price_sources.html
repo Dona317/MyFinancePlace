@@ -79,7 +79,7 @@
         {{ custom_fields('c' ~ loop.index, s) }}
       </form>
       <form method="POST" action="{{ url_for('settings.custom_source_delete') }}" class="mt-8"
-            onsubmit='return confirm({{ _("Eliminare la fonte «%(name)s»?", name=s.name)|tojson }});'>
+            data-confirm="{{ _("Eliminare la fonte «%(name)s»?", name=s.name) }}">
         <input type="hidden" name="name" value="{{ s.name }}" />
         <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina') }}</button>
       </form>

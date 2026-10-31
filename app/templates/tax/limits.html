@@ -93,7 +93,7 @@
         <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
       </form>
       <form method="POST" action="{{ url_for('tax.limit_delete', limit_id=s.limit.id) }}" class="mt-8"
-            onsubmit='return confirm({{ _("Eliminare il tetto «%(name)s»?", name=s.limit.name)|tojson }});'>
+            data-confirm="{{ _("Eliminare il tetto «%(name)s»?", name=s.limit.name) }}">
         <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina') }}</button>
       </form>
     </details>

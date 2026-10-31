@@ -12,6 +12,9 @@ class Account(db.Model):
     opening_balance  = db.Column(db.Numeric(38, 2), nullable=False, default=0)    # before its first transaction
     iban_tail        = db.Column(db.String(10))                                     # last digits, to recognize it
     iban             = db.Column(db.String(34))  # the full IBAN: a bonifico to it is a giroconto (services.owners)
+    bank             = db.Column(db.String(80))  # the bank's name: «Fineco» for «Fineco 1» and «Fineco 2»
+    account_number   = db.Column(db.String(40))  # the bank's number of the account, kept whole (shown as last digits)
+    favorite         = db.Column(db.Boolean, nullable=False, default=False, server_default="false")  # the default one
     notes            = db.Column(db.Text)
     owner            = db.Column(db.String(80))  # whose it is (F20): a holder's name, «joint», empty = family
     active           = db.Column(db.Boolean, nullable=False, default=True)

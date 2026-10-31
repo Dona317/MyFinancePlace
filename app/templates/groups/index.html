@@ -61,7 +61,7 @@
           <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
         </form>
         <form method="POST" action="{{ url_for('groups.delete', group_id=group.id) }}" class="mt-8"
-              onsubmit='return confirm({{ _("Eliminare il gruppo «%(name)s»? Gli archivi e i loro dati restano.", name=group.name)|tojson }});'>
+              data-confirm="{{ _("Eliminare il gruppo «%(name)s»? Gli archivi e i loro dati restano.", name=group.name) }}">
           <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina il gruppo') }}</button>
         </form>
       </details>

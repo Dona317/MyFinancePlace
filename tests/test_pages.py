@@ -98,27 +98,32 @@ def test_new_transaction_chooser(client, app):
     assert 'href="/transactions/new"' in html and 'href="/export/#bank-import"' in html
 
 
-def test_theme_toggle_in_topbar(client, app):
+def test_theme_switch_and_reminders_in_the_sidebar_footer(client, app):
+    """Light/dark, reminders and settings live in the sidebar footer, always in sight (not in the top bar)."""
     html = client.get("/transactions/").get_data(as_text=True)
-    topbar = html.split('class="topbar-actions"')[1]
-    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', topbar, re.S)
-    assert toggle, "light/dark toggle missing from the top right"
-    # a single icon: the sun in light mode, the moon in dark mode (CSS shows one of the two)
+    footer = html.split('<div class="sidebar-footer">')[1].split("</aside>")[0]
+    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', footer, re.S)
+    assert toggle, "light/dark switch missing from the sidebar footer"
+    assert 'role="switch"' in toggle.group(0)
+    # the thumb carries the sun in light mode, the moon in dark mode (CSS shows one of the two)
     assert "bi-sun-fill theme-icon-light" in toggle.group(1) and "bi-moon-stars-fill theme-icon-dark" in toggle.group(1)
     assert 'aria-label="Passa alla modalità scura"' in toggle.group(1)
-    assert "data-theme-choice" not in html and "theme-switch" not in html
+    topbar = html.split('class="topbar-actions"')[1].split("</header>")[0]
+    assert 'id="theme-toggle"' not in topbar and "topbar-settings" not in html
     # the theme is applied before paint: the saved choice, else the system preference
     head = html.split("</head>")[0]
     assert "mfp-theme" in head and "prefers-color-scheme: dark" in head
 
 
-def test_settings_button_next_to_theme_switch(client, app):
+def test_settings_next_to_the_user_not_in_the_menu(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
-    after_switch = html.split('class="topbar-actions"')[1].split('id="theme-toggle"')[1]
-    button = re.search(r'<a href="(/settings/)" class="btn btn-ghost btn-icon topbar-settings"(.*?)>', after_switch, re.S)
-    assert button and 'aria-label="Impostazioni"' in button.group(2) and "aria-current" not in button.group(2)
+    nav = html.split('<nav class="sidebar-nav">')[1].split("</nav>")[0]
+    assert 'href="/settings/"' not in nav  # no longer an item of the scrolling menu
+    row = html.split('<div class="sidebar-user-row">')[1].split("</aside>")[0]
+    assert re.search(r'<a href="/settings/" class="sidebar-tool sidebar-settings"', row)
     # highlighted while on the settings pages
-    assert 'aria-current="page"' in client.get("/settings/").get_data(as_text=True).split("topbar-settings")[1][:300]
+    settings_page = client.get("/settings/").get_data(as_text=True)
+    assert 'aria-current="page"' in settings_page.split("sidebar-settings")[1][:300]
 
 
 def test_theme_tokens_are_well_formed():

@@ -104,7 +104,7 @@
           <td class="text-right">
             {% if u.id != current_user.id %}
             <form method="POST" action="{{ url_for('settings.user_delete', user_id=u.id) }}"
-                  onsubmit='return confirm({{ _("Eliminare l’utente «%(name)s»? I dati restano.", name=u.username)|tojson }});'>
+                  data-confirm="{{ _("Eliminare l’utente «%(name)s»? I dati restano.", name=u.username) }}">
               <button type="submit" class="btn btn-danger btn-sm" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina') }}"><i class="bi bi-trash"></i></button>
             </form>
             {% endif %}

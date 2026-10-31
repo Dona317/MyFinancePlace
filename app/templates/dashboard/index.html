@@ -6,6 +6,50 @@
 {% block page_title %}{{ _('Dashboard') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
 
+{% block topbar_actions %}
+  <button type="button" class="btn btn-outline btn-sm" id="layout-edit" aria-pressed="false"
+          title="{{ _('Sposta, allarga o nascondi i blocchi della dashboard') }}">
+    <i class="bi bi-pencil"></i> {{ _('Modifica') }}
+  </button>
+  <a href="{{ url_for('settings.index', _anchor='dashboard') }}" class="btn btn-ghost btn-sm" title="{{ _('Schede, blocchi e finestre temporali della dashboard nelle Impostazioni') }}">
+    <i class="bi bi-sliders"></i> {{ _('Gestisci') }}
+  </a>
+{% endblock %}
+
+{# A top card whose money adds up over a time window of its own: the window is chosen in the card and kept #}
+{% macro window_card(card, icon, title, cls, href, value=none, amount=none, forecast=none, forecast_value='') -%}
+{% set c = cards[card] %}
+<div class="kpi-card kpi-click {{ cls }}" data-href="{{ href }}" title="{{ _('Apri il dettaglio') }}">
+  <div class="kpi-icon"><i class="bi bi-{{ icon }}"></i></div>
+  <div class="kpi-label">{{ title }}</div>
+  <div class="kpi-value"{% if amount is not none %} data-amount="{{ amount }}"{% endif %}>{{ value if value is not none else '—' }}</div>
+  <div class="kpi-window" data-card="{{ card }}">
+    <button type="button" class="kpi-window-btn" aria-haspopup="true" aria-expanded="false" title="{{ _('Cambia il periodo di questa scheda') }}">
+      <i class="bi bi-calendar3"></i> <span>{{ c.label }}</span> <i class="bi bi-chevron-down"></i>
+    </button>
+    <div class="kpi-window-menu" hidden>
+      {% for key, label in window_presets %}
+      <button type="button" class="kpi-window-option{{ ' on' if c.window.period == key }}" data-period="{{ key }}">{{ label }}</button>
+      {% endfor %}
+      <form class="kpi-window-row" data-period="last_n">
+        <label>{{ _('Ultimi') }} <input type="number" name="n" min="1" max="120" value="{{ c.window.n if c.window.period == 'last_n' else 3 }}" class="form-control" /> {{ _('mesi') }}</label>
+        <button type="submit" class="btn btn-primary btn-sm">{{ _('OK') }}</button>
+      </form>
+      <form class="kpi-window-row" data-period="custom">
+        <label>{{ _('Dal') }} <input type="date" name="start" value="{{ c.window.start or c.start.isoformat() }}" class="form-control" required /></label>
+        <label>{{ _('al') }} <input type="date" name="end" value="{{ c.window.end or '' }}" class="form-control" required /></label>
+        <button type="submit" class="btn btn-primary btn-sm">{{ _('OK') }}</button>
+      </form>
+    </div>
+  </div>
+  {% if forecast %}
+  <a class="kpi-forecast" href="{{ url_for('forecast.index') }}" title="{{ _('Apri le previsioni') }}">
+    <i class="bi bi-graph-up-arrow"></i> {{ forecast.label }}: <strong>{{ forecast_value }}</strong>
+  </a>
+  {% endif %}
+</div>
+{%- endmacro %}
+
 {% block content %}
 
 {% if budget_alerts and allowed('budget') %}
@@ -17,182 +61,236 @@
 </div>
 {% endif %}
 
-<!-- KPI Row ─────────────────────────────────────────────────────────────── -->
+<!-- KPI Row: a click on a card opens its detail; the period of income, expenses and savings is chosen in the card -->
+{% set fc = forecast_figures %}
 <div class="kpi-grid mb-24">
 
   {% if settings.dashboard_net_worth %}
-  {% call kpi('bank', _('Patrimonio Netto'), amount=kpis.net_worth, cls='kpi-primary') %}{{ _('Attività − passività') }} (<a href="{{ url_for('accounting.balance_sheet') }}">{{ _('dettaglio') }}</a>){% endcall %}
+  <div class="kpi-card kpi-click kpi-primary" data-href="{{ url_for('accounting.balance_sheet') }}" title="{{ _('Apri lo Stato Patrimoniale') }}">
+    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
+    <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
+    <div class="kpi-value" data-amount="{{ kpis.net_worth }}">—</div>
+    <div class="kpi-sub">{{ _('Attività − passività, oggi') }}</div>
+  </div>
   {% endif %}
 
   {% if settings.dashboard_income %}
-  {{ kpi('arrow-down-circle', _('Entrate Mensili'), amount=kpis.monthly_income, cls='kpi-positive', sub=(_('Questo mese'))) }}
+  {% set c = cards.income %}
+  {{ window_card('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive',
+                 url_for('reports.index', tab='income', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
+                 amount=c.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else '')) }}
   {% endif %}
 
   {% if settings.dashboard_expenses %}
-  {{ kpi('arrow-up-circle', _('Uscite Mensili'), amount=kpis.monthly_expenses, cls='kpi-negative', sub=(_('Questo mese'))) }}
+  {% set c = cards.expenses %}
+  {{ window_card('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative',
+                 url_for('reports.index', tab='spending', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
+                 amount=c.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else '')) }}
   {% endif %}
 
   {% if settings.dashboard_savings_rate %}
-  {{ kpi('piggy-bank', _('Tasso di Risparmio'), value="%.1f"|format(kpis.savings_rate) ~ '%', sub=_('del reddito di questo mese')) }}
+  {% set c = cards.savings_rate %}
+  {{ window_card('savings_rate', 'piggy-bank', _('Tasso di Risparmio'), 'kpi-neutral',
+                 url_for('reports.index', tab='cashflow', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
+                 value=("%.1f"|format(c.totals.savings_rate) ~ '%'), forecast=fc,
+                 forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else '')) }}
   {% endif %}
 
   {% if settings.dashboard_investments and allowed('portfolio') %}
-  {% call kpi('briefcase', _('Investimenti'), amount=kpis.total_investments, cls='kpi-purple') %}{% if allowed('portfolio') %}<a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a>{% else %}{{ _('Portafoglio') }}{% endif %}{% endcall %}
+  <div class="kpi-card kpi-click kpi-purple" data-href="{{ url_for('portfolio.index') }}" title="{{ _('Apri il portafoglio') }}">
+    <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
+    <div class="kpi-label">{{ _('Investimenti') }}</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_investments }}">—</div>
+    <div class="kpi-sub" title="{{ _('Rendimento passato (TWR): non è una previsione') }}">
+      {% if rates.return_1y is not none %}{{ _('Rendimento ultimi 12 mesi: %(rate)s%%', rate=rates.return_1y|number(1)) }}{% else %}{{ _('Rendimento: servono 12 mesi di storico') }}{% endif %}
+      {% if rates.return_annual is not none %}<br />{{ _('Annuo dall’inizio: %(rate)s%%', rate=rates.return_annual|number(1)) }}{% endif %}
+    </div>
+  </div>
   {% endif %}
 
   {% if settings.dashboard_debt and allowed('debt') %}
-  {{ kpi('credit-card', _('Debito Totale'), amount=kpis.total_debt, cls='kpi-warning', sub=(_('In corso'))) }}
+  <div class="kpi-card kpi-click kpi-warning" data-href="{{ url_for('debt.index') }}" title="{{ _('Apri i debiti') }}">
+    <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
+    <div class="kpi-label">{{ _('Debito Totale') }}</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_debt }}">—</div>
+    <div class="kpi-sub" title="{{ _('Tasso annuo nominale (TAN) medio, pesato sul debito residuo') }}">
+      {% if rates.debt_rate is not none %}{{ _('TAN medio %(rate)s%%', rate=rates.debt_rate|number(2)) }}{% else %}{{ _('In corso') }}{% endif %}
+    </div>
+  </div>
   {% endif %}
 
 </div>
 
-<!-- Charts Row ──────────────────────────────────────────────────────────── -->
-{% if settings.dashboard_cashflow_chart %}
-<div class="card mb-16">
-  <div class="card-header">
-    <div>
-      <div class="card-header-title">{{ _('Flusso di Cassa — Ultimi 12 Mesi') }}</div>
-      <div class="card-header-sub">{{ _('Entrate vs Uscite') }}</div>
+<!-- The blocks of the page: order, width (a third, two thirds, the whole row) and visibility, saved for every visit -->
+<div class="layout-bar card mb-16" id="layout-bar" hidden>
+  <div class="card-body layout-bar-body">
+    <div class="layout-bar-text">
+      <strong>{{ _('Modifica della dashboard') }}</strong>
+      <span class="text-xs text-muted">{{ _('Trascina un blocco per spostarlo, cambia la larghezza (al massimo tre per riga) o nascondilo: l’ordine vale anche nelle Impostazioni.') }}</span>
     </div>
-    <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">
-      {{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i>
-    </a>
-  </div>
-  <div class="card-body">
-    <div class="chart-container" style="height:240px;">
-      <canvas id="cashFlowChart"></canvas>
+    <div class="layout-hidden" id="layout-hidden"></div>
+    <div class="layout-bar-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="layout-reset"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina predefinito') }}</button>
+      <button type="button" class="btn btn-primary btn-sm" id="layout-done"><i class="bi bi-check2"></i> {{ _('Fatto') }}</button>
     </div>
   </div>
 </div>
-{% endif %}
 
-{% set show_pies = settings.dashboard_expense_pie or settings.dashboard_income_pie %}
-{% if show_pies or settings.dashboard_category_trends or settings.dashboard_cumulative %}
-<!-- The year by category: totals (doughnut), month by month (lines), running totals ─────────── -->
+{% set part_labels = {'year': year|string, 'H1': _('1° semestre'), 'H2': _('2° semestre'), 'Q1': _('1° trimestre'), 'Q2': _('2° trimestre'), 'Q3': _('3° trimestre'), 'Q4': _('4° trimestre')} %}
 <div class="dash-year-head">
   <h2>{{ _('Il %(year)s per categoria', year=year) }}</h2>
-  <form method="GET">
-    <label class="sr-only" for="dash-year">{{ _('Anno') }}</label>
-    <select id="dash-year" name="year" class="form-select" onchange="this.form.submit()">
-      {% for y in ([year] + years)|unique|sort(reverse=true) %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
-    </select>
+  <form method="GET" class="dash-year-form">
+    <label class="dash-select">
+      <span class="dash-select-title">{{ _('Anno') }}</span>
+      <select id="dash-year" name="year" class="form-select" onchange="this.form.submit()">
+        {% for y in ([year] + years)|unique|sort(reverse=true) %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="dash-select">
+      <span class="dash-select-title">{{ _('Periodo delle torte') }}</span>
+      <select name="part" class="form-select" onchange="this.form.submit()">
+        <option value="year" {{ 'selected' if part == 'year' }}>{{ _('Tutto il %(year)s', year=year) }}</option>
+        <optgroup label="{{ _('Semestri') }}">
+          {% for p in ('H1', 'H2') %}<option value="{{ p }}" {{ 'selected' if part == p }}>&nbsp;&nbsp;{{ part_labels[p] }} {{ year }}</option>{% endfor %}
+        </optgroup>
+        <optgroup label="{{ _('Trimestri') }}">
+          {% for p in ('Q1', 'Q2', 'Q3', 'Q4') %}<option value="{{ p }}" {{ 'selected' if part == p }}>&nbsp;&nbsp;{{ part_labels[p] }} {{ year }}</option>{% endfor %}
+        </optgroup>
+      </select>
+    </label>
   </form>
 </div>
 
-{% macro category_pair(kind, title, trend_title, breakdown, show_pie) %}
-{% set show_trend = settings.dashboard_category_trends %}
-{% if show_pie or show_trend %}
-<div class="dash-pair{{ ' single' if not (show_pie and show_trend) }} mb-16">
-  {% if show_pie %}
+{% macro tools() -%}
+<div class="fc-widget-tools">
+  <span class="fc-drag" title="{{ _('Trascina per spostare') }}"><i class="bi bi-grip-vertical"></i> {{ caller() }}</span>
+  <button type="button" data-act="prev" title="{{ _('Sposta prima') }}"><i class="bi bi-chevron-left"></i></button>
+  <button type="button" data-act="next" title="{{ _('Sposta dopo') }}"><i class="bi bi-chevron-right"></i></button>
+  <button type="button" data-act="span" title="{{ _('Larghezza: un terzo, due terzi, riga intera') }}"><i class="bi bi-arrows-expand-vertical"></i> <span class="span-label"></span></button>
+  <button type="button" data-act="hide" title="{{ _('Nascondi') }}"><i class="bi bi-eye-slash"></i></button>
+</div>
+{%- endmacro %}
+
+{% macro pie(kind, title, breakdown) %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ title }}</div>
+      <div class="card-header-sub">{{ _('%(period)s: %(amount)s', period=part_labels[part] ~ ('' if part == 'year' else ' ' ~ year), amount=(breakdown|sum(attribute='amount'))|money) }} · {{ _('clic su una fetta per le transazioni') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if breakdown %}
+    <div class="chart-container" style="height:200px;"><canvas id="{{ kind }}PieChart" class="clickable-chart"></canvas></div>
+    {# legend as a grid: colour, category, amount and share, like the chart slices (8 colours, repeating) #}
+    <ul class="category-legend">
+      {% for c in breakdown %}
+      <li>
+        <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
+        <a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type=kind, start=pie_start.isoformat(), end=pie_last.isoformat()) }}"
+           title="{{ _('Transazioni di «%(category)s» nel periodo', category=c.category|tr) }}">{{ c.category|tr }}</a>
+        <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    {{ empty_state(text=_('Nessuna spesa in questo periodo.') if kind == 'expense' else _('Nessuna entrata in questo periodo.'), compact=True) }}
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro trend(kind, title) %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ title }}</div>
+      <div class="card-header-sub">{{ _('Mese per mese, in euro, per categoria') }}</div>
+    </div>
+    <a href="{{ url_for('reports.index', tab='spending' if kind == 'expense' else 'income', period='custom', start='%d-01-01' % year, end='%d-12-31' % year) }}" class="btn btn-ghost btn-sm">
+      {{ _('Report') }} <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:300px;"><canvas id="{{ kind }}TrendChart"></canvas></div>
+  </div>
+</div>
+{% endmacro %}
+
+{% set shock_names = {'car': _('Auto da riparare o sostituire'), 'appliance': _('Elettrodomestico (lavatrice, frigo)'), 'house': _('Casa (tetto, caldaia)'), 'health': _('Spese mediche')} %}
+
+<div class="fc-grid dash-grid" id="fc-grid">
+{% for w in layout %}
+<section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
+  {% call tools() %}{{ widgets[w.id][0] }}{% endcall %}
+
+  {% if w.id == 'cashflow' %}
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ title }}</div>
-        <div class="card-header-sub">{{ _('Totale %(year)s: %(amount)s', year=year, amount=(breakdown|sum(attribute='amount'))|money) }}</div>
+        <div class="card-header-title">{{ _('Flusso di cassa e risparmio — ultimi 12 mesi') }}</div>
+        <div class="card-header-sub">{{ _('Entrate, uscite e risparmio del mese; le barre sono il risparmio cumulato. Clic sulla legenda per mostrare anche entrate e uscite cumulate.') }}</div>
       </div>
+      <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
     </div>
+    <div class="card-body"><div class="chart-container" style="height:300px;"><canvas id="cashFlowChart"></canvas></div></div>
+  </div>
+
+  {% elif w.id == 'net_worth' %}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Andamento del patrimonio — ultimi 12 mesi') }}</div>
+        <div class="card-header-sub">{{ _('Liquidità, investimenti e altri beni sopra lo zero, debiti sotto; la linea è il patrimonio netto') }}</div>
+      </div>
+      <a href="{{ url_for('accounting.growth') }}" class="btn btn-ghost btn-sm">{{ _('Da dove viene') }} <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="card-body"><div class="chart-container" style="height:300px;"><canvas id="netWorthChart"></canvas></div></div>
+  </div>
+
+  {% elif w.id == 'expense_pie' %}{{ pie('expense', _('Uscite per categoria'), expense_breakdown) }}
+  {% elif w.id == 'income_pie' %}{{ pie('income', _('Entrate per categoria'), income_breakdown) }}
+  {% elif w.id == 'expense_trend' %}{{ trend('expense', _('Uscite per categoria nel tempo')) }}
+  {% elif w.id == 'income_trend' %}{{ trend('income', _('Entrate per categoria nel tempo')) }}
+
+  {% elif w.id == 'sankey' %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Dove va il denaro — %(year)s', year=year) }}</div>
+      <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio. Clic su una categoria per le sue transazioni.') }}</div>
+    </div></div>
     <div class="card-body">
-      {% if breakdown %}
-      <div class="chart-container" style="height:200px;"><canvas id="{{ kind }}PieChart"></canvas></div>
-      {# legend as a grid: colour, category, amount and share, like the chart slices (8 colours, repeating) #}
-      <ul class="category-legend">
-        {% for c in breakdown %}
-        <li>
-          <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
-          <span class="category-legend-name">{{ c.category|tr }}</span>
-          <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
-        </li>
+      {% if sankey %}
+      {% set s = sankey %}
+      <svg class="sankey" viewBox="-260 -34 {{ s.width + 520 }} {{ s.height + 44 }}" role="img"
+           aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
+        {% for b in s.bands %}
+        <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
+          <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
         {% endfor %}
-      </ul>
+        {% for n in s.nodes %}
+        {% set linked = n.kind in ('income', 'expense') and not n.special %}
+        {% if linked %}<a href="{{ url_for('transactions.index', category=n.label, type=n.kind, start=year_start.isoformat(), end=year_last.isoformat()) }}" class="sankey-link">{% endif %}
+        <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
+              style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
+          <title>{{ n.label|tr }}: {{ n.amount|money }}{{ ' — ' ~ _('clic per le transazioni') if linked }}</title></rect>
+        {% set right = n.kind == 'expense' %}
+        {% set middle = n.kind == 'total' %}
+        <text x="{{ n.x + s.node_width / 2 if middle else (n.x + s.node_width + 8 if right else n.x - 8) }}"
+              y="{{ n.y - 12 if middle else n.y + n.h / 2 }}"
+              text-anchor="{{ 'middle' if middle else ('start' if right else 'end') }}" dominant-baseline="middle"
+              class="sankey-label{{ ' sankey-special' if n.special }}">
+          <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" dx="6">{{ n.amount|money }}</tspan></text>
+        {% if linked %}</a>{% endif %}
+        {% endfor %}
+      </svg>
       {% else %}
-      {{ empty_state(text=_('Nessuna spesa in questo periodo.') if kind == 'expense' else _('Nessuna entrata in questo periodo.'), compact=True) }}
+      {{ empty_state(text=_('Nessun movimento in questo anno.'), compact=True) }}
       {% endif %}
     </div>
   </div>
-  {% endif %}
-  {% if show_trend %}
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <div class="card-header-title">{{ trend_title }}</div>
-        <div class="card-header-sub">{{ _('Mese per mese, in euro, per categoria') }}</div>
-      </div>
-      <a href="{{ url_for('reports.index', tab='spending' if kind == 'expense' else 'income', period='custom', start='%d-01-01' % year, end='%d-12-31' % year) }}" class="btn btn-ghost btn-sm">
-        {{ _('Report') }} <i class="bi bi-arrow-right"></i>
-      </a>
-    </div>
-    <div class="card-body">
-      <div class="chart-container" style="height:{{ 360 if show_pie else 280 }}px;"><canvas id="{{ kind }}TrendChart"></canvas></div>
-    </div>
-  </div>
-  {% endif %}
-</div>
-{% endif %}
-{% endmacro %}
 
-{{ category_pair('expense', _('Uscite per categoria'), _('Uscite per categoria nel tempo'), expense_breakdown, settings.dashboard_expense_pie) }}
-{{ category_pair('income', _('Entrate per categoria'), _('Entrate per categoria nel tempo'), income_breakdown, settings.dashboard_income_pie) }}
-
-{% if settings.dashboard_cumulative %}
-<div class="card mb-16">
-  <div class="card-header">
-    <div>
-      <div class="card-header-title">{{ _('Entrate e uscite: mese per mese e cumulate') }}</div>
-      <div class="card-header-sub">
-        {{ _('Anno %(year)s', year=year) }} ·
-        <span class="text-positive">{{ _('Entrate') }} {{ cumulative.total_income|money }}</span> ·
-        <span class="text-negative">{{ _('Uscite') }} {{ cumulative.total_expenses|money }}</span> ·
-        {{ _('Netto') }} {{ (cumulative.total_income - cumulative.total_expenses)|money }}
-      </div>
-    </div>
-  </div>
-  <div class="card-body">
-    <div class="chart-container" style="height:300px;"><canvas id="cumulativeChart"></canvas></div>
-  </div>
-</div>
-{% endif %}
-{% endif %}
-
-{% if settings.dashboard_sankey and sankey %}
-<div class="card mb-16">
-  <div class="card-header"><div>
-    <div class="card-header-title">{{ _('Dove va il denaro — %(year)s', year=year) }}</div>
-    <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio (o quanto preso dai risparmi)') }}</div>
-  </div></div>
-  <div class="card-body">
-    {% set s = sankey %}
-    <svg class="sankey" viewBox="-260 -34 {{ s.width + 520 }} {{ s.height + 44 }}" role="img"
-         aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
-      {% for b in s.bands %}
-      <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
-        <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
-      {% endfor %}
-      {% for n in s.nodes %}
-      <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
-            style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
-        <title>{{ n.label|tr }}: {{ n.amount|money }}</title></rect>
-      {% set right = n.kind == 'expense' %}
-      {% set middle = n.kind == 'total' %}
-      <text x="{{ n.x + s.node_width / 2 if middle else (n.x + s.node_width + 8 if right else n.x - 8) }}"
-            y="{{ n.y - 12 if middle else n.y + n.h / 2 }}"
-            text-anchor="{{ 'middle' if middle else ('start' if right else 'end') }}" dominant-baseline="middle"
-            class="sankey-label{{ ' sankey-special' if n.special }}">
-        <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" dx="6">{{ n.amount|money }}</tspan></text>
-      {% endfor %}
-    </svg>
-  </div>
-</div>
-{% endif %}
-
-{% if settings.dashboard_net %}
-<div class="row-2-1 mb-16 net-row">
-  <div class="card">
-    <div class="card-header"><div>
-      <div class="card-header-title">{{ _('Netto mese per mese') }}</div>
-      <div class="card-header-sub">{{ _('Entrate − uscite di ogni mese del %(year)s: sotto lo zero i mesi in perdita', year=year) }}</div>
-    </div></div>
-    <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="netChart"></canvas></div></div>
-  </div>
+  {% elif w.id == 'year_total' %}
   <div class="card">
     <div class="card-header"><div>
       <div class="card-header-title">{{ _('Totale dell\'anno %(year)s', year=year) }}</div>
@@ -200,182 +298,191 @@
     </div></div>
     <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="yearChart"></canvas></div></div>
   </div>
-</div>
-{% endif %}
 
-{% if settings.dashboard_savings_trend and savings.years %}
-<div class="card mb-16 savings-trend">
-  <div class="card-header"><div>
-    <div class="card-header-title">{{ _('Tasso di risparmio mese per mese') }}</div>
-    <div class="card-header-sub">{{ _('Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata.') }}</div>
-  </div></div>
-  <div class="card-body">
-    <div class="year-chips" id="savings-years" role="group" aria-label="{{ _('Anni da confrontare') }}">
-      {% for y in savings.years %}
-      <button type="button" class="year-chip" data-year="{{ y.year }}" aria-pressed="false">
-        <span class="year-chip-dot"></span>{{ y.year }} <span class="text-muted">{{ y.rate|number(1) }}%</span>
-      </button>
-      {% endfor %}
+  {% elif w.id == 'savings_trend' %}
+  <div class="card savings-trend">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Tasso di risparmio mese per mese') }}</div>
+      <div class="card-header-sub">{{ _('Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata.') }}</div>
+    </div></div>
+    <div class="card-body">
+      {% if savings.years %}
+      <div class="year-chips" id="savings-years" role="group" aria-label="{{ _('Anni da confrontare') }}">
+        {% for y in savings.years %}
+        <button type="button" class="year-chip" data-year="{{ y.year }}" aria-pressed="false">
+          <span class="year-chip-dot"></span>{{ y.year }} <span class="text-muted">{{ y.rate|number(1) }}%</span>
+        </button>
+        {% endfor %}
+      </div>
+      <div class="chart-container" style="height:240px;"><canvas id="savingsChart"></canvas></div>
+      {% else %}
+      {{ empty_state(text=_('Nessuna entrata registrata.'), compact=True) }}
+      {% endif %}
     </div>
-    <div class="chart-container" style="height:240px;"><canvas id="savingsChart"></canvas></div>
   </div>
-</div>
-{% endif %}
 
-<!-- Bottom Row ───────────────────────────────────────────────────────────── -->
-{% set recent_on = settings.dashboard_recent_tx and allowed('transactions') %}
-{% if recent_on or settings.dashboard_health %}
-<div style="display:grid;grid-template-columns:{% if recent_on and settings.dashboard_health %}1fr 1fr 1fr{% else %}1fr{% endif %};gap:16px;">
-
-  {% if recent_on %}
-  <div class="card" style="{% if settings.dashboard_health %}grid-column:span 2;{% endif %}">
+  {% elif w.id == 'recent' %}
+  <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ _('Transazioni Recenti') }}</div>
-      <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">
-        {{ _('Tutte') }} <i class="bi bi-arrow-right"></i>
-      </a>
+      <div class="card-header-title">{{ _('Transazioni') }}</div>
+      <div class="recent-controls">
+        <label class="sr-only" for="recent-mode">{{ _('Quali transazioni') }}</label>
+        <select id="recent-mode" class="form-select form-select-sm" title="{{ _('Le ultime registrate, o le più grandi del periodo delle uscite') }}">
+          <option value="recent">{{ _('Ultime registrate') }}</option>
+          <option value="impact">{{ _('Più impattanti · %(period)s', period=cards.expenses.label) }}</option>
+        </select>
+        <label class="sr-only" for="recent-category">{{ _('Categoria') }}</label>
+        <select id="recent-category" class="form-select form-select-sm" title="{{ _('Solo una categoria') }}">
+          <option value="">{{ _('Tutte le categorie') }}</option>
+          {% for name in (recent_transactions + impact_transactions)|map(attribute='category')|reject('none')|unique|sort %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
+        </select>
+        <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">{{ _('Tutte') }} <i class="bi bi-arrow-right"></i></a>
+      </div>
     </div>
     <div class="table-wrapper">
       <table>
         <thead>
-          <tr>
-            <th>{{ _('Data') }}</th>
-            <th>{{ _('Descrizione') }}</th>
-            <th>{{ _('Categoria') }}</th>
-            <th class="text-right">{{ _('Importo') }}</th>
-          </tr>
+          <tr><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th></tr>
         </thead>
-        <tbody id="recent-tx-body">
-          {% for tx in recent_transactions %}
-          <tr>
+        {% for mode, rows in (('recent', recent_transactions), ('impact', impact_transactions)) %}
+        <tbody class="recent-rows" data-mode="{{ mode }}" {{ 'hidden' if mode == 'impact' }}>
+          {% for tx in rows %}
+          <tr data-category="{{ tx.category or '' }}">
             <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ (tx.date|it_date) }}</td>
             <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
             <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
             {% if tx.type == 'transfer' %}
             <td class="amount" style="text-align:right;color:var(--clr-text-muted);white-space:nowrap;" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money }}</td>
             {% else %}
-            <td class="amount text-right"
-                data-amount="{{ tx.signed_amount }}">—</td>
+            <td class="amount text-right" data-amount="{{ tx.signed_amount }}">—</td>
             {% endif %}
           </tr>
           {% else %}
-          <tr>
-            <td colspan="4">
-              {% call empty_state(text=_('Nessuna transazione. Aggiungi la prima!'), icon='bi-inbox', compact=True) %}
-                <a class="btn btn-primary btn-sm" href="{{ url_for('transactions.new') }}">
-                  <i class="bi bi-plus"></i> {{ _('Aggiungi Transazione') }}
-                </a>
-              {% endcall %}
-            </td>
-          </tr>
+          <tr class="recent-empty"><td colspan="4">
+            {% call empty_state(text=_('Nessuna transazione. Aggiungi la prima!'), icon='bi-inbox', compact=True) %}
+              <a class="btn btn-primary btn-sm" href="{{ url_for('transactions.new') }}"><i class="bi bi-plus"></i> {{ _('Aggiungi Transazione') }}</a>
+            {% endcall %}
+          </td></tr>
           {% endfor %}
         </tbody>
+        {% endfor %}
       </table>
     </div>
   </div>
-  {% endif %}
 
-  {% if settings.dashboard_health %}
+  {% elif w.id == 'health' %}
   <div class="card">
-    <div class="card-header">
-      <div class="card-header-title">{{ _('Salute Finanziaria') }}</div>
-    </div>
+    <div class="card-header"><div class="card-header-title">{{ _('Salute Finanziaria') }}</div></div>
     <div class="card-body">
-
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Tasso di Risparmio') }}</span>
-          <span class="text-xs text-muted">{{ "%.0f"|format(kpis.savings_rate) }}%</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill positive" style="width:{{ [kpis.savings_rate, 100]|min }}%;"></div>
-        </div>
+      <div class="health-row">
+        <div class="health-head"><span>{{ _('Tasso di Risparmio') }}</span><span class="text-xs text-muted">{{ "%.0f"|format(kpis.savings_rate) }}%</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill positive" style="width:{{ [kpis.savings_rate, 100]|min }}%;"></div></div>
       </div>
-
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Rate / Reddito') }}</span>
-          <span class="text-xs text-muted">{{ ("%.0f"|format(kpis.debt_to_income) ~ _('%% · max 35%%')) if kpis.debt_to_income is not none else '—' }}</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill {{ 'negative' if (kpis.debt_to_income or 0) > 35 else 'warning' }}" style="width:{{ [kpis.debt_to_income or 0, 100]|min }}%;"></div>
-        </div>
+      <div class="health-row">
+        <div class="health-head"><span>{{ _('Rate / Reddito') }}</span><span class="text-xs text-muted">{{ ("%.0f"|format(kpis.debt_to_income) ~ _('%% · max 35%%')) if kpis.debt_to_income is not none else '—' }}</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill {{ 'negative' if (kpis.debt_to_income or 0) > 35 else 'warning' }}" style="width:{{ [kpis.debt_to_income or 0, 100]|min }}%;"></div></div>
       </div>
-
       {% set run = kpis.autonomy %}
-      <div style="margin-bottom:16px;" class="autonomy"
-           title="{{ _('Liquidità (%(liquid)s) divisa per la spesa media degli ultimi %(n)s mesi completi', liquid=run.liquid|money, n=run.basis) }}">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;gap:8px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">{{ _('Mesi di autonomia') }}</span>
-          <span class="text-xs text-muted">{% if run.months_all is not none %}{{ _('%(months)s / %(target)s mesi', months=run.months_all|number(1), target=autonomy_target) }}{% else %}—{% endif %}</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill {{ 'positive' if (run.months_all or 0) >= autonomy_target }}" style="width:{{ [(run.months_all or 0) / autonomy_target * 100, 100]|min }}%;"></div>
-        </div>
+      <div class="health-row autonomy" title="{{ _('Liquidità (%(liquid)s) divisa per la spesa media degli ultimi %(n)s mesi completi', liquid=run.liquid|money, n=run.basis) }}">
+        <div class="health-head"><span>{{ _('Mesi di autonomia') }}</span><span class="text-xs text-muted">{% if run.months_all is not none %}{{ _('%(months)s / %(target)s mesi', months=run.months_all|number(1), target=autonomy_target) }}{% else %}—{% endif %}</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill {{ 'positive' if (run.months_all or 0) >= autonomy_target }}" style="width:{{ [(run.months_all or 0) / autonomy_target * 100, 100]|min }}%;"></div></div>
         <div class="text-xs text-muted" style="margin-top:6px;">
-          {% if run.avg_expenses is none %}
-            {{ _('Servono almeno 3 mesi completi di spese per la media.') }}
-          {% else %}
-            {{ _('Spesa media %(amount)s al mese', amount=run.avg_expenses|money) }}{% if run.months_essential is not none %} · {{ _('solo spese fisse e non mensili: %(months)s mesi', months=run.months_essential|number(1)) }}{% endif %}
-          {% endif %}
+          {% if run.avg_expenses is none %}{{ _('Servono almeno 3 mesi completi di spese per la media.') }}
+          {% else %}{{ _('Spesa media %(amount)s al mese', amount=run.avg_expenses|money) }}{% if run.months_essential is not none %} · {{ _('solo spese fisse e non mensili: %(months)s mesi', months=run.months_essential|number(1)) }}{% endif %}{% endif %}
         </div>
       </div>
-
+      {% if health.months_cash is not none %}
+      <div class="health-row">
+        <div class="health-head"><span>{{ _('Senza stipendio, quanti mesi?') }}</span></div>
+        <div class="health-pair">
+          <div><strong>{{ health.months_cash|number(1) }}</strong> <span class="text-xs text-muted">{{ _('mesi con la liquidità') }}</span></div>
+          <div><strong>{{ health.months_invested|number(1) }}</strong> <span class="text-xs text-muted">{{ _('mesi con liquidità e investimenti') }}</span></div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="health-row">
+        <div class="health-head"><span>{{ _('Un imprevisto tipico') }}</span><span class="text-xs text-muted" title="{{ _('Risparmio medio mensile degli ultimi 12 mesi') }}">{{ _('risparmi %(amount)s/mese', amount=health.avg_saving|money) }}</span></div>
+        <table class="shock-table">
+          {% for s in health.shocks %}
+          <tr>
+            <td>{{ shock_names[s.key] }}</td>
+            <td class="amount text-right nowrap">{{ s.amount|money }}</td>
+            <td class="text-right text-xs nowrap" title="{{ _('Quota della liquidità che si porterebbe via') }}">{{ (s.share|number(0) ~ '%') if s.share is not none else '—' }}</td>
+            <td class="text-right text-xs nowrap" title="{{ _('Mesi di risparmio per ricostituirla') }}">{{ _('%(months)s mesi', months=s.months|number(1)) if s.months is not none else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
       <a href="{{ url_for('snapshots.index') }}" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px;">
         <i class="bi bi-camera"></i> {{ _('Crea Istantanea') }}
       </a>
     </div>
   </div>
   {% endif %}
-
+</section>
+{% endfor %}
 </div>
-{% endif %}
 
 {% endblock %}
 
 {% block scripts %}
 <script>
+const shown = (id) => document.querySelector(`.fc-widget[data-widget="${id}"]`) !== null;
 const cashFlow = {{ cash_flow|tojson }};
+const flow = {{ savings_flow|tojson }};
 
-{% if settings.dashboard_cashflow_chart %}
-makeLineChart('cashFlowChart', cashFlow.labels, [
-  { label: {{ _('Entrate')|tojson }},  data: cashFlow.income,   color: 'positive', fill: false },
-  { label: {{ _('Uscite')|tojson }},   data: cashFlow.expenses, color: 'negative', fill: false },
-]);
+if (shown('cashflow')) {
+  makeBarChart('cashFlowChart', cashFlow.labels, [
+    { label: {{ _('Entrate')|tojson }}, data: cashFlow.income, color: 'positive', type: 'line' },
+    { label: {{ _('Uscite')|tojson }}, data: cashFlow.expenses, color: 'negative', type: 'line' },
+    { label: {{ _('Risparmio del mese')|tojson }}, data: flow.saved, color: 'primary', type: 'line', dash: [5, 4] },
+    { label: {{ _('Risparmio cumulato')|tojson }}, data: flow.saved_cumulative, color: 'primary', axis: 'right' },
+    { label: {{ _('Entrate cumulate')|tojson }}, data: flow.income_cumulative, color: 'positive', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
+    { label: {{ _('Uscite cumulate')|tojson }}, data: flow.expenses_cumulative, color: 'negative', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
+  ], { legend: true });
+}
+
+{% if net_worth_trend %}
+const worth = {{ net_worth_trend|tojson }};
+makeBarChart('netWorthChart', worth.labels, [
+  { label: {{ _('Liquidità')|tojson }}, data: worth.cash, color: 'primary', stack: 'w' },
+  { label: {{ _('Investimenti')|tojson }}, data: worth.investments, color: 'purple', stack: 'w' },
+  { label: {{ _('Altri beni')|tojson }}, data: worth.other, color: 'neutral', stack: 'w' },
+  { label: {{ _('Debiti')|tojson }}, data: worth.debts, color: 'negative', stack: 'w' },
+  { label: {{ _('Patrimonio netto')|tojson }}, data: worth.net_worth, color: 'positive', type: 'line' },
+], { legend: true, stacked: true });
 {% endif %}
 
-// Doughnuts and monthly lines share the colours: the n-th category has the n-th palette colour in both
+// Doughnuts and monthly lines share the colours: the n-th category has the n-th palette colour in both.
+// A slice opens the transactions of its category in the same period.
 const trendLines = (trend) => trend.datasets.map(ds => (
   { label: ds.label, data: ds.data, fill: false, pointRadius: 3, ...(ds.other ? { color: 'neutral', dash: [5, 4] } : {}) }
 ));
-[['expense', {{ expense_breakdown|tojson }}, {{ expense_breakdown|map(attribute='category')|map('tr')|list|tojson }}, {{ expense_trend|tojson }}, {{ settings.dashboard_expense_pie|tojson }}],
- ['income',  {{ income_breakdown|tojson }},  {{ income_breakdown|map(attribute='category')|map('tr')|list|tojson }},  {{ income_trend|tojson }},  {{ settings.dashboard_income_pie|tojson }}]]
-  .forEach(([kind, breakdown, labels, trend, showPie]) => {
-    if (showPie && breakdown.length) {
-      makeDoughnutChart(kind + 'PieChart', labels, breakdown.map(c => c.amount), { legend: false });
+const txUrl = (category, type) => {{ url_for('transactions.index')|tojson }} + '?' + new URLSearchParams(
+  { category, type, start: {{ pie_start.isoformat()|tojson }}, end: {{ pie_last.isoformat()|tojson }} });
+[['expense', {{ expense_breakdown|tojson }}, {{ expense_breakdown|map(attribute='category')|map('tr')|list|tojson }}, {{ expense_trend|tojson }}],
+ ['income',  {{ income_breakdown|tojson }},  {{ income_breakdown|map(attribute='category')|map('tr')|list|tojson }},  {{ income_trend|tojson }}]]
+  .forEach(([kind, breakdown, labels, trend]) => {
+    if (shown(kind + '_pie') && breakdown.length) {
+      makeDoughnutChart(kind + 'PieChart', labels, breakdown.map(c => c.amount),
+        { legend: false, onClickIndex: (i) => { window.location.href = txUrl(breakdown[i].category, kind); } });
     }
-    {% if settings.dashboard_category_trends %}
-    makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend));
-    {% endif %}
+    if (shown(kind + '_trend')) makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend));
   });
 
-{% if settings.dashboard_net %}
-const netSeries = {{ cumulative|tojson }};
-const monthlyNet = netSeries.income.map((v, i) => Math.round((v - netSeries.expenses[i]) * 100) / 100);
-makeBarChart('netChart', netSeries.labels,
-  [{ label: {{ _('Netto')|tojson }}, data: monthlyNet, colors: monthlyNet.map(v => v < 0 ? 'negative' : 'positive') }],
-  { legend: false });
-const yearNet = Math.round((netSeries.total_income - netSeries.total_expenses) * 100) / 100;
-makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, {{ _('Netto')|tojson }}],
-  [{ label: {{ year|tojson }}, data: [netSeries.total_income, netSeries.total_expenses, yearNet],
-     colors: ['positive', 'negative', yearNet < 0 ? 'negative' : 'primary'] }],
-  { legend: false });
-{% endif %}
+if (shown('year_total')) {
+  const totals = {{ cumulative|tojson }};
+  const yearNet = Math.round((totals.total_income - totals.total_expenses) * 100) / 100;
+  makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, {{ _('Netto')|tojson }}],
+    [{ label: {{ year|tojson }}, data: [totals.total_income, totals.total_expenses, yearNet],
+       colors: ['positive', 'negative', yearNet < 0 ? 'negative' : 'primary'] }],
+    { legend: false });
+}
 
-{% if settings.dashboard_savings_trend and savings.years %}
+{% if savings.years %}
 // One line per year with income; the chips choose which ones are drawn (remembered in this browser).
 // By default the year shown on the dashboard and the one before.
-(function () {
+if (shown('savings_trend')) (function () {
   const savings = {{ savings|tojson }};
   const KEY = 'mfp-savings-years';
   const available = savings.years.map(y => y.year);
@@ -383,7 +490,6 @@ makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, 
   try { chosen = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { chosen = null; }
   chosen = (Array.isArray(chosen) ? chosen : [{{ year }}, {{ year - 1 }}]).filter(y => available.includes(y));
   if (!chosen.length) chosen = available.slice(0, 2);
-  // the datasets are kept: a theme switch rebuilds the chart from them, with the years chosen so far
   const datasets = savings.years.map((y, i) => ({
     label: String(y.year), data: y.rates, fill: false, pointRadius: 3,
     hidden: !chosen.includes(y.year), ...(i ? { dash: [6, 4] } : {}),
@@ -411,14 +517,144 @@ makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, 
 }());
 {% endif %}
 
-{% if settings.dashboard_cumulative %}
-const cumulative = {{ cumulative|tojson }};
-makeBarChart('cumulativeChart', cumulative.labels, [
-  { label: {{ _('Entrate del mese')|tojson }}, data: cumulative.income, color: 'positive' },
-  { label: {{ _('Uscite del mese')|tojson }}, data: cumulative.expenses, color: 'negative' },
-  { label: {{ _('Entrate cumulate')|tojson }}, data: cumulative.income_cumulative, color: 'positive', type: 'line', axis: 'right' },
-  { label: {{ _('Uscite cumulate')|tojson }}, data: cumulative.expenses_cumulative, color: 'negative', type: 'line', axis: 'right', dash: [6, 4] },
-], { legend: true });
-{% endif %}
+/* ── The transactions block: the last ones or the biggest of the period, of one category ── */
+{
+const mode = document.getElementById('recent-mode');
+const category = document.getElementById('recent-category');
+const apply = () => {
+  document.querySelectorAll('.recent-rows').forEach(body => {
+    body.hidden = body.dataset.mode !== mode.value;
+    let count = 0;
+    body.querySelectorAll('tr[data-category]').forEach(row => {
+      const ok = !category.value || row.dataset.category === category.value;
+      row.hidden = !ok || count >= 8;
+      if (ok) count += 1;
+    });
+  });
+  try { localStorage.setItem('mfp-recent-mode', mode.value); } catch (e) { /* private window */ }
+};
+if (mode && category) {
+  try { const saved = localStorage.getItem('mfp-recent-mode'); if (saved) mode.value = saved; } catch (e) { /* private window */ }
+  mode.addEventListener('change', apply);
+  category.addEventListener('change', apply);
+  apply();
+}
+}
+
+/* ── Top cards: a click opens the detail; the period menu changes the window of that card and keeps it ── */
+document.querySelectorAll('.kpi-click').forEach(card => card.addEventListener('click', e => {
+  if (e.target.closest('a, button, input, select, form, .kpi-window-menu')) return;
+  window.location.href = card.dataset.href;
+}));
+document.querySelectorAll('.kpi-window').forEach(box => {
+  const button = box.querySelector('.kpi-window-btn');
+  const menu = box.querySelector('.kpi-window-menu');
+  const open = (on) => { menu.hidden = !on; button.setAttribute('aria-expanded', String(on)); };
+  button.addEventListener('click', e => { e.stopPropagation(); open(menu.hidden); });
+  document.addEventListener('click', e => { if (!box.contains(e.target)) open(false); });
+  const save = async (window_) => {
+    const res = await fetch({{ url_for('dashboard.save_window')|tojson }}, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ card: box.dataset.card, window: window_ }),
+    });
+    if (res.ok) location.reload();
+  };
+  menu.querySelectorAll('.kpi-window-option').forEach(option =>
+    option.addEventListener('click', () => save({ period: option.dataset.period })));
+  menu.querySelectorAll('form.kpi-window-row').forEach(form => form.addEventListener('submit', e => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form));
+    save({ period: form.dataset.period, ...data });
+  }));
+});
+
+/* ── Modifica: order, width (1–3 thirds) and visibility of the blocks, saved at every change ── */
+{
+const grid = document.getElementById('fc-grid');
+const bar = document.getElementById('layout-bar');
+const editButton = document.getElementById('layout-edit');
+const hiddenList = document.getElementById('layout-hidden');
+const widgets = () => [...grid.querySelectorAll(':scope > .fc-widget')];
+const SPAN_LABELS = { 1: '⅓', 2: '⅔', 3: '1/1' };
+let editing = false, dragged = null, saveTimer = null;
+
+const paintSpans = () => widgets().forEach(w => { w.querySelector('.span-label').textContent = SPAN_LABELS[w.dataset.span]; });
+function redrawCharts(widget) {
+  requestAnimationFrame(() => (widget ? [widget] : widgets()).forEach(w =>
+    w.querySelectorAll('canvas').forEach(c => Chart.getChart(c)?.resize())));
+}
+function save() {
+  renderHidden();
+  paintSpans();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => fetch({{ url_for('dashboard.save_layout')|tojson }}, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ widgets: widgets().map(w => ({ id: w.dataset.widget, span: +w.dataset.span, visible: !w.hidden })) }),
+  }), 250);
+}
+function renderHidden() {
+  const hidden = widgets().filter(w => w.hidden);
+  hiddenList.replaceChildren(...(hidden.length ? [Object.assign(document.createElement('span'), { textContent: {{ _('Blocchi nascosti:')|tojson }} })] : []),
+    ...hidden.map(w => {
+      const chip = Object.assign(document.createElement('button'), { type: 'button', className: 'layout-chip' });
+      chip.innerHTML = '<i class="bi bi-plus-lg"></i> ';
+      chip.append(w.dataset.title);
+      chip.addEventListener('click', () => { w.hidden = false; redrawCharts(w); save(); });
+      return chip;
+    }));
+}
+function setEditing(on) {
+  editing = on;
+  document.body.classList.toggle('fc-editing', on);
+  bar.hidden = !on;
+  editButton?.setAttribute('aria-pressed', String(on));
+  widgets().forEach(w => { w.draggable = on; });
+  if (on) { renderHidden(); paintSpans(); }
+}
+editButton?.addEventListener('click', () => setEditing(!editing));
+document.getElementById('layout-done').addEventListener('click', () => setEditing(false));
+document.getElementById('layout-reset').addEventListener('click', async () => {
+  await fetch({{ url_for('dashboard.save_layout')|tojson }}, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"reset": true}' });
+  location.reload();
+});
+const visibleSibling = (w, dir) => { let s = w[dir]; while (s && s.hidden) s = s[dir]; return s; };
+grid.addEventListener('click', e => {
+  const button = e.target.closest('.fc-widget-tools [data-act]');
+  if (!button) return;
+  const w = button.closest('.fc-widget');
+  const act = button.dataset.act;
+  if (act === 'prev') { const s = visibleSibling(w, 'previousElementSibling'); if (s) s.before(w); }
+  if (act === 'next') { const s = visibleSibling(w, 'nextElementSibling'); if (s) s.after(w); }
+  if (act === 'span') { w.dataset.span = String(w.dataset.span % 3 + 1); redrawCharts(w); }
+  if (act === 'hide') { w.hidden = true; }
+  save();
+});
+grid.addEventListener('dragstart', e => {
+  const w = e.target.closest?.('.fc-widget');
+  if (!editing || !w) return;
+  dragged = w;
+  w.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', w.dataset.widget);
+});
+grid.addEventListener('dragover', e => {
+  if (!dragged) return;
+  e.preventDefault();
+  const target = e.target.closest('.fc-widget');
+  if (!target || target === dragged) return;
+  const r = target.getBoundingClientRect();
+  const before = target.dataset.span === '3' ? e.clientY < r.top + r.height / 2 : e.clientX < r.left + r.width / 2;
+  const reference = before ? target : target.nextElementSibling;
+  if (reference !== dragged && dragged.nextElementSibling !== reference) grid.insertBefore(dragged, reference);
+});
+grid.addEventListener('drop', e => { if (dragged) e.preventDefault(); });
+grid.addEventListener('dragend', () => {
+  if (!dragged) return;
+  dragged.classList.remove('dragging');
+  dragged = null;
+  redrawCharts();
+  save();
+});
+}
 </script>
 {% endblock %}

@@ -59,10 +59,11 @@ def test_dashboard_shows_the_new_charts_and_they_can_be_hidden(client, db):
     _year(db)
     html = client.get("/dashboard?year=2026").get_data(as_text=True)
     assert 'class="sankey"' in html and "Dove va il denaro" in html and "Risparmio" in html
-    assert 'id="netChart"' in html and 'id="yearChart"' in html
+    # the year's totals stay; «Netto mese per mese» was dropped (the cash-flow chart shows the monthly savings)
+    assert 'id="yearChart"' in html and 'id="netChart"' not in html
     client.post("/settings/save", data={})  # every checkbox unticked
     html = client.get("/dashboard?year=2026").get_data(as_text=True)
-    assert 'class="sankey"' not in html and 'id="netChart"' not in html
+    assert 'class="sankey"' not in html and 'id="yearChart"' not in html
 
 
 def test_savings_rate_of_every_year(app, db):
@@ -90,4 +91,4 @@ def test_savings_rate_card_lets_you_choose_the_years(client, db):
     assert "56%" in html and "mfp-savings-years" in html
     client.post("/settings/save", data={"dashboard_net": "on"})
     html = client.get("/dashboard?year=2026").get_data(as_text=True)
-    assert 'id="savingsChart"' not in html and 'id="netChart"' in html
+    assert 'id="savingsChart"' not in html and 'id="yearChart"' in html

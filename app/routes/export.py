@@ -247,7 +247,7 @@ def import_csv():
 #          "Read it with AI?" (user decides, picks the model) ──yes──▶ waiting page ──▶ editable preview ──▶ confirm
 #                                                                     (background job, see ai_jobs)
 
-def _render_preview(preview, filename: str, ai_retry: str | None = None):
+def _render_preview(preview, filename: str, ai_retry: str | None = None, text: str = ""):
     payload = _preview_serializer().dumps({
         "bank": preview.bank.key,
         "ai": bool(preview.ai_model),
@@ -261,16 +261,26 @@ def _render_preview(preview, filename: str, ai_retry: str | None = None):
         categories=known_categories(),
         tag_pool=all_tags(),
         accounts=accounts.active(),
-        suggested_account=_suggested_account(preview.bank.name),
+        suggested_account=_suggested_account(preview.bank.name, text),
         ai_retry=ai_retry,
         **ai_classification.template_context(),
     )
 
 
-def _suggested_account(bank_name: str) -> int | None:
-    """The account whose name contains the bank's (e.g. "Fineco" for a Fineco statement), if exactly one."""
-    matches = [a for a in accounts.active() if bank_name.split()[0].lower() in a.name.lower()]
-    return matches[0].id if len(matches) == 1 else None
+def _suggested_account(bank_name: str, text: str = "") -> int | None:
+    """The account the statement belongs to, in this order: the one whose IBAN or account number is written in the
+    file; the only one of that bank (its «Banca», else its name, e.g. "Fineco" for a Fineco statement); the favourite."""
+    found = accounts.found_in(text)
+    if found is not None:
+        return found.id
+    word = (bank_name.split() or [""])[0].lower()
+    if word:
+        for field in ("bank", "name"):
+            matches = [a for a in accounts.active() if word in (getattr(a, field) or "").lower()]
+            if len(matches) == 1:
+                return matches[0].id
+    favorite = accounts.favorite()
+    return favorite.id if favorite else None
 
 
 @export_bp.route("/bank", methods=["POST"])
@@ -299,7 +309,7 @@ def bank_preview():
                                   reason=_("La lettura OCR sembra incompleta."))
         if preview.ocr_doubtful:
             return redirect(url_for("export.bank_ai", token=retry))
-    return _render_preview(preview, upload.filename, ai_retry=retry)
+    return _render_preview(preview, upload.filename, ai_retry=retry, text=raw.decode("latin-1", "ignore"))
 
 
 def _ai_choices(needs_vision: bool) -> dict:
@@ -517,6 +527,10 @@ def bank_confirm():
         return redirect(url_for("export.index"))
 
     account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
+    if account is None and accounts.active():
+        # the account is required: giroconti, balances and reconciliation all depend on where the movements are
+        flash(_("Scegli il conto da cui proviene l'estratto conto: carica di nuovo il file."), "error")
+        return redirect(url_for("export.index", _anchor="bank-import"))
     created, linked, invalid, skipped = _collect_rows(data, account)
     db.session.add_all(created)
     try:

@@ -32,6 +32,35 @@ def all_accounts() -> list[Account]:
     return Account.query.order_by(Account.active.desc(), Account.name).all()
 
 
+def favorite() -> Account | None:
+    """The favourite account (the star), if it is still active: proposed for every imported statement."""
+    return Account.query.filter_by(favorite=True, active=True).first()
+
+
+def set_favorite(account: Account | None) -> None:
+    """One favourite at most: the star moves to `account` (None: no favourite)."""
+    Account.query.filter(Account.favorite.is_(True)).update({"favorite": False}, synchronize_session=False)
+    if account is not None:
+        account.favorite = True
+
+
+def masked(number: str | None) -> str:
+    """«•••• 3456»: the last four characters of an IBAN or account number, the rest hidden."""
+    clean = (number or "").replace(" ", "")
+    return f"•••• {clean[-4:]}" if clean else ""
+
+
+def found_in(text: str) -> Account | None:
+    """The active account whose IBAN or account number appears in a statement's text (spaces ignored), if one."""
+    plain = text.replace(" ", "").upper()
+    if not plain:
+        return None
+    hits = [a for a in active() for code in (a.iban, a.account_number)
+            if code and len(code.replace(" ", "")) >= 6 and code.replace(" ", "").upper() in plain]
+    unique = {a.id: a for a in hits}
+    return next(iter(unique.values())) if len(unique) == 1 else None
+
+
 def amount_in(tx: Transaction, account: Account) -> Decimal:
     """What `tx` moves on `account`, as a positive number in the account's currency."""
     own = account.currency or currency.BASE

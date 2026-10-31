@@ -87,6 +87,7 @@ function applyTheme(theme, remember) {
     const text = window.MFP_TEXT || {};
     const label = theme === "dark" ? (text.to_light || "Passa alla modalità chiara") : (text.to_dark || "Passa alla modalità scura");
     toggle.setAttribute("aria-label", label);
+    toggle.setAttribute("aria-checked", String(theme === "dark"));  // a switch: on = dark
     toggle.title = label;
   }
   if (remember) store.set("mfp-theme", theme);
@@ -236,13 +237,101 @@ function initAmounts() {
   });
 }
 
-/* Forms marked data-confirm ask before they are sent (deletions) */
-function initConfirm() {
-  document.querySelectorAll("form[data-confirm]").forEach(form => {
-    form.addEventListener("submit", e => {
-      if (!confirm(form.dataset.confirm || TEXT.confirm)) e.preventDefault();
-    });
+/* A question with OK / Annulla drawn by the app, instead of the browser's box («127.0.0.1 says…», which the desktop
+   app's window shows raw). Resolves to true for OK; ESC, Annulla or a click outside are false. */
+function mfpConfirm(message, options = {}) {
+  return new Promise(resolve => {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay open confirm-overlay";
+    overlay.innerHTML = '<div class="modal modal-sm" role="alertdialog" aria-modal="true">'
+      + '<div class="modal-body"><p class="confirm-text"></p></div>'
+      + '<div class="modal-footer"><button type="button" class="btn btn-ghost" data-answer="no"></button>'
+      + '<button type="button" class="btn" data-answer="yes"></button></div></div>';
+    overlay.querySelector(".confirm-text").textContent = message;
+    const yes = overlay.querySelector('[data-answer="yes"]');
+    const no = overlay.querySelector('[data-answer="no"]');
+    yes.textContent = options.ok || TEXT.ok || "OK";
+    yes.classList.add(options.danger ? "btn-danger" : "btn-primary");
+    no.textContent = TEXT.cancel || "Annulla";
+    const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); done(false); } };
+    const done = (answer) => {
+      overlay.remove();
+      document.removeEventListener("keydown", onKey, true);
+      resolve(answer);
+    };
+    yes.addEventListener("click", () => done(true));
+    no.addEventListener("click", () => done(false));
+    overlay.addEventListener("click", e => { if (e.target === overlay) done(false); });
+    document.addEventListener("keydown", onKey, true);
+    document.body.appendChild(overlay);
+    yes.focus();
   });
+}
+window.mfpConfirm = mfpConfirm;
+
+/* Forms marked data-confirm ask before they are sent (deletions): the first submit is held back, the answer sends it */
+function initConfirm() {
+  document.addEventListener("submit", e => {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement) || !form.hasAttribute("data-confirm")) return;
+    if (form.dataset.confirmed === "1") { delete form.dataset.confirmed; return; }
+    e.preventDefault();
+    e.stopImmediatePropagation();  // the form's own handlers run once, on the confirmed submit
+    const submitter = e.submitter && e.submitter.form === form ? e.submitter : undefined;
+    mfpConfirm(form.dataset.confirm || TEXT.confirm, { danger: true }).then(ok => {
+      if (!ok) return;
+      form.dataset.confirmed = "1";
+      form.requestSubmit(submitter);
+    });
+  }, true);
+}
+
+/* The user's menu in the sidebar footer (account, sign out): opens above the name, closes on a click elsewhere or ESC */
+function initUserMenu() {
+  const button = document.getElementById("user-menu-btn");
+  const menu = document.getElementById("user-menu");
+  if (!button || !menu) return;
+  const set = (open) => { menu.hidden = !open; button.setAttribute("aria-expanded", String(open)); };
+  button.addEventListener("click", e => { e.stopPropagation(); set(menu.hidden); });
+  document.addEventListener("click", e => { if (!menu.hidden && !menu.contains(e.target)) set(false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") set(false); });
+}
+
+/* Buttons with data-copy put that text on the clipboard (a whole IBAN shown as its last digits) */
+function initCopy() {
+  document.addEventListener("click", e => {
+    const button = e.target.closest("[data-copy]");
+    if (!button) return;
+    const done = () => {
+      button.classList.add("copied");
+      setTimeout(() => button.classList.remove("copied"), 1200);
+    };
+    const value = button.dataset.copy;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(value).then(done, () => fallbackCopy(value) && done());
+    } else if (fallbackCopy(value)) done();
+  });
+}
+
+function fallbackCopy(value) {
+  const area = Object.assign(document.createElement("textarea"), { value });
+  area.style.position = "fixed"; area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { /* not allowed */ }
+  area.remove();
+  return ok;
+}
+
+/* The ← at the left of the title: back to the page seen before, when it was a page of the app */
+function initBack() {
+  const back = document.getElementById("nav-back");
+  if (!back) return;
+  let fromApp = false;
+  try { fromApp = !!document.referrer && new URL(document.referrer).origin === window.location.origin; } catch (e) { /* no referrer */ }
+  back.hidden = !(fromApp && window.history.length > 1);
+  back.addEventListener("click", () => window.history.back());
 }
 
 /* Active menu item for pages the server does not mark (e.g. /transactions/duplicates): the longest matching link */
@@ -264,5 +353,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initFlash();
   initAmounts();
   initConfirm();
+  initUserMenu();
+  initBack();
+  initCopy();
   initActiveNav();
 });
