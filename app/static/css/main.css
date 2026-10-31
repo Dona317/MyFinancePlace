@@ -1681,3 +1681,24 @@ html.embedded .card { border: none; box-shadow: none; }
 html.focus .main-content { margin-left: 0; }
 html.focus .page-content { padding: 24px 16px 40px; }
 .form-close { font-size: 18px; margin-left: 4px; }
+
+/* ── Import: the three steps at the top of the page ── */
+.import-steps { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0 0 16px; padding: 0; font-size: var(--font-size-sm); color: var(--clr-text-muted); }
+.import-steps li { display: inline-flex; align-items: center; gap: 8px; }
+.import-steps span { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--clr-border); font-size: var(--font-size-xs); font-weight: 700; }
+.import-steps li.on { color: var(--clr-text-primary); font-weight: 600; }
+.import-steps li.on span { background: var(--clr-primary); border-color: var(--clr-primary); color: var(--clr-on-primary); }
+
+.bank-choice, .bank-name { margin-top: 4px; font-size: var(--font-size-sm); font-weight: 600; }
+
+/* ── Import preview: search, filters and sortable columns ── */
+.preview-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--clr-border-light); }
+.preview-tools input[type="search"] { flex: 1 1 260px; }
+.preview-tools .form-select { width: auto; }
+.sort-th { border: none; background: none; padding: 0; font: inherit; font-weight: inherit; color: inherit; text-transform: inherit;
+  letter-spacing: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.sort-th i { font-size: 10px; opacity: .5; }
+.sort-th.sorted { color: var(--clr-primary); }
+.sort-th.sorted i { opacity: 1; }
+#preview-table tr[hidden] { display: none; }

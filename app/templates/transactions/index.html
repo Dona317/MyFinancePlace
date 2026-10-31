@@ -15,7 +15,7 @@
   <a href="{{ url_for('transactions.duplicates_page') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-intersect"></i> {{ _('Cerca duplicati') }}
   </a>
-  <a href="{{ url_for('export.index', _anchor='bank-import') }}" class="btn btn-ghost btn-sm">
+  <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-bank2"></i> {{ _('Importa estratto conto') }}
   </a>
 {% endblock %}
@@ -344,7 +344,7 @@
       <a href="{{ url_for('transactions.new') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> {{ _('Aggiungi Manualmente') }}
       </a>
-      <a href="{{ url_for('export.index', _anchor='bank-import') }}" class="btn btn-outline">
+      <a href="{{ url_for('export.import_page') }}" class="btn btn-outline">
         <i class="bi bi-file-earmark-excel"></i> {{ _('Importa estratto conto') }}
       </a>
     </div>

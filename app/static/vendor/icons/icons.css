@@ -16,6 +16,7 @@
 .bi-arrow-clockwise::before { content: "\f116"; }
 .bi-arrow-counterclockwise::before { content: "\f117"; }
 .bi-arrow-down-circle::before { content: "\f119"; }
+.bi-arrow-down-up::before { content: "\f127"; }
 .bi-arrow-left::before { content: "\f12f"; }
 .bi-arrow-left-right::before { content: "\f12b"; }
 .bi-arrow-repeat::before { content: "\f130"; }
@@ -41,6 +42,7 @@
 .bi-border-bottom::before { content: "\f1aa"; }
 .bi-border-top::before { content: "\f1b2"; }
 .bi-box::before { content: "\f1c8"; }
+.bi-box-arrow-in-down::before { content: "\f1bc"; }
 .bi-box-arrow-in-right::before { content: "\f1be"; }
 .bi-box-arrow-right::before { content: "\f1c3"; }
 .bi-box-arrow-up::before { content: "\f1c6"; }

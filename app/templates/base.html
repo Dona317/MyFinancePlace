@@ -243,8 +243,12 @@
         </a>
         {% endif %}
         {% if shown('export') %}
+        <a href="{{ url_for('export.import_page') }}"
+           class="nav-item {% if request.endpoint in ('export.import_page', 'export.bank_preview', 'export.import_csv', 'export.bank_ai', 'export.bank_ai_wait', 'export.bank_ai_result') %}active{% endif %}">
+          <i class="bi bi-box-arrow-in-down"></i> <span class="nav-label">{{ _('Importa') }}</span>
+        </a>
         <a href="{{ url_for('export.index') }}"
-           class="nav-item {% if 'export' in request.endpoint %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'export.index' %}active{% endif %}">
           <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}

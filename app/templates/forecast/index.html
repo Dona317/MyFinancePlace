@@ -59,7 +59,7 @@
 {% if not fc.history_months and not fc.scheduled %}
 <div class="card">
   {% call empty_state(text=_('Importa un estratto conto o inserisci le transazioni di almeno un mese completo.'), icon='bi-graph-up-arrow', title=_('Servono dei movimenti per fare una previsione')) %}
-    <a href="{{ url_for('export.index', _anchor='bank-import') }}" class="btn btn-primary"><i class="bi bi-bank2"></i> {{ _('Importa estratto conto') }}</a>
+    <a href="{{ url_for('export.import_page') }}" class="btn btn-primary"><i class="bi bi-bank2"></i> {{ _('Importa estratto conto') }}</a>
   {% endcall %}
 </div>
 {% else %}

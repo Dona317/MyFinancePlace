@@ -46,15 +46,24 @@ def _preview_serializer() -> URLSafeSerializer:
 
 @export_bp.route("/")
 def index():
+    """Exports and backups (the imports have their own page)."""
     return render_template(
         "export/index.html",
         years=analytics.available_years(),
-        banks=bank_import.BANKS,
-        ai_reader=ai_extraction.describe(),
-        **ai_classification.template_context(),
         safety_copies=backup.list_safety_copies(),
         auto=encrypted_backup.status(),
         frequencies=encrypted_backup.FREQUENCIES,
+    )
+
+
+@export_bp.route("/import")
+def import_page():
+    """Bank statements and CSV / Excel files: the file, then the preview to check, then save."""
+    return render_template(
+        "export/import.html",
+        banks=bank_import.BANKS,
+        ai_reader=ai_extraction.describe(),
+        **ai_classification.template_context(),
     )
 
 
@@ -222,12 +231,12 @@ def import_csv():
     upload = uploaded_file()
     if upload is None:
         flash(_("Seleziona un file CSV o Excel da importare."), "error")
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
     try:
         headers, rows, first_line = transfer.read_table(upload.filename, upload.read())
     except transfer.TableError as exc:
         flash(str(exc), "error")
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
 
     # the chosen columns are checked against the values, then the rows open in the editable preview
     mapping = {field: request.form.get(f"col_{field}") or None for field in column_guess.FIELDS}
@@ -235,7 +244,7 @@ def import_csv():
         preview = bank_import.preview_from_mapping(headers, rows, mapping, first_line)
     except bank_import.StatementImportError as exc:
         flash(str(exc), "error")
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
     return _render_preview(preview, upload.filename)
 
 
@@ -262,6 +271,7 @@ def _render_preview(preview, filename: str, ai_retry: str | None = None, text: s
         tag_pool=all_tags(),
         accounts=accounts.active(),
         suggested_account=_suggested_account(preview.bank.name, text),
+        banks=bank_import.BANKS,
         ai_retry=ai_retry,
         **ai_classification.template_context(),
     )
@@ -289,7 +299,7 @@ def bank_preview():
     upload = uploaded_file()
     if upload is None:
         flash(_("Seleziona l'estratto conto da importare."), "error")
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
 
     bank = request.form.get("bank", bank_import.AUTO)
     raw = upload.read()
@@ -300,7 +310,7 @@ def bank_preview():
         return redirect(url_for("export.bank_ai", token=token))
     except bank_import.StatementImportError as exc:
         flash(str(exc), "error")
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
     retry = None
     if preview.ocr and ai_extraction.provider():
         # read by the light OCR: the AI is the backup, offered on the preview or straight away when OCR missed rows
@@ -343,7 +353,7 @@ def bank_ai(token):
     """Ask before reading an unreadable file with AI; on POST, start reading it with the chosen model."""
     upload = _load_upload(token)
     if upload is None:
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
     raw, meta = upload
 
     job = ai_jobs.get(token)
@@ -380,7 +390,7 @@ def bank_ai_wait(token):
     """Waiting page of a reading in progress; it polls bank_ai_status (or reloads itself without JavaScript)."""
     upload = _load_upload(token)
     if upload is None:
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
     job = ai_jobs.get(token)
     if job is None:
         return redirect(url_for("export.bank_ai", token=token))
@@ -408,7 +418,7 @@ def bank_ai_result(token):
     """The editable preview of a finished reading."""
     upload = _load_upload(token)
     if upload is None:
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
     if ai_jobs.result(token) is None:
         return redirect(url_for("export.bank_ai_wait", token=token))
     return _render_ai_result(token, upload[1])
@@ -432,7 +442,7 @@ def bank_ai_cancel(token):
         return redirect(url_for("export.bank_ai_wait", token=token))
     ai_jobs.discard(token)
     flash(_("Importazione annullata."), "success")
-    return redirect(url_for("export.index"))
+    return redirect(url_for("export.import_page"))
 
 
 PREVIEW_FIELDS = ("date", "description", "amount", "type", "category", "counterparty", "aicat")
@@ -502,8 +512,19 @@ def _collect_rows(data: dict, account: Account | None) -> tuple[list, int, list[
     return created, linked, invalid, skipped
 
 
-def _import_message(count: int, bank_key: str, account: Account | None, skipped: int, linked: int = 0) -> str:
-    bank_name = bank_import.layout_named(bank_key).name
+def _chosen_bank(read_key: str) -> tuple[str, str]:
+    """(tag, name) of the bank the movements are saved under: the one read from the file, another one picked in the
+    preview, or a name typed there («Fineco 2»)."""
+    choice = request.form.get("bank_choice", "")
+    if choice == "other":
+        name = " ".join((request.form.get("bank_name") or "").split())[:60]
+        if name:
+            return name.lower(), name
+    key = choice if choice in bank_import.BANKS else read_key
+    return key, bank_import.layout_named(key).name
+
+
+def _import_message(count: int, bank_name: str, account: Account | None, skipped: int, linked: int = 0) -> str:
     if account:
         message = _("%(count)s movimenti importati da %(bank)s sul conto «%(account)s».",
                     count=count, bank=bank_name, account=account.name)
@@ -524,13 +545,14 @@ def bank_confirm():
         data = _preview_serializer().loads(request.form.get("payload", ""))
     except BadSignature:
         flash(_("Anteprima non valida o scaduta: carica di nuovo il file."), "error")
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
 
     account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
     if account is None and any(a.kind != "cash" for a in accounts.active()):
         # the account is required: giroconti, balances and reconciliation all depend on where the movements are
         flash(_("Scegli il conto da cui proviene l'estratto conto: carica di nuovo il file."), "error")
-        return redirect(url_for("export.index", _anchor="bank-import"))
+        return redirect(url_for("export.import_page"))
+    data["bank"], bank_name = _chosen_bank(data["bank"])
     created, linked, invalid, skipped = _collect_rows(data, account)
     db.session.add_all(created)
     try:
@@ -538,9 +560,9 @@ def bank_confirm():
     except IntegrityError:
         db.session.rollback()
         flash(_("Alcuni movimenti risultano già importati: ricarica il file e riprova."), "error")
-        return redirect(url_for("export.index"))
+        return redirect(url_for("export.import_page"))
 
-    flash(_import_message(len(created), data["bank"], account, skipped, linked), "success")
+    flash(_import_message(len(created), bank_name, account, skipped, linked), "success")
     if invalid:
         flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")
     return redirect(url_for("transactions.index"))

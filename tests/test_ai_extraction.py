@@ -424,9 +424,9 @@ def test_confirm_page_without_ai_links_to_the_setup(client, db):
 
 
 def test_export_page_shows_ai_status(client, app):
-    assert "Lettura AI non attiva" in client.get("/export/").get_data(as_text=True)
+    assert "Lettura AI non attiva" in client.get("/export/import").get_data(as_text=True)
     app.config["LLM_PROVIDER"] = "ollama"
-    html = client.get("/export/").get_data(as_text=True)
+    html = client.get("/export/import").get_data(as_text=True)
     assert "Lettura AI disponibile" in html and "qwen2.5vl:7b" in html and ".jpg" in html
 
 

@@ -97,9 +97,9 @@ def test_ai_backup_errors(client, db, monkeypatch):
 
 
 def test_page_offers_the_ai_button_only_with_a_model(client, db):
-    assert 'id="import-ask-ai"' not in client.get("/export/").get_data(as_text=True)
+    assert 'id="import-ask-ai"' not in client.get("/export/import").get_data(as_text=True)
     client.application.config.update(LLM_PROVIDER="ollama", LLM_MODEL="qwen3:1.7b")
-    assert 'id="import-ask-ai"' in client.get("/export/").get_data(as_text=True)
+    assert 'id="import-ask-ai"' in client.get("/export/import").get_data(as_text=True)
 
 
 def test_a_few_broken_cells_do_not_hide_a_column(app):

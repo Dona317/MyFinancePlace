@@ -206,7 +206,7 @@ def test_reimport_flags_duplicates(client, db):
 
 def test_confirm_rejects_tampered_payload(client, db):
     response = client.post("/export/bank/confirm", data={"payload": "forged", "include": ["0"]})
-    assert response.status_code == 302 and response.location.endswith("/export/")
+    assert response.status_code == 302 and response.location.endswith("/export/import")
     assert Transaction.query.count() == 0
 
 
@@ -220,7 +220,7 @@ def test_unreadable_file_asks_before_using_ai(client, db):
 
 def test_unsupported_file_is_reported(client, db):
     response = _upload(client, b"\xd0\xcf\x11\xe0" + b"\0" * 100, "vecchio.doc")
-    assert response.status_code == 302 and response.location.endswith("/export/")
+    assert response.status_code == 302 and response.location.endswith("/export/import")
     with client.session_transaction() as session:
         assert ".docx" in session["_flashes"][0][1]
 

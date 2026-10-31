@@ -196,7 +196,7 @@ def test_every_new_bank_can_be_forced(app):
 
 
 def test_new_banks_are_offered_in_the_form(client, db):
-    html = client.get("/export/").get_data(as_text=True)
+    html = client.get("/export/import").get_data(as_text=True)
     for name in ("UniCredit", "BPER Banca", "Poste Italiane (BancoPosta)", "ING", "Revolut", "N26"):
         assert f">{name}</option>" in html
 

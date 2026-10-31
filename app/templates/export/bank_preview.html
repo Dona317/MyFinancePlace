@@ -3,7 +3,7 @@
 {% import "partials/fields.html" as f %}
 
 {% block page_title %}{{ _('Anteprima Importazione') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('export.index') }}">{{ _('Esporta') }}</a></li><li>{{ _('Estratto conto') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('export.import_page') }}">{{ _('Importa') }}</a></li><li>{{ _('Estratto conto') }}</li>{% endblock %}
 
 {% block content %}
 <datalist id="tag-pool">{% for tag in tag_pool %}<option value="{{ tag }}">{% endfor %}</datalist>
@@ -12,8 +12,14 @@
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
   <div class="kpi-card kpi-primary">
     <div class="kpi-icon"><i class="bi bi-bank2"></i></div>
-    <div class="kpi-label">{{ _('Banca') }}</div>
-    <div class="kpi-value" style="font-size:var(--font-size-xl);">{{ preview.bank.name }}</div>
+    <label class="kpi-label" for="bank-choice">{{ _('Banca') }}</label>
+    <select id="bank-choice" name="bank_choice" form="preview-form" class="form-select bank-choice" title="{{ _('Letta dal file: cambiala se è un\'altra, o scrivi un nome') }}">
+      {% for key, bank in banks.items() %}<option value="{{ key }}" {{ 'selected' if key == preview.bank.key }}>{{ bank.name }}</option>{% endfor %}
+      {% if preview.bank.key not in banks %}<option value="{{ preview.bank.key }}" selected>{{ preview.bank.name }}</option>{% endif %}
+      <option value="other">{{ _('Altra banca: scrivi il nome…') }}</option>
+    </select>
+    <input type="text" name="bank_name" form="preview-form" id="bank-name" class="form-control bank-name" maxlength="60"
+           placeholder="{{ _('es. Fineco 2') }}" hidden />
     <div class="kpi-sub" title="{{ filename }}">{{ filename|truncate(32, true) }}</div>
   </div>
   {% call kpi('list-check', _('Movimenti nuovi'), value=preview.new_rows|length) %}{% if preview.period %}{{ (preview.period[0]|it_date) }} → {{ (preview.period[1]|it_date) }}{% endif %}{% endcall %}
@@ -181,16 +187,35 @@
         </label>
       </div>
     </div>
+    <!-- Search, filter and order the rows (only what is shown changes: every row is still saved as ticked) -->
+    <div class="preview-tools">
+      <input type="search" id="preview-search" class="form-control" placeholder="{{ _('Cerca in data, descrizione, controparte, categoria, importo…') }}"
+             aria-label="{{ _('Cerca nei movimenti') }}" />
+      <select id="preview-type" class="form-select" aria-label="{{ _('Tipo') }}">
+        <option value="">{{ _('Tutti i tipi') }}</option>
+        <option value="expense">{{ _('Uscite') }}</option>
+        <option value="income">{{ _('Entrate') }}</option>
+        <option value="transfer">{{ _('Trasferimenti') }}</option>
+      </select>
+      <select id="preview-state" class="form-select" aria-label="{{ _('Righe') }}">
+        <option value="">{{ _('Tutte le righe') }}</option>
+        <option value="on">{{ _('Da importare') }}</option>
+        <option value="off">{{ _('Escluse') }}</option>
+        <option value="nocat">{{ _('Senza categoria') }}</option>
+        <option value="dup">{{ _('Già importate o possibili duplicati') }}</option>
+      </select>
+      <span class="text-xs text-muted" id="preview-count" role="status"></span>
+    </div>
     <div class="table-wrapper">
       <table id="preview-table">
         <thead>
           <tr>
             <th style="width:32px;"></th>
-            <th style="width:150px;">{{ _('Data') }}</th>
-            <th>{{ _('Descrizione') }}</th>
-            <th style="width:170px;">{{ _('Categoria') }}</th>
-            <th style="width:140px;">{{ _('Tipo') }}</th>
-            <th style="width:130px;text-align:right;">{{ _('Importo €') }}</th>
+            <th style="width:150px;"><button type="button" class="sort-th" data-sort="date">{{ _('Data') }} <i class="bi bi-arrow-down-up"></i></button></th>
+            <th><button type="button" class="sort-th" data-sort="description">{{ _('Descrizione') }} <i class="bi bi-arrow-down-up"></i></button></th>
+            <th style="width:170px;"><button type="button" class="sort-th" data-sort="category">{{ _('Categoria') }} <i class="bi bi-arrow-down-up"></i></button></th>
+            <th style="width:140px;"><button type="button" class="sort-th" data-sort="type">{{ _('Tipo') }} <i class="bi bi-arrow-down-up"></i></button></th>
+            <th style="width:130px;text-align:right;"><button type="button" class="sort-th" data-sort="amount">{{ _('Importo €') }} <i class="bi bi-arrow-down-up"></i></button></th>
             <th style="width:40px;"></th>
           </tr>
         </thead>
@@ -284,7 +309,7 @@
   {{ f.category_datalist("category-options", categories) }}
 
   <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
-    <a href="{{ url_for('export.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
+    <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
     <button type="submit" class="btn btn-primary" id="import-button">
       <i class="bi bi-check2-all"></i> {{ _('Salva') }} <span id="selected-count">0</span> {{ _('movimenti') }}
     </button>
@@ -301,6 +326,70 @@
   .ai-low { border-color: var(--clr-warning) !important; box-shadow: 0 0 0 2px rgba(230, 145, 20, .18); }
 </style>
 <script>
+// Search, filter and order the rows of the preview: what each field shows now (edits included)
+{
+const table = document.getElementById('preview-table');
+const body = table?.querySelector('tbody');
+const search = document.getElementById('preview-search');
+const typeFilter = document.getElementById('preview-type');
+const state = document.getElementById('preview-state');
+const count = document.getElementById('preview-count');
+const field = (row, name) => row.querySelector(`[name^="${name}-"]`)?.value ?? '';
+const read = (row) => {
+  if (!row.classList.contains('preview-row')) {  // a row already imported: its text only
+    const cells = row.querySelectorAll('td');
+    return { date: cells[1]?.textContent.trim().split('/').reverse().join('-') || '', description: cells[2]?.textContent.trim() || '',
+             category: cells[3]?.textContent.trim() || '', type: '', amount: Math.abs(parseFloat(row.dataset.signed) || 0),
+             text: row.textContent, on: false, dup: true };
+  }
+  const values = { date: field(row, 'date'), description: field(row, 'description'), category: field(row, 'category'),
+                   type: field(row, 'type'), amount: parseAmount(field(row, 'amount')), counterparty: field(row, 'counterparty') };
+  values.text = [values.date, values.description, values.counterparty, values.category, field(row, 'amount'), row.dataset.causale || ''].join(' ');
+  values.on = !!row.querySelector('.row-include')?.checked;
+  values.dup = !!row.querySelector('.badge-negative');
+  return values;
+};
+const apply = () => {
+  const words = (search.value || '').toLocaleLowerCase().split(/\s+/).filter(Boolean);
+  let shown = 0, total = 0;
+  body.querySelectorAll('tr.statement-row').forEach(row => {
+    const v = read(row);
+    total += 1;
+    const text = v.text.toLocaleLowerCase();
+    const ok = words.every(w => text.includes(w))
+      && (!typeFilter.value || v.type === typeFilter.value)
+      && (!state.value || (state.value === 'on' && v.on) || (state.value === 'off' && !v.on && !v.dup)
+          || (state.value === 'nocat' && !v.category) || (state.value === 'dup' && v.dup));
+    row.hidden = !ok;
+    shown += ok;
+  });
+  count.textContent = fmt({{ _('%(shown)s di %(total)s righe', shown='%(shown)s', total='%(total)s')|tojson }}, { shown, total });
+};
+let sorted = { key: null, dir: 1 };
+table?.querySelectorAll('.sort-th').forEach(button => button.addEventListener('click', () => {
+  const key = button.dataset.sort;
+  sorted = { key, dir: sorted.key === key ? -sorted.dir : 1 };
+  const rows = [...body.querySelectorAll('tr.statement-row')];
+  rows.sort((a, b) => {
+    const x = read(a)[key], y = read(b)[key];
+    return (typeof x === 'number' ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true })) * sorted.dir;
+  });
+  rows.forEach(row => body.appendChild(row));
+  table.querySelectorAll('.sort-th').forEach(b => b.classList.toggle('sorted', b === button));
+  button.dataset.dir = sorted.dir > 0 ? 'asc' : 'desc';
+}));
+[search, typeFilter, state].forEach(el => el?.addEventListener('input', apply));
+body?.addEventListener('change', apply);
+if (body) apply();
+}
+
+// The bank: the one read from the file, another one, or a name typed here (it becomes the movements' tag)
+{
+const choice = document.getElementById('bank-choice'), name = document.getElementById('bank-name');
+const showName = () => { name.hidden = choice.value !== 'other'; if (!name.hidden) name.focus(); };
+choice?.addEventListener('change', showName);
+}
+
 // The probable giroconti name the chosen account on their «this account» side
 {
 const accountSelect = document.getElementById('import-account');

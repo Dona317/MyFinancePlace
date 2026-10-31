@@ -94,13 +94,35 @@ def test_list_filters_by_a_date_range(client, db):
     assert "Dentro" in rows and "Prima" not in rows
 
 
-def test_the_pencil_opens_the_form_in_a_popup(client, db):
+def test_the_form_is_a_full_screen_page_with_a_close_button(client, db):
     tx = add(db, description="Pizza", amount=20)
-    html = client.get("/transactions/").get_data(as_text=True)
-    assert f'data-popup="/transactions/{tx.id}/edit?embed=1' in html
-    form = client.get(f"/transactions/{tx.id}/edit?embed=1").get_data(as_text=True)
-    assert 'class="embedded"' in form and 'id="sidebar"' not in form and "data-close-embed" in form
-    assert "tx-done" in client.get("/transactions/embed-done").get_data(as_text=True)
+    form = client.get(f"/transactions/{tx.id}/edit?next=/transactions/").get_data(as_text=True)
+    assert 'class="focus"' in form and 'id="sidebar"' not in form and 'id="form-close"' in form
+    assert 'href="/transactions/" class="btn btn-ghost btn-icon form-close"' in form  # the X goes back
+    assert 'id="f-type" value="expense"' in form and "type-switch" in form
+
+
+def test_a_new_transaction_is_an_expense_unless_switched_or_signed(client, db):
+    base = {"date": "2026-06-01", "description": "X"}
+    client.post("/transactions/new", data=base | {"amount": "10", "type": "expense"})
+    client.post("/transactions/new", data=base | {"amount": "10", "type": "income"})
+    client.post("/transactions/new", data=base | {"amount": "+10", "type": "expense"})  # the sign wins
+    client.post("/transactions/new", data=base | {"amount": "-10", "type": "income"})
+    assert [t.type for t in Transaction.query.order_by(Transaction.id)] == ["expense", "income", "income", "expense"]
+
+
+def test_a_recurring_one_ends_after_the_remaining_payments(client, db):
+    client.post("/transactions/new", data={"date": "2026-06-15", "description": "Rata auto", "amount": "250",
+                                           "type": "expense", "is_recurring": "on", "recurrence": "monthly",
+                                           "recurrence_end_mode": "count", "recurrence_count": "3"})
+    tx = Transaction.query.one()
+    assert tx.recurrence_end == date(2026, 8, 15)  # June, July, August
+
+
+def test_the_import_page_is_its_own(client, db):
+    imports = client.get("/export/import").get_data(as_text=True)
+    exports = client.get("/export/").get_data(as_text=True)
+    assert 'id="bank-import"' in imports and 'id="bank-import"' not in exports and 'id="backup"' in exports
 
 
 # ── Review of the register ─────────────────────────────────────────────────────

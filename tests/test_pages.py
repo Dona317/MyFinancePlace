@@ -95,7 +95,7 @@ def test_sidebar_sections_are_collapsible(client, app):
 
 def test_new_transaction_chooser(client, app):
     html = client.get("/transactions/add").get_data(as_text=True)
-    assert 'href="/transactions/new"' in html and 'href="/export/#bank-import"' in html
+    assert 'href="/transactions/new"' in html and 'href="/export/import"' in html
 
 
 def test_theme_switch_and_reminders_in_the_sidebar_footer(client, app):

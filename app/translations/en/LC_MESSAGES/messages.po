@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-31 17:42+0100\n"
+"POT-Creation-Date: 2026-10-31 21:24+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -575,6 +575,10 @@ msgid "%(shown)s di %(total)s"
 msgstr "%(shown)s of %(total)s"
 
 #, python-format
+msgid "%(shown)s di %(total)s righe"
+msgstr "%(shown)s of %(total)s rows"
+
+#, python-format
 msgid "%(size)s KB"
 msgstr "%(size)s KB"
 
@@ -689,9 +693,6 @@ msgid ""
 msgstr ""
 ", based on the bank description. The ones that change something and that "
 "the model is fairly sure about are preselected: check, correct and apply."
-
-msgid "-12,50 o 1500"
-msgstr "-12.50 or 1500"
 
 msgid ". Controllali prima di salvare."
 msgstr ". Check them before saving."
@@ -1092,6 +1093,9 @@ msgstr "High — even loosely similar descriptions"
 
 msgid "Alto"
 msgstr "High"
+
+msgid "Altra banca: scrivi il nome…"
+msgstr "Another bank: type its name…"
 
 msgid "Altre"
 msgstr "Others"
@@ -1833,9 +1837,6 @@ msgstr "Top Category"
 msgid "Categoria attuale"
 msgstr "Current category"
 
-msgid "Categoria automatica"
-msgstr "Automatic category"
-
 msgid "Categoria che la causale suggerisce"
 msgstr "Category suggested by the description"
 
@@ -1937,8 +1938,14 @@ msgstr "Search document"
 msgid "Cerca duplicati"
 msgstr "Find duplicates"
 
+msgid "Cerca in data, descrizione, controparte, categoria, importo…"
+msgstr "Search in date, description, counterparty, category, amount…"
+
 msgid "Cerca lo strumento"
 msgstr "Find the instrument"
+
+msgid "Cerca nei movimenti"
+msgstr "Search the movements"
 
 msgid "Cerca per descrizione o tag..."
 msgstr "Search by description or tag..."
@@ -1976,6 +1983,9 @@ msgstr "Close"
 
 msgid "Chiudi senza salvare"
 msgstr "Close without saving"
+
+msgid "Chiudi senza salvare e torna dov’eri"
+msgstr "Close without saving and go back where you were"
 
 #, python-format
 msgid "Chiusura %(month)s"
@@ -2127,6 +2137,9 @@ msgstr "Columns recognised: check and import."
 msgid "Colore"
 msgstr "Colour"
 
+msgid "Come finisce"
+msgstr "How it ends"
+
 msgid "Come funziona"
 msgstr "How it works"
 
@@ -2232,9 +2245,6 @@ msgstr "With whom (separated by commas)"
 
 msgid "Con e senza passaggio alle obbligazioni"
 msgstr "With and without the shift to bonds"
-
-msgid "Con il segno meno è un'uscita (-45,20), senza è un'entrata (1.200)."
-msgstr "With a minus sign it is an expense (-45.20), without it is income (1,200)."
 
 msgid ""
 "Con il suffisso di borsa: .MI Milano, .DE Xetra, .L Londra; nessuno per "
@@ -2500,6 +2510,9 @@ msgstr "Contributions for domestic workers and carers"
 msgid "Contribuzione mensile"
 msgstr "Monthly contribution"
 
+msgid "Controlla conto, banca e movimenti"
+msgstr "Check account, bank and movements"
+
 msgid "Controlla date, importi e descrizioni prima di confermare."
 msgstr "Check dates, amounts and descriptions before confirming."
 
@@ -2723,6 +2736,9 @@ msgstr "Where the change comes from"
 
 msgid "Da dove viene ogni mese"
 msgstr "Where each month comes from"
+
+msgid "Da importare"
+msgstr "To import"
 
 msgid "Da incassare"
 msgstr "To collect"
@@ -3417,6 +3433,9 @@ msgstr "Sign out"
 msgid "Esclusa dalle analisi"
 msgstr "Left out of the analyses"
 
+msgid "Escluse"
+msgstr "Left out"
+
 #, python-format
 msgid "Escluse dalle analisi: %(amount)s"
 msgstr "Left out of the analyses: %(amount)s"
@@ -3456,8 +3475,8 @@ msgstr "Export / Import"
 msgid "Esporta archivio"
 msgstr "Export archive"
 
-msgid "Esporta e Portabilità"
-msgstr "Export and Portability"
+msgid "Esporta e backup"
+msgstr "Export and backup"
 
 msgid "Esporta e importa"
 msgstr "Export and import"
@@ -3615,9 +3634,6 @@ msgstr "End"
 
 msgid "Fine (facoltativa)"
 msgstr "End (optional)"
-
-msgid "Fine Ricorrenza"
-msgstr "Recurrence End"
 
 #, python-format
 msgid "Fine garanzia: %(what)s"
@@ -3877,6 +3893,9 @@ msgstr "Transfer with «%(name)s»"
 
 msgid "Giu"
 msgstr "Jun"
+
+msgid "Già importate o possibili duplicati"
+msgstr "Already imported or possible duplicates"
 
 msgid "Già importato"
 msgstr "Already imported"
@@ -4442,6 +4461,9 @@ msgstr "Real estate"
 msgid "Imparata"
 msgstr "Learned"
 
+msgid "Importa"
+msgstr "Import"
+
 msgid "Importa CSV o Excel con mappatura manuale"
 msgstr "Import CSV or Excel with manual mapping"
 
@@ -4469,6 +4491,9 @@ msgstr "Import the selected operations"
 msgid "Importa le righe"
 msgstr "Import the lines"
 
+msgid "Importa movimenti"
+msgstr "Import movements"
+
 msgid "Importa operazioni dal broker"
 msgstr "Import operations from the broker"
 
@@ -4484,9 +4509,6 @@ msgstr "Import cancelled."
 
 msgid "Importo"
 msgstr "Amount"
-
-msgid "Importo (negativo = uscita)"
-msgstr "Amount (negative = expense)"
 
 msgid "Importo (più alti prima)"
 msgstr "Amount (largest first)"
@@ -5334,6 +5356,9 @@ msgstr "Read"
 
 msgid "Leggi una bolletta"
 msgstr "Read a bill"
+
+msgid "Letta dal file: cambiala se è un'altra, o scrivi un nome"
+msgstr "Read from the file: change it if it is another one, or type a name"
 
 msgid "Lettura AI"
 msgstr "AI reading"
@@ -6592,8 +6617,8 @@ msgstr "New rule"
 msgid "Nuova transazione"
 msgstr "New transaction"
 
-msgid "Nuova transazione: descrizione (premi «n»)"
-msgstr "New transaction: description (press «n»)"
+msgid "Nuova transazione (tasto «n»)"
+msgstr "New transaction («n» key)"
 
 msgid "Nuova voce"
 msgstr "New entry"
@@ -6964,6 +6989,13 @@ msgstr "Alternative PIR"
 msgid "PIR ordinario"
 msgstr "Ordinary PIR"
 
+msgid ""
+"Pagamenti ancora da fare, questo compreso, con la frequenza scelta: la "
+"data di fine si calcola da sola."
+msgstr ""
+"Payments still to make, this one included, at the chosen frequency: the "
+"end date is worked out by itself."
+
 msgid "Pagamenti in contanti: per molte voci serve un pagamento tracciabile"
 msgstr "Cash payments: most items need a traceable payment"
 
@@ -7172,6 +7204,9 @@ msgstr ""
 
 msgid "Per cambiare la password scrivi anche quella attuale."
 msgstr "To change the password, also enter the current one."
+
+msgid "Per caricare estratti conto, CSV o Excel:"
+msgstr "To upload statements, CSV or Excel:"
 
 msgid "Per categoria"
 msgstr "By category"
@@ -7992,6 +8027,12 @@ msgstr "Monthly Installments"
 msgid "Rate Rimanenti"
 msgstr "Remaining Installments"
 
+msgid "Rate rimanenti"
+msgstr "Remaining payments"
+
+msgid "Rate rimanenti: scrivi quanti pagamenti mancano."
+msgstr "Remaining payments: type how many payments are left."
+
 msgid "Real"
 msgstr "Real"
 
@@ -8307,6 +8348,9 @@ msgstr "Row %(line)s: description missing"
 msgid "Riga %(line)s: importo mancante o non valido"
 msgstr "Row %(line)s: amount missing or not valid"
 
+msgid "Righe"
+msgstr "Rows"
+
 #, python-format
 msgid "Righe non lette: %(lines)s"
 msgstr "Lines not read: %(lines)s"
@@ -8578,9 +8622,6 @@ msgstr "Save"
 msgid "Salva %(name)s"
 msgstr "Save %(name)s"
 
-msgid "Salva (Invio)"
-msgstr "Save (Enter)"
-
 msgid "Salva Modifiche"
 msgstr "Save Changes"
 
@@ -8748,6 +8789,9 @@ msgstr ""
 
 msgid "Scegli il conto da cui proviene l'estratto conto: carica di nuovo il file."
 msgstr "Choose the account the statement comes from: upload the file again."
+
+msgid "Scegli il file"
+msgstr "Choose the file"
 
 msgid "Scegli il file del broker da importare."
 msgstr "Choose the broker file to import."
@@ -8981,6 +9025,13 @@ msgstr "Uncategorized"
 
 msgid "Senza scadenza"
 msgstr "No expiry"
+
+msgid ""
+"Senza segno: vale la scelta Uscita / Entrata qui sopra. Scrivendo − o + "
+"davanti, la scelta cambia da sola."
+msgstr ""
+"Without a sign the Expense / Income choice above applies. Typing − or + "
+"in front changes it by itself."
 
 msgid "Senza stipendio, quanti mesi?"
 msgstr "Without a salary, how many months?"
@@ -9545,6 +9596,9 @@ msgstr "Type of %(name)s"
 msgid "Tipo di grafico"
 msgstr "Chart type"
 
+msgid "Tipo di movimento"
+msgstr "Kind of movement"
+
 msgid "Tipo di operazione sconosciuto."
 msgstr "Unknown kind of operation."
 
@@ -9633,9 +9687,6 @@ msgstr "Back to be collected"
 
 msgid "Torna indietro"
 msgstr "Back"
-
-msgid "Torna senza salvare"
-msgstr "Back without saving"
 
 msgid "Torta con la distribuzione delle entrate: anno, semestre o trimestre"
 msgstr "Pie of the income: year, half or quarter"
@@ -9781,6 +9832,9 @@ msgstr ""
 " a row or the whole row and hide the ones you don't need. Changes are "
 "saved straight away."
 
+msgid "Trasferimenti"
+msgstr "Transfers"
+
 msgid "Trasferimento"
 msgstr "Transfer"
 
@@ -9793,6 +9847,9 @@ msgstr "Transfer between accounts"
 
 msgid "Trasferimento tra i miei conti"
 msgstr "Transfer between my accounts"
+
+msgid "Trasferimento tra i tuoi conti"
+msgstr "Transfer between your accounts"
 
 #, python-format
 msgid "Trasferimento verso %(account)s"
@@ -9855,6 +9912,9 @@ msgstr "All parts are within ± %(band)s points of their target weight"
 
 msgid "Tutte le rendite"
 msgstr "All passive income"
+
+msgid "Tutte le righe"
+msgstr "All rows"
 
 msgid "Tutte le transazioni"
 msgstr "All transactions"
@@ -10772,6 +10832,9 @@ msgstr "e.g. 2,345.67"
 msgid "es. 20"
 msgstr "e.g. 20"
 
+msgid "es. 24"
+msgstr "e.g. 24"
+
 msgid "es. 3,25"
 msgstr "e.g. 3.25"
 
@@ -10807,6 +10870,9 @@ msgstr "e.g. Rossi family"
 
 msgid "es. Fineco"
 msgstr "e.g. Fineco"
+
+msgid "es. Fineco 2"
+msgstr "e.g. Fineco 2"
 
 msgid "es. Fineco, Carta Amex, Contanti"
 msgstr "e.g. Fineco, Amex Card, Cash"
@@ -11720,9 +11786,6 @@ msgstr "is the cheapest option."
 
 msgid "— Carica prima un file —"
 msgstr "— Upload a file first —"
-
-msgid "— Conto —"
-msgstr "— Account —"
 
 msgid "— Fuori dai miei conti —"
 msgstr "— Outside my accounts —"

@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Importa') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Importa movimenti') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Importa') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('accounts.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-bank"></i> {{ _('Conti') }}</a>
+  <a href="{{ url_for('export.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-box-arrow-up"></i> {{ _('Esporta e backup') }}</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Step by step: 1 the file, 2 the preview to check (account, bank, every row), 3 save -->
+<ol class="import-steps">
+  <li class="on"><span>1</span> {{ _('Scegli il file') }}</li>
+  <li><span>2</span> {{ _('Controlla conto, banca e movimenti') }}</li>
+  <li><span>3</span> {{ _('Salva') }}</li>
+</ol>
+
+<!-- Import estratto conto bancario ──────────────────────────────────── -->
+<div class="card mb-16" id="bank-import">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-bank2"></i> {{ _('Importa Estratto Conto Bancario') }}</div>
+      <div class="card-header-sub">{{ _("Excel, CSV, PDF, OFX, QIF, CAMT.053, TXT, Word o LibreOffice scaricato dall'home banking: movimenti categorizzati automaticamente, duplicati ignorati") }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"
+          style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end;">
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">{{ _('File dei movimenti (Excel, CSV, PDF, OFX/QFX, QIF, CAMT.053 XML, TXT, Word, ODS/ODT, RTF, foto)') }}</label>
+        <input type="file" name="file" class="form-control"
+               accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.doc,.ods,.odt,.rtf,.tsv,.jpg,.jpeg,.png,.webp,.ofx,.qfx,.qif,.xml" required />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">{{ _('Banca') }}</label>
+        <select name="bank" class="form-select">
+          <option value="auto">{{ _('Rilevamento automatico') }}</option>
+          {% for key, bank in banks.items() %}
+          <option value="{{ key }}">{{ bank.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-search"></i> {{ _('Analizza file') }}
+      </button>
+    </form>
+    <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
+      <strong>{{ _('Fineco:') }}</strong> {{ _('Conto → Movimenti → Esporta in Excel.') }}
+      <strong>{{ _('Intesa Sanpaolo:') }}</strong> {{ _('Conto corrente → Lista movimenti → Esporta Excel.') }}
+      <strong>{{ _('Revolut:') }}</strong> {{ _('Conto → Estratto conto → Excel/CSV.') }}
+      <strong>N26:</strong> {{ _('Transazioni → Scarica CSV. Riconosciuti anche UniCredit, BPER, BancoPosta e ING.') }}
+      <strong>{{ _('Altre banche:') }}</strong> {{ _('qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite, Dare/Avere).') }}
+      {% if not ai_reader %}{{ _("I PDF devono essere quelli originali dell'home banking (non scansioni).") }}{% endif %}
+      {{ _("Prima dell'importazione potrai controllare e modificare ogni movimento.") }}
+    </p>
+    <p style="font-size:var(--font-size-xs);margin-top:8px;display:flex;align-items:center;gap:6px;">
+      <i class="bi bi-stars" style="color:var(--clr-primary);"></i>
+      {% if ai_reader %}
+        <span><strong>{{ _('Lettura AI disponibile') }}</strong> ({{ ai_reader }}){{ _(': se un file non si riesce a leggere, ti verrà chiesto se usarla.') }}
+          <a href="{{ url_for('settings.ai_models_page') }}">{{ _('Cambia modello') }}</a></span>
+      {% else %}
+        <span class="text-muted"><strong>{{ _('Lettura AI non attiva:') }}</strong> {{ _('scansioni e foto non sono leggibili.') }}
+          <a href="{{ url_for('settings.ai_models_page') }}">{{ _('Configura un modello AI') }}</a></span>
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+<!-- Import da Excel ─────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> {{ _('Importa CSV o Excel con mappatura manuale') }}</div>
+      <div class="card-header-sub">{{ _('Per file con un formato non riconosciuto: scegli tu quali colonne usare') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('export.import_csv') }}" enctype="multipart/form-data" id="import-form">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+      <!-- Step 1 -->
+      <div>
+        <div style="font-weight:700;color:var(--clr-text-primary);margin-bottom:12px;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+                       background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">1</span>
+          {{ _('Carica il file') }}
+        </div>
+        <label id="import-drop" class="import-drop">
+          <i class="bi bi-cloud-upload" style="font-size:28px;color:var(--clr-text-muted);display:block;margin-bottom:8px;"></i>
+          <span id="import-file-label" style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
+            {{ _('Trascina qui il file, oppure clicca per sceglierlo: CSV, Excel (.xlsx, .xls) o LibreOffice (.ods)') }}
+          </span>
+          <input type="file" name="file" id="import-file" accept=".csv,.txt,.tsv,.xlsx,.xlsm,.xls,.ods" style="display:none;" />
+        </label>
+        <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
+          {{ _('Dei fogli Excel si legge il primo; le righe di intestazione della banca sopra i titoli delle colonne vengono saltate. Senza colonna Tipo, gli importi negativi diventano uscite e quelli positivi entrate. Date accettate: AAAA-MM-GG o GG/MM/AAAA (nei file Excel anche le celle di tipo data).') }}
+        </p>
+        <p id="import-status" class="text-xs" role="status" style="margin-top:8px;"></p>
+        {% if ai_classifier %}
+        <button type="button" class="btn btn-outline btn-sm" id="import-ask-ai" hidden
+                title="{{ _('Al modello vanno solo le intestazioni e le prime %(count)s righe', count=10) }}{{ _(' (Anthropic, fuori dal tuo computer)') if ai_cloud else '' }}">
+          <i class="bi bi-stars"></i> {{ _("Chiedi all'AI quali colonne sono") }}
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- Step 2 -->
+      <div>
+        <div style="font-weight:700;color:var(--clr-text-primary);margin-bottom:12px;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+                       background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">2</span>
+          {{ _('Mappa le colonne') }}
+        </div>
+        {% for field, label, required in [
+          ('date', _('Colonna Data'), true),
+          ('amount', _('Colonna Importo (con segno)'), false),
+          ('debit', _('oppure Colonna Uscite / Dare'), false),
+          ('credit', _('e Colonna Entrate / Avere'), false),
+          ('description', _('Colonna Descrizione'), true),
+          ('category', _('Colonna Categoria'), false),
+          ('type', _('Colonna Tipo (income/expense/transfer)'), false),
+          ('counterparty', _('Colonna Controparte (diventa un tag)'), false),
+        ] %}
+        <div class="form-group">
+          <label class="form-label">{{ label }}{% if not required %} <span class="text-muted">{{ _('(opzionale)') }}</span>{% endif %}</label>
+          <select name="col_{{ field }}" class="form-select import-col" data-field="{{ field }}" data-required="{{ required|lower }}" disabled>
+            <option value="">{{ _('— Carica prima un file —') }}</option>
+          </select>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary" id="import-submit" disabled>
+          <i class="bi bi-check2-all"></i> {{ _('Importa Transazioni') }}
+        </button>
+      </div>
+
+    </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Ask the server for the column names of the chosen file (CSV, Excel or .ods) and offer them in the mapping selects.
+// the server reads the values and proposes which column is what (data.guess)
+const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+function fillSelects(headers, guess = {}) {
+  document.querySelectorAll('.import-col').forEach(select => {
+    const required = select.dataset.required === 'true';
+    select.innerHTML = (required ? '' : '<option value="">' + {{ _('— Nessuna —')|tojson }} + '</option>') +
+      headers.map(h => `<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('');
+    select.value = guess[select.dataset.field] || (required ? headers[0] : '');
+    select.disabled = headers.length === 0;
+  });
+  document.getElementById('import-submit').disabled = headers.length === 0;
+}
+
+initDropZone(document.getElementById('import-drop'), document.getElementById('import-file'));
+
+document.getElementById('import-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const status = document.getElementById('import-status');
+  if (!file) return;
+  document.getElementById('import-file-label').textContent = file.name;
+  status.textContent = {{ _('Lettura delle colonne…')|tojson }};
+  status.style.color = 'var(--clr-text-muted)';
+  const body = new FormData();
+  body.append('file', file);
+  try {
+    const response = await fetch("{{ url_for('export.import_columns') }}", { method: 'POST', body });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || {{ _('File non leggibile.')|tojson }});
+    fillSelects(data.headers, data.guess);
+    const askAi = document.getElementById('import-ask-ai');
+    if (askAi) askAi.hidden = data.sure;  // the AI only when the values did not make it clear
+    status.textContent = (data.sure ? {{ _('Colonne riconosciute: controlla e importa.')|tojson }} + ' '
+                                    : {{ _('Colonne riconosciute solo in parte: controlla le scelte.')|tojson }} + ' ') + fmt({{ _('%(count)s colonne trovate (intestazione alla riga %(line)s), %(rows)s righe.', count='%(count)s', line='%(line)s', rows='%(rows)s')|tojson }}, {count: data.headers.length, line: data.header_line, rows: data.rows});
+  } catch (error) {
+    fillSelects([]);
+    status.textContent = error.message;
+    status.style.color = 'var(--clr-negative-text)';
+  }
+});
+
+document.getElementById('import-ask-ai')?.addEventListener('click', async (e) => {
+  const file = document.getElementById('import-file').files[0];
+  const status = document.getElementById('import-status');
+  const button = e.currentTarget;
+  if (!file) return;
+  button.disabled = true;
+  status.textContent = {{ _("L'AI sta leggendo le intestazioni…")|tojson }};
+  const body = new FormData();
+  body.append('file', file);
+  try {
+    const response = await fetch("{{ url_for('export.import_columns_ai') }}", { method: 'POST', body });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    document.querySelectorAll('.import-col').forEach(select => {
+      if (data.guess[select.dataset.field] !== undefined) select.value = data.guess[select.dataset.field] || '';
+    });
+    status.textContent = fmt({{ _('Colonne proposte da %(model)s: controlla e importa.', model='%(model)s')|tojson }}, {model: data.model})
+      + (data.notes.length ? ' ' + data.notes.join(' ') : '');
+    status.style.color = 'var(--clr-text-muted)';
+  } catch (error) {
+    status.textContent = error.message;
+    status.style.color = 'var(--clr-negative-text)';
+  } finally {
+    button.disabled = false;
+  }
+});
+</script>
+{% endblock %}
