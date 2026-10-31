@@ -1657,3 +1657,27 @@ html.embedded .card { border: none; box-shadow: none; }
 .scroll-arrow-right { right: 4px; }
 .scroll-arrows:hover .scroll-arrow, .scroll-arrows:focus-within .scroll-arrow { opacity: 1; }
 .scroll-arrow:hover { color: var(--clr-primary); border-color: var(--clr-primary); }
+
+/* ── The transaction form: Uscita / Entrata as a switch above the amount; how a recurring one ends ── */
+.type-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.type-option {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: var(--border-radius);
+  border: 1px solid var(--clr-border); background: var(--clr-bg-input); color: var(--clr-text-secondary);
+  font: inherit; font-weight: 600; cursor: pointer; transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.type-option:disabled { opacity: .45; cursor: default; }
+.type-expense[aria-checked="true"] { background: var(--clr-negative); border-color: var(--clr-negative); color: #fff; }
+.type-income[aria-checked="true"] { background: var(--clr-positive); border-color: var(--clr-positive); color: #fff; }
+.type-option:not([aria-checked="true"]):not(:disabled):hover { border-color: var(--clr-text-muted); color: var(--clr-text-primary); }
+.end-choice { display: flex; gap: 14px; margin-bottom: 6px; font-size: var(--font-size-sm); }
+.end-choice label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+
+/* The calendar and other native pickers follow the theme (the date icon was black on the dark background) */
+[data-theme="dark"] { color-scheme: dark; }
+[data-theme="light"] { color-scheme: light; }
+
+/* ── Full-screen form (new / edit transaction): centred, with the X in the corner ── */
+.focus-page { max-width: 880px; margin: 0 auto; }
+html.focus .main-content { margin-left: 0; }
+html.focus .page-content { padding: 24px 16px 40px; }
+.form-close { font-size: 18px; margin-left: 4px; }

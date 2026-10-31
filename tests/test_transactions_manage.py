@@ -56,7 +56,7 @@ def test_no_limits_on_text_length_or_amount_size(client, db):
                                                     category="C" * 300, tags="P" * 400))
     tx = Transaction.query.one()
     assert (tx.description, float(tx.amount)) == (long_text.strip(), 12345678901.50)
-    assert tx.type == "income"  # no sign: income
+    assert tx.type == "expense"  # no sign: the switch, an expense by default
     assert len(tx.category) == 300 and len(tx.counterparty) == 400 and tx.tags == ["P" * 400]
 
 

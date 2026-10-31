@@ -9,11 +9,12 @@ from app.models.account import Account
 from app.models.event import SpendingEvent
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding
-from app.routes.helpers import form_choice, form_date, form_decimal, form_text
+from app.routes.helpers import form_choice, form_date, form_decimal, form_int, form_text
 from app.schemas.transaction import RECURRENCES
 from app.services import broker, clusters, display, money, portfolio_ops, splits, wealth
 from app.services import currency as currency_service
 from app.services.ai_classification import AI_TAG
+from app.services.forecast import step_date
 from app.services.parsing import to_decimal, valid_amount
 from app.services.tags import parse_tags
 
@@ -44,6 +45,11 @@ def tx_from_form(tx: Transaction) -> Transaction:
     if tx.is_recurring:
         tx.recurrence = form_choice("recurrence", _("Frequenza"), RECURRENCES)
         tx.recurrence_end = form_date("recurrence_end", _("Fine ricorrenza"))
+        if request.form.get("recurrence_end_mode") == "count":  # «rate rimanenti»: the end follows from the frequency
+            count = form_int("recurrence_count", _("Rate rimanenti"), minimum=1, maximum=600)
+            if count is None:
+                raise ValueError(_("Rate rimanenti: scrivi quanti pagamenti mancano."))
+            tx.recurrence_end = step_date(tx.date, tx.recurrence, count - 1)
         if tx.recurrence_end and tx.recurrence_end < tx.date:
             raise ValueError(_("Fine ricorrenza: non può essere prima della data."))
     else:
@@ -123,13 +129,16 @@ def _splits_from_form(tx: Transaction) -> None:
 
 
 def type_from(amount) -> str:
-    """Minus = expense, no sign = income; the «transfer» box (or an explicit type=transfer) makes it a transfer.
-    An explicit type=expense with a positive amount (older forms) stays an expense."""
+    """The «transfer» box (or type=transfer) makes it a transfer; a − or + typed before the amount says expense or
+    income; otherwise the Uscita / Entrata switch (`type`), and without it (older forms, the API) income."""
     if "transfer" in request.form or request.form.get("type") == "transfer":
         return "transfer"
-    if amount < 0 or request.form.get("type") == "expense":
+    raw = (request.form.get("amount") or "").strip()
+    if amount < 0 or raw.startswith(("-", "−")):  # a sign typed before the amount wins over the switch
         return "expense"
-    return "income"
+    if raw.startswith("+"):
+        return "income"
+    return "expense" if request.form.get("type") == "expense" else "income"
 
 
 def linked_id(field: str, model) -> int | None:
@@ -153,17 +162,17 @@ def form_values(tx: Transaction | None = None) -> dict:
         return {key: form.get(key, "") for key in (
             "date", "amount", "currency", "description", "category", "tags",
             "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
-            "event_id",
+            "event_id", "type", "recurrence_end_mode", "recurrence_count",
             "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount", "cluster")} | {
             "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows(),
             "record_fee": "record_fee" in form}
     if tx is None:
-        return {"currency": "EUR", "is_recurring": False, "transfer": False, "splits": [], "cluster": "",
+        return {"currency": "EUR", "is_recurring": False, "transfer": False, "splits": [], "cluster": "", "type": "expense",
                 "account_id": request.args.get("account", ""), "trade_side": "buy", "record_fee": True}
-    sign = "-" if tx.type == "expense" else ""
     return {
         "transfer": tx.type == "transfer", "date": tx.date.isoformat() if tx.date else "",
-        "amount": sign + f"{abs(tx.amount):.2f}".replace(".", ","), "currency": tx.currency or "EUR",
+        "amount": f"{abs(tx.amount):.2f}".replace(".", ","), "currency": tx.currency or "EUR",
+        "type": "income" if tx.type == "income" else "expense",
         "description": tx.description, "category": tx.category or "",
         "tags": ", ".join(tx.tags or []), "is_recurring": bool(tx.is_recurring), "recurrence": tx.recurrence or "",
         "recurrence_end": tx.recurrence_end.isoformat() if tx.recurrence_end else "", "notes": tx.notes or "",

@@ -26,8 +26,10 @@ def test_edit_form_shows_the_sign(client, db):
     expense, income = make_tx(amount=12.5, type="expense"), make_tx(amount=80, type="income")
     db.session.add_all([expense, income])
     db.session.commit()
-    assert 'value="-12,50"' in client.get(f"/transactions/{expense.id}/edit").get_data(as_text=True)
-    assert 'value="80,00"' in client.get(f"/transactions/{income.id}/edit").get_data(as_text=True)
+    page = client.get(f"/transactions/{expense.id}/edit").get_data(as_text=True)
+    assert 'value="12,50"' in page and 'id="f-type" value="expense"' in page  # the switch says it
+    income_page = client.get(f"/transactions/{income.id}/edit").get_data(as_text=True)
+    assert 'value="80,00"' in income_page and 'id="f-type" value="income"' in income_page
 
 
 def test_tags_counterparty_and_pool(client, db):

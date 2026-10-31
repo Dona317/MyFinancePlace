@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/fields.html" as f %}
+{% set focus_page = true %}{# full screen: no sidebar; the X goes back to where you were #}
 
 {% set is_edit = transaction is not none %}
 {# `v`: what the fields show — the stored transaction, or what was typed when saving failed #}
@@ -11,7 +12,7 @@
 
 {% block content %}
 
-<div style="max-width:780px;">
+<div class="focus-page">
   <div class="card">
     <div class="card-header">
       <div class="card-header-title">
@@ -24,31 +25,44 @@
           <i class="bi bi-trash3"></i> {{ _('Elimina') }}
         </button>
         {% endif %}
-        {% if embedded %}
-        <button type="button" class="btn btn-ghost btn-sm" data-close-embed title="{{ _('Chiudi senza salvare') }}"><i class="bi bi-x"></i> {{ _('Annulla') }}</button>
-        {% else %}
-        <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Torna senza salvare') }}"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
-        {% endif %}
         <button type="submit" form="edit-form" class="btn btn-primary btn-sm">
           <i class="bi bi-check-lg"></i> {{ _('Salva') if is_edit else _('Aggiungi') }}
         </button>
+        {% if request.values.get("embed") == "1" %}
+        <button type="button" class="btn btn-ghost btn-icon form-close" data-close-embed title="{{ _('Chiudi senza salvare') }}" aria-label="{{ _('Chiudi senza salvare') }}"><i class="bi bi-x-lg"></i></button>
+        {% else %}
+        <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost btn-icon form-close" id="form-close"
+           title="{{ _('Chiudi senza salvare e torna dov’eri') }}" aria-label="{{ _('Chiudi senza salvare') }}"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
       </div>
     </div>
     <div class="card-body">
       <form method="POST" id="edit-form" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
 
-        <!-- Importo (con segno) e Data ──────────────────────────────── -->
+        <!-- Uscita / Entrata: chosen here (an expense unless changed), or by typing − or + before the amount -->
+        <input type="hidden" name="type" id="f-type" value="{{ v.type or 'expense' }}" />
+        <div class="type-switch" role="radiogroup" aria-label="{{ _('Tipo di movimento') }}" id="type-switch">
+          <button type="button" class="type-option type-expense" role="radio" data-type="expense" aria-checked="false">
+            <i class="bi bi-arrow-up-circle"></i> {{ _('Uscita') }}
+          </button>
+          <button type="button" class="type-option type-income" role="radio" data-type="income" aria-checked="false">
+            <i class="bi bi-arrow-down-circle"></i> {{ _('Entrata') }}
+          </button>
+          <span class="type-transfer-note text-xs text-muted" id="type-transfer-note" hidden>
+            <i class="bi bi-arrow-left-right"></i> {{ _('Trasferimento tra i tuoi conti') }}
+          </span>
+        </div>
+
+        <!-- Importo e Data ──────────────────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label" for="f-amount">{{ _('Importo') }}
-              <span class="amount-kind" id="amount-kind" data-expense="{{ _('Uscita') }}" data-income="{{ _('Entrata') }}"
-                    data-transfer="{{ _('Trasferimento') }}"></span></label>
+            <label class="form-label" for="f-amount">{{ _('Importo') }}</label>
             <div style="position:relative;">
               <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
               <input id="f-amount" type="text" inputmode="decimal" name="amount" class="form-control" style="padding-left:28px;"
-                     placeholder="-45,20" autocomplete="off" value="{{ v.amount }}" required />
+                     placeholder="45,20" autocomplete="off" value="{{ v.amount }}" required />
             </div>
-            <div class="form-hint">{{ _("Con il segno meno è un'uscita (-45,20), senza è un'entrata (1.200).") }}</div>
+            <div class="form-hint">{{ _("Senza segno: vale la scelta Uscita / Entrata qui sopra. Scrivendo − o + davanti, la scelta cambia da sola.") }}</div>
           </div>
           <div class="form-group">
             <label class="form-label" for="f-date">{{ _('Data') }}</label>
@@ -271,9 +285,16 @@
                   </select>
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
-                  <label class="form-label">{{ _('Fine Ricorrenza') }}</label>
-                  <input type="date" name="recurrence_end" class="form-control"
+                  <label class="form-label">{{ _('Fine') }}</label>
+                  <div class="end-choice" role="radiogroup" aria-label="{{ _('Come finisce') }}">
+                    <label><input type="radio" name="recurrence_end_mode" value="date" class="check" {{ 'checked' if v.recurrence_end_mode != 'count' }} /> {{ _('Data') }}</label>
+                    <label><input type="radio" name="recurrence_end_mode" value="count" class="check" {{ 'checked' if v.recurrence_end_mode == 'count' }} /> {{ _('Rate rimanenti') }}</label>
+                  </div>
+                  <input type="date" name="recurrence_end" id="f-recurrence-end" class="form-control"
                          value="{{ v.recurrence_end }}" />
+                  <input type="number" name="recurrence_count" id="f-recurrence-count" class="form-control" min="1" max="600"
+                         value="{{ v.recurrence_count }}" placeholder="{{ _('es. 24') }}" hidden />
+                  <div class="form-hint" id="recurrence-count-hint" hidden>{{ _('Pagamenti ancora da fare, questo compreso, con la frequenza scelta: la data di fine si calcola da sola.') }}</div>
                 </div>
               </div>
             </div>
@@ -330,6 +351,19 @@
 
 {% block scripts %}
 <script>
+// The X (and ESC): back to the page you came from, without saving
+(() => {
+  const close = document.getElementById('form-close');
+  if (!close) return;
+  const fromApp = (() => { try { return new URL(document.referrer).origin === location.origin; } catch (e) { return false; } })();
+  close.addEventListener('click', e => {
+    if (!{{ (next_url or '')|tojson }} && fromApp && history.length > 1) { e.preventDefault(); history.back(); }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !document.querySelector('.modal-overlay.open')) close.click();
+  });
+})();
+
 // Trades in units (F17): the amount follows units × price, the commission follows the account's rule
 (() => {
   const box = document.getElementById('trade-box');
@@ -369,23 +403,50 @@
   update();
 })();
 
-// The sign of the amount says what it is: minus = expense, no sign = income; "transfer" overrides both
+// Uscita / Entrata: the switch above the amount (an expense by default); a − or + typed before the amount moves it.
+// «Trasferimento» replaces both.
 (function () {
   const amount = document.getElementById('f-amount');
   const transfer = document.getElementById('f-transfer');
-  const kind = document.getElementById('amount-kind');
+  const field = document.getElementById('f-type');
+  const options = [...document.querySelectorAll('#type-switch .type-option')];
+  const note = document.getElementById('type-transfer-note');
   const counter = document.getElementById('counter-account-group');
-  const update = () => {
+  const paint = () => {
     const isTransfer = transfer && transfer.checked;
-    const value = (amount.value || '').trim();
-    const type = isTransfer ? 'transfer' : value.startsWith('-') ? 'expense' : value ? 'income' : '';
-    kind.textContent = type ? kind.dataset[type] : '';
-    kind.className = 'amount-kind' + (type ? ' ' + type : '');
+    options.forEach(o => {
+      const on = !isTransfer && o.dataset.type === field.value;
+      o.setAttribute('aria-checked', String(on));
+      o.disabled = isTransfer;
+    });
+    note.hidden = !isTransfer;
     if (counter) counter.hidden = !isTransfer;
   };
-  amount.addEventListener('input', update);
-  transfer && transfer.addEventListener('change', update);
-  update();
+  options.forEach(o => o.addEventListener('click', () => { field.value = o.dataset.type; paint(); }));
+  amount.addEventListener('input', () => {
+    const value = (amount.value || '').trim();
+    if (value.startsWith('-') || value.startsWith('−')) field.value = 'expense';
+    else if (value.startsWith('+')) field.value = 'income';
+    paint();
+  });
+  transfer && transfer.addEventListener('change', paint);
+  paint();
+}());
+
+// Recurring: it ends on a date, or after a number of payments still to make
+(function () {
+  const modes = [...document.querySelectorAll('input[name=recurrence_end_mode]')];
+  const date = document.getElementById('f-recurrence-end');
+  const count = document.getElementById('f-recurrence-count');
+  const hint = document.getElementById('recurrence-count-hint');
+  const show = () => {
+    const byCount = modes.find(m => m.checked)?.value === 'count';
+    date.hidden = byCount;
+    count.hidden = !byCount;
+    hint.hidden = !byCount;
+  };
+  modes.forEach(m => m.addEventListener('change', show));
+  show();
 }());
 
 // «Suddividi»: the amount across several categories; what is left to assign is shown as you type

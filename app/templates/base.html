@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-{% set embedded = request.values.get("embed") == "1" %}
-<html lang="{{ current_language() }}"{{ ' class="embedded"'|safe if embedded }} data-font="{{ ui_font() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
+{# A page in the app's pop-up (?embed=1), or a full-screen page (the transaction form sets focus_page): no sidebar
+   and no top bar #}
+{% set in_popup = request.values.get("embed") == "1" %}
+{% set embedded = in_popup or focus_page is defined %}
+<html lang="{{ current_language() }}"{{ ' class="embedded"'|safe if in_popup else (' class="focus"'|safe if embedded) }} data-font="{{ ui_font() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
