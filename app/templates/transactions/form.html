@@ -18,6 +18,21 @@
         <i class="bi bi-{{ 'pencil' if is_edit else 'plus-circle' }}"></i>
         {{ _('Modifica Transazione') if is_edit else _('Inserisci Nuova Transazione') }}
       </div>
+      <div class="form-top-actions">
+        {% if is_edit %}
+        <button type="submit" form="delete-form" class="btn btn-ghost btn-sm" style="color:var(--clr-negative);" title="{{ _('Elimina questa transazione') }}">
+          <i class="bi bi-trash3"></i> {{ _('Elimina') }}
+        </button>
+        {% endif %}
+        {% if embedded %}
+        <button type="button" class="btn btn-ghost btn-sm" data-close-embed title="{{ _('Chiudi senza salvare') }}"><i class="bi bi-x"></i> {{ _('Annulla') }}</button>
+        {% else %}
+        <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Torna senza salvare') }}"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
+        {% endif %}
+        <button type="submit" form="edit-form" class="btn btn-primary btn-sm">
+          <i class="bi bi-check-lg"></i> {{ _('Salva') if is_edit else _('Aggiungi') }}
+        </button>
+      </div>
     </div>
     <div class="card-body">
       <form method="POST" id="edit-form" action="{{ url_for('transactions.edit', tx_id=transaction.id) if is_edit else url_for('transactions.new') }}">
@@ -95,6 +110,16 @@
             <option value="">{{ _('— Seleziona —') }}</option>
             {{ f.category_options(categories, v.category) }}
           </select>
+        </div>
+
+        <!-- Gruppo di spesa: the cluster above the category (spending on two levels) -->
+        <div class="form-group">
+          <label class="form-label" for="f-cluster">{{ _('Gruppo di spesa') }} <span class="text-muted" style="font-weight:400;">{{ _('(sopra la categoria, solo uscite)') }}</span></label>
+          <select id="f-cluster" name="cluster" class="form-select">
+            <option value="">{{ _('Automatico (dalle regole)') }}</option>
+            {% for key, name in cluster_choices.items() %}<option value="{{ key }}" {{ 'selected' if v.cluster == key }}>{{ name|tr }}</option>{% endfor %}
+          </select>
+          <div class="form-hint">{{ _('Automatico: usa la scelta fatta per transazioni simili, altrimenti la categoria. Scegliere un gruppo a mano lo ricorda.') }}</div>
         </div>
         <fieldset class="form-group split-box" id="split-box" {% if not split_open %}hidden disabled{% endif %}>
           <legend class="form-label">{{ _('Suddivisione su più categorie') }}</legend>
@@ -264,25 +289,14 @@
 
         <!-- Azioni ──────────────────────────────────────────────────── -->
         {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
-        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--clr-border-light);">
-          {% if is_edit %}
-          <button type="submit" form="delete-form" class="btn btn-ghost" style="margin-right:auto;color:var(--clr-negative);">
-            <i class="bi bi-trash3"></i> {{ _('Elimina') }}
-          </button>
-          {% endif %}
-          <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost">
-            <i class="bi bi-x"></i> {{ _('Annulla') }}
-          </a>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> {{ _('Salva Modifiche') if is_edit else _('Aggiungi Transazione') }}
-          </button>
-        </div>
+        {% if embedded %}<input type="hidden" name="embed" value="1" />{% endif %}
 
       </form>
       {% if is_edit %}
       <form method="POST" action="{{ url_for('transactions.delete', tx_id=transaction.id) }}" id="delete-form"
             data-confirm="{{ _('Eliminare definitivamente questa transazione?') }}">
         <input type="hidden" name="next" value="{{ next_url or url_for('transactions.index') }}" />
+        {% if embedded %}<input type="hidden" name="embed" value="1" />{% endif %}
       </form>
       {% endif %}
     </div>

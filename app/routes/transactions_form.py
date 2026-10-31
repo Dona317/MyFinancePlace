@@ -11,7 +11,7 @@ from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_text
 from app.schemas.transaction import RECURRENCES
-from app.services import broker, display, money, portfolio_ops, splits, wealth
+from app.services import broker, clusters, display, money, portfolio_ops, splits, wealth
 from app.services import currency as currency_service
 from app.services.ai_classification import AI_TAG
 from app.services.parsing import to_decimal, valid_amount
@@ -71,6 +71,10 @@ def tx_from_form(tx: Transaction) -> Transaction:
         tx.account_id, tx.counter_account_id = (broker_account, None) if tx.units > 0 else (None, broker_account)
         tx.splits = []
     _splits_from_form(tx)
+    # the group above the category: the one picked, or (empty = automatic) the one the rules give
+    chosen = request.form.get("cluster", "")
+    tx.cluster = chosen if clusters.valid(chosen) and tx.type == "expense" else None
+    clusters.resolve(tx)
     return tx
 
 
@@ -150,11 +154,11 @@ def form_values(tx: Transaction | None = None) -> dict:
             "date", "amount", "currency", "description", "category", "tags",
             "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
             "event_id",
-            "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount")} | {
+            "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount", "cluster")} | {
             "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows(),
             "record_fee": "record_fee" in form}
     if tx is None:
-        return {"currency": "EUR", "is_recurring": False, "transfer": False, "splits": [],
+        return {"currency": "EUR", "is_recurring": False, "transfer": False, "splits": [], "cluster": "",
                 "account_id": request.args.get("account", ""), "trade_side": "buy", "record_fee": True}
     sign = "-" if tx.type == "expense" else ""
     return {
@@ -170,6 +174,7 @@ def form_values(tx: Transaction | None = None) -> dict:
         "units": display.plain(abs(tx.units)) if tx.units is not None else "",
         "unit_price": display.plain(tx.unit_price),
         "trade_side": "sell" if tx.units is not None and tx.units < 0 else "buy",
+        "cluster": tx.cluster or "",
     }
 
 

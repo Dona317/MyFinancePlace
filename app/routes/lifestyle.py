@@ -10,7 +10,7 @@ from app.models.account import Account
 from app.models.budget import Budget
 from app.models.wealth import Goal
 from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form, year_arg
-from app.services import accounts, analytics, budgets, categories, display, planning
+from app.services import accounts, analytics, analytics_clusters, budgets, categories, display, planning
 from app.services.periods import add_months
 
 lifestyle_bp = APIBlueprint(
@@ -26,7 +26,8 @@ def index():
     years = analytics.available_years()
     year = year_arg(date.today().year)
     report = analytics.lifestyle_report(year)
-    return render_template("lifestyle/index.html", report=report, years=years, year=year)
+    groups = analytics_clusters.cluster_breakdown(*analytics.year_bounds(year))
+    return render_template("lifestyle/index.html", report=report, years=years, year=year, groups=groups)
 
 
 # ── Monthly budgets ────────────────────────────────────────────────────────────

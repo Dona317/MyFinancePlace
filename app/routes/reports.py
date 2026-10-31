@@ -6,6 +6,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.client import ClientGroup
+from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import csv_text, download, year_arg
 from app.services import (
@@ -15,6 +16,7 @@ from app.services import (
     categories,
     groups,
     i18n,
+    pdf_report,
     periods,
     reports,
     spending_rhythm,
@@ -22,7 +24,7 @@ from app.services import (
     transfer,
 )
 from app.services.analytics import UNCATEGORIZED
-from app.services.display import number
+from app.services.display import money, number
 from app.services.totals import analysed, excluded_total
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/reports")
@@ -99,6 +101,39 @@ def csv():
     rows = sorted(_rows(filters)[2], key=lambda tx: (tx.date, tx.id))
     name = f"report_{filters['tab']}_{filters['start']:%Y-%m-%d}_{filters['last_day']:%Y-%m-%d}.csv"
     return download("\ufeff" + transfer.to_csv(rows), name, "text/csv")
+
+
+@reports_bp.route("/report.pdf")
+def report_pdf():
+    """The page as a PDF with the same filters (tab, period, account, category): figures, categories, transactions.
+    In the desktop app the download asks where to save it."""
+    filters = _filters()
+    query, tx_type, rows = _rows(filters)
+    rows = sorted(rows, key=lambda tx: (tx.date, tx.id))
+    tab = str(reports.TABS[filters["tab"]])
+    period = f"{filters['start']:%d/%m/%Y} – {filters['last_day']:%d/%m/%Y}"
+    subtitle = " · ".join(part for part in (period, filters["category"],
+                                             accounts_name(filters["account"])) if part)
+    if tx_type:
+        items = reports.breakdown(query, tx_type, None)
+        total = sum(item["amount"] for item in items)
+        kpis = [(_("Totale"), money(total)), (_("Transazioni"), str(len(rows)))]
+    else:
+        items = []
+        income = sum(tx.magnitude for tx in rows if tx.type == "income")
+        expenses = sum(tx.magnitude for tx in rows if tx.type == "expense")
+        kpis = [(_("Entrate"), money(income)), (_("Uscite"), money(expenses)),
+                (_("Netto"), money(income - expenses))]
+    data = pdf_report.build_filtered(f"Report — {tab}", subtitle, kpis, items, rows)
+    name = f"report_{filters['tab']}_{filters['start']:%Y-%m-%d}_{filters['last_day']:%Y-%m-%d}.pdf"
+    return download(data, name, "application/pdf")
+
+
+def accounts_name(account: str) -> str:
+    if account == "none":
+        return _("senza conto")
+    found = db.session.get(Account, int(account)) if account.isdigit() else None
+    return found.name if found else ""
 
 
 def _summary_year() -> int:

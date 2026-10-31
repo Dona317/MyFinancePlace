@@ -23,6 +23,7 @@ from app.services import (
     bank_import,
     broker,
     category_rules,
+    clusters,
     display,
     duplicates,
     family,
@@ -30,6 +31,7 @@ from app.services import (
     portfolio_ops,
     undo,
 )
+from app.services import review as review_service
 from app.services import categories as category_service
 from app.services import currency as currency_service
 from app.services.ai_classification import AI_TAG
@@ -86,13 +88,21 @@ def _filtered_query(filters: dict):
             query = query.filter(Transaction.date >= start, Transaction.date < end)
         except ValueError:
             pass
+    for key, compare in (("start", Transaction.date.__ge__), ("end", Transaction.date.__le__)):  # inclusive range
+        if filters.get(key):
+            try:
+                query = query.filter(compare(date.fromisoformat(filters[key])))
+            except ValueError:
+                pass
     return query
+
+
+FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", "person", "start", "end")
 
 
 @transactions_bp.route("/")
 def index():
-    filters = {key: request.args.get(key, "").strip() for key in ("q", "type", "category", "month", "recurring", "account", "tag",
-                                                            "person")}
+    filters = {key: request.args.get(key, "").strip() for key in FILTER_KEYS}
     query = _filtered_query(filters)
     total = query.count()
     pages = max(1, -(-total // PAGE_SIZE))
@@ -119,7 +129,7 @@ def index():
         ai_tag=AI_TAG, to_confirm=Transaction.query.filter(Transaction.tags.any(AI_TAG)).count(),
         unclassified=_unclassified_query().count(),
         without_counterparty=Transaction.query.filter(Transaction.counterparty.is_(None), Transaction.type != "transfer").count(),
-        undo=undo.available(), today=date.today(),
+        undo=undo.available(), today=date.today(), cluster_choices=clusters.CLUSTERS,
         **ai_classification.template_context(),
     )
 
@@ -202,6 +212,8 @@ def redo_last():
 
 def _learn_from(tx: Transaction) -> None:
     """"Ricorda" ticked: the category becomes a rule for this counterparty (Settings → Regole)."""
+    if clusters.valid(request.form.get("cluster", "")):
+        clusters.learn(tx)  # a group picked by hand is remembered for the similar transactions
     if "learn_rule" not in request.form:
         return
     rule = category_rules.learn(tx.counterparty, tx.category)
@@ -217,6 +229,7 @@ def _render_form(tx: Transaction | None):
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=form_values(tx),
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
         currencies=currency_service.CURRENCIES, tag_pool=all_tags(), fee_rules=broker.rules(accounts.all_accounts()),
+        cluster_choices=clusters.CLUSTERS,
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
         events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
@@ -241,6 +254,117 @@ def edit(tx_id):
         _learn_from(tx)
         return back_to("transactions.index")
     return _render_form(tx)
+
+
+# ── Bulk edit and the review of the register ──────────────────────────────────
+
+BULK_SEARCH_LIMIT = 5000  # a search bigger than this is changed in parts
+
+
+@transactions_bp.route("/bulk-edit", methods=["POST"])
+def bulk_edit():
+    """Change many transactions at once: the ticked ones, or every transaction of the search (not only the page shown)
+    when «tutta la ricerca» is chosen: type, category or subcategory, group, recurring or not, account, date."""
+    ids = form_ids()
+    if request.form.get("scope") == "search":
+        filters = {key: request.form.get(key, "").strip() for key in FILTER_KEYS}
+        ids = {row[0] for row in _filtered_query(filters).with_entities(Transaction.id).limit(BULK_SEARCH_LIMIT).all()}
+    if not ids:
+        flash(_("Nessuna transazione selezionata."), "warning")
+        return back_to("transactions.index")
+
+    new_type = request.form.get("type_to", "")
+    new_category = request.form.get("category_to", "").strip()
+    new_cluster = request.form.get("cluster_to", "")
+    new_account = request.form.get("account_to", "")
+    new_recurring = request.form.get("recurring_to", "")
+    try:
+        new_date = form_date("date_to", _("Data"))
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return back_to("transactions.index")
+    if not (new_type in ("income", "expense") or new_category or new_date or new_cluster or new_recurring in ("yes", "no")
+            or new_account == "none" or new_account.isdigit()):
+        flash(_("Scegli almeno una modifica."), "warning")
+        return back_to("transactions.index")
+
+    account = db.session.get(Account, int(new_account)) if new_account.isdigit() else None
+    changed = 0
+    for tx in Transaction.query.filter(Transaction.id.in_(ids)).all():
+        before = (tx.type, tx.category, tx.date, tx.account_id, tx.is_recurring, tx.cluster)
+        if new_type in ("income", "expense") and tx.type != new_type:
+            tx.type, tx.counter_account_id = new_type, None
+        if new_category:
+            tx.category = new_category
+        if new_date:
+            tx.date = new_date
+        if new_account == "none":
+            tx.account_id = None
+        elif account is not None:
+            tx.account_id = account.id
+        if new_recurring in ("yes", "no"):
+            tx.is_recurring = new_recurring == "yes"
+            if not tx.is_recurring:
+                tx.recurrence = tx.recurrence_end = None
+            elif not tx.recurrence:
+                tx.recurrence = "monthly"
+        if new_cluster == "auto" or (clusters.valid(new_cluster) and tx.type == "expense"):
+            tx.cluster = new_cluster if clusters.valid(new_cluster) else None
+        clusters.resolve(tx)
+        changed += before != (tx.type, tx.category, tx.date, tx.account_id, tx.is_recurring, tx.cluster)
+    db.session.commit()
+    flash(_("%(changed)s transazioni modificate.", changed=changed) if changed
+          else _("Nessuna modifica: le transazioni avevano già i valori scelti."), "success" if changed else "warning")
+    return back_to("transactions.index")
+
+
+REVIEW_LIMIT = 300  # transactions the review reads at once: the first of the search, most recent first
+
+
+@transactions_bp.route("/review")
+def review_page():
+    """The review of the register: reads the transactions of the current search and lists the probable mistakes."""
+    filters = {key: request.args.get(key, "").strip() for key in FILTER_KEYS}
+    transactions = (_filtered_query(filters).order_by(Transaction.date.desc(), Transaction.id.desc())
+                    .limit(REVIEW_LIMIT).all())
+    findings, note = review_service.review(transactions, known_categories())
+    return render_template(
+        "transactions/review.html", findings=findings, note=note, checked=len(transactions),
+        limit=REVIEW_LIMIT, filters=filters, back=url_for("transactions.index", **request.args.to_dict()),
+        ai_classifier=ai_classification.template_context()["ai_classifier"],
+    )
+
+
+@transactions_bp.route("/review/apply", methods=["POST"])
+def review_apply():
+    """Apply the suggestions the user ticked; each one is «transaction | kind | value»."""
+    done = skipped = 0
+    for token in request.form.getlist("apply"):
+        try:
+            tx_id, kind, value = token.split("|", 2)
+        except ValueError:
+            skipped += 1
+            continue
+        tx = db.session.get(Transaction, int(tx_id)) if tx_id.isdigit() else None
+        if tx is not None and review_service.apply(tx, kind, value):
+            clusters.resolve(tx)  # a changed type or category may change the group too
+            done += 1
+        else:
+            skipped += 1
+    db.session.commit()
+    if done:
+        flash(_("%(done)s suggerimenti applicati.", done=done) + (
+            _(" %(skipped)s non applicabili.", skipped=skipped) if skipped else ""), "success")
+    else:
+        flash(_("Nessun suggerimento applicato."), "warning")
+    return redirect(url_for("transactions.index"))
+
+
+@transactions_bp.route("/embed-done")
+def embed_done():
+    """Where the edit pop-up goes after saving or deleting: the list closes it and reloads (with the message)."""
+    return ('<!doctype html><meta charset="utf-8"><script>'
+            'parent.postMessage({mfp: "tx-done"}, location.origin);</script>')
 
 
 @transactions_bp.route("/<int:tx_id>/delete", methods=["POST"])

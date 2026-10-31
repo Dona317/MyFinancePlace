@@ -171,6 +171,7 @@
 </div>
 {%- endmacro %}
 
+{% set tx_ok = allowed('transactions') %}
 {% macro pie(kind, title, breakdown) %}
 <div class="card">
   <div class="card-header">
@@ -187,8 +188,9 @@
       {% for c in breakdown %}
       <li>
         <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
-        <a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type=kind, start=pie_start.isoformat(), end=pie_last.isoformat()) }}"
+        {% if tx_ok %}<a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type=kind, start=pie_start.isoformat(), end=pie_last.isoformat()) }}"
            title="{{ _('Transazioni di «%(category)s» nel periodo', category=c.category|tr) }}">{{ c.category|tr }}</a>
+        {% else %}<span class="category-legend-name">{{ c.category|tr }}</span>{% endif %}
         <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
       </li>
       {% endfor %}
@@ -220,7 +222,7 @@
 {% set shock_names = {'car': _('Auto da riparare o sostituire'), 'appliance': _('Elettrodomestico (lavatrice, frigo)'), 'house': _('Casa (tetto, caldaia)'), 'health': _('Spese mediche')} %}
 
 <div class="fc-grid dash-grid" id="fc-grid">
-{% for w in layout %}
+{% for w in layout if not (w.id == 'recent' and not allowed('transactions')) %}
 <section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
   {% call tools() %}{{ widgets[w.id][0] }}{% endcall %}
 
@@ -269,7 +271,7 @@
           <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
         {% endfor %}
         {% for n in s.nodes %}
-        {% set linked = n.kind in ('income', 'expense') and not n.special %}
+        {% set linked = tx_ok and n.kind in ('income', 'expense') and not n.special %}
         {% if linked %}<a href="{{ url_for('transactions.index', category=n.label, type=n.kind, start=year_start.isoformat(), end=year_last.isoformat()) }}" class="sankey-link">{% endif %}
         <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
               style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
@@ -446,8 +448,12 @@ if (shown('cashflow')) {
 const worth = {{ net_worth_trend|tojson }};
 makeBarChart('netWorthChart', worth.labels, [
   { label: {{ _('Liquidità')|tojson }}, data: worth.cash, color: 'primary', stack: 'w' },
+  {% if allowed('portfolio') %}
   { label: {{ _('Investimenti')|tojson }}, data: worth.investments, color: 'purple', stack: 'w' },
   { label: {{ _('Altri beni')|tojson }}, data: worth.other, color: 'neutral', stack: 'w' },
+  {% else %}
+  { label: {{ _('Altri beni')|tojson }}, data: worth.other.map((v, i) => v + worth.investments[i]), color: 'neutral', stack: 'w' },
+  {% endif %}
   { label: {{ _('Debiti')|tojson }}, data: worth.debts, color: 'negative', stack: 'w' },
   { label: {{ _('Patrimonio netto')|tojson }}, data: worth.net_worth, color: 'positive', type: 'line' },
 ], { legend: true, stacked: true });
@@ -458,14 +464,14 @@ makeBarChart('netWorthChart', worth.labels, [
 const trendLines = (trend) => trend.datasets.map(ds => (
   { label: ds.label, data: ds.data, fill: false, pointRadius: 3, ...(ds.other ? { color: 'neutral', dash: [5, 4] } : {}) }
 ));
-const txUrl = (category, type) => {{ url_for('transactions.index')|tojson }} + '?' + new URLSearchParams(
+const txUrl = {{ (not tx_ok)|tojson }} ? null : (category, type) => {{ (url_for('transactions.index') if tx_ok else '')|tojson }} + '?' + new URLSearchParams(
   { category, type, start: {{ pie_start.isoformat()|tojson }}, end: {{ pie_last.isoformat()|tojson }} });
 [['expense', {{ expense_breakdown|tojson }}, {{ expense_breakdown|map(attribute='category')|map('tr')|list|tojson }}, {{ expense_trend|tojson }}],
  ['income',  {{ income_breakdown|tojson }},  {{ income_breakdown|map(attribute='category')|map('tr')|list|tojson }},  {{ income_trend|tojson }}]]
   .forEach(([kind, breakdown, labels, trend]) => {
     if (shown(kind + '_pie') && breakdown.length) {
       makeDoughnutChart(kind + 'PieChart', labels, breakdown.map(c => c.amount),
-        { legend: false, onClickIndex: (i) => { window.location.href = txUrl(breakdown[i].category, kind); } });
+        { legend: false, onClickIndex: txUrl ? (i) => { window.location.href = txUrl(breakdown[i].category, kind); } : undefined });
     }
     if (shown(kind + '_trend')) makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend));
   });

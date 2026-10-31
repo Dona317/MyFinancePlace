@@ -77,6 +77,41 @@
   </div>
 </div>
 
+<!-- Two levels: the spending group (Necessità, Scelte e svago, Risparmio) and, under it, the categories -->
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Spese per gruppo e categoria') }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s: prima il gruppo di spesa, poi le categorie che lo compongono', year=year) }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if groups %}
+    <div class="cluster-groups">
+      {% for g in groups %}
+      <details class="cluster-group" {{ 'open' if loop.first }}>
+        <summary>
+          <span class="cluster-name">{{ g.label }}</span>
+          <span class="cluster-figures">{{ g.amount|money }} <small>({{ g.share|number(1) }}%)</small></span>
+          <span class="cluster-bar"><span style="width:{{ g.share }}%;"></span></span>
+        </summary>
+        <ul class="category-legend cluster-categories">
+          {% for c in g.categories %}
+          <li>
+            <span class="category-legend-name">{{ c.category|tr }}</span>
+            <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
+          </li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:32px;"><div class="empty-state-text">{{ _('Nessuna spesa in questo anno.') }}</div></div>
+    {% endif %}
+  </div>
+</div>
+
 <!-- Tabella dettaglio categorie ─────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">

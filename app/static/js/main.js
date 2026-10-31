@@ -324,6 +324,89 @@ function fallbackCopy(value) {
   return ok;
 }
 
+/* Links with data-popup open their page in a window over this one (the transaction form): a click outside or ESC
+   closes it; when the page inside saves or deletes, it tells this one, which reloads. Inside such a window
+   (html.embedded) the buttons with data-close-embed close it. */
+function initPopups() {
+  if (document.documentElement.classList.contains("embedded")) {
+    document.addEventListener("click", e => {
+      if (e.target.closest("[data-close-embed]")) window.parent.postMessage({ mfp: "popup-close" }, window.location.origin);
+    });
+    return;
+  }
+  let overlay = null;
+  const close = () => { overlay?.remove(); overlay = null; document.body.style.overflow = ""; };
+  document.addEventListener("click", e => {
+    const link = e.target.closest("a[data-popup]");
+    if (!link || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    overlay = document.createElement("div");
+    overlay.className = "modal-overlay open popup-overlay";
+    const box = document.createElement("div");
+    box.className = "modal popup-box";
+    const frame = Object.assign(document.createElement("iframe"), { src: link.dataset.popup, title: link.title || "" });
+    frame.className = "popup-frame";
+    box.appendChild(frame);
+    overlay.appendChild(box);
+    overlay.addEventListener("click", ev => { if (ev.target === overlay) close(); });
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden";
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && overlay) close(); });
+  window.addEventListener("message", e => {
+    if (e.origin !== window.location.origin || !e.data || !overlay) return;
+    if (e.data.mfp === "popup-close") close();
+    if (e.data.mfp === "tx-done") { close(); window.location.reload(); }
+  });
+}
+
+/* Tooltips: everything clickable says what it does when the pointer rests on it (a native tooltip, no info icons):
+   its aria-label, or its text when the text is cut or is only an icon */
+function initTooltips() {
+  const describe = (el) => {
+    if (el.title || el.closest(".kpi-window-menu")) return;
+    const label = el.getAttribute("aria-label") || (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (label && label.length <= 120) el.title = label;
+  };
+  document.addEventListener("pointerover", e => {
+    const el = e.target.closest?.("a[href], button, [role=button], select, summary, label.toggle-switch");
+    if (el) describe(el);
+  });
+}
+
+/* Areas that scroll sideways (tables, rows of tabs): two arrows appear on the edges while there is more to see;
+   a click scrolls by most of the width, and the area can be focused and moved with the arrow keys */
+function initScrollArrows() {
+  const boxes = () => document.querySelectorAll(".table-wrapper, .settings-nav, .tabs, .tab-bar, .statement-tabs");
+  const wire = (box) => {
+    if (box.dataset.arrows) return;
+    box.dataset.arrows = "1";
+    const holder = document.createElement("div");
+    holder.className = "scroll-arrows";
+    box.parentNode.insertBefore(holder, box);
+    holder.appendChild(box);
+    const make = (dir) => {
+      const btn = Object.assign(document.createElement("button"), { type: "button", className: `scroll-arrow scroll-arrow-${dir}`,
+        title: dir === "left" ? (TEXT.scroll_left || "Scorri a sinistra") : (TEXT.scroll_right || "Scorri a destra") });
+      btn.innerHTML = `<i class="bi bi-chevron-${dir}"></i>`;
+      btn.addEventListener("click", () => box.scrollBy({ left: (dir === "left" ? -1 : 1) * box.clientWidth * 0.8, behavior: "smooth" }));
+      holder.appendChild(btn);
+      return btn;
+    };
+    const left = make("left"), right = make("right");
+    const update = () => {
+      const more = box.scrollWidth - box.clientWidth > 2;
+      left.hidden = !more || box.scrollLeft <= 1;
+      right.hidden = !more || box.scrollLeft + box.clientWidth >= box.scrollWidth - 1;
+      if (more && !box.hasAttribute("tabindex")) box.tabIndex = 0;  // the arrow keys scroll it once focused
+    };
+    box.addEventListener("scroll", update, { passive: true });
+    new ResizeObserver(update).observe(box);
+    update();
+  };
+  boxes().forEach(wire);
+}
+
 /* The ← at the left of the title: back to the page seen before, when it was a page of the app */
 function initBack() {
   const back = document.getElementById("nav-back");
@@ -356,5 +439,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initUserMenu();
   initBack();
   initCopy();
+  initPopups();
+  initTooltips();
+  initScrollArrows();
   initActiveNav();
 });

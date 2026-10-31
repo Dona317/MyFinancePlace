@@ -81,7 +81,7 @@
     </select>
     <select name="category" class="form-select" onchange="this.form.submit()">
       <option value="">{{ _('Categoria') }}</option>
-      {{ f.category_options(categories, filters.category) }}
+      {{ f.category_options(all_categories, filters.category) }}
     </select>
     {% if accounts %}
     <select name="account" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Conto') }}">
@@ -98,12 +98,24 @@
     </select>
     {% endif %}
     <input type="month" name="month" value="{{ filters.month }}" class="form-control" style="width:160px;" onchange="this.form.submit()" />
+    {% if filters.start or filters.end %}
+    <input type="hidden" name="start" value="{{ filters.start }}" /><input type="hidden" name="end" value="{{ filters.end }}" />
+    <a class="tag-chip tag-filter" href="{{ url_for('transactions.index', **dict(request.args.to_dict(), start='', end='')) }}"
+       title="{{ _('Togli il filtro') }}"><i class="bi bi-calendar3"></i> {{ filters.start }} → {{ filters.end }} <i class="bi bi-x"></i></a>
+    {% endif %}
     <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);white-space:nowrap;">
       <input class="check" type="checkbox" name="recurring" value="1" {{ 'checked' if filters.recurring else '' }} onchange="this.form.submit()" /> {{ _('Solo ricorrenti') }}
     </label>
     <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> {{ _('Filtra') }}</button>
     <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Azzera') }}</a>
   </form>
+  <!-- Search history: the last 100 searches of this browser, to run them again -->
+  <details class="search-history" id="search-history">
+    <summary><i class="bi bi-clock-history"></i> {{ _('Cronologia ricerche') }} <span id="search-history-count"></span></summary>
+    <ul class="search-history-list" id="search-history-list"></ul>
+    <div class="search-history-empty text-sm text-muted" id="search-history-empty">{{ _('Nessuna ricerca ancora: le ricerche con un filtro si ricordano qui (fino a 100).') }}</div>
+    <button type="button" class="btn btn-ghost btn-sm" id="search-history-clear"><i class="bi bi-x-circle"></i> {{ _('Cancella cronologia') }}</button>
+  </details>
 </div>
 
 <!-- Tabella transazioni ─────────────────────────────────────────────── -->
@@ -114,6 +126,15 @@
       <div class="card-header-sub">{{ _('%(count)s transazioni trovate', count=total) }}{% if pages > 1 %} · {{ _('pagina %(page)s di %(pages)s', page=page, pages=pages) }}{% endif %}</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if transactions %}
+      <button type="button" class="btn btn-outline btn-sm" id="open-bulk-edit" title="{{ _('Cambia tipo, categoria, gruppo, ricorrenza, conto o data di molte transazioni insieme') }}">
+        <i class="bi bi-pencil-square"></i> {{ _('Modifica massiva') }}
+      </button>
+      <a href="{{ url_for('transactions.review_page', **request.args.to_dict()) }}" class="btn btn-ghost btn-sm"
+         title="{{ _('Legge le transazioni di questa ricerca e segnala i probabili errori: entrate e uscite scambiate, investimenti come spese, prelievi, categorie') }}">
+        <i class="bi bi-search-heart"></i> {{ _('Controlla registro') }}
+      </a>
+      {% endif %}
       {% if transactions and ai_classifier %}
       <button type="button" class="btn btn-outline btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
               data-unclassified="{{ unclassified }}" title="Suggerisce categoria e controparte dalla causale ({{ ai_classifier }})">
@@ -197,7 +218,8 @@
           </td>
           <td>{% if tx.splits %}<span class="badge badge-primary" title="{% for s in tx.splits %}{{ s.category }} {{ s.amount|number }}{{ '; ' if not loop.last }}{% endfor %}">{{ tx.splits|map(attribute='category')|join(' + ') }}</span>
               <span class="badge badge-neutral">{{ _('suddivisa') }}</span>
-            {%- elif tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}</td>
+            {%- elif tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}
+            {% if tx.cluster in cluster_choices %}<div class="text-xs text-muted cluster-tag" title="{{ _('Gruppo di spesa') }}">{{ cluster_choices[tx.cluster]|tr }}</div>{% endif %}</td>
           <td class="tag-cell">
             {%- for tag in tx.tags %}
             {%- if tag == ai_tag %}
@@ -224,7 +246,8 @@
           </td>
           <td class="text-center">
             <div class="tx-actions">
-              <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}"><i class="bi bi-pencil"></i></a>
+              <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=request.full_path) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}"
+                 data-popup="{{ url_for('transactions.edit', tx_id=tx.id, embed=1, next=url_for('transactions.embed_done')) }}"><i class="bi bi-pencil"></i></a>
               <button type="submit" form="row-delete-form" formaction="{{ url_for('transactions.delete', tx_id=tx.id) }}"
                       class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}"><i class="bi bi-trash3"></i></button>
             </div>
@@ -248,6 +271,77 @@
   <form method="POST" action="{{ url_for('transactions.classify') }}" id="classify-form">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
   </form>
+  <!-- Modifica massiva: the ticked transactions, or every transaction of the search (all pages) -->
+  <div class="modal-overlay" id="bulk-modal" role="dialog" aria-modal="true" aria-labelledby="bulk-modal-title">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 class="modal-title" id="bulk-modal-title"><i class="bi bi-pencil-square"></i> {{ _('Modifica massiva') }}</h2>
+        <button type="button" class="modal-close" data-close="bulk-modal" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <form method="POST" action="{{ url_for('transactions.bulk_edit') }}" id="bulk-edit-form">
+        <input type="hidden" name="next" value="{{ request.full_path }}" />
+        {% for key, value in filters.items() %}<input type="hidden" name="{{ key }}" value="{{ value or '' }}" />{% endfor %}
+        <div class="modal-body">
+          <div class="bulk-scope">
+            <label><input type="radio" name="scope" value="selection" class="check" id="bulk-scope-selection" /> <span id="bulk-selection-label"></span></label>
+            <label><input type="radio" name="scope" value="search" class="check" id="bulk-scope-search" />
+              {{ ngettext('Tutta la ricerca: %(num)d transazione (tutte le pagine)', 'Tutta la ricerca: %(num)d transazioni (tutte le pagine)', total) }}</label>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="dash-select-title" for="bulk-type">{{ _('Tipo') }}</label>
+              <select id="bulk-type" name="type_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                <option value="income">{{ _('Trasforma in entrate') }}</option>
+                <option value="expense">{{ _('Trasforma in uscite') }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="dash-select-title" for="bulk-category">{{ _('Categoria o sottocategoria') }}</label>
+              <select id="bulk-category" name="category_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                {{ f.category_options(all_categories) }}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="dash-select-title" for="bulk-cluster">{{ _('Gruppo di spesa') }}</label>
+              <select id="bulk-cluster" name="cluster_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                <option value="auto">{{ _('Automatico (dalle regole)') }}</option>
+                {% for key, name in cluster_choices.items() %}<option value="{{ key }}">{{ name|tr }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="dash-select-title" for="bulk-recurring">{{ _('Ricorrente') }}</label>
+              <select id="bulk-recurring" name="recurring_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                <option value="yes">{{ _('Sì (mensile, se non indicato)') }}</option>
+                <option value="no">{{ _('No') }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="dash-select-title" for="bulk-account">{{ _('Mezzo di pagamento (conto, carta o contanti)') }}</label>
+              <select id="bulk-account" name="account_to" class="form-select">
+                <option value="">{{ _('Non cambiare') }}</option>
+                {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+                <option value="none">{{ _('— nessun conto —') }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="dash-select-title" for="bulk-date">{{ _('Data') }}</label>
+              <input id="bulk-date" type="date" name="date_to" class="form-control" />
+              <div class="form-hint">{{ _('Vuota: le date restano come sono.') }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close="bulk-modal">{{ _('Annulla') }}</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> {{ _('Applica') }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <form method="POST" action="{{ url_for('transactions.delete_selected') }}" id="bulk-form"
         data-confirm="{{ _('Eliminare definitivamente le transazioni selezionate?') }}">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
@@ -276,6 +370,55 @@
 
 {% block scripts %}
 <script>
+/* ── Modifica massiva: the ticked rows, or the whole search ── */
+{
+const form = document.getElementById('bulk-edit-form');
+const ticked = () => [...document.querySelectorAll('.bulk-select:checked')];
+document.getElementById('open-bulk-edit')?.addEventListener('click', () => {
+  const count = ticked().length;
+  const selection = document.getElementById('bulk-scope-selection');
+  selection.disabled = !count;
+  document.getElementById('bulk-selection-label').textContent = count
+    ? fmt({{ _('Le %(count)s transazioni selezionate', count='%(count)s')|tojson }}, { count })
+    : {{ _('Nessuna transazione selezionata')|tojson }};
+  (count ? selection : document.getElementById('bulk-scope-search')).checked = true;
+  openModal('bulk-modal');
+});
+document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.close)));
+form?.addEventListener('submit', () => {
+  form.querySelectorAll('input[name=ids]').forEach(el => el.remove());
+  ticked().forEach(box => form.appendChild(Object.assign(document.createElement('input'), { type: 'hidden', name: 'ids', value: box.value })));
+});
+}
+
+/* ── Search history: the searches made with a filter, kept in this browser (newest first, at most 100) ── */
+{
+const KEY = 'mfp-search-history', MAX = 100;
+const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } };
+const write = (list) => { try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX))); } catch (e) { /* private window */ } };
+const params = new URLSearchParams(window.location.search);
+params.delete('page');
+const query = params.toString() ? '?' + params.toString() : '';
+const label = [...params].filter(([, v]) => v).map(([k, v]) => k + ': ' + v).join(' · ');
+if (label) write([{ qs: query, label }, ...read().filter(item => item.qs !== query)]);
+const render = () => {
+  const list = read();
+  document.getElementById('search-history-list').replaceChildren(...list.map((item, i) => {
+    const li = document.createElement('li');
+    const link = Object.assign(document.createElement('a'), { href: {{ url_for('transactions.index')|tojson }} + item.qs, textContent: item.label, title: item.label });
+    const remove = Object.assign(document.createElement('button'), { type: 'button', className: 'btn btn-ghost btn-icon btn-sm', title: {{ _('Togli dalla cronologia')|tojson }} });
+    remove.innerHTML = '<i class="bi bi-x"></i>';
+    remove.addEventListener('click', () => { const rest = read(); rest.splice(i, 1); write(rest); render(); });
+    li.append(link, remove);
+    return li;
+  }));
+  document.getElementById('search-history-empty').hidden = list.length > 0;
+  document.getElementById('search-history-count').textContent = list.length ? '(' + list.length + ')' : '';
+};
+document.getElementById('search-history-clear')?.addEventListener('click', () => { write([]); render(); });
+render();
+}
+
 // Keyboard (F13): «n» goes to the quick entry, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Y (or Shift+Z) redoes — not while typing
 document.addEventListener('keydown', (event) => {
   const typing = event.target.closest('input, textarea, select, [contenteditable]');

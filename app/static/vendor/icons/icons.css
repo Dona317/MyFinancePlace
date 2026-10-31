@@ -22,8 +22,10 @@
 .bi-arrow-right::before { content: "\f138"; }
 .bi-arrow-up-circle::before { content: "\f13a"; }
 .bi-arrow-up-short::before { content: "\f145"; }
+.bi-arrows::before { content: "\f6a2"; }
 .bi-arrows-angle-contract::before { content: "\f149"; }
 .bi-arrows-angle-expand::before { content: "\f14a"; }
+.bi-arrows-expand-vertical::before { content: "\f695"; }
 .bi-at::before { content: "\f152"; }
 .bi-back::before { content: "\f155"; }
 .bi-ban::before { content: "\f6b6"; }
@@ -72,7 +74,9 @@
 .bi-chevron-down::before { content: "\f282"; }
 .bi-chevron-left::before { content: "\f284"; }
 .bi-chevron-right::before { content: "\f285"; }
+.bi-chevron-up::before { content: "\f286"; }
 .bi-circle::before { content: "\f28a"; }
+.bi-clipboard::before { content: "\f290"; }
 .bi-clipboard-check::before { content: "\f28b"; }
 .bi-clipboard-data::before { content: "\f28c"; }
 .bi-clipboard-plus::before { content: "\f28e"; }
@@ -185,6 +189,7 @@
 .bi-pause::before { content: "\f4c4"; }
 .bi-pen::before { content: "\f4c8"; }
 .bi-pencil::before { content: "\f4cb"; }
+.bi-pencil-square::before { content: "\f4ca"; }
 .bi-people::before { content: "\f4d0"; }
 .bi-percent::before { content: "\f4d1"; }
 .bi-person::before { content: "\f4e1"; }
@@ -215,6 +220,7 @@
 .bi-safe::before { content: "\f65a"; }
 .bi-save::before { content: "\f525"; }
 .bi-search::before { content: "\f52a"; }
+.bi-search-heart::before { content: "\f787"; }
 .bi-send::before { content: "\f6c0"; }
 .bi-server::before { content: "\f52c"; }
 .bi-share::before { content: "\f52e"; }
@@ -226,9 +232,11 @@
 .bi-shift::before { content: "\f541"; }
 .bi-shop::before { content: "\f543"; }
 .bi-signal::before { content: "\f664"; }
+.bi-sliders::before { content: "\f56b"; }
 .bi-speedometer2::before { content: "\f580"; }
 .bi-spotify::before { content: "\f666"; }
 .bi-stack::before { content: "\f585"; }
+.bi-star::before { content: "\f588"; }
 .bi-stars::before { content: "\f589"; }
 .bi-stop::before { content: "\f593"; }
 .bi-stop-circle::before { content: "\f591"; }

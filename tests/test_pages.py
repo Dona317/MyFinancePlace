@@ -31,7 +31,7 @@ def test_income_statement_shows_categories(client, sample_data):
 
 
 def test_transaction_filters(client, sample_data):
-    rows = client.get("/transactions/?q=esselunga").get_data(as_text=True).split("<tbody", 1)[1]  # the list only
+    rows = client.get("/transactions/?q=esselunga").get_data(as_text=True).split("<tbody", 1)[1].split("</tbody>")[0]  # the list only
     assert "Spesa" in rows and "Affitto" not in rows
 
     html = client.get("/transactions/?type=income&month=2026-05").get_data(as_text=True)

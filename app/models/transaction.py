@@ -14,6 +14,7 @@ class Transaction(db.Model):
     amount_base    = db.Column(db.Numeric(38, 2))  # value in euro on its date (services.currency fills it)
     type           = db.Column(db.String(20))     # "income" | "expense" | "transfer"
     category       = db.Column(db.Text)
+    cluster        = db.Column(db.String(20))     # the group above the category (services.clusters); empty = not set
     counterparty   = db.Column(db.Text)
     tags           = db.Column(ARRAY(db.String),  default=list)
     is_recurring   = db.Column(db.Boolean,        default=False)

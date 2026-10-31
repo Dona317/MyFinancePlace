@@ -2,6 +2,7 @@
 from .account import Account
 from .budget import Budget
 from .category import Category, CategoryRule
+from .cluster import ClusterRule
 from .client import Client, ClientGroup
 from .currency import ExchangeRate
 from .duplicate import DuplicateDismissal

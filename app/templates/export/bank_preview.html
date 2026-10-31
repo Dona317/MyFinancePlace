@@ -112,8 +112,9 @@
   <div class="card mb-16">
     <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;">
       <label class="form-label" for="import-account" style="margin:0;"><i class="bi bi-bank"></i> {{ _('Conto da cui proviene l’estratto') }} <span class="text-negative">*</span></label>
-      <select id="import-account" name="account_id" class="form-select" style="width:auto;" required>
-        <option value="" disabled {{ 'selected' if not suggested_account }}>{{ _('— Scegli il conto —') }}</option>
+      {% set required = accounts|rejectattr('kind', 'equalto', 'cash')|list %}
+      <select id="import-account" name="account_id" class="form-select" style="width:auto;" {{ 'required' if required }}>
+        <option value="" {{ 'disabled' if required }} {{ 'selected' if not suggested_account }}>{{ _('— Scegli il conto —') }}</option>
         {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == suggested_account }}>{{ '★ ' if a.favorite }}{{ a.name }}{{ ' · ' ~ (a.iban or a.account_number)|masked if a.iban or a.account_number }}</option>{% endfor %}
       </select>
       <span class="text-xs text-muted">{{ _('Obbligatorio: saldi, riconciliazione e giroconti dipendono dal conto. Proposto: quello con l’IBAN o il numero scritto nel file, o il preferito (★).') }}</span>

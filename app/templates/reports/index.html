@@ -181,6 +181,7 @@
       {% if excluded %}<p class="text-xs text-muted mb-8"><i class="bi bi-eye-slash"></i> {{ _('Escluse dalle analisi: %(amount)s', amount=excluded|money) }}
         (<a href="{{ url_for('settings.categories_page') }}">{{ _('categorie') }}</a>)</p>{% endif %}
       <a href="{{ url_for('reports.csv', **query_args) }}" class="btn btn-ghost btn-sm report-csv"><i class="bi bi-download"></i> {{ _('Scarica CSV') }}</a>
+      <a href="{{ url_for('reports.report_pdf', **query_args) }}" class="btn btn-ghost btn-sm report-pdf" title="{{ _('Il report con questi filtri, in PDF') }}"><i class="bi bi-file-earmark-pdf"></i> {{ _('Scarica PDF') }}</a>
     </div>
   </div>
 </div>

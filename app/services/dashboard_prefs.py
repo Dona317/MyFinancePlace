@@ -87,6 +87,7 @@ def reset_windows() -> None:
 def window_range(value: dict, today: date | None = None) -> tuple[date, date]:
     """[first day, day after the last) of a window."""
     today = today or date.today()
+    value = _clean(value) or dict(DEFAULT_WINDOW)
     if value["period"] == "last_n":
         current = month_index(today)
         return month_start(current - value["n"] + 1), month_start(current + 1)

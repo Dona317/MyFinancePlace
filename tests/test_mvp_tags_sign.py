@@ -76,6 +76,6 @@ def test_income_and_expense_series_for_the_dashboard(client, db):
     assert cumulative["income_cumulative"] == [2000.0, 4050.0, 4050.0]
     assert cumulative["expenses_cumulative"] == [800.0, 1640.0, 1640.0]
     html = client.get("/dashboard?year=2026").get_data(as_text=True)
-    for canvas in ("expensePieChart", "incomePieChart", "expenseTrendChart", "incomeTrendChart", "cumulativeChart"):
+    for canvas in ("expensePieChart", "incomePieChart", "expenseTrendChart", "incomeTrendChart", "cashFlowChart"):  # the running totals are in the cash flow now
         assert f'id="{canvas}"' in html
     assert "Dividendi e cedole" in html.split('id="incomePieChart"')[1].split("</ul>")[0]

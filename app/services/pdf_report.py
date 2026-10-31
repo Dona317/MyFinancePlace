@@ -153,3 +153,34 @@ def build_report(year: int, statement: dict, cash_flow: dict, generated_at: date
     _table(pdf, None, rows, (135, 45), {3: "total"})
 
     return bytes(pdf.output())
+
+
+def build_filtered(title: str, subtitle: str, kpis: list[tuple[str, str]], items: list[dict], rows: list,
+                   generated_at: datetime | None = None) -> bytes:
+    """The report page as PDF, with the filters it was opened with: key figures, the split by category and the
+    transactions. `items`: {"category", "amount", "share"}; `rows`: the transactions shown."""
+    generated_at = generated_at or datetime.now()
+    pdf = _ReportPDF(title)
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.set_text_color(*INK)
+    pdf.cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", size=9)
+    pdf.set_text_color(*MUTED)
+    pdf.cell(0, 5, f"{subtitle} · MyFinancePlace, {generated_at:%d/%m/%Y %H:%M}", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+    if kpis:
+        _kpis(pdf, kpis)
+    if items:
+        _heading(pdf, "Per categoria")
+        _table(pdf, ["Categoria", "Importo", "%"],
+               [(item["category"] or "—", money(item["amount"]), percent(item.get("share"))) for item in items],
+               (110, 40, 30))
+    _heading(pdf, f"Transazioni ({len(rows)})")
+    sign = {"income": 1, "expense": -1}
+    _table(pdf, ["Data", "Descrizione", "Categoria", "Importo"],
+           [(f"{tx.date:%d/%m/%Y}", (tx.description or "")[:60], (tx.category or "—")[:28],
+             money(sign.get(tx.type, 0) * tx.magnitude) if tx.type in sign else "⇄ " + money(tx.magnitude))
+            for tx in rows] or [("—", "Nessuna transazione", "", "")],
+           (24, 86, 40, 30))
+    return bytes(pdf.output())

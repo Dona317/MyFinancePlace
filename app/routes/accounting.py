@@ -17,14 +17,8 @@ accounting_bp = APIBlueprint(
 
 @accounting_bp.route("/")
 def index():
-    year = date.today().year
-    return render_template(
-        "accounting/index.html",
-        trend=wealth.net_worth_trend(),
-        monthly=analytics.monthly_series(year),
-        month_count=date.today().month,
-        year=year,
-    )
+    """The three statements as tabs of one page (each loads only when opened)."""
+    return render_template("accounting/index.html")
 
 
 @accounting_bp.route("/balance-sheet")

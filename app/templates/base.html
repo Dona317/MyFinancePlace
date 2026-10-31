@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="{{ current_language() }}" data-font="{{ ui_font() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
+{% set embedded = request.values.get("embed") == "1" %}
+<html lang="{{ current_language() }}"{{ ' class="embedded"'|safe if embedded }} data-font="{{ ui_font() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -30,6 +31,7 @@
 
 <div class="app-wrapper">
 
+  {% if not embedded %}
   <!-- ══ Sidebar ═══════════════════════════════════════════════════════════ -->
   <aside class="sidebar" id="sidebar">
 
@@ -340,10 +342,12 @@
     </div>
 
   </aside>
+  {% endif %}
 
   <!-- ══ Main ═══════════════════════════════════════════════════════════════ -->
   <div class="main-content">
 
+    {% if not embedded %}
     <!-- Topbar -->
     <header class="topbar">
       <!-- Phones and tablets only: the sidebar is hidden there, this opens it over the page -->
@@ -391,6 +395,7 @@
         </span>
       </div>
     </header>
+    {% endif %}
 
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -418,7 +423,7 @@
 <script>window.MFP_TEXT = {{ {
   "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
   "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
-  "ok": _("OK"), "cancel": _("Annulla"),
+  "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"),
 }|tojson }};</script>
 <!-- Chart.js and its helpers: only on the pages with charts -->
 {% block chart_scripts %}{% endblock %}
