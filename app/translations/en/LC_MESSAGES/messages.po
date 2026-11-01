@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 17:21+0100\n"
+"POT-Creation-Date: 2026-11-01 17:27+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4390,13 +4390,6 @@ msgstr "Wealth over the years"
 msgid "Il percorso completo, sul computer dove gira l’app."
 msgstr "The full path, on the computer where the app runs."
 
-msgid ""
-"Il periodo di tutta la pagina, schede e grafici: uno o più anni di fila; "
-"per un anno solo anche semestre o trimestre."
-msgstr ""
-"The period of the whole page, cards and charts: one or more years in a "
-"row; for a single year also a half or a quarter."
-
 msgid "Il periodo finisce prima di cominciare."
 msgstr "The period ends before it starts."
 
@@ -4633,6 +4626,9 @@ msgstr "Set"
 
 msgid "Imposta di bollo"
 msgstr "Stamp duty"
+
+msgid "Imposta il periodo della pagina, schede e grafici."
+msgstr "Sets the period of the page, cards and charts."
 
 msgid "Imposta sostitutiva"
 msgstr "Substitute tax"

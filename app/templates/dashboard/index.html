@@ -12,7 +12,7 @@
 {# The period of the whole page: from one year to another (the same: that year), a half or a quarter of a single one #}
 <form method="GET" class="dash-period-box" id="dash-period">
   <span class="dash-period-title"><i class="bi bi-calendar3"></i> {{ _('Periodo') }}
-    {{ info(_('Il periodo di tutta la pagina, schede e grafici: uno o più anni di fila; per un anno solo anche semestre o trimestre.')) }}</span>
+    {{ info(_('Imposta il periodo della pagina, schede e grafici.')) }}</span>
   <label class="sr-only" for="dash-year">{{ _('Dal') }}</label>
   <select id="dash-year" name="year" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Dal') }}">
     {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
