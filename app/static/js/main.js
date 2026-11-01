@@ -13,14 +13,14 @@ function openModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.add("open");
-  document.body.style.overflow = "hidden";
+  document.documentElement.classList.add("no-scroll");  // the page behind stays still (it scrolls on <html>)
   setTimeout(() => el.querySelector("input, select, textarea, button")?.focus(), 60);
 }
 function closeModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.remove("open");
-  document.body.style.overflow = "";
+  if (!document.querySelector(".modal-overlay.open")) document.documentElement.classList.remove("no-scroll");
 }
 window.openModal = openModal;
 window.closeModal = closeModal;
@@ -49,6 +49,23 @@ function initTagInput(input, text) {
   input.type = "hidden";
   input.after(wrap, list);
 
+  // the tags the chosen category suggests (data-category-tags: {category: [tags]}), one click each (F32)
+  const byCategory = JSON.parse(input.dataset.categoryTags || "null");
+  const hints = Object.assign(document.createElement("div"), { className: "tag-suggest", hidden: true });
+  list.after(hints);
+  const paint = () => {
+    if (!byCategory) return;
+    const select = input.form?.querySelector('select[name="category"]');
+    const names = (byCategory[select?.value] || []).filter(t => !tags.some(x => same(x, t)));
+    hints.replaceChildren(...names.map(t => {
+      const chip = Object.assign(document.createElement("button"), { type: "button", className: "tag-suggest-chip", textContent: "+ " + t });
+      chip.addEventListener("click", () => add(t));
+      return chip;
+    }));
+    hints.hidden = !names.length;
+  };
+  if (byCategory) input.form?.addEventListener("change", e => { if (e.target.name === "category") paint(); });
+
   const render = () => {
     wrap.querySelectorAll(".tag-chip").forEach(chip => chip.remove());
     tags.forEach((tag, i) => {
@@ -65,6 +82,7 @@ function initTagInput(input, text) {
     });
     input.value = tags.join(", ");
     list.replaceChildren(...pool.filter(p => !tags.some(t => same(t, p))).map(p => Object.assign(document.createElement("option"), { value: p })));
+    paint();
   };
   const add = (value) => {
     value.split(",").map(v => v.trim()).filter(Boolean).forEach(tag => {
@@ -104,7 +122,6 @@ function applyTheme(theme, remember) {
     const text = window.MFP_TEXT || {};
     const label = theme === "dark" ? (text.to_light || "Passa alla modalità chiara") : (text.to_dark || "Passa alla modalità scura");
     toggle.setAttribute("aria-label", label);
-    toggle.setAttribute("aria-checked", String(theme === "dark"));  // a switch: on = dark
     toggle.title = label;
   }
   if (remember) store.set("mfp-theme", theme);
@@ -311,6 +328,49 @@ function initAskPanel() {
   if (new URLSearchParams(location.search).get("ask") === "1") open(true);
 }
 
+/* Tables whose columns are widened or narrowed by dragging the edge of their title (th[data-col]), like a
+   spreadsheet; the widths are remembered in this browser, per table */
+function initResizableColumns() {
+  // a fixed layout needs the table's own width: the sum of its columns
+  const fit = (table) => {
+    table.style.width = [...table.querySelectorAll("thead th")].reduce((sum, th) => sum + (parseFloat(th.style.width) || 80), 0) + "px";
+  };
+  document.querySelectorAll("table[id] th[data-col]").forEach(th => {
+    const table = th.closest("table"), key = `mfp-cols-${table.id}`;
+    let widths = {};
+    try { widths = JSON.parse(store.get(key) || "{}"); } catch (e) { widths = {}; }
+    if (widths[th.dataset.col]) th.style.width = widths[th.dataset.col] + "px";
+    const grip = Object.assign(document.createElement("span"), { className: "col-resizer", title: TEXT.resize || "" });
+    grip.setAttribute("aria-hidden", "true");
+    th.appendChild(grip);
+    grip.addEventListener("click", e => e.stopPropagation());
+    grip.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const startX = e.clientX, startW = parseFloat(th.style.width) || th.getBoundingClientRect().width;
+      try { grip.setPointerCapture(e.pointerId); } catch (err) { /* a pointer the browser does not track */ }
+      const move = ev => { th.style.width = Math.max(48, startW + ev.clientX - startX) + "px"; fit(table); };
+      const up = () => {
+        grip.removeEventListener("pointermove", move);
+        grip.removeEventListener("pointerup", up);
+        widths[th.dataset.col] = Math.round(parseFloat(th.style.width));
+        store.set(key, JSON.stringify(widths));
+      };
+      grip.addEventListener("pointermove", move);
+      grip.addEventListener("pointerup", up);
+    });
+  });
+  new Set([...document.querySelectorAll("table[id] th[data-col]")].map(th => th.closest("table"))).forEach(fit);
+  // a cell with more than it shows scrolls sideways with the wheel, while the page keeps still
+  document.addEventListener("wheel", e => {
+    const cell = e.target.closest?.(".cell-scroll");
+    if (!cell || cell.scrollWidth <= cell.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    const before = cell.scrollLeft;
+    cell.scrollLeft += e.deltaY;
+    if (cell.scrollLeft !== before) e.preventDefault();  // at either end the page scrolls as usual
+  }, { passive: false });
+}
+
 /* Flash messages marked data-autohide fade out after a few seconds */
 function initFlash() {
   document.querySelectorAll(".alert[data-autohide]").forEach(el => {
@@ -422,11 +482,12 @@ function initPopups() {
   if (document.documentElement.classList.contains("embedded")) {
     document.addEventListener("click", e => {
       if (e.target.closest("[data-close-embed]")) window.parent.postMessage({ mfp: "popup-close" }, window.location.origin);
+      if (e.target.closest("[data-popup-back]")) window.parent.postMessage({ mfp: "popup-back" }, window.location.origin);
     });
     return;
   }
   let overlay = null;
-  const close = () => { overlay?.remove(); overlay = null; document.body.style.overflow = ""; };
+  const close = () => { overlay?.remove(); overlay = null; document.documentElement.classList.remove("no-scroll"); };
   document.addEventListener("click", e => {
     const link = e.target.closest("a[data-popup]");
     if (!link || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
@@ -441,14 +502,52 @@ function initPopups() {
     overlay.appendChild(box);
     overlay.addEventListener("click", ev => { if (ev.target === overlay) close(); });
     document.body.appendChild(overlay);
-    document.body.style.overflow = "hidden";
+    document.documentElement.classList.add("no-scroll");
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && overlay) close(); });
   window.addEventListener("message", e => {
     if (e.origin !== window.location.origin || !e.data || !overlay) return;
     if (e.data.mfp === "popup-close") close();
-    if (e.data.mfp === "tx-done") { close(); window.location.reload(); }
+    if (e.data.mfp === "popup-back") { close(); openModal("add-chooser"); }  // back to the choice of the round +
+    if (e.data.mfp === "tx-done") {
+      close();
+      // the register shows the change: reload it, the note comes after; elsewhere the note at once
+      if (document.getElementById("tx-table") || location.pathname.startsWith("/transactions")) {
+        try { sessionStorage.setItem("mfp-toast", e.data.message || ""); } catch (err) { /* private mode */ }
+        window.location.reload();
+      } else {
+        showToast(e.data.message);
+      }
+    }
   });
+  try {
+    const pending = sessionStorage.getItem("mfp-toast");
+    if (pending !== null) { sessionStorage.removeItem("mfp-toast"); showToast(pending); }
+  } catch (err) { /* private mode */ }
+}
+
+/* A note at the bottom of the page for a few seconds: what was done, and the way to the transactions */
+function showToast(message) {
+  document.querySelector(".toast")?.remove();
+  const toast = Object.assign(document.createElement("div"), { className: "toast", role: "status" });
+  toast.appendChild(Object.assign(document.createElement("span"), { textContent: message || TEXT.saved || "Fatto." }));
+  if (!location.pathname.startsWith("/transactions")) {
+    toast.appendChild(Object.assign(document.createElement("a"), { href: "/transactions/", className: "toast-link", textContent: TEXT.to_list || "Vai alla lista transazioni" }));
+  }
+  const close = Object.assign(document.createElement("button"), { type: "button", className: "toast-close", innerHTML: '<i class="bi bi-x"></i>' });
+  close.setAttribute("aria-label", TEXT.cancel || "Chiudi");
+  close.addEventListener("click", () => toast.remove());
+  toast.appendChild(close);
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 7000);
+}
+
+/* The round +: a small window to choose a single transaction (a pop-up over the page) or a file to import */
+function initAddChooser() {
+  const bubble = document.getElementById("add-bubble");
+  if (!bubble || !document.getElementById("add-chooser")) return;
+  bubble.addEventListener("click", e => { e.preventDefault(); openModal("add-chooser"); });
+  document.querySelectorAll("#add-chooser [data-popup]").forEach(a => a.addEventListener("click", () => closeModal("add-chooser")));
 }
 
 /* Tooltips: everything clickable says what it does when the pointer rests on it (a native tooltip, no info icons):
@@ -683,6 +782,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initSidebar();
   initNavSections();
   initAskPanel();
+  initAddChooser();
+  initResizableColumns();
   // Tags: chips picked from the tags already used, or new ones (Enter or comma)
   document.querySelectorAll("input[data-tag-input]").forEach(input => initTagInput(input, TEXT));
   initFlash();

@@ -16,6 +16,7 @@
   <div class="card">
     <div class="card-header">
       <div class="card-header-title">
+        {% if request.values.get("from") == "add" %}<button type="button" class="btn btn-ghost btn-icon form-back" data-popup-back title="{{ _('Indietro') }}" aria-label="{{ _('Indietro') }}"><i class="bi bi-arrow-left"></i></button>{% endif %}
         <i class="bi bi-{{ 'pencil' if is_edit else 'plus-circle' }}"></i>
         {{ _('Modifica Transazione') if is_edit else _('Inserisci Nuova Transazione') }}
       </div>
@@ -256,7 +257,7 @@
         <div class="form-group">
           <label class="form-label" for="f-tags">{{ _('Tag') }}</label>
           <input id="f-tags" type="text" name="tags" class="form-control" data-tag-input
-                 data-suggestions="{{ tag_pool|tojson|forceescape }}"
+                 data-suggestions="{{ tag_pool|tojson|forceescape }}" data-category-tags="{{ category_tags|tojson|forceescape }}"
                  placeholder="{{ _('es. Esselunga, deducibile, vacanza') }}"
                  value="{{ v.tags }}" />
           <div class="form-hint">{{ _('Scegli dai tag già usati o scrivine uno nuovo e premi Invio. La controparte (es. il negozio) va nei tag.') }}</div>
@@ -310,14 +311,14 @@
 
         <!-- Azioni ──────────────────────────────────────────────────── -->
         {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
-        {% if embedded %}<input type="hidden" name="embed" value="1" />{% endif %}
+        {% if embedded %}<input type="hidden" name="embed" value="1" />{% endif %}{% if request.values.get("from") == "add" %}<input type="hidden" name="from" value="add" />{% endif %}
 
       </form>
       {% if is_edit %}
       <form method="POST" action="{{ url_for('transactions.delete', tx_id=transaction.id) }}" id="delete-form"
             data-confirm="{{ _('Eliminare definitivamente questa transazione?') }}">
         <input type="hidden" name="next" value="{{ next_url or url_for('transactions.index') }}" />
-        {% if embedded %}<input type="hidden" name="embed" value="1" />{% endif %}
+        {% if embedded %}<input type="hidden" name="embed" value="1" />{% endif %}{% if request.values.get("from") == "add" %}<input type="hidden" name="from" value="add" />{% endif %}
       </form>
       {% endif %}
     </div>

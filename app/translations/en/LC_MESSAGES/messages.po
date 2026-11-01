@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 18:25+0100\n"
+"POT-Creation-Date: 2026-11-01 23:01+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -251,8 +251,8 @@ msgid "%(count)s righe ignorate (versamenti, dividendi o righe illeggibili)"
 msgstr "%(count)s rows skipped (deposits, dividends or unreadable rows)"
 
 #, python-format
-msgid "%(count)s selezionate"
-msgstr "%(count)s selected"
+msgid "%(count)s selezionate su %(total)s transazioni"
+msgstr "%(count)s selected of %(total)s transactions"
 
 #, python-format
 msgid "%(count)s suggerimenti"
@@ -587,6 +587,10 @@ msgid "%(size)s KB"
 msgstr "%(size)s KB"
 
 #, python-format
+msgid "%(total)s transazioni"
+msgstr "%(total)s transactions"
+
+#, python-format
 msgid "%(units)s quote"
 msgstr "%(units)s units"
 
@@ -728,6 +732,10 @@ msgid ""
 msgstr ""
 "1 unbooked movement (pending or cancelled) was left out: if it is "
 "pending, import it once the bank has booked it."
+
+#, python-format
+msgid "1 selezionata su %(total)s transazioni"
+msgstr "1 selected of %(total)s transactions"
 
 msgid "1 unità = € …"
 msgstr "1 unit = € …"
@@ -1781,6 +1789,13 @@ msgstr "Upload the bill to Documents first."
 msgid "Carica un file"
 msgstr "Upload a file"
 
+msgid ""
+"Carica un file con più transazioni: Excel, CSV o PDF del tuo estratto "
+"conto bancario."
+msgstr ""
+"Upload a file with several transactions: Excel, CSV or PDF of your bank "
+"statement."
+
 msgid "Carta di Credito"
 msgstr "Credit Card"
 
@@ -1906,6 +1921,14 @@ msgstr "Categories month by month — %(year)s"
 
 msgid "Categorie nel tempo"
 msgstr "Categories over time"
+
+#, python-format
+msgid ""
+"Categorie riordinate: %(moved)s transazioni spostate, %(merged)s "
+"categorie unite."
+msgstr ""
+"Categories reordered: %(moved)s transactions moved, %(merged)s categories"
+" merged."
 
 msgid "Categorie, gruppi e tag"
 msgstr "Categories, groups and tags"
@@ -2693,9 +2716,6 @@ msgstr "Crypto"
 
 msgid "Cronologia ricerche"
 msgstr "Search history"
-
-msgid "Cruscotto"
-msgstr "Dashboard"
 
 msgid "Cumulativo"
 msgstr "Cumulative"
@@ -3592,6 +3612,9 @@ msgstr ""
 
 msgid "Fatto"
 msgstr "Done"
+
+msgid "Fatto."
+msgstr "Done."
 
 msgid "Fatto: passa alla prossima"
 msgstr "Done: move on to the next one"
@@ -4773,6 +4796,9 @@ msgstr "Set it on the holding's form"
 msgid "Indicatori"
 msgstr "Indicators"
 
+msgid "Indietro"
+msgstr "Back"
+
 msgid "Indipendenza finanziaria"
 msgstr "Financial independence"
 
@@ -4810,6 +4836,9 @@ msgstr "Enter New Debt"
 
 msgid "Inserisci a mano una entrata o una spesa."
 msgstr "Enter an income or an expense by hand."
+
+msgid "Inserisci una singola entrata o uscita."
+msgstr "Enter a single income or expense."
 
 msgid "Installa"
 msgstr "Install"
@@ -5203,10 +5232,6 @@ msgstr "Job deleted: a payment already recorded stays among the transactions."
 msgid "Lavoro «%(job)s» registrato."
 msgstr "Job “%(job)s” recorded."
 
-#, python-format
-msgid "Le %(count)s transazioni selezionate"
-msgstr "The %(count)s selected transactions"
-
 msgid ""
 "Le 300 transazioni più recenti: cambia l'anno fiscale e salva per vederne"
 " altre."
@@ -5496,21 +5521,14 @@ msgid "Lira turca"
 msgstr "Turkish lira"
 
 msgid ""
-"Livellamento esponenziale con α = 2 / (N + 1): segue i cambiamenti più in"
-" fretta."
-msgstr "Exponential smoothing with α = 2 / (N + 1): follows changes faster."
+"Livellamento esponenziale semplice: Sₜ = α·xₜ + (1 − α)·Sₜ₋₁, con α = 2 /"
+" (N + 1). I pesi dei mesi passati calano in modo geometrico."
+msgstr ""
+"Simple exponential smoothing: Sₜ = α·xₜ + (1 − α)·Sₜ₋₁, with α = 2 / (N +"
+" 1). The weights of past months decay geometrically."
 
 msgid "Lo stesso file importato due volte non crea doppioni."
 msgstr "Importing the same file twice creates no duplicates."
-
-msgid ""
-"Lo stesso mese dell'anno prima, riscalato sul livello degli ultimi N "
-"mesi: coglie bollette invernali, vacanze estive, tredicesima. Serve "
-"almeno un anno di storico."
-msgstr ""
-"The same month of the year before, rescaled to the level of the last N "
-"months: catches winter bills, summer holidays, year-end bonuses. Needs at"
-" least one year of history."
 
 msgid ""
 "Lo stesso movimento è già stato importato dall'estratto conto dell'altro "
@@ -5606,16 +5624,25 @@ msgid "Media Mensile"
 msgstr "Monthly Average"
 
 msgid ""
+"Media a pesi lineari: x̂ = Σ i·xᵢ / Σ i, con peso 1 al mese più vecchio e"
+" N al più recente. Segue i cambiamenti più della media semplice."
+msgstr ""
+"Linearly weighted mean: x̂ = Σ i·xᵢ / Σ i, weight 1 for the oldest month "
+"and N for the latest. Follows changes more than the simple mean."
+
+msgid ""
+"Media aritmetica degli ultimi N mesi: x̂ = (x₁ + … + x_N) / N. Ogni mese "
+"pesa uguale: stima stabile, lenta a seguire un cambiamento."
+msgstr ""
+"Arithmetic mean of the last N months: x̂ = (x₁ + … + x_N) / N. Every "
+"month weighs the same: a steady estimate, slow to follow a change."
+
+msgid ""
 "Media degli importi della serie negli ultimi N mesi, come per le "
 "variabili."
 msgstr ""
 "Average of the series' amounts over the last N months, as for the "
 "variable part."
-
-msgid "Media degli ultimi N mesi con più peso ai mesi recenti (pesi 1, 2, … N)."
-msgstr ""
-"Average of the last N months with more weight on recent months (weights "
-"1, 2, … N)."
 
 msgid "Media della finestra"
 msgstr "Window average"
@@ -5631,9 +5658,6 @@ msgstr "Moving average"
 
 msgid "Media ponderata"
 msgstr "Weighted average"
-
-msgid "Media semplice degli ultimi N mesi."
-msgstr "Simple average of the last N months."
 
 msgid "Mediana"
 msgstr "Median"
@@ -5778,6 +5802,15 @@ msgstr "Model for reading documents"
 msgid "Modello pronto sconosciuto."
 msgstr "Unknown ready model."
 
+msgid ""
+"Modello stagionale moltiplicativo: lo stesso mese di 12 mesi prima, per "
+"il rapporto tra la media degli ultimi N mesi e quella degli stessi N mesi"
+" dell'anno prima. Serve almeno un anno di storico."
+msgstr ""
+"Multiplicative seasonal model: the same month 12 months earlier, times "
+"the ratio between the mean of the last N months and that of the same N "
+"months a year before. Needs at least a year of history."
+
 msgid "Modello:"
 msgstr "Model:"
 
@@ -5821,8 +5854,8 @@ msgstr "Editing the dashboard"
 msgid "Modifica e collega"
 msgstr "Edit and link"
 
-msgid "Modifica insieme gli stessi campi di tutte le transazioni selezionate."
-msgstr "Change the same fields of all the selected transactions at once."
+msgid "Modifica insieme i campi delle transazioni selezionate."
+msgstr "Change the fields of the selected transactions together."
 
 msgid "Modifica la bolletta"
 msgstr "Edit the bill"
@@ -6424,9 +6457,6 @@ msgstr ""
 "No recurring transactions scheduled. Mark rent, salary and subscriptions "
 "as recurring"
 
-msgid "Nessuna transazione selezionata"
-msgstr "No transaction selected"
-
 msgid "Nessuna transazione selezionata."
 msgstr "No transactions selected."
 
@@ -6965,6 +6995,11 @@ msgstr ""
 "Every transaction keeps its original amount and currency; totals, reports"
 " and forecasts use the"
 
+msgid ""
+"Ogni transazione va nella nuova categoria e tiene come tag il nome della "
+"vecchia."
+msgstr "Each transaction goes to the new category and keeps the old one as a tag."
+
 msgid "Ogni tre mesi"
 msgstr "Every three months"
 
@@ -7174,6 +7209,9 @@ msgstr "Switch to light mode"
 
 msgid "Passa alla modalità scura"
 msgstr "Switch to dark mode"
+
+msgid "Passa alle categorie predefinite"
+msgstr "Switch to the default categories"
 
 msgid "Passaggi interni"
 msgstr "Internal moves"
@@ -7551,6 +7589,13 @@ msgstr ""
 
 msgid "Plusvalenze"
 msgstr "Capital gains"
+
+msgid ""
+"Poche categorie ampie (Casa, Veicoli, Shopping…), i dettagli diventano "
+"tag."
+msgstr ""
+"A few broad categories (Home, Vehicles, Shopping…); the details become "
+"tags."
 
 msgid "Polizza"
 msgstr "Policy"
@@ -8234,6 +8279,13 @@ msgstr "Default rules"
 msgid "Regole, causali e %(ai)s"
 msgstr "Rules, descriptions and %(ai)s"
 
+msgid ""
+"Regressione lineare ai minimi quadrati sugli ultimi N mesi (y = a + b·t),"
+" proiettata in avanti: coglie una crescita o un calo costante."
+msgstr ""
+"Least-squares linear regression on the last N months (y = a + b·t), "
+"projected forward: catches a steady rise or fall."
+
 msgid "Reimposta password"
 msgstr "Reset password"
 
@@ -8337,13 +8389,6 @@ msgstr "Pay back %(person)s"
 #, python-format
 msgid "Restituzione di %(person)s registrata."
 msgstr "Repayment from %(person)s recorded."
-
-msgid ""
-"Retta di regressione sugli ultimi N mesi, proiettata in avanti: coglie "
-"spese in crescita o in calo."
-msgstr ""
-"Regression line over the last N months, projected forward: catches rising"
-" or falling spending."
 
 msgid "Riattiva"
 msgstr "Resume"
@@ -8519,6 +8564,12 @@ msgid ""
 msgstr ""
 "Renaming a category updates all its transactions; giving it the name of "
 "another one merges them"
+
+msgid "Riordina"
+msgstr "Reorder"
+
+msgid "Riordinare tutte le categorie? Le vecchie vengono unite nelle nuove."
+msgstr "Reorder all categories? The old ones are merged into the new ones."
 
 msgid "Riparti dai dati dell'archivio"
 msgstr "Start again from the archive"
@@ -9143,8 +9194,11 @@ msgstr ""
 "Select the bank of the transactions; if missing, create the account in "
 "Accounts first."
 
-msgid "Seleziona tutte"
-msgstr "Select all"
+#, python-format
+msgid "Seleziona tutta la ricerca (%(num)d transazione)"
+msgid_plural "Seleziona tutta la ricerca (%(num)d transazioni, tutte le pagine)"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Seleziona tutti"
 msgstr "Select all"
@@ -9678,6 +9732,13 @@ msgstr "Tag"
 msgid "Tag (separati da virgola)"
 msgstr "Tags (comma separated)"
 
+msgid "Tag suggeriti"
+msgstr "Suggested tags"
+
+#, python-format
+msgid "Tag suggeriti di %(name)s"
+msgstr "Suggested tags of %(name)s"
+
 #, python-format
 msgid "Tag «%(name)s» tolto da %(count)s transazioni."
 msgstr "Tag «%(name)s» removed from %(count)s transactions."
@@ -10010,6 +10071,9 @@ msgstr ""
 "Drag blocks and cards to move them; change their width and height or hide"
 " them."
 
+msgid "Trascina per allargare o stringere la colonna"
+msgstr "Drag to widen or narrow the column"
+
 msgid "Trascina per spostare"
 msgstr "Drag to move"
 
@@ -10087,12 +10151,6 @@ msgstr "Yours"
 
 msgid "Tutta la famiglia"
 msgstr "The whole family"
-
-#, python-format
-msgid "Tutta la ricerca: %(num)d transazione (tutte le pagine)"
-msgid_plural "Tutta la ricerca: %(num)d transazioni (tutte le pagine)"
-msgstr[0] "The whole search: %(num)d transaction (all pages)"
-msgstr[1] "The whole search: %(num)d transactions (all pages)"
 
 msgid "Tutte"
 msgstr "All"
@@ -10559,6 +10617,9 @@ msgstr "Holiday"
 msgid "Vai"
 msgstr "Go"
 
+msgid "Vai alla lista transazioni"
+msgstr "Go to the transactions"
+
 msgid "Vai alle Impostazioni"
 msgstr "Go to Settings"
 
@@ -10575,11 +10636,11 @@ msgid "Valore Totale"
 msgstr "Total Value"
 
 msgid ""
-"Valore centrale degli ultimi N mesi: ignora i mesi eccezionali (una spesa"
-" una tantum)."
+"Valore centrale degli ultimi N mesi ordinati. Stimatore robusto: un mese "
+"anomalo non lo sposta."
 msgstr ""
-"Middle value of the last N months: ignores exceptional months (a one-off "
-"expense)."
+"Middle value of the last N months in order. A robust estimator: one "
+"unusual month does not move it."
 
 msgid "Valore con la quantità attuale"
 msgstr "Value at the current quantity"
@@ -11093,6 +11154,9 @@ msgstr "e.g. Emergency fund"
 
 msgid "es. Generali, UnipolSai..."
 msgstr "e.g. Generali, UnipolSai..."
+
+msgid "es. Leasing, Noleggi"
+msgstr "e.g. Leasing, Rentals"
 
 msgid "es. Luca, Sara"
 msgstr "e.g. Luca, Sara"

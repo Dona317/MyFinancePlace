@@ -9,6 +9,8 @@ from app.services import analytics, budgets, categories, reports, transfer
 from tests.conftest import make_tx
 from tests.test_ai_classification import items, ollama  # noqa: F401 - fixture
 
+pytestmark = pytest.mark.usefixtures("earlier_archive")  # these tests are about an archive of the earlier list (F32)
+
 JUNE = date(2026, 6, 10)
 
 

@@ -1,9 +1,13 @@
 """Categories managed in one place (Settings → Categorie) and categorization rules written or learned by the user."""
+import pytest
+
 from app.models.category import Category, CategoryRule
 from app.models.transaction import Transaction
 from app.models.wealth import Document
 from app.services import ai_classification, bank_import, categories, category_rules
 from tests.conftest import make_tx
+
+pytestmark = pytest.mark.usefixtures("earlier_archive")  # these tests are about an archive of the earlier list (F32)
 
 
 def test_defaults_are_created_once_and_deletions_stick(db):
@@ -20,6 +24,10 @@ def test_defaults_are_created_once_and_deletions_stick(db):
 def test_a_database_seeded_with_the_first_list_gets_the_new_categories_once(db):
     """Before v2 only the first 13 were created: the new ones are added, the ones the user deleted stay deleted."""
     from app.services import settings_store
+    Category.query.delete()  # this archive is older than the one of the module: only the first list, no flags
+    for key in (categories.SEEDED_SETTING, categories.SEEDED_V2_SETTING, categories.SEEDED_V3_SETTING,
+                categories.SEEDED_PERSONAL_SETTING, categories.SEEDED_CAR_SETTING):
+        settings_store.set(key, None)
     for name, kind, hint, discretionary in categories.DEFAULTS:
         if name in categories.FIRST_DEFAULTS and name != "Freelance":  # the user had deleted Freelance
             db.session.add(Category(name=name, kind=kind, hint=categories.OLD_HINTS.get(name, hint)))

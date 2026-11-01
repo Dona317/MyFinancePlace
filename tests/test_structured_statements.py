@@ -118,6 +118,7 @@ def test_camt_refused(raw, message):
         structured.parse("x.xml", raw)
 
 
+@pytest.mark.usefixtures("earlier_archive")  # an archive of the earlier list (F32)
 def test_preview_keeps_the_file_category_and_the_transfer(app, db):
     categories.ensure_defaults()
     with app.test_request_context():

@@ -1,9 +1,10 @@
 """The transaction pages: list, form, quick add, undo, bulk actions, duplicates and AI classification.
 The form is read in transactions_form, the REST API is in transactions_api."""
+import json
 from datetime import date
 
 from apiflask import APIBlueprint
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, get_flashed_messages, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_babel import ngettext
 from sqlalchemy import func, or_
@@ -161,7 +162,7 @@ def new():
             flash(_("Commissione di %(amount)s registrata come spesa.", amount=display.money(extra[0].amount)), "success")
         flash(_("Transazione aggiunta."), "success")
         _learn_from(tx)
-        return redirect(url_for("transactions.index"))
+        return back_to("transactions.index")  # from the pop-up of the round +: back to the page under it
     return _render_form(None)
 
 
@@ -231,6 +232,7 @@ def _render_form(tx: Transaction | None):
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=form_values(tx),
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
         currencies=currency_service.CURRENCIES, tag_pool=all_tags(), fee_rules=broker.rules(accounts.all_accounts()),
+        category_tags=category_service.suggested_tags(),
         cluster_choices=clusters.choices(),
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
         events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
@@ -396,9 +398,12 @@ def quick_update(tx_id):
 
 @transactions_bp.route("/embed-done")
 def embed_done():
-    """Where the edit pop-up goes after saving or deleting: the list closes it and reloads (with the message)."""
+    """Where the pop-up goes after saving or deleting: the page under it closes it and shows what was done in a note
+    at the bottom (the message, taken here so it does not wait for the next page)."""
+    messages = get_flashed_messages()
+    message = json.dumps(messages[-1] if messages else "")
     return ('<!doctype html><meta charset="utf-8"><script>'
-            'parent.postMessage({mfp: "tx-done"}, location.origin);</script>')
+            f'parent.postMessage({{mfp: "tx-done", message: {message}}}, location.origin);</script>')
 
 
 @transactions_bp.route("/<int:tx_id>/delete", methods=["POST"])
@@ -522,7 +527,7 @@ def fill_counterparties():
 # ── AI classification of saved transactions ──────────────────────────────────
 
 def _unclassified_query():
-    return Transaction.query.filter(or_(Transaction.category.is_(None), Transaction.category.in_(["", category_service.FALLBACK])),
+    return Transaction.query.filter(or_(Transaction.category.is_(None), Transaction.category.in_(["", category_service.FALLBACK, category_service.fallback()])),
                                     ~Transaction.splits.any())
 
 

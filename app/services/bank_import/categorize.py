@@ -49,8 +49,13 @@ def search_text(*parts: str | None) -> str:
 
 def categorize(description: str, details: str | None = None, bank_category: str | None = None,
                income: bool | None = None, history=None) -> str:
-    """App category for a statement row: the user's rules, what the user's history says (when the direction is
-    known), the built-in keyword rules, the bank's category, "Altro"."""
+    """App category for a statement row (in an archive of broad categories, the broad one it belongs to)."""
+    return categories.resolve(_categorize(description, details, bank_category, income, history))
+
+
+def _categorize(description: str, details: str | None, bank_category: str | None, income: bool | None, history) -> str:
+    """The user's rules, what the user's history says (when the direction is known), the built-in keyword rules, the
+    bank's category, "Altro"."""
     learned = category_rules.match(description, details)
     if learned:
         return learned

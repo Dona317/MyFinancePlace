@@ -107,8 +107,7 @@ def test_theme_switch_and_reminders_in_the_sidebar(client, app):
     toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', row, re.S)
     assert toggle, "light/dark switch missing from the sidebar footer"
     assert row.index("topbar-bell") < row.index('id="theme-toggle"') < row.index("sidebar-settings")
-    assert 'role="switch"' in toggle.group(0)
-    # the thumb carries the sun in light mode, the moon in dark mode (CSS shows one of the two)
+    # a plain button: the sun in light mode, the moon in dark mode (CSS shows one of the two)
     assert "bi-sun-fill theme-icon-light" in toggle.group(1) and "bi-moon-stars-fill theme-icon-dark" in toggle.group(1)
     assert 'aria-label="Passa alla modalità scura"' in toggle.group(1)
     topbar = html.split('class="topbar-actions"')[1].split("</header>")[0]

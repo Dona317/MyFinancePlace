@@ -2,10 +2,14 @@
 from datetime import date
 from decimal import Decimal
 
+import pytest
+
 from app.models.category import Category
 from app.models.transaction import TransactionSplit
 from app.services import analytics, categories
 from tests.conftest import make_tx
+
+pytestmark = pytest.mark.usefixtures("earlier_archive")  # these tests are about an archive of the earlier list (F32)
 
 
 def _nature(name):

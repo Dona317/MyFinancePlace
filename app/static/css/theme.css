@@ -68,6 +68,7 @@
   --chart-6:  #FAB005;
   --chart-7:  #15AABF;
   --chart-8:  #82C91E;
+  --chart-amber: #F59F00;  /* next to the orange primary, told apart from it */
 
   /* ── Layout ───────────────────────────────────────────────────── */
   --sidebar-width:    260px;
@@ -157,6 +158,7 @@
   --chart-6:  #FFD43B;
   --chart-7:  #3BC9DB;
   --chart-8:  #A9E34B;
+  --chart-amber: #FAB005;
 }
 
 /* ── Interface font (Settings → Visualizzazione → Carattere; files in vendor/fonts) ── */

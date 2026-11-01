@@ -11,13 +11,23 @@
 {% endblock %}
 
 {% block content %}
+{% set only_bank = request.args.get('only') == 'bank' %}
+{% if only_bank %}
+{# in the pop-up of the round +: back to the choice, or close #}
+<div class="popup-bar">
+  <button type="button" class="btn btn-ghost btn-icon" data-popup-back title="{{ _('Indietro') }}" aria-label="{{ _('Indietro') }}"><i class="bi bi-arrow-left"></i></button>
+  <button type="button" class="btn btn-ghost btn-icon" data-close-embed title="{{ _('Chiudi') }}" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+</div>
+{% endif %}
 
 <!-- Step by step: 1 the file, 2 the preview to check (account, bank, every row), 3 save -->
+{% if not only_bank %}
 <ol class="import-steps">
   <li class="on"><span>1</span> {{ _('Scegli il file') }}</li>
   <li><span>2</span> {{ _('Controlla conto, banca e movimenti') }}</li>
   <li><span>3</span> {{ _('Salva') }}</li>
 </ol>
+{% endif %}
 
 <!-- Import estratto conto bancario ──────────────────────────────────── -->
 <div class="card mb-16" id="bank-import">
@@ -28,7 +38,7 @@
     </div>
   </div>
   <div class="card-body">
-    <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"
+    <form method="POST" action="{{ url_for('export.bank_preview') }}" enctype="multipart/form-data"{% if only_bank %} target="_top"{% endif %}
           style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end;">
       <div class="form-group" style="margin:0;">
         <label class="form-label">{{ _('File dei movimenti (Excel, CSV, PDF, OFX/QFX, QIF, CAMT.053 XML, TXT, Word, ODS/ODT, RTF, foto)') }}</label>
@@ -61,6 +71,7 @@
   </div>
 </div>
 
+{% if not only_bank %}
 <!-- Import da Excel ─────────────────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
@@ -130,6 +141,7 @@
     </form>
   </div>
 </div>
+{% endif %}
 
 {% endblock %}
 

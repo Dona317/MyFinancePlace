@@ -283,3 +283,16 @@ def test_income_and_expenses_have_palettes_of_their_own(client, sample_data):
     assert f"--inc-1:{palettes.INCOME['blu'][1][0]}" in page and f"--exp-1:{palettes.EXPENSE['viola'][1][0]}" in page
     assert not set(palettes.INCOME["verdi"][1]) & set(palettes.EXPENSE["caldi"][1])  # the defaults never share a colour
     assert palettes.chosen({"palette_income": "nope"})[0] == palettes.INCOME["verdi"][1]
+
+
+def test_the_round_plus_opens_a_small_window_and_the_form_in_a_pop_up(client, db):
+    page = client.get("/dashboard").get_data(as_text=True)
+    assert 'id="add-chooser"' in page and "/transactions/new?embed=1&amp;next=/transactions/embed-done&amp;from=add" in page
+    assert "/export/import?embed=1&amp;only=bank" in page
+    only_bank = client.get("/export/import?embed=1&only=bank").get_data(as_text=True)
+    assert 'target="_top"' in only_bank and "mappatura manuale" not in only_bank  # the bank statement only
+    response = client.post("/transactions/new", data={"date": "2026-10-15", "description": "Pranzo", "amount": "12",
+                                                     "type": "expense", "next": "/transactions/embed-done", "embed": "1"})
+    assert response.headers["Location"].endswith("/transactions/embed-done")
+    done = client.get("/transactions/embed-done").get_data(as_text=True)
+    assert '"tx-done"' in done and "Transazione aggiunta." in done  # the message goes to the page under the pop-up

@@ -96,6 +96,7 @@ def test_unreadable_files(app):
     ("Q8 STAZIONE 123", "Trasporto"),
     ("COMPASS", "Altro"),
 ])
+@pytest.mark.usefixtures("earlier_archive")  # an archive of the earlier list (F32)
 def test_categorize(text, expected):
     assert bank_import.categorize(text) == expected
 

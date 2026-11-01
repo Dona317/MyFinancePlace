@@ -2,9 +2,13 @@
 from datetime import date
 from decimal import Decimal
 
+import pytest
+
 from app.models.budget import Budget
 from app.services import budgets, categories
 from tests.conftest import make_tx
+
+pytestmark = pytest.mark.usefixtures("earlier_archive")  # these tests are about an archive of the earlier list (F32)
 
 
 def _food(db, *amounts):

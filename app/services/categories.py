@@ -118,6 +118,93 @@ CAR_DEFAULTS = [("Assicurazione auto", "RC auto, kasko, furto e incendio"),
                 ("Benzina e petroli", "benzina, gasolio, GPL, metano, distributori (Eni, Q8, IP, Tamoil…)")]
 SEEDED_CAR_SETTING = "categories.seeded_car"
 
+# ── F32: few broad categories, the details as the tags each one suggests (decided with the owner, 1 Nov 2026) ──
+# (name, kind, what it covers — also for the AI classifier, discretionary, nature, suggested tags)
+BROAD_DEFAULTS = [
+    ("Casa", "expense", "affitto, mutuo, condominio, bollette di luce, gas, acqua e internet, arredamento, manutenzione",
+     False, "fixed", ["Abitazione", "Bollette", "Affitto", "Mutuo", "Condominio", "Manutenzione"]),
+    ("Alimentari", "expense", "supermercati e spesa, ristoranti, bar, delivery", False, None,
+     ["Cibo e bevande", "Ristoranti", "Bar e caffè", "Delivery"]),
+    ("Veicoli", "expense", "auto e moto: assicurazione, manutenzione, bollo, leasing, noleggi", False, "periodic",
+     ["Veicolo", "Veicoli e beni mobili", "Manutenzione veicolo", "Assicurazione veicolo", "Leasing", "Noleggi", "Bollo auto"]),
+    ("Trasporti e carburanti", "expense", "carburante, treni, mezzi pubblici, taxi, autostrade, parcheggi", False, None,
+     ["Trasporto", "Trasporto pubblico", "Benzina e petroli", "Taxi", "Pedaggi e parcheggi"]),
+    ("Svago e intrattenimento", "expense", "uscite, cinema, concerti, giochi, tempo libero", True, None,
+     ["Svago", "Vita e intrattenimento", "Alcol e tabacco", "Lotterie e gioco d'azzardo"]),
+    ("Hobby", "expense", "passioni e attività del tempo libero", True, None, []),
+    ("Cultura", "expense", "libri, musei, mostre, teatro, corsi e formazione", True, None,
+     ["Cultura ed eventi sportivi", "Istruzione e sviluppo personale"]),
+    ("Imprevisti o altro", "both", "spese impreviste e tutto quello che non si sa classificare", False, None,
+     ["Altro", "Eventi della vita"]),
+    ("Tasse", "expense", "imposte e tasse pagate: F24, IRPEF, IMU, bollo, conguagli", False, "periodic",
+     ["Conguaglio di fine anno", "F24", "IMU", "Bollo"]),
+    ("Regali e beneficenza", "expense", "regali fatti ad altri, beneficenza, donazioni", True, "periodic",
+     ["Regali", "Regali e piaceri", "Beneficenza"]),
+    ("Prestito", "expense", "rate di prestiti e finanziamenti, quota capitale, interessi, commissioni", False, "fixed",
+     ["Rata", "Versamento capitale", "Interessi", "Commissioni"]),
+    ("Abbonamenti", "expense", "streaming, musica, software, app, giornali", True, "fixed",
+     ["TV e streaming", "Software, app e giochi"]),
+    ("Shopping", "expense", "abbigliamento, elettronica, oggetti per la casa, animali, bambini", True, None,
+     ["Abbigliamento e scarpe", "Elettronica e accessori", "Gioielli e accessori", "Animali domestici", "Bambini"]),
+    ("Benessere e sport", "expense", "salute, farmacia, visite e spese mediche, palestra, sport, cura personale", False, None,
+     ["Benessere e bellezza", "Sport attivo e fitness", "Salute e medicine", "Spese mediche"]),
+    ("Stipendio", "income", "stipendio, tredicesima, quattordicesima", False, None, ["Lavoro principale", "Lavoro secondario"]),
+    ("Rimborsi, tasse e storni", "income", "rimborsi, rimborsi di tasse e acquisti, storni", False, None,
+     ["Rimborsi", "Rimborsi tasse e acquisti", "Storni"]),
+    ("Vendite", "income", "vendite di oggetti e beni (Vinted, Subito, eBay…)", False, None, ["Vendita privato", "Subito", "Vinted", "eBay"]),
+    ("Altre entrate", "income", "entrate che non rientrano nelle altre", False, None, ["Entrate"]),
+    ("Investimenti", "both", "acquisto/vendita titoli, ETF, fondi, PAC, versamenti su conti investimento", False, None, []),
+    ("Giroconto", "both", "trasferimenti tra conti propri, ricariche carte proprie", False, None, []),
+]
+BROAD_SETTING = "categories.broad"  # set: this archive uses the broad categories (new archives, or after «Riordina»)
+BROAD_FALLBACK = "Imprevisti o altro"
+# The old categories (the earlier defaults and the owner's export) and where they go: (broad category, tag kept)
+REMAP = {
+    "Abitazione": ("Casa", "Abitazione"), "Bollette": ("Casa", "Bollette"), "Affitto": ("Casa", "Affitto"),
+    "Mutuo": ("Casa", "Mutuo"), "Condominio": ("Casa", "Condominio"), "Manutenzione": ("Casa", "Manutenzione"),
+    "Luce": ("Casa", "Bollette"), "Gas": ("Casa", "Bollette"), "Acqua": ("Casa", "Bollette"),
+    "Internet e telefono": ("Casa", "Bollette"),
+    "Cibo e bevande": ("Alimentari", "Cibo e bevande"), "Spesa": ("Alimentari", None), "Ristoranti": ("Alimentari", "Ristoranti"),
+    "Ristorante": ("Alimentari", "Ristoranti"), "Bar e caffè": ("Alimentari", "Bar e caffè"), "Delivery": ("Alimentari", "Delivery"),
+    "Piccole consumazioni": ("Alimentari", "Bar e caffè"),
+    "Veicolo": ("Veicoli", "Veicolo"), "Veicoli, beni mobili": ("Veicoli", "Veicoli e beni mobili"),
+    "Manutenzione veicolo": ("Veicoli", "Manutenzione veicolo"), "Assicurazione veicolo": ("Veicoli", "Assicurazione veicolo"),
+    "Assicurazione auto": ("Veicoli", "Assicurazione veicolo"), "Leasing": ("Veicoli", "Leasing"), "Noleggi": ("Veicoli", "Noleggi"),
+    "Auto": ("Veicoli", None), "Macchina": ("Veicoli", None),
+    "Trasporto": ("Trasporti e carburanti", None), "Trasporti": ("Trasporti e carburanti", None),
+    "Trasporto pubblico": ("Trasporti e carburanti", "Trasporto pubblico"), "Mezzi pubblici": ("Trasporti e carburanti", "Trasporto pubblico"),
+    "Carburante": ("Trasporti e carburanti", "Benzina e petroli"), "Benzina e petroli": ("Trasporti e carburanti", "Benzina e petroli"),
+    "Taxi": ("Trasporti e carburanti", "Taxi"), "Pedaggi e parcheggi": ("Trasporti e carburanti", "Pedaggi e parcheggi"),
+    "Svago": ("Svago e intrattenimento", None), "Vita e intrattenimento": ("Svago e intrattenimento", "Vita e intrattenimento"),
+    "Alcol, tabacco": ("Svago e intrattenimento", "Alcol e tabacco"),
+    "Lotterie, gioco d'azzardo": ("Svago e intrattenimento", "Lotterie e gioco d'azzardo"),
+    "Giochi / svago": ("Svago e intrattenimento", None), "Calcetto": ("Svago e intrattenimento", "Calcetto"),
+    "Cultura, eventi sportivi": ("Cultura", "Cultura ed eventi sportivi"),
+    "Istruzione, sviluppo personale": ("Cultura", "Istruzione e sviluppo personale"), "Istruzione": ("Cultura", "Istruzione e sviluppo personale"),
+    "Altro": ("Imprevisti o altro", None), "Eventi della vita": ("Imprevisti o altro", "Eventi della vita"),
+    "Tasse e imposte": ("Tasse", None),
+    "Regali": ("Regali e beneficenza", "Regali"), "Regali, piaceri": ("Regali e beneficenza", "Regali e piaceri"),
+    "Beneficenza, regali": ("Regali e beneficenza", "Beneficenza"), "Regali e donazioni": ("Regali e beneficenza", None),
+    "Gift": ("Regali e beneficenza", "Regali"),
+    "Prestiti, interessi": ("Prestito", None), "Prestiti": ("Prestito", None), "Commissioni": ("Prestito", "Commissioni"),
+    "TV, streaming": ("Abbonamenti", "TV e streaming"), "Streaming": ("Abbonamenti", "TV e streaming"),
+    "Software, app, giochi": ("Abbonamenti", "Software, app e giochi"), "Software": ("Abbonamenti", "Software, app e giochi"),
+    "Abbigliamento e scarpe": ("Shopping", "Abbigliamento e scarpe"), "Elettronica, accessori": ("Shopping", "Elettronica e accessori"),
+    "Elettronica": ("Shopping", "Elettronica e accessori"), "Gioielli, accessori": ("Shopping", "Gioielli e accessori"),
+    "Animali domestici, animali": ("Shopping", "Animali domestici"), "Animali": ("Shopping", "Animali domestici"),
+    "Bambini": ("Shopping", "Bambini"), "Figli": ("Shopping", "Bambini"),
+    "Benessere, bellezza": ("Benessere e sport", "Benessere e bellezza"), "Cura personale": ("Benessere e sport", "Benessere e bellezza"),
+    "Sport attivo, fitness": ("Benessere e sport", "Sport attivo e fitness"), "Palestra": ("Benessere e sport", "Sport attivo e fitness"),
+    "Salute": ("Benessere e sport", "Salute e medicine"), "Farmacia": ("Benessere e sport", "Salute e medicine"),
+    "Visite mediche": ("Benessere e sport", "Spese mediche"),
+    "Svago e tempo libero": ("Svago e intrattenimento", None), "Viaggi": ("Svago e intrattenimento", "Viaggi"),
+    "Assicurazioni": ("Imprevisti o altro", "Assicurazioni"),
+    "Rimborsi": ("Rimborsi, tasse e storni", "Rimborsi"), "Rimborsi (tasse, acquisti)": ("Rimborsi, tasse e storni", "Rimborsi tasse e acquisti"),
+    "Vendita": ("Vendite", "Vendita privato"), "Vendita tra privati": ("Vendite", "Vendita privato"),
+    "Entrate": ("Altre entrate", "Entrate"), "Regali ricevuti": ("Altre entrate", "Regali ricevuti"), "Trovati": ("Altre entrate", "Trovati"),
+    "Prestiti, noleggi": ("Altre entrate", "Prestiti e noleggi"),
+}
+
 # How the spending of a category recurs (F8): a fixed cost every month, a cost that comes a few times a year,
 # or variable spending — the part that can be cut. Unlisted categories are variable.
 NATURES = {"fixed": _l("Fissa"), "periodic": _l("Non mensile"), "variable": _l("Variabile")}
@@ -143,8 +230,11 @@ SEPARATOR = " › "  # how a subcategory is shown: "Bollette › Luce"
 def ensure_defaults() -> None:
     """
     Create the default categories once; after that the list is the user's (deleted ones stay deleted).
-    A database seeded with the first, shorter list gets the categories added later, once.
+    A new archive starts with the broad categories (F32); one seeded before gets the categories added later, once.
     """
+    if not settings_store.get(SEEDED_SETTING) and not Category.query.first():
+        _seed_broad()
+        return
     if not settings_store.get(SEEDED_V2_SETTING):
         _seed_v2()
     if not settings_store.get(SEEDED_V3_SETTING):
@@ -168,6 +258,80 @@ def _seed_car() -> None:
         position += 1
     settings_store.set(SEEDED_CAR_SETTING, "1")  # commits the categories too
     forget()
+
+
+def _seed_broad() -> None:
+    """The broad categories with their tags, for a new archive; the earlier seeds are marked done."""
+    for position, (name, kind, hint, discretionary, nature, tags) in enumerate(BROAD_DEFAULTS):
+        db.session.add(Category(name=name, kind=kind, hint=hint, discretionary=discretionary, nature=nature,
+                                tags=list(tags), position=position))
+    for key in (SEEDED_SETTING, SEEDED_V2_SETTING, SEEDED_V3_SETTING, SEEDED_PERSONAL_SETTING, SEEDED_CAR_SETTING, BROAD_SETTING):
+        settings_store.set(key, "1")  # commits the categories too
+    forget()
+
+
+def broad() -> bool:
+    """This archive uses the broad categories (F32)."""
+    return settings_store.get(BROAD_SETTING) == "1"
+
+
+def resolve(name: str | None) -> str | None:
+    """An old category name in an archive of broad categories: the broad one it went to (built-in rules, fallback)."""
+    return REMAP[name][0] if name in REMAP and broad() else name
+
+
+def fallback() -> str:
+    """Where what cannot be classified goes: «Imprevisti o altro», or «Altro» in an archive of the earlier list."""
+    return BROAD_FALLBACK if broad() else FALLBACK
+
+
+def suggested_tags() -> dict[str, list[str]]:
+    """{category: the tags it suggests}, for the forms."""
+    return {c.name: list(c.tags or []) for c in all_categories() if c.tags}
+
+
+def reorder() -> dict:
+    """
+    Bring an archive to the broad categories (F32): each transaction of an old category goes to its broad one and
+    keeps the old name as a tag; the investments booked as expenses become transfers; the old categories go.
+    Returns how many transactions moved and how many categories were merged.
+    """
+    ensure_defaults()
+    rows = {c.name: c for c in Category.query.all()}
+    position = max((c.position for c in rows.values()), default=-1) + 1
+    for name, kind, hint, discretionary, nature, tags in BROAD_DEFAULTS:
+        category = rows.get(name)
+        if category is None:
+            category = Category(name=name, kind=kind, hint=hint, discretionary=discretionary, nature=nature, position=position)
+            db.session.add(category)
+            rows[name] = category
+            position += 1
+        category.tags = list(dict.fromkeys([*(category.tags or []), *tags]))
+        category.parent_id = None
+    db.session.flush()
+    moved = 0
+    for old, (new, tag) in REMAP.items():
+        for tx in Transaction.query.filter_by(category=old).all():
+            tx.category = new
+            if tag and tag not in (tx.tags or []):
+                tx.tags = [*(tx.tags or []), tag]
+            moved += 1
+        TransactionSplit.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
+        Document.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
+        CategoryRule.query.filter_by(category=old).update({"category": new}, synchronize_session=False)
+        _move_budgets(old, new)
+    # investments booked as expenses: transfers to the investment accounts
+    for tx in Transaction.query.filter_by(category="Investimenti", type="expense").all():
+        tx.type = "transfer"
+    merged = 0
+    for old in REMAP:
+        if old in rows and old not in {name for name, *_rest in BROAD_DEFAULTS}:
+            Category.query.filter_by(parent_id=rows[old].id).update({"parent_id": None}, synchronize_session=False)
+            db.session.delete(rows[old])
+            merged += 1
+    settings_store.set(BROAD_SETTING, "1")  # commits everything
+    forget()
+    return {"moved": moved, "merged": merged}
 
 
 def _seed_personal() -> None:

@@ -3,6 +3,8 @@ any of them reaches every transaction, the past ones too."""
 import pathlib
 import re
 
+import pytest
+
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.services import categories, clusters, tags
@@ -16,6 +18,7 @@ def add(db, **values):
     return tx
 
 
+@pytest.mark.usefixtures("earlier_archive")  # an archive of the earlier list (F32)
 def test_the_car_categories_come_under_auto(db):
     categories.ensure_defaults()
     auto = Category.query.filter_by(name="Auto").one()

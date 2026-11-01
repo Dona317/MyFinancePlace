@@ -1,8 +1,12 @@
 """Report → Riepilogo (F2): the year as a category × month table, like the spreadsheet it replaces."""
 from datetime import date
 
+import pytest
+
 from app.services import analytics, categories
 from tests.conftest import make_tx
+
+pytestmark = pytest.mark.usefixtures("earlier_archive")  # these tests are about an archive of the earlier list (F32)
 
 
 def _data(db):

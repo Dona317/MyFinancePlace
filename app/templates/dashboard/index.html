@@ -6,7 +6,7 @@
 {% from "partials/kpi.html" import kpi %}
 
 {% block page_title %}{{ _('Dashboard') }}{% endblock %}
-{% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
+{% block breadcrumb %}<li>{{ _('Dashboard') }}</li>{% endblock %}
 
 {% block topbar_actions %}
 {# The period of the whole page: from one year to another (the same: that year), a half or a quarter of a single one #}
@@ -419,7 +419,7 @@ if (shown('cashflow')) {
   makeBarChart('cashFlowChart', cashFlow.labels, [
     { label: {{ _('Entrate')|tojson }}, data: cashFlow.income, color: 'income', type: 'line' },
     { label: {{ _('Uscite')|tojson }}, data: cashFlow.expenses, color: 'expense', type: 'line' },
-    { label: {{ _('Risparmio del mese')|tojson }}, data: flow.saved, color: 'primary', type: 'line', dash: [5, 4] },
+    { label: {{ _('Risparmio del mese')|tojson }}, data: flow.saved, color: 'amber', type: 'line', dash: [5, 4] },  // the cumulated one stays orange
     { label: {{ _('Risparmio cumulato')|tojson }}, data: flow.saved_cumulative, color: 'primary', axis: 'right' },
     { label: {{ _('Entrate cumulate')|tojson }}, data: flow.income_cumulative, color: 'income', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
     { label: {{ _('Uscite cumulate')|tojson }}, data: flow.expenses_cumulative, color: 'expense', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },

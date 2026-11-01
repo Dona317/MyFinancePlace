@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from sqlalchemy.dialects.postgresql import ARRAY
+
 from app.extensions import db
 
 
@@ -21,6 +23,9 @@ class Category(db.Model):
     excluded      = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
     # A subcategory's main category (Bollette → Luce); one level only. Transactions store the most specific name.
     parent_id     = db.Column(db.Integer, db.ForeignKey("categories.id", ondelete="SET NULL"), index=True)
+    # The tags this category suggests (F32): the categories are broad (Veicoli), the details are tags (Leasing,
+    # Manutenzione veicolo) picked with a click when the category is chosen
+    tags          = db.Column(ARRAY(db.String), nullable=False, default=list, server_default="{}")
 
 
 class CategoryRule(db.Model):

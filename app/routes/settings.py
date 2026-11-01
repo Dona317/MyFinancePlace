@@ -117,7 +117,7 @@ def categories_page():
     return render_template("settings/categories.html", categories=ordered, by_id=by_id,
                            mains=[c.name for c in mains], has_children={c.parent_id for c in rows},
                            usage=categories.usage(), kinds=categories.KINDS, natures=categories.NATURES,
-                           unmanaged=sorted(categories.used_names() - {c.name for c in rows}),
+                           unmanaged=sorted(categories.used_names() - {c.name for c in rows}), broad=categories.broad(),
                            clusters=[(key, clusters.label(key), clusters.tr(default)) for key, default in clusters.CLUSTERS.items()],
                            cluster_usage=_cluster_usage(), tags=tag_names.usage())
 
@@ -184,6 +184,7 @@ def category_save():
     elif not old:
         flash(_("La categoria «%(name)s» esiste già: aggiornata.", name=name), "success")
     category.kind, category.hint, category.discretionary, category.nature = kind, hint, discretionary, nature
+    category.tags = tag_names.parse_tags(request.form.get("tags", ""))
     category.excluded = excluded
     db.session.flush()
     try:
@@ -194,6 +195,14 @@ def category_save():
     categories.forget()
     if old == name:
         flash(_("Categoria «%(name)s» aggiornata.", name=name), "success")
+    return redirect(url_for("settings.categories_page"))
+
+
+@settings_bp.route("/categories/reorder", methods=["POST"])
+def categories_reorder():
+    """F32: the archive goes to the broad categories; the old names stay on the transactions as tags."""
+    done = categories.reorder()
+    flash(_("Categorie riordinate: %(moved)s transazioni spostate, %(merged)s categorie unite.", **done), "success")
     return redirect(url_for("settings.categories_page"))
 
 

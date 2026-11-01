@@ -5,13 +5,19 @@ from app.services.i18n import _l
 # ── Methods and preferences ────────────────────────────────────────────────────
 
 METHODS = {
-    "media":        (_l("Media mobile"), _l("Media semplice degli ultimi N mesi.")),
-    "ponderata":    (_l("Media ponderata"), _l("Media degli ultimi N mesi con più peso ai mesi recenti (pesi 1, 2, … N).")),
-    "esponenziale": (_l("Media esponenziale"), _l("Livellamento esponenziale con α = 2 / (N + 1): segue i cambiamenti più in fretta.")),
-    "mediana":      (_l("Mediana"), _l("Valore centrale degli ultimi N mesi: ignora i mesi eccezionali (una spesa una tantum).")),
-    "trend":        (_l("Trend lineare"), _l("Retta di regressione sugli ultimi N mesi, proiettata in avanti: coglie spese in crescita o in calo.")),
-    "stagionale":   (_l("Stagionale"), _l("Lo stesso mese dell'anno prima, riscalato sul livello degli ultimi N mesi: coglie bollette "
-                                   "invernali, vacanze estive, tredicesima. Serve almeno un anno di storico.")),
+    "media":        (_l("Media mobile"), _l("Media aritmetica degli ultimi N mesi: x̂ = (x₁ + … + x_N) / N. Ogni mese pesa "
+                                            "uguale: stima stabile, lenta a seguire un cambiamento.")),
+    "ponderata":    (_l("Media ponderata"), _l("Media a pesi lineari: x̂ = Σ i·xᵢ / Σ i, con peso 1 al mese più vecchio e "
+                                               "N al più recente. Segue i cambiamenti più della media semplice.")),
+    "esponenziale": (_l("Media esponenziale"), _l("Livellamento esponenziale semplice: Sₜ = α·xₜ + (1 − α)·Sₜ₋₁, con "
+                                                  "α = 2 / (N + 1). I pesi dei mesi passati calano in modo geometrico.")),
+    "mediana":      (_l("Mediana"), _l("Valore centrale degli ultimi N mesi ordinati. Stimatore robusto: un mese "
+                                       "anomalo non lo sposta.")),
+    "trend":        (_l("Trend lineare"), _l("Regressione lineare ai minimi quadrati sugli ultimi N mesi (y = a + b·t), "
+                                             "proiettata in avanti: coglie una crescita o un calo costante.")),
+    "stagionale":   (_l("Stagionale"), _l("Modello stagionale moltiplicativo: lo stesso mese di 12 mesi prima, per il "
+                                          "rapporto tra la media degli ultimi N mesi e quella degli stessi N mesi "
+                                          "dell'anno prima. Serve almeno un anno di storico.")),
 }
 # Amount of each recurring series in the forecast (salary with overtime, bills that change)
 RECURRING_AMOUNTS = {

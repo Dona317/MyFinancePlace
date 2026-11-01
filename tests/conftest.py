@@ -58,6 +58,17 @@ def make_tx(**overrides) -> Transaction:
 
 
 @pytest.fixture()
+def earlier_archive(db):
+    """An archive made before F32: the earlier default list (with its subcategories, the owner's own list and the
+    car categories) instead of the broad categories a new archive starts with."""
+    from app.services import categories
+    categories._seed_v2()
+    categories._seed_subcategories()
+    categories._seed_personal()
+    categories._seed_car()
+
+
+@pytest.fixture()
 def sample_data(db):
     """June 2026: 3000 income, 800 expenses; May 2026: 2800 income, 600 expenses."""
     db.session.add_all([

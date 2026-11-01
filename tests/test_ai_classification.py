@@ -177,6 +177,7 @@ def _preview(client):
                        content_type="multipart/form-data").get_data(as_text=True)
 
 
+@pytest.mark.usefixtures("earlier_archive")  # an archive of the earlier list (F32)
 def test_preview_classify_endpoint(client, ollama, db):
     html = _preview(client)
     assert 'id="ai-classify"' in html
@@ -280,6 +281,7 @@ def test_causale_shown_and_never_edited(client, db):
     assert "PAGAMENTO POS ESSELUNGA MILANO" in client.get("/export/csv").get_data(as_text=True)
 
 
+@pytest.mark.usefixtures("earlier_archive")  # an archive of the earlier list (F32)
 def test_review_never_proposes_a_worse_category(client, ollama, db):
     """A specific category is not replaced by "Altro" or by an unsure suggestion."""
     tx = make_tx(description="Giroconto verso conto deposito", category="Giroconto", type="transfer", amount=200)

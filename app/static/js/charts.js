@@ -16,6 +16,7 @@ function readTheme() {
     neutral:   get("--clr-neutral"),
     warning:   get("--clr-warning"),
     purple:    get("--chart-5"),
+    amber:     get("--chart-amber") || get("--chart-6"),  // a warm yellow next to the orange primary, told apart at a glance
     textMuted: get("--clr-text-muted"),
     border:    get("--clr-border"),
     card:      get("--clr-bg-card") || "#FFFFFF",

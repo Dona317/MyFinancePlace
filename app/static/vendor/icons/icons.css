@@ -125,6 +125,7 @@
 .bi-eye-slash::before { content: "\f340"; }
 .bi-file::before { content: "\f3c0"; }
 .bi-file-earmark::before { content: "\f392"; }
+.bi-file-earmark-arrow-up::before { content: "\f358"; }
 .bi-file-earmark-excel::before { content: "\f368"; }
 .bi-file-earmark-image::before { content: "\f36d"; }
 .bi-file-earmark-pdf::before { content: "\f63e"; }
