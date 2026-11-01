@@ -52,20 +52,20 @@
   <form class="register-search" method="GET" action="{{ url_for('transactions.index') }}" id="filter-form">
     <div class="register-search-main">
       <i class="bi bi-search"></i>
-      <input type="search" name="q" value="{{ filters.q }}" class="form-control" id="register-q"
-             placeholder="{{ _('Cerca: descrizione, controparte, tag o note (es. auto)') }}" aria-label="{{ _('Cerca nelle transazioni') }}" />
-      <button type="submit" class="btn btn-primary btn-sm">{{ _('Cerca') }}</button>
-      <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Togli ricerca e filtri') }}"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Azzera') }}</a>
-      {# the last 100 searches of this browser, to run them again: a menu under the clock, on the right #}
-      <div class="history-menu" id="search-history">
-        <button type="button" class="btn btn-ghost btn-sm history-button" id="search-history-btn" aria-haspopup="true" aria-expanded="false"
+      {# the box shows the last searches of this browser as soon as it is clicked (one X each, «Cancella tutte» at the bottom) #}
+      <div class="search-field" id="search-history">
+        <input type="search" name="q" value="{{ filters.q }}" class="form-control" id="register-q" autocomplete="off"
+               placeholder="{{ _('Cerca: descrizione, controparte, tag o note (es. auto)') }}" aria-label="{{ _('Cerca nelle transazioni') }}" />
+        <button type="button" class="search-history-btn" id="search-history-btn" aria-haspopup="true" aria-expanded="false"
                 title="{{ _('Cronologia ricerche') }}" aria-label="{{ _('Cronologia ricerche') }}"><i class="bi bi-clock-history"></i><i class="bi bi-chevron-down"></i></button>
         <div class="history-pop" id="search-history-pop" hidden>
           <ul class="search-history-list" id="search-history-list"></ul>
           <div class="search-history-empty text-sm text-muted" id="search-history-empty">{{ _('Nessuna ricerca ancora: le ricerche con un filtro si ricordano qui (fino a 100).') }}</div>
-          <button type="button" class="btn btn-ghost btn-sm history-clear" id="search-history-clear"><i class="bi bi-trash3"></i> {{ _('Cancella cronologia') }}</button>
+          <button type="button" class="btn btn-ghost btn-sm history-clear" id="search-history-clear"><i class="bi bi-trash3"></i> {{ _('Cancella tutte') }}</button>
         </div>
       </div>
+      <button type="submit" class="btn btn-primary btn-sm">{{ _('Cerca') }}</button>
+      <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Togli ricerca e filtri') }}"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Azzera') }}</a>
     </div>
     <div class="register-filters">
       <label class="filter-field"><span>{{ _('Tipo') }}</span>
@@ -469,8 +469,11 @@ const query = params.toString() ? '?' + params.toString() : '';
 const label = [...params].filter(([, v]) => v).map(([k, v]) => k + ': ' + v).join(' · ');
 if (label) write([{ qs: query, label }, ...read().filter(item => item.qs !== query)]);
 const render = () => {
-  const list = read();
-  document.getElementById('search-history-list').replaceChildren(...list.map((item, i) => {
+  const typed = (document.getElementById('register-q').value || '').toLocaleLowerCase().trim();
+  const all = read();
+  const list = all.map((item, i) => ({ ...item, i })).filter(item => !typed || item.label.toLocaleLowerCase().includes(typed));
+  document.getElementById('search-history-list').replaceChildren(...list.map(item => {
+    const i = item.i;
     const li = document.createElement('li');
     const link = Object.assign(document.createElement('a'), { href: {{ url_for('transactions.index')|tojson }} + item.qs, textContent: item.label, title: item.label });
     const remove = Object.assign(document.createElement('button'), { type: 'button', className: 'btn btn-ghost btn-icon btn-sm', title: {{ _('Togli dalla cronologia')|tojson }} });
@@ -479,14 +482,20 @@ const render = () => {
     li.append(link, remove);
     return li;
   }));
-  document.getElementById('search-history-empty').hidden = list.length > 0;
-  document.getElementById('search-history-clear').hidden = !list.length;
+  document.getElementById('search-history-empty').hidden = all.length > 0;
+  document.getElementById('search-history-clear').hidden = !all.length;
+  return list.length;
 };
 document.getElementById('search-history-clear')?.addEventListener('click', () => { write([]); render(); });
 // the clock opens and closes the menu; a click elsewhere closes it
 const historyButton = document.getElementById('search-history-btn'), historyPop = document.getElementById('search-history-pop');
 const openHistory = (on) => { historyPop.hidden = !on; historyButton.setAttribute('aria-expanded', String(on)); };
-historyButton?.addEventListener('click', () => openHistory(historyPop.hidden));
+const searchBox = document.getElementById('register-q');
+historyButton?.addEventListener('click', () => { render(); openHistory(historyPop.hidden); });
+// clicking in the box shows the last searches; typing narrows them
+['focus', 'click'].forEach(type => searchBox?.addEventListener(type, () => { render(); openHistory(true); }));
+searchBox?.addEventListener('input', () => { render(); openHistory(true); });
+searchBox?.addEventListener('keydown', e => { if (e.key === 'Escape') openHistory(false); });
 document.addEventListener('click', e => { if (!e.target.closest('#search-history') && e.target.isConnected) openHistory(false); });
 render();
 }
