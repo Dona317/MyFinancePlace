@@ -192,8 +192,17 @@ def test_a_block_keeps_the_height_chosen(client, db):
 
 def test_dashboard_renders_with_data(client, sample_data):
     html = client.get("/dashboard?year=2026&part=Q2").get_data(as_text=True)
-    assert 'id="cashFlowChart"' in html and 'data-widget="health"' in html and "kpi-window" in html
+    assert 'id="cashFlowChart"' in html and 'data-widget="health"' in html and "kpi-strip" in html
     assert "start=2026-04-01" in html and "end=2026-06-30" in html  # the pies cover the second quarter
+
+
+def test_the_period_can_span_several_years(client, sample_data):
+    html = client.get("/dashboard?year=2026&year_to=2025&part=Q2").get_data(as_text=True)
+    # from 2025 to 2026 (any order), whole years: no quarter, the cards and the charts over both
+    assert "2025–2026" in html and 'id="dash-part" name="part"' in html and "Anni interi" in html
+    assert "start=2025-01-01" in html and "end=2026-12-31" in html
+    single = client.get("/dashboard?year=2026&year_to=2026&part=year").get_data(as_text=True)
+    assert "Tutto l’anno" in single and "2025–2026" not in single
 
 
 def test_settings_save_keeps_the_tab_and_the_dashboard_choices(client, db):

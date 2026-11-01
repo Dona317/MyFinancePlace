@@ -1896,3 +1896,35 @@ html.focus .page-content { padding: 24px 16px 40px; }
 #blocks-grid .next-deadlines { flex: 1 1 0; min-height: 320px; overflow-y: auto; }
 #blocks-grid [data-widget="reminders"] .card > .notification-list { flex: 1 1 0; min-height: 300px; overflow-y: auto; }
 .mockup-form { border: 0; padding: 0; margin: 0; opacity: .75; }
+
+/* Modifica: a block switched off stays in place, greyed; its eye brings it back */
+.fc-editing .fc-widget[data-off="1"] > :not(.fc-widget-tools) { opacity: .35; filter: grayscale(1); }
+.fc-editing .fc-widget[data-off="1"] .fc-drag { text-decoration: line-through; }
+
+/* ── Dashboard: the period in the top bar, the cards on one row that scrolls sideways ── */
+.dash-period-top { display: flex; align-items: flex-end; gap: 8px; margin: 0; }
+.dash-period-top .dash-select { flex-direction: row; align-items: center; gap: 6px; }
+.dash-period-top .form-select { min-width: 0; width: auto; padding-top: 4px; padding-bottom: 4px; }
+.kpi-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); grid-template-columns: none;
+  overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity; }
+.kpi-strip > .fc-widget { scroll-snap-align: start; }
+.kpi-strip > .fc-widget[data-span="2"] { grid-column: span 2; }
+.kpi-strip > .fc-widget[hidden] { display: none; }
+
+/* ── Dashboard top bar: the period in a box of its own, in the middle; Modifica and Gestisci on the right ── */
+.dash-period-box { display: flex; align-items: center; gap: 6px; margin: 0 auto; padding: 4px 10px; border: 1px solid var(--clr-border);
+  border-radius: 999px; background: var(--clr-bg-card); }
+.dash-period-title { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-xs); font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--clr-text-muted); white-space: nowrap; }
+.dash-period-box .form-select { width: auto; min-width: 0; }
+.topbar-right-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ── Modifica: an orange dashed frame round the page and a stripe under the top bar, so it is plain that the page
+   is being arranged ── */
+.fc-editing .main-content, .fc-editing main { outline: 2px dashed var(--clr-primary); outline-offset: -6px; border-radius: 12px; }
+.fc-editing .topbar { box-shadow: inset 0 -3px 0 var(--clr-primary); }
+.fc-editing .fc-widget { outline: 1px dashed color-mix(in srgb, var(--clr-primary) 55%, transparent); outline-offset: 3px; border-radius: 10px; }
+/* a page with a box in the middle of the top bar (the dashboard period): the actions take the rest of the bar */
+.topbar-actions:has(.dash-period-box) { flex: 1; min-width: 0; }
+.topbar:has(.dash-period-box) .topbar-title { flex: 0 1 auto; }
+.kpi-strip { grid-auto-columns: minmax(230px, 1fr); }

@@ -55,17 +55,6 @@ def _part_bounds(year: int, part: str) -> tuple[date, date]:
     return analytics.year_bounds(year)
 
 
-def _window_cards(today: date) -> dict:
-    """Income, expenses and savings rate of each card's own window, with its range and label."""
-    cards = {}
-    for card in dashboard_prefs.WINDOW_CARDS:
-        window = dashboard_prefs.window(card)
-        start, end = dashboard_prefs.window_range(window, today)
-        totals = analytics.totals(start, end)
-        cards[card] = {"window": window, "label": dashboard_prefs.window_label(window), "start": start,
-                       "end": end, "totals": totals}
-    return cards
-
 
 def _forecast_figures(today: date) -> dict | None:
     """Income, expenses and savings rate the forecast gives for the period chosen in Settings (None: not enough
@@ -197,29 +186,38 @@ def dashboard():
     shown = {w["id"] for w in layout if w["visible"]}
     kpis = analytics.dashboard_kpis(today)
     last_12 = analytics.last_12_months(today)  # the financial health is about the last 12 months, whatever the period
-    # The totals by category, their monthly lines and the running totals: one year (the current one by default)
-    years = analytics.available_years()
+    # One period for the whole page, cards and charts: a year (the current one by default), a half or a quarter.
+    # Any year can be chosen, from three before the first with data to the next one.
+    with_data = analytics.available_years()
+    years = list(range(max(with_data + [today.year]) + 1, min(with_data + [today.year]) - 4, -1))
     year = year_arg(today.year, choices=years)
-    months = analytics.months_to_show(year, today)
-    # The doughnuts: the whole year, a half or a quarter (remembered)
+    # «al» another year: the years from one to the other (the order does not matter); the same one: that year
+    year_to = request.args.get("year_to", type=int)
+    year_to = year_to if year_to in years else year
+    year, year_to = min(year, year_to), max(year, year_to)
+    # a half or a quarter of a single year (remembered); several years are taken whole
     part = request.args.get("part")
     if part in PIE_PARTS:
         settings_store.set(PIE_PART_SETTING, part)
     part = settings_store.get(PIE_PART_SETTING, "year")
-    part = part if part in PIE_PARTS else "year"
-    pie_start, pie_end = _part_bounds(year, part)
+    part = part if part in PIE_PARTS and year == year_to else "year"
+    pie_start, pie_end = _part_bounds(year, part) if year == year_to else (date(year, 1, 1), date(year_to + 1, 1, 1))
     # every chart of the page follows the same period: the year chosen, a half or a quarter of it
     chart_months = _chart_months(pie_start, pie_end, today)
     cash_flow = _flow(chart_months)
-    first, last = pie_start.month - 1, pie_start.month - 1 + len(chart_months)
+    trend_end = month_start(chart_months[-1] + 1) if chart_months else pie_start + timedelta(days=1)
 
     def trend_of(kind: str) -> dict:
-        trend = _translated(analytics.monthly_category_trend(year, TREND_LINES, kind, months, other=True))
-        return {**trend, "labels": trend["labels"][first:last],
-                "datasets": [{**ds, "data": ds["data"][first:last]} for ds in trend["datasets"]]}
+        return _translated(analytics.category_trend(pie_start, trend_end, TREND_LINES, kind, other=True))
 
     period_totals = analytics.totals(pie_start, pie_end)
-    cards = _window_cards(today)
+    # the cards of the period: income, expenses and savings over it; net worth, investments and debt at its end
+    # (today for the period under way)
+    as_of = min(pie_end - timedelta(days=1), today)
+    sheet = wealth.balance_sheet(as_of)
+    kpis = {**kpis, "net_worth": sheet["net_worth"], "total_investments": sheet["investments"],
+            "total_debt": sheet["total_liabilities"]}
+    cards = {card: {"start": pie_start, "end": pie_end, "totals": period_totals} for card in dashboard_prefs.WINDOW_CARDS}
     window = cards["expenses"]
     recent = (Transaction.query.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(RECENT_ROWS).all()
               if "recent" in shown else [])
@@ -230,18 +228,18 @@ def dashboard():
         "dashboard/index.html",
         kpis=kpis,
         cards=cards,
-        window_presets=dashboard_prefs.preset_choices(),
         forecast_figures=_forecast_figures(today),
         rates=_rates() if settings["dashboard_investments"] or settings["dashboard_debt"] else {},
         cash_flow=cash_flow,
         savings_flow=_savings_flow(cash_flow),
-        year=year, years=years, part=part, pie_parts=PIE_PARTS, pie_start=pie_start, pie_last=pie_end - timedelta(days=1),
+        year=year, year_to=year_to, years=years, part=part, as_of=as_of, pie_parts=PIE_PARTS, pie_start=pie_start, pie_last=pie_end - timedelta(days=1),
         expense_breakdown=analytics.category_breakdown(pie_start, pie_end, "expense"),
         income_breakdown=analytics.category_breakdown(pie_start, pie_end, "income"),
         expense_trend=trend_of("expense"),
         income_trend=trend_of("income"),
         period_totals=period_totals,
-        part_labels={p: part_label(year, p) for p in PIE_PARTS}, period_label=part_label(year, part),
+        part_labels={p: part_label(year, p) for p in PIE_PARTS},
+        period_label=part_label(year, part) if year == year_to else f"{year}–{year_to}",
         savings=analytics.savings_rates_by_year(today),
         sankey=sankey.flow(pie_start, pie_end) if "sankey" in shown else None,
         year_start=pie_start, year_last=pie_end - timedelta(days=1),

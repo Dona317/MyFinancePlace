@@ -1,8 +1,10 @@
 /**
  * blocks.js — pages the user arranges (Modifica): the dashboard, the reminders.
- * Blocks are moved (drag or arrows), one to three thirds wide, of a chosen height, hidden; a second grid of cards
+ * Blocks are moved (drag or arrows), one to three thirds wide, of a chosen height, switched off; a second grid of cards
  * is one or two columns wide. Every change is saved with a POST of {<grid key>: [{id, span, height?, visible}]};
  * {"reset": true} goes back to the default. The controls are in the top bar (partials/blocks.html).
+ * A block switched off (the eye) stays in place, greyed, while editing — the eye brings it back — and is hidden
+ * once done; data-off keeps the choice, the hidden attribute only what is shown.
  */
 function initBlockEditor({ grids, saveUrl }) {
   grids = grids.filter(g => g.el);
@@ -18,6 +20,17 @@ function initBlockEditor({ grids, saveUrl }) {
   const SPAN_LABELS = { 3: { 1: "⅓", 2: "⅔", 3: "1/1" }, 2: { 1: "×1", 2: "×2" } };
   const HEIGHT_LABELS = { 0: "Auto", 1: "M", 2: "L", 3: "XL" };
   let editing = false, dragged = null, saveTimer = null;
+  const isOff = (w) => w.dataset.off === "1";
+  widgets().forEach(w => { w.dataset.off = w.hidden ? "1" : "0"; });
+  const setOff = (w, off) => {
+    w.dataset.off = off ? "1" : "0";
+    w.hidden = off && !editing;
+    const eye = w.querySelector('[data-act="hide"]');
+    if (eye) {
+      eye.querySelector("i").className = off ? "bi bi-eye" : "bi bi-eye-slash";
+      eye.title = off ? (window.MFP_TEXT?.show || "Mostra") : (window.MFP_TEXT?.hide || "Nascondi");
+    }
+  };
 
   const paint = () => widgets().forEach(w => {
     const span = w.querySelector(".span-label"), height = w.querySelector(".height-label");
@@ -33,14 +46,14 @@ function initBlockEditor({ grids, saveUrl }) {
     paint();
     clearTimeout(saveTimer);
     const body = Object.fromEntries(grids.map(g => [g.key, [...g.el.querySelectorAll(":scope > .fc-widget")].map(w => ({
-      id: w.dataset.widget, span: +w.dataset.span, ...(g.heights ? { height: +w.dataset.height || 0 } : {}), visible: !w.hidden,
+      id: w.dataset.widget, span: +w.dataset.span, ...(g.heights ? { height: +w.dataset.height || 0 } : {}), visible: !isOff(w),
     }))]));
     saveTimer = setTimeout(() => fetch(saveUrl, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     }), 250);
   }
   function renderHidden() {
-    const hidden = widgets().filter(w => w.hidden);
+    const hidden = widgets().filter(isOff);
     hiddenWrap.hidden = !editing || !hidden.length;
     $("layout-hidden-count").textContent = hidden.length;
     if (!hidden.length) hiddenList.hidden = true;
@@ -48,7 +61,7 @@ function initBlockEditor({ grids, saveUrl }) {
       const chip = Object.assign(document.createElement("button"), { type: "button", className: "layout-chip" });
       chip.innerHTML = '<i class="bi bi-plus-lg"></i> ';
       chip.append(w.dataset.title);
-      chip.addEventListener("click", () => { w.hidden = false; redrawCharts(w); save(); });
+      chip.addEventListener("click", () => { setOff(w, false); redrawCharts(w); save(); });
       return chip;
     }));
   }
@@ -59,9 +72,9 @@ function initBlockEditor({ grids, saveUrl }) {
     editOff.forEach(el => { if (el) el.hidden = on; });
     hiddenList.hidden = true;
     editButton?.setAttribute("aria-pressed", String(on));
-    widgets().forEach(w => { w.draggable = on; });
+    widgets().forEach(w => { w.draggable = on; setOff(w, isOff(w)); });  // greyed while editing, hidden after
     renderHidden();
-    if (on) paint();
+    if (on) { paint(); redrawCharts(); }  // the charts of blocks that were hidden take their size
   }
   // the hidden blocks: a small menu under «Nascosti», each one shown again with a click
   hiddenButton?.addEventListener("click", e => {
@@ -77,18 +90,17 @@ function initBlockEditor({ grids, saveUrl }) {
     location.reload();
   });
 
-  const visibleSibling = (w, dir) => { let s = w[dir]; while (s && s.hidden) s = s[dir]; return s; };
   grids.forEach(g => {
     g.el.addEventListener("click", e => {
       const button = e.target.closest(".fc-widget-tools [data-act]");
       if (!button) return;
       const w = button.closest(".fc-widget");
       const act = button.dataset.act;
-      if (act === "prev") { const s = visibleSibling(w, "previousElementSibling"); if (s) s.before(w); }
-      if (act === "next") { const s = visibleSibling(w, "nextElementSibling"); if (s) s.after(w); }
+      if (act === "prev") w.previousElementSibling?.before(w);  // in Modifica every block is in view, switched off too
+      if (act === "next") w.nextElementSibling?.after(w);
       if (act === "span") { w.dataset.span = String(w.dataset.span % g.spans + 1); redrawCharts(w); }
       if (act === "height") { w.dataset.height = String(((+w.dataset.height || 0) + 1) % 4); redrawCharts(); }  // the row follows
-      if (act === "hide") { w.hidden = true; }
+      if (act === "hide") setOff(w, !isOff(w));  // the eye: off (greyed) or back on
       save();
     });
     // a block moves among the blocks of its own grid

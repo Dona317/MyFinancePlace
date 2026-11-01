@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 16:54+0100\n"
+"POT-Creation-Date: 2026-11-01 17:21+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1160,6 +1160,9 @@ msgstr "Net worth trend — %(period)s"
 msgid "Anni da confrontare"
 msgstr "Years to compare"
 
+msgid "Anni interi"
+msgstr "Whole years"
+
 msgid "Anno"
 msgstr "Year"
 
@@ -1373,8 +1376,9 @@ msgstr "Activity → Transactions → Export (CSV)."
 msgid "Attività − Passività"
 msgstr "Assets − Liabilities"
 
-msgid "Attività − passività, oggi"
-msgstr "Assets − liabilities, today"
+#, python-format
+msgid "Attività − passività, al %(date)s"
+msgstr "Assets − liabilities, at %(date)s"
 
 msgid "Attività, passività e patrimonio netto"
 msgstr "Assets, liabilities and net worth"
@@ -1708,9 +1712,6 @@ msgstr "Saved rates"
 
 msgid "Cambi ufficiali BCE"
 msgstr "Official ECB rates"
-
-msgid "Cambia il periodo di questa scheda"
-msgstr "Change the period of this card"
 
 msgid "Cambia modello"
 msgstr "Change model"
@@ -4390,9 +4391,11 @@ msgid "Il percorso completo, sul computer dove gira l’app."
 msgstr "The full path, on the computer where the app runs."
 
 msgid ""
-"Il periodo dei grafici mostrati, nel dettaglio: anno, semestre o "
-"trimestre."
-msgstr "The period of the charts shown, in detail: year, half or quarter."
+"Il periodo di tutta la pagina, schede e grafici: uno o più anni di fila; "
+"per un anno solo anche semestre o trimestre."
+msgstr ""
+"The period of the whole page, cards and charts: one or more years in a "
+"row; for a single year also a half or a quarter."
 
 msgid "Il periodo finisce prima di cominciare."
 msgstr "The period ends before it starts."
@@ -5859,6 +5862,9 @@ msgstr ""
 msgid "Molto azionario, con un cuscinetto di obbligazioni."
 msgstr "Mostly equities, with a cushion of bonds."
 
+msgid "Mostra"
+msgstr "Show"
+
 msgid ""
 "Mostra anche le linee dei totali progressivi (si accendono e spengono "
 "dalla legenda del grafico)"
@@ -6684,6 +6690,12 @@ msgstr "New rule"
 msgid "Nuova scheda"
 msgstr "New card"
 
+msgid "Nuova scheda 2"
+msgstr "New card 2"
+
+msgid "Nuova scheda 3"
+msgstr "New card 3"
+
 msgid "Nuova transazione"
 msgstr "New transaction"
 
@@ -7112,6 +7124,9 @@ msgstr "Part"
 msgid "Parte delle entrate risparmiata nel periodo della scheda"
 msgstr "Share of income saved in the period of the card"
 
+msgid "Parte dell’anno"
+msgstr "Part of the year"
+
 msgid ""
 "Parte in background, con l'icona vicino all'orologio: le notifiche "
 "arrivano anche senza aprire l'app. Clic sull'icona per aprirla, «Esci» "
@@ -7431,9 +7446,6 @@ msgstr "Periods chosen in the cards"
 
 msgid "Periodo"
 msgstr "Period"
-
-msgid "Periodo dei grafici"
-msgstr "Charts period"
 
 msgid "Periodo predefinito delle schede"
 msgstr "Default period of the cards"
@@ -9113,6 +9125,9 @@ msgstr "Look recurring"
 msgid "Semestrale"
 msgstr "Half-yearly"
 
+msgid "Semestre o trimestre: per un anno solo"
+msgstr "Half or quarter: for a single year"
+
 msgid "Semestri"
 msgstr "Halves"
 
@@ -9826,6 +9841,9 @@ msgstr "Back to be collected"
 msgid "Torna indietro"
 msgstr "Back"
 
+msgid "Torna su"
+msgstr "Back to the top"
+
 msgid "Torta con la distribuzione delle entrate: anno, semestre o trimestre"
 msgstr "Pie of the income: year, half or quarter"
 
@@ -10104,10 +10122,6 @@ msgstr "All assigned"
 msgid "Tutto azionario globale"
 msgstr "All global equities"
 
-#, python-format
-msgid "Tutto il %(year)s"
-msgstr "All of %(year)s"
-
 msgid ""
 "Tutto in euro di oggi. Le prime cifre vengono dal tuo archivio "
 "(patrimonio, spese e risparmio degli ultimi 12 mesi): cambiale come vuoi."
@@ -10116,6 +10130,9 @@ msgstr ""
 "Everything in today's euro. The first figures come from your archive "
 "(wealth, expenses and saving of the last 12 months): change them as you "
 "like. It is an estimate, not advice."
+
+msgid "Tutto l’anno"
+msgstr "The whole year"
 
 #, python-format
 msgid "Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto."
@@ -10147,9 +10164,6 @@ msgstr "Last digits of IBAN or card"
 
 msgid "Ultime registrate"
 msgstr "Last recorded"
-
-msgid "Ultimi"
-msgstr "Last"
 
 #, python-format
 msgid "Ultimi %(count)s mesi"
@@ -10678,9 +10692,6 @@ msgstr "at current prices"
 
 msgid "ai prezzi più recenti"
 msgstr "at the latest prices"
-
-msgid "al"
-msgstr "to"
 
 #, python-format
 msgid "al %(date)s"

@@ -4,7 +4,7 @@ Financial analytics computed from transactions.
 Amounts are stored as positive numbers; the direction comes from `type`
 ("income" | "expense" | "transfer").
 """
-from datetime import date
+from datetime import date, timedelta
 from itertools import accumulate
 
 from sqlalchemy import extract, func
@@ -253,6 +253,37 @@ def monthly_category_trend(year: int, top_n: int = 5, tx_type: str = "expense", 
     if other and len(breakdown) > top_n:
         datasets.append({"label": OTHER, "data": rest, "other": True})
     return {"labels": month_labels()[:months], "datasets": datasets}
+
+
+def category_trend(start: date, end: date, top_n: int = 5, tx_type: str = "expense", other: bool = False) -> dict:
+    """
+    As monthly_category_trend, over the months from `start` to `end` (excluded), across years: one point per month,
+    labelled «Set 26»; the top categories are those of the whole span.
+    """
+    from app.services.periods import month_index, month_label
+
+    breakdown = category_breakdown(start, end, tx_type=tx_type)
+    names = [item["category"] for item in breakdown[:top_n]]
+    months = range(month_index(start), month_index(end - timedelta(days=1)) + 1)
+    position = {index: i for i, index in enumerate(months)}
+    series = {name: [0.0] * len(months) for name in names}
+    rest = [0.0] * len(months)
+    rows = (
+        lines_query(extract("year", Transaction.date), extract("month", Transaction.date), LINE_CATEGORY, func.sum(LINE_VALUE))
+        .filter(Transaction.date >= start, Transaction.date < end, Transaction.type == tx_type)
+        .group_by(extract("year", Transaction.date), extract("month", Transaction.date), LINE_CATEGORY)
+        .all()
+    )
+    for year, month, category, amount in rows:
+        index = position.get(int(year) * 12 + int(month) - 1)
+        if index is None:
+            continue
+        target = series.get(categories.main_or(category, UNCATEGORIZED), rest)
+        target[index] = round(target[index] + float(amount), 2)
+    datasets = [{"label": n, "data": series[n]} for n in names]
+    if other and len(breakdown) > top_n:
+        datasets.append({"label": OTHER, "data": rest, "other": True})
+    return {"labels": [month_label(index) for index in months], "datasets": datasets}
 
 
 def cumulative_series(year: int, months: int = 12) -> dict:

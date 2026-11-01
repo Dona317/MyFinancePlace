@@ -535,11 +535,19 @@ function initToBottom() {
   button.setAttribute("aria-label", TEXT.to_bottom || "Vai in fondo");
   button.title = TEXT.to_bottom || "Vai in fondo";
   document.body.appendChild(button);
+  // a long page: «to the bottom» while far from it, «back to the top» once at its end
+  let up = false;
   const update = () => {
-    const left = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
-    button.hidden = !(document.documentElement.scrollHeight > window.innerHeight * 2 && left > window.innerHeight);
+    const page = document.documentElement.scrollHeight, left = page - (window.scrollY + window.innerHeight);
+    const long = page > window.innerHeight * 1.5;
+    up = long && left < 120;
+    button.hidden = !(long && (up || left > window.innerHeight));
+    button.querySelector("i").className = up ? "bi bi-chevron-double-up" : "bi bi-chevron-double-down";
+    const label = up ? (TEXT.to_top || "Torna su") : (TEXT.to_bottom || "Vai in fondo");
+    button.title = label;
+    button.setAttribute("aria-label", label);
   };
-  button.addEventListener("click", () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" }));
+  button.addEventListener("click", () => window.scrollTo({ top: up ? 0 : document.documentElement.scrollHeight, behavior: "smooth" }));
   window.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update);
   update();

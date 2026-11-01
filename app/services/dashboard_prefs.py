@@ -200,6 +200,8 @@ KPI_CARDS = {
     "investments":  _l("Investimenti"),
     "debt":         _l("Debito Totale"),
     "tbd":          _l("Nuova scheda"),
+    "tbd2":         _l("Nuova scheda 2"),
+    "tbd3":         _l("Nuova scheda 3"),
 }
 KPI_SETTING = "dashboard.kpis"
 KPI_SPANS = (1, 2)

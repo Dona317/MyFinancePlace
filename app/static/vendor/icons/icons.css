@@ -75,6 +75,7 @@
 .bi-check2-circle::before { content: "\f270"; }
 .bi-check2-square::before { content: "\f271"; }
 .bi-chevron-double-down::before { content: "\f27e"; }
+.bi-chevron-double-up::before { content: "\f281"; }
 .bi-chevron-down::before { content: "\f282"; }
 .bi-chevron-left::before { content: "\f284"; }
 .bi-chevron-right::before { content: "\f285"; }

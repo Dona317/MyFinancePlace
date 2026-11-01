@@ -9,36 +9,44 @@
 {% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
 
 {% block topbar_actions %}
+{# The period of the whole page: from one year to another (the same: that year), a half or a quarter of a single one #}
+<form method="GET" class="dash-period-box" id="dash-period">
+  <span class="dash-period-title"><i class="bi bi-calendar3"></i> {{ _('Periodo') }}
+    {{ info(_('Il periodo di tutta la pagina, schede e grafici: uno o più anni di fila; per un anno solo anche semestre o trimestre.')) }}</span>
+  <label class="sr-only" for="dash-year">{{ _('Dal') }}</label>
+  <select id="dash-year" name="year" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Dal') }}">
+    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
+  </select>
+  <span class="text-muted">–</span>
+  <label class="sr-only" for="dash-year-to">{{ _('Al') }}</label>
+  <select id="dash-year-to" name="year_to" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Al') }}">
+    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year_to }}>{{ y }}</option>{% endfor %}
+  </select>
+  <label class="sr-only" for="dash-part">{{ _('Parte dell’anno') }}</label>
+  <select id="dash-part" name="part" class="form-select form-select-sm" data-no-search onchange="this.form.submit()"{{ ' disabled' if year != year_to }}
+          title="{{ _('Semestre o trimestre: per un anno solo') }}">
+    <option value="year" {{ 'selected' if part == 'year' }}>{{ _('Tutto l’anno') if year == year_to else _('Anni interi') }}</option>
+    <optgroup label="{{ _('Semestri') }}">
+      {% for p in ('H1', 'H2') %}<option value="{{ p }}" {{ 'selected' if part == p }}>{{ part_labels[p] }}</option>{% endfor %}
+    </optgroup>
+    <optgroup label="{{ _('Trimestri') }}">
+      {% for p in ('Q1', 'Q2', 'Q3', 'Q4') %}<option value="{{ p }}" {{ 'selected' if part == p }}>{{ part_labels[p] }}</option>{% endfor %}
+    </optgroup>
+  </select>
+</form>
+<div class="topbar-right-actions">
   {{ blocks.edit_controls(_('Modifica della dashboard'), _('Sposta, allarga o nascondi i blocchi della dashboard'),
                           url_for('settings.index', _anchor='dashboard'), _('Schede, blocchi e finestre temporali della dashboard nelle Impostazioni')) }}
+</div>
 {% endblock %}
 
 {# A top card whose money adds up over a time window of its own: the window is chosen in the card and kept #}
 {% macro window_card(card, icon, title, cls, href, value=none, amount=none, forecast=none, forecast_value='') -%}
-{% set c = cards[card] %}
 <div class="kpi-card kpi-click {{ cls }}" data-href="{{ href }}" title="{{ _('Apri il dettaglio') }}">
   <div class="kpi-icon"><i class="bi bi-{{ icon }}"></i></div>
   <div class="kpi-label">{{ title }}</div>
   <div class="kpi-value"{% if amount is not none %} data-amount="{{ amount }}"{% endif %}>{{ value if value is not none else '—' }}</div>
-  <div class="kpi-window" data-card="{{ card }}">
-    <button type="button" class="kpi-window-btn" aria-haspopup="true" aria-expanded="false" title="{{ _('Cambia il periodo di questa scheda') }}">
-      <i class="bi bi-calendar3"></i> <span>{{ c.label }}</span> <i class="bi bi-chevron-down"></i>
-    </button>
-    <div class="kpi-window-menu" hidden>
-      {% for key, label in window_presets %}
-      <button type="button" class="kpi-window-option{{ ' on' if c.window.period == key }}" data-period="{{ key }}">{{ label }}</button>
-      {% endfor %}
-      <form class="kpi-window-row" data-period="last_n">
-        <label>{{ _('Ultimi') }} <input type="number" name="n" min="1" max="120" value="{{ c.window.n if c.window.period == 'last_n' else 3 }}" class="form-control" /> {{ _('mesi') }}</label>
-        <button type="submit" class="btn btn-primary btn-sm">{{ _('OK') }}</button>
-      </form>
-      <form class="kpi-window-row" data-period="custom">
-        <label>{{ _('Dal') }} <input type="date" name="start" value="{{ c.window.start or c.start.isoformat() }}" class="form-control" required /></label>
-        <label>{{ _('al') }} <input type="date" name="end" value="{{ c.window.end or '' }}" class="form-control" required /></label>
-        <button type="submit" class="btn btn-primary btn-sm">{{ _('OK') }}</button>
-      </form>
-    </div>
-  </div>
+  <div class="kpi-sub"><i class="bi bi-calendar3"></i> {{ period_label }}</div>
   {% if forecast %}
   <a class="kpi-forecast" href="{{ url_for('forecast.index') }}" title="{{ _('Apri le previsioni') }}">
     <i class="bi bi-graph-up-arrow"></i> {{ forecast.label }}: <strong>{{ forecast_value }}</strong>
@@ -68,7 +76,7 @@
 
 <!-- KPI Row: a click on a card opens its detail; the period of income, expenses and savings is chosen in the card -->
 {% set fc = forecast_figures %}
-<div class="kpi-grid fc-grid-kpi mb-24" id="kpi-grid">
+<div class="kpi-grid kpi-strip fc-grid-kpi mb-24" id="kpi-grid">
 {% for k in kpi_layout %}
 {% if k.id == 'net_worth' and settings.dashboard_net_worth %}
 {% call kpi_slot(k) %}
@@ -76,7 +84,7 @@
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
     <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.net_worth }}">—</div>
-    <div class="kpi-sub">{{ _('Attività − passività, oggi') }}</div>
+    <div class="kpi-sub">{{ _('Attività − passività, al %(date)s', date=as_of|it_date) }}</div>
   </div>
 {% endcall %}
 {% elif k.id == 'income' and settings.dashboard_income %}
@@ -124,7 +132,7 @@
     </div>
   </div>
 {% endcall %}
-{% elif k.id == 'tbd' %}
+{% elif k.id.startswith('tbd') %}
 {% call kpi_slot(k) %}
   <div class="kpi-card kpi-tbd">
     <div class="kpi-label">{{ _('Nuova scheda') }}</div>
@@ -138,26 +146,6 @@
 
 <div class="dash-year-head">
   <h2>{{ _('Grafici: %(period)s', period=period_label) }}</h2>
-  <form method="GET" class="dash-year-form">
-    <label class="dash-select">
-      <span class="dash-select-title">{{ _('Anno') }}</span>
-      <select id="dash-year" name="year" class="form-select" onchange="this.form.submit()">
-        {% for y in ([year] + years)|unique|sort(reverse=true) %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
-      </select>
-    </label>
-    <label class="dash-select">
-      <span class="dash-select-title">{{ _('Periodo dei grafici') }} {{ info(_('Il periodo dei grafici mostrati, nel dettaglio: anno, semestre o trimestre.')) }}</span>
-      <select name="part" class="form-select" onchange="this.form.submit()">
-        <option value="year" {{ 'selected' if part == 'year' }}>{{ _('Tutto il %(year)s', year=year) }}</option>
-        <optgroup label="{{ _('Semestri') }}">
-          {% for p in ('H1', 'H2') %}<option value="{{ p }}" {{ 'selected' if part == p }}>&nbsp;&nbsp;{{ part_labels[p] }}</option>{% endfor %}
-        </optgroup>
-        <optgroup label="{{ _('Trimestri') }}">
-          {% for p in ('Q1', 'Q2', 'Q3', 'Q4') %}<option value="{{ p }}" {{ 'selected' if part == p }}>&nbsp;&nbsp;{{ part_labels[p] }}</option>{% endfor %}
-        </optgroup>
-      </select>
-    </label>
-  </form>
 </div>
 
 
@@ -200,7 +188,7 @@
       <div class="card-header-title">{{ title }}</div>
       <div class="card-header-sub">{{ _('Mese per mese, in euro, per categoria') }}</div>
     </div>
-    <a href="{{ url_for('reports.index', tab='spending' if kind == 'expense' else 'income', period='custom', start='%d-01-01' % year, end='%d-12-31' % year) }}" class="btn btn-ghost btn-sm">
+    <a href="{{ url_for('reports.index', tab='spending' if kind == 'expense' else 'income', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()) }}" class="btn btn-ghost btn-sm">
       {{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i>
     </a>
   </div>
@@ -559,32 +547,11 @@ if (mode && category) {
 }
 }
 
-/* ── Top cards: a click opens the detail; the period menu changes the window of that card and keeps it ── */
+/* ── Top cards: a click opens the detail ── */
 document.querySelectorAll('.kpi-click').forEach(card => card.addEventListener('click', e => {
-  if (e.target.closest('a, button, input, select, form, .kpi-window-menu')) return;
+  if (e.target.closest('a, button, input, select, form')) return;
   window.location.href = card.dataset.href;
 }));
-document.querySelectorAll('.kpi-window').forEach(box => {
-  const button = box.querySelector('.kpi-window-btn');
-  const menu = box.querySelector('.kpi-window-menu');
-  const open = (on) => { menu.hidden = !on; button.setAttribute('aria-expanded', String(on)); };
-  button.addEventListener('click', e => { e.stopPropagation(); open(menu.hidden); });
-  document.addEventListener('click', e => { if (!box.contains(e.target)) open(false); });
-  const save = async (window_) => {
-    const res = await fetch({{ url_for('dashboard.save_window')|tojson }}, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ card: box.dataset.card, window: window_ }),
-    });
-    if (res.ok) location.reload();
-  };
-  menu.querySelectorAll('.kpi-window-option').forEach(option =>
-    option.addEventListener('click', () => save({ period: option.dataset.period })));
-  menu.querySelectorAll('form.kpi-window-row').forEach(form => form.addEventListener('submit', e => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form));
-    save({ period: form.dataset.period, ...data });
-  }));
-});
 
 /* ── Modifica: the blocks (1–3 thirds wide, of a chosen height) and the cards on top (1–2 columns) ── */
 initBlockEditor({
