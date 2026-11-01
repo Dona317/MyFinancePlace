@@ -5,8 +5,8 @@ from flask import Blueprint, render_template, request
 from flask_babel import gettext as _
 
 from app.extensions import db
-from app.models.client import ClientGroup
 from app.models.account import Account
+from app.models.client import ClientGroup
 from app.models.transaction import Transaction
 from app.routes.helpers import csv_text, download, year_arg
 from app.services import (

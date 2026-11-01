@@ -10,6 +10,8 @@ Checks, the first that applies to a transaction wins:
 """
 from dataclasses import dataclass
 
+from flask_babel import gettext as _
+
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
@@ -17,7 +19,6 @@ from app.services import ai_classification, cash, category_rules
 from app.services.ai_extraction import AIExtractionError
 from app.services.i18n import tr
 from app.services.parsing import normalize
-from flask_babel import gettext as _
 
 INCOME_WORDS = ("stipendio", "emolumenti", "accredito", "bonifico a tuo favore", "rimborso", "interessi attivi")
 EXPENSE_WORDS = ("pagamento pos", "addebito", "acquisto", "bolletta", "affitto", "commissioni")

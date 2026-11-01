@@ -2,8 +2,8 @@
 from .account import Account
 from .budget import Budget
 from .category import Category, CategoryRule
-from .cluster import ClusterRule
 from .client import Client, ClientGroup
+from .cluster import ClusterRule
 from .currency import ExchangeRate
 from .duplicate import DuplicateDismissal
 from .event import SpendingEvent
@@ -20,7 +20,7 @@ from .utility import UtilityReading
 from .wealth import Debt, Document, Goal, Holding, HoldingPrice, InsurancePolicy, Snapshot
 
 __all__ = [
-    "Account", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule",
+    "Account", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule", "ClusterRule",
     "ExchangeRate", "Budget", "User", "Client", "ClientGroup", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
     "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan", "Reminder", "UtilityReading",

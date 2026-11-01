@@ -31,9 +31,9 @@ from app.services import (
     portfolio_ops,
     undo,
 )
-from app.services import review as review_service
 from app.services import categories as category_service
 from app.services import currency as currency_service
+from app.services import review as review_service
 from app.services.ai_classification import AI_TAG
 from app.services.categories import known_categories
 from app.services.parsing import valid_amount
