@@ -127,7 +127,7 @@
   <summary class="card-header">
     <div class="card-header-title"><i class="bi bi-pencil-square"></i> {{ _('Modifica massiva') }}
       {{ info(_('Modifica insieme i campi delle transazioni selezionate.')) }}</div>
-    <span class="text-xs text-muted" id="bulk-summary"></span>
+    <span class="text-xs text-muted" id="bulk-summary" title="{{ _('Selezionate / trovate') }}"></span>
   </summary>
   <form method="POST" action="{{ url_for('transactions.bulk_edit') }}" id="bulk-edit-form" class="card-body">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
@@ -249,12 +249,12 @@
       <thead>
         <tr>
           <th style="width:36px;"><input class="check" type="checkbox" id="select-all" title="{{ ngettext('Seleziona tutta la ricerca (%(num)d transazione)', 'Seleziona tutta la ricerca (%(num)d transazioni, tutte le pagine)', total) }}" /></th>
-          <th data-col="date" style="width:104px;">{{ _('Data') }}</th>
-          <th data-col="description" style="width:320px;">{{ _('Descrizione') }}</th>
-          <th data-col="category" style="width:190px;">{{ _('Categoria') }}</th>
-          <th data-col="tags" style="width:220px;">{{ _('Tag') }}</th>
-          <th data-col="amount" class="text-right" style="width:130px;">{{ _('Importo') }}</th>
-          <th data-col="actions" class="text-center" style="width:96px;">{{ _('Azioni') }}</th>
+          <th data-col="date" style="width:104px;"><span class="col-title">{{ _('Data') }}</span></th>
+          <th data-col="description" style="width:320px;"><span class="col-title">{{ _('Descrizione') }}</span></th>
+          <th data-col="category" style="width:190px;"><span class="col-title">{{ _('Categoria') }}</span></th>
+          <th data-col="tags" style="width:220px;"><span class="col-title">{{ _('Tag') }}</span></th>
+          <th data-col="amount" class="text-right" style="width:130px;"><span class="col-title">{{ _('Importo') }}</span></th>
+          <th data-col="actions" data-fixed class="text-center" style="width:96px;">{{ _('Azioni') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -266,7 +266,7 @@
           <td><input type="checkbox" name="ids" value="{{ tx.id }}" form="bulk-form" class="bulk-select check" /></td>
           <td class="tx-date">{{ tx.date|it_date }}</td>
           <td>
-            <div class="cell-scroll">
+            <div class="cell-clip">
             <div class="tx-description">{{ tx.description }}</div>
             {%- if tx.bank_description and tx.bank_description != tx.description %}
             <div class="text-xs text-muted" title="{{ _('Causale originale della banca') }}"><i class="bi bi-bank"></i> {{ tx.bank_description }}</div>
@@ -278,7 +278,7 @@
             {%- elif tx.category %}{% set main = tx.category|category_top %}<span class="badge badge-primary badge-clip" title="{{ (main ~ ' › ' if main != tx.category) ~ tx.category }}">{% if main != tx.category %}<span class="category-main">{{ main }} ›</span> {% endif %}{{ tx.category }}</span>{% else %}—{% endif %}
             {% if tx.cluster in cluster_choices %}<span class="text-xs text-muted cluster-tag" title="{{ _('Gruppo di spesa') }}: {{ cluster_choices[tx.cluster] }}">{{ cluster_choices[tx.cluster] }}</span>{% endif %}</td>
           <td class="tag-cell">
-            <div class="cell-scroll">
+            <div class="cell-clip">
             {%- for tag in tx.tags %}
             {%- if tag == ai_tag %}
             <form method="POST" action="{{ url_for('transactions.confirm_ai') }}" class="tag-chip tag-ai"
@@ -393,17 +393,14 @@
 {
 const form = document.getElementById('bulk-edit-form');
 const ticked = () => [...document.querySelectorAll('.bulk-select:checked')];
-// «N selezionate su M transazioni»; the box on the header of the table selects the whole search (every page)
+// «selected/found» (0/489); the box on the header of the table selects the whole search (every page)
 const total = {{ total|tojson }};
 const describe = () => {
   if (!form) return;
   const all = document.getElementById('select-all')?.checked && ticked().length === document.querySelectorAll('.bulk-select').length;
   const count = all ? total : ticked().length;
   document.getElementById('bulk-scope').value = all ? 'search' : 'selection';
-  document.getElementById('bulk-summary').textContent = count
-    ? fmt(count === 1 ? {{ _('1 selezionata su %(total)s transazioni', total='%(total)s')|tojson }}
-                      : {{ _('%(count)s selezionate su %(total)s transazioni', count='%(count)s', total='%(total)s')|tojson }}, { count, total })
-    : fmt({{ _('%(total)s transazioni', total='%(total)s')|tojson }}, { total });
+  document.getElementById('bulk-summary').textContent = `${count}/${total}`;  // selected / found
 };
 document.addEventListener('change', e => { if (e.target.matches('.bulk-select, #select-all')) setTimeout(describe); });
 describe();

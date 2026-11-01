@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 23:01+0100\n"
+"POT-Creation-Date: 2026-11-01 23:10+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -249,10 +249,6 @@ msgstr "%(count)s rows with an invalid date or amount were discarded."
 #, python-format
 msgid "%(count)s righe ignorate (versamenti, dividendi o righe illeggibili)"
 msgstr "%(count)s rows skipped (deposits, dividends or unreadable rows)"
-
-#, python-format
-msgid "%(count)s selezionate su %(total)s transazioni"
-msgstr "%(count)s selected of %(total)s transactions"
 
 #, python-format
 msgid "%(count)s suggerimenti"
@@ -587,10 +583,6 @@ msgid "%(size)s KB"
 msgstr "%(size)s KB"
 
 #, python-format
-msgid "%(total)s transazioni"
-msgstr "%(total)s transactions"
-
-#, python-format
 msgid "%(units)s quote"
 msgstr "%(units)s units"
 
@@ -732,10 +724,6 @@ msgid ""
 msgstr ""
 "1 unbooked movement (pending or cancelled) was left out: if it is "
 "pending, import it once the bank has booked it."
-
-#, python-format
-msgid "1 selezionata su %(total)s transazioni"
-msgstr "1 selected of %(total)s transactions"
 
 msgid "1 unità = € …"
 msgstr "1 unit = € …"
@@ -9211,6 +9199,9 @@ msgstr "Select a CSV or Excel file to import."
 
 msgid "Seleziona un file."
 msgstr "Select a file."
+
+msgid "Selezionate / trovate"
+msgstr "Selected / found"
 
 msgid "Sembrano ricorrenti"
 msgstr "Look recurring"

@@ -2051,18 +2051,18 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 /* ── Pop-ups: a page in a pop-up keeps a margin all round, so back and close stay away from the edges ── */
 .embedded .page-content:has(.popup-bar) { padding: 14px 18px; }
 
-/* ── Register: columns sized like a spreadsheet; long texts on one line, scrolling sideways in their cell ── */
-.table-wrapper .tx-table { table-layout: fixed; width: max-content; min-width: 0; }  /* as wide as its columns, like a spreadsheet */
-.tx-table th { position: relative; }
+/* ── Register: columns sized like a spreadsheet, the table filling its card; long texts on one line, cut with «…»
+   (the whole text on hover) ── */
+.table-wrapper .tx-table { table-layout: fixed; width: 100%; min-width: 0; }
+.tx-table th { position: relative; white-space: nowrap; }
 .col-resizer { position: absolute; top: 0; right: -3px; bottom: 0; width: 7px; cursor: col-resize; z-index: 2; }
 .col-resizer::after { content: ""; position: absolute; top: 25%; bottom: 25%; left: 3px; width: 1px; background: var(--clr-border); }
 .col-resizer:hover::after { background: var(--clr-primary); width: 2px; }
 .tx-table td { overflow: hidden; }
-/* no bar (it would make the row taller): the wheel or the trackpad scrolls the cell sideways */
-.cell-scroll { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-.cell-scroll::-webkit-scrollbar { display: none; }
-.cell-scroll .tx-description { white-space: nowrap; }
-.tx-table .tag-cell .cell-scroll { display: flex; gap: 4px; flex-wrap: nowrap; }
+.cell-clip { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cell-clip > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tx-table .tag-cell .cell-clip { display: block; }
+.tx-table .tag-cell .tag-chip { display: inline-flex; margin-right: 4px; }
 .badge-clip { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 
 /* the category cell on one line too: the category (cut, whole on hover), «suddivisa», the spending group */

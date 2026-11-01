@@ -328,47 +328,70 @@ function initAskPanel() {
   if (new URLSearchParams(location.search).get("ask") === "1") open(true);
 }
 
-/* Tables whose columns are widened or narrowed by dragging the edge of their title (th[data-col]), like a
-   spreadsheet; the widths are remembered in this browser, per table */
+/* Tables whose columns are resized by dragging the edge between two titles (th[data-col]), like a spreadsheet:
+   the table fills its card and its right edge stays (th[data-fixed] columns keep their width); the shares are
+   remembered in this browser, per table */
 function initResizableColumns() {
-  // a fixed layout needs the table's own width: the sum of its columns
-  const fit = (table) => {
-    table.style.width = [...table.querySelectorAll("thead th")].reduce((sum, th) => sum + (parseFloat(th.style.width) || 80), 0) + "px";
-  };
-  document.querySelectorAll("table[id] th[data-col]").forEach(th => {
-    const table = th.closest("table"), key = `mfp-cols-${table.id}`;
-    let widths = {};
-    try { widths = JSON.parse(store.get(key) || "{}"); } catch (e) { widths = {}; }
-    if (widths[th.dataset.col]) th.style.width = widths[th.dataset.col] + "px";
-    const grip = Object.assign(document.createElement("span"), { className: "col-resizer", title: TEXT.resize || "" });
-    grip.setAttribute("aria-hidden", "true");
-    th.appendChild(grip);
-    grip.addEventListener("click", e => e.stopPropagation());
-    grip.addEventListener("pointerdown", e => {
-      e.preventDefault();
-      e.stopPropagation();
-      const startX = e.clientX, startW = parseFloat(th.style.width) || th.getBoundingClientRect().width;
-      try { grip.setPointerCapture(e.pointerId); } catch (err) { /* a pointer the browser does not track */ }
-      const move = ev => { th.style.width = Math.max(48, startW + ev.clientX - startX) + "px"; fit(table); };
-      const up = () => {
-        grip.removeEventListener("pointermove", move);
-        grip.removeEventListener("pointerup", up);
-        widths[th.dataset.col] = Math.round(parseFloat(th.style.width));
-        store.set(key, JSON.stringify(widths));
-      };
-      grip.addEventListener("pointermove", move);
-      grip.addEventListener("pointerup", up);
+  document.querySelectorAll("table[id]").forEach(table => {
+    const heads = [...table.querySelectorAll("thead th")];
+    const flex = heads.filter(th => th.dataset.col && !th.hasAttribute("data-fixed"));
+    if (!flex.length) return;
+    const fixed = heads.filter(th => !flex.includes(th));
+    const key = `mfp-cols-${table.id}`;
+    let shares = {};
+    try { shares = JSON.parse(store.get(key) || "{}"); } catch (e) { shares = {}; }
+    const defaults = Object.fromEntries(flex.map(th => [th.dataset.col, parseFloat(th.style.width) || 120]));
+    const room = () => table.parentElement.clientWidth - fixed.reduce((sum, th) => sum + (parseFloat(th.style.width) || 0), 0);
+    // the shares of the room left by the fixed columns (the box and Azioni): the table always fills its card
+    const layout = () => {
+      const weights = flex.map(th => shares[th.dataset.col] || defaults[th.dataset.col]);
+      const total = weights.reduce((a, b) => a + b, 0), width = Math.max(room(), flex.length * 60);
+      flex.forEach((th, i) => { th.style.width = (width * weights[i] / total) + "px"; });
+      table.style.width = table.parentElement.clientWidth + "px";
+    };
+    const save = () => {
+      const width = flex.reduce((sum, th) => sum + parseFloat(th.style.width), 0);
+      shares = Object.fromEntries(flex.map(th => [th.dataset.col, parseFloat(th.style.width) / width * 1000]));
+      store.set(key, JSON.stringify(shares));
+    };
+    // a column is never narrower than its title, nor wider than its longest text
+    const column = (th) => heads.indexOf(th);
+    const minOf = (th) => Math.ceil(th.querySelector(".col-title")?.scrollWidth || 40) + 32;
+    const maxOf = (th) => {
+      const i = column(th);
+      let widest = minOf(th);
+      table.querySelectorAll("tbody tr").forEach(row => {
+        const cell = row.children[i], inner = cell?.firstElementChild || cell;
+        if (inner) widest = Math.max(widest, inner.scrollWidth + 34);
+      });
+      return widest;
+    };
+    // the edge between a column and the next one: one grows, the other shrinks (the last one has no edge)
+    flex.slice(0, -1).forEach((th, i) => {
+      const next = flex[i + 1];
+      const grip = Object.assign(document.createElement("span"), { className: "col-resizer", title: TEXT.resize || "" });
+      grip.setAttribute("aria-hidden", "true");
+      th.appendChild(grip);
+      grip.addEventListener("click", e => e.stopPropagation());
+      grip.addEventListener("pointerdown", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const startX = e.clientX, a = parseFloat(th.style.width), b = parseFloat(next.style.width);
+        const lo = Math.max(minOf(th) - a, b - maxOf(next)), hi = Math.min(maxOf(th) - a, b - minOf(next));
+        try { grip.setPointerCapture(e.pointerId); } catch (err) { /* a pointer the browser does not track */ }
+        const move = ev => {
+          const d = Math.min(Math.max(ev.clientX - startX, Math.min(lo, 0)), Math.max(hi, 0));
+          th.style.width = (a + d) + "px";
+          next.style.width = (b - d) + "px";
+        };
+        const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); save(); };
+        grip.addEventListener("pointermove", move);
+        grip.addEventListener("pointerup", up);
+      });
     });
+    layout();
+    window.addEventListener("resize", layout);
   });
-  new Set([...document.querySelectorAll("table[id] th[data-col]")].map(th => th.closest("table"))).forEach(fit);
-  // a cell with more than it shows scrolls sideways with the wheel, while the page keeps still
-  document.addEventListener("wheel", e => {
-    const cell = e.target.closest?.(".cell-scroll");
-    if (!cell || cell.scrollWidth <= cell.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-    const before = cell.scrollLeft;
-    cell.scrollLeft += e.deltaY;
-    if (cell.scrollLeft !== before) e.preventDefault();  // at either end the page scrolls as usual
-  }, { passive: false });
 }
 
 /* Flash messages marked data-autohide fade out after a few seconds */
