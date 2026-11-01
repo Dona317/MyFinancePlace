@@ -100,12 +100,14 @@ def test_new_transaction_chooser(client, app):
     assert 'href="/transactions/new"' in html and 'href="/export/import"' in html
 
 
-def test_theme_switch_and_reminders_in_the_sidebar_footer(client, app):
-    """Light/dark, reminders and settings live in the sidebar footer, always in sight (not in the top bar)."""
+def test_theme_switch_and_reminders_in_the_sidebar(client, app):
+    """Light/dark sits on top next to the menu toggle; the reminders next to the settings at the bottom."""
     html = client.get("/transactions/").get_data(as_text=True)
-    footer = html.split('<div class="sidebar-footer">')[1].split("</aside>")[0]
-    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', footer, re.S)
-    assert toggle, "light/dark switch missing from the sidebar footer"
+    head = html.split('<div class="sidebar-head">')[1].split("</div>")[0]
+    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', head, re.S)
+    assert toggle, "light/dark switch missing next to the menu toggle"
+    row = html.split('<div class="sidebar-user-row">')[1].split("</aside>")[0]
+    assert row.index("topbar-bell") < row.index("sidebar-settings")  # the bell right before the settings
     assert 'role="switch"' in toggle.group(0)
     # the thumb carries the sun in light mode, the moon in dark mode (CSS shows one of the two)
     assert "bi-sun-fill theme-icon-light" in toggle.group(1) and "bi-moon-stars-fill theme-icon-dark" in toggle.group(1)
