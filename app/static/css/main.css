@@ -1959,7 +1959,9 @@ html.focus .page-content { padding: 24px 16px 40px; }
   display: flex; align-items: center; justify-content: center; transition: transform .15s ease; }
 .ask-bubble:hover { transform: scale(1.06); }
 .ask-bubble[aria-expanded="true"] { box-shadow: 0 0 0 4px var(--clr-primary-light), var(--shadow-lg); }
-body:has(.ask-bubble) .to-bottom { bottom: 88px; }  /* «to the bottom / back to the top» above the round button */
+/* the AI button a little to the left; «to the bottom / back to the top» smaller, in the corner beside it */
+body:has(.ask-bubble) .ask-bubble { right: 76px; }
+body:has(.ask-bubble) .to-bottom { right: 24px; bottom: 16px; width: 36px; height: 36px; font-size: 15px; }
 .ask-panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 260; width: min(380px, 100vw); display: flex; flex-direction: column;
   background: var(--clr-bg-card); border-left: 1px solid var(--clr-border); box-shadow: var(--shadow-lg); }
 .ask-panel[hidden] { display: none; }
