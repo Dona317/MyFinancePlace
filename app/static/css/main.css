@@ -1955,10 +1955,10 @@ html.focus .page-content { padding: 24px 16px 40px; }
   display: flex; align-items: center; justify-content: center; transition: transform .15s ease; }
 .ask-bubble:hover { transform: scale(1.06); }
 .ask-bubble[aria-expanded="true"] { box-shadow: 0 0 0 4px var(--clr-primary-light), var(--shadow-lg); }
-/* one column in the corner: the AI button (42px, a fifth smaller), «to the bottom / back to the top» small above it,
+/* one column in the corner: the AI button (36px), «to the bottom / back to the top» small above it,
    centred on it */
-body:has(.ask-bubble) .ask-bubble { right: 24px; bottom: 24px; width: 42px; height: 42px; font-size: 18px; }
-body:has(.ask-bubble) .to-bottom { right: 30px; bottom: 74px; width: 30px; height: 30px; font-size: 13px; }
+body:has(.ask-bubble) .ask-bubble { right: 24px; bottom: 24px; width: 36px; height: 36px; font-size: 16px; }
+body:has(.ask-bubble) .to-bottom { right: 27px; bottom: 68px; width: 30px; height: 30px; font-size: 13px; }
 .ask-panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 260; width: min(380px, 100vw); display: flex; flex-direction: column;
   background: var(--clr-bg-card); border-left: 1px solid var(--clr-border); box-shadow: var(--shadow-lg); }
 .ask-panel[hidden] { display: none; }
@@ -1991,8 +1991,8 @@ body:has(.ask-bubble) .to-bottom { right: 30px; bottom: 74px; width: 30px; heigh
 .palette-swatches > span { width: 16px; height: 16px; }
 
 /* ── «Nuova transazione»: a round + at the bottom left of the page, the size and look of the AI button ── */
-.add-bubble { position: fixed; left: calc(var(--sidebar-width) + 24px); bottom: 24px; z-index: 95; width: 42px; height: 42px;
-  border-radius: 50%; background: var(--clr-primary); color: var(--clr-on-primary); font-size: 20px; box-shadow: var(--shadow-lg);
+.add-bubble { position: fixed; left: calc(var(--sidebar-width) + 24px); bottom: 24px; z-index: 95; width: 36px; height: 36px;
+  border-radius: 50%; background: var(--clr-primary); color: var(--clr-on-primary); font-size: 18px; box-shadow: var(--shadow-lg);
   display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform .15s ease, left var(--sidebar-ease); }
 .add-bubble:hover { transform: scale(1.06); color: var(--clr-on-primary); text-decoration: none; }
 @media (max-width: 992px) { .add-bubble { left: 16px; } }

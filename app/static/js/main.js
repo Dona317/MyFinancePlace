@@ -329,46 +329,68 @@ function initAskPanel() {
 }
 
 /* Tables whose columns are resized by dragging the edge between two titles (th[data-col]), like a spreadsheet:
-   the table fills its card and its right edge stays (th[data-fixed] columns keep their width); the shares are
-   remembered in this browser, per table */
+   the table fills its card and its right edge stays; th[data-fixed] (Azioni) is never wider than it is; the widths
+   are remembered in this browser, per table */
 function initResizableColumns() {
   document.querySelectorAll("table[id]").forEach(table => {
     const heads = [...table.querySelectorAll("thead th")];
-    const flex = heads.filter(th => th.dataset.col && !th.hasAttribute("data-fixed"));
-    if (!flex.length) return;
-    const fixed = heads.filter(th => !flex.includes(th));
+    const cols = heads.filter(th => th.dataset.col);               // the columns that take part (Azioni too)
+    if (cols.length < 2) return;
+    const others = heads.filter(th => !cols.includes(th));          // the box of the selection
+    const locked = (th) => th.hasAttribute("data-fixed");           // Azioni: never wider than it is
     const key = `mfp-cols-${table.id}`;
-    let shares = {};
-    try { shares = JSON.parse(store.get(key) || "{}"); } catch (e) { shares = {}; }
-    const defaults = Object.fromEntries(flex.map(th => [th.dataset.col, parseFloat(th.style.width) || 120]));
-    const room = () => table.parentElement.clientWidth - fixed.reduce((sum, th) => sum + (parseFloat(th.style.width) || 0), 0);
-    // the shares of the room left by the fixed columns (the box and Azioni): the table always fills its card
+    let saved = {};
+    try { saved = JSON.parse(store.get(key) || "{}"); } catch (e) { saved = {}; }
+    const defaults = Object.fromEntries(cols.map(th => [th.dataset.col, parseFloat(th.style.width) || 120]));
+    const width = (th) => parseFloat(th.style.width);
+    // the smallest a column can be: its title; Azioni neither grows nor shrinks
+    const minOf = (th) => locked(th) ? defaults[th.dataset.col] : Math.ceil(th.querySelector(".col-title")?.scrollWidth || 40) + 32;
+    const maxOf = (th) => locked(th) ? defaults[th.dataset.col] : Infinity;
+    // the table fills its card: the columns share the room the box leaves, in the proportions last chosen
     const layout = () => {
-      const weights = flex.map(th => shares[th.dataset.col] || defaults[th.dataset.col]);
-      const total = weights.reduce((a, b) => a + b, 0), width = Math.max(room(), flex.length * 60);
-      flex.forEach((th, i) => { th.style.width = (width * weights[i] / total) + "px"; });
+      const room = table.parentElement.clientWidth - others.reduce((sum, th) => sum + (parseFloat(th.style.width) || 0), 0);
+      const fixed = cols.filter(locked), free = cols.filter(th => !locked(th));
+      fixed.forEach(th => { th.style.width = Math.min(saved[th.dataset.col] || defaults[th.dataset.col], defaults[th.dataset.col]) + "px"; });
+      const left = room - fixed.reduce((sum, th) => sum + width(th), 0);
+      const weights = free.map(th => saved[th.dataset.col] || defaults[th.dataset.col]);
+      const total = weights.reduce((a, b) => a + b, 0);
+      free.forEach((th, i) => { th.style.width = Math.max(minOf(th), left * weights[i] / total) + "px"; });
       table.style.width = table.parentElement.clientWidth + "px";
     };
     const save = () => {
-      const width = flex.reduce((sum, th) => sum + parseFloat(th.style.width), 0);
-      shares = Object.fromEntries(flex.map(th => [th.dataset.col, parseFloat(th.style.width) / width * 1000]));
-      store.set(key, JSON.stringify(shares));
+      saved = Object.fromEntries(cols.map(th => [th.dataset.col, Math.round(width(th))]));
+      store.set(key, JSON.stringify(saved));
     };
-    // a column is never narrower than its title, nor wider than its longest text
-    const column = (th) => heads.indexOf(th);
-    const minOf = (th) => Math.ceil(th.querySelector(".col-title")?.scrollWidth || 40) + 32;
-    const maxOf = (th) => {
-      const i = column(th);
-      let widest = minOf(th);
-      table.querySelectorAll("tbody tr").forEach(row => {
-        const cell = row.children[i], inner = cell?.firstElementChild || cell;
-        if (inner) widest = Math.max(widest, inner.scrollWidth + 34);
-      });
-      return widest;
+    // an edge between column k and k+1: to the right, k grows and the columns after it give way one after the other,
+    // each down to its title; to the left the same the other way. The total never changes: the right edge stays.
+    // The edge before Azioni (which never changes) widens or narrows the column before it against the ones on its left.
+    const drag = (k, d, start) => {
+      const w = start.slice(), mins = cols.map(minOf), maxs = cols.map(maxOf);
+      if (locked(cols[k + 1])) {
+        if (d > 0) {
+          let left = Math.min(d, w.slice(0, k).reduce((sum, x, j) => sum + x - mins[j], 0));
+          w[k] += left;
+          for (let j = k - 1; j >= 0 && left > 0; j--) { const give = Math.min(left, w[j] - mins[j]); w[j] -= give; left -= give; }
+        } else if (d < 0 && k > 0) {
+          const give = Math.min(-d, w[k] - mins[k]);
+          w[k] -= give;
+          w[k - 1] += give;
+        }
+        cols.forEach((th, i) => { th.style.width = w[i] + "px"; });
+        return;
+      }
+      if (d > 0) {
+        let left = Math.min(d, maxs[k] - w[k], w.slice(k + 1).reduce((sum, x, j) => sum + x - mins[k + 1 + j], 0));
+        w[k] += Math.max(left, 0);
+        for (let j = k + 1; j < w.length && left > 0; j++) { const give = Math.min(left, w[j] - mins[j]); w[j] -= give; left -= give; }
+      } else if (d < 0) {
+        let left = Math.min(-d, maxs[k + 1] - w[k + 1], w.slice(0, k + 1).reduce((sum, x, j) => sum + x - mins[j], 0));
+        w[k + 1] += Math.max(left, 0);
+        for (let j = k; j >= 0 && left > 0; j--) { const give = Math.min(left, w[j] - mins[j]); w[j] -= give; left -= give; }
+      }
+      cols.forEach((th, i) => { th.style.width = w[i] + "px"; });
     };
-    // the edge between a column and the next one: one grows, the other shrinks (the last one has no edge)
-    flex.slice(0, -1).forEach((th, i) => {
-      const next = flex[i + 1];
+    cols.slice(0, -1).forEach((th, k) => {
       const grip = Object.assign(document.createElement("span"), { className: "col-resizer", title: TEXT.resize || "" });
       grip.setAttribute("aria-hidden", "true");
       th.appendChild(grip);
@@ -376,14 +398,9 @@ function initResizableColumns() {
       grip.addEventListener("pointerdown", e => {
         e.preventDefault();
         e.stopPropagation();
-        const startX = e.clientX, a = parseFloat(th.style.width), b = parseFloat(next.style.width);
-        const lo = Math.max(minOf(th) - a, b - maxOf(next)), hi = Math.min(maxOf(th) - a, b - minOf(next));
+        const startX = e.clientX, start = cols.map(width);
         try { grip.setPointerCapture(e.pointerId); } catch (err) { /* a pointer the browser does not track */ }
-        const move = ev => {
-          const d = Math.min(Math.max(ev.clientX - startX, Math.min(lo, 0)), Math.max(hi, 0));
-          th.style.width = (a + d) + "px";
-          next.style.width = (b - d) + "px";
-        };
+        const move = ev => drag(k, ev.clientX - startX, start);
         const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); save(); };
         grip.addEventListener("pointermove", move);
         grip.addEventListener("pointerup", up);
