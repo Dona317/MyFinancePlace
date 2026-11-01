@@ -2054,6 +2054,8 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 /* ── Register: columns sized like a spreadsheet, the table filling its card; long texts on one line, cut with «…»
    (the whole text on hover) ── */
 .table-wrapper .tx-table { table-layout: fixed; width: 100%; min-width: 0; }
+/* the band of the column titles runs edge to edge: no rounded corners on top cutting it (the card goes on above) */
+.table-wrapper:has(> .tx-table) { border-radius: 0 0 var(--border-radius) var(--border-radius); }
 .tx-table th { position: relative; white-space: nowrap; }
 .col-resizer { position: absolute; top: 0; right: -3px; bottom: 0; width: 7px; cursor: col-resize; z-index: 2; }
 .col-resizer::after { content: ""; position: absolute; top: 25%; bottom: 25%; left: 3px; width: 1px; background: var(--clr-border); }
