@@ -2083,7 +2083,10 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 .history-pop .search-history-list { margin: 0 0 6px; }
 .history-pop .search-history-list li { padding: 2px 4px 2px 8px; border-radius: var(--border-radius-sm); }
 .history-pop .search-history-list li:hover { background: var(--clr-bg-input); }
-.history-clear { width: 100%; justify-content: center; border-top: 1px solid var(--clr-border-light); border-radius: 0; padding-top: 8px; }
+/* «Cancella tutte»: small, on the right, under a thin line */
+.history-pop { display: flex; flex-direction: column; }
+.history-clear { align-self: flex-end; margin-top: 6px; padding: 4px 10px; font-size: var(--font-size-xs); gap: 6px; }
+.history-pop .search-history-list:not(:empty) { border-bottom: 1px solid var(--clr-border-light); padding-bottom: 6px; }
 .history-clear[hidden] { display: none; }
 .tx-table .col-title { display: inline-block; }
 
