@@ -101,13 +101,12 @@ def test_new_transaction_chooser(client, app):
 
 
 def test_theme_switch_and_reminders_in_the_sidebar(client, app):
-    """Light/dark sits on top next to the menu toggle; the reminders next to the settings at the bottom."""
+    """At the bottom, after the user: the reminders, light/dark, the settings."""
     html = client.get("/transactions/").get_data(as_text=True)
-    head = html.split('<div class="sidebar-head">')[1].split("</div>")[0]
-    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', head, re.S)
-    assert toggle, "light/dark switch missing next to the menu toggle"
     row = html.split('<div class="sidebar-user-row">')[1].split("</aside>")[0]
-    assert row.index("topbar-bell") < row.index("sidebar-settings")  # the bell right before the settings
+    toggle = re.search(r'<button type="button" id="theme-toggle"(.*?)</button>', row, re.S)
+    assert toggle, "light/dark switch missing from the sidebar footer"
+    assert row.index("topbar-bell") < row.index('id="theme-toggle"') < row.index("sidebar-settings")
     assert 'role="switch"' in toggle.group(0)
     # the thumb carries the sun in light mode, the moon in dark mode (CSS shows one of the two)
     assert "bi-sun-fill theme-icon-light" in toggle.group(1) and "bi-moon-stars-fill theme-icon-dark" in toggle.group(1)

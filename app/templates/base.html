@@ -46,13 +46,6 @@
               aria-controls="sidebar" aria-expanded="true" aria-label="{{ _('Riduci il menu') }}" title="{{ _('Riduci il menu') }}">
         <i class="bi bi-layout-sidebar"></i>
       </button>
-      <button type="button" id="theme-toggle" class="theme-switch" role="switch" aria-checked="false"
-              aria-label="{{ _('Passa alla modalità scura') }}" title="{{ _('Passa alla modalità scura') }}">
-        <span class="theme-switch-track"><span class="theme-switch-thumb">
-          <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
-          <i class="bi bi-moon-stars-fill theme-icon-dark" aria-hidden="true"></i>
-        </span></span>
-      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -294,7 +287,7 @@
     }());</script>
 
     <!-- Footer, fixed under the scrolling menu: always visible without scrolling. The user (account, sign out), then
-         the reminders and the settings side by side (light/dark sits next to the menu toggle, on top) -->
+         the reminders, light/dark and the settings; with the menu reduced to icons the user goes to the very bottom -->
     <div class="sidebar-footer">
       {% set signed_in = current_user is defined and current_user.is_authenticated %}
       <div class="sidebar-user-row">
@@ -324,6 +317,13 @@
           <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
         </a>
         {% endif %}
+        <button type="button" id="theme-toggle" class="theme-switch" role="switch" aria-checked="false"
+                aria-label="{{ _('Passa alla modalità scura') }}" title="{{ _('Passa alla modalità scura') }}">
+          <span class="theme-switch-track"><span class="theme-switch-thumb">
+            <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
+            <i class="bi bi-moon-stars-fill theme-icon-dark" aria-hidden="true"></i>
+          </span></span>
+        </button>
         <a href="{{ url_for('settings.index') }}" class="sidebar-tool sidebar-settings" title="{{ _('Impostazioni') }}"
            aria-label="{{ _('Impostazioni') }}" {% if request.endpoint and request.endpoint.startswith('settings.') %}aria-current="page"{% endif %}>
           <i class="bi bi-gear"></i>

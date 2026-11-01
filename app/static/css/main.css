@@ -2000,9 +2000,8 @@ body:has(.ask-bubble) .to-bottom { right: 30px; bottom: 74px; width: 30px; heigh
 @media (max-width: 992px) { .add-bubble { left: 16px; } }
 .focus .add-bubble { display: none; }  /* the full-screen form has its own way out */
 
-/* Sidebar: light/dark on top next to the menu toggle; the reminders next to the settings at the bottom */
-.sidebar-head { gap: 8px; }
-.sidebar-head .theme-switch { margin-left: auto; }
+/* Sidebar footer: the user, then the reminders, light/dark and the settings; reduced to icons, the user at the bottom */
+.sidebar-footer { grid-template-columns: minmax(0, 1fr); }  /* the user's name gives way: the icons stay inside */
 @media (min-width: 993px) {
-  html.sidebar-mini .sidebar-head .theme-switch { display: none; }  /* 68px wide: only the menu toggle fits */
+  html.sidebar-mini .sidebar-user-row .sidebar-user-wrap { order: 9; }
 }
