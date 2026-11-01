@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 23:10+0100\n"
+"POT-Creation-Date: 2026-11-01 23:13+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2429,9 +2429,6 @@ msgstr "Cash below zero"
 msgid "Conti"
 msgstr "Accounts"
 
-msgid "Conti bancari, carte e contanti: banca, numero, IBAN, preferito"
-msgstr "Bank accounts, cards and cash: bank, number, IBAN, favourite"
-
 msgid ""
 "Conti correnti: 34,20 € se la giacenza media supera 5.000 €. Conti "
 "deposito e titoli: 2 per mille del valore. All’estero: IVAFE."
@@ -2447,6 +2444,9 @@ msgstr "Savings and deposit accounts"
 
 msgid "Conti e Carte"
 msgstr "Accounts and Cards"
+
+msgid "Conti e carte"
+msgstr "Accounts and cards"
 
 msgid "Conti e investimenti"
 msgstr "Accounts and investments"
@@ -6746,9 +6746,6 @@ msgstr "New card 3"
 
 msgid "Nuova transazione"
 msgstr "New transaction"
-
-msgid "Nuova transazione (tasto «n»)"
-msgstr "New transaction («n» key)"
 
 msgid "Nuova voce"
 msgstr "New entry"

@@ -21,7 +21,7 @@ def test_quick_entry_guesses_category_and_counterparty(client, db):
     html = client.post("/transactions/quick", data={"date": "2026-10-06", "description": "X", "amount": "0"},
                        follow_redirects=True).get_data(as_text=True)
     assert "diverso da zero" in html and Transaction.query.count() == 2
-    assert 'id="new-transaction"' in html and 'id="undo-button"' in html
+    assert 'id="add-bubble"' in html and 'id="undo-button"' in html  # a new one: the round + at the bottom left
 
 
 def test_undo_and_redo_an_added_transaction(client, db):

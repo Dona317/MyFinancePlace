@@ -7,17 +7,12 @@
 {% block breadcrumb %}<li>{{ _('Transazioni') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <a href="{{ url_for('transactions.new', next=request.full_path) }}" class="btn btn-primary btn-sm" id="new-transaction" title="{{ _('Nuova transazione (tasto «n»)') }}">
-    <i class="bi bi-plus-lg"></i> {{ _('Nuova transazione') }}
-  </a>
-  <a href="{{ url_for('accounts.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Conti bancari, carte e contanti: banca, numero, IBAN, preferito') }}">
-    <i class="bi bi-bank"></i> {{ _('Conti') }}
+  {# a new transaction or a file: the round + at the bottom left (key «n») #}
+  <a href="{{ url_for('accounts.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Conti e carte') }}">
+    <i class="bi bi-bank"></i> {{ _('Conti e carte') }}
   </a>
   <a href="{{ url_for('transactions.duplicates_page') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-intersect"></i> {{ _('Cerca duplicati') }}
-  </a>
-  <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost btn-sm">
-    <i class="bi bi-bank2"></i> {{ _('Importa estratto conto') }}
   </a>
 {% endblock %}
 
@@ -495,7 +490,7 @@ document.addEventListener('keydown', (event) => {
   const mod = event.ctrlKey || event.metaKey;
   if (!mod && !event.altKey && event.key === 'n') {
     event.preventDefault();
-    document.getElementById('new-transaction')?.click();
+    document.getElementById('add-bubble')?.click();  // the round +: a single transaction or a file
   } else if (mod && event.key.toLowerCase() === 'z' && !event.shiftKey) {
     document.getElementById('undo-button')?.click();
   } else if (mod && (event.key.toLowerCase() === 'y' || (event.key.toLowerCase() === 'z' && event.shiftKey))) {
