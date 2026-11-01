@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 18:13+0100\n"
+"POT-Creation-Date: 2026-11-01 18:25+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1587,6 +1587,9 @@ msgstr "Year in review"
 msgid "Bloccata da un amministratore"
 msgstr "Blocked by an administrator"
 
+msgid "Blu"
+msgstr "Blues"
+
 msgid "Bolletta aggiornata."
 msgstr "Bill updated."
 
@@ -2141,6 +2144,12 @@ msgstr "Columns recognised: check and import."
 
 msgid "Colore"
 msgstr "Colour"
+
+msgid "Colori delle entrate"
+msgstr "Income colours"
+
+msgid "Colori delle uscite"
+msgstr "Expense colours"
 
 msgid "Come finisce"
 msgstr "How it ends"
@@ -8644,6 +8653,12 @@ msgstr "Withholdings suffered"
 msgid "Ritmo"
 msgstr "Rhythm"
 
+msgid "Rossi"
+msgstr "Reds"
+
+msgid "Rossi, arancioni e rosa"
+msgstr "Reds, oranges and pinks"
+
 msgid "Ruolo"
 msgstr "Role"
 
@@ -10465,6 +10480,11 @@ msgstr ""
 "Applied after yours. To change one, create your own rule with the same "
 "word"
 
+msgid ""
+"Usati da tutti i grafici di questo tipo; entrate e uscite non condividono"
+" mai i colori."
+msgstr "Used by every chart of this kind; income and expenses never share colours."
+
 msgid "Uscita"
 msgstr "Expense"
 
@@ -10642,6 +10662,12 @@ msgstr "Sell"
 msgid "Vendita"
 msgstr "Sale"
 
+msgid "Verdi"
+msgstr "Greens"
+
+msgid "Verdi e blu"
+msgstr "Greens and blues"
+
 msgid "Verifica"
 msgstr "Check"
 
@@ -10668,6 +10694,9 @@ msgstr "To account: must be different from the source account."
 
 msgid "Viaggi"
 msgstr "Travel"
+
+msgid "Viola e rosa"
+msgstr "Purples and pinks"
 
 msgid "Visualizzazione"
 msgstr "Display"

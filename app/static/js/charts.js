@@ -24,8 +24,20 @@ function readTheme() {
       get("--chart-4"), get("--chart-5"), get("--chart-6"),
       get("--chart-7"), get("--chart-8"),
     ],
+    // income and expenses never share colours (Impostazioni → Visualizzazione); "income" / "expense" as a series
+    // colour is the first of each
+    incomes:  [1, 2, 3, 4, 5, 6, 7, 8].map(i => get(`--inc-${i}`)),
+    expenses: [1, 2, 3, 4, 5, 6, 7, 8].map(i => get(`--exp-${i}`)),
   });
+  Theme.income = Theme.incomes[0] || Theme.positive;
+  Theme.expense = Theme.expenses[0] || Theme.negative;
   Chart.defaults.color = Theme.textMuted;
+}
+
+// The colours of a chart: the income or the expense palette (opts.palette), else the general one
+function paletteOf(opts) {
+  const colours = opts?.palette === "income" ? Theme.incomes : opts?.palette === "expense" ? Theme.expenses : null;
+  return colours && colours.every(Boolean) ? colours : Theme.chart;
 }
 
 // A dataset color can be a token name ("positive", "negative", …) so it follows the theme
@@ -221,8 +233,8 @@ function buildLineChart(ctx, labels, datasets, opts = {}) {
       datasets: datasets.map((ds, i) => ({
         label: ds.label,
         data:  ds.data,
-        borderColor:     themeColor(ds.color, Theme.chart[i % Theme.chart.length]),
-        backgroundColor: hexAlpha(themeColor(ds.color, Theme.chart[i % Theme.chart.length]), ds.fillAlpha ?? 0.08),
+        borderColor:     themeColor(ds.color, paletteOf(opts)[i % 8]),
+        backgroundColor: hexAlpha(themeColor(ds.color, paletteOf(opts)[i % 8]), ds.fillAlpha ?? 0.08),
         tension: 0.4,
         fill: ds.fill !== undefined ? ds.fill : true,   // also "-1": fill down to the previous dataset (a band)
         pointRadius: ds.pointRadius ?? 4,
@@ -274,9 +286,9 @@ function buildBarChart(ctx, labels, datasets, opts) {
         // `colors`: one color per bar (theme tokens like "positive"); `palette`: the chart palette bar by bar;
         // `color`: one theme color for the dataset; otherwise one palette color per dataset
         backgroundColor: ds.colors ? ds.colors.map(c => themeColor(c, Theme.primary))
-                       : ds.palette ? ds.data.map((_, j) => Theme.chart[j % Theme.chart.length])
+                       : ds.palette ? ds.data.map((_, j) => paletteOf(opts)[j % 8])
                        : ds.color ? hexAlpha(themeColor(ds.color, Theme.primary), ds.type === "line" ? 0.2 : 0.85)
-                       : hexAlpha(Theme.chart[i % Theme.chart.length], 0.85),
+                       : hexAlpha(paletteOf(opts)[i % 8], 0.85),
         borderColor: ds.color ? themeColor(ds.color, Theme.primary) : undefined,
         yAxisID: ds.axis === "right" ? "y1" : undefined,   // e.g. running totals next to monthly bars
         borderDash: ds.dash || [],
@@ -330,7 +342,7 @@ function buildDoughnutChart(ctx, labels, data, opts) {
     type: opts.pie ? "pie" : "doughnut",
     data: {
       labels,
-      datasets: [{ data, backgroundColor: Theme.chart, borderWidth: 2, borderColor: Theme.card, hoverOffset: 6 }],
+      datasets: [{ data, backgroundColor: paletteOf(opts), borderWidth: 2, borderColor: Theme.card, hoverOffset: 6 }],
     },
     options: {
       responsive: true,

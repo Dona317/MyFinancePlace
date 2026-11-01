@@ -17,6 +17,8 @@
 
   <!-- App CSS: load theme first, then main -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+  {# the colours of income and expenses chosen in the settings (services/palettes.py) #}
+  <style>:root { {{ palette_vars() }} }</style>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 
   {% block head %}{% endblock %}
@@ -98,10 +100,8 @@
         </button>
         <div class="nav-section-items" id="nav-stiledivita"><div>
         {% if shown_any('goals', 'budget') %}
-        <button type="button" class="nav-subtitle" aria-expanded="true" aria-controls="nav-sub-strategia" data-subtitle="strategia">
-          <span class="nav-label">{{ _('Strategia') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
-        </button>
-        <div class="nav-subtitle-items" id="nav-sub-strategia">
+        <div class="nav-subtitle"><span class="nav-label">{{ _('Strategia') }}</span></div>
+        <div class="nav-subtitle-items">
         {% if shown('goals') %}
         <a href="{{ url_for('lifestyle.goals') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
@@ -117,10 +117,8 @@
         </div>
         {% endif %}
         {% if shown_any('lifestyle', 'subscriptions') %}
-        <button type="button" class="nav-subtitle" aria-expanded="true" aria-controls="nav-sub-analisi" data-subtitle="analisi">
-          <span class="nav-label">{{ _('Analisi') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
-        </button>
-        <div class="nav-subtitle-items" id="nav-sub-analisi">
+        <div class="nav-subtitle"><span class="nav-label">{{ _('Analisi') }}</span></div>
+        <div class="nav-subtitle-items">
         {% if shown('lifestyle') %}
         <a href="{{ url_for('lifestyle.index') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
@@ -136,10 +134,8 @@
         </div>
         {% endif %}
         {% if shown_any('events', 'forecast', 'deadlines') %}
-        <button type="button" class="nav-subtitle" aria-expanded="true" aria-controls="nav-sub-pianificazione" data-subtitle="pianificazione">
-          <span class="nav-label">{{ _('Pianificazione') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
-        </button>
-        <div class="nav-subtitle-items" id="nav-sub-pianificazione">
+        <div class="nav-subtitle"><span class="nav-label">{{ _('Pianificazione') }}</span></div>
+        <div class="nav-subtitle-items">
         {% if shown('events') %}
         <a href="{{ url_for('events.index') }}"
            class="nav-item {% if request.endpoint.startswith('events.') %}active{% endif %}">
@@ -290,16 +286,6 @@
       });
     }());</script>
 
-    <!-- Nuova transazione -->
-    {% if allowed('transactions') %}
-    <div style="padding:12px 16px;">
-      <a href="{{ url_for('transactions.add') }}" class="btn btn-primary nav-new" style="width:100%;justify-content:center;"
-         title="{{ _('Nuova Transazione') }}">
-        <i class="bi bi-plus-lg"></i> <span class="nav-label">{{ _('Nuova Transazione') }}</span>
-      </a>
-    </div>
-    {% endif %}
-
     <!-- Footer, fixed under the scrolling menu: always visible without scrolling. Reminders and light/dark, then the
          user (account, sign out) with the settings next to it -->
     <div class="sidebar-footer">
@@ -424,6 +410,11 @@
 
   </div><!-- /main-content -->
 </div><!-- /app-wrapper -->
+
+{% if allowed('transactions') and not embedded %}
+<!-- Nuova transazione: a round + at the bottom left of the page, like the AI button on the right -->
+<a href="{{ url_for('transactions.add') }}" class="add-bubble" id="add-bubble" title="{{ _('Nuova Transazione') }}" aria-label="{{ _('Nuova Transazione') }}"><i class="bi bi-plus-lg"></i></a>
+{% endif %}
 
 {% if shown('assistant') and not embedded %}
 <!-- Chiedi ai tuoi dati: a round button at the bottom right opens a narrow panel on the right with the chat -->

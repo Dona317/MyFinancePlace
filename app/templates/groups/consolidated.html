@@ -174,10 +174,10 @@ makeLineChart('groupTrend', {{ data.labels|tojson }}, [
   {% endfor %}
 ]);
 makeBarChart('groupFlows', {{ data.months|tojson }}, [
-  { label: {{ _('Entrate')|tojson }}, data: {{ data.income|tojson }}, color: 'positive' },
-  { label: {{ _('Uscite')|tojson }}, data: {{ data.expenses|tojson }}, color: 'negative' },
+  { label: {{ _('Entrate')|tojson }}, data: {{ data.income|tojson }}, color: 'income' },
+  { label: {{ _('Uscite')|tojson }}, data: {{ data.expenses|tojson }}, color: 'expense' },
 ]);
-{% if data.spending %}makeDoughnutChart('groupSpending', {{ data.spending|map(attribute=0)|list|tojson }}, {{ data.spending|map(attribute=1)|list|tojson }});{% endif %}
+{% if data.spending %}makeDoughnutChart('groupSpending', {{ data.spending|map(attribute=0)|list|tojson }}, {{ data.spending|map(attribute=1)|list|tojson }}, { palette: 'expense' });{% endif %}
 {% if data.allocation %}makeDoughnutChart('groupAllocation', {{ data.allocation|map(attribute=0)|map('tr')|list|tojson }}, {{ data.allocation|map(attribute=1)|list|tojson }});{% endif %}
 </script>
 {% endblock %}

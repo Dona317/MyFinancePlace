@@ -87,12 +87,12 @@ def test_sidebar_sections_are_collapsible(client, app):
     assert 'id="sidebar-toggle"' in sidebar and 'class="sidebar-toggle-btn"' in sidebar
     assert 'id="sidebar-open"' in html and 'id="sidebar-open"' not in sidebar
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
-    # (the links and the New transaction button; section titles have one too)
-    links = len(re.findall(r'class="nav-item', html)) + len(re.findall(r'class="btn btn-primary nav-new"', html))
+    # (section titles and subtitles have one too)
+    links = len(re.findall(r'class="nav-item', html))
     subtitles = len(re.findall(r'class="nav-subtitle"', html))  # Strategia, Analisi, Pianificazione have a label too
     assert subtitles == 3
     assert links == len(re.findall(r'<span class="nav-label"[ >]', html)) - len(sections) - subtitles
-    assert 'href="/transactions/add"' in sidebar
+    assert 'href="/transactions/add"' not in sidebar and 'class="add-bubble"' in html  # the round + out of the menu
 
 
 def test_new_transaction_chooser(client, app):

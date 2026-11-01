@@ -272,3 +272,14 @@ def test_accounting_opens_on_its_first_tab(client, db):
     assert response.status_code == 302 and response.headers["Location"].endswith("/accounting/balance-sheet")
     page = client.get("/accounting/growth").get_data(as_text=True)
     assert page.count('class="statement-tab"') == 4 and "Crescita del patrimonio" in page
+
+
+def test_income_and_expenses_have_palettes_of_their_own(client, sample_data):
+    from app.services import palettes
+    page = client.get("/dashboard").get_data(as_text=True)
+    assert "--inc-1:#12B886" in page and "--exp-1:#FA5252" in page and "var(--exp-1)" in page
+    client.post("/settings/save", data={"palette_income": "blu", "palette_expense": "viola", "tab": "visualizza"})
+    page = client.get("/dashboard").get_data(as_text=True)
+    assert f"--inc-1:{palettes.INCOME['blu'][1][0]}" in page and f"--exp-1:{palettes.EXPENSE['viola'][1][0]}" in page
+    assert not set(palettes.INCOME["verdi"][1]) & set(palettes.EXPENSE["caldi"][1])  # the defaults never share a colour
+    assert palettes.chosen({"palette_income": "nope"})[0] == palettes.INCOME["verdi"][1]

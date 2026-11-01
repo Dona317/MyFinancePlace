@@ -52,6 +52,8 @@ DEFAULT_SETTINGS = {
     "date_format": "DD/MM/YYYY",
     "language":    "it",
     "font":        "inter",
+    "palette_income":  "verdi",   # services.palettes: the colours of income charts
+    "palette_expense": "caldi",   # … and of expense charts, never the same family
 }
 
 LANGUAGES = {"it": "Italiano", "en": "English"}  # interface languages (translations/<code>/LC_MESSAGES)

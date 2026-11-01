@@ -239,27 +239,6 @@ function initNavSections() {
   });
 }
 
-/* The subtitles inside a section (Strategia, Analisi, Pianificazione): each opens and closes its entries,
-   remembered in this browser; the subtitle of the page you are on stays open */
-function initNavSubtitles() {
-  let closed = [];
-  try { closed = JSON.parse(store.get("mfp-nav-subtitles-closed") || "[]"); } catch (e) { closed = []; }
-  const set = (button, open) => {
-    button.setAttribute("aria-expanded", String(open));
-    document.getElementById(button.getAttribute("aria-controls")).hidden = !open;
-  };
-  document.querySelectorAll(".nav-subtitle").forEach(button => {
-    const items = document.getElementById(button.getAttribute("aria-controls"));
-    set(button, !closed.includes(button.dataset.subtitle) || !!items.querySelector(".nav-item.active"));
-    button.addEventListener("click", () => {
-      const open = button.getAttribute("aria-expanded") !== "true";
-      set(button, open);
-      closed = open ? closed.filter(key => key !== button.dataset.subtitle) : [...new Set([...closed, button.dataset.subtitle])];
-      store.set("mfp-nav-subtitles-closed", JSON.stringify(closed));
-    });
-  });
-}
-
 /* Chiedi ai tuoi dati: the round button opens the panel on the right; the questions and answers of this browser tab
    are kept while moving between pages (sessionStorage), «new conversation» clears them */
 function initAskPanel() {
@@ -703,7 +682,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initSidebar();
   initNavSections();
-  initNavSubtitles();
   initAskPanel();
   // Tags: chips picked from the tags already used, or new ones (Enter or comma)
   document.querySelectorAll("input[data-tag-input]").forEach(input => initTagInput(input, TEXT));

@@ -112,11 +112,11 @@
 const monthly = {{ report.monthly|tojson }};
 const expenseLines = {{ report.expense_lines|tojson }};
 makeBarChart('isMonthlyChart', monthly.labels, [
-  { label:{{ _('Entrate')|tojson }}, data: monthly.income },
-  { label:{{ _('Spese')|tojson }},   data: monthly.expenses },
+  { label:{{ _('Entrate')|tojson }}, data: monthly.income, color: 'income' },
+  { label:{{ _('Spese')|tojson }},   data: monthly.expenses, color: 'expense' },
 ]);
 makeDoughnutChart('isExpenseChart',
-  expenseLines.map(l => l.category), expenseLines.map(l => l.amount), { legendPosition:'bottom' }
+  expenseLines.map(l => l.category), expenseLines.map(l => l.amount), { palette: 'expense' }
 );
 </script>
 {% endblock %}

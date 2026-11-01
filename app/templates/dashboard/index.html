@@ -165,7 +165,7 @@
     <ul class="category-legend" id="{{ kind }}-legend">
       {% for c in breakdown %}
       <li>
-        <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
+        <span class="category-legend-dot" style="background:var(--{{ 'inc' if kind == 'income' else 'exp' }}-{{ (loop.index0 % 8) + 1 }});"></span>
         {% if tx_ok %}<a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type=kind, start=pie_start.isoformat(), end=pie_last.isoformat()) }}"
            title="{{ _('Transazioni di «%(category)s» nel periodo', category=c.category|tr) }}">{{ c.category|tr }} <small class="category-legend-share">{{ c.share|number(1) }}%</small></a>
         {% else %}<span class="category-legend-name">{{ c.category|tr }} <small class="category-legend-share">{{ c.share|number(1) }}%</small></span>{% endif %}
@@ -417,12 +417,12 @@ const flow = {{ savings_flow|tojson }};
 
 if (shown('cashflow')) {
   makeBarChart('cashFlowChart', cashFlow.labels, [
-    { label: {{ _('Entrate')|tojson }}, data: cashFlow.income, color: 'positive', type: 'line' },
-    { label: {{ _('Uscite')|tojson }}, data: cashFlow.expenses, color: 'negative', type: 'line' },
+    { label: {{ _('Entrate')|tojson }}, data: cashFlow.income, color: 'income', type: 'line' },
+    { label: {{ _('Uscite')|tojson }}, data: cashFlow.expenses, color: 'expense', type: 'line' },
     { label: {{ _('Risparmio del mese')|tojson }}, data: flow.saved, color: 'primary', type: 'line', dash: [5, 4] },
     { label: {{ _('Risparmio cumulato')|tojson }}, data: flow.saved_cumulative, color: 'primary', axis: 'right' },
-    { label: {{ _('Entrate cumulate')|tojson }}, data: flow.income_cumulative, color: 'positive', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
-    { label: {{ _('Uscite cumulate')|tojson }}, data: flow.expenses_cumulative, color: 'negative', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
+    { label: {{ _('Entrate cumulate')|tojson }}, data: flow.income_cumulative, color: 'income', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
+    { label: {{ _('Uscite cumulate')|tojson }}, data: flow.expenses_cumulative, color: 'expense', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
   ], { legend: true, onClickIndex: {{ tx_ok|tojson }} ? (i) => {
     // a month of the cash flow opens its transactions
     const first = new Date({{ pie_start.year }}, {{ pie_start.month - 1 }} + i, 1);
@@ -457,11 +457,11 @@ const txUrl = {{ (not tx_ok)|tojson }} ? null : (category, type) => {{ tx_url|to
   .forEach(([kind, breakdown, labels, trend]) => {
     if (shown(kind + '_pie') && breakdown.length) {
       makeDoughnutChart(kind + 'PieChart', labels, breakdown.map(c => c.amount),
-        { legendList: document.getElementById(kind + '-legend'),
+        { palette: kind, legendList: document.getElementById(kind + '-legend'),
           onClickIndex: txUrl ? (i) => { window.location.href = txUrl(breakdown[i].category, kind); } : undefined });
     }
     // a point of a category's line opens that category's transactions of that month
-    if (shown(kind + '_trend')) makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend), {
+    if (shown(kind + '_trend')) makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend), { palette: kind,
       onClickIndex: txUrl ? (i, series) => {
         const ds = trend.datasets[series];
         if (!ds || ds.other) return;
@@ -477,7 +477,7 @@ if (shown('year_total')) {
   const yearNet = Math.round((totals.income - totals.expenses) * 100) / 100;
   makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, {{ _('Netto')|tojson }}],
     [{ label: {{ period_label|tojson }}, data: [totals.income, totals.expenses, yearNet],
-       colors: ['positive', 'negative', yearNet < 0 ? 'negative' : 'primary'] }],
+       colors: ['income', 'expense', yearNet < 0 ? 'negative' : 'primary'] }],
     { legend: false, onClickIndex: txUrl ? (i) => {  // income or expenses of the period open their transactions
       if (i > 1) return;
       window.location.href = {{ tx_url|tojson }} + '?' + new URLSearchParams(

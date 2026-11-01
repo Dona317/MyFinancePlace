@@ -98,7 +98,7 @@
           <li>
             <a href="{{ link({'category': (within or '') if f.category == c.category else c.category}) }}"
                class="{{ 'selected' if f.category == c.category }}">
-              <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
+              <span class="category-legend-dot" style="background:var(--{{ 'inc' if f.tab == 'income' else 'exp' }}-{{ (loop.index0 % 8) + 1 }});"></span>
               <span class="report-legend-name">{{ c.category }}</span>
               <span class="report-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
             </a>
@@ -211,12 +211,13 @@ const items = {{ items|tojson }};
 const categoryUrl = {{ link({'category': '__CAT__'})|tojson }};
 const openCategory = i => { window.location = categoryUrl.replace('__CAT__', encodeURIComponent(items[i].category)); };
 const labels = items.map(c => c.category), values = items.map(c => c.amount);
+const chartPalette = {{ ('income' if f.tab == 'income' else 'expense')|tojson }};  // income and expenses never share colours
 let chart = null;
 function showView(view) {
   if (chart) { chart.destroy(); themedCharts.splice(themedCharts.findIndex(e => e.chart === chart), 1); }
   chart = view === 'bar'
-    ? makeBarChart('reportChart', labels, [{ label: '', data: values, palette: true }], { horizontal: true, legend: false, onClickIndex: openCategory })
-    : makeDoughnutChart('reportChart', labels, values, { legend: false, onClickIndex: openCategory });
+    ? makeBarChart('reportChart', labels, [{ label: '', data: values, palette: true }], { palette: chartPalette, horizontal: true, legend: false, onClickIndex: openCategory })
+    : makeDoughnutChart('reportChart', labels, values, { palette: chartPalette, legend: false, onClickIndex: openCategory });
   document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
   document.querySelector('.report-chart').classList.toggle('bars', view === 'bar');
   try { localStorage.setItem('mfp-report-view', view); } catch (e) {}
@@ -228,8 +229,8 @@ showView(saved);
 {% elif f.tab == 'cashflow' %}
 const flow = {{ flow|tojson }};
 makeBarChart('flowChart', flow.labels, [
-  { label: {{ _('Entrate')|tojson }}, data: flow.income, color: 'positive' },
-  { label: {{ _('Uscite')|tojson }}, data: flow.expenses, color: 'negative' },
+  { label: {{ _('Entrate')|tojson }}, data: flow.income, color: 'income' },
+  { label: {{ _('Uscite')|tojson }}, data: flow.expenses, color: 'expense' },
   { label: {{ _('Netto')|tojson }}, data: flow.net, color: 'primary', type: 'line' },
 ], { legend: true });
 {% endif %}

@@ -26,6 +26,7 @@ from app.services import (
     display,
     instrument_sources,
     owners,
+    palettes,
     settings_store,
     taxonomies,
 )
@@ -63,7 +64,8 @@ def index():
                            autonomy_targets=AUTONOMY_TARGETS, desktop_app=desktop.available(), fonts=FONTS,
                            dashboard_order=dashboard_prefs.settings_order(), window_presets=dashboard_prefs.preset_choices(),
                            default_window=dashboard_prefs.default_window(), forecasts=dashboard_prefs.FORECASTS,
-                           forecast_choice=dashboard_prefs.forecast_choice())
+                           forecast_choice=dashboard_prefs.forecast_choice(),
+                           income_palettes=palettes.INCOME, expense_palettes=palettes.EXPENSE)
 
 
 @settings_bp.route("/save", methods=["POST"])

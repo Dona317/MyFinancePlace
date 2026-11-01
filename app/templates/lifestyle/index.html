@@ -187,7 +187,7 @@
 <script>
 const breakdown = {{ report.breakdown|tojson }};
 const trend = {{ report.trend|tojson }};
-makeDoughnutChart('categoryDoughnut', breakdown.map(c => c.category), breakdown.map(c => c.amount));
-makeLineChart('categoryTrend', trend.labels, trend.datasets.map(d => ({ ...d, fill: false })));
+makeDoughnutChart('categoryDoughnut', breakdown.map(c => c.category), breakdown.map(c => c.amount), { palette: 'expense' });
+makeLineChart('categoryTrend', trend.labels, trend.datasets.map(d => ({ ...d, fill: false })), { palette: 'expense' });
 </script>
 {% endblock %}

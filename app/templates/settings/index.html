@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 
 {% block page_title %}{{ _('Impostazioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Impostazioni') }}</li>{% endblock %}
@@ -311,6 +312,23 @@
               <option value="MM/DD/YYYY" {{ 'selected' if settings.date_format == 'MM/DD/YYYY' }}>{{ _('MM/DD/YYYY (US)') }}</option>
             </select>
           </div>
+        </div>
+
+        {# the colours of income and of expenses: two families that never mix in the charts #}
+        <div class="grid-2 palette-choice" style="gap:16px;margin-top:16px;">
+          {% for name, label, choices, current in (('palette_income', _('Colori delle entrate'), income_palettes, settings.palette_income),
+                                                   ('palette_expense', _('Colori delle uscite'), expense_palettes, settings.palette_expense)) %}
+          <fieldset class="form-group" style="margin-bottom:0;">
+            <legend class="form-label">{{ label }} {{ info(_('Usati da tutti i grafici di questo tipo; entrate e uscite non condividono mai i colori.')) }}</legend>
+            {% for key, (title, colours) in choices.items() %}
+            <label class="palette-option">
+              <input type="radio" name="{{ name }}" value="{{ key }}" {{ 'checked' if current == key }} />
+              <span class="palette-swatches">{% for c in colours %}<span style="background:{{ c }};"></span>{% endfor %}</span>
+              <span class="text-sm">{{ title }}</span>
+            </label>
+            {% endfor %}
+          </fieldset>
+          {% endfor %}
         </div>
 
         <div style="margin-top:16px;padding:14px;background:var(--clr-bg-input);border-radius:var(--border-radius-sm);">
