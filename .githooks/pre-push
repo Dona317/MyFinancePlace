@@ -1,0 +1,12 @@
+#!/bin/sh
+# F25: every push rebuilds the desktop app into desktop/dist/MyFinancePlace (MyFinancePlace.exe and _internal),
+# in the background so the push does not wait for it (about 3–4 minutes). What it did: desktop/build/last-push-build.log
+# Off until turned on, once per clone, with: git config core.hooksPath .githooks
+cd "$(git rev-parse --show-toplevel)" || exit 0
+python=.venv/Scripts/python.exe
+[ -x "$python" ] || python=.venv/bin/python
+[ -x "$python" ] || exit 0  # no project venv here: nothing to build with
+mkdir -p desktop/build
+nohup "$python" -m PyInstaller --noconfirm --distpath desktop/dist --workpath desktop/build desktop/myfinanceplace.spec \
+  > desktop/build/last-push-build.log 2>&1 &
+exit 0

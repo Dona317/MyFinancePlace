@@ -1,2 +1,4 @@
 # Shell scripts run in Linux containers: always LF, whatever the checkout on Windows
 *.sh text eol=lf
+# git hooks run by sh: LF as well
+.githooks/* text eol=lf
