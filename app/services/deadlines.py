@@ -18,7 +18,17 @@ from app.models.portfolio_model import InvestmentPlan
 from app.models.reminder import Reminder
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Document, Goal, InsurancePolicy
-from app.services import contribution_limits, document_expiry, forecast, investment_plans, periods, personal_loans, settings_store, wealth
+from app.services import (
+    contribution_limits,
+    document_expiry,
+    forecast,
+    investment_plans,
+    periods,
+    personal_loans,
+    sections,
+    settings_store,
+    wealth,
+)
 from app.services.i18n import N_, tr
 
 FISCAL_SETTING = "deadlines.fiscal"
@@ -203,12 +213,18 @@ def _reminders(start: date, end: date) -> list[Deadline]:
             for r in Reminder.query.order_by(Reminder.due) for day in occurrences(r, start, end)]
 
 
-SOURCES = [_recurring, _installments, _policies, _plans, _goals, _loans, _limits, _documents, _fiscal, _reminders]
+# Each kind of deadline and the section it belongs to: none from a section switched off or blocked for the user
+# (as for the reminders); the fiscal dates and the hand-written ones belong to the page itself
+SOURCES = [(_recurring, "transactions"), (_installments, "debt"), (_policies, "insurance"), (_plans, "portfolio"),
+           (_goals, "goals"), (_loans, "loans"), (_limits, "tax"), (_documents, "documents"), (_fiscal, None),
+           (_reminders, None)]
 
 
 def between(start: date, end: date) -> list[Deadline]:
     """Every deadline in [start, end], by day."""
-    return sorted((d for source in SOURCES for d in source(start, end)), key=lambda d: (d.day, d.kind, d.title))
+    shown = [source for source, section in SOURCES
+             if section is None or not (sections.switched_off(section) or sections.blocked(section))]
+    return sorted((d for source in shown for d in source(start, end)), key=lambda d: (d.day, d.kind, d.title))
 
 
 def month_grid(month: date) -> dict:

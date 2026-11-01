@@ -1,14 +1,18 @@
-"""Scadenzario (F23): every deadline in a month grid, the weeks ahead, the hand-written ones, the .ics file."""
+"""
+Promemoria (F23): one page with the reminders on top, then every deadline in a month grid, the next ones in date
+or amount order, the hand-written ones and the .ics file. Its blocks are arranged with Modifica like the dashboard.
+"""
 from datetime import date, datetime, timedelta
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import format_date
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.reminder import Reminder
 from app.routes.helpers import download, flash_errors
-from app.services import deadlines, periods
+from app.services import deadlines, notifications, page_layout, periods, sections
+from app.services.i18n import _l
 from app.services.parsing import to_date, to_decimal
 
 deadlines_bp = Blueprint("deadlines", __name__, url_prefix="/deadlines")
@@ -21,15 +25,48 @@ def _month() -> date:
         return periods.first_of_month(date.today())
 
 
+# The blocks of the page: {id: default width (thirds)}, in the default order
+BLOCKS = {"reminders": 3, "calendar": 2, "next": 1, "mine": 2, "fiscal": 1}
+BLOCK_TITLES = {"reminders": _l("Promemoria"), "calendar": _l("Calendario del mese"), "next": _l("Prossime scadenze"),
+                "mine": _l("Le tue scadenze"), "fiscal": _l("Scadenze fiscali")}
+LAYOUT_SETTING = "deadlines.layout"
+NEXT_DAYS, NEXT_ROWS = 366, 100  # the next deadlines: a year ahead, the first hundred
+
+
+def render_page():
+    """The reminders and, when the section is on, the deadlines; shared by the bell's page and the Scadenzario."""
+    today = date.today()
+    items = notifications.collect()
+    hidden = [n for n in notifications.collect(include_dismissed=True) if n.key in set(notifications.dismissed())]
+    context = {"items": items, "hidden": hidden, "today": today, "with_deadlines": sections.allowed("deadlines"),
+               "layout": page_layout.load(LAYOUT_SETTING, BLOCKS), "titles": BLOCK_TITLES}
+    if context["with_deadlines"]:
+        grid = deadlines.month_grid(_month())
+        upcoming = deadlines.upcoming(today, days=NEXT_DAYS)
+        context.update(grid=grid, month_title=format_date(grid["month"], "LLLL yyyy").capitalize(),
+                       upcoming=upcoming, upcoming_60=[d for d in upcoming if d.day <= today + timedelta(days=60)],
+                       next_items=upcoming[:NEXT_ROWS], reminders=Reminder.query.order_by(Reminder.due).all(),
+                       repeats=deadlines.REPEATS, edit=db.session.get(Reminder, request.args.get("edit", type=int) or 0),
+                       fiscal=deadlines.fiscal_on())
+    return render_template("deadlines/index.html", **context)
+
+
 @deadlines_bp.route("/")
 def index():
-    today = date.today()
-    edit = db.session.get(Reminder, request.args.get("edit", type=int) or 0)
-    grid = deadlines.month_grid(_month())
-    return render_template("deadlines/index.html", grid=grid, today=today,
-                           month_title=format_date(grid["month"], "LLLL yyyy").capitalize(),
-                           upcoming=deadlines.upcoming(today), reminders=Reminder.query.order_by(Reminder.due).all(),
-                           repeats=deadlines.REPEATS, edit=edit, fiscal=deadlines.fiscal_on())
+    return render_page()
+
+
+@deadlines_bp.route("/layout", methods=["POST"])
+def save_layout():
+    """The blocks of the page: {"widgets": [{id, span, height, visible}]} or {"reset": true}."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(error=_("Atteso un oggetto JSON.")), 400
+    if data.get("reset"):
+        return jsonify(layout=page_layout.reset(LAYOUT_SETTING, BLOCKS))
+    if not isinstance(data.get("widgets"), list):
+        return jsonify(error=_("Manca l'elenco dei blocchi.")), 400
+    return jsonify(layout=page_layout.save(LAYOUT_SETTING, BLOCKS, data["widgets"]))
 
 
 def _save(reminder: Reminder | None):

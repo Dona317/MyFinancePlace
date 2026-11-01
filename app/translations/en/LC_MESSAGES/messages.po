@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 13:02+0100\n"
+"POT-Creation-Date: 2026-11-01 16:54+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1080,6 +1080,9 @@ msgstr "Allocation by Class"
 msgid "Alta — descrizioni anche poco simili"
 msgstr "High — even loosely similar descriptions"
 
+msgid "Altezza: automatica, media, alta, molto alta"
+msgstr "Height: automatic, medium, tall, very tall"
+
 msgid "Alto"
 msgstr "High"
 
@@ -1238,6 +1241,9 @@ msgstr "Preview invalid or expired: upload the file again."
 
 msgid "Anteprima operazioni del broker"
 msgstr "Broker operations preview"
+
+msgid "Anteprima: questa funzione non è ancora attiva."
+msgstr "Preview: this feature is not active yet."
 
 msgid "Anthropic Claude (cloud) — i documenti vengono inviati"
 msgstr "Anthropic Claude (cloud) — documents are sent"
@@ -1426,6 +1432,9 @@ msgstr "Starting to read…"
 msgid "Avvio e notifiche"
 msgstr "Start and notifications"
 
+msgid "Avvisami"
+msgstr "Remind me"
+
 msgid "Avvisami delle nuove versioni"
 msgstr "Tell me about new versions"
 
@@ -1574,9 +1583,6 @@ msgstr "Year in review"
 msgid "Bloccata da un amministratore"
 msgstr "Blocked by an administrator"
 
-msgid "Blocchi nascosti:"
-msgstr "Hidden blocks:"
-
 msgid "Bolletta aggiornata."
 msgstr "Bill updated."
 
@@ -1681,6 +1687,9 @@ msgstr "Calculate"
 
 msgid "Calcolata dalla regola del conto, se ne ha una; correggila se serve."
 msgstr "Computed from the account's rule, if it has one; correct it if needed."
+
+msgid "Calendario del mese"
+msgstr "Month calendar"
 
 msgid "Calendario delle spese"
 msgstr "Spending calendar"
@@ -1969,6 +1978,9 @@ msgstr "Ask your data"
 
 msgid "Chiedi all'AI quali colonne sono"
 msgstr "Ask the AI which columns are which"
+
+msgid "Chiudi"
+msgstr "Close"
 
 msgid "Chiudi senza salvare"
 msgstr "Close without saving"
@@ -2587,6 +2599,9 @@ msgstr "What it includes"
 msgid "Cosa comprende %(name)s"
 msgstr "What %(name)s includes"
 
+msgid "Cosa ricordare"
+msgstr "What to remember"
+
 msgid "Cosa scade"
 msgstr "What is due"
 
@@ -2716,9 +2731,6 @@ msgstr ""
 
 msgid "Da dove vengono i numeri"
 msgstr "Where the numbers come from"
-
-msgid "Da dove viene"
-msgstr "Where it comes from"
 
 msgid "Da dove viene la variazione"
 msgstr "Where the change comes from"
@@ -4285,6 +4297,9 @@ msgstr "The sheet is empty."
 msgid "Il formato non è stato riconosciuto: %(reason)s"
 msgstr "The format was not recognized: %(reason)s"
 
+msgid "Il giorno stesso"
+msgstr "On the day"
+
 msgid "Il giorno va da 1 a 31."
 msgstr "The day goes from 1 to 31."
 
@@ -5772,6 +5787,9 @@ msgstr "Change undone."
 msgid "Modifica completa"
 msgstr "Full edit"
 
+msgid "Modifica dei promemoria"
+msgstr "Editing the reminders"
+
 msgid "Modifica della dashboard"
 msgstr "Editing the dashboard"
 
@@ -5953,6 +5971,9 @@ msgstr "Hide"
 
 msgid "Nascondi le scadenze fiscali"
 msgstr "Hide the tax deadlines"
+
+msgid "Nascosti"
+msgstr "Hidden"
 
 msgid "Natura"
 msgstr "Nature"
@@ -6660,6 +6681,9 @@ msgstr "New holding"
 msgid "Nuova regola"
 msgstr "New rule"
 
+msgid "Nuova scheda"
+msgstr "New card"
+
 msgid "Nuova transazione"
 msgstr "New transaction"
 
@@ -6727,6 +6751,9 @@ msgstr "New price (€)"
 #, python-format
 msgid "Nuovo prezzo di %(name)s"
 msgstr "New price of %(name)s"
+
+msgid "Nuovo promemoria"
+msgstr "New reminder"
 
 msgid "Nuovo tetto"
 msgstr "New limit"
@@ -7375,6 +7402,9 @@ msgstr ""
 msgid "Per un patrimonio netto corretto, tieni aggiornate queste tre fonti"
 msgstr "For a correct net worth, keep these three sources up to date"
 
+msgid "Per una funzionalità futura"
+msgstr "For a future feature"
+
 msgid ""
 "Per un’auto, un telefono, un computer: la percentuale di valore persa "
 "ogni anno dall’ultima valutazione (un’auto circa 15). Vuoto: il valore "
@@ -7829,6 +7859,9 @@ msgstr "Next Expiry"
 msgid "Prossime ricorrenti"
 msgstr "Upcoming recurring"
 
+msgid "Prossime scadenze"
+msgstr "Next deadlines"
+
 #, python-format
 msgid "Prossimi %(days)s giorni"
 msgstr "Next %(days)s days"
@@ -7838,9 +7871,6 @@ msgstr "Next 12 months"
 
 msgid "Prossimi 12 mesi (stima)"
 msgstr "Next 12 months (estimate)"
-
-msgid "Prossimi 60 giorni"
-msgstr "Next 60 days"
 
 msgid "Prossimo"
 msgstr "Next"
@@ -7889,6 +7919,9 @@ msgstr ""
 
 msgid "Quali transazioni"
 msgstr "Which transactions"
+
+msgid "Quando"
+msgstr "When"
 
 msgid ""
 "Quanti mesi completi recenti usare per stimare le spese e le entrate "
@@ -8741,9 +8774,6 @@ msgstr "Deadline deleted."
 msgid "Scadenza «%(title)s» salvata."
 msgstr "Deadline «%(title)s» saved."
 
-msgid "Scadenzario"
-msgstr "Deadlines"
-
 msgid "Scadenze fiscali"
 msgstr "Tax deadlines"
 
@@ -9378,6 +9408,9 @@ msgstr "Move up"
 msgid "Sposta, allarga o nascondi i blocchi della dashboard"
 msgstr "Move, widen or hide the dashboard blocks"
 
+msgid "Sposta, allarga o nascondi i blocchi della pagina"
+msgstr "Move, widen or hide the blocks of the page"
+
 msgid "Stabile"
 msgstr "Stable"
 
@@ -9904,6 +9937,13 @@ msgstr "Transactions"
 msgid "Transazioni di «%(category)s» nel periodo"
 msgstr "Transactions of «%(category)s» in the period"
 
+msgid ""
+"Trascina blocchi e schede per spostarli; cambia larghezza e altezza o "
+"nascondili."
+msgstr ""
+"Drag blocks and cards to move them; change their width and height or hide"
+" them."
+
 msgid "Trascina per spostare"
 msgstr "Drag to move"
 
@@ -9916,13 +9956,6 @@ msgid ""
 msgstr ""
 "Drop the file here, or click to choose it: CSV, Excel (.xlsx, .xls) or "
 "LibreOffice (.ods)"
-
-msgid ""
-"Trascina un blocco per spostarlo, cambia la larghezza (al massimo tre per"
-" riga) o nascondilo: l’ordine vale anche nelle Impostazioni."
-msgstr ""
-"Drag a block to move it, change its width (three per row at most) or hide"
-" it: the order applies to the Settings too."
 
 msgid ""
 "Trascina un pannello per spostarlo (o usa le frecce), scegli se occupa "
@@ -10083,14 +10116,6 @@ msgstr ""
 "Everything in today's euro. The first figures come from your archive "
 "(wealth, expenses and saving of the last 12 months): change them as you "
 "like. It is an estimate, not advice."
-
-msgid ""
-"Tutto quello che scade, in un posto: movimenti ricorrenti, rate, polizze,"
-" PAC, obiettivi, soldi tra persone, tasse e le scadenze che scrivi tu."
-msgstr ""
-"Everything that falls due, in one place: recurring movements, "
-"instalments, policies, savings plans, goals, money between people, taxes "
-"and the deadlines you write yourself."
 
 #, python-format
 msgid "Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto."
@@ -10320,6 +10345,9 @@ msgstr ""
 
 msgid "Una restituzione è un'entrata."
 msgstr "A repayment is an income."
+
+msgid "Una settimana prima"
+msgstr "A week before"
 
 msgid "Una soglia di prezzo vale per un titolo: sceglilo."
 msgstr "A price threshold is for one holding: choose it."
@@ -11045,6 +11073,9 @@ msgstr "e.g. appraisal, OMI value, used-car list price"
 
 msgid "es. qwen2.5vl:7b"
 msgstr "e.g. qwen2.5vl:7b"
+
+msgid "es. rinnovare la carta d’identità"
+msgstr "e.g. renew the identity card"
 
 msgid "es. ripetizioni, sito web, trasloco"
 msgstr "e.g. tutoring, website, moving"

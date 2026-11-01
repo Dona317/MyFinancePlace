@@ -34,6 +34,7 @@ dashboard_bp = APIBlueprint(
 TREND_LINES = 6  # categories drawn one by one in the monthly lines; the rest are added up in «Altre»
 PIE_PARTS = ("year", "H1", "H2", "Q1", "Q2", "Q3", "Q4")  # the doughnuts: the whole year, a half or a quarter
 PIE_PART_SETTING = "dashboard.pie_part"
+RECENT_ROWS = 25  # the last ones of the «Transazioni» card; the card scrolls when its row is shorter
 IMPACT_ROWS = 60  # biggest movements of the window sent to the page, filtered there by category
 # Typical unexpected expenses («cigni neri»): what each would take from the savings
 SHOCKS = (("car", 4000), ("appliance", 700), ("house", 8000), ("health", 2500))
@@ -220,7 +221,7 @@ def dashboard():
     period_totals = analytics.totals(pie_start, pie_end)
     cards = _window_cards(today)
     window = cards["expenses"]
-    recent = (Transaction.query.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(8).all()
+    recent = (Transaction.query.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(RECENT_ROWS).all()
               if "recent" in shown else [])
     impact = (Transaction.query.filter(Transaction.type.in_(["income", "expense"]),
                                        Transaction.date >= window["start"], Transaction.date < window["end"])
@@ -252,6 +253,7 @@ def dashboard():
         autonomy_target=autonomy_target(),
         layout=layout,
         widgets=dashboard_prefs.WIDGETS,
+        kpi_layout=dashboard_prefs.kpi_layout(), kpi_titles=dashboard_prefs.KPI_CARDS,
     )
 
 
@@ -278,12 +280,18 @@ def reset_windows():
 
 @dashboard_bp.route("/dashboard/layout", methods=["POST"])
 def save_layout():
-    """Blocks of the page, in order, each 1–3 thirds of the row, shown or hidden: {"widgets": [...]} or {"reset": true}."""
+    """Blocks of the page, in order, each 1–3 thirds of the row, shown or hidden: {"widgets": [...]}; the cards on
+    top the same way, 1–2 columns: {"kpis": [...]}; or {"reset": true} for both."""
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify(error=_("Atteso un oggetto JSON.")), 400
     if data.get("reset"):
         return jsonify(layout=dashboard_prefs.reset_layout())
-    if not isinstance(data.get("widgets"), list):
+    if not isinstance(data.get("widgets"), list) and not isinstance(data.get("kpis"), list):
         return jsonify(error=_("Manca l'elenco dei blocchi.")), 400
-    return jsonify(layout=dashboard_prefs.save_layout(data["widgets"]))
+    saved = {}
+    if isinstance(data.get("widgets"), list):
+        saved["layout"] = dashboard_prefs.save_layout(data["widgets"])
+    if isinstance(data.get("kpis"), list):
+        saved["kpis"] = dashboard_prefs.save_kpis(data["kpis"])
+    return jsonify(**saved)

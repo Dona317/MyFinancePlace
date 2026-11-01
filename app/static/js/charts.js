@@ -54,6 +54,16 @@ Chart.defaults.plugins.tooltip.cornerRadius = 8;
    the switch); that list moves beside the pie the same way. */
 const isPie = (chart) => ["pie", "doughnut"].includes(chart.config.type);
 
+/* A slice's share of the slices shown, «35,9%»: hiding some (an exceptional expense) makes the rest the new 100%.
+   A hidden slice has no share. */
+function sliceShare(chart, index) {
+  if (!chart.getDataVisibility(index)) return "–";
+  const data = chart.data.datasets[0].data;
+  const total = data.reduce((sum, v, i) => sum + (chart.getDataVisibility(i) ? Math.abs(Number(v) || 0) : 0), 0);
+  const share = total ? Math.abs(Number(data[index]) || 0) / total * 100 : 0;
+  return `${share.toLocaleString(document.documentElement.dataset.locale || "it-IT", { maximumFractionDigits: 1 })}%`;
+}
+
 function legendSwitch(chart) {
   const pie = isPie(chart);
   return {
@@ -119,7 +129,17 @@ const htmlLegend = {
       // a line shows the colour of its stroke (its fill is almost transparent), a bar or a slice its fill
       const line = !pie && (chart.data.datasets[i].type || chart.config.type) === "line";
       dot.style.background = line ? item.strokeStyle : item.fillStyle;
-      button.append(dot, document.createTextNode(item.text));
+      if (pie) {  // a slice: its name and share, its amount in euro under them
+        const text = Object.assign(document.createElement("span"), { className: "chart-legend-text" });
+        const name = Object.assign(document.createElement("span"), { textContent: item.text + " " });
+        name.appendChild(Object.assign(document.createElement("small"), { textContent: sliceShare(chart, i) }));
+        const amount = Object.assign(document.createElement("span"), { className: "chart-legend-amount",
+          textContent: formatMoney(chart.data.datasets[0].data[i]) });
+        text.append(name, amount);
+        button.append(dot, text);
+      } else {
+        button.append(dot, document.createTextNode(item.text));
+      }
       button.addEventListener("click", () => { set(i, !shown(i)); chart.update(); });
       const li = document.createElement("li");
       li.appendChild(button);
@@ -132,17 +152,24 @@ const htmlLegend = {
 };
 
 function pageLegend(chart, list) {
-  const { shown, set } = legendSwitch(chart);
+  const { shown } = legendSwitch(chart);
   const rows = [...list.children];
+  list.$chart = chart;  // the chart drawn now: a theme change draws a new one on the same list
   rows.forEach((li, i) => {
     li.classList.toggle("off", !shown(i));
+    const share = li.querySelector(".category-legend-share");
+    if (share) share.textContent = sliceShare(chart, i);  // of the slices shown
     const dot = li.querySelector(".category-legend-dot");
     if (dot && !dot.dataset.switch) {
       dot.dataset.switch = "1";
       dot.setAttribute("role", "button");
       dot.tabIndex = 0;
       dot.title = (window.MFP_TEXT || {}).show_hide || "Mostra o nascondi";
-      const flip = () => { set(i, !shown(i)); chart.update(); };
+      const flip = () => {
+        const { shown, set } = legendSwitch(list.$chart);
+        set(i, !shown(i));
+        list.$chart.update();
+      };
       dot.addEventListener("click", flip);
       dot.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } });
     }
@@ -310,7 +337,12 @@ function buildDoughnutChart(ctx, labels, data, opts) {
       maintainAspectRatio: false,
       cutout: opts.pie ? 0 : "65%",
       onClick: clickHandler(opts),
-      plugins: { legend: { display: false }, htmlLegend: { display: opts.legend !== false, list: opts.legendList } },
+      plugins: {
+        legend: { display: false },
+        htmlLegend: { display: opts.legend !== false, list: opts.legendList },
+        // a slice: its name and share, its amount in euro on the next line
+        tooltip: { callbacks: { label: c => [`${c.label}: ${sliceShare(c.chart, c.dataIndex)}`, formatMoney(c.raw)] } },
+      },
     },
   });
 }

@@ -150,14 +150,15 @@ WIDGETS = {
 }
 LAYOUT_SETTING = "dashboard.layout"
 SPANS = (1, 2, 3)
+HEIGHTS = (0, 1, 2, 3)  # 0: as tall as its content (and its row); 1–3: medium, tall, very tall
 
 
 def default_layout() -> list[dict]:
-    return [{"id": key, "span": span, "visible": True} for key, (_title, span, _setting) in WIDGETS.items()]
+    return [{"id": key, "span": span, "height": 0, "visible": True} for key, (_title, span, _setting) in WIDGETS.items()]
 
 
 def normalize_layout(items) -> list[dict]:
-    """Known blocks once each, in the given order, width 1–3; blocks missing from it are added at the end."""
+    """Known blocks once each, in the given order, width 1–3, height 0–3; blocks missing from it are added at the end."""
     out, seen = [], set()
     for item in items if isinstance(items, list) else []:
         if not isinstance(item, dict) or item.get("id") not in WIDGETS or item["id"] in seen:
@@ -167,8 +168,9 @@ def normalize_layout(items) -> list[dict]:
             span = int(item.get("span"))
         except (TypeError, ValueError):
             span = WIDGETS[item["id"]][1]
+        height = item.get("height", 0)
         out.append({"id": item["id"], "span": span if span in SPANS else WIDGETS[item["id"]][1],
-                    "visible": item.get("visible", True) is not False})
+                    "height": height if height in HEIGHTS else 0, "visible": item.get("visible", True) is not False})
     return out + [w for w in default_layout() if w["id"] not in seen]
 
 
@@ -184,7 +186,49 @@ def save_layout(items) -> list[dict]:
 
 def reset_layout() -> list[dict]:
     settings_store.set(LAYOUT_SETTING, None)
+    settings_store.set(KPI_SETTING, None)
     return default_layout()
+
+
+# The cards on top: their order, width (one or two columns) and whether they are shown. "tbd" keeps a place for
+# what comes next.
+KPI_CARDS = {
+    "net_worth":    _l("Patrimonio Netto"),
+    "income":       _l("Entrate"),
+    "expenses":     _l("Uscite"),
+    "savings_rate": _l("Tasso di Risparmio"),
+    "investments":  _l("Investimenti"),
+    "debt":         _l("Debito Totale"),
+    "tbd":          _l("Nuova scheda"),
+}
+KPI_SETTING = "dashboard.kpis"
+KPI_SPANS = (1, 2)
+
+
+def default_kpis() -> list[dict]:
+    return [{"id": key, "span": 1, "visible": True} for key in KPI_CARDS]
+
+
+def normalize_kpis(items) -> list[dict]:
+    """Known cards once each, in the given order, width 1–2; cards missing from it are added at the end."""
+    out, seen = [], set()
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict) or item.get("id") not in KPI_CARDS or item["id"] in seen:
+            continue
+        seen.add(item["id"])
+        span = item.get("span", 1)
+        out.append({"id": item["id"], "span": span if span in KPI_SPANS else 1, "visible": item.get("visible", True) is not False})
+    return out + [k for k in default_kpis() if k["id"] not in seen]
+
+
+def kpi_layout() -> list[dict]:
+    return normalize_kpis(settings_store.get_json(KPI_SETTING, [], expect=list))
+
+
+def save_kpis(items) -> list[dict]:
+    items = normalize_kpis(items)
+    settings_store.set_json(KPI_SETTING, items)
+    return items
 
 
 def settings_order() -> list[str]:

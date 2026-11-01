@@ -139,7 +139,7 @@ def test_ics_file(app, db):
 
 def test_pages(client, db):
     page = client.get("/deadlines/?month=2026-12").get_data(as_text=True)
-    assert "Scadenzario" in page and "Dicembre 2026" in page and "IMU: saldo" in page
+    assert "Promemoria" in page and "Dicembre 2026" in page and "IMU: saldo" in page
     assert client.get("/deadlines/?month=nonsense").status_code == 200
     client.post("/deadlines/new", data={"title": "Bollo auto", "due": "2026-11-30", "repeat": "yearly", "amount": "210,50"})
     reminder = Reminder.query.one()
@@ -165,3 +165,16 @@ def test_pages(client, db):
     assert "Tagliando" in ics.get_data(as_text=True) and "Passaporto" not in ics.get_data(as_text=True)
     client.post(f"/deadlines/{once.id}/delete")
     assert Reminder.query.count() == 2
+
+
+def test_one_page_for_reminders_and_deadlines_with_blocks_to_arrange(client, db):
+    page = client.get("/notifications/").get_data(as_text=True)
+    assert 'id="blocks-grid"' in page and "Prossime scadenze" in page and "Nuovo promemoria" in page
+    assert client.get("/deadlines/").get_data(as_text=True).count('data-widget="calendar"') == 1
+    client.post("/deadlines/layout", json={"widgets": [{"id": "next", "span": 3, "height": 1}, {"id": "nope"}]})
+    page = client.get("/deadlines/").get_data(as_text=True)
+    assert page.index('data-widget="next"') < page.index('data-widget="reminders"')
+    assert 'data-widget="next" data-span="3" data-height="1"' in page
+    assert client.post("/deadlines/layout", json={"reset": True}).get_json()["layout"][0]["id"] == "reminders"
+    assert client.post("/deadlines/layout", json=[]).status_code == 400
+    assert client.post("/deadlines/layout", json={}).status_code == 400

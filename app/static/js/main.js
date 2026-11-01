@@ -118,7 +118,9 @@ function formatMoney(value, currency, locale) {
   currency = currency || document.documentElement.dataset.currency || "EUR";
   const symbol = new Intl.NumberFormat(locale, { style: "currency", currency }).formatToParts(0)
     .find(part => part.type === "currency").value;
-  const number = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(value));
+  // grouping always: Italian would leave 4-digit amounts without the thousands point (1870,18), unlike the server
+  const number = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: "always" })
+    .format(Math.abs(value));
   return (value < 0 ? "-" : "") + symbol + " " + number;
 }
 window.formatMoney = formatMoney;

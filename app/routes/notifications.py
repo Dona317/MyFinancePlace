@@ -1,5 +1,5 @@
 from apiflask import APIBlueprint
-from flask import render_template, request
+from flask import request
 
 from app.routes.helpers import back_to
 from app.services import notifications
@@ -14,9 +14,9 @@ notifications_bp = APIBlueprint(
 
 @notifications_bp.route("/")
 def index():
-    items = notifications.collect()
-    hidden = [n for n in notifications.collect(include_dismissed=True) if n.key in set(notifications.dismissed())]
-    return render_template("notifications/index.html", items=items, hidden=hidden)
+    """The reminders, with the deadlines under them (one page: Promemoria)."""
+    from app.routes.deadlines import render_page
+    return render_page()
 
 
 @notifications_bp.route("/dismiss", methods=["POST"])

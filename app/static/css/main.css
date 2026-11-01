@@ -1533,7 +1533,11 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .confirm-text { color: var(--clr-text-primary); margin: 0; }
 
 /* ── Dashboard: blocks on three columns (a third, two thirds, the whole row) ───────────────── */
-.dash-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+/* the cards of a row are as tall as the tallest one; a chart grows to fill its card, no empty space under it */
+.dash-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+.dash-grid > .fc-widget > .card { display: flex; flex-direction: column; }
+.dash-grid > .fc-widget > .card > .card-body { flex: 1 1 auto; display: flex; flex-direction: column; }
+.dash-grid > .fc-widget > .card > .card-body > .chart-container { flex: 1 0 auto; }
 .dash-grid > .fc-widget[data-span="1"] { grid-column: span 1; }
 .dash-grid > .fc-widget[data-span="2"] { grid-column: span 2; }
 .dash-grid > .fc-widget[data-span="3"] { grid-column: 1 / -1; }
@@ -1845,3 +1849,50 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .category-legend .category-legend-dot[role="button"] { cursor: pointer; }
 .category-legend li.off .category-legend-dot { opacity: .3; }
 .category-legend li.off .category-legend-name, .category-legend li.off .category-legend-value { opacity: .45; text-decoration: line-through; }
+
+/* a slice in a legend: name and share, the amount in euro under them */
+.category-legend-share, .chart-legend-text small { font-weight: 600; color: var(--clr-text-muted); }
+.chart-legend-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.3; text-align: left; }
+.chart-legend-amount { font-weight: 600; color: var(--clr-text-primary); font-variant-numeric: tabular-nums; }
+
+/* ── Dashboard: the height of a block (Modifica). The row takes the tallest, the charts grow with their card ── */
+.dash-grid > .fc-widget[data-height="1"] > .card { min-height: 440px; }
+.dash-grid > .fc-widget[data-height="2"] > .card { min-height: 580px; }
+.dash-grid > .fc-widget[data-height="3"] > .card { min-height: 740px; }
+/* the transactions: as many rows as the row's height shows, the rest scrolls */
+.dash-grid > .fc-widget[data-widget="recent"] .table-wrapper { flex: 1 1 0; min-height: 360px; overflow-y: auto; }
+
+/* ── Dashboard: the cards on top in Modifica (moved, one or two columns wide, hidden) and the card kept for later ── */
+.kpi-grid > .fc-widget[data-span="2"] { grid-column: span 2; }
+.kpi-grid > .fc-widget > .kpi-card { flex: 1; }
+.kpi-widget [data-act="height"] { display: none; }
+.fc-editing .fc-widget > .kpi-card { pointer-events: none; user-select: none; }
+.kpi-tbd { border-style: dashed; box-shadow: none; }
+.kpi-tbd .kpi-value { color: var(--clr-text-muted); letter-spacing: .08em; }
+
+/* ── Modifica of the dashboard, in the top bar: its title, the hidden blocks in a small menu, reset and done ── */
+.layout-edit-title { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); font-weight: 600;
+  color: var(--clr-primary); white-space: nowrap; }
+.layout-edit-title[hidden], .layout-hidden-menu[hidden] { display: none; }
+.layout-hidden-menu { position: relative; }
+.layout-hidden-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 120; min-width: 220px; padding: 8px;
+  display: flex; flex-direction: column; gap: 4px; background: var(--clr-bg-card); border: 1px solid var(--clr-border);
+  border-radius: var(--border-radius); box-shadow: var(--shadow-lg); }
+.layout-hidden-pop[hidden] { display: none; }
+.layout-hidden-pop .layout-chip { justify-content: flex-start; text-align: left; }
+/* a button hidden by the page stays hidden, whatever its display */
+.btn[hidden] { display: none !important; }
+
+/* ── Promemoria: a smaller month, the next deadlines sorted by date or amount, the mockup of a new reminder ── */
+#blocks-grid .deadline-cell { min-height: 64px; padding: 4px; }
+/* the month in a narrower block: one line per deadline, its name cut short (the whole of it on hover), no amount */
+#blocks-grid .deadline-month .deadline-item { font-size: 11px; white-space: nowrap; }
+#blocks-grid .deadline-month .deadline-title { overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+#blocks-grid .deadline-month .deadline-title .text-xs, #blocks-grid .deadline-month .deadline-item > .nowrap { display: none; }
+.next-sort { display: inline-flex; border: 1px solid var(--clr-border); border-radius: 999px; overflow: hidden; }
+.next-sort-btn { border: none; background: none; padding: 3px 10px; font-size: var(--font-size-xs); color: var(--clr-text-muted); cursor: pointer; }
+.next-sort-btn.on { background: var(--clr-primary-light); color: var(--clr-primary); font-weight: 600; }
+/* long lists scroll inside their block: the block is as tall as its row or the height chosen in Modifica */
+#blocks-grid .next-deadlines { flex: 1 1 0; min-height: 320px; overflow-y: auto; }
+#blocks-grid [data-widget="reminders"] .card > .notification-list { flex: 1 1 0; min-height: 300px; overflow-y: auto; }
+.mockup-form { border: 0; padding: 0; margin: 0; opacity: .75; }

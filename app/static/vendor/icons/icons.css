@@ -26,6 +26,7 @@
 .bi-arrows::before { content: "\f6a2"; }
 .bi-arrows-angle-contract::before { content: "\f149"; }
 .bi-arrows-angle-expand::before { content: "\f14a"; }
+.bi-arrows-expand::before { content: "\f14c"; }
 .bi-arrows-expand-vertical::before { content: "\f695"; }
 .bi-at::before { content: "\f152"; }
 .bi-back::before { content: "\f155"; }
@@ -179,6 +180,7 @@
 .bi-lock::before { content: "\f47b"; }
 .bi-magic::before { content: "\f675"; }
 .bi-map::before { content: "\f47f"; }
+.bi-medium::before { content: "\f661"; }
 .bi-memory::before { content: "\f6e3"; }
 .bi-meta::before { content: "\f6a1"; }
 .bi-moon::before { content: "\f497"; }
@@ -249,7 +251,6 @@
 .bi-table::before { content: "\f5aa"; }
 .bi-tag::before { content: "\f5b0"; }
 .bi-tags::before { content: "\f5b2"; }
-.bi-terminal::before { content: "\f5c3"; }
 .bi-text-center::before { content: "\f5c4"; }
 .bi-text-left::before { content: "\f5c7"; }
 .bi-text-right::before { content: "\f5c9"; }

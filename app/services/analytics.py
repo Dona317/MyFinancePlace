@@ -80,7 +80,7 @@ def breakdown(query, tx_type: str, within: str | None = None) -> list[dict]:
         entry[1] += count
     total = sum(amount for amount, _ in grouped.values())
     items = [{"category": name, "amount": amount, "count": count, "share": share(amount, total)}
-             for name, (amount, count) in grouped.items()]
+             for name, (amount, count) in grouped.items() if round(amount, 2)]  # a category summing to zero: no slice
     return sorted(items, key=lambda item: item["amount"], reverse=True)
 
 

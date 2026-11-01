@@ -232,8 +232,8 @@
         <div class="nav-section-items" id="nav-strumenti"><div>
         {% if shown('deadlines') %}
         <a href="{{ url_for('deadlines.index') }}"
-           class="nav-item {% if request.endpoint.startswith('deadlines.') %}active{% endif %}">
-          <i class="bi bi-calendar-event"></i> <span class="nav-label" title="{{ _('Scadenzario') }}">{{ _('Scadenzario') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+           class="nav-item {% if request.endpoint.startswith(('deadlines.', 'notifications.')) %}active{% endif %}">
+          <i class="bi bi-bell"></i> <span class="nav-label" title="{{ _('Promemoria') }}">{{ _('Promemoria') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('snapshots') %}

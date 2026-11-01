@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/info.html" import info %}
+{% import "partials/blocks.html" as blocks with context %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
@@ -8,13 +9,8 @@
 {% block breadcrumb %}<li>{{ _('Cruscotto') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <button type="button" class="btn btn-outline btn-sm" id="layout-edit" aria-pressed="false"
-          title="{{ _('Sposta, allarga o nascondi i blocchi della dashboard') }}">
-    <i class="bi bi-pencil"></i> {{ _('Modifica') }}
-  </button>
-  <a href="{{ url_for('settings.index', _anchor='dashboard') }}" class="btn btn-ghost btn-sm" title="{{ _('Schede, blocchi e finestre temporali della dashboard nelle Impostazioni') }}">
-    <i class="bi bi-sliders"></i> {{ _('Gestisci') }}
-  </a>
+  {{ blocks.edit_controls(_('Modifica della dashboard'), _('Sposta, allarga o nascondi i blocchi della dashboard'),
+                          url_for('settings.index', _anchor='dashboard'), _('Schede, blocchi e finestre temporali della dashboard nelle Impostazioni')) }}
 {% endblock %}
 
 {# A top card whose money adds up over a time window of its own: the window is chosen in the card and kept #}
@@ -62,42 +58,51 @@
 </div>
 {% endif %}
 
+{# a card on top, in Modifica: moved, one or two columns wide, hidden #}
+{% macro kpi_slot(k) -%}
+<section class="fc-widget kpi-widget" data-widget="{{ k.id }}" data-span="{{ k.span }}" data-title="{{ kpi_titles[k.id] }}"{{ ' hidden' if not k.visible else '' }}>
+  {% call blocks.tools() %}{{ kpi_titles[k.id] }}{% endcall %}
+  {{ caller() }}
+</section>
+{%- endmacro %}
+
 <!-- KPI Row: a click on a card opens its detail; the period of income, expenses and savings is chosen in the card -->
 {% set fc = forecast_figures %}
-<div class="kpi-grid mb-24">
-
-  {% if settings.dashboard_net_worth %}
+<div class="kpi-grid fc-grid-kpi mb-24" id="kpi-grid">
+{% for k in kpi_layout %}
+{% if k.id == 'net_worth' and settings.dashboard_net_worth %}
+{% call kpi_slot(k) %}
   <div class="kpi-card kpi-click kpi-primary" data-href="{{ url_for('accounting.balance_sheet') }}" title="{{ _('Apri lo Stato Patrimoniale') }}">
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
     <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.net_worth }}">—</div>
     <div class="kpi-sub">{{ _('Attività − passività, oggi') }}</div>
   </div>
-  {% endif %}
-
-  {% if settings.dashboard_income %}
+{% endcall %}
+{% elif k.id == 'income' and settings.dashboard_income %}
+{% call kpi_slot(k) %}
   {% set c = cards.income %}
   {{ window_card('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive',
                  url_for('reports.index', tab='income', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
                  amount=c.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else '')) }}
-  {% endif %}
-
-  {% if settings.dashboard_expenses %}
+{% endcall %}
+{% elif k.id == 'expenses' and settings.dashboard_expenses %}
+{% call kpi_slot(k) %}
   {% set c = cards.expenses %}
   {{ window_card('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative',
                  url_for('reports.index', tab='spending', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
                  amount=c.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else '')) }}
-  {% endif %}
-
-  {% if settings.dashboard_savings_rate %}
+{% endcall %}
+{% elif k.id == 'savings_rate' and settings.dashboard_savings_rate %}
+{% call kpi_slot(k) %}
   {% set c = cards.savings_rate %}
   {{ window_card('savings_rate', 'piggy-bank', _('Tasso di Risparmio'), 'kpi-neutral',
                  url_for('reports.index', tab='cashflow', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
                  value=("%.1f"|format(c.totals.savings_rate) ~ '%'), forecast=fc,
                  forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else '')) }}
-  {% endif %}
-
-  {% if settings.dashboard_investments and allowed('portfolio') %}
+{% endcall %}
+{% elif k.id == 'investments' and settings.dashboard_investments and allowed('portfolio') %}
+{% call kpi_slot(k) %}
   <div class="kpi-card kpi-click kpi-purple" data-href="{{ url_for('portfolio.index') }}" title="{{ _('Apri il portafoglio') }}">
     <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
     <div class="kpi-label">{{ _('Investimenti') }}</div>
@@ -107,9 +112,9 @@
       {% if rates.return_annual is not none %}<br />{{ _('Annuo dall’inizio: %(rate)s%%', rate=rates.return_annual|number(1)) }}{% endif %}
     </div>
   </div>
-  {% endif %}
-
-  {% if settings.dashboard_debt and allowed('debt') %}
+{% endcall %}
+{% elif k.id == 'debt' and settings.dashboard_debt and allowed('debt') %}
+{% call kpi_slot(k) %}
   <div class="kpi-card kpi-click kpi-warning" data-href="{{ url_for('debt.index') }}" title="{{ _('Apri i debiti') }}">
     <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
     <div class="kpi-label">{{ _('Debito Totale') }}</div>
@@ -118,23 +123,17 @@
       {% if rates.debt_rate is not none %}{{ _('TAN medio %(rate)s%%', rate=rates.debt_rate|number(2)) }}{% else %}{{ _('In corso') }}{% endif %}
     </div>
   </div>
-  {% endif %}
-
-</div>
-
-<!-- The blocks of the page: order, width (a third, two thirds, the whole row) and visibility, saved for every visit -->
-<div class="layout-bar card mb-16" id="layout-bar" hidden>
-  <div class="card-body layout-bar-body">
-    <div class="layout-bar-text">
-      <strong>{{ _('Modifica della dashboard') }}</strong>
-      <span class="text-xs text-muted">{{ _('Trascina un blocco per spostarlo, cambia la larghezza (al massimo tre per riga) o nascondilo: l’ordine vale anche nelle Impostazioni.') }}</span>
-    </div>
-    <div class="layout-hidden" id="layout-hidden"></div>
-    <div class="layout-bar-actions">
-      <button type="button" class="btn btn-ghost btn-sm" id="layout-reset"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina predefinito') }}</button>
-      <button type="button" class="btn btn-primary btn-sm" id="layout-done"><i class="bi bi-check2"></i> {{ _('Fatto') }}</button>
-    </div>
+{% endcall %}
+{% elif k.id == 'tbd' %}
+{% call kpi_slot(k) %}
+  <div class="kpi-card kpi-tbd">
+    <div class="kpi-label">{{ _('Nuova scheda') }}</div>
+    <div class="kpi-value">TBD</div>
+    <div class="kpi-sub">{{ _('Per una funzionalità futura') }}</div>
   </div>
+{% endcall %}
+{% endif %}
+{% endfor %}
 </div>
 
 <div class="dash-year-head">
@@ -161,15 +160,6 @@
   </form>
 </div>
 
-{% macro tools() -%}
-<div class="fc-widget-tools">
-  <span class="fc-drag" title="{{ _('Trascina per spostare') }}"><i class="bi bi-grip-vertical"></i> {{ caller() }}</span>
-  <button type="button" data-act="prev" title="{{ _('Sposta prima') }}"><i class="bi bi-chevron-left"></i></button>
-  <button type="button" data-act="next" title="{{ _('Sposta dopo') }}"><i class="bi bi-chevron-right"></i></button>
-  <button type="button" data-act="span" title="{{ _('Larghezza: un terzo, due terzi, riga intera') }}"><i class="bi bi-arrows-expand-vertical"></i> <span class="span-label"></span></button>
-  <button type="button" data-act="hide" title="{{ _('Nascondi') }}"><i class="bi bi-eye-slash"></i></button>
-</div>
-{%- endmacro %}
 
 {% set tx_ok = allowed('transactions') %}
 {% macro pie(kind, title, breakdown) %}
@@ -189,9 +179,10 @@
       <li>
         <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
         {% if tx_ok %}<a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type=kind, start=pie_start.isoformat(), end=pie_last.isoformat()) }}"
-           title="{{ _('Transazioni di «%(category)s» nel periodo', category=c.category|tr) }}">{{ c.category|tr }}</a>
-        {% else %}<span class="category-legend-name">{{ c.category|tr }}</span>{% endif %}
-        <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
+           title="{{ _('Transazioni di «%(category)s» nel periodo', category=c.category|tr) }}">{{ c.category|tr }} <small class="category-legend-share">{{ c.share|number(1) }}%</small></a>
+        {% else %}<span class="category-legend-name">{{ c.category|tr }} <small class="category-legend-share">{{ c.share|number(1) }}%</small></span>{% endif %}
+        {# name and share on the first line, the amount under them #}
+        <span class="category-legend-value">{{ c.amount|money }}</span>
       </li>
       {% endfor %}
     </ul>
@@ -210,7 +201,7 @@
       <div class="card-header-sub">{{ _('Mese per mese, in euro, per categoria') }}</div>
     </div>
     <a href="{{ url_for('reports.index', tab='spending' if kind == 'expense' else 'income', period='custom', start='%d-01-01' % year, end='%d-12-31' % year) }}" class="btn btn-ghost btn-sm">
-      {{ _('Report') }} <i class="bi bi-arrow-right"></i>
+      {{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i>
     </a>
   </div>
   <div class="card-body">
@@ -223,8 +214,8 @@
 
 <div class="fc-grid dash-grid" id="fc-grid">
 {% for w in layout if not (w.id == 'recent' and not allowed('transactions')) %}
-<section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
-  {% call tools() %}{{ widgets[w.id][0] }}{% endcall %}
+<section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-height="{{ w.height }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
+  {% call blocks.tools() %}{{ widgets[w.id][0] }}{% endcall %}
 
   {% if w.id == 'cashflow' %}
   <div class="card">
@@ -245,7 +236,7 @@
         <div class="card-header-title">{{ _('Andamento del patrimonio — %(period)s', period=period_label) }}</div>
         <div class="card-header-sub">{{ _('Liquidità, investimenti e altri beni sopra lo zero, debiti sotto; la linea è il patrimonio netto') }}</div>
       </div>
-      <a href="{{ url_for('accounting.growth') }}" class="btn btn-ghost btn-sm">{{ _('Da dove viene') }} <i class="bi bi-arrow-right"></i></a>
+      <a href="{{ url_for('accounting.growth') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
     </div>
     <div class="card-body"><div class="chart-container" style="height:300px;"><canvas id="netWorthChart"></canvas></div></div>
   </div>
@@ -338,7 +329,7 @@
           <option value="">{{ _('Tutte le categorie') }}</option>
           {% for name in (recent_transactions + impact_transactions)|map(attribute='category')|reject('none')|unique|sort %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
         </select>
-        <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">{{ _('Tutte') }} <i class="bi bi-arrow-right"></i></a>
+        <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
       </div>
     </div>
     <div class="table-wrapper">
@@ -430,6 +421,7 @@
 {% block scripts %}
 {% set tx_ok = allowed('transactions') %}
 {% set tx_url = url_for('transactions.index') if tx_ok else '' %}
+{{ blocks.script() }}
 <script>
 const shown = (id) => document.querySelector(`.fc-widget[data-widget="${id}"]`) !== null;
 const cashFlow = {{ cash_flow|tojson }};
@@ -594,93 +586,11 @@ document.querySelectorAll('.kpi-window').forEach(box => {
   }));
 });
 
-/* ── Modifica: order, width (1–3 thirds) and visibility of the blocks, saved at every change ── */
-{
-const grid = document.getElementById('fc-grid');
-const bar = document.getElementById('layout-bar');
-const editButton = document.getElementById('layout-edit');
-const hiddenList = document.getElementById('layout-hidden');
-const widgets = () => [...grid.querySelectorAll(':scope > .fc-widget')];
-const SPAN_LABELS = { 1: '⅓', 2: '⅔', 3: '1/1' };
-let editing = false, dragged = null, saveTimer = null;
-
-const paintSpans = () => widgets().forEach(w => { w.querySelector('.span-label').textContent = SPAN_LABELS[w.dataset.span]; });
-function redrawCharts(widget) {
-  requestAnimationFrame(() => (widget ? [widget] : widgets()).forEach(w =>
-    w.querySelectorAll('canvas').forEach(c => Chart.getChart(c)?.resize())));
-}
-function save() {
-  renderHidden();
-  paintSpans();
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => fetch({{ url_for('dashboard.save_layout')|tojson }}, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ widgets: widgets().map(w => ({ id: w.dataset.widget, span: +w.dataset.span, visible: !w.hidden })) }),
-  }), 250);
-}
-function renderHidden() {
-  const hidden = widgets().filter(w => w.hidden);
-  hiddenList.replaceChildren(...(hidden.length ? [Object.assign(document.createElement('span'), { textContent: {{ _('Blocchi nascosti:')|tojson }} })] : []),
-    ...hidden.map(w => {
-      const chip = Object.assign(document.createElement('button'), { type: 'button', className: 'layout-chip' });
-      chip.innerHTML = '<i class="bi bi-plus-lg"></i> ';
-      chip.append(w.dataset.title);
-      chip.addEventListener('click', () => { w.hidden = false; redrawCharts(w); save(); });
-      return chip;
-    }));
-}
-function setEditing(on) {
-  editing = on;
-  document.body.classList.toggle('fc-editing', on);
-  bar.hidden = !on;
-  editButton?.setAttribute('aria-pressed', String(on));
-  widgets().forEach(w => { w.draggable = on; });
-  if (on) { renderHidden(); paintSpans(); }
-}
-editButton?.addEventListener('click', () => setEditing(!editing));
-document.getElementById('layout-done').addEventListener('click', () => setEditing(false));
-document.getElementById('layout-reset').addEventListener('click', async () => {
-  await fetch({{ url_for('dashboard.save_layout')|tojson }}, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"reset": true}' });
-  location.reload();
+/* ── Modifica: the blocks (1–3 thirds wide, of a chosen height) and the cards on top (1–2 columns) ── */
+initBlockEditor({
+  saveUrl: {{ url_for('dashboard.save_layout')|tojson }},
+  grids: [{ el: document.getElementById('fc-grid'), key: 'widgets', spans: 3, heights: true },
+          { el: document.getElementById('kpi-grid'), key: 'kpis', spans: 2 }],
 });
-const visibleSibling = (w, dir) => { let s = w[dir]; while (s && s.hidden) s = s[dir]; return s; };
-grid.addEventListener('click', e => {
-  const button = e.target.closest('.fc-widget-tools [data-act]');
-  if (!button) return;
-  const w = button.closest('.fc-widget');
-  const act = button.dataset.act;
-  if (act === 'prev') { const s = visibleSibling(w, 'previousElementSibling'); if (s) s.before(w); }
-  if (act === 'next') { const s = visibleSibling(w, 'nextElementSibling'); if (s) s.after(w); }
-  if (act === 'span') { w.dataset.span = String(w.dataset.span % 3 + 1); redrawCharts(w); }
-  if (act === 'hide') { w.hidden = true; }
-  save();
-});
-grid.addEventListener('dragstart', e => {
-  const w = e.target.closest?.('.fc-widget');
-  if (!editing || !w) return;
-  dragged = w;
-  w.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', w.dataset.widget);
-});
-grid.addEventListener('dragover', e => {
-  if (!dragged) return;
-  e.preventDefault();
-  const target = e.target.closest('.fc-widget');
-  if (!target || target === dragged) return;
-  const r = target.getBoundingClientRect();
-  const before = target.dataset.span === '3' ? e.clientY < r.top + r.height / 2 : e.clientX < r.left + r.width / 2;
-  const reference = before ? target : target.nextElementSibling;
-  if (reference !== dragged && dragged.nextElementSibling !== reference) grid.insertBefore(dragged, reference);
-});
-grid.addEventListener('drop', e => { if (dragged) e.preventDefault(); });
-grid.addEventListener('dragend', () => {
-  if (!dragged) return;
-  dragged.classList.remove('dragging');
-  dragged = null;
-  redrawCharts();
-  save();
-});
-}
 </script>
 {% endblock %}

@@ -74,4 +74,4 @@ def test_dashboard_category_legend_shows_amount_and_share(client, db):
     # biggest first, each with the slice colour, the amount and its share of the month
     assert legend.index("Casa") < legend.index("Svago")
     assert "var(--chart-1)" in legend and "var(--chart-2)" in legend
-    assert "(75%)" in legend and "(25%)" in legend
+    assert "75%</small>" in legend and "25%</small>" in legend

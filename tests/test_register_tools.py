@@ -176,11 +176,18 @@ def test_a_custom_window_covers_both_dates(db):
 def test_the_layout_is_saved_and_cleaned(client, db):
     client.post("/dashboard/layout", json={"widgets": [{"id": "health", "span": 3}, {"id": "nope"}, {"id": "health"}]})
     layout = dashboard_prefs.layout()
-    assert layout[0] == {"id": "health", "span": 3, "visible": True}
+    assert layout[0] == {"id": "health", "span": 3, "height": 0, "visible": True}
     assert len(layout) == len(dashboard_prefs.WIDGETS)  # unknown and repeated blocks dropped, missing ones added
     assert dashboard_prefs.settings_order()[0] == "dashboard_health"  # Settings follows the same order
     page = client.get("/settings/").get_data(as_text=True)
     assert page.index('name="dashboard_health"') < page.index('name="dashboard_cashflow_chart"')
+
+
+def test_a_block_keeps_the_height_chosen(client, db):
+    client.post("/dashboard/layout", json={"widgets": [{"id": "recent", "span": 2, "height": 2}, {"id": "health", "height": 9}]})
+    layout = {w["id"]: w for w in dashboard_prefs.layout()}
+    assert layout["recent"]["height"] == 2 and layout["health"]["height"] == 0  # an unknown height: automatic
+    assert 'data-widget="recent" data-span="2" data-height="2"' in client.get("/dashboard").get_data(as_text=True)
 
 
 def test_dashboard_renders_with_data(client, sample_data):
@@ -227,3 +234,16 @@ def test_import_needs_the_account(client, db):
     bank(db, "Fineco 1")
     response = client.post("/export/bank/confirm", data={"payload": "x"})
     assert response.status_code == 302  # an invalid payload is refused before anything is saved
+
+
+def test_the_cards_on_top_keep_order_width_and_visibility(client, db):
+    client.post("/dashboard/layout", json={"kpis": [{"id": "debt", "span": 2}, {"id": "income", "visible": False},
+                                                    {"id": "nope"}, {"id": "debt"}, {"id": "tbd", "span": 5}]})
+    kpis = dashboard_prefs.kpi_layout()
+    assert kpis[0] == {"id": "debt", "span": 2, "visible": True}
+    assert kpis[1]["visible"] is False and kpis[2] == {"id": "tbd", "span": 1, "visible": True}  # a wrong width: one
+    assert len(kpis) == len(dashboard_prefs.KPI_CARDS)
+    page = client.get("/dashboard").get_data(as_text=True)
+    assert 'data-widget="debt" data-span="2"' in page and ">TBD<" in page
+    assert client.post("/dashboard/layout", json={"reset": True}).status_code == 200
+    assert dashboard_prefs.kpi_layout() == dashboard_prefs.default_kpis()
