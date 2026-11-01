@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 18:00+0100\n"
+"POT-Creation-Date: 2026-11-01 18:13+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -3568,6 +3568,9 @@ msgstr ""
 msgid "Fai una domanda"
 msgstr "Ask a question"
 
+msgid "Fai una domanda sui tuoi numeri…"
+msgstr "Ask a question about your numbers…"
+
 msgid "Famiglia"
 msgstr "Family"
 
@@ -4380,6 +4383,13 @@ msgstr "The chosen model is online (Anthropic): the summary leaves the computer.
 
 msgid "Il modello termina la parte che sta leggendo, poi la lettura si ferma."
 msgstr "The model finishes the part it is reading, then the reading stops."
+
+msgid ""
+"Il modello è su internet (Anthropic): il riassunto dei tuoi numeri lascia"
+" il computer."
+msgstr ""
+"The model is online (Anthropic): the summary of your numbers leaves the "
+"computer."
 
 msgid "Il nome compare nel registro, nello stile di vita e nei grafici"
 msgstr "The name shows in the register, in lifestyle and in the charts"
@@ -6122,6 +6132,9 @@ msgstr "No AI model configured."
 msgid "Nessun modello AI configurato: sceglilo in Impostazioni → AI."
 msgstr "No AI model configured: choose one in Settings → AI."
 
+msgid "Nessun modello AI configurato: sceglilo nelle Impostazioni."
+msgstr "No AI model set: choose one in Settings."
+
 msgid "Nessun modello installato può leggere questo file"
 msgstr "No installed model can read this file"
 
@@ -6599,6 +6612,9 @@ msgstr ""
 "It is not saved anywhere: without the password the backups cannot be "
 "opened, not even by us. Write it down somewhere safe."
 
+msgid "Non è stato possibile rispondere."
+msgstr "It was not possible to answer."
+
 msgid ""
 "Non è stato salvato nulla. Se hai usato un modulo di questa app, ricarica"
 " la pagina e riprova."
@@ -6665,6 +6681,9 @@ msgstr "New category"
 
 msgid "Nuova classificazione"
 msgstr "New classification"
+
+msgid "Nuova conversazione"
+msgstr "New conversation"
 
 msgid "Nuova operazione"
 msgstr "New operation"
@@ -8599,6 +8618,9 @@ msgstr ""
 msgid "Risposta di Ollama non valida."
 msgstr "Invalid response from Ollama."
 
+msgid "Risposta di un modello AI: controlla i numeri nelle pagine indicate."
+msgstr "Answer from an AI model: check the numbers in the pages shown."
+
 msgid ""
 "Risposta generata da un modello AI: controlla i numeri nelle pagine "
 "indicate."
@@ -9516,6 +9538,9 @@ msgid ""
 msgstr ""
 "Estimates for planning, with the rules of the chosen year: the return is "
 "checked by the CAF or the accountant."
+
+msgid "Sto pensando…"
+msgstr "Thinking…"
 
 msgid "Storico"
 msgstr "History"

@@ -260,6 +260,78 @@ function initNavSubtitles() {
   });
 }
 
+/* Chiedi ai tuoi dati: the round button opens the panel on the right; the questions and answers of this browser tab
+   are kept while moving between pages (sessionStorage), «new conversation» clears them */
+function initAskPanel() {
+  const panel = document.getElementById("ask-panel"), bubble = document.getElementById("ask-bubble");
+  if (!panel || !bubble) return;
+  const list = document.getElementById("ask-messages"), form = document.getElementById("ask-form");
+  const input = document.getElementById("ask-input"), examples = document.getElementById("ask-examples");
+  const KEY = "mfp-ask-chat";
+  let chat = [], status = null;
+  try { chat = JSON.parse(sessionStorage.getItem(KEY) || "[]"); } catch (e) { chat = []; }
+  const keep = () => { try { sessionStorage.setItem(KEY, JSON.stringify(chat.slice(-40))); } catch (e) { /* private mode */ } };
+  const bubbleOf = (m) => {
+    const el = Object.assign(document.createElement("div"), { className: `ask-msg ask-${m.from}` });
+    el.appendChild(Object.assign(document.createElement("div"), { className: "ask-text", textContent: m.text }));
+    if (m.links?.length) {
+      const links = Object.assign(document.createElement("div"), { className: "ask-links" });
+      m.links.forEach(([label, url]) => links.appendChild(Object.assign(document.createElement("a"), { href: url, className: "btn btn-ghost btn-sm", textContent: label + " →" })));
+      el.appendChild(links);
+    }
+    if (m.from === "bot" && !m.error) el.appendChild(Object.assign(document.createElement("div"), { className: "ask-check", textContent: TEXT.ask_check || "" }));
+    return el;
+  };
+  const render = () => {
+    list.replaceChildren(...chat.map(bubbleOf));
+    examples.hidden = chat.length > 0 || !status?.available;
+    list.scrollTop = list.scrollHeight;
+  };
+  const open = async (on) => {
+    panel.hidden = !on;
+    bubble.setAttribute("aria-expanded", String(on));
+    document.body.classList.toggle("ask-open", on);
+    if (!on) return;
+    if (!status) {
+      try { status = await fetch(panel.dataset.status).then(r => r.json()); } catch (e) { status = { available: false, examples: [] }; }
+      document.getElementById("ask-note").textContent = !status.available ? TEXT.ask_none : (status.cloud ? TEXT.ask_cloud : TEXT.ask_local);
+      form.hidden = !status.available;
+      examples.replaceChildren(...(status.examples || []).map(q => {
+        const b = Object.assign(document.createElement("button"), { type: "button", className: "ask-example", textContent: q });
+        b.addEventListener("click", () => { input.value = q; form.requestSubmit(); });
+        return b;
+      }));
+    }
+    render();
+    input.focus();
+  };
+  bubble.addEventListener("click", () => open(panel.hidden));
+  document.getElementById("ask-close").addEventListener("click", () => open(false));
+  document.getElementById("ask-clear").addEventListener("click", () => { chat = []; keep(); render(); input.focus(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !panel.hidden) open(false); });
+  input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question) return;
+    input.value = "";
+    chat.push({ from: "me", text: question });
+    const waiting = { from: "bot", text: TEXT.ask_wait || "…", error: true };
+    chat.push(waiting);
+    render();
+    try {
+      const res = await fetch(panel.dataset.ask, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) });
+      const data = await res.json();
+      chat[chat.indexOf(waiting)] = res.ok ? { from: "bot", text: data.text, links: data.links } : { from: "bot", text: data.error || TEXT.ask_error, error: true };
+    } catch (err) {
+      chat[chat.indexOf(waiting)] = { from: "bot", text: TEXT.ask_error, error: true };
+    }
+    keep();
+    render();
+  });
+  if (new URLSearchParams(location.search).get("ask") === "1") open(true);
+}
+
 /* Flash messages marked data-autohide fade out after a few seconds */
 function initFlash() {
   document.querySelectorAll(".alert[data-autohide]").forEach(el => {
@@ -632,6 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initSidebar();
   initNavSections();
   initNavSubtitles();
+  initAskPanel();
   // Tags: chips picked from the tags already used, or new ones (Enter or comma)
   document.querySelectorAll("input[data-tag-input]").forEach(input => initTagInput(input, TEXT));
   initFlash();

@@ -257,12 +257,6 @@
           <i class="bi bi-box-arrow-up"></i> <span class="nav-label" title="{{ _('Esporta') }}">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if shown('assistant') %}
-        <a href="{{ url_for('assistant.index') }}"
-           class="nav-item {% if request.endpoint.startswith('assistant.') %}active{% endif %}">
-          <i class="bi bi-stars"></i> <span class="nav-label" title="{{ _('Chiedi ai tuoi dati') }}">{{ _('Chiedi ai tuoi dati') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
         {% if shown('health') %}
         <a href="{{ url_for('health.index') }}"
            class="nav-item {% if request.endpoint.startswith('health.') %}active{% endif %}">
@@ -431,11 +425,35 @@
   </div><!-- /main-content -->
 </div><!-- /app-wrapper -->
 
+{% if shown('assistant') and not embedded %}
+<!-- Chiedi ai tuoi dati: a round button at the bottom right opens a narrow panel on the right with the chat -->
+<button type="button" class="ask-bubble" id="ask-bubble" aria-controls="ask-panel" aria-expanded="false"
+        title="{{ _('Chiedi ai tuoi dati') }}" aria-label="{{ _('Chiedi ai tuoi dati') }}"><i class="bi bi-stars"></i></button>
+<aside class="ask-panel" id="ask-panel" hidden aria-label="{{ _('Chiedi ai tuoi dati') }}"
+       data-status="{{ url_for('assistant.status') }}" data-ask="{{ url_for('assistant.ask') }}">
+  <header class="ask-head">
+    <span class="ask-title"><i class="bi bi-stars"></i> {{ _('Chiedi ai tuoi dati') }}</span>
+    <button type="button" class="ask-clear" id="ask-clear" title="{{ _('Nuova conversazione') }}" aria-label="{{ _('Nuova conversazione') }}"><i class="bi bi-arrow-counterclockwise"></i></button>
+    <button type="button" class="ask-close" id="ask-close" title="{{ _('Chiudi') }}" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+  </header>
+  <div class="ask-note text-xs text-muted" id="ask-note"></div>
+  <div class="ask-messages" id="ask-messages" aria-live="polite"></div>
+  <div class="ask-examples" id="ask-examples"></div>
+  <form class="ask-form" id="ask-form">
+    <textarea id="ask-input" class="form-control" rows="2" maxlength="500" placeholder="{{ _('Fai una domanda sui tuoi numeri…') }}" aria-label="{{ _('Domanda') }}"></textarea>
+    <button type="submit" class="btn btn-primary btn-icon" title="{{ _('Chiedi') }}" aria-label="{{ _('Chiedi') }}"><i class="bi bi-send"></i></button>
+  </form>
+</aside>
+{% endif %}
+
 <!-- Texts used by main.js -->
 <script>window.MFP_TEXT = {{ {
   "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
   "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
   "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"), "no_match": _("Nessun risultato"), "select_all": _("Seleziona tutto"), "deselect_all": _("Deseleziona tutto"), "show_hide": _("Mostra o nascondi"), "show": _("Mostra"), "hide": _("Nascondi"), "to_bottom": _("Vai in fondo alla pagina"), "to_top": _("Torna su"),
+  "ask_local": _("Il modello gira sul tuo computer: nulla esce."), "ask_cloud": _("Il modello è su internet (Anthropic): il riassunto dei tuoi numeri lascia il computer."),
+  "ask_none": _("Nessun modello AI configurato: sceglilo nelle Impostazioni."), "ask_wait": _("Sto pensando…"),
+  "ask_check": _("Risposta di un modello AI: controlla i numeri nelle pagine indicate."), "ask_error": _("Non è stato possibile rispondere."),
 }|tojson }};</script>
 <!-- Chart.js and its helpers: only on the pages with charts -->
 {% block chart_scripts %}{% endblock %}

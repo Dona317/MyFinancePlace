@@ -83,3 +83,13 @@ def test_page(client, db, archive, model):
 def test_page_without_model(client, db, monkeypatch):
     monkeypatch.setattr(ai_extraction, "provider", lambda: None)
     assert "Nessun modello AI configurato." in client.get("/assistant/").get_data(as_text=True)
+
+
+def test_the_panel_asks_with_json(client, db, archive, model):
+    assert client.get("/assistant/status").get_json()["available"] is True
+    answer = client.post("/assistant/ask", json={"question": "Ristoranti?"}).get_json()
+    assert "Hai speso 40,00 €" in answer["text"] and any(url == "/reports/" for _label, url in answer["links"])
+    response = client.post("/assistant/ask", json={"question": ""})
+    assert response.status_code == 400 and response.get_json()["error"] == "Scrivi una domanda."
+    page = client.get("/dashboard").get_data(as_text=True)
+    assert 'id="ask-bubble"' in page and 'id="ask-panel"' in page and 'href="/assistant/"' not in page  # out of the menu
