@@ -47,6 +47,113 @@ Chart.defaults.plugins.tooltip.borderWidth = 1;
 Chart.defaults.plugins.tooltip.padding    = 10;
 Chart.defaults.plugins.tooltip.cornerRadius = 8;
 
+/* Legends in HTML: the canvas legend cuts entries off when there are many. A pie has its legend on its right, in
+   columns that scroll sideways; a line or bar chart has it above, one row that scrolls sideways. The chart keeps all
+   the rest of its box. Each entry shows or hides its series (or slice), one button selects or deselects them all.
+   A chart can use a list of its page instead (opts.legendList: one <li> per slice, its .category-legend-dot becomes
+   the switch); that list moves beside the pie the same way. */
+const isPie = (chart) => ["pie", "doughnut"].includes(chart.config.type);
+
+function legendSwitch(chart) {
+  const pie = isPie(chart);
+  return {
+    shown: (i) => pie ? chart.getDataVisibility(i) : chart.isDatasetVisible(i),
+    set: (i, on) => {
+      if (pie) { if (chart.getDataVisibility(i) !== on) chart.toggleDataVisibility(i); }
+      else chart.setDatasetVisibility(i, on);
+    },
+  };
+}
+
+function legendAllButton(chart, indexes) {
+  const text = window.MFP_TEXT || {};
+  const button = Object.assign(document.createElement("button"), { type: "button", className: "chart-legend-all" });
+  const { shown, set } = legendSwitch(chart);
+  const all = indexes.every(shown);
+  button.textContent = all ? (text.deselect_all || "Deseleziona tutto") : (text.select_all || "Seleziona tutto");
+  button.addEventListener("click", () => { indexes.forEach(i => set(i, !all)); chart.update(); });
+  return button;
+}
+
+/* The box of the chart (the element with its height, holding only the canvas) becomes: the canvas in its own
+   wrapper, the legend beside it (a pie) or above it. Done before the chart measures itself. */
+function legendLayout(chart, options) {
+  const canvas = chart.canvas;
+  if (canvas.$legend) return canvas.$legend;  // a chart drawn again (theme change): the layout is there
+  const box = canvas.parentElement;
+  const legend = Object.assign(document.createElement("div"), { className: "chart-legend" });
+  canvas.$legend = legend;
+  if (box.children.length !== 1 || box.classList.contains("card-body")) {
+    canvas.after(legend);  // no box of its own: the legend goes under it
+    return legend;
+  }
+  const wrap = Object.assign(document.createElement("div"), { className: "chart-canvas" });
+  box.classList.add("chart-with-legend", isPie(chart) ? "legend-side" : "legend-top");
+  canvas.before(wrap);
+  wrap.appendChild(canvas);
+  if (isPie(chart)) box.append(legend); else box.prepend(legend);
+  if (options.list) legend.appendChild(options.list);  // the page's list of categories, beside the pie
+  return legend;
+}
+
+const htmlLegend = {
+  id: "htmlLegend",
+  beforeInit(chart, _args, options) {
+    if (options.display || options.list) legendLayout(chart, options);
+  },
+  afterUpdate(chart, _args, options) {
+    if (options.list) return pageLegend(chart, options.list);
+    if (!options.display) return;
+    const legend = chart.canvas.$legend;
+    const pie = isPie(chart);
+    const items = chart.options.plugins.legend.labels.generateLabels(chart)
+      .filter(item => !options.filter || options.filter(item));
+    const index = (item) => pie ? item.index : item.datasetIndex;
+    const { shown, set } = legendSwitch(chart);
+    const list = Object.assign(document.createElement("ul"), { className: "chart-legend-list" });
+    items.forEach(item => {
+      const i = index(item);
+      const button = Object.assign(document.createElement("button"), { type: "button", className: "chart-legend-item" });
+      button.setAttribute("aria-pressed", String(shown(i)));
+      const dot = Object.assign(document.createElement("span"), { className: "chart-legend-dot" });
+      // a line shows the colour of its stroke (its fill is almost transparent), a bar or a slice its fill
+      const line = !pie && (chart.data.datasets[i].type || chart.config.type) === "line";
+      dot.style.background = line ? item.strokeStyle : item.fillStyle;
+      button.append(dot, document.createTextNode(item.text));
+      button.addEventListener("click", () => { set(i, !shown(i)); chart.update(); });
+      const li = document.createElement("li");
+      li.appendChild(button);
+      list.appendChild(li);
+    });
+    const scroll = legend.querySelector(".chart-legend-list")?.scrollLeft || 0;
+    legend.replaceChildren(...(items.length > 2 ? [legendAllButton(chart, items.map(index))] : []), list);
+    list.scrollLeft = scroll;  // a click does not jump back to the start of a long list
+  },
+};
+
+function pageLegend(chart, list) {
+  const { shown, set } = legendSwitch(chart);
+  const rows = [...list.children];
+  rows.forEach((li, i) => {
+    li.classList.toggle("off", !shown(i));
+    const dot = li.querySelector(".category-legend-dot");
+    if (dot && !dot.dataset.switch) {
+      dot.dataset.switch = "1";
+      dot.setAttribute("role", "button");
+      dot.tabIndex = 0;
+      dot.title = (window.MFP_TEXT || {}).show_hide || "Mostra o nascondi";
+      const flip = () => { set(i, !shown(i)); chart.update(); };
+      dot.addEventListener("click", flip);
+      dot.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } });
+    }
+  });
+  list.classList.add("chart-legend-scroll");
+  if (list.previousElementSibling?.classList.contains("chart-legend-all")) list.previousElementSibling.remove();
+  if (rows.length > 2) list.before(legendAllButton(chart, rows.map((_, i) => i)));
+}
+
+Chart.register(htmlLegend);
+
 // Every chart built by the helpers below, so it can be redrawn in the new theme's colors
 const themedCharts = [];
 
@@ -102,8 +209,11 @@ function buildLineChart(ctx, labels, datasets, opts = {}) {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: "index", intersect: false },
+      onClick: clickHandler(opts),
+      onHover: (event, elements) => { if (opts.onClickIndex) event.native.target.style.cursor = elements.length ? "pointer" : ""; },
       plugins: {
-        legend: { display: opts.legend !== false, labels: { filter: item => !datasets[item.datasetIndex].noLegend } },
+        legend: { display: false },
+        htmlLegend: { display: opts.legend !== false, filter: item => !datasets[item.datasetIndex].noLegend },
         ...(opts.percent ? { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${percent(c.raw)}` } } } : {}),
       },
       spanGaps: false,
@@ -157,7 +267,7 @@ function buildBarChart(ctx, labels, datasets, opts) {
       maintainAspectRatio: false,
       indexAxis: labelAxis,
       onClick: clickHandler(opts),
-      plugins: { legend: { display: opts.legend ?? datasets.length > 1 } },
+      plugins: { legend: { display: false }, htmlLegend: { display: opts.legend ?? datasets.length > 1 } },
       scales: {
         [labelAxis]: { grid: { display: false }, stacked: opts.stacked || false },
         [valueAxis]: { grid: { color: Theme.border }, stacked: opts.stacked || false },
@@ -171,7 +281,12 @@ function buildBarChart(ctx, labels, datasets, opts) {
 /** `opts.onClickIndex(i)`: called with the index of the clicked bar or slice */
 function clickHandler(opts) {
   if (!opts.onClickIndex) return undefined;
-  return (event, elements) => { if (elements.length) opts.onClickIndex(elements[0].index); };
+  // the nearest bar, slice or point (and its series): on a line chart the one under the pointer, not the first series
+  return (event, elements, chart) => {
+    const near = chart.getElementsAtEventForMode(event.native || event, "nearest", { intersect: false }, false);
+    const hit = near[0] || elements[0];
+    if (hit) opts.onClickIndex(hit.index, hit.datasetIndex);
+  };
 }
 
 /**
@@ -195,7 +310,7 @@ function buildDoughnutChart(ctx, labels, data, opts) {
       maintainAspectRatio: false,
       cutout: opts.pie ? 0 : "65%",
       onClick: clickHandler(opts),
-      plugins: { legend: { display: opts.legend !== false, position: opts.legendPosition || "right" } },
+      plugins: { legend: { display: false }, htmlLegend: { display: opts.legend !== false, list: opts.legendList } },
     },
   });
 }

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% from "partials/actions.html" import delete_button %}
-{% block page_title %}{{ _('Categorie') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Categorie') }}</li>{% endblock %}
+{% from "partials/info.html" import info %}
+{% block page_title %}{{ _('Categorie, gruppi e tag') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Categorie, gruppi e tag') }}</li>{% endblock %}
 
 {% macro nature_options(selected) %}
 <option value="">{{ _('— come la principale / variabile —') }}</option>
@@ -10,6 +11,17 @@
 
 {% block content %}
 
+<div class="statement-tabs" role="tablist" aria-label="{{ _('Elenchi') }}">
+  <button type="button" class="statement-tab" role="tab" data-names-tab="categorie" aria-selected="true"><i class="bi bi-tags"></i> {{ _('Categorie') }} <span class="text-xs text-muted">{{ categories|length }}</span></button>
+  <button type="button" class="statement-tab" role="tab" data-names-tab="gruppi" aria-selected="false"><i class="bi bi-diagram-3"></i> {{ _('Gruppi di spesa') }}</button>
+  <button type="button" class="statement-tab" role="tab" data-names-tab="tag" aria-selected="false"><i class="bi bi-hash"></i> {{ _('Tag') }} <span class="text-xs text-muted">{{ tags|length }}</span></button>
+</div>
+
+<div class="form-group mb-16" style="max-width:420px;">
+  <input type="search" id="names-search" class="form-control" placeholder="{{ _('Cerca nell’elenco…') }}" aria-label="{{ _('Cerca nell’elenco') }}" />
+</div>
+
+<div data-names-panel="categorie">
 <div class="card mb-16">
   <div class="card-header">
     <div>
@@ -44,7 +56,7 @@
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title">{{ _('Le tue categorie') }}</div>
+      <div class="card-header-title">{{ _('Le tue categorie') }} {{ info(_("Rinominare aggiorna tutte le transazioni; il nome di un'altra categoria le unisce.")) }}</div>
       <div class="card-header-sub">{{ _("Rinominare una categoria aggiorna tutte le sue transazioni; dare il nome di un'altra le unisce") }}</div>
     </div>
   </div>
@@ -56,7 +68,7 @@
       <tbody>
         {% for c in categories %}
         {% set form_id = 'cat-' ~ c.id %}
-        <tr {% if c.parent_id %}class="subcategory-row"{% endif %}>
+        <tr class="names-row{{ ' subcategory-row' if c.parent_id }}" data-search="{{ (c.name ~ ' ' ~ (c.hint or '') ~ ' ' ~ (by_id[c.parent_id].name if c.parent_id else ''))|lower }}">
           <td>{% if c.parent_id %}<span class="subcategory-mark" aria-hidden="true">↳</span>{% endif %}<input form="{{ form_id }}" name="name" class="form-control" value="{{ c.name }}" required aria-label="{{ _('Nome di %(name)s', name=c.name) }}" /></td>
           <td><select form="{{ form_id }}" name="parent" class="form-select" aria-label="{{ _('Categoria principale di %(name)s', name=c.name) }}"
                       {% if c.id in has_children %}disabled title="{{ _('Ha delle sottocategorie: resta principale') }}"{% endif %}>
@@ -101,4 +113,97 @@
   </div>
   {% endif %}
 </div>
+</div>
+
+<div data-names-panel="gruppi" hidden>
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Gruppi di spesa') }} {{ info(_('Il nuovo nome vale per tutte le transazioni del gruppo; vuoto torna al predefinito.')) }}</div>
+      <div class="card-header-sub">{{ _('Il nome compare nel registro, nello stile di vita e nei grafici') }}</div>
+    </div>
+  </div>
+  <form method="POST" action="{{ url_for('settings.cluster_save') }}">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{{ _('Nome') }}</th><th>{{ _('Predefinito') }}</th><th class="text-right">{{ _('Transazioni') }}</th></tr></thead>
+        <tbody>
+          {% for key, name, default in clusters %}
+          <tr class="names-row" data-search="{{ (name ~ ' ' ~ default)|lower }}">
+            <td><input name="name-{{ key }}" class="form-control" value="{{ name }}" placeholder="{{ default }}" maxlength="60" aria-label="{{ _('Nome del gruppo %(name)s', name=default) }}" /></td>
+            <td class="text-muted text-sm">{{ default }}</td>
+            <td class="text-right">{% if cluster_usage.get(key) %}<a href="{{ url_for('transactions.index', cluster=key) }}">{{ cluster_usage.get(key) }}</a>{% else %}0{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer d-flex" style="justify-content:flex-end;">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva i nomi') }}</button>
+    </div>
+  </form>
+</div>
+</div>
+
+<div data-names-panel="tag" hidden>
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Tag') }} {{ info(_('Rinominare aggiorna tutte le transazioni; il nome di un altro tag li unisce.')) }}</div>
+      <div class="card-header-sub">{{ _('I tag usati dalle transazioni, dal più usato') }}</div>
+    </div>
+  </div>
+  {% if tags %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Tag') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+        {% for tag, count in tags %}
+        {% set form_id = 'tag-' ~ loop.index %}
+        <tr class="names-row" data-search="{{ tag|lower }}">
+          <td><input form="{{ form_id }}" name="name" class="form-control" value="{{ tag }}" required aria-label="{{ _('Nome del tag %(name)s', name=tag) }}" /></td>
+          <td class="text-right"><a href="{{ url_for('transactions.index', tag=tag) }}">{{ count }}</a></td>
+          <td>
+            <div class="cell-actions">
+              <form method="POST" action="{{ url_for('settings.tag_save') }}" id="{{ form_id }}">
+                <input type="hidden" name="old_name" value="{{ tag }}" />
+                <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Salva') }}" aria-label="{{ _('Salva %(name)s', name=tag) }}"><i class="bi bi-check-lg"></i></button>
+              </form>
+              {{ delete_button(url_for('settings.tag_delete'), _('Togliere il tag «%(name)s» da %(count)s transazioni?', name=tag, count=count),
+                               _('Elimina %(name)s', name=tag), hidden={'name': tag}) }}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-muted text-sm">{{ _('Nessun tag ancora: aggiungili alle transazioni.') }}</div>
+  {% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const tabs = [...document.querySelectorAll('[data-names-tab]')];
+  const panels = [...document.querySelectorAll('[data-names-panel]')];
+  const search = document.getElementById('names-search');
+  const show = (name) => {
+    if (!panels.some(p => p.dataset.namesPanel === name)) name = 'categorie';
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.namesTab === name)));
+    panels.forEach(p => { p.hidden = p.dataset.namesPanel !== name; });
+    filter();
+  };
+  const filter = () => {
+    const words = search.value.toLocaleLowerCase().split(/\s+/).filter(Boolean);
+    document.querySelectorAll('.names-row').forEach(row => { row.hidden = !words.every(w => row.dataset.search.includes(w)); });
+  };
+  tabs.forEach(t => t.addEventListener('click', () => { history.replaceState(null, '', '#' + t.dataset.namesTab); show(t.dataset.namesTab); }));
+  search.addEventListener('input', filter);
+  show(location.hash.slice(1));
+})();
+</script>
 {% endblock %}

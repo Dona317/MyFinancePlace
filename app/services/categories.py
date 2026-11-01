@@ -112,6 +112,12 @@ PERSONAL_DEFAULTS = [
 ]
 SEEDED_PERSONAL_SETTING = "categories.seeded_personal"
 
+# Car costs of their own, under the car category (Auto, or the owner's Macchina); main categories if there is none
+CAR_PARENTS = ("Auto", "Macchina")
+CAR_DEFAULTS = [("Assicurazione auto", "RC auto, kasko, furto e incendio"),
+                ("Benzina e petroli", "benzina, gasolio, GPL, metano, distributori (Eni, Q8, IP, Tamoil…)")]
+SEEDED_CAR_SETTING = "categories.seeded_car"
+
 # How the spending of a category recurs (F8): a fixed cost every month, a cost that comes a few times a year,
 # or variable spending — the part that can be cut. Unlisted categories are variable.
 NATURES = {"fixed": _l("Fissa"), "periodic": _l("Non mensile"), "variable": _l("Variabile")}
@@ -145,6 +151,23 @@ def ensure_defaults() -> None:
         _seed_subcategories()
     if not settings_store.get(SEEDED_PERSONAL_SETTING):
         _seed_personal()
+    if not settings_store.get(SEEDED_CAR_SETTING):
+        _seed_car()
+
+
+def _seed_car() -> None:
+    """The car insurance and fuel categories, once, under the car category when there is one."""
+    rows = {c.name: c for c in Category.query.all()}
+    parent = next((rows[n] for n in CAR_PARENTS if n in rows and rows[n].parent_id is None), None)
+    position = max((c.position for c in rows.values()), default=-1) + 1
+    for name, hint in CAR_DEFAULTS:
+        if name in rows:
+            continue
+        db.session.add(Category(name=name, kind="expense", hint=hint, parent_id=parent.id if parent else None,
+                                nature="periodic" if name == "Assicurazione auto" else None, position=position))
+        position += 1
+    settings_store.set(SEEDED_CAR_SETTING, "1")  # commits the categories too
+    forget()
 
 
 def _seed_personal() -> None:

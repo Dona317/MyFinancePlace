@@ -167,8 +167,10 @@ a:hover { color: var(--clr-primary-hover); }
 }
 
 /* Roadmap badges: pages not in the MVP (see ROADMAP.md) */
+.nav-item .nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }  /* a long name ends in «…», its badge stays whole */
 .nav-badge {
   margin-left: auto;
+  flex-shrink: 0;
   padding: 1px 6px;
   font-size: 10px;
   font-weight: 600;
@@ -1164,8 +1166,12 @@ tfoot td {
                font-size: var(--font-size-sm); color: var(--clr-text-muted); padding: 16px; }
 .inline-filter { display: flex; gap: 6px; align-items: center; }
 .inline-filter .form-select { width: auto; }
-.statement-group { padding: 0 20px; }
-.statement-group-title { padding: 12px 0 6px; font-size: var(--font-size-xs); font-weight: 700; text-transform: uppercase;
+/* the rows of a statement run edge to edge like the card's header and footer; the text keeps the card's 20px inset */
+.statement-group { padding: 0; }
+.statement-group + .statement-group { border-top: 1px solid var(--clr-border-light); }
+.statement-group td:first-child { padding-left: 20px; }
+.statement-group td:last-child { padding-right: 20px; }
+.statement-group-title { padding: 12px 20px 6px; font-size: var(--font-size-xs); font-weight: 700; text-transform: uppercase;
                          letter-spacing: .06em; color: var(--clr-text-muted); }
 .statement-total { display: flex; justify-content: space-between; font-weight: 700; }
 .goal-card .goal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
@@ -1702,3 +1708,140 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .sort-th.sorted { color: var(--clr-primary); }
 .sort-th.sorted i { opacity: 1; }
 #preview-table tr[hidden] { display: none; }
+
+/* ── Windows over the page (confirmations, forms): centred on a dim background ── */
+.modal-overlay { display: none; position: fixed; inset: 0; z-index: 300; padding: 16px;
+  background: rgba(10, 20, 50, .55); backdrop-filter: blur(2px); align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--clr-bg-card); border: 1px solid var(--clr-border); border-radius: var(--border-radius-lg, 14px);
+  box-shadow: var(--shadow-lg); width: 100%; max-width: 600px; max-height: 92vh; display: flex; flex-direction: column;
+  animation: modal-in .16s ease; }
+.modal-lg { max-width: 760px; }
+.modal-sm { max-width: 420px; }
+@keyframes modal-in { from { opacity: 0; transform: translateY(-10px) scale(.98); } to { opacity: 1; transform: none; } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px;
+  border-bottom: 1px solid var(--clr-border-light); }
+.modal-title { margin: 0; font-size: var(--font-size-lg); font-weight: 700; color: var(--clr-text-primary); display: flex; align-items: center; gap: 10px; }
+.modal-close { width: 32px; height: 32px; border: none; background: none; border-radius: var(--border-radius-sm); cursor: pointer;
+  color: var(--clr-text-muted); font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: var(--clr-bg-input); color: var(--clr-text-primary); }
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--clr-border-light);
+  background: var(--clr-bg-input); border-radius: 0 0 var(--border-radius-lg, 14px) var(--border-radius-lg, 14px); }
+.confirm-overlay .modal-body { font-size: var(--font-size-md); }
+
+/* ── Transactions register: the search on top, the filters under it, the bulk-edit box, the quick edit ── */
+.register-search { padding: 14px 16px; display: grid; gap: 12px; margin: 0; }
+.register-search-main { display: flex; align-items: center; gap: 8px; }
+.register-search-main > i { color: var(--clr-text-muted); font-size: 18px; }
+.register-search-main input[type="search"] { flex: 1; font-size: var(--font-size-md); padding: 10px 12px; }
+.register-filters, .bulk-fields, .quick-fields { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; }
+.filter-field { display: flex; flex-direction: column; gap: 3px; margin: 0; min-width: 140px; }
+.filter-field > span { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--clr-text-muted); }
+.filter-field .form-select, .filter-field .form-control { min-width: 140px; }
+.filter-check { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); white-space: nowrap; padding-bottom: 8px; }
+.bulk-box > summary { cursor: pointer; list-style: none; }
+.bulk-box > summary::-webkit-details-marker { display: none; }
+.bulk-box[open] > summary { border-bottom: 1px solid var(--clr-border-light); }
+.bulk-box > summary .card-header-title::after { content: "\F282"; font-family: bootstrap-icons; font-size: 12px; margin-left: 8px; transition: transform .2s; }
+.bulk-box[open] > summary .card-header-title::after { transform: rotate(180deg); }
+.bulk-apply { align-self: flex-end; margin-bottom: 2px; }
+.tx-row { cursor: pointer; }
+.tx-row:hover td { background: var(--clr-bg-input); }
+.tx-row.editing td { background: var(--clr-primary-light); }
+.quick-row td { background: var(--clr-bg-input); padding: 14px 16px !important; }
+.quick-edit { display: grid; gap: 12px; margin: 0; }
+.quick-edit .type-switch { margin: 0; }
+.quick-wide { flex: 1 1 260px; }
+.quick-wide .form-control { width: 100%; }
+.quick-category { flex: 1 1 200px; }
+.quick-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.quick-error { margin-right: auto; color: var(--clr-negative); }
+
+/* ── The «i» of an explanation and its note card ── */
+.info-tip { display: inline-flex; align-items: center; justify-content: center; margin-left: 6px; color: var(--clr-text-muted);
+  cursor: help; font-size: 13px; line-height: 1; vertical-align: -1px; border-radius: 50%; flex-shrink: 0; }
+/* the selectors of the dashboard keep their title and its «i» on one line */
+.dash-select-title { display: inline-flex; align-items: center; white-space: nowrap; }
+.dash-select-title .info-tip { margin-left: 4px; font-size: 12px; }
+.info-tip:hover, .info-tip:focus-visible, .info-tip.on { color: var(--clr-primary); outline: none; }
+.info-card { position: fixed; z-index: 400; max-width: 300px; padding: 10px 12px; border-radius: var(--border-radius);
+  background: var(--clr-bg-card); color: var(--clr-text-primary); border: 1px solid var(--clr-border); box-shadow: var(--shadow-lg);
+  font-size: var(--font-size-xs); font-weight: 400; line-height: 1.5; text-transform: none; letter-spacing: normal; pointer-events: none;
+  white-space: pre-line; }  /* a tip may be a list, one item per line */
+.info-card[hidden] { display: none; }
+
+/* ── Drop-downs you can search ── */
+.combo { position: relative; min-width: 0; }
+.combo-select { display: none !important; }
+.combo-input { width: 100%; padding-right: 28px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--clr-text-muted) 50%), linear-gradient(135deg, var(--clr-text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%; background-size: 5px 5px; background-repeat: no-repeat; }
+.combo-input:focus { cursor: text; }
+.combo-list { position: absolute; z-index: 250; top: calc(100% + 4px); left: 0; min-width: 100%; max-width: 420px; max-height: 280px;
+  overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: var(--clr-bg-card); border: 1px solid var(--clr-border);
+  border-radius: var(--border-radius); box-shadow: var(--shadow-lg); }
+.combo-list[hidden] { display: none; }
+.combo-option { padding: 6px 10px; border-radius: var(--border-radius-sm); font-size: var(--font-size-sm); color: var(--clr-text-primary);
+  cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.combo-option.active, .combo-option:hover { background: var(--clr-bg-input); }
+.combo-option.selected { color: var(--clr-primary); font-weight: 600; }
+.combo-option.disabled { opacity: .45; cursor: default; }
+.combo-group { padding: 8px 10px 2px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--clr-text-muted); }
+.combo-empty { padding: 8px 10px; font-size: var(--font-size-xs); color: var(--clr-text-muted); }
+
+/* ── Import preview: save / cancel on top and at the bottom; long descriptions that open ── */
+.preview-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+.preview-actions-top { margin-bottom: 16px; padding: 10px 14px; background: var(--clr-bg-card); border: 1px solid var(--clr-border);
+  border-radius: var(--border-radius); position: sticky; top: 8px; z-index: 30; box-shadow: var(--shadow-sm); }
+.preview-actions-top > span { margin-right: auto; }
+.preview-actions-bottom { margin-top: 16px; }
+.long-cell { position: relative; }
+.long-text { padding: 6px 28px 6px 8px; resize: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; height: 34px; line-height: 1.5; }
+.long-cell.open .long-text { white-space: pre-wrap; overflow: auto; }
+.long-toggle { position: absolute; right: 4px; top: 6px; border: none; background: none; color: var(--clr-text-muted); cursor: pointer; padding: 2px 4px; }
+.long-toggle:hover { color: var(--clr-primary); }
+.long-details { margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── «To the bottom»: a round button, bottom right, while a long list is scrolled ── */
+.to-bottom { position: fixed; right: 24px; bottom: 24px; z-index: 90; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--clr-border); background: var(--clr-bg-card); color: var(--clr-primary); box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+.to-bottom[hidden] { display: none; }
+.to-bottom:hover { background: var(--clr-primary); color: var(--clr-on-primary); }
+
+/* «(opzionale)» next to a field's name: lighter and smaller than the name */
+.label-optional { font-weight: 400; font-size: var(--font-size-xs); color: var(--clr-text-muted); opacity: .8; }
+
+/* ── Chart legends. A pie: legend on its right, columns that scroll sideways. A line or bar chart: one row above it
+   that scrolls sideways. The chart takes the rest of its box. ── */
+.chart-with-legend { display: flex; gap: 12px; }
+.chart-with-legend.legend-top { flex-direction: column; gap: 6px; }
+.chart-canvas { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; }
+.legend-side .chart-canvas { flex: 0 0 auto; height: 100%; aspect-ratio: 1; max-width: 45%; }
+.chart-legend { min-width: 0; }
+.chart-legend-list { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px 4px; }
+.chart-legend-item { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: none; border-radius: 999px;
+  background: none; color: var(--clr-text-secondary); font-size: var(--font-size-sm); white-space: nowrap; cursor: pointer; }
+.chart-legend-item:hover { background: var(--clr-bg-input); }
+.chart-legend-item[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
+.chart-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.chart-legend-all { flex-shrink: 0; padding: 2px 8px; border: 1px solid var(--clr-border); border-radius: 999px; background: none;
+  color: var(--clr-text-muted); font-size: 11px; white-space: nowrap; cursor: pointer; }
+.chart-legend-all:hover { color: var(--clr-primary); border-color: var(--clr-primary); }
+/* beside a pie: the button on top, then columns filled top to bottom, more columns to the right */
+.legend-side .chart-legend { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.legend-side .chart-legend-list, .legend-side .category-legend { flex: 1 1 0; min-height: 0; width: 100%; display: flex; flex-direction: column;
+  flex-wrap: wrap; align-content: flex-start; overflow-x: auto; overflow-y: hidden; margin: 0; gap: 4px 14px; }
+.legend-side .category-legend li { width: max-content; max-width: 220px; }  /* each column as wide as its entries */
+.legend-side .category-legend-name { overflow: visible; }
+/* above a line or bar chart: one row, the button at its end */
+.legend-top .chart-legend { display: flex; align-items: center; gap: 8px; }
+.legend-top .chart-legend-list { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; }
+.legend-top .chart-legend-all { order: 1; }
+/* a legend with no box of its own goes under the chart */
+.chart-legend:not(.legend-side *):not(.legend-top *) { margin-top: 12px; }
+.chart-legend:not(.legend-side *):not(.legend-top *) .chart-legend-list { flex-wrap: wrap; justify-content: center; max-height: 132px; overflow-y: auto; }
+.category-legend .category-legend-dot[role="button"] { cursor: pointer; }
+.category-legend li.off .category-legend-dot { opacity: .3; }
+.category-legend li.off .category-legend-name, .category-legend li.off .category-legend-value { opacity: .45; text-decoration: line-through; }

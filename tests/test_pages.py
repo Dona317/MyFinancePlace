@@ -89,7 +89,7 @@ def test_sidebar_sections_are_collapsible(client, app):
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
     # (the links and the New transaction button; section titles have one too)
     links = len(re.findall(r'class="nav-item', html)) + len(re.findall(r'class="btn btn-primary nav-new"', html))
-    assert links == len(re.findall(r'<span class="nav-label">', html)) - len(sections)
+    assert links == len(re.findall(r'<span class="nav-label"[ >]', html)) - len(sections)
     assert 'href="/transactions/add"' in sidebar
 
 

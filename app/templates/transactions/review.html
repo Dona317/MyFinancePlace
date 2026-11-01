@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 
 {% block title %}{{ _('Controllo registro') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Controllo registro') }}{% endblock %}
@@ -13,7 +14,7 @@
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title">{{ _('Probabili errori nel registro') }}</div>
+      <div class="card-header-title">{{ _('Probabili errori nel registro') }} {{ info(_('Propone correzioni agli errori probabili; nulla cambia finché non premi Applica.')) }}</div>
       <div class="card-header-sub">
         {{ _('Controllate %(count)s transazioni della ricerca', count=checked) }}{% if checked >= limit %} ({{ _('le prime %(limit)s, dalla più recente', limit=limit) }}){% endif %}
         · {{ _('Regole, causali e %(ai)s', ai=ai_classifier or _('nessun modello AI')) }}

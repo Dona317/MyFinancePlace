@@ -21,7 +21,7 @@ from app.services import (
     valuations,
     wealth,
 )
-from app.services.periods import shift_month
+from app.services.periods import month_index, month_label, month_labels, month_start, shift_month
 from app.services.ui_settings import autonomy_target, current_settings
 
 dashboard_bp = APIBlueprint(
@@ -41,7 +41,7 @@ SHOCKS = (("car", 4000), ("appliance", 700), ("house", 8000), ("health", 2500))
 
 def _translated(trend: dict) -> dict:
     """Series names like «Altre» / «Senza categoria» in the interface language (user categories stay as they are)."""
-    return {**trend, "datasets": [{**ds, "label": i18n.tr(ds["label"])} for ds in trend["datasets"]]}
+    return {**trend, "datasets": [{**ds, "key": ds["label"], "label": i18n.tr(ds["label"])} for ds in trend["datasets"]]}
 
 
 def _part_bounds(year: int, part: str) -> tuple[date, date]:
@@ -137,9 +137,38 @@ def _health(kpis: dict, cash_flow: dict) -> dict:
     }
 
 
-def _net_worth_trend(today: date) -> dict:
-    """The last 12 month-ends: cash, investments, other assets and debts, and the net worth they make."""
-    ends = list(reversed(wealth.month_ends(12, today)))
+def part_label(year: int, part: str) -> str:
+    """Short name of the charts' period: «2026», «1H26», «2Q26 (Apr–Giu)»."""
+    if part == "year":
+        return str(year)
+    number, kind = part[1], part[0]
+    if kind == "H":
+        return f"{number}{kind}{year % 100:02d}"
+    names = month_labels()
+    first = (int(number) - 1) * 3
+    return f"{number}{kind}{year % 100:02d} ({names[first]}–{names[first + 2]})"
+
+
+def _chart_months(start: date, end: date, today: date) -> range:
+    """The month indexes of the charts' period, up to the current month."""
+    return range(month_index(start), min(month_index(end) - 1, month_index(today)) + 1)
+
+
+def _flow(months: range) -> dict:
+    """Income and expenses of each month of the period."""
+    labels, income, expenses = [], [], []
+    for index in months:
+        totals = analytics.totals(month_start(index), month_start(index + 1))
+        labels.append(month_label(index))
+        income.append(totals["income"])
+        expenses.append(totals["expenses"])
+    return {"labels": labels, "income": income, "expenses": expenses}
+
+
+def _net_worth_trend(months: range, today: date) -> dict:
+    """Each month-end of the period (today for the current month): cash, investments, other assets and debts, and
+    the net worth they make."""
+    ends = [min(month_start(index + 1) - timedelta(days=1), today) for index in months]
     rows = [wealth.balance_sheet(d) for d in ends]
     return {
         "labels": [d.strftime("%m/%y") for d in ends],
@@ -166,12 +195,11 @@ def dashboard():
     layout = [w for w in dashboard_prefs.layout() if settings.get(dashboard_prefs.WIDGETS[w["id"]][2], True)]
     shown = {w["id"] for w in layout if w["visible"]}
     kpis = analytics.dashboard_kpis(today)
-    cash_flow = analytics.last_12_months(today)
+    last_12 = analytics.last_12_months(today)  # the financial health is about the last 12 months, whatever the period
     # The totals by category, their monthly lines and the running totals: one year (the current one by default)
     years = analytics.available_years()
     year = year_arg(today.year, choices=years)
     months = analytics.months_to_show(year, today)
-    year_start, year_end = analytics.year_bounds(year)
     # The doughnuts: the whole year, a half or a quarter (remembered)
     part = request.args.get("part")
     if part in PIE_PARTS:
@@ -179,6 +207,17 @@ def dashboard():
     part = settings_store.get(PIE_PART_SETTING, "year")
     part = part if part in PIE_PARTS else "year"
     pie_start, pie_end = _part_bounds(year, part)
+    # every chart of the page follows the same period: the year chosen, a half or a quarter of it
+    chart_months = _chart_months(pie_start, pie_end, today)
+    cash_flow = _flow(chart_months)
+    first, last = pie_start.month - 1, pie_start.month - 1 + len(chart_months)
+
+    def trend_of(kind: str) -> dict:
+        trend = _translated(analytics.monthly_category_trend(year, TREND_LINES, kind, months, other=True))
+        return {**trend, "labels": trend["labels"][first:last],
+                "datasets": [{**ds, "data": ds["data"][first:last]} for ds in trend["datasets"]]}
+
+    period_totals = analytics.totals(pie_start, pie_end)
     cards = _window_cards(today)
     window = cards["expenses"]
     recent = (Transaction.query.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(8).all()
@@ -198,16 +237,17 @@ def dashboard():
         year=year, years=years, part=part, pie_parts=PIE_PARTS, pie_start=pie_start, pie_last=pie_end - timedelta(days=1),
         expense_breakdown=analytics.category_breakdown(pie_start, pie_end, "expense"),
         income_breakdown=analytics.category_breakdown(pie_start, pie_end, "income"),
-        expense_trend=_translated(analytics.monthly_category_trend(year, TREND_LINES, "expense", months, other=True)),
-        income_trend=_translated(analytics.monthly_category_trend(year, TREND_LINES, "income", months, other=True)),
-        cumulative=analytics.cumulative_series(year, months),
+        expense_trend=trend_of("expense"),
+        income_trend=trend_of("income"),
+        period_totals=period_totals,
+        part_labels={p: part_label(year, p) for p in PIE_PARTS}, period_label=part_label(year, part),
         savings=analytics.savings_rates_by_year(today),
-        sankey=sankey.flow(year_start, year_end) if "sankey" in shown else None,
-        year_start=year_start, year_last=year_end - timedelta(days=1),
-        net_worth_trend=_net_worth_trend(today) if "net_worth" in shown else None,
+        sankey=sankey.flow(pie_start, pie_end) if "sankey" in shown else None,
+        year_start=pie_start, year_last=pie_end - timedelta(days=1),
+        net_worth_trend=_net_worth_trend(chart_months, today) if "net_worth" in shown and chart_months else None,
         recent_transactions=recent,
         impact_transactions=impact,
-        health=_health(kpis, cash_flow),
+        health=_health(kpis, last_12),
         budget_alerts=budgets.alerts(today),
         autonomy_target=autonomy_target(),
         layout=layout,

@@ -19,6 +19,7 @@ from app.services import (
     ai_models,
     categories,
     category_rules,
+    clusters,
     currency,
     dashboard_prefs,
     desktop,
@@ -28,6 +29,7 @@ from app.services import (
     settings_store,
     taxonomies,
 )
+from app.services import tags as tag_names
 from app.services.bank_import import CATEGORY_RULES
 from app.services.instrument_sources import custom
 
@@ -113,7 +115,44 @@ def categories_page():
     return render_template("settings/categories.html", categories=ordered, by_id=by_id,
                            mains=[c.name for c in mains], has_children={c.parent_id for c in rows},
                            usage=categories.usage(), kinds=categories.KINDS, natures=categories.NATURES,
-                           unmanaged=sorted(categories.used_names() - {c.name for c in rows}))
+                           unmanaged=sorted(categories.used_names() - {c.name for c in rows}),
+                           clusters=[(key, clusters.label(key), clusters.tr(default)) for key, default in clusters.CLUSTERS.items()],
+                           cluster_usage=_cluster_usage(), tags=tag_names.usage())
+
+
+def _cluster_usage() -> dict[str, int]:
+    from sqlalchemy import func
+
+    from app.models.transaction import Transaction
+    rows = db.session.query(Transaction.cluster, func.count()).filter(Transaction.cluster.isnot(None)).group_by(Transaction.cluster)
+    return dict(rows.all())
+
+
+@settings_bp.route("/clusters/save", methods=["POST"])
+def cluster_save():
+    """Rename the spending groups: every transaction shows the new name, the past ones too."""
+    for key in clusters.CLUSTERS:
+        if f"name-{key}" in request.form:
+            clusters.rename(key, request.form.get(f"name-{key}", ""))
+    flash(_("Nomi dei gruppi di spesa salvati."), "success")
+    return redirect(url_for("settings.categories_page", _anchor="gruppi"))
+
+
+@settings_bp.route("/tags/save", methods=["POST"])
+def tag_save():
+    """Rename a tag on all its transactions (the name of another tag merges the two)."""
+    old, new = request.form.get("old_name") or "", request.form.get("name") or ""
+    changed = tag_names.rename(old, new)
+    if changed:
+        flash(_("Tag «%(old)s» rinominato in «%(name)s» su %(count)s transazioni.", old=old, name=new.strip(), count=changed), "success")
+    return redirect(url_for("settings.categories_page", _anchor="tag"))
+
+
+@settings_bp.route("/tags/delete", methods=["POST"])
+def tag_delete():
+    tag = request.form.get("name") or ""
+    flash(_("Tag «%(name)s» tolto da %(count)s transazioni.", name=tag, count=tag_names.delete(tag)), "success")
+    return redirect(url_for("settings.categories_page", _anchor="tag"))
 
 
 @settings_bp.route("/categories/save", methods=["POST"])

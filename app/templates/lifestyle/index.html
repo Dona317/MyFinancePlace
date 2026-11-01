@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
@@ -50,7 +51,7 @@
 <div class="card mb-16 nature-card">
   <div class="card-header">
     <div>
-      <div class="card-header-title">{{ _('Natura delle spese') }}</div>
+      <div class="card-header-title">{{ _('Natura delle spese') }} {{ info(_("• Fissa: ogni mese (affitto, bollette)\n• Non mensile: poche volte l'anno (tasse, assicurazioni)\n• Variabile: la parte che si può ridurre")) }}</div>
       <div class="card-header-sub">{{ _('Anno %(year)s · la natura si sceglie in Impostazioni → Categorie', year=year) }}</div>
     </div>
     <a href="{{ url_for('settings.categories_page') }}" class="btn btn-ghost btn-sm">{{ _('Categorie') }}</a>
@@ -81,7 +82,7 @@
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title">{{ _('Spese per gruppo e categoria') }}</div>
+      <div class="card-header-title">{{ _('Spese per gruppo e categoria') }} {{ info(_('Le uscite per gruppo di spesa e, dentro, per categoria.')) }}</div>
       <div class="card-header-sub">{{ _('Anno %(year)s: prima il gruppo di spesa, poi le categorie che lo compongono', year=year) }}</div>
     </div>
   </div>
@@ -98,7 +99,8 @@
         <ul class="category-legend cluster-categories">
           {% for c in g.categories %}
           <li>
-            <span class="category-legend-name">{{ c.category|tr }}</span>
+            <a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type='expense', start='%d-01-01' % year, end='%d-12-31' % year) }}"
+               title="{{ _('Transazioni di «%(category)s» nel periodo', category=c.category|tr) }}">{{ c.category|tr }}</a>
             <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
           </li>
           {% endfor %}

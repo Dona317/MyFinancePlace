@@ -51,7 +51,7 @@ def test_settings_page_sets_the_main_category(client, db):
     client.post("/settings/categories/save", data={"name": "Palestra", "kind": "expense", "parent": "Salute"})
     assert categories.parents()["Palestra"] == "Salute"
     html = client.get("/settings/categories").get_data(as_text=True)
-    assert "Sottocategoria di" in html and 'class="subcategory-row"' in html
+    assert "Sottocategoria di" in html and 'subcategory-row' in html
     page = client.post("/settings/categories/save", data={"name": "Salute", "old_name": "Salute", "kind": "expense",
                                                           "parent": "Casa"}, follow_redirects=True)
     assert "ha delle sottocategorie" in page.get_data(as_text=True)

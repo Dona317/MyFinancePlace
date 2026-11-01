@@ -131,7 +131,7 @@
           <label class="form-label" for="f-cluster">{{ _('Gruppo di spesa') }} <span class="text-muted" style="font-weight:400;">{{ _('(sopra la categoria, solo uscite)') }}</span></label>
           <select id="f-cluster" name="cluster" class="form-select">
             <option value="">{{ _('Automatico (dalle regole)') }}</option>
-            {% for key, name in cluster_choices.items() %}<option value="{{ key }}" {{ 'selected' if v.cluster == key }}>{{ name|tr }}</option>{% endfor %}
+            {% for key, name in cluster_choices.items() %}<option value="{{ key }}" {{ 'selected' if v.cluster == key }}>{{ name }}</option>{% endfor %}
           </select>
           <div class="form-hint">{{ _('Automatico: usa la scelta fatta per transazioni simili, altrimenti la categoria. Scegliere un gruppo a mano lo ricorda.') }}</div>
         </div>

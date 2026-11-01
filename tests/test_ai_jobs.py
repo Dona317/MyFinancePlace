@@ -113,7 +113,7 @@ def test_reading_runs_in_the_background_with_progress_then_shows_the_preview(cli
     assert 'name="payload"' in html
 
     # the upload and the job are gone once the preview is shown
-    assert client.get(location).status_code == 302 and client.get(location).location.endswith("/export/")
+    assert client.get(location).status_code == 302 and client.get(location).location.endswith("/export/import")
     assert client.get(location + "/status").status_code == 404
 
 
@@ -212,5 +212,5 @@ def test_double_submit_keeps_the_running_job(client, fake_model, db):
 
 def test_unknown_or_finished_upload(client, db):
     assert client.get("/export/bank/ai/" + "x" * 32 + "/status").status_code == 404
-    assert client.get("/export/bank/ai/" + "x" * 32 + "/wait").location.endswith("/export/")
-    assert client.get("/export/bank/ai/" + "x" * 32 + "/result").location.endswith("/export/")
+    assert client.get("/export/bank/ai/" + "x" * 32 + "/wait").location.endswith("/export/import")
+    assert client.get("/export/bank/ai/" + "x" * 32 + "/result").location.endswith("/export/import")

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 
 {% block title %}{{ _('Importa') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Importa movimenti') }}{% endblock %}
@@ -35,7 +36,7 @@
                accept=".xlsx,.xls,.csv,.pdf,.txt,.docx,.doc,.ods,.odt,.rtf,.tsv,.jpg,.jpeg,.png,.webp,.ofx,.qfx,.qif,.xml" required />
       </div>
       <div class="form-group" style="margin:0;">
-        <label class="form-label">{{ _('Banca') }}</label>
+        <label class="form-label">{{ _('Banca') }} {{ info(_("Seleziona la banca delle transazioni; se non c'è, crea prima il conto in Conti.")) }}</label>
         <select name="bank" class="form-select">
           <option value="auto">{{ _('Rilevamento automatico') }}</option>
           {% for key, bank in banks.items() %}
@@ -47,15 +48,6 @@
         <i class="bi bi-search"></i> {{ _('Analizza file') }}
       </button>
     </form>
-    <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
-      <strong>{{ _('Fineco:') }}</strong> {{ _('Conto → Movimenti → Esporta in Excel.') }}
-      <strong>{{ _('Intesa Sanpaolo:') }}</strong> {{ _('Conto corrente → Lista movimenti → Esporta Excel.') }}
-      <strong>{{ _('Revolut:') }}</strong> {{ _('Conto → Estratto conto → Excel/CSV.') }}
-      <strong>N26:</strong> {{ _('Transazioni → Scarica CSV. Riconosciuti anche UniCredit, BPER, BancoPosta e ING.') }}
-      <strong>{{ _('Altre banche:') }}</strong> {{ _('qualsiasi file con colonne Data, Descrizione e Importo (o Entrate/Uscite, Dare/Avere).') }}
-      {% if not ai_reader %}{{ _("I PDF devono essere quelli originali dell'home banking (non scansioni).") }}{% endif %}
-      {{ _("Prima dell'importazione potrai controllare e modificare ogni movimento.") }}
-    </p>
     <p style="font-size:var(--font-size-xs);margin-top:8px;display:flex;align-items:center;gap:6px;">
       <i class="bi bi-stars" style="color:var(--clr-primary);"></i>
       {% if ai_reader %}
@@ -73,8 +65,8 @@
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> {{ _('Importa CSV o Excel con mappatura manuale') }}</div>
-      <div class="card-header-sub">{{ _('Per file con un formato non riconosciuto: scegli tu quali colonne usare') }}</div>
+      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> {{ _('Importa CSV o Excel con mappatura manuale') }} {{ info(_('Servono Data, Descrizione e Importo con segno (oppure Uscite ed Entrate).')) }}</div>
+      <div class="card-header-sub">{{ _('Se il formato del tuo file non viene riconosciuto') }}</div>
     </div>
   </div>
   <div class="card-body">
@@ -86,7 +78,7 @@
         <div style="font-weight:700;color:var(--clr-text-primary);margin-bottom:12px;">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
                        background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">1</span>
-          {{ _('Carica il file') }}
+          {{ _('Carica il file') }} {{ info(_('Si legge il primo foglio; date AAAA-MM-GG o GG/MM/AAAA.')) }}
         </div>
         <label id="import-drop" class="import-drop">
           <i class="bi bi-cloud-upload" style="font-size:28px;color:var(--clr-text-muted);display:block;margin-bottom:8px;"></i>
@@ -95,9 +87,6 @@
           </span>
           <input type="file" name="file" id="import-file" accept=".csv,.txt,.tsv,.xlsx,.xlsm,.xls,.ods" style="display:none;" />
         </label>
-        <p style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:12px;">
-          {{ _('Dei fogli Excel si legge il primo; le righe di intestazione della banca sopra i titoli delle colonne vengono saltate. Senza colonna Tipo, gli importi negativi diventano uscite e quelli positivi entrate. Date accettate: AAAA-MM-GG o GG/MM/AAAA (nei file Excel anche le celle di tipo data).') }}
-        </p>
         <p id="import-status" class="text-xs" role="status" style="margin-top:8px;"></p>
         {% if ai_classifier %}
         <button type="button" class="btn btn-outline btn-sm" id="import-ask-ai" hidden
@@ -114,18 +103,19 @@
                        background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">2</span>
           {{ _('Mappa le colonne') }}
         </div>
-        {% for field, label, required in [
-          ('date', _('Colonna Data'), true),
-          ('amount', _('Colonna Importo (con segno)'), false),
-          ('debit', _('oppure Colonna Uscite / Dare'), false),
-          ('credit', _('e Colonna Entrate / Avere'), false),
-          ('description', _('Colonna Descrizione'), true),
-          ('category', _('Colonna Categoria'), false),
-          ('type', _('Colonna Tipo (income/expense/transfer)'), false),
-          ('counterparty', _('Colonna Controparte (diventa un tag)'), false),
+        {# need: "*" required, "alt" instead of the amount, "" optional #}
+        {% for field, label, required, need, tip in [
+          ('date', _('Colonna Data'), true, '*', _('Es. 15/08/2026 o 2026-08-15.')),
+          ('amount', _('Colonna Importo (con segno)'), false, '*', _('Numero con segno: −50,00 è un’uscita.')),
+          ('debit', _('oppure Colonna Uscite / Dare'), false, 'alt', _('Importi in uscita, senza segno.')),
+          ('credit', _('e Colonna Entrate / Avere'), false, 'alt', _('Importi in entrata, senza segno.')),
+          ('description', _('Colonna Descrizione'), true, '*', _('Il testo del movimento.')),
+          ('category', _('Colonna Categoria'), false, '', _('Es. Alimentari; se manca viene proposta.')),
+          ('type', _('Colonna Tipo (income/expense/transfer)'), false, '', _('income, expense o transfer; se manca decide il segno.')),
+          ('counterparty', _('Colonna Controparte (diventa un tag)'), false, '', _('Chi paga o riceve; diventa un tag.')),
         ] %}
         <div class="form-group">
-          <label class="form-label">{{ label }}{% if not required %} <span class="text-muted">{{ _('(opzionale)') }}</span>{% endif %}</label>
+          <label class="form-label">{{ label }}{% if need == '*' %} <span class="text-negative">*</span>{% elif need == 'alt' %} <span class="label-optional">{{ _('(in alternativa all’importo)') }}</span>{% else %} <span class="label-optional">{{ _('(opzionale)') }}</span>{% endif %} {{ info(tip) }}</label>
           <select name="col_{{ field }}" class="form-select import-col" data-field="{{ field }}" data-required="{{ required|lower }}" disabled>
             <option value="">{{ _('— Carica prima un file —') }}</option>
           </select>

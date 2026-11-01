@@ -9,6 +9,7 @@ class _FormParser(HTMLParser):
         self.form_id, self.inside, self.fields = form_id, False, []
         self._select, self._select_disabled, self._first_option = None, False, None
         self._in_template = False
+        self._textarea = None  # [name, text] while inside a <textarea>
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -25,7 +26,10 @@ class _FormParser(HTMLParser):
         belongs = self.inside or a.get("form") == self.form_id
         if not belongs or "name" not in a:
             return
-        if tag == "select":
+        if tag == "textarea":
+            if "disabled" not in a:
+                self._textarea = [a["name"], ""]
+        elif tag == "select":
             self._select, self._select_disabled, self._first_option = a["name"], "disabled" in a, None
         elif tag == "input" and "disabled" not in a:
             kind = a.get("type", "text")
@@ -45,8 +49,15 @@ class _FormParser(HTMLParser):
                 self.fields.append((self._select, a.get("value", "")))
             self._select = None
 
+    def handle_data(self, data):
+        if self._textarea is not None:
+            self._textarea[1] += data
+
     def handle_endtag(self, tag):
-        if tag == "template":
+        if tag == "textarea" and self._textarea is not None:
+            self.fields.append(tuple(self._textarea))
+            self._textarea = None
+        elif tag == "template":
             self._in_template = False
         elif tag == "form" and self.inside:
             self.inside = False

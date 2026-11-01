@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
 from app.models.cluster import ClusterRule
 from app.models.transaction import Transaction
-from app.services import request_cache
+from app.services import request_cache, settings_store
 from app.services.categories import all_categories
 from app.services.i18n import N_, tr
 from app.services.parsing import normalize
@@ -23,10 +23,38 @@ NECESSARY, LIFESTYLE, SAVING = "necessary", "lifestyle", "saving"
 CLUSTERS = {NECESSARY: N_("Necessità"), LIFESTYLE: N_("Scelte e svago"), SAVING: N_("Risparmio e investimenti")}
 MIN_KEYWORD = 3  # as for the category rules: shorter words would match too much
 SAVING_WORDS = ("invest", "risparm", "pension", "titoli", "etf", "fondi")
+NAMES_SETTING = "clusters.names"  # {cluster: the name the user gave it}
+
+
+def custom_names() -> dict[str, str]:
+    names = settings_store.get_json(NAMES_SETTING, {}, expect=dict)
+    return {k: v for k, v in names.items() if k in CLUSTERS and isinstance(v, str) and v.strip()}
 
 
 def label(cluster: str | None) -> str:
-    return tr(CLUSTERS[cluster]) if cluster in CLUSTERS else ""
+    """The group's name: the one the user gave it, else the default in the interface language."""
+    if cluster not in CLUSTERS:
+        return ""
+    return custom_names().get(cluster) or tr(CLUSTERS[cluster])
+
+
+def choices() -> dict[str, str]:
+    """{cluster: its name}, for the lists."""
+    return {key: label(key) for key in CLUSTERS}
+
+
+def rename(cluster: str, name: str) -> None:
+    """Give a group another name (empty: back to the default). Transactions store the group, not its name,
+    so all of them, past ones too, show the new name."""
+    if cluster not in CLUSTERS:
+        raise ValueError(cluster)
+    names = custom_names()
+    name = " ".join((name or "").split())[:60]
+    if name and name != tr(CLUSTERS[cluster]):
+        names[cluster] = name
+    else:
+        names.pop(cluster, None)
+    settings_store.set_json(NAMES_SETTING, names)
 
 
 def _clean(text: str | None) -> str:

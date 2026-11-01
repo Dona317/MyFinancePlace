@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% from "partials/kpi.html" import kpi %}
 {% import "partials/fields.html" as f %}
 
@@ -114,10 +115,17 @@
 
 <form method="POST" action="{{ url_for('export.bank_confirm') }}" id="preview-form">
   <input type="hidden" name="payload" value="{{ payload }}" />
+  <div class="preview-actions preview-actions-top">
+    <span class="text-xs text-muted">{{ _('Controlla conto, banca e righe, poi salva') }}</span>
+    <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost btn-sm"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
+    <button type="submit" class="btn btn-primary btn-sm import-button">
+      <i class="bi bi-check2-all"></i> {{ _('Salva') }} <span class="selected-count">0</span> {{ _('movimenti') }}
+    </button>
+  </div>
   {% if accounts %}
   <div class="card mb-16">
     <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;">
-      <label class="form-label" for="import-account" style="margin:0;"><i class="bi bi-bank"></i> {{ _('Conto da cui proviene l’estratto') }} <span class="text-negative">*</span></label>
+      <label class="form-label" for="import-account" style="margin:0;"><i class="bi bi-bank"></i> {{ _('Conto da cui proviene l’estratto') }} <span class="text-negative">*</span> {{ info(_('Seleziona il conto a cui associare queste transazioni; il predefinito è segnato con ★.')) }}</label>
       {% set required = accounts|rejectattr('kind', 'equalto', 'cash')|list %}
       <select id="import-account" name="account_id" class="form-select" style="width:auto;" {{ 'required' if required }}>
         <option value="" {{ 'disabled' if required }} {{ 'selected' if not suggested_account }}>{{ _('— Scegli il conto —') }}</option>
@@ -138,7 +146,7 @@
   <div class="card mb-16 transfers-summary">
     <div class="card-header">
       <div>
-        <div class="card-header-title"><i class="bi bi-arrow-left-right"></i> {{ ngettext('%(num)d probabile giroconto', '%(num)d probabili giroconti', transfers|length) }}</div>
+        <div class="card-header-title"><i class="bi bi-arrow-left-right"></i> {{ ngettext('%(num)d probabile giroconto', '%(num)d probabili giroconti', transfers|length) }} {{ info(_('Stesso importo uscito e rientrato tra due tuoi conti: non conta come spesa né come entrata.')) }}</div>
         <div class="card-header-sub">{{ _('Soldi spostati tra i tuoi conti: non sono né entrate né uscite. Sono già impostati come giroconti; togli la spunta «Collega» nella riga per tenerne uno separato.') }}</div>
       </div>
     </div>
@@ -169,7 +177,7 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Controlla e correggi i movimenti') }}</div>
+        <div class="card-header-title">{{ _('Controlla e correggi i movimenti') }} {{ info(_('Togli la spunta alle righe da non salvare.')) }}</div>
         <div class="card-header-sub">{{ _('Ogni campo è modificabile. Deseleziona le righe da escludere, eliminale con') }} <i class="bi bi-trash3"></i> {{ _('o aggiungine di nuove.') }}</div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;">
@@ -242,9 +250,12 @@
             <td><input type="date" name="date-{{ i }}" value="{{ row.date.isoformat() }}" class="form-control row-field"
                        style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} /></td>
             <td>
-              <input type="text" name="description-{{ i }}" value="{{ row.description }}" class="form-control row-field"
-                     style="padding:6px 8px;" required {{ '' if checked else 'disabled' }} />
-              {% if row.details %}<div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:2px;">{{ row.details|truncate(90) }}</div>{% endif %}
+              <div class="long-cell">
+                <textarea name="description-{{ i }}" rows="1" class="form-control row-field long-text" title="{{ row.description }}"
+                          required {{ '' if checked else 'disabled' }}>{{ row.description }}</textarea>
+                <button type="button" class="long-toggle" title="{{ _('Mostra tutta la descrizione') }}" aria-label="{{ _('Mostra tutta la descrizione') }}"><i class="bi bi-chevron-down"></i></button>
+              </div>
+              {% if row.details %}<div class="text-xs text-muted long-details" title="{{ row.details }}">{{ row.details|truncate(90) }}</div>{% endif %}
               <input type="text" name="counterparty-{{ i }}" value="{{ row.counterparty or '' }}" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
                      style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" {{ '' if checked else 'disabled' }} />
               {% if row.pairs_with %}
@@ -308,10 +319,10 @@
 
   {{ f.category_datalist("category-options", categories) }}
 
-  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+  <div class="preview-actions preview-actions-bottom">
     <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
-    <button type="submit" class="btn btn-primary" id="import-button">
-      <i class="bi bi-check2-all"></i> {{ _('Salva') }} <span id="selected-count">0</span> {{ _('movimenti') }}
+    <button type="submit" class="btn btn-primary import-button" id="import-button">
+      <i class="bi bi-check2-all"></i> {{ _('Salva') }} <span class="selected-count" id="selected-count">0</span> {{ _('movimenti') }}
     </button>
   </div>
 </form>
@@ -326,6 +337,22 @@
   .ai-low { border-color: var(--clr-warning) !important; box-shadow: 0 0 0 2px rgba(230, 145, 20, .18); }
 </style>
 <script>
+// Long descriptions: one line, the whole text on hover; the arrow opens the cell to read (and edit) all of it
+document.addEventListener('click', e => {
+  const toggle = e.target.closest('.long-toggle');
+  if (!toggle) return;
+  const cell = toggle.closest('.long-cell'), text = cell.querySelector('.long-text');
+  const open = cell.classList.toggle('open');
+  text.style.height = open ? text.scrollHeight + 'px' : '';
+  toggle.querySelector('i').className = open ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+});
+document.addEventListener('input', e => {
+  if (!e.target.matches('.long-text')) return;
+  e.target.title = e.target.value;
+  if (e.target.closest('.long-cell').classList.contains('open')) { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }
+});
+document.addEventListener('keydown', e => { if (e.target.matches('.long-text') && e.key === 'Enter') e.preventDefault(); });  // one line of text
+
 // Search, filter and order the rows of the preview: what each field shows now (edits included)
 {
 const table = document.getElementById('preview-table');
@@ -417,8 +444,8 @@ function setRowEnabled(row, enabled) {
 
 function refresh() {
   const included = [...table.querySelectorAll('.preview-row')].filter(r => r.querySelector('.row-include').checked);
-  counter.textContent = included.length;
-  importButton.disabled = included.length === 0;
+  document.querySelectorAll('.selected-count').forEach(c => { c.textContent = included.length; });
+  document.querySelectorAll('.import-button').forEach(b => { b.disabled = included.length === 0; });
   if (!balance) return;
   // Live balance check: does what was read match the document? opening + every movement of the
   // statement = closing. Rows you only deselect (e.g. already saved) still count; rows removed

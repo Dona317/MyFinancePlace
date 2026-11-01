@@ -79,6 +79,8 @@ def _filtered_query(filters: dict):
         query = query.filter(Transaction.account_id.in_(ids) | Transaction.counter_account_id.in_(ids))
     if filters.get("tag"):
         query = query.filter(Transaction.tags.any(filters["tag"]))
+    if clusters.valid(filters.get("cluster")):  # a spending group (the names page and the charts link here)
+        query = query.filter(Transaction.cluster == filters["cluster"])
     if filters.get("recurring"):
         query = query.filter(Transaction.is_recurring.is_(True))
     if filters["month"]:
@@ -97,7 +99,7 @@ def _filtered_query(filters: dict):
     return query
 
 
-FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", "person", "start", "end")
+FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", "person", "start", "end", "cluster")
 
 
 @transactions_bp.route("/")
@@ -129,7 +131,7 @@ def index():
         ai_tag=AI_TAG, to_confirm=Transaction.query.filter(Transaction.tags.any(AI_TAG)).count(),
         unclassified=_unclassified_query().count(),
         without_counterparty=Transaction.query.filter(Transaction.counterparty.is_(None), Transaction.type != "transfer").count(),
-        undo=undo.available(), today=date.today(), cluster_choices=clusters.CLUSTERS,
+        undo=undo.available(), today=date.today(), cluster_choices=clusters.choices(), tag_pool=all_tags(),
         **ai_classification.template_context(),
     )
 
@@ -229,7 +231,7 @@ def _render_form(tx: Transaction | None):
         "transactions/form.html", transaction=tx, action="edit" if tx else "new", v=form_values(tx),
         categories=known_categories(category), next_url=safe_next(), accounts=accounts.all_accounts(),
         currencies=currency_service.CURRENCIES, tag_pool=all_tags(), fee_rules=broker.rules(accounts.all_accounts()),
-        cluster_choices=clusters.CLUSTERS,
+        cluster_choices=clusters.choices(),
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
         events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
@@ -358,6 +360,38 @@ def review_apply():
     else:
         flash(_("Nessun suggerimento applicato."), "warning")
     return redirect(url_for("transactions.index"))
+
+
+@transactions_bp.route("/<int:tx_id>/quick", methods=["POST"])
+def quick_update(tx_id):
+    """The short form under a row of the list: date, description, amount and Uscita/Entrata, category, account, tags.
+    The other fields stay as they are; a transfer stays a transfer, a split keeps its parts."""
+    tx = db.get_or_404(Transaction, tx_id)
+    try:
+        tx.date = form_date("date", _("Data"), required=True)
+        tx.description = form_text("description", _("Descrizione"), required=True)
+        amount = form_decimal("amount", _("Importo"), required=True, allow_negative=True)
+        if not valid_amount(amount):
+            raise ValueError(_("Importo: deve essere diverso da zero."))
+        if tx.type != "transfer":
+            tx.type = type_from(amount)
+        tx.amount = abs(amount)
+        if not tx.splits:
+            tx.category = form_text("category", _("Categoria"))
+        if "account_id" in request.form:
+            account_id = request.form.get("account_id", type=int)
+            tx.account_id = account_id if account_id and db.session.get(Account, account_id) else None
+        keep_ai = [AI_TAG] if AI_TAG in (tx.tags or []) else []
+        tx.tags = parse_tags(request.form.get("tags", "")) + keep_ai
+        tx.counterparty = next((t for t in tx.tags if t != AI_TAG), None)
+        clusters.resolve(tx)
+        db.session.flush()
+    except ValueError as exc:
+        db.session.rollback()
+        return {"error": str(exc)}, 400
+    db.session.commit()
+    flash(_("Transazione aggiornata."), "success")
+    return {"ok": True}
 
 
 @transactions_bp.route("/embed-done")

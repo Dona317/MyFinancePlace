@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
@@ -136,9 +137,8 @@
   </div>
 </div>
 
-{% set part_labels = {'year': year|string, 'H1': _('1° semestre'), 'H2': _('2° semestre'), 'Q1': _('1° trimestre'), 'Q2': _('2° trimestre'), 'Q3': _('3° trimestre'), 'Q4': _('4° trimestre')} %}
 <div class="dash-year-head">
-  <h2>{{ _('Il %(year)s per categoria', year=year) }}</h2>
+  <h2>{{ _('Grafici: %(period)s', period=period_label) }}</h2>
   <form method="GET" class="dash-year-form">
     <label class="dash-select">
       <span class="dash-select-title">{{ _('Anno') }}</span>
@@ -147,14 +147,14 @@
       </select>
     </label>
     <label class="dash-select">
-      <span class="dash-select-title">{{ _('Periodo delle torte') }}</span>
+      <span class="dash-select-title">{{ _('Periodo dei grafici') }} {{ info(_('Il periodo dei grafici mostrati, nel dettaglio: anno, semestre o trimestre.')) }}</span>
       <select name="part" class="form-select" onchange="this.form.submit()">
         <option value="year" {{ 'selected' if part == 'year' }}>{{ _('Tutto il %(year)s', year=year) }}</option>
         <optgroup label="{{ _('Semestri') }}">
-          {% for p in ('H1', 'H2') %}<option value="{{ p }}" {{ 'selected' if part == p }}>&nbsp;&nbsp;{{ part_labels[p] }} {{ year }}</option>{% endfor %}
+          {% for p in ('H1', 'H2') %}<option value="{{ p }}" {{ 'selected' if part == p }}>&nbsp;&nbsp;{{ part_labels[p] }}</option>{% endfor %}
         </optgroup>
         <optgroup label="{{ _('Trimestri') }}">
-          {% for p in ('Q1', 'Q2', 'Q3', 'Q4') %}<option value="{{ p }}" {{ 'selected' if part == p }}>&nbsp;&nbsp;{{ part_labels[p] }} {{ year }}</option>{% endfor %}
+          {% for p in ('Q1', 'Q2', 'Q3', 'Q4') %}<option value="{{ p }}" {{ 'selected' if part == p }}>&nbsp;&nbsp;{{ part_labels[p] }}</option>{% endfor %}
         </optgroup>
       </select>
     </label>
@@ -177,14 +177,14 @@
   <div class="card-header">
     <div>
       <div class="card-header-title">{{ title }}</div>
-      <div class="card-header-sub">{{ _('%(period)s: %(amount)s', period=part_labels[part] ~ ('' if part == 'year' else ' ' ~ year), amount=(breakdown|sum(attribute='amount'))|money) }} · {{ _('clic su una fetta per le transazioni') }}</div>
+      <div class="card-header-sub">{{ _('%(period)s: %(amount)s', period=period_label, amount=(breakdown|sum(attribute='amount'))|money) }} · {{ _('clic su una fetta per le transazioni') }}</div>
     </div>
   </div>
   <div class="card-body">
     {% if breakdown %}
     <div class="chart-container" style="height:200px;"><canvas id="{{ kind }}PieChart" class="clickable-chart"></canvas></div>
     {# legend as a grid: colour, category, amount and share, like the chart slices (8 colours, repeating) #}
-    <ul class="category-legend">
+    <ul class="category-legend" id="{{ kind }}-legend">
       {% for c in breakdown %}
       <li>
         <span class="category-legend-dot" style="background:var(--chart-{{ (loop.index0 % 8) + 1 }});"></span>
@@ -230,7 +230,7 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Flusso di cassa e risparmio — ultimi 12 mesi') }}</div>
+        <div class="card-header-title">{{ _('Flusso di cassa e risparmio — %(period)s', period=period_label) }}</div>
         <div class="card-header-sub">{{ _('Entrate, uscite e risparmio del mese; le barre sono il risparmio cumulato. Clic sulla legenda per mostrare anche entrate e uscite cumulate.') }}</div>
       </div>
       <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
@@ -242,7 +242,7 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Andamento del patrimonio — ultimi 12 mesi') }}</div>
+        <div class="card-header-title">{{ _('Andamento del patrimonio — %(period)s', period=period_label) }}</div>
         <div class="card-header-sub">{{ _('Liquidità, investimenti e altri beni sopra lo zero, debiti sotto; la linea è il patrimonio netto') }}</div>
       </div>
       <a href="{{ url_for('accounting.growth') }}" class="btn btn-ghost btn-sm">{{ _('Da dove viene') }} <i class="bi bi-arrow-right"></i></a>
@@ -258,7 +258,7 @@
   {% elif w.id == 'sankey' %}
   <div class="card">
     <div class="card-header"><div>
-      <div class="card-header-title">{{ _('Dove va il denaro — %(year)s', year=year) }}</div>
+      <div class="card-header-title">{{ _('Dove va il denaro — %(period)s', period=period_label) }}</div>
       <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio. Clic su una categoria per le sue transazioni.') }}</div>
     </div></div>
     <div class="card-body">
@@ -295,7 +295,7 @@
   {% elif w.id == 'year_total' %}
   <div class="card">
     <div class="card-header"><div>
-      <div class="card-header-title">{{ _('Totale dell\'anno %(year)s', year=year) }}</div>
+      <div class="card-header-title">{{ _('Totale del periodo %(period)s', period=period_label) }}</div>
       <div class="card-header-sub">{{ _('Entrate, uscite e netto') }}</div>
     </div></div>
     <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="yearChart"></canvas></div></div>
@@ -374,7 +374,7 @@
 
   {% elif w.id == 'health' %}
   <div class="card">
-    <div class="card-header"><div class="card-header-title">{{ _('Salute Finanziaria') }}</div></div>
+    <div class="card-header"><div class="card-header-title">{{ _('Salute Finanziaria') }} {{ info(_('Ultimi 12 mesi: risparmio, mesi coperti dalla liquidità, debiti sul patrimonio.')) }}</div></div>
     <div class="card-body">
       <div class="health-row">
         <div class="health-head"><span>{{ _('Tasso di Risparmio') }}</span><span class="text-xs text-muted">{{ "%.0f"|format(kpis.savings_rate) }}%</span></div>
@@ -428,6 +428,8 @@
 {% endblock %}
 
 {% block scripts %}
+{% set tx_ok = allowed('transactions') %}
+{% set tx_url = url_for('transactions.index') if tx_ok else '' %}
 <script>
 const shown = (id) => document.querySelector(`.fc-widget[data-widget="${id}"]`) !== null;
 const cashFlow = {{ cash_flow|tojson }};
@@ -441,7 +443,11 @@ if (shown('cashflow')) {
     { label: {{ _('Risparmio cumulato')|tojson }}, data: flow.saved_cumulative, color: 'primary', axis: 'right' },
     { label: {{ _('Entrate cumulate')|tojson }}, data: flow.income_cumulative, color: 'positive', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
     { label: {{ _('Uscite cumulate')|tojson }}, data: flow.expenses_cumulative, color: 'negative', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
-  ], { legend: true });
+  ], { legend: true, onClickIndex: {{ tx_ok|tojson }} ? (i) => {
+    // a month of the cash flow opens its transactions
+    const first = new Date({{ pie_start.year }}, {{ pie_start.month - 1 }} + i, 1);
+    window.location.href = {{ tx_url|tojson }} + '?month=' + `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, '0')}`;
+  } : undefined });
 }
 
 {% if net_worth_trend %}
@@ -464,25 +470,39 @@ makeBarChart('netWorthChart', worth.labels, [
 const trendLines = (trend) => trend.datasets.map(ds => (
   { label: ds.label, data: ds.data, fill: false, pointRadius: 3, ...(ds.other ? { color: 'neutral', dash: [5, 4] } : {}) }
 ));
-const txUrl = {{ (not tx_ok)|tojson }} ? null : (category, type) => {{ (url_for('transactions.index') if tx_ok else '')|tojson }} + '?' + new URLSearchParams(
+const txUrl = {{ (not tx_ok)|tojson }} ? null : (category, type) => {{ tx_url|tojson }} + '?' + new URLSearchParams(
   { category, type, start: {{ pie_start.isoformat()|tojson }}, end: {{ pie_last.isoformat()|tojson }} });
 [['expense', {{ expense_breakdown|tojson }}, {{ expense_breakdown|map(attribute='category')|map('tr')|list|tojson }}, {{ expense_trend|tojson }}],
  ['income',  {{ income_breakdown|tojson }},  {{ income_breakdown|map(attribute='category')|map('tr')|list|tojson }},  {{ income_trend|tojson }}]]
   .forEach(([kind, breakdown, labels, trend]) => {
     if (shown(kind + '_pie') && breakdown.length) {
       makeDoughnutChart(kind + 'PieChart', labels, breakdown.map(c => c.amount),
-        { legend: false, onClickIndex: txUrl ? (i) => { window.location.href = txUrl(breakdown[i].category, kind); } : undefined });
+        { legendList: document.getElementById(kind + '-legend'),
+          onClickIndex: txUrl ? (i) => { window.location.href = txUrl(breakdown[i].category, kind); } : undefined });
     }
-    if (shown(kind + '_trend')) makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend));
+    // a point of a category's line opens that category's transactions of that month
+    if (shown(kind + '_trend')) makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend), {
+      onClickIndex: txUrl ? (i, series) => {
+        const ds = trend.datasets[series];
+        if (!ds || ds.other) return;
+        const first = new Date({{ pie_start.year }}, {{ pie_start.month - 1 }} + i, 1);
+        const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
+        const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        window.location.href = {{ tx_url|tojson }} + '?' + new URLSearchParams({ category: ds.key || ds.label, type: kind, start: iso(first), end: iso(last) });
+      } : undefined });
   });
 
 if (shown('year_total')) {
-  const totals = {{ cumulative|tojson }};
-  const yearNet = Math.round((totals.total_income - totals.total_expenses) * 100) / 100;
+  const totals = {{ period_totals|tojson }};
+  const yearNet = Math.round((totals.income - totals.expenses) * 100) / 100;
   makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, {{ _('Netto')|tojson }}],
-    [{ label: {{ year|tojson }}, data: [totals.total_income, totals.total_expenses, yearNet],
+    [{ label: {{ period_label|tojson }}, data: [totals.income, totals.expenses, yearNet],
        colors: ['positive', 'negative', yearNet < 0 ? 'negative' : 'primary'] }],
-    { legend: false });
+    { legend: false, onClickIndex: txUrl ? (i) => {  // income or expenses of the period open their transactions
+      if (i > 1) return;
+      window.location.href = {{ tx_url|tojson }} + '?' + new URLSearchParams(
+        { type: i ? 'expense' : 'income', start: {{ pie_start.isoformat()|tojson }}, end: {{ pie_last.isoformat()|tojson }} });
+    } : undefined });
 }
 
 {% if savings.years %}

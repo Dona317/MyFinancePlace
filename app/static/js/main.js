@@ -8,6 +8,23 @@ const store = {
   set(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* private mode */ } },
 };
 
+/* Windows over the page (.modal-overlay): open one by id, close it by id */
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add("open");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => el.querySelector("input, select, textarea, button")?.focus(), 60);
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove("open");
+  document.body.style.overflow = "";
+}
+window.openModal = openModal;
+window.closeModal = closeModal;
+
 /* Fill a translated message: fmt("%(count)s rows", {count: 3}) → "3 rows" */
 function fmt(message, values) {
   return String(message).replace(/%\((\w+)\)s/g, (all, key) => (key in values ? values[key] : all));
@@ -364,7 +381,7 @@ function initPopups() {
    its aria-label, or its text when the text is cut or is only an icon */
 function initTooltips() {
   const describe = (el) => {
-    if (el.title || el.closest(".kpi-window-menu")) return;
+    if (el.title || el.closest(".kpi-window-menu") || el.matches(".info-tip")) return;
     const label = el.getAttribute("aria-label") || (el.textContent || "").replace(/\s+/g, " ").trim();
     if (label && label.length <= 120) el.title = label;
   };
@@ -372,6 +389,158 @@ function initTooltips() {
     const el = e.target.closest?.("a[href], button, [role=button], select, summary, label.toggle-switch");
     if (el) describe(el);
   });
+}
+
+/* The «i» of an explanation: its note card opens on hover or focus, and stays open with a click (touch screens) */
+function initInfoTips() {
+  const card = Object.assign(document.createElement("div"), { className: "info-card", hidden: true });
+  card.setAttribute("role", "tooltip");
+  document.body.appendChild(card);
+  let pinned = null;
+  const show = (tip) => {
+    card.textContent = tip.dataset.tip;
+    card.hidden = false;
+    const r = tip.getBoundingClientRect(), w = card.offsetWidth, h = card.offsetHeight;
+    const left = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
+    const top = r.bottom + 8 + h > window.innerHeight ? r.top - h - 8 : r.bottom + 8;
+    card.style.left = left + "px";
+    card.style.top = top + "px";
+  };
+  const hide = () => { if (!pinned) card.hidden = true; };
+  document.addEventListener("mouseover", e => { const tip = e.target.closest?.(".info-tip"); if (tip) show(tip); });
+  document.addEventListener("mouseout", e => { if (e.target.closest?.(".info-tip")) hide(); });
+  document.addEventListener("focusin", e => { if (e.target.matches?.(".info-tip")) show(e.target); });
+  document.addEventListener("focusout", e => { if (e.target.matches?.(".info-tip")) hide(); });
+  document.addEventListener("click", e => {
+    const tip = e.target.closest?.(".info-tip");
+    pinned?.classList.remove("on");
+    if (tip && tip !== pinned) { e.preventDefault(); e.stopPropagation(); pinned = tip; tip.classList.add("on"); show(tip); }
+    else { pinned = null; card.hidden = true; }
+  }, true);
+  window.addEventListener("scroll", () => { if (!card.hidden) { pinned = null; card.hidden = true; } }, true);
+}
+
+/* Lists you can search: every drop-down with more than a few choices gets a text box over it; typing filters the
+   choices (groups kept), arrows and Enter pick one, and the real <select> underneath is what the form sends.
+   data-no-search keeps a plain drop-down. */
+const COMBO_MIN = 7;
+function initCombos(root = document) {
+  root.querySelectorAll("select:not([multiple]):not([data-no-search]):not([data-combo])").forEach(select => {
+    if (select.options.length < COMBO_MIN || select.closest("template")) return;
+    select.dataset.combo = "1";
+    const box = document.createElement("div");
+    box.className = "combo";
+    const input = Object.assign(document.createElement("input"), { type: "text", className: select.className.replace("form-select", "form-control") + " combo-input", autocomplete: "off" });
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-expanded", "false");
+    if (select.id) { input.id = select.id; select.id = select.id + "-select"; }  // a <label for> now points to the box
+    if (select.getAttribute("aria-label")) input.setAttribute("aria-label", select.getAttribute("aria-label"));
+    const list = document.createElement("ul");
+    list.className = "combo-list";
+    list.setAttribute("role", "listbox");
+    list.hidden = true;
+    select.before(box);
+    box.append(input, list, select);
+    select.classList.add("combo-select");
+    select.tabIndex = -1;
+    let active = -1, items = [];
+    const label = () => select.selectedOptions[0]?.textContent.trim() || "";
+    const showValue = () => { input.value = label(); input.placeholder = label() || ""; input.disabled = select.disabled; };
+    const render = (filter) => {
+      const words = (filter || "").toLocaleLowerCase().split(/\s+/).filter(Boolean);
+      list.replaceChildren();
+      items = [];
+      let group = null;
+      [...select.options].forEach(option => {
+        const text = option.textContent.trim();
+        const parent = option.parentElement.tagName === "OPTGROUP" ? option.parentElement.label : "";
+        const haystack = (text + " " + parent).toLocaleLowerCase();
+        if (option.hidden || (words.length && !words.every(w => haystack.includes(w)))) return;
+        if (parent && parent !== group) {
+          group = parent;
+          list.appendChild(Object.assign(document.createElement("li"), { className: "combo-group", textContent: parent }));
+        }
+        const li = Object.assign(document.createElement("li"), { className: "combo-option", textContent: text });
+        li.setAttribute("role", "option");
+        if (option.disabled) li.classList.add("disabled");
+        if (option.selected) li.classList.add("selected");
+        li.addEventListener("mousedown", e => { e.preventDefault(); if (!option.disabled) choose(option); });
+        list.appendChild(li);
+        items.push({ li, option });
+      });
+      if (!items.length) list.appendChild(Object.assign(document.createElement("li"), { className: "combo-empty", textContent: TEXT.no_match || "Nessun risultato" }));
+      active = items.findIndex(i => i.option.selected);
+      paint();
+    };
+    const paint = () => items.forEach((item, i) => {
+      item.li.classList.toggle("active", i === active);
+      if (i === active) item.li.scrollIntoView({ block: "nearest" });
+    });
+    const open = () => { if (select.disabled) return; list.hidden = false; input.setAttribute("aria-expanded", "true"); input.value = ""; render(""); };
+    const close = () => { list.hidden = true; input.setAttribute("aria-expanded", "false"); showValue(); };
+    const choose = (option) => {
+      const changed = select.value !== option.value;
+      select.value = option.value;
+      close();
+      if (changed) select.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    input.addEventListener("focus", open);
+    input.addEventListener("click", () => { if (list.hidden) open(); });
+    input.addEventListener("input", () => render(input.value));
+    input.addEventListener("blur", close);
+    input.addEventListener("keydown", e => {
+      if (list.hidden && (e.key === "ArrowDown" || e.key === "Enter")) { open(); e.preventDefault(); return; }
+      if (e.key === "ArrowDown") { active = Math.min(active + 1, items.length - 1); paint(); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); paint(); e.preventDefault(); }
+      else if (e.key === "Enter") { if (items[active]) { choose(items[active].option); } e.preventDefault(); }
+      else if (e.key === "Escape") { close(); input.blur(); }
+    });
+    // the page may change the choices or the value (a preview, a form filled by script): follow it
+    new MutationObserver(() => { if (list.hidden) showValue(); else render(input.value); }).observe(select, { childList: true, subtree: true, attributes: true });
+    select.addEventListener("change", () => { if (list.hidden) showValue(); });
+    showValue();
+  });
+}
+window.initCombos = initCombos;
+
+/* Amount boxes take numbers only: digits, one decimal comma or point, a sign in front; letters are refused as typed
+   and taken out of what is pasted */
+function initNumberOnly() {
+  const numeric = (el) => el.matches?.('input[inputmode="decimal"], input[inputmode="numeric"], input[type="number"]');
+  document.addEventListener("keydown", e => {
+    if (!numeric(e.target) || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+    if (!/[0-9.,+\-−]/.test(e.key) || (e.target.inputMode === "numeric" && !/[0-9]/.test(e.key))) e.preventDefault();
+  });
+  document.addEventListener("input", e => {
+    if (!numeric(e.target) || e.target.type === "number") return;
+    const clean = e.target.value.replace(e.target.inputMode === "numeric" ? /[^0-9]/g : /[^0-9.,+\-−\s]/g, "");
+    if (clean !== e.target.value) e.target.value = clean;
+  });
+}
+
+/* A date that must be given starts on today (the calendar still opens, and it can be typed over) */
+function initToday() {
+  const today = new Date();
+  const iso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  document.querySelectorAll('input[type="date"][required]:not([data-no-today])').forEach(el => { if (!el.value) el.value = iso; });
+}
+
+/* A round button with two arrows, bottom right: shown while a long page is scrolled and its end is far below;
+   a click goes to the end of the page */
+function initToBottom() {
+  const button = Object.assign(document.createElement("button"), { type: "button", className: "to-bottom", hidden: true });
+  button.innerHTML = '<i class="bi bi-chevron-double-down"></i>';
+  button.setAttribute("aria-label", TEXT.to_bottom || "Vai in fondo");
+  button.title = TEXT.to_bottom || "Vai in fondo";
+  document.body.appendChild(button);
+  const update = () => {
+    const left = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+    button.hidden = !(document.documentElement.scrollHeight > window.innerHeight * 2 && left > window.innerHeight);
+  };
+  button.addEventListener("click", () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" }));
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update);
+  update();
 }
 
 /* Areas that scroll sideways (tables, rows of tabs): two arrows appear on the edges while there is more to see;
@@ -441,6 +610,11 @@ document.addEventListener("DOMContentLoaded", () => {
   initCopy();
   initPopups();
   initTooltips();
+  initInfoTips();
+  initCombos();
+  initNumberOnly();
+  initToday();
+  initToBottom();
   initScrollArrows();
   initActiveNav();
 });

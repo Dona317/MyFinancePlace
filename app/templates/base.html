@@ -61,7 +61,7 @@
         {% if shown('reports') %}
         <a href="{{ url_for('reports.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
-          <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Report') }}</span>
+          <i class="bi bi-bar-chart-line"></i> <span class="nav-label" title="{{ _('Report') }}">{{ _('Report') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         </div></div>
@@ -77,41 +77,41 @@
         {% if shown('accounting') %}
         <a href="{{ url_for('accounting.index') }}"
            class="nav-item {% if request.endpoint == 'accounting.index' %}active{% endif %}">
-          <i class="bi bi-bar-chart-line"></i> <span class="nav-label">{{ _('Panoramica') }}</span> <span class="nav-badge nav-badge-next">v2</span>
+          <i class="bi bi-bar-chart-line"></i> <span class="nav-label" title="{{ _('Panoramica') }}">{{ _('Panoramica') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% if settings.accounting_balance_sheet %}
         <a href="{{ url_for('accounting.balance_sheet') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.balance_sheet' %}active{% endif %}">
-          <i class="bi bi-clipboard-data"></i> <span class="nav-label">{{ _('Stato Patrimoniale') }}</span> <span class="nav-badge nav-badge-next">v2</span>
+          <i class="bi bi-clipboard-data"></i> <span class="nav-label" title="{{ _('Stato Patrimoniale') }}">{{ _('Stato Patrimoniale') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if settings.accounting_income_statement %}
         <a href="{{ url_for('accounting.income_statement') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.income_statement' %}active{% endif %}">
-          <i class="bi bi-receipt"></i> <span class="nav-label">{{ _('Conto Economico') }}</span> <span class="nav-badge nav-badge-next">v2</span>
+          <i class="bi bi-receipt"></i> <span class="nav-label" title="{{ _('Conto Economico') }}">{{ _('Conto Economico') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         <a href="{{ url_for('accounting.growth') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.growth' %}active{% endif %}">
-          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">{{ _('Crescita del patrimonio') }}</span>
+          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label" title="{{ _('Crescita del patrimonio') }}">{{ _('Crescita del patrimonio') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% if settings.accounting_cash_flow %}
         <a href="{{ url_for('accounting.cash_flow') }}"
            class="nav-item nav-sub {% if request.endpoint == 'accounting.cash_flow' %}active{% endif %}">
-          <i class="bi bi-arrow-left-right"></i> <span class="nav-label">{{ _('Flusso di Cassa') }}</span> <span class="nav-badge nav-badge-next">v2</span>
+          <i class="bi bi-arrow-left-right"></i> <span class="nav-label" title="{{ _('Flusso di Cassa') }}">{{ _('Flusso di Cassa') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% endif %}
         {% if shown('forecast') %}
         <a href="{{ url_for('forecast.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
-          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label">{{ _('Previsioni') }}</span>
+          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label" title="{{ _('Previsioni') }}">{{ _('Previsioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('subscriptions') %}
         <a href="{{ url_for('subscriptions.index') }}"
            class="nav-item nav-sub {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
-          <i class="bi bi-arrow-repeat"></i> <span class="nav-label">{{ _('Abbonamenti') }}</span>
+          <i class="bi bi-arrow-repeat"></i> <span class="nav-label" title="{{ _('Abbonamenti') }}">{{ _('Abbonamenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         </div></div>
@@ -128,25 +128,25 @@
         {% if shown('lifestyle') %}
         <a href="{{ url_for('lifestyle.index') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
-          <i class="bi bi-pie-chart"></i> <span class="nav-label">{{ _('Spese e Tendenze') }}</span>
+          <i class="bi bi-pie-chart"></i> <span class="nav-label" title="{{ _('Spese e Tendenze') }}">{{ _('Spese e Tendenze') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('budget') %}
         <a href="{{ url_for('lifestyle.budget') }}"
            class="nav-item {% if request.endpoint in ('lifestyle.budget', 'lifestyle.budget_save') %}active{% endif %}">
-          <i class="bi bi-clipboard-check"></i> <span class="nav-label">{{ _('Budget') }}</span>
+          <i class="bi bi-clipboard-check"></i> <span class="nav-label" title="{{ _('Budget') }}">{{ _('Budget') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('goals') %}
         <a href="{{ url_for('lifestyle.goals') }}"
            class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
-          <i class="bi bi-trophy"></i> <span class="nav-label">{{ _('Obiettivi') }}</span>
+          <i class="bi bi-trophy"></i> <span class="nav-label" title="{{ _('Obiettivi') }}">{{ _('Obiettivi') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('events') %}
         <a href="{{ url_for('events.index') }}"
            class="nav-item {% if request.endpoint.startswith('events.') %}active{% endif %}">
-          <i class="bi bi-airplane"></i> <span class="nav-label">{{ _('Eventi') }}</span>
+          <i class="bi bi-airplane"></i> <span class="nav-label" title="{{ _('Eventi') }}">{{ _('Eventi') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         </div></div>
@@ -169,55 +169,55 @@
         {% if shown('accounts') %}
         <a href="{{ url_for('accounts.index') }}"
            class="nav-item nav-sub {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
-          <i class="bi bi-bank"></i> <span class="nav-label">{{ _('Conti e Carte') }}</span>
+          <i class="bi bi-bank"></i> <span class="nav-label" title="{{ _('Conti e Carte') }}">{{ _('Conti e Carte') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('portfolio') %}
         <a href="{{ url_for('portfolio.index') }}"
            class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-briefcase"></i> <span class="nav-label">{{ _('Portafoglio') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+          <i class="bi bi-briefcase"></i> <span class="nav-label" title="{{ _('Portafoglio') }}">{{ _('Portafoglio') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('debt') %}
         <a href="{{ url_for('debt.index') }}"
            class="nav-item {% if 'debt' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-credit-card"></i> <span class="nav-label">{{ _('Debiti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+          <i class="bi bi-credit-card"></i> <span class="nav-label" title="{{ _('Debiti') }}">{{ _('Debiti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('gigs') %}
         <a href="{{ url_for('gigs.index') }}"
            class="nav-item {% if request.endpoint.startswith('gigs.') %}active{% endif %}">
-          <i class="bi bi-tools"></i> <span class="nav-label">{{ _('Lavoretti') }}</span>
+          <i class="bi bi-tools"></i> <span class="nav-label" title="{{ _('Lavoretti') }}">{{ _('Lavoretti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('loans') %}
         <a href="{{ url_for('loans.index') }}"
            class="nav-item {% if request.endpoint.startswith('loans.') %}active{% endif %}">
-          <i class="bi bi-arrow-left-right"></i> <span class="nav-label">{{ _('Prestiti tra persone') }}</span>
+          <i class="bi bi-arrow-left-right"></i> <span class="nav-label" title="{{ _('Prestiti tra persone') }}">{{ _('Prestiti tra persone') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('insurance') %}
         <a href="{{ url_for('insurance.index') }}"
            class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-shield-check"></i> <span class="nav-label">{{ _('Assicurazioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+          <i class="bi bi-shield-check"></i> <span class="nav-label" title="{{ _('Assicurazioni') }}">{{ _('Assicurazioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('utilities') %}
         <a href="{{ url_for('utilities.index') }}"
            class="nav-item {% if request.endpoint.startswith('utilities.') %}active{% endif %}">
-          <i class="bi bi-lightning-charge"></i> <span class="nav-label">{{ _('Bollette') }}</span>
+          <i class="bi bi-lightning-charge"></i> <span class="nav-label" title="{{ _('Bollette') }}">{{ _('Bollette') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('documents') %}
         <a href="{{ url_for('documents.index') }}"
            class="nav-item {% if 'documents' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-folder2-open"></i> <span class="nav-label">{{ _('Documenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+          <i class="bi bi-folder2-open"></i> <span class="nav-label" title="{{ _('Documenti') }}">{{ _('Documenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('tax') %}
         <a href="{{ url_for('tax.index') }}"
            class="nav-item {% if request.endpoint.startswith('tax.') %}active{% endif %}">
-          <i class="bi bi-percent"></i> <span class="nav-label">{{ _('Fisco') }}</span>
+          <i class="bi bi-percent"></i> <span class="nav-label" title="{{ _('Fisco') }}">{{ _('Fisco') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         </div></div>
@@ -233,47 +233,47 @@
         {% if shown('deadlines') %}
         <a href="{{ url_for('deadlines.index') }}"
            class="nav-item {% if request.endpoint.startswith('deadlines.') %}active{% endif %}">
-          <i class="bi bi-calendar-event"></i> <span class="nav-label">{{ _('Scadenzario') }}</span>
+          <i class="bi bi-calendar-event"></i> <span class="nav-label" title="{{ _('Scadenzario') }}">{{ _('Scadenzario') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('snapshots') %}
         <a href="{{ url_for('snapshots.index') }}"
            class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-camera"></i> <span class="nav-label">{{ _('Istantanee') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+          <i class="bi bi-camera"></i> <span class="nav-label" title="{{ _('Istantanee') }}">{{ _('Istantanee') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('export') %}
         <a href="{{ url_for('export.import_page') }}"
            class="nav-item {% if request.endpoint in ('export.import_page', 'export.bank_preview', 'export.import_csv', 'export.bank_ai', 'export.bank_ai_wait', 'export.bank_ai_result') %}active{% endif %}">
-          <i class="bi bi-box-arrow-in-down"></i> <span class="nav-label">{{ _('Importa') }}</span>
+          <i class="bi bi-box-arrow-in-down"></i> <span class="nav-label" title="{{ _('Importa') }}">{{ _('Importa') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         <a href="{{ url_for('export.index') }}"
            class="nav-item {% if request.endpoint == 'export.index' %}active{% endif %}">
-          <i class="bi bi-box-arrow-up"></i> <span class="nav-label">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+          <i class="bi bi-box-arrow-up"></i> <span class="nav-label" title="{{ _('Esporta') }}">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('assistant') %}
         <a href="{{ url_for('assistant.index') }}"
            class="nav-item {% if request.endpoint.startswith('assistant.') %}active{% endif %}">
-          <i class="bi bi-stars"></i> <span class="nav-label">{{ _('Chiedi ai tuoi dati') }}</span>
+          <i class="bi bi-stars"></i> <span class="nav-label" title="{{ _('Chiedi ai tuoi dati') }}">{{ _('Chiedi ai tuoi dati') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('health') %}
         <a href="{{ url_for('health.index') }}"
            class="nav-item {% if request.endpoint.startswith('health.') %}active{% endif %}">
-          <i class="bi bi-clipboard-check"></i> <span class="nav-label">{{ _('Salute dei dati') }}</span>
+          <i class="bi bi-clipboard-check"></i> <span class="nav-label" title="{{ _('Salute dei dati') }}">{{ _('Salute dei dati') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('clients') %}
         <a href="{{ url_for('clients.index') }}"
            class="nav-item {% if request.endpoint.startswith('clients.') %}active{% endif %}">
-          <i class="bi bi-people"></i> <span class="nav-label">{{ _('Clienti') }}</span>
+          <i class="bi bi-people"></i> <span class="nav-label" title="{{ _('Clienti') }}">{{ _('Clienti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('groups') and working_client() %}
         <a href="{{ url_for('groups.index') }}"
            class="nav-item {% if request.endpoint.startswith('groups.') %}active{% endif %}">
-          <i class="bi bi-house-heart"></i> <span class="nav-label">{{ _('Gruppi e famiglia') }}</span>
+          <i class="bi bi-house-heart"></i> <span class="nav-label" title="{{ _('Gruppi e famiglia') }}">{{ _('Gruppi e famiglia') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         </div></div>
@@ -430,7 +430,7 @@
 <script>window.MFP_TEXT = {{ {
   "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
   "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
-  "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"),
+  "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"), "no_match": _("Nessun risultato"), "select_all": _("Seleziona tutto"), "deselect_all": _("Deseleziona tutto"), "show_hide": _("Mostra o nascondi"), "to_bottom": _("Vai in fondo alla pagina"),
 }|tojson }};</script>
 <!-- Chart.js and its helpers: only on the pages with charts -->
 {% block chart_scripts %}{% endblock %}
