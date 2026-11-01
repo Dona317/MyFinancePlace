@@ -411,6 +411,11 @@ function initResizableColumns() {
       grip.setAttribute("aria-hidden", "true");
       th.appendChild(grip);
       grip.addEventListener("click", e => e.stopPropagation());
+      if (th.dataset.grip === "off") {  // the edge is drawn but stays where it is (Data | Descrizione, Importo | Azioni)
+        grip.classList.add("col-resizer-off");
+        grip.removeAttribute("title");
+        return;
+      }
       grip.addEventListener("pointerdown", e => {
         e.preventDefault();
         e.stopPropagation();

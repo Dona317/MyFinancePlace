@@ -2083,3 +2083,6 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 .history-clear { width: 100%; justify-content: center; border-top: 1px solid var(--clr-border-light); border-radius: 0; padding-top: 8px; }
 .history-clear[hidden] { display: none; }
 .tx-table .col-title { display: inline-block; }
+
+.col-resizer-off { cursor: default; }
+.col-resizer-off:hover::after { background: var(--clr-border); width: 1px; }
