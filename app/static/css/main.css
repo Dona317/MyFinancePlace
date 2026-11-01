@@ -1623,8 +1623,6 @@ html.embedded .card { border: none; box-shadow: none; }
 .form-top-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 /* ── Transactions: search history, the bulk edit's scope, the group under the category ── */
-.search-history { margin-top: 12px; border-top: 1px solid var(--clr-border-light); padding: 10px 16px 6px; }
-.search-history > summary { cursor: pointer; font-size: var(--font-size-xs); font-weight: 600; color: var(--clr-text-secondary); }
 .search-history-list { list-style: none; margin: 8px 0; padding: 0; max-height: 240px; overflow-y: auto; display: grid; gap: 4px; }
 .search-history-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: var(--font-size-xs); }
 .search-history-list a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2071,3 +2069,17 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 .tx-table .category-cell { white-space: nowrap; text-overflow: ellipsis; }
 .tx-table .category-cell .badge-clip { max-width: 70%; }
 .tx-table .category-cell .cluster-tag { margin-left: 6px; }
+
+/* the search history: a clock on the right of the search bar, a menu with the last searches */
+.register-search-main .history-menu { position: relative; margin-left: auto; }
+.history-button { display: inline-flex; align-items: center; gap: 2px; }
+.history-button .bi-chevron-down { font-size: 10px; }
+.history-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 120; width: min(420px, 90vw); padding: 8px;
+  background: var(--clr-bg-card); border: 1px solid var(--clr-border); border-radius: var(--border-radius); box-shadow: var(--shadow-lg); }
+.history-pop[hidden] { display: none; }
+.history-pop .search-history-list { margin: 0 0 6px; }
+.history-pop .search-history-list li { padding: 2px 4px 2px 8px; border-radius: var(--border-radius-sm); }
+.history-pop .search-history-list li:hover { background: var(--clr-bg-input); }
+.history-clear { width: 100%; justify-content: center; border-top: 1px solid var(--clr-border-light); border-radius: 0; padding-top: 8px; }
+.history-clear[hidden] { display: none; }
+.tx-table .col-title { display: inline-block; }

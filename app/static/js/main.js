@@ -343,8 +343,24 @@ function initResizableColumns() {
     try { saved = JSON.parse(store.get(key) || "{}"); } catch (e) { saved = {}; }
     const defaults = Object.fromEntries(cols.map(th => [th.dataset.col, parseFloat(th.style.width) || 120]));
     const width = (th) => parseFloat(th.style.width);
-    // the smallest a column can be: its title; Azioni neither grows nor shrinks
-    const minOf = (th) => locked(th) ? defaults[th.dataset.col] : Math.ceil(th.querySelector(".col-title")?.scrollWidth || 40) + 32;
+    // the narrowest a column can be: its whole title with the cell's padding; a data-min="content" column (the date,
+    // the amount) its longest value too, so it is never cut; Azioni neither grows nor shrinks
+    const pad = (cell) => { const s = getComputedStyle(cell); return parseFloat(s.paddingLeft) + parseFloat(s.paddingRight) + 2; };
+    const minOf = (th) => {
+      if (locked(th)) return defaults[th.dataset.col];
+      let least = Math.ceil(th.querySelector(".col-title")?.getBoundingClientRect().width || 40) + pad(th) + 6;
+      if (th.dataset.min === "content") {
+        const i = heads.indexOf(th);
+        table.querySelectorAll("tbody tr").forEach(row => {
+          const cell = row.children[i];
+          if (!cell || cell.colSpan > 1) return;
+          const range = document.createRange();
+          range.selectNodeContents(cell);
+          least = Math.max(least, Math.ceil(range.getBoundingClientRect().width) + pad(cell));
+        });
+      }
+      return least;
+    };
     const maxOf = (th) => locked(th) ? defaults[th.dataset.col] : Infinity;
     // the table fills its card: the columns share the room the box leaves, in the proportions last chosen
     const layout = () => {
