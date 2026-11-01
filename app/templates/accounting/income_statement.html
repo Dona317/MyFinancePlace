@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "accounting/base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
 
-{% block page_title %}{{ _('Conto Economico') }}{% endblock %}
+{% block page_title %}{{ _('Contabilità') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Conto Economico') }}</li>{% endblock %}
 
 {% block topbar_actions %}
@@ -12,7 +12,7 @@
   </a>
 {% endblock %}
 
-{% block content %}
+{% block statement %}
 
 <!-- Summary KPIs ──────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">

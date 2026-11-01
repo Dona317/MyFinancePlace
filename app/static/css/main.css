@@ -1928,3 +1928,27 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .topbar-actions:has(.dash-period-box) { flex: 1; min-width: 0; }
 .topbar:has(.dash-period-box) .topbar-title { flex: 0 1 auto; }
 .kpi-strip { grid-auto-columns: minmax(230px, 1fr); }
+/* Contabilità: the tabs are links, the one of the page is the selected one */
+.accounting-tabs .statement-tab { text-decoration: none; }
+
+/* ── Entrate / Uscite: the net of the period on top, with the way to the cash flow ── */
+.report-net-body { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 20px; font-size: var(--font-size-sm); }
+.report-net-body strong { font-variant-numeric: tabular-nums; }
+.report-net-link { margin-left: auto; }
+
+/* ── Sidebar: the subtitles of a section (Strategia, Analisi, Pianificazione), each opens and closes its entries ── */
+.nav-subtitle { display: flex; align-items: center; justify-content: space-between; width: calc(100% - 24px); margin: 8px 12px 2px;
+  padding: 2px 12px; border: none; background: none; cursor: pointer; font-size: 10px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--clr-sidebar-text); opacity: .6; }
+.nav-subtitle:hover { opacity: .9; }
+.nav-subtitle .nav-chevron { font-size: 10px; transition: transform .16s ease; }
+.nav-subtitle[aria-expanded="false"] .nav-chevron { transform: rotate(-90deg); }
+.nav-subtitle-items[hidden] { display: none; }
+
+.cash-flow-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Previsioni: each method with its small «i» right after its name */
+.methods-table td > form { display: inline; }
+.methods-table .info-tip { font-size: 12px; margin-left: 4px; }
+.nav-subtitle { margin: 12px 12px 4px; padding: 3px 12px; line-height: 1.5; }
+.nav-subtitle .nav-label { overflow: visible; }

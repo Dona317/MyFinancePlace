@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "accounting/base.html" %}
 {% from "partials/kpi.html" import kpi %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
-{% block page_title %}{{ _('Crescita del patrimonio') }}{% endblock %}
+{% block page_title %}{{ _('Contabilità') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Crescita del patrimonio') }}</li>{% endblock %}
 
 {% block topbar_actions %}
@@ -12,7 +12,7 @@
 </form>
 {% endblock %}
 
-{% block content %}
+{% block statement %}
 <div class="kpi-grid" style="margin-bottom:24px;">
   {{ kpi('speedometer2', _('Crescita media al mese'), value=('+' if velocity.monthly > 0 else '') ~ velocity.monthly|money,
          cls='kpi-positive' if velocity.monthly >= 0 else 'kpi-negative') }}

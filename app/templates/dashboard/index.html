@@ -80,7 +80,7 @@
 {% for k in kpi_layout %}
 {% if k.id == 'net_worth' and settings.dashboard_net_worth %}
 {% call kpi_slot(k) %}
-  <div class="kpi-card kpi-click kpi-primary" data-href="{{ url_for('accounting.balance_sheet') }}" title="{{ _('Apri lo Stato Patrimoniale') }}">
+  <div class="kpi-card kpi-click kpi-primary" data-href="{{ url_for('accounting.balance_sheet', date=as_of.isoformat()) }}" title="{{ _('Apri lo Stato Patrimoniale') }}">
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
     <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.net_worth }}">—</div>
@@ -91,21 +91,21 @@
 {% call kpi_slot(k) %}
   {% set c = cards.income %}
   {{ window_card('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive',
-                 url_for('reports.index', tab='income', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
+                 url_for('reports.income', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
                  amount=c.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else '')) }}
 {% endcall %}
 {% elif k.id == 'expenses' and settings.dashboard_expenses %}
 {% call kpi_slot(k) %}
   {% set c = cards.expenses %}
   {{ window_card('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative',
-                 url_for('reports.index', tab='spending', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
+                 url_for('reports.spending', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
                  amount=c.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else '')) }}
 {% endcall %}
 {% elif k.id == 'savings_rate' and settings.dashboard_savings_rate %}
 {% call kpi_slot(k) %}
   {% set c = cards.savings_rate %}
   {{ window_card('savings_rate', 'piggy-bank', _('Tasso di Risparmio'), 'kpi-neutral',
-                 url_for('reports.index', tab='cashflow', period='custom', start=c.start.isoformat(), end=c.end.isoformat()),
+                 url_for('accounting.cash_flow', year=pie_last.year),
                  value=("%.1f"|format(c.totals.savings_rate) ~ '%'), forecast=fc,
                  forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else '')) }}
 {% endcall %}

@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "accounting/base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
 
 {% from "partials/financed.html" import financed_table %}
-{% block page_title %}{{ _('Stato Patrimoniale') }}{% endblock %}
+{% block page_title %}{{ _('Contabilità') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Stato Patrimoniale') }}</li>{% endblock %}
 
 {% block topbar_actions %}
@@ -30,7 +30,7 @@
 </table>
 {% endmacro %}
 
-{% block content %}
+{% block statement %}
 
 <div class="kpi-grid mb-24">
   {{ kpi('wallet2', _('Totale Attività'), value=sheet.total_assets|money, cls='kpi-positive', value_class='text-positive') }}

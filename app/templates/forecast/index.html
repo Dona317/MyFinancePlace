@@ -2,10 +2,12 @@
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 
 {% block page_title %}{{ _('Previsioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Previsioni') }}</li>{% endblock %}
 {% block topbar_actions %}
+{% if shown('accounting') %}<a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm" title="{{ _('Il flusso di cassa da cui partono le previsioni') }}"><i class="bi bi-arrow-left-right"></i> {{ _('Flusso di cassa') }} <i class="bi bi-arrow-right"></i></a>{% endif %}
 <a href="{{ url_for('forecast.retirement') }}" class="btn btn-ghost btn-sm"><i class="bi bi-hourglass-split"></i> {{ _('Pensione e FIRE') }}</a>
 {% endblock %}
 
@@ -132,7 +134,7 @@
                   <button type="submit" class="method-pick" title="{{ m.description }}" {{ 'aria-current=true' if m.selected else '' }}>
                     <i class="bi bi-{{ 'record-circle-fill' if m.selected else 'circle' }}"></i> {{ m.label }}
                   </button>
-                </form>
+                </form>{{ info(m.description) }}
                 {% if m.best %}<span class="badge badge-positive">{{ _('più preciso') }}</span>{% endif %}
                 {% if m.fallback %}<span class="badge badge-muted" title="{{ _('Storico insufficiente: usa la media mobile') }}">{{ _('= media') }}</span>{% endif %}
               </td>

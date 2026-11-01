@@ -256,3 +256,19 @@ def test_the_cards_on_top_keep_order_width_and_visibility(client, db):
     assert 'data-widget="debt" data-span="2"' in page and ">TBD<" in page
     assert client.post("/dashboard/layout", json={"reset": True}).status_code == 200
     assert dashboard_prefs.kpi_layout() == dashboard_prefs.default_kpis()
+
+
+def test_income_and_expenses_are_sections_of_their_own(client, sample_data):
+    page = client.get("/reports/spending?period=custom&start=2026-01-01&end=2026-12-31").get_data(as_text=True)
+    assert "Netto del periodo" in page and "/accounting/cash-flow?year=2026" in page
+    assert 'name="tab"' not in page  # the period and filters stay on Uscite
+    assert "Entrate" in client.get("/reports/income").get_data(as_text=True)
+    flow = client.get("/accounting/cash-flow?year=2026").get_data(as_text=True)
+    assert "/reports/income?" in flow and "/reports/spending?" in flow and 'aria-current="page"' in flow
+
+
+def test_accounting_opens_on_its_first_tab(client, db):
+    response = client.get("/accounting/")
+    assert response.status_code == 302 and response.headers["Location"].endswith("/accounting/balance-sheet")
+    page = client.get("/accounting/growth").get_data(as_text=True)
+    assert page.count('class="statement-tab"') == 4 and "Crescita del patrimonio" in page

@@ -59,76 +59,53 @@
           <i class="bi bi-speedometer2"></i> <span class="nav-label">{{ _('Dashboard') }}</span>
         </a>
         {% if shown('reports') %}
+        <a href="{{ url_for('reports.income') }}"
+           class="nav-item {% if request.endpoint == 'reports.income' %}active{% endif %}">
+          <i class="bi bi-arrow-down-circle"></i> <span class="nav-label" title="{{ _('Entrate') }}">{{ _('Entrate') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        <a href="{{ url_for('reports.spending') }}"
+           class="nav-item {% if request.endpoint == 'reports.spending' %}active{% endif %}">
+          <i class="bi bi-arrow-up-circle"></i> <span class="nav-label" title="{{ _('Uscite') }}">{{ _('Uscite') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
         <a href="{{ url_for('reports.index') }}"
-           class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') and request.endpoint not in ('reports.income', 'reports.spending') %}active{% endif %}">
           <i class="bi bi-bar-chart-line"></i> <span class="nav-label" title="{{ _('Report') }}">{{ _('Report') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         </div></div>
       </div>
 
-      <!-- CONTABILITÀ -->
-      {% if shown_any('accounting', 'forecast', 'subscriptions') %}
+      <!-- CONTABILITÀ: one page, the statements are its tabs -->
+      {% if shown('accounting') %}
       <div class="nav-section" data-section="contabilita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-contabilita">
           <span class="nav-label">{{ _('Contabilità') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-contabilita"><div>
-        {% if shown('accounting') %}
         <a href="{{ url_for('accounting.index') }}"
-           class="nav-item {% if request.endpoint == 'accounting.index' %}active{% endif %}">
-          <i class="bi bi-bar-chart-line"></i> <span class="nav-label" title="{{ _('Panoramica') }}">{{ _('Panoramica') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('accounting.') %}active{% endif %}">
+          <i class="bi bi-journal-text"></i> <span class="nav-label" title="{{ _('Contabilità') }}">{{ _('Contabilità') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
-        {% if settings.accounting_balance_sheet %}
-        <a href="{{ url_for('accounting.balance_sheet') }}"
-           class="nav-item nav-sub {% if request.endpoint == 'accounting.balance_sheet' %}active{% endif %}">
-          <i class="bi bi-clipboard-data"></i> <span class="nav-label" title="{{ _('Stato Patrimoniale') }}">{{ _('Stato Patrimoniale') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
-        {% if settings.accounting_income_statement %}
-        <a href="{{ url_for('accounting.income_statement') }}"
-           class="nav-item nav-sub {% if request.endpoint == 'accounting.income_statement' %}active{% endif %}">
-          <i class="bi bi-receipt"></i> <span class="nav-label" title="{{ _('Conto Economico') }}">{{ _('Conto Economico') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
-        <a href="{{ url_for('accounting.growth') }}"
-           class="nav-item nav-sub {% if request.endpoint == 'accounting.growth' %}active{% endif %}">
-          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label" title="{{ _('Crescita del patrimonio') }}">{{ _('Crescita del patrimonio') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% if settings.accounting_cash_flow %}
-        <a href="{{ url_for('accounting.cash_flow') }}"
-           class="nav-item nav-sub {% if request.endpoint == 'accounting.cash_flow' %}active{% endif %}">
-          <i class="bi bi-arrow-left-right"></i> <span class="nav-label" title="{{ _('Flusso di Cassa') }}">{{ _('Flusso di Cassa') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
-        {% endif %}
-        {% if shown('forecast') %}
-        <a href="{{ url_for('forecast.index') }}"
-           class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
-          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label" title="{{ _('Previsioni') }}">{{ _('Previsioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
-        {% if shown('subscriptions') %}
-        <a href="{{ url_for('subscriptions.index') }}"
-           class="nav-item nav-sub {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
-          <i class="bi bi-arrow-repeat"></i> <span class="nav-label" title="{{ _('Abbonamenti') }}">{{ _('Abbonamenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
         </div></div>
       </div>
       {% endif %}
 
-      <!-- STILE DI VITA -->
-      {% if shown_any('lifestyle', 'budget', 'goals', 'events') %}
+      <!-- STILE DI VITA: what you set yourself (Strategia), what happened (Analisi), what is coming (Pianificazione) -->
+      {% if shown_any('lifestyle', 'budget', 'goals', 'events', 'forecast', 'subscriptions', 'deadlines') %}
       <div class="nav-section" data-section="stiledivita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-stiledivita">
           <span class="nav-label">{{ _('Stile di Vita') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-stiledivita"><div>
-        {% if shown('lifestyle') %}
-        <a href="{{ url_for('lifestyle.index') }}"
-           class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
-          <i class="bi bi-pie-chart"></i> <span class="nav-label" title="{{ _('Spese e Tendenze') }}">{{ _('Spese e Tendenze') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        {% if shown_any('goals', 'budget') %}
+        <button type="button" class="nav-subtitle" aria-expanded="true" aria-controls="nav-sub-strategia" data-subtitle="strategia">
+          <span class="nav-label">{{ _('Strategia') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-subtitle-items" id="nav-sub-strategia">
+        {% if shown('goals') %}
+        <a href="{{ url_for('lifestyle.goals') }}"
+           class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
+          <i class="bi bi-trophy"></i> <span class="nav-label" title="{{ _('Obiettivi') }}">{{ _('Obiettivi') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         {% if shown('budget') %}
@@ -137,17 +114,51 @@
           <i class="bi bi-clipboard-check"></i> <span class="nav-label" title="{{ _('Budget') }}">{{ _('Budget') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if shown('goals') %}
-        <a href="{{ url_for('lifestyle.goals') }}"
-           class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
-          <i class="bi bi-trophy"></i> <span class="nav-label" title="{{ _('Obiettivi') }}">{{ _('Obiettivi') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </div>
+        {% endif %}
+        {% if shown_any('lifestyle', 'subscriptions') %}
+        <button type="button" class="nav-subtitle" aria-expanded="true" aria-controls="nav-sub-analisi" data-subtitle="analisi">
+          <span class="nav-label">{{ _('Analisi') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-subtitle-items" id="nav-sub-analisi">
+        {% if shown('lifestyle') %}
+        <a href="{{ url_for('lifestyle.index') }}"
+           class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
+          <i class="bi bi-pie-chart"></i> <span class="nav-label" title="{{ _('Spese e Tendenze') }}">{{ _('Spese e Tendenze') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
+        {% if shown('subscriptions') %}
+        <a href="{{ url_for('subscriptions.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
+          <i class="bi bi-arrow-repeat"></i> <span class="nav-label" title="{{ _('Abbonamenti') }}">{{ _('Abbonamenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        </div>
+        {% endif %}
+        {% if shown_any('events', 'forecast', 'deadlines') %}
+        <button type="button" class="nav-subtitle" aria-expanded="true" aria-controls="nav-sub-pianificazione" data-subtitle="pianificazione">
+          <span class="nav-label">{{ _('Pianificazione') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-subtitle-items" id="nav-sub-pianificazione">
         {% if shown('events') %}
         <a href="{{ url_for('events.index') }}"
            class="nav-item {% if request.endpoint.startswith('events.') %}active{% endif %}">
           <i class="bi bi-airplane"></i> <span class="nav-label" title="{{ _('Eventi') }}">{{ _('Eventi') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
+        {% endif %}
+        {% if shown('forecast') %}
+        <a href="{{ url_for('forecast.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label" title="{{ _('Previsioni') }}">{{ _('Previsioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('deadlines') %}
+        <a href="{{ url_for('deadlines.index') }}"
+           class="nav-item {% if request.endpoint.startswith(('deadlines.', 'notifications.')) %}active{% endif %}">
+          <i class="bi bi-bell"></i> <span class="nav-label" title="{{ _('Promemoria') }}">{{ _('Promemoria') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        </div>
         {% endif %}
         </div></div>
       </div>
@@ -230,12 +241,6 @@
           <span class="nav-label">{{ _('Strumenti') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-strumenti"><div>
-        {% if shown('deadlines') %}
-        <a href="{{ url_for('deadlines.index') }}"
-           class="nav-item {% if request.endpoint.startswith(('deadlines.', 'notifications.')) %}active{% endif %}">
-          <i class="bi bi-bell"></i> <span class="nav-label" title="{{ _('Promemoria') }}">{{ _('Promemoria') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
         {% if shown('snapshots') %}
         <a href="{{ url_for('snapshots.index') }}"
            class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">

@@ -3,12 +3,14 @@
 {% from "partials/tabs.html" import tab_bar %}
 {% from "partials/empty.html" import empty_state %}
 {% set f = filters %}
+{# Entrate and Uscite are sections of their own (section set): their links stay on their page #}
 {% macro link(changes) -%}
-  {{ url_for('reports.index', **dict(query_args, **changes)) }}
+  {{ url_for(request.endpoint if section else 'reports.index', **dict(query_args, **changes)) }}
 {%- endmacro %}
+{% set page_name = {'income': _('Entrate'), 'spending': _('Uscite')}.get(section, _('Report')) %}
 
-{% block page_title %}{{ _('Report') }}{% endblock %}
-{% block breadcrumb %}<li>{{ _('Report') }}</li>{% endblock %}
+{% block page_title %}{{ page_name }}{% endblock %}
+{% block breadcrumb %}<li>{{ page_name }}</li>{% endblock %}
 
 {% block content %}
 
@@ -16,9 +18,11 @@
 <div class="report-bar mb-16">
   {% set tab_items = namespace(list=[]) %}
   {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, link({'tab': key, 'category': ''}), label)] %}{% endfor %}
+  {% if not section %}
   {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary'), _('Riepilogo')), ('rhythm', url_for('reports.rhythm'), _('Ritmo')), ('year', url_for('reports.year_review'), _('Bilancio dell’anno'))], f.tab, _('Tipo di report')) }}
+  {% endif %}
   <form method="GET" class="report-controls" id="report-form">
-    <input type="hidden" name="tab" value="{{ f.tab }}">
+    {% if not section %}<input type="hidden" name="tab" value="{{ f.tab }}">{% endif %}
     {% if f.category %}<input type="hidden" name="category" value="{{ f.category }}">{% endif %}
     <input type="hidden" name="sort" value="{{ f.sort }}">
     <label class="sr-only" for="r-period">{{ _('Periodo') }}</label>
@@ -51,6 +55,18 @@
 </div>
 
 {% if f.tab != 'cashflow' %}
+<!-- The net of the period: income − expenses = saved; the cash flow tells where it went -->
+<div class="report-net card mb-16">
+  <div class="card-body report-net-body">
+    <span>{{ _('Entrate') }} <strong>{{ net.income|money }}</strong></span>
+    <span class="text-muted">−</span>
+    <span>{{ _('Uscite') }} <strong>{{ net.expenses|money }}</strong></span>
+    <span class="text-muted">=</span>
+    <span>{{ _('Netto del periodo') }} <strong class="{{ 'text-positive' if net.income >= net.expenses else 'text-negative' }}">{{ (net.income - net.expenses)|money }}</strong></span>
+    <a class="btn btn-ghost btn-sm report-net-link" href="{{ url_for('accounting.cash_flow', year=f.start.year) }}">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
+  </div>
+</div>
+
 <!-- By category ─────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
   <div class="card-header">

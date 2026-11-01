@@ -39,10 +39,10 @@ def _day(name: str) -> date | None:
         return None
 
 
-def _filters() -> dict:
-    """The choices in the query string, checked, with the period they give."""
+def _filters(tab: str | None = None) -> dict:
+    """The choices in the query string, checked, with the period they give; `tab` fixed by the page (Entrate, Uscite)."""
     args = request.args
-    tab = args.get("tab") if args.get("tab") in reports.TABS else "spending"
+    tab = tab or (args.get("tab") if args.get("tab") in reports.TABS else "spending")
     period = args.get("period") if args.get("period") in reports.PERIODS else reports.DEFAULT_PERIOD
     custom_start, custom_end = _day("start"), _day("end")
     if period == "custom" and not (custom_start and custom_end):
@@ -65,9 +65,21 @@ def _rows(filters: dict):
     return query, tx_type, reports.transactions(query, tx_type, filters["category"] or None, filters["sort"])
 
 
+@reports_bp.route("/income")
+def income():
+    """Entrate: a section of its own, the income of the period by category, its transactions and the net."""
+    return index("income")
+
+
+@reports_bp.route("/spending")
+def spending():
+    """Uscite: a section of its own, the expenses of the period by category, its transactions and the net."""
+    return index("spending")
+
+
 @reports_bp.route("/")
-def index():
-    filters = _filters()
+def index(tab: str | None = None):
+    filters = _filters(tab)
     query, tx_type, rows = _rows(filters)
     context = {"filters": filters, "rows": rows, "days": reports.by_day(rows) if filters["sort"] == "date" else None,
                "summary": reports.summary(rows) if tx_type else None}
@@ -86,9 +98,11 @@ def index():
         types = [tx_type] if tx_type else ["income", "expense"]
         context["excluded"] = excluded_total(Transaction.type.in_(types), Transaction.date >= filters["start"],
                                              Transaction.date < filters["end"])
+    # the net of the period (income − expenses = saved), with the way to the cash flow of the same year
+    context["net"] = analytics.totals(filters["start"], filters["end"])
     account_list = accounts.active()
     return render_template(
-        "reports/index.html", **context, tabs=reports.TABS, periods=reports.PERIODS, sorts=reports.SORTS,
+        "reports/index.html", **context, section=tab, tabs=reports.TABS, periods=reports.PERIODS, sorts=reports.SORTS,
         accounts=account_list, account_names={a.id: a.name for a in account_list},
         uncategorized=UNCATEGORIZED, query_args=request.args.to_dict(),
     )

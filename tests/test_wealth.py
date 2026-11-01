@@ -113,7 +113,7 @@ def test_balance_sheet_in_the_past_ignores_later_transactions(db, sample_data):
 
 PAGES = ["/portfolio/", "/portfolio/new", "/portfolio/prices", "/debt/", "/debt/new", "/insurance/", "/insurance/new",
          "/lifestyle/goals", "/lifestyle/goals/new", "/documents/", "/snapshots/", "/snapshots/compare",
-         "/accounting/", "/accounting/balance-sheet", "/dashboard"]
+         "/accounting/growth", "/accounting/balance-sheet", "/dashboard"]
 
 
 @pytest.mark.parametrize("url", PAGES)

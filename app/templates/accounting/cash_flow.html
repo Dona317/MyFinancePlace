@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "accounting/base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Flusso di Cassa') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Rendiconto Finanziario') }}{% endblock %}
+{% block page_title %}{{ _('Contabilità') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Flusso di Cassa') }}</li>{% endblock %}
 
 {% block topbar_actions %}
@@ -13,7 +13,7 @@
   </a>
 {% endblock %}
 
-{% block content %}
+{% block statement %}
 
 <!-- KPIs ─────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
@@ -22,6 +22,13 @@
   {{ kpi('bank2', _('CF Finanziario'), value=report.financing|money, cls='kpi-warning', sub=(_('Prestiti e rimborsi'))) }}
   {{ kpi('wallet2', _('Variazione Netta Cassa'), value=report.net_change|money, cls='kpi-primary', sub=(_('Apertura → Chiusura'))) }}
 </div>
+{# the operating flow comes from the income and the expenses of the year: their pages, on the same year #}
+{% if shown('reports') %}
+<div class="cash-flow-links mb-16">
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('reports.income', period='custom', start='%d-01-01' % year, end='%d-12-31' % year) }}"><i class="bi bi-arrow-down-circle"></i> {{ _('Entrate del %(year)s', year=year) }} <i class="bi bi-arrow-right"></i></a>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('reports.spending', period='custom', start='%d-01-01' % year, end='%d-12-31' % year) }}"><i class="bi bi-arrow-up-circle"></i> {{ _('Uscite del %(year)s', year=year) }} <i class="bi bi-arrow-right"></i></a>
+</div>
+{% endif %}
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
 

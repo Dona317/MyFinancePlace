@@ -7,6 +7,7 @@ from flask_babel import gettext as _
 from app.routes.helpers import form_decimal, year_arg
 from app.services import analytics, family, net_worth_growth, owners, settings_store, wealth
 from app.services.parsing import to_date
+from app.services.ui_settings import current_settings
 
 accounting_bp = APIBlueprint(
     "accounting",
@@ -15,10 +16,16 @@ accounting_bp = APIBlueprint(
     tag="Accounting"
 )
 
+# Contabilità: the tabs in their order, each with the setting that switches it off (none: always there)
+TABS = (("accounting.balance_sheet", "accounting_balance_sheet"), ("accounting.income_statement", "accounting_income_statement"),
+        ("accounting.cash_flow", "accounting_cash_flow"), ("accounting.growth", None))
+
+
 @accounting_bp.route("/")
 def index():
-    """The three statements as tabs of one page (each loads only when opened)."""
-    return render_template("accounting/index.html")
+    """Contabilità opens on its first tab (the balance sheet, unless switched off)."""
+    settings = current_settings()
+    return redirect(url_for(next(endpoint for endpoint, setting in TABS if setting is None or settings.get(setting, True))))
 
 
 @accounting_bp.route("/balance-sheet")

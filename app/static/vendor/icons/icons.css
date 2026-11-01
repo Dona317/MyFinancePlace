@@ -167,6 +167,7 @@
 .bi-info::before { content: "\f434"; }
 .bi-info-circle::before { content: "\f431"; }
 .bi-intersect::before { content: "\f438"; }
+.bi-journal-text::before { content: "\f444"; }
 .bi-key::before { content: "\f44f"; }
 .bi-keyboard::before { content: "\f451"; }
 .bi-layout-sidebar::before { content: "\f45f"; }

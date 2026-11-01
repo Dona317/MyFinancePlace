@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 17:27+0100\n"
+"POT-Creation-Date: 2026-11-01 18:00+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1118,6 +1118,9 @@ msgstr "Administered: the broker computes and pays the taxes"
 msgid "Amministratore"
 msgstr "Administrator"
 
+msgid "Analisi"
+msgstr "Analysis"
+
 msgid "Analizza file"
 msgstr "Analyze file"
 
@@ -1277,9 +1280,6 @@ msgstr "Apr"
 
 msgid "Apri"
 msgstr "Open"
-
-msgid "Apri a pagina intera"
-msgstr "Open as a full page"
 
 msgid "Apri i debiti"
 msgstr "Open the debts"
@@ -3318,6 +3318,10 @@ msgstr "Income, 12 months"
 msgid "Entrate cumulate"
 msgstr "Cumulative income"
 
+#, python-format
+msgid "Entrate del %(year)s"
+msgstr "Income of %(year)s"
+
 msgid "Entrate e spese con tag"
 msgstr "Tagged income and expenses"
 
@@ -4290,6 +4294,9 @@ msgstr "The file is not a MyFinancePlace backup."
 
 msgid "Il file è vuoto."
 msgstr "The file is empty."
+
+msgid "Il flusso di cassa da cui partono le previsioni"
+msgstr "The cash flow the forecast starts from"
 
 msgid "Il foglio è vuoto."
 msgstr "The sheet is empty."
@@ -5880,10 +5887,6 @@ msgstr "Show the transactions with this tag"
 msgid "Mostra o nascondi"
 msgstr "Show or hide"
 
-#, python-format
-msgid "Mostra o nascondi «%(name)s»"
-msgstr "Show or hide «%(name)s»"
-
 msgid "Mostra tutta la descrizione"
 msgstr "Show the whole description"
 
@@ -6429,6 +6432,9 @@ msgstr "Net"
 #, python-format
 msgid "Netto %(month)s"
 msgstr "Net %(month)s"
+
+msgid "Netto del periodo"
+msgstr "Net of the period"
 
 msgid "Netto mensile"
 msgstr "Monthly net"
@@ -7098,9 +7104,6 @@ msgstr "Hidden panels:"
 msgid "Panoramica"
 msgstr "Overview"
 
-msgid "Panoramica Contabilità"
-msgstr "Accounting Overview"
-
 msgid "Parola chiave"
 msgstr "Keyword"
 
@@ -7473,6 +7476,9 @@ msgstr "Weight of a holding above (percent)"
 
 msgid "Piani d'accumulo (PAC)"
 msgstr "Investment plans (PAC)"
+
+msgid "Pianificazione"
+msgstr "Planning"
 
 msgid "Piano d'accumulo (PAC)"
 msgstr "Investment plan (PAC)"
@@ -9447,6 +9453,9 @@ msgstr "Status"
 msgid "Stato Patrimoniale"
 msgstr "Balance Sheet"
 
+msgid "Stato patrimoniale"
+msgstr "Balance sheet"
+
 msgid "Sterlina"
 msgstr "Pound sterling"
 
@@ -9528,6 +9537,9 @@ msgstr "Price history"
 #, python-format
 msgid "Storico prezzi di %(name)s"
 msgstr "Price history of %(name)s"
+
+msgid "Strategia"
+msgstr "Strategy"
 
 msgid "Strumenti"
 msgstr "Tools"
@@ -10106,9 +10118,6 @@ msgstr ""
 msgid "Tutti i prezzi sono degli ultimi 30 giorni."
 msgstr "All prices are from the last 30 days."
 
-msgid "Tutti i prospetti sono spenti in Impostazioni → Contabilità."
-msgstr "Every statement is switched off in Settings → Accounting."
-
 msgid "Tutti i tipi"
 msgstr "All types"
 
@@ -10450,6 +10459,10 @@ msgstr "Expenses, 12 months"
 
 msgid "Uscite cumulate"
 msgstr "Cumulative expenses"
+
+#, python-format
+msgid "Uscite del %(year)s"
+msgstr "Expenses of %(year)s"
 
 msgid "Uscite o entrate ricorrenti"
 msgstr "Recurring expenses or income"
