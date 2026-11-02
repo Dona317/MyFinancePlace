@@ -7,7 +7,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.event import SpendingEvent
-from app.routes.helpers import back_to, form_ids
+from app.routes.helpers import back_to
 from app.services import spending_events
 from app.services.parsing import to_date, to_decimal
 
@@ -70,7 +70,9 @@ def assign():
     """Put the selected movements in an event, or take them out (empty event)."""
     event_id = request.form.get("event_id", type=int)
     event = db.session.get(SpendingEvent, event_id) if event_id else None
-    count = spending_events.assign(sorted(form_ids()), event)
+    from app.routes.transactions import selected_ids  # the register's selection: ticked rows or the whole search
+
+    count = spending_events.assign(sorted(selected_ids()), event)
     db.session.commit()
     if event:
         flash(_("%(count)s movimenti aggiunti a «%(name)s».", count=count, name=event.name), "success")

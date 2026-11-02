@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-02 09:30+0100\n"
+"POT-Creation-Date: 2026-11-02 10:49+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -421,6 +421,12 @@ msgid "%(num)d debito"
 msgid_plural "%(num)d debiti"
 msgstr[0] "%(num)d debt"
 msgstr[1] "%(num)d debts"
+
+#, python-format
+msgid "%(num)d filtro attivo"
+msgid_plural "%(num)d filtri attivi"
+msgstr[0] "%(num)d filter on"
+msgstr[1] "%(num)d filters on"
 
 #, python-format
 msgid "%(num)d giroconto collegato al movimento già importato dall'altro conto."
@@ -2840,8 +2846,8 @@ msgstr "From the snapshots"
 msgid "Dashboard"
 msgstr "Dashboard"
 
-msgid "Dashboard — Periodi e previsioni delle schede"
-msgstr "Dashboard — Periods and forecasts of the cards"
+msgid "Dashboard — Previsioni delle schede"
+msgstr "Dashboard — Card forecasts"
 
 msgid "Dashboard — Schede KPI"
 msgstr "Dashboard — KPI cards"
@@ -3197,6 +3203,12 @@ msgstr "Permanently delete the selected transactions?"
 
 msgid "Eliminare definitivamente questa transazione?"
 msgstr "Permanently delete this transaction?"
+
+#, python-format
+msgid ""
+"Eliminare definitivamente tutte le %(count)s transazioni della ricerca "
+"(tutte le pagine)?"
+msgstr "Permanently delete all %(count)s transactions of the search (all pages)?"
 
 #, python-format
 msgid "Eliminare il cambio %(currency)s del %(date)s?"
@@ -3679,12 +3691,6 @@ msgstr "Recurrence end: cannot be before the date."
 
 msgid "Finestra mobile"
 msgstr "Rolling window"
-
-msgid "Finestra temporale non valida."
-msgstr "Invalid time window."
-
-msgid "Finestre temporali delle schede riportate al mese in corso."
-msgstr "The cards’ time windows are back to the current month."
 
 msgid "Fino a (età)"
 msgstr "Until (age)"
@@ -6688,9 +6694,6 @@ msgstr "Signed number: −50.00 is an expense."
 msgid "Numero conto"
 msgstr "Account number"
 
-msgid "Numero di mesi"
-msgstr "Number of months"
-
 msgid "Numero polizza"
 msgstr "Policy number"
 
@@ -7389,13 +7392,6 @@ msgstr "To delete the client and its archive type “%(name)s”"
 msgid "Per eliminare «%(name)s» scrivi il suo nome esatto."
 msgstr "To delete “%(name)s” type its exact name."
 
-msgid ""
-"Per entrate, uscite e tasso di risparmio, finché non scegli un periodo "
-"nella scheda. Gli ultimi N mesi li scrivi tu."
-msgstr ""
-"For income, expenses and savings rate, until you choose a period in the "
-"card. You type the last N months yourself."
-
 msgid "Per esempio:"
 msgstr "For example:"
 
@@ -7504,14 +7500,8 @@ msgstr ""
 "Loses %(rate)s%% a year from the last valuation: the “estimate” values "
 "are written by themselves."
 
-msgid "Periodi scelti nelle schede"
-msgstr "Periods chosen in the cards"
-
 msgid "Periodo"
 msgstr "Period"
-
-msgid "Periodo predefinito delle schede"
-msgstr "Default period of the cards"
 
 msgid "Permanent Portfolio"
 msgstr "Permanent Portfolio"
@@ -8428,6 +8418,9 @@ msgstr "Revenue"
 msgid "Ricavi, spese e risparmio netto per periodo"
 msgstr "Revenue, spending and net savings by period"
 
+msgid "Ricerca e filtri"
+msgstr "Search and filters"
+
 msgid "Ricerca non riuscita."
 msgstr "Search failed."
 
@@ -8607,20 +8600,11 @@ msgstr "Roll over"
 msgid "Riporta al mese dopo il budget di %(name)s"
 msgstr "Roll the %(name)s budget over to the next month"
 
-msgid "Riporta tutte le schede al periodo predefinito (il mese in corso)."
-msgstr "Puts every card back to the default period (the current month)."
-
-msgid "Riportare tutte le schede al periodo predefinito?"
-msgstr "Put every card back to the default period?"
-
 msgid "Ripristina"
 msgstr "Restore"
 
 msgid "Ripristina Defaults"
 msgstr "Restore Defaults"
-
-msgid "Ripristina i periodi"
-msgstr "Reset the periods"
 
 msgid "Ripristina predefinito"
 msgstr "Restore default"
@@ -9044,11 +9028,8 @@ msgstr "Choices and leisure"
 msgid "Scheda con il valore netto totale (attività − passività)"
 msgstr "Card with the total net worth (assets − liabilities)"
 
-msgid "Scheda sconosciuta."
-msgstr "Unknown card."
-
-msgid "Schede, blocchi e finestre temporali della dashboard nelle Impostazioni"
-msgstr "Cards, blocks and time windows of the dashboard in the Settings"
+msgid "Schede, blocchi e previsioni della dashboard nelle Impostazioni"
+msgstr "Dashboard cards, blocks and forecasts in Settings"
 
 msgid ""
 "Scontrini e fatture con «garanzia fino al»: un promemoria arriva 30 "
@@ -10323,9 +10304,6 @@ msgstr "Last 3 months"
 msgid "Ultimi 6 mesi"
 msgstr "Last 6 months"
 
-msgid "Ultimi N mesi"
-msgstr "Last N months"
-
 msgid "Ultimi movimenti"
 msgstr "Latest movements"
 
@@ -10341,12 +10319,6 @@ msgstr "Last day to file the 730"
 
 msgid "Ultimo importo"
 msgstr "Latest amount"
-
-#, python-format
-msgid "Ultimo mese"
-msgid_plural "Ultimi %(num)d mesi"
-msgstr[0] "Last month"
-msgstr[1] "Last %(num)d months"
 
 msgid "Ultimo pagamento"
 msgstr "Last payment"

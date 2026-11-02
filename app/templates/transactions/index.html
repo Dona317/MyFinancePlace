@@ -47,8 +47,14 @@
 
 
 
-<!-- Ricerca e filtri: one search box on top (description, counterparty, tags, notes), the filters under it -->
-<div class="card mb-16">
+<!-- Ricerca e filtri: one search box on top (description, counterparty, tags, notes), the filters under it; the card
+     closes and opens like the Modifica massiva, and remembers it -->
+{% set active_filters = filters.values()|select|list|length %}
+<details class="card mb-16 bulk-box search-box" id="search-box" open data-remember="mfp-search-open">
+  <summary class="card-header">
+    <div class="card-header-title"><i class="bi bi-search"></i> {{ _('Ricerca e filtri') }}</div>
+    {% if active_filters %}<span class="text-xs text-muted">{{ ngettext('%(num)d filtro attivo', '%(num)d filtri attivi', active_filters) }}</span>{% endif %}
+  </summary>
   <form class="register-search" method="GET" action="{{ url_for('transactions.index') }}" id="filter-form">
     <div class="register-search-main">
       <i class="bi bi-search"></i>
@@ -117,11 +123,11 @@
       </label>
     </div>
   </form>
-</div>
+</details>
 
 {% if transactions %}
 <!-- Modifica massiva: the ticked rows, or every transaction the search finds (all pages) -->
-<details class="card mb-16 bulk-box" id="bulk-box" {{ 'open' if filters.values()|select|list }}>
+<details class="card mb-16 bulk-box" id="bulk-box" {{ 'open' if active_filters }} data-remember="mfp-bulk-open">
   <summary class="card-header">
     <div class="card-header-title"><i class="bi bi-pencil-square"></i> {{ _('Modifica massiva') }}
       {{ info(_('Modifica insieme i campi delle transazioni selezionate.')) }}</div>
@@ -387,18 +393,39 @@
 
 {% block scripts %}
 <script>
-/* ── Modifica massiva: the ticked rows, or the whole search ── */
+/* ── The search card and the Modifica massiva close and open, and the page remembers it ── */
+document.querySelectorAll('details[data-remember]').forEach(box => {
+  const saved = store.get(box.dataset.remember);
+  if (saved !== null) box.open = saved === '1';
+  box.addEventListener('toggle', () => store.set(box.dataset.remember, box.open ? '1' : '0'));
+});
+
+/* ── The selection: the ticked rows, or (the box on the header of the table) the whole search, every page ── */
+const searchTotal = {{ total|tojson }};
+const searchFilters = {{ filters|tojson }};
+const ticked = () => [...document.querySelectorAll('.bulk-select:checked')];
+const wholeSearch = () => !!document.getElementById('select-all')?.checked
+  && ticked().length === document.querySelectorAll('.bulk-select').length;
+const selectedCount = () => (wholeSearch() ? searchTotal : ticked().length);
+// what an action form sends: the ids of the ticked rows, or scope=search with the filters of the search
+const fillSelection = (target) => {
+  target.querySelectorAll('input[data-selection]').forEach(el => el.remove());
+  const add = (name, value) => target.appendChild(Object.assign(document.createElement('input'),
+    { type: 'hidden', name, value: value ?? '' })).setAttribute('data-selection', '');
+  if (wholeSearch()) {
+    add('scope', 'search');
+    Object.entries(searchFilters).forEach(([key, value]) => add(key, value));
+  } else {
+    ticked().forEach(box => add('ids', box.value));
+  }
+};
 {
 const form = document.getElementById('bulk-edit-form');
-const ticked = () => [...document.querySelectorAll('.bulk-select:checked')];
-// «selected/found» (0/489); the box on the header of the table selects the whole search (every page)
-const total = {{ total|tojson }};
+// «selected/found» (0/489)
 const describe = () => {
   if (!form) return;
-  const all = document.getElementById('select-all')?.checked && ticked().length === document.querySelectorAll('.bulk-select').length;
-  const count = all ? total : ticked().length;
-  document.getElementById('bulk-scope').value = all ? 'search' : 'selection';
-  document.getElementById('bulk-summary').textContent = `${count}/${total}`;  // selected / found
+  document.getElementById('bulk-scope').value = wholeSearch() ? 'search' : 'selection';
+  document.getElementById('bulk-summary').textContent = `${selectedCount()}/${searchTotal}`;  // selected / found
 };
 document.addEventListener('change', e => { if (e.target.matches('.bulk-select, #select-all')) setTimeout(describe); });
 describe();
@@ -516,24 +543,24 @@ document.addEventListener('keydown', (event) => {
 });
 const bulkBoxes = document.querySelectorAll('.bulk-select');
 const bulkButton = document.getElementById('bulk-delete');
-// "Assegna" sends the same selection as the bulk delete: copy the ticked ids into its form
-// "Assegna" and "Conferma selezionate" send the same selection as the bulk delete: copy the ticked ids into them
-['assign-form', 'confirm-form', 'event-form'].map(id => document.getElementById(id)).filter(Boolean).forEach(form => {
+// Elimina, Assegna, Conferma and «Metti nell'evento» send the selection: the ticked rows or the whole search.
+// The delete form's own checkboxes (form="bulk-form") are dropped for the whole search: the filters say it all.
+['bulk-form', 'assign-form', 'confirm-form', 'event-form'].map(id => document.getElementById(id)).filter(Boolean).forEach(form => {
   form.addEventListener('submit', () => {
-    form.querySelectorAll('input[name=ids]').forEach(el => el.remove());
-    document.querySelectorAll('.bulk-select:checked').forEach(box => {
-      const hidden = document.createElement('input');
-      hidden.type = 'hidden'; hidden.name = 'ids'; hidden.value = box.value;
-      form.appendChild(hidden);
-    });
+    fillSelection(form);
+    bulkBoxes.forEach(box => { box.disabled = form.id === 'bulk-form' && wholeSearch(); });
   });
 });
 const classifyButton = document.getElementById('ai-classify');
 const refreshBulk = () => {
-  const count = [...bulkBoxes].filter(b => b.checked).length;
+  const count = selectedCount();
   if (bulkButton) {
     bulkButton.disabled = count === 0;
     document.getElementById('bulk-count').textContent = count;
+    // the question before deleting says how many go, and that it is the whole search
+    document.getElementById('bulk-form').dataset.confirm = wholeSearch()
+      ? fmt({{ _('Eliminare definitivamente tutte le %(count)s transazioni della ricerca (tutte le pagine)?', count='%(count)s')|tojson }}, { count })
+      : {{ _('Eliminare definitivamente le transazioni selezionate?')|tojson }};
   }
   ['bulk-assign', 'bulk-confirm', 'bulk-event'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = count === 0; });
   if (classifyButton) {
@@ -545,17 +572,12 @@ const refreshBulk = () => {
   }
 };
 
-// AI classification: the selected transactions, or (none selected) those without a category
+// AI classification: the selection (ticked rows or the whole search), or (none selected) those without a category
 classifyButton?.addEventListener('click', async () => {
-  const selected = [...bulkBoxes].filter(b => b.checked).map(b => b.value);
   if (classifyButton.dataset.cloud === 'true' &&
       !(await mfpConfirm({{ _('Le causali verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')|tojson }}))) return;
   const form = document.getElementById('classify-form');
-  selected.forEach(id => {
-    const input = document.createElement('input');
-    input.type = 'hidden'; input.name = 'ids'; input.value = id;
-    form.appendChild(input);
-  });
+  fillSelection(form);
   classifyButton.disabled = true;
   document.getElementById('ai-classify-label').textContent = {{ _('Classificazione in corso…')|tojson }};
   form.submit();
@@ -566,6 +588,7 @@ document.getElementById('select-all')?.addEventListener('change', (e) => {
   bulkBoxes.forEach(b => { b.checked = e.target.checked; });
   refreshBulk();
 });
+bulkBoxes.forEach(b => b.addEventListener('change', () => setTimeout(refreshBulk)));
 bulkBoxes.forEach(b => b.addEventListener('change', () => { if (!b.checked) document.getElementById('select-all').checked = false; }));
 </script>
 {% endblock %}

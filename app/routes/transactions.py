@@ -265,14 +265,20 @@ def edit(tx_id):
 BULK_SEARCH_LIMIT = 5000  # a search bigger than this is changed in parts
 
 
+def selected_ids() -> set[int]:
+    """The transactions an action on the selection works on: the ticked ones, or (scope=search, the box on the
+    header of the table) every transaction the search finds, on every page."""
+    if request.form.get("scope") == "search":
+        filters = {key: request.form.get(key, "").strip() for key in FILTER_KEYS}
+        return {row[0] for row in _filtered_query(filters).with_entities(Transaction.id).limit(BULK_SEARCH_LIMIT).all()}
+    return form_ids()
+
+
 @transactions_bp.route("/bulk-edit", methods=["POST"])
 def bulk_edit():
     """Change many transactions at once: the ticked ones, or every transaction of the search (not only the page shown)
     when «tutta la ricerca» is chosen: type, category or subcategory, group, recurring or not, account, date."""
-    ids = form_ids()
-    if request.form.get("scope") == "search":
-        filters = {key: request.form.get(key, "").strip() for key in FILTER_KEYS}
-        ids = {row[0] for row in _filtered_query(filters).with_entities(Transaction.id).limit(BULK_SEARCH_LIMIT).all()}
+    ids = selected_ids()
     if not ids:
         flash(_("Nessuna transazione selezionata."), "warning")
         return back_to("transactions.index")
@@ -421,7 +427,7 @@ def delete(tx_id):
 
 @transactions_bp.route("/delete-selected", methods=["POST"])
 def delete_selected():
-    ids = form_ids()
+    ids = selected_ids()
     if ids:
         undo.remember_deleted(Transaction.query.filter(Transaction.id.in_(ids)).all())
     moved = portfolio_ops.holdings_of(ids)
@@ -437,7 +443,7 @@ def delete_selected():
 def assign_account():
     account_id = request.form.get("account_id", type=int)
     account = db.session.get(Account, account_id) if account_id else None
-    changed = accounts.assign(form_ids(), account.id if account else None)
+    changed = accounts.assign(selected_ids(), account.id if account else None)
     if not changed:
         flash(_("Nessuna transazione selezionata."), "warning")
     elif account:
@@ -451,7 +457,7 @@ def assign_account():
 def confirm_ai():
     """The AI's category is right: take away the «da confermare (AI)» tag (one transaction or the selected ones)."""
     changed = 0
-    for tx in Transaction.query.filter(Transaction.id.in_(form_ids()), Transaction.tags.any(AI_TAG)).all():
+    for tx in Transaction.query.filter(Transaction.id.in_(selected_ids()), Transaction.tags.any(AI_TAG)).all():
         tx.tags = [t for t in tx.tags if t != AI_TAG]
         changed += 1
     db.session.commit()
@@ -539,7 +545,7 @@ def _classification_text(tx: Transaction) -> str:
 @transactions_bp.route("/classify", methods=["POST"])
 def classify():
     """Ask the AI for category/counterparty suggestions and show them for review (nothing is saved)."""
-    ids = form_ids()
+    ids = selected_ids()
     query = Transaction.query.filter(Transaction.id.in_(ids)) if ids else _unclassified_query()
     transactions = query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
     if not transactions:
