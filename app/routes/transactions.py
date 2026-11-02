@@ -37,7 +37,7 @@ from app.services import currency as currency_service
 from app.services import review as review_service
 from app.services.ai_classification import AI_TAG
 from app.services.categories import known_categories
-from app.services.parsing import valid_amount
+from app.services.parsing import to_decimal, valid_amount
 from app.services.periods import month_bounds
 from app.services.tags import all_tags, parse_tags  # noqa: F401 - re-exported for older imports
 
@@ -97,10 +97,38 @@ def _filtered_query(filters: dict):
                 query = query.filter(compare(date.fromisoformat(filters[key])))
             except ValueError:
                 pass
+    # the amount, as big as (in the base currency, without sign): from «min» to «max», both included
+    for key, compare in (("min", SIZE.__ge__), ("max", SIZE.__le__)):
+        value = to_decimal(filters.get(key))
+        if value is not None:
+            query = query.filter(compare(abs(value)))
     return query
 
 
-FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", "person", "start", "end", "cluster")
+# the size of a movement, without sign (the base currency, the own one until it is computed)
+SIZE = func.abs(func.coalesce(Transaction.amount_base, Transaction.amount))
+# the columns the table is sorted by, a click on their title: column → (expression, first direction)
+SORTS = {"date": (Transaction.date, "desc"), "description": (func.lower(Transaction.description), "asc"),
+         "category": (func.lower(Transaction.category), "asc"), "amount": (SIZE, "desc")}
+
+
+def _sort() -> tuple[str, str]:
+    """The column and direction of the table (?sort=amount&dir=asc); the newest first when none."""
+    column = request.args.get("sort", "")
+    if column not in SORTS:
+        return "date", "desc"
+    direction = request.args.get("dir", "")
+    return column, direction if direction in ("asc", "desc") else SORTS[column][1]
+
+
+def _ordered(query, column: str, direction: str):
+    expression = SORTS[column][0]
+    first = expression.asc() if direction == "asc" else expression.desc()
+    return query.order_by(first.nullslast(), Transaction.date.desc(), Transaction.id.desc())
+
+
+FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", "person", "start", "end", "cluster", "min",
+               "max")
 
 
 @transactions_bp.route("/")
@@ -110,8 +138,8 @@ def index():
     total = query.count()
     pages = max(1, -(-total // PAGE_SIZE))
     page = min(max(request.args.get("page", 1, type=int), 1), pages)
-    transactions = (query.options(selectinload(Transaction.splits))
-                    .order_by(Transaction.date.desc(), Transaction.id.desc())
+    sort, direction = _sort()
+    transactions = (_ordered(query.options(selectinload(Transaction.splits)), sort, direction)
                     .offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all())
     categories = [
         row[0] for row in
@@ -123,6 +151,13 @@ def index():
         transactions=transactions,
         total=total, page=page, pages=pages,
         page_url=lambda n: url_for("transactions.index", **(request.args.to_dict() | {"page": n})),
+        sort=sort, direction=direction,
+        without_url=lambda *keys: url_for("transactions.index", **{k: v for k, v in request.args.to_dict().items()
+                                                                   if k not in (*keys, "page")}),
+        # a click on a title: that column, the other way round when it is already the one; back to the first page
+        sort_url=lambda column: url_for("transactions.index", **(
+            {k: v for k, v in request.args.to_dict().items() if k not in ("page", "sort", "dir")}
+            | {"sort": column, "dir": ("asc" if direction == "desc" else "desc") if column == sort else SORTS[column][1]})),
         filters=filters,
         categories=categories,
         all_categories=known_categories(),

@@ -16,6 +16,41 @@
   </a>
 {% endblock %}
 
+{# A title of the table: a click sorts by that column (again: the other way round); an arrow on the one in use #}
+{% macro sort_title(column, label) -%}
+<a class="sort-link{{ ' is-sorted' if sort == column }}" href="{{ sort_url(column) }}"
+   title="{{ _('Ordina per %(column)s', column=label|lower) }}">{{ label }}{% if sort == column %} <i class="bi bi-arrow-{{ 'up' if direction == 'asc' else 'down' }}-short"></i>{% endif %}</a>
+{%- endmacro %}
+
+{# The small filter of a title (Categoria: one category; Importo: from – to): a funnel opens it, the rest of the search stays #}
+{% macro col_filter(kind) -%}
+{% set on = filters.category if kind == 'category' else (filters.min or filters.max) %}
+<span class="col-filter">
+  <button type="button" class="col-filter-btn{{ ' is-on' if on }}" aria-haspopup="true" aria-expanded="false"
+          title="{{ _('Filtra per categoria') if kind == 'category' else _('Filtra per importo') }}"><i class="bi bi-funnel"></i></button>
+  <form class="col-pop" method="GET" action="{{ url_for('transactions.index') }}" hidden>
+    {% set own = ('category',) if kind == 'category' else ('min', 'max') %}
+    {% for key, value in request.args.items() if key != 'page' and key not in own %}<input type="hidden" name="{{ key }}" value="{{ value }}" />{% endfor %}
+    {% if kind == 'category' %}
+    <label class="filter-field"><span>{{ _('Categoria') }}</span>
+      <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Tutte') }}</option>
+        {{ f.category_options(all_categories, filters.category) }}
+      </select></label>
+    {% else %}
+    <div class="col-pop-range">
+      <label class="filter-field"><span>{{ _('Da') }}</span><input type="text" inputmode="decimal" name="min" value="{{ filters.min }}" class="form-control form-control-sm" placeholder="0" autocomplete="off" /></label>
+      <label class="filter-field"><span>{{ _('A') }}</span><input type="text" inputmode="decimal" name="max" value="{{ filters.max }}" class="form-control form-control-sm" placeholder="∞" autocomplete="off" /></label>
+    </div>
+    <div class="col-pop-actions">
+      {% if on %}<a class="btn btn-ghost btn-sm" href="{{ without_url('min', 'max') }}">{{ _('Togli') }}</a>{% endif %}
+      <button type="submit" class="btn btn-primary btn-sm">{{ _('Filtra') }}</button>
+    </div>
+    {% endif %}
+  </form>
+</span>
+{%- endmacro %}
+
 {% block content %}
 
 {% if duplicate_groups %}
@@ -56,6 +91,7 @@
     {% if active_filters %}<span class="text-xs text-muted">{{ ngettext('%(num)d filtro attivo', '%(num)d filtri attivi', active_filters) }}</span>{% endif %}
   </summary>
   <form class="register-search" method="GET" action="{{ url_for('transactions.index') }}" id="filter-form">
+    {% if request.args.sort %}<input type="hidden" name="sort" value="{{ sort }}" /><input type="hidden" name="dir" value="{{ direction }}" />{% endif %}
     <div class="register-search-main">
       <i class="bi bi-search"></i>
       {# the box shows the last searches of this browser as soon as it is clicked (one X each, «Cancella tutte» at the bottom) #}
@@ -116,6 +152,10 @@
         <input type="date" name="start" value="{{ filters.start }}" class="form-control" onchange="this.form.submit()" /></label>
       <label class="filter-field"><span>{{ _('Al') }}</span>
         <input type="date" name="end" value="{{ filters.end }}" class="form-control" onchange="this.form.submit()" /></label>
+      <label class="filter-field"><span>{{ _('Importo da') }}</span>
+        <input type="text" inputmode="decimal" name="min" value="{{ filters.min }}" class="form-control" placeholder="0" autocomplete="off" /></label>
+      <label class="filter-field"><span>{{ _('Importo a') }}</span>
+        <input type="text" inputmode="decimal" name="max" value="{{ filters.max }}" class="form-control" placeholder="∞" autocomplete="off" /></label>
       <label class="filter-field"><span>{{ _('Mese') }}</span>
         <input type="month" name="month" value="{{ filters.month }}" class="form-control" onchange="this.form.submit()" /></label>
       <label class="filter-check">
@@ -253,11 +293,11 @@
       <thead>
         <tr>
           <th style="width:36px;"><input class="check" type="checkbox" id="select-all" title="{{ ngettext('Seleziona tutta la ricerca (%(num)d transazione)', 'Seleziona tutta la ricerca (%(num)d transazioni, tutte le pagine)', total) }}" /></th>
-          <th data-col="date" data-min="content" data-grip="off" style="width:104px;"><span class="col-title">{{ _('Data') }}</span></th>
-          <th data-col="description" style="width:320px;"><span class="col-title">{{ _('Descrizione') }}</span></th>
-          <th data-col="category" style="width:190px;"><span class="col-title">{{ _('Categoria') }}</span></th>
+          <th data-col="date" data-min="content" data-grip="off" style="width:104px;"><span class="col-title">{{ sort_title('date', _('Data')) }}</span></th>
+          <th data-col="description" style="width:320px;"><span class="col-title">{{ sort_title('description', _('Descrizione')) }}</span></th>
+          <th data-col="category" style="width:190px;"><span class="col-title">{{ sort_title('category', _('Categoria')) }}{{ col_filter('category') }}</span></th>
           <th data-col="tags" style="width:220px;"><span class="col-title">{{ _('Tag') }}</span></th>
-          <th data-col="amount" data-min="content" data-grip="off" class="text-right" style="width:130px;"><span class="col-title">{{ _('Importo') }}</span></th>
+          <th data-col="amount" data-min="content" data-grip="off" class="text-right" style="width:150px;"><span class="col-title">{{ sort_title('amount', _('Importo')) }}{{ col_filter('amount') }}</span></th>
           <th data-col="actions" data-fixed class="text-center" style="width:96px;">{{ _('Azioni') }}</th>
         </tr>
       </thead>
@@ -393,6 +433,21 @@
 
 {% block scripts %}
 <script>
+/* ── The small filters of the titles (Categoria, Importo): a funnel opens its box under the title; a click elsewhere closes it ── */
+document.querySelectorAll('.col-filter').forEach(box => {
+  const button = box.querySelector('.col-filter-btn'), pop = box.querySelector('.col-pop');
+  button.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = pop.hidden;
+    document.querySelectorAll('.col-pop').forEach(p => { p.hidden = true; });
+    pop.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+    if (open) pop.querySelector('select, input:not([type=hidden])')?.focus();
+  });
+  pop.addEventListener('click', e => e.stopPropagation());
+});
+document.addEventListener('click', () => document.querySelectorAll('.col-pop').forEach(p => { p.hidden = true; }));
+
 /* ── The search card and the Modifica massiva close and open, and the page remembers it ── */
 document.querySelectorAll('details[data-remember]').forEach(box => {
   const saved = store.get(box.dataset.remember);
