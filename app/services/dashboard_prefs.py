@@ -236,3 +236,112 @@ def save_kpis(items) -> list[dict]:
 def settings_order() -> list[str]:
     """The Settings switches of the blocks, in the order of the dashboard (each switch once)."""
     return list(dict.fromkeys(WIDGETS[w["id"]][2] for w in layout()))
+
+
+# ── Presets: three named arrangements of the page ─────────────────────────────
+
+# Each preset keeps the blocks and the cards (order, width, height, hidden) and the period of the page (from one
+# year to another, a half or a quarter). One is in use: a click on another one brings its arrangement and period;
+# what changes afterwards is saved on the preset in use only when asked («Salva preset»).
+PRESETS_SETTING = "dashboard.presets"
+PRESET_COUNT = 3
+MAX_PRESET_NAME = 30
+PERIOD_PARTS = ("year", "H1", "H2", "Q1", "Q2", "Q3", "Q4")
+
+
+def _clean_period(period) -> dict | None:
+    """{"year", "year_to", "part"} as saved; None: the current year, whole."""
+    if not isinstance(period, dict):
+        return None
+    try:
+        year, year_to = int(period.get("year")), int(period.get("year_to", period.get("year")))
+    except (TypeError, ValueError):
+        return None
+    if not (1900 < year < 3000 and 1900 < year_to < 3000):
+        return None
+    year, year_to = min(year, year_to), max(year, year_to)
+    part = period.get("part")
+    return {"year": year, "year_to": year_to, "part": part if part in PERIOD_PARTS and year == year_to else "year"}
+
+
+def _default_name(number: int) -> str:
+    return _("Preset %(num)d", num=number)
+
+
+def _clean_preset(item, number: int) -> dict:
+    item = item if isinstance(item, dict) else {}
+    name = str(item.get("name") or "").strip()[:MAX_PRESET_NAME]
+    return {"name": name or _default_name(number), "layout": normalize_layout(item.get("layout")),
+            "kpis": normalize_kpis(item.get("kpis")), "period": _clean_period(item.get("period"))}
+
+
+def presets() -> dict:
+    """{"active": 1..3, "items": [three presets]}. The first time, the first preset is the page as it is now and
+    the other two the default arrangement, so nothing the user had arranged is lost."""
+    saved = settings_store.get_json(PRESETS_SETTING, None, expect=dict)
+    if saved is None:
+        first = {"layout": layout(), "kpis": kpi_layout()}
+        return _store_presets({"active": 1, "items": [_clean_preset(first if n == 1 else None, n) for n in range(1, PRESET_COUNT + 1)]})
+    items = saved.get("items") if isinstance(saved.get("items"), list) else []
+    items = [_clean_preset(items[n - 1] if n <= len(items) else None, n) for n in range(1, PRESET_COUNT + 1)]
+    active = saved.get("active")
+    return {"active": active if active in range(1, PRESET_COUNT + 1) else 1, "items": items}
+
+
+def _store_presets(data: dict) -> dict:
+    settings_store.set_json(PRESETS_SETTING, data)
+    return data
+
+
+def _number(value) -> int:
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        number = 0
+    if not 1 <= number <= PRESET_COUNT:
+        raise ValueError(_("Preset sconosciuto."))
+    return number
+
+
+def use_preset(number) -> dict:
+    """Make a preset the one in use: its blocks and cards become those of the page. Returns the preset."""
+    number = _number(number)
+    data = presets()
+    data["active"] = number
+    preset = data["items"][number - 1]
+    save_layout(preset["layout"])
+    save_kpis(preset["kpis"])
+    _store_presets(data)
+    return preset
+
+
+def save_preset(number, period) -> dict:
+    """The page as it is now (blocks, cards and the period shown) saved on a preset, which becomes the one in use."""
+    number = _number(number)
+    data = presets()
+    data["active"] = number
+    item = data["items"][number - 1]
+    item.update(layout=layout(), kpis=kpi_layout(), period=_clean_period(period))
+    _store_presets(data)
+    return item
+
+
+def rename_preset(number, name) -> dict:
+    number = _number(number)
+    data = presets()
+    item = data["items"][number - 1]
+    item["name"] = str(name or "").strip()[:MAX_PRESET_NAME] or _default_name(number)
+    _store_presets(data)
+    return item
+
+
+def preset_period(preset: dict, today: date | None = None) -> dict:
+    """The period a preset shows: the one saved on it, else the current year, whole."""
+    year = (today or date.today()).year
+    return preset["period"] or {"year": year, "year_to": year, "part": "year"}
+
+
+def preset_changed(preset: dict, period: dict, today: date | None = None) -> bool:
+    """Whether the page differs from the preset in use: blocks, cards or period."""
+    return (preset["layout"] != layout() or preset["kpis"] != kpi_layout()
+            or preset_period(preset, today) != _clean_period(period))

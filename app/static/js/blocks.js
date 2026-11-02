@@ -50,7 +50,7 @@ function initBlockEditor({ grids, saveUrl }) {
     }))]));
     saveTimer = setTimeout(() => fetch(saveUrl, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-    }), 250);
+    }).then(() => document.dispatchEvent(new CustomEvent("blocks:saved"))), 250);
   }
   function renderHidden() {
     const hidden = widgets().filter(isOff);

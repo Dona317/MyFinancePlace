@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-02 09:25+0100\n"
+"POT-Creation-Date: 2026-11-02 09:30+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -3097,6 +3097,9 @@ msgstr ""
 "last age: a crash in the first years of withdrawals weighs less. Return "
 "and volatility above become those of the equity part. Both shares at 0: "
 "no shift."
+
+msgid "Doppio clic per rinominare"
+msgstr "Double-click to rename"
 
 msgid ""
 "Dove e in cosa investi: area geografica e settore si indicano nella "
@@ -6529,6 +6532,9 @@ msgstr "Name of group %(name)s"
 msgid "Nome del modello non valido."
 msgstr "Invalid model name."
 
+msgid "Nome del preset"
+msgstr "Preset name"
+
 #, python-format
 msgid "Nome del tag %(name)s"
 msgstr "Name of tag %(name)s"
@@ -6959,6 +6965,13 @@ msgstr "Each part must have a target between 0 and 100 %."
 
 msgid "Ogni parte ha bisogno di un nome e di un obiettivo in %."
 msgstr "Each part needs a name and a target in %."
+
+msgid ""
+"Ogni preset ricorda blocchi, schede e periodo. Se cambi qualcosa, «Salva "
+"preset» lo aggiorna. Doppio clic sul nome per rinominarlo."
+msgstr ""
+"Each preset remembers blocks, cards and period. If you change something, "
+"«Save preset» updates it. Double-click the name to rename it."
 
 msgid ""
 "Ogni quadrato è un giorno: più è scuro, più hai speso. Passa sopra per "
@@ -7704,6 +7717,19 @@ msgstr "Yearly premium of the active policies"
 
 msgid "Premio per rata (€)"
 msgstr "Premium per installment (€)"
+
+#, python-format
+msgid "Preset %(num)d"
+msgstr "Preset %(num)d"
+
+msgid "Preset della dashboard"
+msgstr "Dashboard presets"
+
+msgid "Preset salvato."
+msgstr "Preset saved."
+
+msgid "Preset sconosciuto."
+msgstr "Unknown preset."
 
 msgid ""
 "Prestazioni occasionali: oltre 5.000 € lordi l’anno (tutti i committenti "
@@ -8820,11 +8846,17 @@ msgstr "Save operation"
 msgid "Salva piano"
 msgstr "Save plan"
 
+msgid "Salva preset"
+msgstr "Save preset"
+
 msgid "Salva prezzi"
 msgstr "Save prices"
 
 msgid "Salva regola"
 msgstr "Save rule"
+
+msgid "Salva sul preset in uso la disposizione e il periodo di adesso"
+msgstr "Save the current layout and period on the preset in use"
 
 msgid ""
 "Salvato intero, mostrato con le ultime cifre: serve a riconoscere il "

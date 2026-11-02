@@ -9,9 +9,10 @@
 {% block breadcrumb %}<li>{{ _('Dashboard') }}</li>{% endblock %}
 
 {% block topbar_actions %}
+<div class="dash-center">
 {# The period of the whole page: from one year to another (the same: that year), a half or a quarter of a single one #}
 <form method="GET" class="dash-period-box" id="dash-period">
-  <span class="dash-period-title"><i class="bi bi-calendar3"></i> {{ _('Periodo') }}
+  <span class="dash-period-title"><i class="bi bi-calendar3"></i> <b class="dash-period-word">{{ _('Periodo') }}</b>
     {{ info(_('Imposta il periodo della pagina, schede e grafici.')) }}</span>
   <label class="sr-only" for="dash-year">{{ _('Dal') }}</label>
   <select id="dash-year" name="year" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Dal') }}">
@@ -34,6 +35,17 @@
     </optgroup>
   </select>
 </form>
+{# Three presets: each keeps the blocks, the cards and the period; the one in use is saved again only on request #}
+<div class="dash-presets" id="dash-presets" role="group" aria-label="{{ _('Preset della dashboard') }}">
+  {% for item in presets["items"] %}
+  <button type="button" class="preset-btn{{ ' is-active' if loop.index == presets.active }}" data-preset="{{ loop.index }}"
+          aria-pressed="{{ 'true' if loop.index == presets.active else 'false' }}" title="{{ _('Doppio clic per rinominare') }}">{{ item.name }}</button>
+  {% endfor %}
+  {{ info(_('Ogni preset ricorda blocchi, schede e periodo. Se cambi qualcosa, «Salva preset» lo aggiorna. Doppio clic sul nome per rinominarlo.')) }}
+  <button type="button" class="btn btn-primary btn-sm preset-save" id="preset-save"{{ ' hidden' if not preset_changed }}
+          title="{{ _('Salva sul preset in uso la disposizione e il periodo di adesso') }}"><i class="bi bi-save"></i> <span class="preset-save-word">{{ _('Salva preset') }}</span></button>
+</div>
+</div>
 <div class="topbar-right-actions">
   {{ blocks.edit_controls(_('Modifica della dashboard'), _('Sposta, allarga o nascondi i blocchi della dashboard'),
                           url_for('settings.index', _anchor='dashboard'), _('Schede, blocchi e finestre temporali della dashboard nelle Impostazioni')) }}
@@ -562,6 +574,66 @@ document.querySelectorAll('.kpi-click').forEach(card => card.addEventListener('c
   if (e.target.closest('a, button, input, select, form')) return;
   window.location.href = card.dataset.href;
 }));
+
+/* ── Presets: a click uses one, a double click renames it; «Salva preset» appears once the page differs from it ── */
+{
+const box = document.getElementById('dash-presets');
+const saveButton = document.getElementById('preset-save');
+const post = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
+  .then(r => r.json().then(data => (r.ok ? data : Promise.reject(data))));
+const urls = {
+  use: {{ url_for('dashboard.use_preset', number=0)|tojson }},
+  save: {{ url_for('dashboard.save_preset', number=0)|tojson }},
+  rename: {{ url_for('dashboard.rename_preset', number=0)|tojson }},
+};
+const urlOf = (kind, n) => urls[kind].replace('/0/', '/' + n + '/');
+const active = () => box.querySelector('.preset-btn.is-active')?.dataset.preset;
+let clickTimer = null;
+box.querySelectorAll('.preset-btn').forEach(button => {
+  // one click: use the preset (after a moment, so that a double click renames instead)
+  button.addEventListener('click', () => {
+    if (button.querySelector('input')) return;
+    clearTimeout(clickTimer);
+    clickTimer = setTimeout(() => {
+      if (button.dataset.preset === active() && saveButton.hidden) return;
+      post(urlOf('use', button.dataset.preset)).then(data => { window.location.href = data.url; });
+    }, 250);
+  });
+  button.addEventListener('dblclick', () => {
+    clearTimeout(clickTimer);
+    const old = button.textContent.trim();
+    const input = Object.assign(document.createElement('input'), { type: 'text', value: old, maxLength: 30, className: 'preset-name-input' });
+    input.setAttribute('aria-label', {{ _('Nome del preset')|tojson }});
+    button.replaceChildren(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = (keep) => {
+      if (done) return;
+      done = true;
+      const name = input.value.trim();
+      button.textContent = old;
+      if (keep && name !== old) post(urlOf('rename', button.dataset.preset), { name }).then(data => { button.textContent = data.name; });
+    };
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+      if (e.key === 'Escape') finish(false);
+    });
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('click', e => e.stopPropagation());
+  });
+});
+// the page arranged differently in Modifica: the preset in use can be saved again
+document.addEventListener('blocks:saved', () => { saveButton.hidden = false; });
+saveButton.addEventListener('click', () => {
+  const period = { year: +document.getElementById('dash-year').value, year_to: +document.getElementById('dash-year-to').value,
+                   part: document.getElementById('dash-part').value };
+  post(urlOf('save', active()), { period }).then(() => {
+    saveButton.hidden = true;
+    showToast({{ _('Preset salvato.')|tojson }});
+  });
+});
+}
 
 /* ── Modifica: the blocks (1–3 thirds wide, of a chosen height) and the cards on top (1–2 columns) ── */
 initBlockEditor({

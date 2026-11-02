@@ -190,13 +190,18 @@ def dashboard():
     # Any year can be chosen, from three before the first with data to the next one.
     with_data = analytics.available_years()
     years = list(range(max(with_data + [today.year]) + 1, min(with_data + [today.year]) - 4, -1))
-    year = year_arg(today.year, choices=years)
+    # the preset in use: without a period in the address, the page shows the one saved on it
+    presets = dashboard_prefs.presets()
+    preset = presets["items"][presets["active"] - 1]
+    saved_period = dashboard_prefs.preset_period(preset, today)
+    from_preset = "year" not in request.args
+    year = saved_period["year"] if from_preset and saved_period["year"] in years else year_arg(today.year, choices=years)
     # «al» another year: the years from one to the other (the order does not matter); the same one: that year
-    year_to = request.args.get("year_to", type=int)
+    year_to = saved_period["year_to"] if from_preset else request.args.get("year_to", type=int)
     year_to = year_to if year_to in years else year
     year, year_to = min(year, year_to), max(year, year_to)
     # a half or a quarter of a single year (remembered); several years are taken whole
-    part = request.args.get("part")
+    part = saved_period["part"] if from_preset else request.args.get("part")
     if part in PIE_PARTS:
         settings_store.set(PIE_PART_SETTING, part)
     part = settings_store.get(PIE_PART_SETTING, "year")
@@ -252,6 +257,8 @@ def dashboard():
         layout=layout,
         widgets=dashboard_prefs.WIDGETS,
         kpi_layout=dashboard_prefs.kpi_layout(), kpi_titles=dashboard_prefs.KPI_CARDS,
+        presets=presets,
+        preset_changed=dashboard_prefs.preset_changed(preset, {"year": year, "year_to": year_to, "part": part}, today),
     )
 
 
@@ -293,3 +300,39 @@ def save_layout():
     if isinstance(data.get("kpis"), list):
         saved["kpis"] = dashboard_prefs.save_kpis(data["kpis"])
     return jsonify(**saved)
+
+
+@dashboard_bp.route("/dashboard/presets/<int:number>/use", methods=["POST"])
+def use_preset(number: int):
+    """A preset becomes the one in use: its blocks, cards and period on the page."""
+    try:
+        dashboard_prefs.use_preset(number)
+    except ValueError as exc:
+        return jsonify(error=str(exc)), 400
+    return jsonify(url=url_for("dashboard.dashboard"))
+
+
+@dashboard_bp.route("/dashboard/presets/<int:number>/save", methods=["POST"])
+def save_preset(number: int):
+    """The page as it is now saved on a preset: {"period": {"year": 2026, "year_to": 2026, "part": "Q1"}}."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(error=_("Atteso un oggetto JSON.")), 400
+    try:
+        preset = dashboard_prefs.save_preset(number, data.get("period"))
+    except ValueError as exc:
+        return jsonify(error=str(exc)), 400
+    return jsonify(name=preset["name"], period=preset["period"])
+
+
+@dashboard_bp.route("/dashboard/presets/<int:number>/rename", methods=["POST"])
+def rename_preset(number: int):
+    """A preset's name: {"name": "Mensile"}; empty: back to «Preset N»."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(error=_("Atteso un oggetto JSON.")), 400
+    try:
+        preset = dashboard_prefs.rename_preset(number, data.get("name"))
+    except ValueError as exc:
+        return jsonify(error=str(exc)), 400
+    return jsonify(name=preset["name"])

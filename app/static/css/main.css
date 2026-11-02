@@ -1909,7 +1909,7 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .kpi-strip > .fc-widget[hidden] { display: none; }
 
 /* ── Dashboard top bar: the period in a box of its own, in the middle; Modifica and Gestisci on the right ── */
-.dash-period-box { display: flex; align-items: center; gap: 6px; margin: 0 auto; padding: 4px 10px; border: 1px solid var(--clr-border);
+.dash-period-box { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--clr-border);
   border-radius: 999px; background: var(--clr-bg-card); }
 .dash-period-title { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-xs); font-weight: 700;
   letter-spacing: .06em; text-transform: uppercase; color: var(--clr-text-muted); white-space: nowrap; }
@@ -2093,3 +2093,24 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 
 .col-resizer-off { cursor: default; }
 .col-resizer-off:hover::after { background: var(--clr-border); width: 1px; }
+
+/* the period box and the presets on its right, together in the middle of the top bar */
+.dash-center { display: flex; align-items: center; gap: 10px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+.dash-presets { display: flex; align-items: center; gap: 4px; }
+.preset-btn { padding: 4px 10px; border: 1px solid var(--clr-border); border-radius: 999px; background: var(--clr-bg-card);
+  color: var(--clr-text-secondary); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; white-space: nowrap; max-width: 140px;
+  overflow: hidden; text-overflow: ellipsis; }
+.preset-btn:hover { border-color: var(--clr-primary); color: var(--clr-text-primary); }
+.preset-btn.is-active { background: var(--clr-primary); border-color: var(--clr-primary); color: var(--clr-on-primary); }
+.preset-name-input { width: 110px; border: 0; padding: 0; background: transparent; color: inherit; font: inherit; outline: none; }
+.preset-save[hidden] { display: none; }
+.dash-presets .preset-btn { padding: 4px 9px; max-width: 110px; }
+/* a narrower window: the words «Periodo» and «Salva preset» go (the icons and the «i» stay), so the presets stay on
+   the same line as the period */
+@media (max-width: 1600px) {
+  .dash-period-word, .preset-save-word { display: none; }
+  .dash-center { gap: 8px; }
+  .dash-presets .preset-btn { max-width: 100px; }
+  #dash-part { max-width: 130px; }
+}
+.dash-period-word { font-weight: inherit; }
