@@ -18,4 +18,7 @@ class Reminder(db.Model):
     notes      = db.Column(db.Text)
     done       = db.Column(db.Boolean, nullable=False, default=False)  # a one-off already dealt with
     notice_days = db.Column(db.Integer, nullable=False, default=7, server_default="7")  # announced this many days before
+    # its spending event (F33): one-off with an amount makes one, an event makes its reminder; kept in step both ways
+    event_id   = db.Column(db.Integer, db.ForeignKey("spending_events.id", ondelete="SET NULL"), index=True)
+    event      = db.relationship("SpendingEvent", foreign_keys=[event_id])
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)

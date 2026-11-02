@@ -151,13 +151,14 @@
         {% for r in reminders %}
         <tr id="reminder-{{ r.id }}" class="{{ 'text-muted' if r.done }}">
           <td class="nowrap">{{ r.due|it_date }}</td>
-          <td>{{ r.title }}{% if r.repeat != 'none' %} <span class="badge badge-muted">{{ _(repeats[r.repeat]) }}</span>{% endif %}{% if r.done %} <span class="badge badge-positive">{{ _('fatto') }}</span>{% endif %}</td>
+          <td>{{ r.title }}{% if r.repeat != 'none' %} <span class="badge badge-muted">{{ _(repeats[r.repeat]) }}</span>{% endif %}{% if r.done %} <span class="badge badge-positive">{{ _('fatto') }}</span>{% endif %}
+            {% if r.event %} <a class="badge badge-muted" href="{{ url_for('events.detail', event_id=r.event_id) }}" title="{{ _('Evento collegato: si aggiornano insieme') }}"><i class="bi bi-link-45deg"></i> {{ _('evento') }}</a>{% endif %}</td>
           <td class="text-right nowrap">{{ r.amount|money if r.amount is not none else '' }}</td>
           <td><div class="cell-actions">
             <form method="POST" action="{{ url_for('deadlines.done', reminder_id=r.id) }}">
               <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Fatto: passa alla prossima') if r.repeat != 'none' else _('Fatto') }}" aria-label="{{ _('Fatto') }}"><i class="bi bi-check-lg"></i></button></form>
             {{ icon_link(url_for('deadlines.index', edit=r.id) ~ '#reminder-form', 'bi-pencil', _('Modifica')) }}
-            {{ delete_button(url_for('deadlines.delete', reminder_id=r.id), _('Eliminare la scadenza?'), _('Elimina')) }}
+            {{ delete_button(url_for('deadlines.delete', reminder_id=r.id), _('Eliminare la scadenza e il suo evento «%(name)s»? I movimenti restano.', name=r.event.name) if r.event else _('Eliminare la scadenza?'), _('Elimina')) }}
           </div>
           </td>
         </tr>

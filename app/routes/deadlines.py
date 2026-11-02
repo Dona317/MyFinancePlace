@@ -75,6 +75,7 @@ def _save(reminder: Reminder | None):
         saved = deadlines.save(reminder, title=form.get("title", ""), due=to_date(form.get("due")),
                                repeat=form.get("repeat", "none"), amount=to_decimal(form.get("amount")),
                                notes=form.get("notes"), notice_days=form.get("notice_days", type=int))
+        deadlines.event_from_reminder(saved)  # with an amount, its spending event too
         db.session.commit()
         flash(_("Scadenza «%(title)s» salvata.", title=saved.title), "success")
         return redirect(url_for("deadlines.index", month=f"{saved.due:%Y-%m}"))
@@ -105,7 +106,11 @@ def done(reminder_id):
 
 @deadlines_bp.route("/<int:reminder_id>/delete", methods=["POST"])
 def delete(reminder_id):
-    db.session.delete(db.get_or_404(Reminder, reminder_id))
+    """The reminder, and its spending event with it (its movements stay)."""
+    reminder = db.get_or_404(Reminder, reminder_id)
+    if reminder.event is not None:
+        db.session.delete(reminder.event)
+    db.session.delete(reminder)
     db.session.commit()
     flash(_("Scadenza eliminata."), "success")
     return redirect(url_for("deadlines.index"))

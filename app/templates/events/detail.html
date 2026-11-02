@@ -12,6 +12,10 @@
          sub=(_('superato di %(amount)s', amount=(summary.left|abs)|money) if summary.left < 0 else _('restano %(amount)s', amount=summary.left|money))) }}
   {% endif %}
   {% if summary.refunds %}{{ kpi('arrow-counterclockwise', _('Rimborsi'), value=summary.refunds|money) }}{% endif %}
+  {# its reminder, tied both ways: the same name, day and amount #}
+  {% if reminder %}
+  {% call kpi('bell', _('Promemoria'), value=reminder.due|it_date) %}<a href="{{ url_for('deadlines.index', month=reminder.due.strftime('%Y-%m')) }}#reminder-{{ reminder.id }}">{{ _('apri il promemoria') }}</a>{% endcall %}
+  {% endif %}
 </div>
 
 <div class="grid-2" style="margin-bottom:24px;">

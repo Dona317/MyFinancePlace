@@ -7,8 +7,9 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.event import SpendingEvent
+from app.models.reminder import Reminder
 from app.routes.helpers import back_to
-from app.services import spending_events
+from app.services import deadlines, spending_events
 from app.services.parsing import to_date, to_decimal
 
 events_bp = APIBlueprint("events", __name__, url_prefix="/events", tag="Events")
@@ -26,6 +27,7 @@ def _save(event: SpendingEvent) -> bool:
     event.name, event.start, event.end, event.budget = name.strip(), start, end, budget
     event.notes = (form.get("notes") or "").strip() or None
     db.session.add(event)
+    deadlines.reminder_from_event(event)  # its reminder on the first day (F33)
     db.session.commit()
     return True
 
@@ -40,7 +42,8 @@ def index():
         return redirect(url_for("events.index"))
     today = date.today()
     start = date(today.year, 1, 1)
-    return render_template("events/index.html", summaries=spending_events.all_summaries(), year=today.year,
+    linked = {r.event_id for r in Reminder.query.filter(Reminder.event_id.isnot(None))}
+    return render_template("events/index.html", summaries=spending_events.all_summaries(), year=today.year, linked=linked,
                            ordinary=spending_events.spent_outside_events(start, today),
                            in_events=spending_events.spent_in_events(start, today))
 
@@ -54,12 +57,15 @@ def detail(event_id):
         return redirect(url_for("events.detail", event_id=event.id))
     rows = spending_events.movements(event)
     return render_template("events/detail.html", event=event, rows=rows, summary=spending_events.summary(event, rows),
-                           suggestions=spending_events.suggestions(event))
+                           suggestions=spending_events.suggestions(event), reminder=Reminder.query.filter_by(event_id=event.id).first())
 
 
 @events_bp.route("/<int:event_id>/delete", methods=["POST"])
 def delete(event_id):
-    db.session.delete(db.get_or_404(SpendingEvent, event_id))
+    """The event, and its reminder with it; its movements stay."""
+    event = db.get_or_404(SpendingEvent, event_id)
+    Reminder.query.filter_by(event_id=event.id).delete(synchronize_session=False)
+    db.session.delete(event)
     db.session.commit()
     flash(_("Evento eliminato; i suoi movimenti restano."), "success")
     return redirect(url_for("events.index"))

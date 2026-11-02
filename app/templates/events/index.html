@@ -55,7 +55,7 @@
           <td class="text-right">{{ s.count }}</td>
           <td class="text-right nowrap">{{ s.net|money }}</td>
           <td class="text-right nowrap {{ 'text-negative' if s.left is not none and s.left < 0 }}">{{ s.event.budget|money if s.event.budget is not none else '—' }}</td>
-          <td><div class="cell-actions">{{ delete_button(url_for('events.delete', event_id=s.event.id), _('Eliminare l\'evento «%(name)s»? I movimenti restano.', name=s.event.name), _('Elimina %(name)s', name=s.event.name)) }}</div></td>
+          <td><div class="cell-actions">{{ delete_button(url_for('events.delete', event_id=s.event.id), _('Eliminare l\'evento «%(name)s» e il suo promemoria? I movimenti restano.', name=s.event.name) if s.event.id in linked else _('Eliminare l\'evento «%(name)s»? I movimenti restano.', name=s.event.name), _('Elimina %(name)s', name=s.event.name)) }}</div></td>
         </tr>
         {% endfor %}
       </tbody>

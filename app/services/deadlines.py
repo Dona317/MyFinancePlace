@@ -14,6 +14,7 @@ from flask import url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
+from app.models.event import SpendingEvent
 from app.models.portfolio_model import InvestmentPlan
 from app.models.reminder import Reminder
 from app.models.transaction import Transaction
@@ -93,6 +94,37 @@ def save(reminder: Reminder | None, *, title: str, due: date | None, repeat: str
     reminder.amount, reminder.notes = amount, (notes or "").strip() or None
     reminder.notice_days = notice_days if notice_days in NOTICES else DEFAULT_NOTICE
     db.session.add(reminder)
+    return reminder
+
+
+# ── Reminders and spending events, tied both ways (F33) ───────────────────────
+
+def event_from_reminder(reminder: Reminder) -> SpendingEvent | None:
+    """A one-off reminder with an amount has its spending event (the name, the day, the amount as its budget): made
+    the first time, brought up to date afterwards. A repeating one or one without an amount makes none."""
+    event = reminder.event
+    if event is None and (reminder.repeat != "none" or not reminder.amount):
+        return None
+    if event is None:
+        event = SpendingEvent()
+        db.session.add(event)
+        reminder.event = event
+    event.name, event.start, event.budget = reminder.title, reminder.due, reminder.amount
+    if event.end is not None and event.end < event.start:
+        event.end = None
+    event.notes = event.notes or reminder.notes
+    return event
+
+
+def reminder_from_event(event: SpendingEvent) -> Reminder:
+    """Every spending event has its reminder on its first day (the budget as its amount): made the first time,
+    brought up to date afterwards."""
+    db.session.flush()
+    reminder = Reminder.query.filter_by(event_id=event.id).first()
+    if reminder is None:
+        reminder = Reminder(repeat="none", notice_days=DEFAULT_NOTICE, event_id=event.id, notes=event.notes)
+        db.session.add(reminder)
+    reminder.title, reminder.due, reminder.amount = event.name[:200], event.start, event.budget
     return reminder
 
 

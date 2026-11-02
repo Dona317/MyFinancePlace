@@ -197,3 +197,44 @@ def test_new_reminder_from_the_window_is_saved(client, db):
                                         "notice_days": "30", "notes": "Comune"})
     saved = Reminder.query.one()
     assert (saved.title, saved.notice_days, saved.notes) == ("Carta d'identità", 30, "Comune")
+
+
+def test_a_one_off_reminder_with_an_amount_makes_its_event_and_both_stay_in_step(client, db):
+    from app.models.event import SpendingEvent
+    client.post("/deadlines/new", data={"title": "Matrimonio Luca", "due": "2027-06-12", "repeat": "none", "amount": "300"})
+    reminder = Reminder.query.one()
+    event = reminder.event
+    assert (event.name, event.start, float(event.budget)) == ("Matrimonio Luca", date(2027, 6, 12), 300.0)
+    client.post(f"/deadlines/{reminder.id}/edit", data={"title": "Matrimonio di Luca", "due": "2027-06-13", "repeat": "none",
+                                                         "amount": "350"})
+    db.session.refresh(event)
+    assert (event.name, event.start, float(event.budget)) == ("Matrimonio di Luca", date(2027, 6, 13), 350.0)
+    assert SpendingEvent.query.count() == 1
+    # from the event's page: the reminder follows
+    client.post(f"/events/{event.id}", data={"name": "Nozze Luca", "start": "2027-06-14", "budget": "400"})
+    db.session.refresh(reminder)
+    assert (reminder.title, reminder.due, float(reminder.amount)) == ("Nozze Luca", date(2027, 6, 14), 400.0)
+    assert "apri il promemoria" in client.get(f"/events/{event.id}").get_data(as_text=True)
+    assert "Evento collegato" in client.get("/deadlines/?month=2027-06").get_data(as_text=True)
+    # the question before deleting says the other goes too; deleting the event deletes its reminder
+    assert "e il suo promemoria?" in client.get("/events/").get_data(as_text=True)
+    assert "e il suo evento «Nozze Luca»?" in client.get("/deadlines/?month=2027-06").get_data(as_text=True)
+    client.post(f"/events/{event.id}/delete")
+    assert Reminder.query.count() == 0 and SpendingEvent.query.count() == 0
+    # and deleting the reminder deletes its event
+    client.post("/deadlines/new", data={"title": "Cena", "due": "2027-07-01", "repeat": "none", "amount": "80"})
+    client.post(f"/deadlines/{Reminder.query.one().id}/delete")
+    assert Reminder.query.count() == 0 and SpendingEvent.query.count() == 0
+
+
+def test_no_event_for_a_repeating_reminder_or_one_without_amount(client, db):
+    from app.models.event import SpendingEvent
+    client.post("/deadlines/new", data={"title": "Bollo", "due": "2027-01-31", "repeat": "yearly", "amount": "210"})
+    client.post("/deadlines/new", data={"title": "Carta d'identità", "due": "2027-03-01", "repeat": "none"})
+    assert SpendingEvent.query.count() == 0
+
+
+def test_a_new_event_makes_its_reminder(client, db):
+    client.post("/events/", data={"name": "Viaggio Lisbona", "start": "2027-04-10", "end": "2027-04-15", "budget": "900"})
+    reminder = Reminder.query.one()
+    assert (reminder.title, reminder.due, float(reminder.amount), reminder.repeat) == ("Viaggio Lisbona", date(2027, 4, 10), 900.0, "none")
