@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "partials/tabs.html" import tab_bar %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/kpi.html" import kpi %}
+{% block page_title %}{{ _('Abbonamenti') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('forecast.index') }}">{{ _('Previsioni') }}</a></li><li>{{ _('Abbonamenti') }}</li>{% endblock %}
+
+{% macro signed(tx, value) %}{{ (-value if tx.type == 'expense' else value)|money }}{% endmacro %}
+
+{% block content %}
+<div class="report-bar mb-16">
+  {{ tab_bar([('expense', url_for('subscriptions.index'), _('Abbonamenti e spese fisse')),
+               ('income', url_for('subscriptions.index', kind='income'), _('Entrate ricorrenti'))], kind, _('Uscite o entrate ricorrenti')) }}
+</div>
+
+<div class="kpi-grid mb-16">
+  {{ kpi('calendar-month', _('Al mese'), amount=(-data.monthly if kind == 'expense' else data.monthly), cls=('kpi-negative' if kind == 'expense' else 'kpi-positive'), sub=_('equivalente mensile')) }}
+  {{ kpi('calendar3', _("All'anno"), amount=(-data.yearly if kind == 'expense' else data.yearly), cls='kpi-primary', sub=_('ai prezzi attuali')) }}
+  {{ kpi('arrow-repeat', _('Attivi'), value=data.count, cls='kpi-warning', sub=(_('%(count)s da confermare', count=data.to_confirm) if data.to_confirm else _('tutti confermati'))) }}
+  {{ kpi('clock', _('Prossimi %(days)s giorni', days=data.upcoming_days), amount=(-data.upcoming if kind == 'expense' else data.upcoming), sub=(_('%(count)s aumenti di prezzo', count=data.increases) if data.increases else _('nessun aumento di prezzo'))) }}
+</div>
+
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Attivi') }}</div>
+      <div class="card-header-sub">{{ _('Le serie segnate come ricorrenti e quelle che lo sembrano (stessa descrizione, ritmo regolare, importo stabile)') }}</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table class="table-compact subscriptions-table">
+      <thead><tr>
+        <th>{{ _('Descrizione') }}</th>
+        <th class="col-optional">{{ _('Categoria') }}</th>
+        <th>{{ _('Frequenza') }}</th>
+        <th class="text-right">{{ _('Importo') }}</th>
+        <th class="text-right col-optional">{{ _('Al mese') }}</th>
+        <th class="text-right col-optional">{{ _("All'anno") }}</th>
+        <th>{{ _('Prossimo') }}</th>
+        <th class="text-right">{{ _('Azioni') }}</th>
+      </tr></thead>
+      <tbody>
+        {% for s in data.series %}
+        {% set tx = s.template %}
+        <tr class="{{ '' if s.confirmed else 'subscription-candidate' }}">
+          <td>
+            <div style="font-weight:500;">{{ tx.description }}
+              {% if not s.confirmed %}<span class="badge badge-warning">{{ _('da confermare') }}</span>{% endif %}
+              {% if s.change %}<span class="badge {{ 'badge-negative' if (s.change > 0) == (kind == 'expense') else 'badge-positive' }}"
+                    title="{{ _('Prima: %(amount)s', amount=s.previous|money) }}">{{ '+' if s.change > 0 else '−' }}{{ s.change|abs|money }}</span>{% endif %}
+            </div>
+            <div class="text-xs text-muted">{{ _('%(count)s pagamenti, ultimo il %(last)s', count=s.count, last=tx.date|it_date) }}
+              · <a href="{{ url_for('transactions.index', q=tx.description) }}">{{ _('transazioni') }}</a></div>
+          </td>
+          <td class="col-optional">{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
+          <td><span class="badge badge-muted">{{ s.frequency_label }}</span></td>
+          <td class="amount {{ tx.type|tone }} text-right nowrap">{{ signed(tx, s.amount) }}</td>
+          <td class="amount text-right nowrap col-optional">{{ signed(tx, s.monthly) }}</td>
+          <td class="amount text-right nowrap col-optional">{{ signed(tx, s.yearly) }}</td>
+          <td class="nowrap text-xs">{{ s.next_date|it_date if s.next_date else '—' }}</td>
+          <td>
+            <div class="cell-actions">
+              {% if s.confirmed %}
+              <form method="POST" action="{{ url_for('subscriptions.stop', tx_id=tx.id) }}" data-confirm="{{ _('«%(description)s» non è più attivo?', description=tx.description) }}">
+                <button type="submit" class="btn btn-ghost btn-sm" title="{{ _('Disdetto: non compare più nelle previsioni') }}"><i class="bi bi-stop-circle"></i> {{ _('Non più attivo') }}</button>
+              </form>
+              {% else %}
+              <form method="POST" action="{{ url_for('forecast.mark_recurring', tx_id=tx.id) }}">
+                <input type="hidden" name="frequency" value="{{ s.frequency }}" />
+                <input type="hidden" name="next" value="{{ url_for('subscriptions.index', kind=kind) }}" />
+                <button type="submit" class="btn btn-primary btn-sm" title="{{ _('Segna come ricorrente') }}"><i class="bi bi-check2"></i> {{ _('Conferma') }}</button>
+              </form>
+              {% endif %}
+              {{ icon_link(url_for('transactions.edit', tx_id=tx.id, next=url_for('subscriptions.index', kind=kind)), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=tx.description)) }}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8">
+          {{ empty_state(text=_('Nessuna serie ricorrente. Segna come ricorrente una transazione (affitto, Netflix, stipendio) o importa qualche mese di movimenti: le serie regolari compaiono qui da sole.'), icon='bi-arrow-repeat', compact=True) }}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if data.ended %}
+<details class="card">
+  <summary class="card-header" style="cursor:pointer;"><div class="card-header-title">{{ _('Terminati (%(count)s)', count=data.ended|length) }}</div></summary>
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Descrizione') }}</th><th>{{ _('Frequenza') }}</th><th class="text-right">{{ _('Ultimo importo') }}</th><th>{{ _('Ultimo pagamento') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+        {% for s in data.ended %}
+        {% set tx = s.template %}
+        <tr>
+          <td>{{ tx.description }}</td>
+          <td><span class="badge badge-muted">{{ s.frequency_label }}</span></td>
+          <td class="amount text-right nowrap">{{ signed(tx, s.amount) }}</td>
+          <td class="text-xs">{{ tx.date|it_date }}</td>
+          <td class="text-right">
+            <form method="POST" action="{{ url_for('subscriptions.resume', tx_id=tx.id) }}">
+              <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-play-circle"></i> {{ _('Riattiva') }}</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+{% endif %}
+{% endblock %}

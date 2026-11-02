@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% import "partials/empty.html" as e %}
+{% block page_title %}{{ _('Collega movimenti del conto') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Collega movimenti') }}</li>{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ holding.name }}</div>
+      <div class="card-header-sub">{{ _("Movimenti del conto corrente che sono acquisti o vendite di questo titolo: spunta, indica le quote o il prezzo e diventano sue operazioni. Un'uscita è un acquisto, un'entrata una vendita.") }}</div>
+    </div>
+  </div>
+  {% if candidates %}
+  <form method="POST" id="link-form">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px;"></th>
+            <th>{{ _('Data') }}</th>
+            <th>{{ _('Descrizione') }}</th>
+            <th class="text-right">{{ _('Importo €') }}</th>
+            <th style="width:130px;">{{ _('Quote') }}</th>
+            <th style="width:130px;">{{ _('Prezzo €') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in candidates %}
+          <tr>
+            <td><input type="checkbox" name="link-{{ tx.id }}" value="1" class="check" aria-label="{{ _('Collega') }}" /></td>
+            <td class="nowrap">{{ tx.date|it_date }}</td>
+            <td>{{ tx.description }}<div class="text-xs text-muted">{{ tx.category or '' }} · {{ tx.account.name if tx.account else (tx.counter_account.name if tx.counter_account else '') }}</div></td>
+            <td class="text-right nowrap">{{ ('−' if tx.type != 'income' and tx.account_id else '+') }}{{ tx.amount|money }}</td>
+            <td><input type="text" inputmode="decimal" name="units-{{ tx.id }}" class="form-control" placeholder="10" aria-label="{{ _('Quote') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="price-{{ tx.id }}" class="form-control" placeholder="{{ holding.current_price|number(2) if holding.current_price else '0,00' }}" aria-label="{{ _('Prezzo €') }}" /></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+      <a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-link"></i> {{ _('Collega i movimenti scelti') }}</button>
+    </div>
+  </form>
+  {% else %}
+  <div class="card-body">
+    {{ e.empty_state(_('Nessun movimento da collegare: servono movimenti in categoria Investimenti, o con ISIN, ticker o nome del titolo nella descrizione.'), 'bi-link', compact=true) }}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

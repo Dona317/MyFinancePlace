@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block page_title %}{{ template.name if template else _('Nuovo portafoglio modello') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.models_index') }}">{{ _('Portafogli modello') }}</a></li><li>{{ template.name if template else _('Nuovo') }}</li>{% endblock %}
+
+{% block content %}
+<form method="POST" id="model-form">
+  <input type="hidden" name="rows" value="{{ rows|length }}" />
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="name">{{ _('Nome') }}</label>
+          <input type="text" name="name" id="name" class="form-control" value="{{ values.name }}" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="band">{{ _('Tolleranza (punti %%)') }}</label>
+          <input type="text" inputmode="decimal" name="band" id="band" class="form-control" value="{{ values.band }}" />
+          <div class="form-hint">{{ _('Oltre questo scostamento dal peso obiettivo una parte va ribilanciata (es. 5: un 60 %% tra 55 e 65 va bene).') }}</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">{{ _('Descrizione') }}</label>
+        <input type="text" name="description" id="description" class="form-control" value="{{ values.description }}" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Parti del modello') }}</div>
+        <div class="card-header-sub">{{ _('Gli obiettivi devono fare 100 %%. Un titolo conta in una parte se lo scegli lì, oppure se ha il suo ISIN o ticker, oppure se è della sua classe.') }}
+          <strong>{{ _('Totale:') }} <span id="total">—</span> %</strong></div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ _('Parte') }}</th>
+            <th style="width:100px;">{{ _('Obiettivo %%') }}</th>
+            <th style="width:150px;">{{ _('Classe') }}</th>
+            <th style="width:150px;">{{ _('ISIN') }}</th>
+            <th style="width:120px;">{{ _('Ticker') }}</th>
+            <th style="width:220px;">{{ _('Titoli') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          {% set i = loop.index0 %}
+          <tr>
+            <td><input type="text" name="label-{{ i }}" value="{{ row.label }}" class="form-control" placeholder="{{ _('es. Azioni globali') }}" aria-label="{{ _('Parte') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="target-{{ i }}" value="{{ row.target }}" class="form-control target" placeholder="0" aria-label="{{ _('Obiettivo %%') }}" /></td>
+            <td><select name="class-{{ i }}" class="form-select" aria-label="{{ _('Classe') }}">
+              <option value="">—</option>
+              {% for c in classes %}<option value="{{ c }}" {{ 'selected' if row['class'] == c else '' }}>{{ c|tr }}</option>{% endfor %}
+            </select></td>
+            <td><input type="text" name="isin-{{ i }}" value="{{ row.isin }}" class="form-control" maxlength="12" aria-label="{{ _('ISIN') }}" /></td>
+            <td><input type="text" name="ticker-{{ i }}" value="{{ row.ticker }}" class="form-control" aria-label="{{ _('Ticker') }}" /></td>
+            <td>{% if holdings %}<select name="holdings-{{ i }}" class="form-select" multiple size="2" aria-label="{{ _('Titoli') }}">
+              {% for h in holdings %}<option value="{{ h.id }}" {{ 'selected' if h.id in row.holdings else '' }}>{{ h.name }}</option>{% endfor %}
+            </select>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+      <a href="{{ url_for('portfolio.models_index') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva modello') }}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById('model-form'), out = document.getElementById('total');
+  function update() {
+    const total = [...form.querySelectorAll('.target')].reduce((sum, el) => sum + (parseAmount(el.value) || 0), 0);
+    out.textContent = total.toLocaleString(document.documentElement.dataset.locale || 'it-IT', {maximumFractionDigits: 2});
+    out.parentElement.classList.toggle('text-negative', Math.abs(total - 100) > 0.01);
+  }
+  form.addEventListener('input', update);
+  update();
+})();
+</script>
+{% endblock %}

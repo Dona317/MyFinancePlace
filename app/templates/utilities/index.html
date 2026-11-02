@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/kpi.html" import kpi %}
+{% block page_title %}{{ _('Bollette') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Bollette') }}</li>{% endblock %}
+
+{% macro reading_fields(prefix, values) -%}
+<div class="grid-3" style="gap:12px;">
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-utility">{{ _('Utenza') }}</label>
+    <select id="{{ prefix }}-utility" name="utility" class="form-select">{% for key, item in utilities.items() %}<option value="{{ key }}" {{ 'selected' if key == values.utility }}>{{ _(item.label) }}</option>{% endfor %}</select></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-supplier">{{ _('Fornitore') }}</label>
+    <input type="text" id="{{ prefix }}-supplier" name="supplier" class="form-control" maxlength="120" value="{{ values.supplier or '' }}" placeholder="{{ _('es. Enel, A2A, Hera') }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-amount">{{ _('Importo (€)') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-amount" name="amount" class="form-control" required value="{{ values.amount|plain if values.amount else '' }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-start">{{ _('Dal') }}</label>
+    <input type="date" id="{{ prefix }}-start" name="start" class="form-control" required value="{{ values.start or '' }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-end">{{ _('Al') }}</label>
+    <input type="date" id="{{ prefix }}-end" name="end" class="form-control" required value="{{ values.end or '' }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-consumption">{{ _('Consumo (kWh, Smc o m³)') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-consumption" name="consumption" class="form-control" value="{{ values.consumption|plain if values.consumption else '' }}" placeholder="{{ _('vuoto per un canone fisso') }}" /></div>
+</div>
+<div class="form-group"><label class="form-label" for="{{ prefix }}-notes">{{ _('Nota') }}</label>
+  <input type="text" id="{{ prefix }}-notes" name="notes" class="form-control" maxlength="300" value="{{ values.notes or '' }}" /></div>
+{%- endmacro %}
+
+{% block content %}
+{% set u = utilities[utility] %}{% set unit = u.unit %}
+<p class="text-sm text-muted mb-16">{{ _('Le bollette con il periodo e il consumo: quanto paghi al mese e per unità, come cambia con le stagioni e quanto avresti speso con un’altra offerta.') }}</p>
+
+<nav class="report-tabs mb-16" aria-label="{{ _('Utenze') }}">
+  {% for s in summaries %}
+  <a href="{{ url_for('utilities.index', utility=s.utility.key) }}" class="report-tab{{ ' active' if s.utility.key == utility }}"{% if s.utility.key == utility %} aria-current="page"{% endif %}>
+    <i class="bi bi-{{ s.utility.icon }}"></i> {{ _(s.utility.label) }}{% if s.count %} <span class="text-xs text-muted">{{ s.count }}</span>{% endif %}</a>
+  {% endfor %}
+</nav>
+
+<div class="kpi-grid mb-16">
+  {{ kpi(u.icon, _('Ultimi 12 mesi'), value=summary.year_cost|money, sub=(summary.year_use|number(0) ~ ' ' ~ unit) if unit and summary.year_use else none) }}
+  {{ kpi('calendar3', _('Al mese, in media'), value=summary.monthly|money) }}
+  {% if unit %}{{ kpi('receipt', _('Costo per %(unit)s', unit=unit), value=('€ ' ~ summary.unit_cost|number(3)) if summary.unit_cost else '—', sub=_('tutto compreso: energia, trasporto, imposte, quote fisse')) }}{% endif %}
+  {{ kpi('calendar-check', _('Ultima bolletta'), value=summary.last.amount|money if summary.last else '—', sub=_('fino al %(day)s', day=summary.last.period_end|it_date) if summary.last else none) }}
+</div>
+
+{% if readings %}
+<div class="grid-2 mb-16 utilities-grid">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-bar-chart-line"></i> {{ _('Costo al mese per bolletta') }}{% if unit %} {{ _('e costo per %(unit)s', unit=unit) }}{% endif %}</div></div>
+    <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="utilityChart"></canvas></div></div>
+  </div>
+  {% if unit %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title"><i class="bi bi-calendar3"></i> {{ _('Consumo per stagione') }}</div>
+      <div class="card-header-sub">{{ _('Ogni bolletta divisa giorno per giorno sui mesi che copre.') }}</div>
+    </div></div>
+    <div class="table-wrapper"><table class="table-compact">
+      <thead><tr><th>{{ _('Stagione') }}</th><th class="text-right">{{ today.year - 1 }}</th><th class="text-right">{{ today.year }}</th><th class="text-right">{{ _('Differenza') }}</th></tr></thead>
+      <tbody>
+      {% for row in seasons %}
+        <tr><td>{{ _(row.season) }}</td>
+          <td class="text-right nowrap">{% if row.before %}{{ row.before.use|number(0) }} {{ unit }}<div class="text-xs text-muted">{{ row.before.cost|money }}</div>{% else %}—{% endif %}</td>
+          <td class="text-right nowrap">{% if row.now %}{{ row.now.use|number(0) }} {{ unit }}<div class="text-xs text-muted">{{ row.now.cost|money }}</div>{% else %}—{% endif %}</td>
+          <td class="text-right nowrap {{ 'text-negative' if row.change and row.change > 0 else 'text-positive' if row.change else '' }}">{{ ('+' if row.change > 0 else '') ~ row.change|number(1) ~ ' %' if row.change is not none else '—' }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if unit %}
+<div class="card mb-16">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-arrow-left-right"></i> {{ _('Con un’altra offerta') }}</div>
+    <div class="card-header-sub">{{ _('Scrivi prezzo per %(unit)s e quota fissa al mese dell’offerta (dalla scheda sintetica): ecco quanto avresti pagato negli ultimi 12 mesi con i tuoi consumi.', unit=unit) }}</div>
+  </div></div>
+  <div class="card-body">
+    <form method="GET" class="offer-form">
+      <input type="hidden" name="utility" value="{{ utility }}" />
+      <div class="form-group"><label class="form-label" for="o-price">{{ _('€ per %(unit)s', unit=unit) }}</label>
+        <input type="text" inputmode="decimal" id="o-price" name="unit_price" class="form-control" required value="{{ offer_values.unit_price }}" placeholder="0,25" /></div>
+      <div class="form-group"><label class="form-label" for="o-fixed">{{ _('Quota fissa al mese (€)') }}</label>
+        <input type="text" inputmode="decimal" id="o-fixed" name="fixed" class="form-control" value="{{ offer_values.fixed }}" placeholder="10" /></div>
+      <div class="form-group"><button type="submit" class="btn btn-primary"><i class="bi bi-calculator"></i> {{ _('Calcola') }}</button></div>
+    </form>
+    {% if offer %}
+    <p class="mb-0">{{ _('In %(months)s mesi hai pagato %(actual)s; con l’altra offerta avresti pagato %(other)s:', months=offer.months, actual=offer.actual|money, other=offer.other|money) }}
+      <strong class="{{ 'text-positive' if offer.difference < 0 else 'text-negative' }}">{{ _('%(amount)s in meno', amount=(-offer.difference)|money) if offer.difference < 0 else _('%(amount)s in più', amount=offer.difference|money) }}</strong>.
+      <span class="text-xs text-muted">{{ _('Imposte e oneri cambiano poco tra le offerte: confronta prezzi con la stessa voce (tutto compreso o solo energia).') }}</span></p>
+    {% elif offer_values.unit_price %}<p class="text-sm text-muted mb-0">{{ _('Servono bollette con il consumo negli ultimi 12 mesi.') }}</p>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card mb-16">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-receipt"></i> {{ _('Bollette di %(utility)s', utility=_(u.label)|lower) }}</div></div>
+  {% if readings %}
+  <div class="table-wrapper"><table>
+    <thead><tr><th>{{ _('Periodo') }}</th><th>{{ _('Fornitore') }}</th>{% if unit %}<th class="text-right">{{ _('Consumo') }}</th><th class="text-right">{{ _('€/%(unit)s', unit=unit) }}</th>{% endif %}<th class="text-right">{{ _('Al mese') }}</th><th class="text-right">{{ _('Importo') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+    <tbody>
+    {% for r in readings %}
+      <tr>
+        <td class="nowrap">{{ r.period_start|it_date }} – {{ r.period_end|it_date }}</td>
+        <td>{{ r.supplier or '—' }}{% if r.transaction %} <a class="text-xs" href="{{ url_for('transactions.edit', tx_id=r.transaction.id) }}">{{ _('movimento') }}</a>{% endif %}{% if r.document %} <a class="text-xs" href="{{ url_for('documents.file', doc_id=r.document.id) }}" target="_blank" rel="noopener">{{ _('bolletta') }}</a>{% endif %}</td>
+        {% if unit %}<td class="text-right nowrap">{{ r.consumption|number(0) ~ ' ' ~ unit if r.consumption is not none else '—' }}</td>
+        <td class="text-right nowrap">{{ helpers.unit_cost(r)|number(3) if helpers.unit_cost(r) is not none else '—' }}</td>{% endif %}
+        <td class="text-right nowrap">{{ helpers.monthly_cost(r)|money }}</td>
+        <td class="text-right nowrap">{{ r.amount|money }}</td>
+        <td><div class="cell-actions">
+          {{ icon_link(url_for('utilities.index', utility=utility, edit=r.id) ~ '#reading-form', 'bi-pencil', _('Modifica')) }}
+          {{ delete_button(url_for('utilities.delete', reading_id=r.id), _('Eliminare la bolletta?'), _('Elimina')) }}
+        </div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="card-body">{{ empty_state(_('Nessuna bolletta: registrane una qui sotto, o parti da un movimento della categoria Bollette.'), icon='bi-receipt', compact=true) }}</div>
+  {% endif %}
+</div>
+
+<div class="grid-2 utilities-grid">
+  <div class="card" id="reading-form">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-{{ 'pencil' if edit else 'plus-lg' }}"></i> {{ _('Modifica la bolletta') if edit else _('Nuova bolletta') }}</div></div>
+    <div class="card-body">
+      {% if edit %}
+      <form method="POST" action="{{ url_for('utilities.edit', reading_id=edit.id) }}">
+        {{ reading_fields('e', {'utility': edit.utility, 'supplier': edit.supplier, 'amount': edit.amount, 'start': edit.period_start.isoformat(), 'end': edit.period_end.isoformat(), 'consumption': edit.consumption, 'notes': edit.notes}) }}
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+        <a class="btn btn-ghost" href="{{ url_for('utilities.index', utility=utility) }}">{{ _('Annulla') }}</a>
+      </form>
+      {% else %}
+      <form method="POST" action="{{ url_for('utilities.create') }}">
+        {% if read and read.document_id %}<input type="hidden" name="document_id" value="{{ read.document_id }}" />{% endif %}
+        {{ reading_fields('n', {'utility': utility, 'supplier': read.supplier if read else '', 'amount': read.amount if read else none, 'start': read.start if read else '', 'end': read.end if read else '', 'consumption': read.consumption if read else none}) }}
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Registra') }}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card mb-16">
+      <div class="card-header"><div>
+        <div class="card-header-title"><i class="bi bi-list-ul"></i> {{ _('Dai movimenti') }}</div>
+        <div class="card-header-sub">{{ _('Le spese in Bollette › Luce, Gas, Acqua e Internet non ancora registrate: scrivi solo il consumo.') }}</div>
+      </div></div>
+      {% if candidates %}
+      <ul class="utility-candidates">
+        {% for tx, key, start in candidates[:8] %}
+        <li>
+          <form method="POST" action="{{ url_for('utilities.create') }}">
+            <input type="hidden" name="transaction_id" value="{{ tx.id }}" /><input type="hidden" name="utility" value="{{ key }}" />
+            <input type="hidden" name="amount" value="{{ tx.magnitude|plain }}" /><input type="hidden" name="supplier" value="{{ tx.description }}" />
+            <div class="utility-candidate-head"><i class="bi bi-{{ utilities[key].icon }}"></i> <strong>{{ tx.description }}</strong>
+              <span class="nowrap">{{ tx.date|it_date }} · {{ tx.magnitude|money }}</span></div>
+            <div class="utility-candidate-fields">
+              <input type="date" name="start" class="form-control" value="{{ start.isoformat() }}" aria-label="{{ _('Dal') }}" required />
+              <input type="date" name="end" class="form-control" value="{{ tx.date.isoformat() }}" aria-label="{{ _('Al') }}" required />
+              {% if utilities[key].unit %}<input type="text" inputmode="decimal" name="consumption" class="form-control" placeholder="{{ utilities[key].unit }}" aria-label="{{ _('Consumo') }}" />{% endif %}
+              <button type="submit" class="btn btn-secondary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Registra') }}</button>
+            </div>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<div class="card-body"><p class="text-sm text-muted mb-0">{{ _('Nessun movimento da registrare.') }}</p></div>{% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div>
+        <div class="card-header-title"><i class="bi bi-stars"></i> {{ _('Leggi una bolletta') }}</div>
+        <div class="card-header-sub">{{ _('Una bolletta in PDF o in foto caricata in Documenti: il modello AI propone periodo, consumo e importo, che controlli prima di salvare.') }}</div>
+      </div></div>
+      <div class="card-body">
+        {% if not ai_on %}<p class="text-sm text-muted mb-0">{{ _('La lettura con l’AI è spenta (Impostazioni → Modelli AI): scrivi i dati a mano.') }}</p>
+        {% elif documents %}
+        <form method="POST" action="{{ url_for('utilities.read') }}" class="d-flex gap-8 utility-read">
+          <select name="document_id" class="form-select" aria-label="{{ _('Documento') }}">{% for d in documents %}<option value="{{ d.id }}">{{ d.subject or d.filename }}</option>{% endfor %}</select>
+          <button type="submit" class="btn btn-secondary"><i class="bi bi-stars"></i> {{ _('Leggi') }}</button>
+        </form>
+        {% else %}<p class="text-sm text-muted mb-0">{{ _('Carica prima la bolletta in Documenti.') }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% set unit = utilities[utility].unit %}
+{% if readings %}
+<script>
+makeBarChart('utilityChart', {{ chart.labels|tojson }}, [
+  { label: {{ _('Al mese (€)')|tojson }}, data: {{ chart.monthly|tojson }} },
+  {% if unit %}{ type: 'line', label: {{ _('€ per %(unit)s', unit=unit)|tojson }}, data: {{ chart.unit|tojson }}, axis: 'right', color: 'negative' },{% endif %}
+]);
+</script>
+{% endif %}
+{% endblock %}

@@ -1,5 +1,5 @@
 from apiflask import Schema
-from apiflask.fields import Boolean, String, Integer
+from apiflask.fields import Boolean, Integer, String
 
 
 class SuccessOut(Schema):

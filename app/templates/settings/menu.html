@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('Il mio menu') if editing_self else _('Sezioni di %(name)s', name=user.username) }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li>{% if not editing_self %}<li><a href="{{ url_for('settings.account') }}">{{ _('Utenti') }}</a></li>{% endif %}<li>{{ _('Sezioni') }}</li>{% endblock %}
+
+{% block content %}
+<p class="text-sm text-muted mb-16">
+  {% if editing_self %}
+  {{ _("Scegli le sezioni da vedere nel tuo menu: le altre spariscono solo per te, i dati restano e le riattivi qui quando vuoi. Dashboard e Impostazioni ci sono sempre.") }}
+  {% else %}
+  {{ _("Le sezioni spente sono bloccate per «%(name)s»: non le vede nel menu e non può aprirle, nemmeno con un link o dall'API. Dashboard e Impostazioni restano sempre.", name=user.username) }}
+  {% endif %}
+</p>
+
+<form method="POST" action="{{ url_for('settings.my_menu') if editing_self else url_for('settings.user_sections', user_id=user.id) }}">
+  {% for group, items in groups %}
+  <div class="settings-section">
+    <div class="settings-section-header">{{ group }}</div>
+    <div class="settings-section-body">
+      {% for s in items %}
+      {% set locked = editing_self and s.key in (user.blocked_sections or []) and not user.is_admin %}
+      {% set on = (s.key not in (user.hidden_sections or [])) if editing_self else (s.key not in (user.blocked_sections or [])) %}
+      <div class="toggle-wrap">
+        <div class="toggle-info">
+          <div class="toggle-label"><i class="bi bi-{{ s.icon }}"></i> {{ s.label }}</div>
+          {% if locked %}
+          <div class="toggle-hint"><i class="bi bi-lock"></i> {{ _("Bloccata da un amministratore") }}</div>
+          {% elif s.setting and not settings[s.setting] %}
+          <div class="toggle-hint">{{ _('Disattivata per tutti in Impostazioni → Moduli') }}</div>
+          {% endif %}
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" name="{{ s.key }}" {{ 'checked' if on and not locked }} {{ 'disabled' if locked }}
+                 aria-label="{{ s.label }}" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+  {% if not editing_self %}<a href="{{ url_for('settings.account') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>{% endif %}
+</form>
+{% endblock %}

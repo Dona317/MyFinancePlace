@@ -1,0 +1,11 @@
+{# The buttons at the end of a table row: links shown as icons, and delete with a confirmation. #}
+{% macro icon_link(url, icon, title, label=None) -%}
+<a href="{{ url }}" class="btn btn-ghost btn-icon btn-sm" title="{{ title }}" aria-label="{{ label or title }}"><i class="bi {{ icon }}"></i></a>
+{%- endmacro %}
+
+{% macro delete_button(url, confirm, label, hidden={}) -%}
+<form method="POST" action="{{ url }}" data-confirm="{{ confirm }}">
+  {%- for name, value in hidden.items() %}<input type="hidden" name="{{ name }}" value="{{ value }}" />{% endfor %}
+  <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Elimina') }}" aria-label="{{ label }}"><i class="bi bi-trash3"></i></button>
+</form>
+{%- endmacro %}

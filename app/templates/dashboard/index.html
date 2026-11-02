@@ -1,225 +1,649 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
+{% import "partials/blocks.html" as blocks with context %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/kpi.html" import kpi %}
 
-{% block title %}Dashboard — MyFinancePlace{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
-{% block breadcrumb %}<li>Cruscotto</li>{% endblock %}
+{% block page_title %}{{ _('Dashboard') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Dashboard') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <a href="{{ url_for('transactions.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> Nuova Transazione
-  </a>
+<div class="dash-center">
+{# The period of the whole page: from one year to another (the same: that year), a half or a quarter of a single one #}
+<form method="GET" class="dash-period-box" id="dash-period">
+  <span class="dash-period-title"><i class="bi bi-calendar3"></i> <b class="dash-period-word">{{ _('Periodo') }}</b>
+    {{ info(_('Imposta il periodo della pagina, schede e grafici.')) }}</span>
+  <label class="sr-only" for="dash-year">{{ _('Dal') }}</label>
+  <select id="dash-year" name="year" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Dal') }}">
+    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
+  </select>
+  <span class="text-muted">–</span>
+  <label class="sr-only" for="dash-year-to">{{ _('Al') }}</label>
+  <select id="dash-year-to" name="year_to" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Al') }}">
+    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year_to }}>{{ y }}</option>{% endfor %}
+  </select>
+  <label class="sr-only" for="dash-part">{{ _('Parte dell’anno') }}</label>
+  <select id="dash-part" name="part" class="form-select form-select-sm" data-no-search onchange="this.form.submit()"{{ ' disabled' if year != year_to }}
+          title="{{ _('Semestre o trimestre: per un anno solo') }}">
+    <option value="year" {{ 'selected' if part == 'year' }}>{{ _('Tutto l’anno') if year == year_to else _('Anni interi') }}</option>
+    <optgroup label="{{ _('Semestri') }}">
+      {% for p in ('H1', 'H2') %}<option value="{{ p }}" {{ 'selected' if part == p }}>{{ part_labels[p] }}</option>{% endfor %}
+    </optgroup>
+    <optgroup label="{{ _('Trimestri') }}">
+      {% for p in ('Q1', 'Q2', 'Q3', 'Q4') %}<option value="{{ p }}" {{ 'selected' if part == p }}>{{ part_labels[p] }}</option>{% endfor %}
+    </optgroup>
+  </select>
+</form>
+{# Three presets: each keeps the blocks, the cards and the period; the one in use is saved again only on request #}
+<div class="dash-presets" id="dash-presets" role="group" aria-label="{{ _('Preset della dashboard') }}">
+  {% for item in presets["items"] %}
+  <button type="button" class="preset-btn{{ ' is-active' if loop.index == presets.active }}" data-preset="{{ loop.index }}"
+          aria-pressed="{{ 'true' if loop.index == presets.active else 'false' }}" title="{{ _('Doppio clic per rinominare') }}">{{ item.name }}</button>
+  {% endfor %}
+  {{ info(_('I preset della dashboard servono a salvare una configurazione dei grafici e delle schede. Doppio clic per rinominarlo.')) }}
+  <button type="button" class="btn btn-primary btn-sm preset-save" id="preset-save"{{ ' hidden' if not preset_changed }}
+          title="{{ _('Salva sul preset in uso la disposizione e il periodo di adesso') }}"><i class="bi bi-save"></i> <span class="preset-save-word">{{ _('Salva preset') }}</span></button>
+</div>
+</div>
+<div class="topbar-right-actions">
+  {{ blocks.edit_controls(_('Modifica della dashboard'), _('Sposta, allarga o nascondi i blocchi della dashboard'),
+                          url_for('settings.index', _anchor='dashboard'), _('Schede, blocchi e previsioni della dashboard nelle Impostazioni')) }}
+</div>
 {% endblock %}
+
+{# A top card whose money adds up over a time window of its own: the window is chosen in the card and kept #}
+{% macro window_card(card, icon, title, cls, href, value=none, amount=none, forecast=none, forecast_value='') -%}
+<div class="kpi-card kpi-click {{ cls }}" data-href="{{ href }}" title="{{ _('Apri il dettaglio') }}">
+  <div class="kpi-icon"><i class="bi bi-{{ icon }}"></i></div>
+  <div class="kpi-label">{{ title }}</div>
+  <div class="kpi-value"{% if amount is not none %} data-amount="{{ amount }}"{% endif %}>{{ value if value is not none else '—' }}</div>
+  <div class="kpi-sub"><i class="bi bi-calendar3"></i> {{ period_label }}</div>
+  {% if forecast %}
+  <a class="kpi-forecast" href="{{ url_for('forecast.index') }}" title="{{ _('Apri le previsioni') }}">
+    <i class="bi bi-graph-up-arrow"></i> {{ forecast.label }}: <strong>{{ forecast_value }}</strong>
+  </a>
+  {% endif %}
+</div>
+{%- endmacro %}
 
 {% block content %}
 
-<!-- KPI Row ─────────────────────────────────────────────────────────────── -->
-<div class="kpi-grid mb-24">
-
-  {% if settings.dashboard_net_worth %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-primary);--kpi-accent-bg:var(--clr-primary-light);">
-    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
-    <div class="kpi-label">Patrimonio Netto</div>
-    <div class="kpi-value" data-amount="{{ kpis.net_worth }}" data-currency="EUR">—</div>
-    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> 2,4% vs mese scorso</div>
-  </div>
-  {% endif %}
-
-  {% if settings.dashboard_income %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-positive);--kpi-accent-bg:var(--clr-positive-bg);">
-    <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
-    <div class="kpi-label">Entrate Mensili</div>
-    <div class="kpi-value" data-amount="{{ kpis.monthly_income }}" data-currency="EUR">—</div>
-    <div class="kpi-sub">Questo mese</div>
-  </div>
-  {% endif %}
-
-  {% if settings.dashboard_expenses %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-negative);--kpi-accent-bg:var(--clr-negative-bg);">
-    <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
-    <div class="kpi-label">Uscite Mensili</div>
-    <div class="kpi-value" data-amount="{{ kpis.monthly_expenses }}" data-currency="EUR">—</div>
-    <div class="kpi-sub">Questo mese</div>
-  </div>
-  {% endif %}
-
-  {% if settings.dashboard_savings_rate %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-neutral);--kpi-accent-bg:var(--clr-neutral-bg);">
-    <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
-    <div class="kpi-label">Tasso di Risparmio</div>
-    <div class="kpi-value">{{ "%.1f"|format(kpis.savings_rate) }}%</div>
-    <div class="kpi-sub">del reddito lordo</div>
-  </div>
-  {% endif %}
-
-  {% if settings.dashboard_investments %}
-  <div class="kpi-card" style="--kpi-accent:var(--chart-5);--kpi-accent-bg:#F3EFFF;">
-    <div class="kpi-icon" style="background:#F3EFFF;color:var(--chart-5);"><i class="bi bi-briefcase"></i></div>
-    <div class="kpi-label">Investimenti</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_investments }}" data-currency="EUR">—</div>
-    <div class="kpi-trend up"><i class="bi bi-arrow-up"></i> Portafoglio</div>
-  </div>
-  {% endif %}
-
-  {% if settings.dashboard_debt %}
-  <div class="kpi-card" style="--kpi-accent:var(--clr-warning);--kpi-accent-bg:var(--clr-warning-bg);">
-    <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
-    <div class="kpi-label">Debito Totale</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_debt }}" data-currency="EUR">—</div>
-    <div class="kpi-sub">In corso</div>
-  </div>
-  {% endif %}
-
-</div>
-
-<!-- Charts Row ──────────────────────────────────────────────────────────── -->
-{% if settings.dashboard_cashflow_chart or settings.dashboard_expense_pie %}
-<div style="display:grid;grid-template-columns:{% if settings.dashboard_cashflow_chart and settings.dashboard_expense_pie %}2fr 1fr{% else %}1fr{% endif %};gap:16px;margin-bottom:16px;">
-
-  {% if settings.dashboard_cashflow_chart %}
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <div class="card-header-title">Flusso di Cassa — Ultimi 12 Mesi</div>
-        <div class="card-header-sub">Entrate vs Uscite</div>
-      </div>
-      <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">
-        Vedi tutto <i class="bi bi-arrow-right"></i>
-      </a>
-    </div>
-    <div class="card-body">
-      <div class="chart-container" style="height:240px;">
-        <canvas id="cashFlowChart"></canvas>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if settings.dashboard_expense_pie %}
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <div class="card-header-title">Spese per Categoria</div>
-        <div class="card-header-sub">Questo mese</div>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="chart-container" style="height:240px;">
-        <canvas id="expensePieChart"></canvas>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
+{% if budget_alerts and allowed('budget') %}
+<div class="alert {{ 'alert-error' if budget_alerts|selectattr('state', 'equalto', 'over')|list else 'alert-warning' }} mb-16">
+  <i class="bi bi-clipboard-x"></i>
+  <span>{{ _('Budget del mese:') }}
+  {% for a in budget_alerts %}<strong>{{ a.category }}</strong> {{ a.share|number(0) }}%{{ _(' (superato)') if a.state == 'over' }}{{ ', ' if not loop.last }}{% endfor %}.
+  <a href="{{ url_for('lifestyle.budget') }}">{{ _('Vedi i budget') }}</a></span>
 </div>
 {% endif %}
 
-<!-- Bottom Row ───────────────────────────────────────────────────────────── -->
-{% if settings.dashboard_recent_tx or settings.dashboard_health %}
-<div style="display:grid;grid-template-columns:{% if settings.dashboard_recent_tx and settings.dashboard_health %}1fr 1fr 1fr{% else %}1fr{% endif %};gap:16px;">
+{# a card on top, in Modifica: moved, one or two columns wide, hidden #}
+{% macro kpi_slot(k) -%}
+<section class="fc-widget kpi-widget" data-widget="{{ k.id }}" data-span="{{ k.span }}" data-title="{{ kpi_titles[k.id] }}"{{ ' hidden' if not k.visible else '' }}>
+  {% call blocks.tools() %}{{ kpi_titles[k.id] }}{% endcall %}
+  {{ caller() }}
+</section>
+{%- endmacro %}
 
-  {% if settings.dashboard_recent_tx %}
-  <div class="card" style="{% if settings.dashboard_health %}grid-column:span 2;{% endif %}">
+<!-- KPI Row: a click on a card opens its detail; the period of income, expenses and savings is chosen in the card -->
+{% set fc = forecast_figures %}
+<div class="kpi-grid kpi-strip fc-grid-kpi mb-24" id="kpi-grid">
+{% for k in kpi_layout %}
+{% if k.id == 'net_worth' and settings.dashboard_net_worth %}
+{% call kpi_slot(k) %}
+  <div class="kpi-card kpi-click kpi-primary" data-href="{{ url_for('accounting.balance_sheet', date=as_of.isoformat()) }}" title="{{ _('Apri lo Stato Patrimoniale') }}">
+    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
+    <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
+    <div class="kpi-value" data-amount="{{ kpis.net_worth }}">—</div>
+    <div class="kpi-sub">{{ _('Attività − passività, al %(date)s', date=as_of|it_date) }}</div>
+  </div>
+{% endcall %}
+{% elif k.id == 'income' and settings.dashboard_income %}
+{% call kpi_slot(k) %}
+  {% set c = cards.income %}
+  {{ window_card('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive',
+                 url_for('reports.income', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
+                 amount=c.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else '')) }}
+{% endcall %}
+{% elif k.id == 'expenses' and settings.dashboard_expenses %}
+{% call kpi_slot(k) %}
+  {% set c = cards.expenses %}
+  {{ window_card('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative',
+                 url_for('reports.spending', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
+                 amount=c.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else '')) }}
+{% endcall %}
+{% elif k.id == 'savings_rate' and settings.dashboard_savings_rate %}
+{% call kpi_slot(k) %}
+  {% set c = cards.savings_rate %}
+  {{ window_card('savings_rate', 'piggy-bank', _('Tasso di Risparmio'), 'kpi-neutral',
+                 url_for('accounting.cash_flow', year=pie_last.year),
+                 value=("%.1f"|format(c.totals.savings_rate) ~ '%'), forecast=fc,
+                 forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else '')) }}
+{% endcall %}
+{% elif k.id == 'investments' and settings.dashboard_investments and allowed('portfolio') %}
+{% call kpi_slot(k) %}
+  <div class="kpi-card kpi-click kpi-blue" data-href="{{ url_for('portfolio.index') }}" title="{{ _('Apri il portafoglio') }}">
+    <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
+    <div class="kpi-label">{{ _('Investimenti') }}</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_investments }}">—</div>
+    <div class="kpi-sub" title="{{ _('Rendimento passato (TWR): non è una previsione') }}">
+      {% if rates.return_1y is not none %}{{ _('Rendimento ultimi 12 mesi: %(rate)s%%', rate=rates.return_1y|number(1)) }}{% else %}{{ _('Rendimento: servono 12 mesi di storico') }}{% endif %}
+      {% if rates.return_annual is not none %}<br />{{ _('Annuo dall’inizio: %(rate)s%%', rate=rates.return_annual|number(1)) }}{% endif %}
+    </div>
+  </div>
+{% endcall %}
+{% elif k.id == 'debt' and settings.dashboard_debt and allowed('debt') %}
+{% call kpi_slot(k) %}
+  <div class="kpi-card kpi-click kpi-purple" data-href="{{ url_for('debt.index') }}" title="{{ _('Apri i debiti') }}">
+    <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
+    <div class="kpi-label">{{ _('Debito Totale') }}</div>
+    <div class="kpi-value" data-amount="{{ kpis.total_debt }}">—</div>
+    <div class="kpi-sub" title="{{ _('Tasso annuo nominale (TAN) medio, pesato sul debito residuo') }}">
+      {% if rates.debt_rate is not none %}{{ _('TAN medio %(rate)s%%', rate=rates.debt_rate|number(2)) }}{% else %}{{ _('In corso') }}{% endif %}
+    </div>
+  </div>
+{% endcall %}
+{% elif k.id.startswith('tbd') %}
+{% call kpi_slot(k) %}
+  <div class="kpi-card kpi-tbd">
+    <div class="kpi-label">{{ _('Nuova scheda') }}</div>
+    <div class="kpi-value">TBD</div>
+    <div class="kpi-sub">{{ _('Per una funzionalità futura') }}</div>
+  </div>
+{% endcall %}
+{% endif %}
+{% endfor %}
+</div>
+
+<div class="dash-year-head">
+  <h2>{{ _('Grafici: %(period)s', period=period_label) }}</h2>
+</div>
+
+
+{% set tx_ok = allowed('transactions') %}
+{% macro pie(kind, title, breakdown) %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ title }}</div>
+      <div class="card-header-sub">{{ _('%(period)s: %(amount)s', period=period_label, amount=(breakdown|sum(attribute='amount'))|money) }} · {{ _('clic su una fetta per le transazioni') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if breakdown %}
+    <div class="chart-container" style="height:200px;"><canvas id="{{ kind }}PieChart" class="clickable-chart"></canvas></div>
+    {# legend as a grid: colour, category, amount and share, like the chart slices (8 colours, repeating) #}
+    <ul class="category-legend" id="{{ kind }}-legend">
+      {% for c in breakdown|rejectattr('apart') %}
+      <li>
+        <span class="category-legend-dot" style="background:var(--{{ 'inc' if kind == 'income' else 'exp' }}-{{ (loop.index0 % 8) + 1 }});"></span>
+        {% if tx_ok %}<a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type=kind, start=pie_start.isoformat(), end=pie_last.isoformat()) }}"
+           title="{{ _('Transazioni di «%(category)s» nel periodo', category=c.category|tr) }}">{{ c.category|tr }} <small class="category-legend-share">{{ c.share|number(1) }}%</small></a>
+        {% else %}<span class="category-legend-name">{{ c.category|tr }} <small class="category-legend-share">{{ c.share|number(1) }}%</small></span>{% endif %}
+        {# name and share on the first line, the amount under them #}
+        <span class="category-legend-value">{{ c.amount|money }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% for c in breakdown if c.apart %}
+    <p class="category-apart text-xs"><i class="bi bi-cash-coin acc-cash"></i>
+      {{ _('A parte: «Spese non annotate» %(amount)s (%(share)s%% delle uscite), contanti spesi senza sapere per cosa.', amount=c.amount|money, share=c.share|number(1)) }}</p>
+    {% endfor %}
+    {% else %}
+    {{ empty_state(text=_('Nessuna spesa in questo periodo.') if kind == 'expense' else _('Nessuna entrata in questo periodo.'), compact=True) }}
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro trend(kind, title) %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ title }}</div>
+      <div class="card-header-sub">{{ _('Mese per mese, in euro, per categoria') }}</div>
+    </div>
+    <a href="{{ url_for('reports.index', tab='spending' if kind == 'expense' else 'income', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()) }}" class="btn btn-ghost btn-sm">
+      {{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:300px;"><canvas id="{{ kind }}TrendChart"></canvas></div>
+  </div>
+</div>
+{% endmacro %}
+
+{% set shock_names = {'car': _('Auto da riparare o sostituire'), 'appliance': _('Elettrodomestico (lavatrice, frigo)'), 'house': _('Casa (tetto, caldaia)'), 'health': _('Spese mediche')} %}
+
+<div class="fc-grid dash-grid" id="fc-grid">
+{% for w in layout if not (w.id == 'recent' and not allowed('transactions')) %}
+<section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-height="{{ w.height }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
+  {% call blocks.tools() %}{{ widgets[w.id][0] }}{% endcall %}
+
+  {% if w.id == 'cashflow' %}
+  <div class="card">
     <div class="card-header">
-      <div class="card-header-title">Transazioni Recenti</div>
-      <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">
-        Tutte <i class="bi bi-arrow-right"></i>
-      </a>
+      <div>
+        <div class="card-header-title">{{ _('Flusso di cassa e risparmio — %(period)s', period=period_label) }}</div>
+        <div class="card-header-sub">{{ _('Entrate, uscite e risparmio del mese; le barre sono il risparmio cumulato. Clic sulla legenda per mostrare anche entrate e uscite cumulate.') }}</div>
+      </div>
+      <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="card-body"><div class="chart-container" style="height:300px;"><canvas id="cashFlowChart"></canvas></div></div>
+  </div>
+
+  {% elif w.id == 'net_worth' %}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Andamento del patrimonio — %(period)s', period=period_label) }}</div>
+        <div class="card-header-sub">{{ _('Liquidità, investimenti e altri beni sopra lo zero, debiti sotto; la linea è il patrimonio netto') }}</div>
+      </div>
+      <a href="{{ url_for('accounting.growth') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="card-body"><div class="chart-container" style="height:300px;"><canvas id="netWorthChart"></canvas></div></div>
+  </div>
+
+  {% elif w.id == 'expense_pie' %}{{ pie('expense', _('Uscite per categoria'), expense_breakdown) }}
+  {% elif w.id == 'income_pie' %}{{ pie('income', _('Entrate per categoria'), income_breakdown) }}
+  {% elif w.id == 'expense_trend' %}{{ trend('expense', _('Uscite per categoria nel tempo')) }}
+  {% elif w.id == 'income_trend' %}{{ trend('income', _('Entrate per categoria nel tempo')) }}
+
+  {% elif w.id == 'sankey' %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Dove va il denaro — %(period)s', period=period_label) }}</div>
+      <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio. Clic su una categoria per le sue transazioni.') }}</div>
+    </div></div>
+    <div class="card-body">
+      {% if sankey %}
+      {% set s = sankey %}
+      <svg class="sankey" viewBox="-260 -34 {{ s.width + 520 }} {{ s.height + 44 }}" role="img"
+           aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
+        {% for b in s.bands %}
+        <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
+          <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
+        {% endfor %}
+        {% for n in s.nodes %}
+        {% set linked = tx_ok and n.kind in ('income', 'expense') and not n.special %}
+        {% if linked %}<a href="{{ url_for('transactions.index', category=n.label, type=n.kind, start=year_start.isoformat(), end=year_last.isoformat()) }}" class="sankey-link">{% endif %}
+        <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
+              style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
+          <title>{{ n.label|tr }}: {{ n.amount|money }}{{ ' — ' ~ _('clic per le transazioni') if linked }}</title></rect>
+        {% set right = n.kind == 'expense' %}
+        {% set middle = n.kind == 'total' %}
+        <text x="{{ n.x + s.node_width / 2 if middle else (n.x + s.node_width + 8 if right else n.x - 8) }}"
+              y="{{ n.y - 12 if middle else n.y + n.h / 2 }}"
+              text-anchor="{{ 'middle' if middle else ('start' if right else 'end') }}" dominant-baseline="middle"
+              class="sankey-label{{ ' sankey-special' if n.special }}">
+          <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" dx="6">{{ n.amount|money }}</tspan></text>
+        {% if linked %}</a>{% endif %}
+        {% endfor %}
+      </svg>
+      {% else %}
+      {{ empty_state(text=_('Nessun movimento in questo anno.'), compact=True) }}
+      {% endif %}
+    </div>
+  </div>
+
+  {% elif w.id == 'year_total' %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Totale del periodo %(period)s', period=period_label) }}</div>
+      <div class="card-header-sub">{{ _('Entrate, uscite e netto') }}</div>
+    </div></div>
+    <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="yearChart"></canvas></div></div>
+  </div>
+
+  {% elif w.id == 'savings_trend' %}
+  <div class="card savings-trend">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Tasso di risparmio mese per mese') }}</div>
+      <div class="card-header-sub">{{ _('Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata.') }}</div>
+    </div></div>
+    <div class="card-body">
+      {% if savings.years %}
+      <div class="year-chips" id="savings-years" role="group" aria-label="{{ _('Anni da confrontare') }}">
+        {% for y in savings.years %}
+        <button type="button" class="year-chip" data-year="{{ y.year }}" aria-pressed="false">
+          <span class="year-chip-dot"></span>{{ y.year }} <span class="text-muted">{{ y.rate|number(1) }}%</span>
+        </button>
+        {% endfor %}
+      </div>
+      <div class="chart-container" style="height:240px;"><canvas id="savingsChart"></canvas></div>
+      {% else %}
+      {{ empty_state(text=_('Nessuna entrata registrata.'), compact=True) }}
+      {% endif %}
+    </div>
+  </div>
+
+  {% elif w.id == 'recent' %}
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">{{ _('Ultime transazioni') }}</div>
+      <div class="recent-controls">
+        <label class="sr-only" for="recent-mode">{{ _('Quali transazioni') }}</label>
+        <select id="recent-mode" class="form-select form-select-sm" title="{{ _('Le ultime registrate, o le più grandi del periodo delle uscite') }}">
+          <option value="recent">{{ _('Ultime registrate') }}</option>
+          <option value="impact">{{ _('Più impattanti · %(period)s', period=cards.expenses.label) }}</option>
+        </select>
+        <label class="sr-only" for="recent-category">{{ _('Categoria') }}</label>
+        <select id="recent-category" class="form-select form-select-sm" title="{{ _('Solo una categoria') }}">
+          <option value="">{{ _('Tutte le categorie') }}</option>
+          {% for name in (recent_transactions + impact_transactions)|map(attribute='category')|reject('none')|unique|sort %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
+        </select>
+        {# the accounts shown: one account (or card, or cash), or all of them #}
+        <label class="sr-only" for="recent-account">{{ _('Conto') }}</label>
+        <select id="recent-account" class="form-select form-select-sm" title="{{ _('Solo un conto') }}">
+          <option value="">{{ _('Tutti i conti') }}</option>
+          {% for account in (recent_transactions + impact_transactions)|map(attribute='account')|reject('none')|unique|sort(attribute='name') %}<option value="{{ account.id }}">{{ account.name }}</option>{% endfor %}
+          {% if (recent_transactions + impact_transactions)|selectattr('account_id', 'none')|list %}<option value="none">{{ _('— Senza conto —') }}</option>{% endif %}
+        </select>
+        <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
+      </div>
     </div>
     <div class="table-wrapper">
       <table>
         <thead>
-          <tr>
-            <th>Data</th>
-            <th>Descrizione</th>
-            <th>Categoria</th>
-            <th style="text-align:right;">Importo</th>
-          </tr>
+          <tr><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th></tr>
         </thead>
-        <tbody id="recent-tx-body">
-          <tr>
-            <td colspan="4">
-              <div class="empty-state" style="padding:32px;">
-                <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-                <div class="empty-state-text">Nessuna transazione. Aggiungi la prima!</div>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-transaction')">
-                  <i class="bi bi-plus"></i> Aggiungi Transazione
-                </button>
-              </div>
-            </td>
+        {% for mode, rows in (('recent', recent_transactions), ('impact', impact_transactions)) %}
+        <tbody class="recent-rows" data-mode="{{ mode }}" {{ 'hidden' if mode == 'impact' }}>
+          {% for tx in rows %}
+          <tr data-category="{{ tx.category or '' }}" data-account="{{ tx.account_id or 'none' }}">
+            <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ (tx.date|it_date) }}</td>
+            <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
+            <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
+            {% if tx.type == 'transfer' %}
+            <td class="amount" style="text-align:right;color:var(--clr-text-muted);white-space:nowrap;" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money }}</td>
+            {% else %}
+            <td class="amount text-right" data-amount="{{ tx.signed_amount }}">—</td>
+            {% endif %}
           </tr>
+          {% else %}
+          <tr class="recent-empty"><td colspan="4">
+            {% call empty_state(text=_('Nessuna transazione. Aggiungi la prima!'), icon='bi-inbox', compact=True) %}
+              <a class="btn btn-primary btn-sm" href="{{ url_for('transactions.new') }}"><i class="bi bi-plus"></i> {{ _('Aggiungi Transazione') }}</a>
+            {% endcall %}
+          </td></tr>
+          {% endfor %}
         </tbody>
+        {% endfor %}
       </table>
     </div>
   </div>
-  {% endif %}
 
-  {% if settings.dashboard_health %}
+  {% elif w.id == 'health' %}
   <div class="card">
-    <div class="card-header">
-      <div class="card-header-title">Salute Finanziaria</div>
-    </div>
+    <div class="card-header"><div class="card-header-title">{{ _('Salute Finanziaria') }} {{ info(_('Ultimi 12 mesi: risparmio, mesi coperti dalla liquidità, debiti sul patrimonio.')) }}</div></div>
     <div class="card-body">
-
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Tasso di Risparmio</span>
-          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ "%.0f"|format(kpis.savings_rate) }}%</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill positive" style="width:{{ kpis.savings_rate }}%;"></div>
+      <div class="health-row">
+        <div class="health-head"><span>{{ _('Tasso di Risparmio') }}</span><span class="text-xs text-muted">{{ "%.0f"|format(kpis.savings_rate) }}%</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill positive" style="width:{{ [kpis.savings_rate, 100]|min }}%;"></div></div>
+      </div>
+      <div class="health-row">
+        <div class="health-head"><span>{{ _('Rate / Reddito') }}</span><span class="text-xs text-muted">{{ ("%.0f"|format(kpis.debt_to_income) ~ _('%% · max 35%%')) if kpis.debt_to_income is not none else '—' }}</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill {{ 'negative' if (kpis.debt_to_income or 0) > 35 else 'warning' }}" style="width:{{ [kpis.debt_to_income or 0, 100]|min }}%;"></div></div>
+      </div>
+      {% set run = kpis.autonomy %}
+      <div class="health-row autonomy" title="{{ _('Liquidità (%(liquid)s) divisa per la spesa media degli ultimi %(n)s mesi completi', liquid=run.liquid|money, n=run.basis) }}">
+        <div class="health-head"><span>{{ _('Mesi di autonomia') }}</span><span class="text-xs text-muted">{% if run.months_all is not none %}{{ _('%(months)s / %(target)s mesi', months=run.months_all|number(1), target=autonomy_target) }}{% else %}—{% endif %}</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill {{ 'positive' if (run.months_all or 0) >= autonomy_target }}" style="width:{{ [(run.months_all or 0) / autonomy_target * 100, 100]|min }}%;"></div></div>
+        <div class="text-xs text-muted" style="margin-top:6px;">
+          {% if run.avg_expenses is none %}{{ _('Servono almeno 3 mesi completi di spese per la media.') }}
+          {% else %}{{ _('Spesa media %(amount)s al mese', amount=run.avg_expenses|money) }}{% if run.months_essential is not none %} · {{ _('solo spese fisse e non mensili: %(months)s mesi', months=run.months_essential|number(1)) }}{% endif %}{% endif %}
         </div>
       </div>
-
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Debito/Reddito</span>
-          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">—</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill warning" style="width:30%;"></div>
+      {% if health.months_cash is not none %}
+      <div class="health-row">
+        <div class="health-head"><span>{{ _('Senza stipendio, quanti mesi?') }}</span></div>
+        <div class="health-pair">
+          <div><strong>{{ health.months_cash|number(1) }}</strong> <span class="text-xs text-muted">{{ _('mesi con la liquidità') }}</span></div>
+          <div><strong>{{ health.months_invested|number(1) }}</strong> <span class="text-xs text-muted">{{ _('mesi con liquidità e investimenti') }}</span></div>
         </div>
       </div>
-
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:var(--font-size-xs);font-weight:600;">Fondo d'Emergenza</span>
-          <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">—</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" style="width:0%;"></div>
-        </div>
+      {% endif %}
+      <div class="health-row">
+        <div class="health-head"><span>{{ _('Un imprevisto tipico') }}</span><span class="text-xs text-muted" title="{{ _('Risparmio medio mensile degli ultimi 12 mesi') }}">{{ _('risparmi %(amount)s/mese', amount=health.avg_saving|money) }}</span></div>
+        <table class="shock-table">
+          {% for s in health.shocks %}
+          <tr>
+            <td>{{ shock_names[s.key] }}</td>
+            <td class="amount text-right nowrap">{{ s.amount|money }}</td>
+            <td class="text-right text-xs nowrap" title="{{ _('Quota della liquidità che si porterebbe via') }}">{{ (s.share|number(0) ~ '%') if s.share is not none else '—' }}</td>
+            <td class="text-right text-xs nowrap" title="{{ _('Mesi di risparmio per ricostituirla') }}">{{ _('%(months)s mesi', months=s.months|number(1)) if s.months is not none else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </table>
       </div>
-
       <a href="{{ url_for('snapshots.index') }}" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px;">
-        <i class="bi bi-camera"></i> Crea Istantanea
+        <i class="bi bi-camera"></i> {{ _('Crea Istantanea') }}
       </a>
     </div>
   </div>
   {% endif %}
-
+</section>
+{% endfor %}
 </div>
-{% endif %}
 
 {% endblock %}
 
 {% block scripts %}
+{% set tx_ok = allowed('transactions') %}
+{% set tx_url = url_for('transactions.index') if tx_ok else '' %}
+{{ blocks.script() }}
 <script>
-const months = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-const income   = [3200,3200,3400,3200,3200,3500,3200,3200,3200,3400,3200,3200];
-const expenses = [2100,2400,1900,2200,2600,1800,2300,2100,2000,2400,1900,2200];
+const shown = (id) => document.querySelector(`.fc-widget[data-widget="${id}"]`) !== null;
+const cashFlow = {{ cash_flow|tojson }};
+const flow = {{ savings_flow|tojson }};
 
-{% if settings.dashboard_cashflow_chart %}
-makeLineChart('cashFlowChart', months, [
-  { label: 'Entrate',  data: income,   color: 'var(--clr-positive)', fill: false },
-  { label: 'Uscite',   data: expenses, color: 'var(--clr-negative)', fill: false },
-]);
+if (shown('cashflow')) {
+  makeBarChart('cashFlowChart', cashFlow.labels, [
+    { label: {{ _('Entrate')|tojson }}, data: cashFlow.income, color: 'income', type: 'line' },
+    { label: {{ _('Uscite')|tojson }}, data: cashFlow.expenses, color: 'expense', type: 'line' },
+    { label: {{ _('Risparmio del mese')|tojson }}, data: flow.saved, color: 'amber', type: 'line', dash: [5, 4] },  // the cumulated one stays orange
+    { label: {{ _('Risparmio cumulato')|tojson }}, data: flow.saved_cumulative, color: 'primary', axis: 'right' },
+    { label: {{ _('Entrate cumulate')|tojson }}, data: flow.income_cumulative, color: 'income', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
+    { label: {{ _('Uscite cumulate')|tojson }}, data: flow.expenses_cumulative, color: 'expense', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
+  ], { legend: true, onClickIndex: {{ tx_ok|tojson }} ? (i) => {
+    // a month of the cash flow opens its transactions
+    const first = new Date({{ pie_start.year }}, {{ pie_start.month - 1 }} + i, 1);
+    window.location.href = {{ tx_url|tojson }} + '?month=' + `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, '0')}`;
+  } : undefined });
+}
+
+{% if net_worth_trend %}
+const worth = {{ net_worth_trend|tojson }};
+makeBarChart('netWorthChart', worth.labels, [
+  { label: {{ _('Liquidità')|tojson }}, data: worth.cash, color: 'primary', stack: 'w' },
+  {% if allowed('portfolio') %}
+  { label: {{ _('Investimenti')|tojson }}, data: worth.investments, color: 'blue', stack: 'w' },
+  { label: {{ _('Altri beni')|tojson }}, data: worth.other, color: 'neutral', stack: 'w' },
+  {% else %}
+  { label: {{ _('Altri beni')|tojson }}, data: worth.other.map((v, i) => v + worth.investments[i]), color: 'neutral', stack: 'w' },
+  {% endif %}
+  { label: {{ _('Debiti')|tojson }}, data: worth.debts, color: 'purple', stack: 'w' },
+  { label: {{ _('Patrimonio netto')|tojson }}, data: worth.net_worth, color: 'positive', type: 'line' },
+], { legend: true, stacked: true });
 {% endif %}
 
-{% if settings.dashboard_expense_pie %}
-makeDoughnutChart('expensePieChart',
-  ['Casa','Alimentari','Trasporto','Salute','Svago','Altro'],
-  [35, 20, 12, 8, 15, 10]
-);
+// Doughnuts and monthly lines share the colours: the n-th category has the n-th palette colour in both.
+// A slice opens the transactions of its category in the same period.
+const trendLines = (trend) => trend.datasets.map(ds => (
+  { label: ds.label, data: ds.data, fill: false, pointRadius: 3, ...(ds.other ? { color: 'neutral', dash: [5, 4] } : {}) }
+));
+const txUrl = {{ (not tx_ok)|tojson }} ? null : (category, type) => {{ tx_url|tojson }} + '?' + new URLSearchParams(
+  { category, type, start: {{ pie_start.isoformat()|tojson }}, end: {{ pie_last.isoformat()|tojson }} });
+[['expense', {{ expense_breakdown|rejectattr('apart')|list|tojson }}, {{ expense_breakdown|rejectattr('apart')|map(attribute='category')|map('tr')|list|tojson }}, {{ expense_trend|tojson }}],
+ ['income',  {{ income_breakdown|tojson }},  {{ income_breakdown|map(attribute='category')|map('tr')|list|tojson }},  {{ income_trend|tojson }}]]
+  .forEach(([kind, breakdown, labels, trend]) => {
+    if (shown(kind + '_pie') && breakdown.length) {
+      makeDoughnutChart(kind + 'PieChart', labels, breakdown.map(c => c.amount),
+        { palette: kind, legendList: document.getElementById(kind + '-legend'),
+          onClickIndex: txUrl ? (i) => { window.location.href = txUrl(breakdown[i].category, kind); } : undefined });
+    }
+    // a point of a category's line opens that category's transactions of that month
+    if (shown(kind + '_trend')) makeLineChart(kind + 'TrendChart', trend.labels, trendLines(trend), { palette: kind,
+      onClickIndex: txUrl ? (i, series) => {
+        const ds = trend.datasets[series];
+        if (!ds || ds.other) return;
+        const first = new Date({{ pie_start.year }}, {{ pie_start.month - 1 }} + i, 1);
+        const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
+        const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        window.location.href = {{ tx_url|tojson }} + '?' + new URLSearchParams({ category: ds.key || ds.label, type: kind, start: iso(first), end: iso(last) });
+      } : undefined });
+  });
+
+if (shown('year_total')) {
+  const totals = {{ period_totals|tojson }};
+  const yearNet = Math.round((totals.income - totals.expenses) * 100) / 100;
+  makeBarChart('yearChart', [{{ _('Entrate')|tojson }}, {{ _('Uscite')|tojson }}, {{ _('Netto')|tojson }}],
+    [{ label: {{ period_label|tojson }}, data: [totals.income, totals.expenses, yearNet],
+       colors: ['income', 'expense', yearNet < 0 ? 'negative' : 'primary'] }],
+    { legend: false, onClickIndex: txUrl ? (i) => {  // income or expenses of the period open their transactions
+      if (i > 1) return;
+      window.location.href = {{ tx_url|tojson }} + '?' + new URLSearchParams(
+        { type: i ? 'expense' : 'income', start: {{ pie_start.isoformat()|tojson }}, end: {{ pie_last.isoformat()|tojson }} });
+    } : undefined });
+}
+
+{% if savings.years %}
+// One line per year with income; the chips choose which ones are drawn (remembered in this browser).
+// By default the year shown on the dashboard and the one before.
+if (shown('savings_trend')) (function () {
+  const savings = {{ savings|tojson }};
+  const KEY = 'mfp-savings-years';
+  const available = savings.years.map(y => y.year);
+  let chosen = null;
+  try { chosen = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { chosen = null; }
+  chosen = (Array.isArray(chosen) ? chosen : [{{ year }}, {{ year - 1 }}]).filter(y => available.includes(y));
+  if (!chosen.length) chosen = available.slice(0, 2);
+  const datasets = savings.years.map((y, i) => ({
+    label: String(y.year), data: y.rates, fill: false, pointRadius: 3,
+    hidden: !chosen.includes(y.year), ...(i ? { dash: [6, 4] } : {}),
+  }));
+  makeLineChart('savingsChart', savings.labels, datasets, { percent: true, legend: false });
+  const chips = [...document.querySelectorAll('#savings-years .year-chip')];
+  const paint = () => {
+    const chart = Chart.getChart('savingsChart');
+    chips.forEach((chip, i) => {
+      chip.setAttribute('aria-pressed', String(!datasets[i].hidden));
+      chip.querySelector('.year-chip-dot').style.background = chart.data.datasets[i].borderColor;
+    });
+  };
+  chips.forEach((chip, i) => chip.addEventListener('click', () => {
+    datasets[i].hidden = !datasets[i].hidden;
+    const chart = Chart.getChart('savingsChart');
+    chart.setDatasetVisibility(i, !datasets[i].hidden);
+    chart.update();
+    paint();
+    const years = savings.years.filter((y, j) => !datasets[j].hidden).map(y => y.year);
+    try { localStorage.setItem(KEY, JSON.stringify(years)); } catch (e) { /* private window: not remembered */ }
+  }));
+  document.addEventListener('mfp:themechange', () => setTimeout(paint));
+  paint();
+}());
 {% endif %}
+
+/* ── The transactions block: the last ones or the biggest of the period, of one category, of one account ── */
+{
+const mode = document.getElementById('recent-mode');
+const category = document.getElementById('recent-category');
+const account = document.getElementById('recent-account');
+const apply = () => {
+  document.querySelectorAll('.recent-rows').forEach(body => {
+    body.hidden = body.dataset.mode !== mode.value;
+    let count = 0;
+    body.querySelectorAll('tr[data-category]').forEach(row => {
+      const ok = (!category.value || row.dataset.category === category.value)
+        && (!account?.value || row.dataset.account === account.value);
+      row.hidden = !ok || count >= 8;
+      if (ok) count += 1;
+    });
+  });
+  try { localStorage.setItem('mfp-recent-mode', mode.value); } catch (e) { /* private window */ }
+};
+if (mode && category) {
+  try { const saved = localStorage.getItem('mfp-recent-mode'); if (saved) mode.value = saved; } catch (e) { /* private window */ }
+  mode.addEventListener('change', apply);
+  category.addEventListener('change', apply);
+  account?.addEventListener('change', apply);
+  apply();
+}
+}
+
+/* ── Top cards: a click opens the detail ── */
+document.querySelectorAll('.kpi-click').forEach(card => card.addEventListener('click', e => {
+  if (e.target.closest('a, button, input, select, form')) return;
+  window.location.href = card.dataset.href;
+}));
+
+/* ── Presets: a click uses one, a double click renames it; «Salva preset» appears once the page differs from it ── */
+{
+const box = document.getElementById('dash-presets');
+const saveButton = document.getElementById('preset-save');
+const post = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
+  .then(r => r.json().then(data => (r.ok ? data : Promise.reject(data))));
+const urls = {
+  use: {{ url_for('dashboard.use_preset', number=0)|tojson }},
+  save: {{ url_for('dashboard.save_preset', number=0)|tojson }},
+  rename: {{ url_for('dashboard.rename_preset', number=0)|tojson }},
+};
+const urlOf = (kind, n) => urls[kind].replace('/0/', '/' + n + '/');
+const active = () => box.querySelector('.preset-btn.is-active')?.dataset.preset;
+let clickTimer = null;
+box.querySelectorAll('.preset-btn').forEach(button => {
+  // one click: use the preset (after a moment, so that a double click renames instead)
+  button.addEventListener('click', () => {
+    if (button.querySelector('input')) return;
+    clearTimeout(clickTimer);
+    clickTimer = setTimeout(() => {
+      if (button.dataset.preset === active() && saveButton.hidden) return;
+      post(urlOf('use', button.dataset.preset)).then(data => { window.location.href = data.url; });
+    }, 250);
+  });
+  button.addEventListener('dblclick', () => {
+    clearTimeout(clickTimer);
+    const old = button.textContent.trim();
+    const input = Object.assign(document.createElement('input'), { type: 'text', value: old, maxLength: 30, className: 'preset-name-input' });
+    input.setAttribute('aria-label', {{ _('Nome del preset')|tojson }});
+    button.replaceChildren(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = (keep) => {
+      if (done) return;
+      done = true;
+      const name = input.value.trim();
+      button.textContent = old;
+      if (keep && name !== old) post(urlOf('rename', button.dataset.preset), { name }).then(data => { button.textContent = data.name; });
+    };
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+      if (e.key === 'Escape') finish(false);
+    });
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('click', e => e.stopPropagation());
+  });
+});
+// the page arranged differently in Modifica: the preset in use can be saved again
+document.addEventListener('blocks:saved', () => { saveButton.hidden = false; });
+saveButton.addEventListener('click', () => {
+  const period = { year: +document.getElementById('dash-year').value, year_to: +document.getElementById('dash-year-to').value,
+                   part: document.getElementById('dash-part').value };
+  post(urlOf('save', active()), { period }).then(() => {
+    saveButton.hidden = true;
+    showToast({{ _('Preset salvato.')|tojson }});
+  });
+});
+}
+
+/* ── Modifica: the blocks (1–3 thirds wide, of a chosen height) and the cards on top (1–2 columns) ── */
+initBlockEditor({
+  saveUrl: {{ url_for('dashboard.save_layout')|tojson }},
+  grids: [{ el: document.getElementById('fc-grid'), key: 'widgets', spans: 3, heights: true },
+          { el: document.getElementById('kpi-grid'), key: 'kpis', spans: 2 }],
+});
 </script>
 {% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% import "partials/fields.html" as f %}
+{% block page_title %}{{ _('Nuova operazione') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Operazione') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ holding.name }}</div>
+        <div class="card-header-sub">{{ _('Hai %(units)s quote, prezzo medio %(price)s, ultimo prezzo %(last)s.', units=holding.quantity|number(4), price=holding.avg_price|money, last=holding.price|money) }}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="POST" id="operation-form">
+        <div class="grid-2">
+          {{ f.select(values, 'kind', _('Operazione'), kinds.items()|list, 'buy') }}
+          {{ f.date(values, 'on', _('Data'), today, required=true) }}
+        </div>
+        <div class="grid-2 op-trade">
+          {{ f.number(values, 'units', _('Quote'), none, placeholder='10') }}
+          {{ f.number(values, 'price', _('Prezzo per quota (€)'), holding.current_price, placeholder='0,00') }}
+        </div>
+        <div class="op-money">
+          {{ f.number(values, 'amount', _('Importo netto (€)'), none, placeholder='0,00',
+                      hint=_('Quanto è arrivato sul conto (dividendo, cedola) o quanto è uscito (commissione, imposta).')) }}
+        </div>
+        <div class="grid-2">
+          {{ f.select(values, 'account_id', _('Conto'), accounts, none, blank=_('— nessun conto —')) }}
+          <div class="op-trade">
+            {{ f.number(values, 'fee', _('Commissione (€)'), none, placeholder='0,00',
+                        hint=_('Calcolata dalla regola del conto, se ne ha una; correggila se serve.')) }}
+          </div>
+        </div>
+        {{ f.textarea(values, 'notes', _('Note'), none) }}
+        {{ f.actions(url_for('portfolio.detail', holding_id=holding.id), _('Salva operazione')) }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById('operation-form'), rules = {{ fee_rules|tojson }};
+  const field = name => form.querySelector('[name="' + name + '"]');
+  const number = name => parseAmount(field(name).value) || 0;
+  let typedFee = false;
+  field('fee').addEventListener('input', () => { typedFee = true; });
+  function update() {
+    const trade = ['buy', 'sell'].includes(field('kind').value);
+    form.querySelectorAll('.op-trade').forEach(el => { el.hidden = !trade; });
+    form.querySelectorAll('.op-money').forEach(el => { el.hidden = trade; });
+    const rule = rules[field('account_id').value];
+    if (trade && rule && !typedFee) {
+      const gross = number('units') * number('price');
+      let fee = rule.fixed + gross * rule.percent / 100;
+      if (rule.min !== null) fee = Math.max(fee, rule.min);
+      if (rule.max !== null) fee = Math.min(fee, rule.max);
+      field('fee').value = gross ? fee.toFixed(2).replace('.', ',') : '';
+    }
+  }
+  form.addEventListener('input', update);
+  form.addEventListener('change', update);
+  update();
+})();
+</script>
+{% endblock %}

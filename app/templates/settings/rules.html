@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
+{% import "partials/fields.html" as f %}
+{% block title %}{{ _('Regole di categoria') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Regole di Categoria') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Regole') }}</li>{% endblock %}
+
+{% block content %}
+
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-magic"></i> {{ _('Nuova regola') }}</div>
+      <div class="card-header-sub">{{ _('Se la causale o la controparte contiene la parola, la transazione va nella categoria. Vale per gli import e per «Applica»') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('settings.rule_save') }}" class="grid-3" style="align-items:end;">
+      <div class="form-group"><label class="form-label" for="r-keyword">{{ _('Parola chiave *') }}</label>
+        <input id="r-keyword" name="keyword" class="form-control" required placeholder="{{ _('es. decathlon') }}" /></div>
+      <div class="form-group"><label class="form-label" for="r-category">{{ _('Categoria *') }}</label>
+        <select id="r-category" name="category" class="form-select" required>
+          <option value="">{{ _('— Scegli —') }}</option>{{ f.category_options(categories) }}
+        </select></div>
+      <div class="form-group">
+        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="apply" value="1" checked /> {{ _('Applica subito alle transazioni senza categoria') }}</label>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Salva regola') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Le tue regole') }}</div>
+      <div class="card-header-sub">{{ _('Hanno la precedenza sulle regole predefinite. «Imparata» = nata quando hai corretto la categoria di una transazione') }}</div>
+    </div>
+    <form method="POST" action="{{ url_for('settings.rules_apply') }}" class="inline-filter">
+      <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Solo le transazioni senza categoria o in «Altro»') }}"><i class="bi bi-play"></i> {{ _('Applica') }}</button>
+    </form>
+  </div>
+  {% if rules %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Parola chiave') }}</th><th>{{ _('Categoria') }}</th><th>{{ _('Origine') }}</th><th class="text-right">{{ _('Usata') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+        {% for r in rules %}
+        <tr>
+          <td class="font-mono">{{ r.keyword }}</td>
+          <td><span class="badge badge-primary">{{ r.category }}</span></td>
+          <td><span class="badge {{ 'badge-neutral' if r.source == 'manual' else 'badge-warning' }}">{{ _('Tua') if r.source == 'manual' else _('Imparata') }}</span></td>
+          <td class="text-right">{{ r.hits }}</td>
+          <td>
+            <div class="cell-actions">
+              {{ delete_button(url_for('settings.rule_delete', rule_id=r.id), _('Eliminare la regola «%(keyword)s»?', keyword=r.keyword), _('Elimina regola %(keyword)s', keyword=r.keyword)) }}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  {{ empty_state(text=_("Nessuna regola ancora. Aggiungine una qui sopra, oppure correggi la categoria di una transazione con «Ricorda per questa controparte»: l'app imparerà da sola.")) }}
+  {% endif %}
+</div>
+
+<div class="card">
+  <details>
+    <summary class="card-header" style="cursor:pointer;">
+      <div>
+        <div class="card-header-title">{{ _('Regole predefinite') }}</div>
+        <div class="card-header-sub">{{ _('Usate dopo le tue. Per cambiarne una, crea una tua regola con la stessa parola') }}</div>
+      </div>
+    </summary>
+    <div class="table-wrapper">
+      <table class="table-compact">
+        <thead><tr><th>{{ _('Categoria') }}</th><th>{{ _('Parole chiave') }}</th></tr></thead>
+        <tbody>
+          {% for category, keywords in builtin %}
+          <tr><td class="nowrap"><span class="badge badge-primary">{{ category }}</span></td><td class="text-sm">{{ keywords|join(', ') }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>
+{% endblock %}

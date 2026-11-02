@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('Chiedi ai tuoi dati') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Assistente') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card mb-16">
+    <div class="card-header"><div>
+      <div class="card-header-title"><i class="bi bi-stars"></i> {{ _('Fai una domanda') }}</div>
+      <div class="card-header-sub">
+        {{ _('L\'assistente risponde da un riassunto dei tuoi numeri (saldi, spese per categoria e mese, investimenti, debiti, obiettivi): non vede i singoli movimenti e non può modificare nulla.') }}
+        {% if cloud %}<strong class="text-negative">{{ _('Il modello scelto è su internet (Anthropic): il riassunto lascia il computer.') }}</strong>
+        {% elif available %}{{ _('Il modello gira sul tuo computer: nulla esce.') }}{% endif %}
+      </div>
+    </div></div>
+    <div class="card-body">
+      {% if not available %}
+      <p class="text-muted">{{ _('Nessun modello AI configurato.') }} <a href="{{ url_for('settings.index') }}">{{ _('Sceglilo nelle Impostazioni.') }}</a></p>
+      {% else %}
+      <form method="POST" id="assistant-form">
+        <div class="form-group">
+          <label class="form-label" for="question">{{ _('Domanda') }}</label>
+          <textarea id="question" name="question" class="form-control" rows="2" maxlength="500" required placeholder="{{ examples[0] }}">{{ question }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> {{ _('Chiedi') }}</button>
+      </form>
+      <div class="text-sm text-muted" style="margin-top:12px;">{{ _('Per esempio:') }}
+        {% for q in examples %}<a href="#" class="example-question">{{ q }}</a>{{ ' · ' if not loop.last }}{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if error %}<div class="alert alert-error mb-16"><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>{% endif %}
+  {% if answer %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ answer.question }}</div></div>
+    <div class="card-body">
+      <div style="white-space:pre-line;">{{ answer.text }}</div>
+      {% if answer.links %}
+      <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
+        {% for label, url in answer.links %}<a href="{{ url }}" class="btn btn-ghost btn-sm">{{ label }} <i class="bi bi-arrow-right"></i></a>{% endfor %}
+      </div>
+      {% endif %}
+      <div class="text-xs text-muted" style="margin-top:12px;">{{ _('Risposta generata da un modello AI: controlla i numeri nelle pagine indicate.') }}</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.example-question').forEach(link => link.addEventListener('click', event => {
+  event.preventDefault();
+  document.getElementById('question').value = link.textContent;
+}));
+</script>
+{% endblock %}

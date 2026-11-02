@@ -1,0 +1,6 @@
+[{"data": [
+  {"figi": "BBG00LZ3SNQ8", "name": "VANGUARD FTSE ALL-WORLD UCITS", "ticker": "VWCE", "exchCode": "IM", "securityType": "ETP", "marketSector": "Equity"},
+  {"figi": "BBG00LZ3SGL5", "name": "VANGUARD FTSE ALL-WORLD UCITS", "ticker": "VWCE", "exchCode": "GY", "securityType": "ETP", "marketSector": "Equity"},
+  {"figi": "BBG00LZ3SGL6", "name": "VANGUARD FTSE ALL-WORLD UCITS", "ticker": "VWCE", "exchCode": "GR", "securityType": "ETP", "marketSector": "Equity"},
+  {"figi": "BBG00LZ3SGL7", "name": "VANGUARD FTSE ALL-WORLD UCITS", "ticker": "VWCE", "exchCode": "QX", "securityType": "ETP", "marketSector": "Equity"}
+]}]

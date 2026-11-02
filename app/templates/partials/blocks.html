@@ -1,0 +1,48 @@
+{# Pages the user arranges (Modifica): the controls in the top bar and the toolbar of each block; static/js/blocks.js #}
+{% from "partials/info.html" import info %}
+
+{# The top bar: «Modifica»; while on, its title, the hidden blocks to show again, back to the default, done #}
+{% macro edit_controls(title, button_title, manage_url=none, manage_title='') -%}
+  <button type="button" class="btn btn-outline btn-sm" id="layout-edit" aria-pressed="false" title="{{ button_title }}">
+    <i class="bi bi-pencil"></i> {{ _('Modifica') }}
+  </button>
+  <span class="layout-edit-title" id="layout-title" hidden><i class="bi bi-pencil"></i> {{ title }}
+    {{ info(_('Trascina blocchi e schede per spostarli; cambia larghezza e altezza o nascondili.')) }}</span>
+  <div class="layout-hidden-menu" id="layout-hidden-wrap" hidden>
+    <button type="button" class="btn btn-ghost btn-sm" id="layout-hidden-btn" aria-haspopup="true" aria-expanded="false">
+      <i class="bi bi-eye"></i> {{ _('Nascosti') }} <span class="badge badge-neutral" id="layout-hidden-count"></span>
+    </button>
+    <div class="layout-hidden-pop" id="layout-hidden" hidden></div>
+  </div>
+  <button type="button" class="btn btn-ghost btn-sm" id="layout-reset" hidden><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina predefinito') }}</button>
+  <button type="button" class="btn btn-primary btn-sm" id="layout-done" hidden><i class="bi bi-check2"></i> {{ _('Fatto') }}</button>
+  {% if manage_url %}
+  <a href="{{ manage_url }}" class="btn btn-ghost btn-sm" id="layout-manage" title="{{ manage_title }}">
+    <i class="bi bi-sliders"></i> {{ _('Gestisci') }}
+  </a>
+  {% endif %}
+{%- endmacro %}
+
+{# The toolbar of a block in Modifica: its name (the caller), move, width, height, hide #}
+{% macro tools() -%}
+<div class="fc-widget-tools">
+  <span class="fc-drag" title="{{ _('Trascina per spostare') }}"><i class="bi bi-grip-vertical"></i> {{ caller() }}</span>
+  <button type="button" data-act="prev" title="{{ _('Sposta prima') }}"><i class="bi bi-chevron-left"></i></button>
+  <button type="button" data-act="next" title="{{ _('Sposta dopo') }}"><i class="bi bi-chevron-right"></i></button>
+  <button type="button" data-act="span" title="{{ _('Larghezza: un terzo, due terzi, riga intera') }}"><i class="bi bi-arrows-expand-vertical"></i> <span class="span-label"></span></button>
+  <button type="button" data-act="height" title="{{ _('Altezza: automatica, media, alta, molto alta') }}"><i class="bi bi-arrows-expand"></i> <span class="height-label"></span></button>
+  <button type="button" data-act="hide" title="{{ _('Nascondi') }}"><i class="bi bi-eye-slash"></i></button>
+</div>
+{%- endmacro %}
+
+{# A block: its toolbar and its content (the caller) #}
+{% macro block(w, title) -%}
+<section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-height="{{ w.height or 0 }}" data-title="{{ title }}"{{ ' hidden' if not w.visible else '' }}>
+  {% call tools() %}{{ title }}{% endcall %}
+  {{ caller() }}
+</section>
+{%- endmacro %}
+
+{% macro script() -%}
+<script src="{{ url_for('static', filename='js/blocks.js') }}"></script>
+{%- endmacro %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('Importa operazioni dal broker') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Importa dal broker') }}</li>{% endblock %}
+
+{% block content %}
+{% set nav_active = 'import' %}{% include "portfolio/_nav.html" %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Estratto delle operazioni del broker') }}</div>
+        <div class="card-header-sub">{{ _('Acquisti e vendite diventano operazioni dei titoli; i titoli che non hai ancora vengono creati.') }}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label" for="broker-file">{{ _('File del broker (CSV o Excel)') }}</label>
+          <input type="file" name="file" id="broker-file" class="form-control" accept=".csv,.txt,.tsv,.xlsx,.xlsm,.xls,.ods" required />
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> {{ _('Analizza file') }}</button>
+      </form>
+      <p class="text-xs text-muted" style="margin-top:12px;">
+        <strong>Degiro:</strong> {{ _('Attività → Transazioni → Esporta (CSV).') }}
+        {{ _('Altri broker: un CSV o Excel con le colonne data, ISIN o ticker, nome, quantità e prezzo (facoltative: commissioni, tipo acquisto/vendita, controvalore).') }}
+        {{ _('Lo stesso file importato due volte non crea doppioni.') }}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

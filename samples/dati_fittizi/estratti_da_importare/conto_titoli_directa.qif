@@ -1,0 +1,36 @@
+!Type:Bank
+D10/09/2026
+T250.00
+PGiroconto verso conto titoli
+L[Conto corrente Fineco]
+^
+D12/09/2026
+T-240.01
+PAcquisto VWCE 1.8387 quote a 130.53 (PAC)
+LInvestimenti
+^
+D12/09/2026
+T-1.50
+PCommissione ordine Directa
+LCommissioni
+^
+D26/09/2026
+T22.17
+PDividendo VWCE
+LDividendi e cedole
+^
+D10/10/2026
+T250.00
+PGiroconto verso conto titoli
+L[Conto corrente Fineco]
+^
+D12/10/2026
+T-240.00
+PAcquisto VWCE 1.8258 quote a 131.45 (PAC)
+LInvestimenti
+^
+D12/10/2026
+T-1.50
+PCommissione ordine Directa
+LCommissioni
+^

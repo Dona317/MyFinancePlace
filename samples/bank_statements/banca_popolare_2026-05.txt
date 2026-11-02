@@ -1,0 +1,35 @@
+BANCA POPOLARE DEMO - ESTRATTO CONTO
+Intestatario: MARIO ROSSI
+Periodo: 01/05/2026 - 31/05/2026
+
+Data        Valuta      Descrizione                                                 Dare       Avere
+----------------------------------------------------------------------------------------------------
+01/05/2026  01/05/2026  Bonifico a IMMOBILIARE CASA BELLA SRL per AFFITTO         590,00            
+01/05/2026  01/05/2026  PAGAMENTO POS LIBRERIA FELTRINELLI                         15,01            
+03/05/2026  03/05/2026  PAGAMENTO POS BAR CENTRALE                                  4,85            
+05/05/2026  05/05/2026  NETFLIX.COM AMSTERDAM                                      17,99            
+05/05/2026  05/05/2026  PAGAMENTO POS ESSELUNGA MILANO                             82,10            
+05/05/2026  05/05/2026  PAGAMENTO POS CONAD CITY                                   57,18            
+06/05/2026  06/05/2026  SPOTIFY AB STOCKHOLM                                       10,99            
+08/05/2026  08/05/2026  PAGAMENTO POS CINEMA ANTEO                                 17,86            
+09/05/2026  09/05/2026  PAGAMENTO POS CONAD CITY                                   23,77            
+11/05/2026  11/05/2026  PAGAMENTO POS CONAD CITY                                   48,66            
+12/05/2026  12/05/2026  ENEL ENERGIA SPA bolletta luce 05/2026                     70,89            
+14/05/2026  14/05/2026  A2A ENERGIA gas                                            21,91            
+14/05/2026  14/05/2026  PAGAMENTO POS LIBRERIA FELTRINELLI                         13,89            
+18/05/2026  18/05/2026  ILIAD ITALIA SPA ricarica                                   9,99            
+19/05/2026  19/05/2026  PAGAMENTO POS ESSELUNGA MILANO                             70,60            
+20/05/2026  20/05/2026  Giroconto verso conto deposito                            200,00            
+24/05/2026  24/05/2026  PAGAMENTO POS CARREFOUR EXPRESS                            37,34            
+25/05/2026  25/05/2026  PAGAMENTO POS ENI STATION 1043                             59,57            
+25/05/2026  25/05/2026  PAGAMENTO POS TRENITALIA WEB                               36,61            
+25/05/2026  25/05/2026  PAGAMENTO POS AMAZON EU SARL                               58,83            
+26/05/2026  26/05/2026  PAGAMENTO POS AMAZON EU SARL                               97,43            
+27/05/2026  27/05/2026  Bonifico da ACME SPA per STIPENDIO 05/2026                          1.890,00
+27/05/2026  27/05/2026  PAGAMENTO POS PIZZERIA NAPOLI                              29,86            
+27/05/2026  27/05/2026  PAGAMENTO POS CONAD CITY                                   16,85            
+27/05/2026  27/05/2026  PAGAMENTO POS FARMACIA COMUNALE 3                          12,30            
+28/05/2026  28/05/2026  COMMISSIONI BONIFICO                                        2,78            
+28/05/2026  28/05/2026  PAGAMENTO POS Q8 VIA EMILIA                                62,38            
+----------------------------------------------------------------------------------------------------
+                        SALDO FINALE                                                        1.220,36

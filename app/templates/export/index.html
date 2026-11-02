@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Esporta — MyFinancePlace{% endblock %}
-{% block page_title %}Esporta e Portabilità{% endblock %}
-{% block breadcrumb %}<li>Esporta</li>{% endblock %}
+{% block title %}{{ _('Esporta') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Esporta e backup') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Esporta') }}</li>{% endblock %}
 
 {% block content %}
 
@@ -13,27 +13,27 @@
   <div class="card">
     <div class="card-body">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-        <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:#E8F5E9;
-                    display:flex;align-items:center;justify-content:center;font-size:24px;color:#2E7D32;">
+        <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:var(--clr-positive-bg);
+                    display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--clr-positive-text);">
           <i class="bi bi-filetype-csv"></i>
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">CSV</div>
-          <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">Compatibile con Excel, Google Sheets</div>
+          <div class="text-xs text-muted">{{ _('Compatibile con Excel, Google Sheets') }}</div>
         </div>
       </div>
       <form method="GET" action="{{ url_for('export.export_csv') }}">
         <div class="form-group">
-          <label class="form-label">Periodo</label>
+          <label class="form-label">{{ _('Periodo') }}</label>
           <select name="period" class="form-select">
-            <option value="all">Tutte le transazioni</option>
-            <option value="year">Anno corrente</option>
-            <option value="last_year">Anno scorso</option>
-            <option value="month">Mese corrente</option>
+            <option value="all">{{ _('Tutte le transazioni') }}</option>
+            <option value="year">{{ _('Anno corrente') }}</option>
+            <option value="last_year">{{ _('Anno scorso') }}</option>
+            <option value="month">{{ _('Mese corrente') }}</option>
           </select>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-          <i class="bi bi-download"></i> Scarica CSV
+          <i class="bi bi-download"></i> {{ _('Scarica CSV') }}
         </button>
       </form>
     </div>
@@ -43,20 +43,20 @@
   <div class="card">
     <div class="card-body">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-        <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:#E3F2FD;
-                    display:flex;align-items:center;justify-content:center;font-size:24px;color:#1565C0;">
+        <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:var(--clr-neutral-bg);
+                    display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--clr-neutral);">
           <i class="bi bi-filetype-json"></i>
         </div>
         <div>
           <div style="font-weight:700;color:var(--clr-text-primary);">JSON</div>
-          <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">Backup completo, portabilità totale</div>
+          <div class="text-xs text-muted">{{ _('Solo transazioni, reimportabile') }}</div>
         </div>
       </div>
       <p style="font-size:var(--font-size-sm);color:var(--clr-text-muted);margin-bottom:16px;">
-        Esporta tutti i dati (transazioni, portafoglio, obiettivi, istantanee) in formato JSON strutturato.
+        {{ _('Tutte le transazioni in JSON strutturato. Si reimporta da «Ripristina» qui sotto: le transazioni già presenti vengono saltate.') }}
       </p>
       <a href="{{ url_for('export.export_json') }}" class="btn btn-primary" style="width:100%;justify-content:center;display:flex;">
-        <i class="bi bi-download"></i> Scarica JSON
+        <i class="bi bi-download"></i> {{ _('Scarica JSON') }}
       </a>
     </div>
   </div>
@@ -65,108 +65,158 @@
   <div class="card">
     <div class="card-body">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-        <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:#FFEBEE;
-                    display:flex;align-items:center;justify-content:center;font-size:24px;color:#C62828;">
+        <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:var(--clr-negative-bg);
+                    display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--clr-negative-text);">
           <i class="bi bi-file-earmark-pdf"></i>
         </div>
         <div>
-          <div style="font-weight:700;color:var(--clr-text-primary);">Report PDF</div>
-          <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">Riepilogo pronto per la stampa</div>
+          <div style="font-weight:700;color:var(--clr-text-primary);">{{ _('Report PDF') }}</div>
+          <div class="text-xs text-muted">{{ _("Conto economico, mesi e rendiconto dell'anno") }}</div>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Contenuto</label>
-        <select class="form-select">
-          <option>Riepilogo completo</option>
-          <option>Solo Conto Economico</option>
-          <option>Solo Stato Patrimoniale</option>
-          <option>Portafoglio</option>
-        </select>
-      </div>
-      <a href="{{ url_for('export.export_pdf') }}" class="btn btn-primary" style="width:100%;justify-content:center;display:flex;">
-        <i class="bi bi-download"></i> Genera PDF
-      </a>
+      <form method="GET" action="{{ url_for('export.export_pdf_download') }}">
+        <div class="form-group">
+          <label class="form-label">{{ _('Anno') }}</label>
+          <select name="year" class="form-select">
+            {% for y in years %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+            <i class="bi bi-download"></i> {{ _('Scarica PDF') }}
+          </button>
+          <button type="submit" class="btn btn-outline" style="flex:1;justify-content:center;"
+                  formaction="{{ url_for('export.export_pdf') }}">
+            <i class="bi bi-printer"></i> {{ _('Stampa dal browser') }}
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
+</div>
+
+<!-- Backup completo e ripristino ───────────────────────────────────── -->
+<div class="card mb-24" id="backup">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-safe"></i> {{ _('Backup Completo e Ripristino') }}</div>
+      <div class="card-header-sub">{{ _("Tutti i dati dell'app in un file: transazioni, portafoglio, debiti, polizze, obiettivi, istantanee, impostazioni e i file dell'archivio documenti") }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="grid-2">
+      <div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-download"></i> {{ _('Scarica il backup') }}</div>
+        <p class="text-xs text-muted mb-16">
+          {{ _('Un file') }} <strong>{{ _('.zip') }}</strong> {{ _("da conservare fuori da questo computer (chiavetta, cloud). Fallo almeno una volta al mese e prima di aggiornare l'app.") }}
+        </p>
+        <a href="{{ url_for('export.download_backup') }}" class="btn btn-primary"><i class="bi bi-file-earmark-zip"></i> {{ _('Scarica backup completo') }}</a>
+      </div>
+      <div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-upload"></i> {{ _('Ripristina') }}</div>
+        <form method="POST" action="{{ url_for('export.restore') }}" enctype="multipart/form-data"
+              data-confirm="{{ _('Ripristinare questo file? Se è un backup completo, TUTTI i dati attuali saranno sostituiti (una copia viene salvata prima).') }}">
+          <div class="form-group">
+            <input type="file" name="file" class="form-control" accept=".zip,.json,.mfpbackup" required aria-label="{{ _('File di backup') }}" />
+            <div class="form-hint">{{ _('Backup completo (.zip), backup cifrato (.mfpbackup) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti).') }}</div>
+          </div>
+          <div class="form-group">
+            <input type="password" name="password" class="form-control" autocomplete="off" placeholder="{{ _('Password (solo per un backup cifrato)') }}" aria-label="{{ _('Password del backup cifrato') }}" />
+          </div>
+          <label class="d-flex align-center gap-8 text-sm mb-16">
+            <input type="checkbox" name="confirm" value="1" />
+            <span>{{ _('Ho capito: un backup completo') }} <strong>{{ _('sostituisce tutti i dati attuali') }}</strong></span>
+          </label>
+          <button type="submit" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina') }}</button>
+        </form>
+      </div>
+    </div>
+    {% if safety_copies %}
+    <details class="mt-16">
+      <summary class="text-sm font-semibold" style="cursor:pointer;">{{ _('Copie prima dei ripristini (%(count)s)', count=safety_copies|length) }}</summary>
+      <p class="text-xs text-muted mt-8">{{ _("Prima di ogni ripristino l'app salva i dati che stavano per essere sostituiti. Si tengono gli ultimi 10.") }}</p>
+      <ul class="backup-list">
+        {% for copy in safety_copies %}
+        <li>
+          <span>{{ _('Prima del ripristino del %(day)s alle %(time)s', day=copy.created|it_date, time=copy.created.strftime('%H:%M')) }} · {{ copy.size|filesize }}</span>
+          <a href="{{ url_for('export.download_safety_copy', name=copy.name) }}"><i class="bi bi-download"></i> {{ _('Scarica') }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Backup automatico cifrato (F23) ───────────────────────────────── -->
+<div class="card mb-24" id="auto-backup">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-shield-lock"></i> {{ _('Backup automatico cifrato') }}</div>
+      <div class="card-header-sub">{{ _('Il backup completo, cifrato con la tua password, salvato da solo in una cartella: una cartella di OneDrive o Google Drive sincronizzata, una chiavetta, un disco esterno.') }}</div>
+    </div>
+    {% if auto.enabled %}<span class="badge {{ 'badge-negative' if auto.overdue else 'badge-positive' }}">{{ _('da controllare') if auto.overdue else _('attivo') }}</span>{% endif %}
+  </div>
+  <div class="card-body">
+    {% if auto.enabled or auto.last_ok %}
+    <p class="text-sm mb-16">
+      {% if auto.last_ok %}{{ _('Ultimo backup riuscito: %(day)s alle %(time)s, «%(file)s».', day=auto.last_ok|it_date, time=auto.last_ok.strftime('%H:%M'), file=auto.last_file) }}{% else %}{{ _('Nessun backup ancora.') }}{% endif %}
+      {% if auto.last_error %}<br><span class="text-negative"><i class="bi bi-exclamation-triangle"></i> {{ _('Ultimo tentativo non riuscito: %(error)s', error=auto.last_error) }}</span>{% endif %}
+    </p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('export.auto_backup') }}">
+      <div class="grid-3">
+        <div class="form-group"><label class="form-label" for="ab-folder">{{ _('Cartella') }}</label>
+          <input type="text" id="ab-folder" name="folder" class="form-control" required value="{{ auto.folder or '' }}" placeholder="{{ _('es. C:\\Users\\Anna\\OneDrive\\Backup') }}" />
+          <div class="form-hint">{{ _('Il percorso completo, sul computer dove gira l’app.') }}</div></div>
+        <div class="form-group"><label class="form-label" for="ab-frequency">{{ _('Ogni quanto') }}</label>
+          <select id="ab-frequency" name="frequency" class="form-select">{% for key, (label, every) in frequencies.items() %}<option value="{{ key }}" {{ 'selected' if key == (auto.frequency or 'weekly') }}>{{ _(label) }}</option>{% endfor %}</select></div>
+        <div class="form-group"><label class="form-label" for="ab-keep">{{ _('Copie da tenere') }}</label>
+          <input type="number" id="ab-keep" name="keep" class="form-control" min="1" max="100" value="{{ auto.keep or 8 }}" />
+          <div class="form-hint">{{ _('Le più vecchie si cancellano da sole.') }}</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label" for="ab-password">{{ _('Nuova password') if auto.enabled else _('Password') }}</label>
+          <input type="password" id="ab-password" name="password" class="form-control" autocomplete="new-password" minlength="8" {{ 'required' if not auto.enabled }} placeholder="{{ _('lascia vuoto per non cambiarla') if auto.enabled else _('almeno 8 caratteri') }}" />
+          <div class="form-hint">{{ _('Non viene salvata da nessuna parte: senza password i backup non si aprono, nemmeno noi possiamo recuperarli. Scrivila in un posto sicuro.') }}</div></div>
+        {% if auto.enabled %}
+        <div class="form-group"><label class="form-label" for="ab-current">{{ _('Password attuale (per cambiarla)') }}</label>
+          <input type="password" id="ab-current" name="current_password" class="form-control" autocomplete="current-password" /></div>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-8 flex-wrap">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+        {% if auto.enabled %}
+        <button type="submit" name="action" value="now" class="btn btn-secondary"><i class="bi bi-cloud-arrow-up"></i> {{ _('Esegui ora') }}</button>
+        <button type="submit" name="action" value="off" class="btn btn-ghost" formnovalidate>{{ _('Spegni') }}</button>
+        {% endif %}
+      </div>
+    </form>
+    <p class="text-xs text-muted mt-16 mb-0">{{ _('Nell’app desktop il backup parte da solo anche con la finestra chiusa; nell’app web alla prima visita del giorno. Per ripristinare: «Ripristina» qui sopra, con il file .mfpbackup e la password.') }}</p>
+  </div>
 </div>
 
 <!-- Esportazione Fiscale ─────────────────────────────────────────────── -->
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-bank"></i> Esportazione Fiscale per Anno</div>
-      <div class="card-header-sub">Estrai le transazioni rilevanti per la dichiarazione dei redditi</div>
+      <div class="card-header-title"><i class="bi bi-bank"></i> {{ _('Esportazione Fiscale per Anno') }}</div>
+      <div class="card-header-sub">{{ _('Entrate e spese con tag') }} <em>{{ _('deducibile') }}</em>, <em>{{ _('detraibile') }}</em> o <em>{{ _('fiscale') }}</em></div>
     </div>
   </div>
   <div class="card-body">
     <div style="display:flex;gap:12px;flex-wrap:wrap;">
-      {% for year in range(2024, 2021, -1) %}
+      {% for year in years %}
       <a href="{{ url_for('export.export_tax', year=year) }}"
          class="btn btn-outline">
-        <i class="bi bi-file-earmark-ruled"></i> Fiscale {{ year }}
+        <i class="bi bi-file-earmark-ruled"></i> {{ _('Fiscale %(year)s', year=year) }}
       </a>
       {% endfor %}
     </div>
   </div>
 </div>
 
-<!-- Import da Excel ─────────────────────────────────────────────────── -->
-<div class="card">
-  <div class="card-header">
-    <div>
-      <div class="card-header-title"><i class="bi bi-file-earmark-excel"></i> Importa da Excel / CSV</div>
-      <div class="card-header-sub">Mappa le colonne e applica regole di categorizzazione automatica</div>
-    </div>
-  </div>
-  <div class="card-body">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-
-      <!-- Step 1 -->
-      <div>
-        <div style="font-weight:700;color:var(--clr-text-primary);margin-bottom:12px;">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
-                       background:var(--clr-primary);color:white;border-radius:50%;font-size:12px;margin-right:8px;">1</span>
-          Carica il file
-        </div>
-        <label style="display:block;border:2px dashed var(--clr-border);border-radius:var(--border-radius-sm);
-                      padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;"
-               onmouseover="this.style.borderColor='var(--clr-primary)'"
-               onmouseout="this.style.borderColor='var(--clr-border)'">
-          <i class="bi bi-cloud-upload" style="font-size:28px;color:var(--clr-text-muted);display:block;margin-bottom:8px;"></i>
-          <span style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
-            Clicca o trascina il file Excel / CSV
-          </span>
-          <input type="file" accept=".xlsx,.xls,.csv" style="display:none;" />
-        </label>
-      </div>
-
-      <!-- Step 2 -->
-      <div>
-        <div style="font-weight:700;color:var(--clr-text-primary);margin-bottom:12px;">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
-                       background:var(--clr-primary);color:white;border-radius:50%;font-size:12px;margin-right:8px;">2</span>
-          Mappa le colonne
-        </div>
-        <div class="form-group">
-          <label class="form-label">Colonna Data</label>
-          <select class="form-select" disabled><option>— Carica prima un file —</option></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Colonna Importo</label>
-          <select class="form-select" disabled><option>— Carica prima un file —</option></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Colonna Descrizione</label>
-          <select class="form-select" disabled><option>— Carica prima un file —</option></select>
-        </div>
-        <button class="btn btn-primary" disabled>
-          <i class="bi bi-check2-all"></i> Importa Transazioni
-        </button>
-      </div>
-
-    </div>
-  </div>
-</div>
+<p class="text-sm text-muted">{{ _('Per caricare estratti conto, CSV o Excel:') }} <a href="{{ url_for('export.import_page') }}"><i class="bi bi-box-arrow-in-down"></i> {{ _('Importa') }}</a></p>
 
 {% endblock %}

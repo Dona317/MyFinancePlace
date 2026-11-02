@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('Salute dei dati') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Salute dei dati') }}</li>{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-body">
+    {% if problems %}
+    <strong class="text-negative"><i class="bi bi-exclamation-triangle"></i> {{ _('%(count)s controlli hanno trovato qualcosa da sistemare.', count=problems) }}</strong>
+    {% else %}
+    <strong class="text-positive"><i class="bi bi-check2-circle"></i> {{ _('Nessun problema che cambi i numeri.') }}</strong>
+    {% endif %}
+    <div class="text-sm text-muted">{{ _('I controlli guardano tutto l\'archivio: titoli, movimenti, conti e cambi. Si aggiornano ogni volta che apri la pagina.') }}</div>
+  </div>
+</div>
+
+{% for check in checks %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">
+        {% if not check.count %}<i class="bi bi-check2-circle text-positive"></i>
+        {% elif check.level == 'danger' %}<i class="bi bi-exclamation-triangle text-negative"></i>
+        {% elif check.level == 'warning' %}<i class="bi bi-exclamation-circle"></i>
+        {% else %}<i class="bi bi-info-circle text-muted"></i>{% endif %}
+        {{ check.title }}
+        {% if check.count %}<span class="badge {{ 'badge-negative' if check.level == 'danger' else 'badge-muted' }}">{{ check.count }}</span>{% endif %}
+      </div>
+      <div class="card-header-sub">{{ check.hint }}</div>
+    </div>
+    {% if check.count and check.url %}<a href="{{ check.url }}" class="btn btn-ghost btn-sm">{{ _('Sistema') }} <i class="bi bi-arrow-right"></i></a>{% endif %}
+  </div>
+  {% if check.count and check.items %}
+  <div class="card-body">
+    <ul style="margin:0;padding-left:18px;">
+      {% for item in check.items %}<li><a href="{{ item.url }}">{{ item.label }}</a></li>{% endfor %}
+      {% if check.count > check.items|length %}<li class="text-muted">{{ _('e altri %(count)s', count=check.count - check.items|length) }}</li>{% endif %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

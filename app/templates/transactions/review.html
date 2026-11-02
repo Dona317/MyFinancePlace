@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "partials/info.html" import info %}
+
+{% block title %}{{ _('Controllo registro') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Controllo registro') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Controllo') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ back }}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-left"></i> {{ _('Torna alle transazioni') }}</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Probabili errori nel registro') }} {{ info(_('Propone correzioni agli errori probabili; nulla cambia finché non premi Applica.')) }}</div>
+      <div class="card-header-sub">
+        {{ _('Controllate %(count)s transazioni della ricerca', count=checked) }}{% if checked >= limit %} ({{ _('le prime %(limit)s, dalla più recente', limit=limit) }}){% endif %}
+        · {{ _('Regole, causali e %(ai)s', ai=ai_classifier or _('nessun modello AI')) }}
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="text-sm text-muted">
+      {{ _('Nessuna modifica è automatica: spuntate i suggerimenti che vi convincono e applicateli. Un giroconto non conta come entrata né uscita.') }}
+    </p>
+    {% if note %}
+    <div class="alert alert-warning mb-16"><i class="bi bi-exclamation-triangle"></i> <span>{{ note }}</span></div>
+    {% endif %}
+  </div>
+</div>
+
+{% if findings %}
+<form method="POST" action="{{ url_for('transactions.review_apply') }}" class="card">
+  <div class="card-header">
+    <div class="card-header-title">{{ _('Suggerimenti (%(count)s)', count=findings|length) }}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-ghost btn-sm" id="review-toggle">{{ _('Seleziona tutti') }}</button>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check2"></i> {{ _('Applica i selezionati') }}</button>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:32px;"></th>
+          <th>{{ _('Data') }}</th>
+          <th>{{ _('Transazione') }}</th>
+          <th class="text-right">{{ _('Importo') }}</th>
+          <th>{{ _('Suggerimento') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in findings %}
+        <tr>
+          <td><input type="checkbox" class="check" name="apply" value="{{ f.token }}" checked /></td>
+          <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ f.tx.date|it_date }}</td>
+          <td>
+            <div style="font-weight:500;color:var(--clr-text-primary);">{{ f.tx.description }}</div>
+            <div class="text-xs text-muted">
+              {% if f.tx.type == 'income' %}{{ _('Entrata') }}{% elif f.tx.type == 'expense' %}{{ _('Uscita') }}{% else %}{{ _('Trasferimento') }}{% endif %}
+              {% if f.tx.category %}· {{ f.tx.category }}{% endif %}
+            </div>
+          </td>
+          <td class="text-right amount" data-amount="{{ f.tx.signed_amount }}">—</td>
+          <td>
+            <div style="font-weight:600;color:var(--clr-text-primary);">{{ f.title }}</div>
+            <div class="text-xs text-muted">{{ f.reason }}</div>
+            <div class="text-xs">
+              {% if f.kind == 'type' %}{{ _('Diventa:') }} <strong>{% if f.value == 'income' %}{{ _('Entrata') }}{% elif f.value == 'expense' %}{{ _('Uscita') }}{% else %}{{ _('Trasferimento') }}{% endif %}</strong>
+              {% elif f.kind == 'category' %}{{ _('Diventa:') }} <strong>{{ f.value }}</strong>
+              {% else %}{{ _('Diventa un giroconto con Contanti') }}{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</form>
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-icon"><i class="bi bi-check2-circle"></i></div>
+  <div class="empty-state-title">{{ _('Nessun probabile errore') }}</div>
+  <div class="empty-state-text">{{ _('Nelle transazioni controllate non ho trovato nulla da correggere.') }}</div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('review-toggle')?.addEventListener('click', () => {
+  const boxes = [...document.querySelectorAll('input[name=apply]')];
+  const all = boxes.every(b => b.checked);
+  boxes.forEach(b => { b.checked = !all; });
+});
+</script>
+{% endblock %}

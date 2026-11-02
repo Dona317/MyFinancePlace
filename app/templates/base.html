@@ -1,188 +1,348 @@
 <!DOCTYPE html>
-<html lang="en">
+{# A page in the app's pop-up (?embed=1), or a full-screen page (the transaction form sets focus_page): no sidebar
+   and no top bar #}
+{% set in_popup = request.values.get("embed") == "1" %}
+{% set embedded = in_popup or focus_page is defined %}
+<html lang="{{ current_language() }}"{{ ' class="embedded"'|safe if in_popup else (' class="focus"'|safe if embedded) }} data-font="{{ ui_font() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}MyFinancePlace{% endblock %}</title>
+  <title>{% block title %}{{ self.page_title()|striptags|trim }} — MyFinancePlace{% endblock %}</title>
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Fonts: served by the app, chosen in Settings → Visualizzazione -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fonts/fonts.css') }}" />
 
   <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/icons/icons.css') }}" />
 
   <!-- App CSS: load theme first, then main -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+  {# the colours of income and expenses chosen in the settings (services/palettes.py) #}
+  <style>:root { {{ palette_vars() }} }</style>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 
   {% block head %}{% endblock %}
 
-  <!-- Apply saved theme before paint to avoid flash -->
-  <script>(function(){var t=localStorage.getItem('mfp-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}());</script>
+  {% include "partials/theme_boot.html" %}
+  <!-- Apply the saved sidebar layout before paint (icons-only sidebar) -->
+  <script>(function(){try{
+    if(localStorage.getItem('mfp-sidebar-mini')==='1')document.documentElement.classList.add('sidebar-mini');
+  }catch(e){}}());</script>
 </head>
 <body>
 
 <!-- Mobile overlay -->
-<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;"
-     onclick="document.getElementById('sidebar').classList.remove('open');this.style.display='none'"></div>
+<div id="sidebar-overlay"></div>
 
 <div class="app-wrapper">
 
+  {% if not embedded %}
   <!-- ══ Sidebar ═══════════════════════════════════════════════════════════ -->
   <aside class="sidebar" id="sidebar">
 
-    <a class="sidebar-brand" href="{{ url_for('dashboard.dashboard') }}">
-      <div class="sidebar-brand-icon"><i class="bi bi-graph-up-arrow"></i></div>
-      <div class="sidebar-brand-text">
-        <span class="sidebar-brand-name">MyFinancePlace</span>
-        <span class="sidebar-brand-sub">Personal Finance</span>
-      </div>
-    </a>
+    <div class="sidebar-head">
+      <!-- Desktop: switches the menu between icons + names and icons only; phones: closes it -->
+      <button id="sidebar-toggle" type="button" class="sidebar-toggle-btn"
+              aria-controls="sidebar" aria-expanded="true" aria-label="{{ _('Riduci il menu') }}" title="{{ _('Riduci il menu') }}">
+        <i class="bi bi-layout-sidebar"></i>
+      </button>
+    </div>
 
     <nav class="sidebar-nav">
 
       <!-- PANORAMICA -->
-      <div class="nav-section">
-        <div class="nav-section-title">Panoramica</div>
+      <div class="nav-section" data-section="panoramica">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-panoramica">
+          <span class="nav-label">{{ _('Panoramica') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-panoramica"><div>
         <a href="{{ url_for('dashboard.dashboard') }}"
            class="nav-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
-          <i class="bi bi-speedometer2"></i> Dashboard
+          <i class="bi bi-speedometer2"></i> <span class="nav-label">{{ _('Dashboard') }}</span>
         </a>
-      </div>
-
-      <!-- CONTABILITÀ -->
-      <div class="nav-section">
-        <div class="nav-section-title">Contabilità</div>
-        <a href="{{ url_for('accounting.index') }}"
-           class="nav-item {% if request.endpoint == 'accounting.index' %}active{% endif %}">
-          <i class="bi bi-bar-chart-line"></i> Panoramica
-        </a>
-        {% if settings.accounting_balance_sheet %}
-        <a href="{{ url_for('accounting.balance_sheet') }}"
-           class="nav-item nav-sub {% if request.endpoint == 'accounting.balance_sheet' %}active{% endif %}">
-          <i class="bi bi-clipboard-data"></i> Stato Patrimoniale
-        </a>
-        {% endif %}
-        {% if settings.accounting_income_statement %}
-        <a href="{{ url_for('accounting.income_statement') }}"
-           class="nav-item nav-sub {% if request.endpoint == 'accounting.income_statement' %}active{% endif %}">
-          <i class="bi bi-receipt"></i> Conto Economico
-        </a>
-        {% endif %}
-        {% if settings.accounting_cash_flow %}
-        <a href="{{ url_for('accounting.cash_flow') }}"
-           class="nav-item nav-sub {% if request.endpoint == 'accounting.cash_flow' %}active{% endif %}">
-          <i class="bi bi-arrow-left-right"></i> Flusso di Cassa
-        </a>
-        {% endif %}
-      </div>
-
-      <!-- STILE DI VITA -->
-      <div class="nav-section">
-        <div class="nav-section-title">Stile di Vita</div>
-        <a href="{{ url_for('lifestyle.index') }}"
-           class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
-          <i class="bi bi-pie-chart"></i> Spese e Tendenze
-        </a>
-        {% if settings.lifestyle_goals %}
-        <a href="{{ url_for('lifestyle.goals') }}"
-           class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
-          <i class="bi bi-trophy"></i> Obiettivi
-        </a>
-        {% endif %}
-      </div>
-
-      <!-- GESTIONE -->
-      <div class="nav-section">
-        <div class="nav-section-title">Gestione</div>
+        {% if shown('transactions') %}
         <a href="{{ url_for('transactions.index') }}"
            class="nav-item {% if 'transactions' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-list-ul"></i> Transazioni
-        </a>
-        {% if settings.module_portfolio %}
-        <a href="{{ url_for('portfolio.index') }}"
-           class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-briefcase"></i> Portafoglio
+          <i class="bi bi-list-ul"></i> <span class="nav-label">{{ _('Transazioni') }}</span>
         </a>
         {% endif %}
-        {% if settings.module_debt %}
-        <a href="{{ url_for('debt.index') }}"
-           class="nav-item {% if 'debt' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-credit-card"></i> Debiti
+        {% if shown('reports') %}
+        <a href="{{ url_for('reports.income') }}"
+           class="nav-item {% if request.endpoint == 'reports.income' %}active{% endif %}">
+          <i class="bi bi-arrow-down-circle"></i> <span class="nav-label" title="{{ _('Entrate') }}">{{ _('Entrate') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        <a href="{{ url_for('reports.spending') }}"
+           class="nav-item {% if request.endpoint == 'reports.spending' %}active{% endif %}">
+          <i class="bi bi-arrow-up-circle"></i> <span class="nav-label" title="{{ _('Uscite') }}">{{ _('Uscite') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% if shown('subscriptions') %}
+        {# what comes back every month, spent or earned: under Entrate and Uscite #}
+        <a href="{{ url_for('subscriptions.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
+          <i class="bi bi-arrow-repeat"></i> <span class="nav-label" title="{{ _('Abbonamenti') }}">{{ _('Abbonamenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if settings.module_insurance %}
-        <a href="{{ url_for('insurance.index') }}"
-           class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-shield-check"></i> Assicurazioni
+        <a href="{{ url_for('reports.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') and request.endpoint not in ('reports.income', 'reports.spending') %}active{% endif %}">
+          <i class="bi bi-bar-chart-line"></i> <span class="nav-label" title="{{ _('Report') }}">{{ _('Report') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if settings.module_documents %}
-        <a href="{{ url_for('documents.index') }}"
-           class="nav-item {% if 'documents' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-folder2-open"></i> Documenti
-        </a>
-        {% endif %}
+        </div></div>
       </div>
 
+      <!-- CONTABILITÀ: one page, the statements are its tabs -->
+      {% if shown('accounting') %}
+      <div class="nav-section" data-section="contabilita">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-contabilita">
+          <span class="nav-label">{{ _('Contabilità') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-contabilita"><div>
+        <a href="{{ url_for('accounting.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('accounting.') %}active{% endif %}">
+          <i class="bi bi-journal-text"></i> <span class="nav-label" title="{{ _('Contabilità') }}">{{ _('Contabilità') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        </div></div>
+      </div>
+      {% endif %}
+
+      <!-- STILE DI VITA: what you set yourself (Strategia), what is coming (Pianificazione) -->
+      {% if shown_any('budget', 'goals', 'events', 'forecast', 'deadlines') %}
+      <div class="nav-section" data-section="stiledivita">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-stiledivita">
+          <span class="nav-label">{{ _('Stile di Vita') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-stiledivita"><div>
+        {% if shown_any('goals', 'budget') %}
+        <div class="nav-subtitle"><span class="nav-label">{{ _('Strategia') }}</span></div>
+        <div class="nav-subtitle-items">
+        {% if shown('goals') %}
+        <a href="{{ url_for('lifestyle.goals') }}"
+           class="nav-item {% if request.endpoint == 'lifestyle.goals' %}active{% endif %}">
+          <i class="bi bi-trophy"></i> <span class="nav-label" title="{{ _('Obiettivi') }}">{{ _('Obiettivi') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('budget') %}
+        <a href="{{ url_for('lifestyle.budget') }}"
+           class="nav-item {% if request.endpoint in ('lifestyle.budget', 'lifestyle.budget_save') %}active{% endif %}">
+          <i class="bi bi-clipboard-check"></i> <span class="nav-label" title="{{ _('Budget') }}">{{ _('Budget') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        </div>
+        {% endif %}
+        {% if shown_any('events', 'forecast', 'deadlines') %}
+        <div class="nav-subtitle"><span class="nav-label">{{ _('Pianificazione') }}</span></div>
+        <div class="nav-subtitle-items">
+        {% if shown('events') %}
+        <a href="{{ url_for('events.index') }}"
+           class="nav-item {% if request.endpoint.startswith('events.') %}active{% endif %}">
+          <i class="bi bi-airplane"></i> <span class="nav-label" title="{{ _('Eventi') }}">{{ _('Eventi') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('forecast') %}
+        <a href="{{ url_for('forecast.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('forecast.') %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i> <span class="nav-label" title="{{ _('Previsioni') }}">{{ _('Previsioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('deadlines') %}
+        <a href="{{ url_for('deadlines.index') }}"
+           class="nav-item {% if request.endpoint.startswith(('deadlines.', 'notifications.')) %}active{% endif %}">
+          <i class="bi bi-bell"></i> <span class="nav-label" title="{{ _('Promemoria') }}">{{ _('Promemoria') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        </div>
+        {% endif %}
+        </div></div>
+      </div>
+      {% endif %}
+
+      <!-- GESTIONE -->
+      {% if shown_any('accounts', 'portfolio', 'debt', 'insurance', 'documents', 'tax') %}
+      <div class="nav-section" data-section="gestione">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-gestione">
+          <span class="nav-label">{{ _('Gestione') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-gestione"><div>
+        {% if shown('accounts') %}
+        <a href="{{ url_for('accounts.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
+          <i class="bi bi-bank"></i> <span class="nav-label" title="{{ _('Conti e Carte') }}">{{ _('Conti e Carte') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('portfolio') %}
+        <a href="{{ url_for('portfolio.index') }}"
+           class="nav-item {% if 'portfolio' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-briefcase"></i> <span class="nav-label" title="{{ _('Portafoglio') }}">{{ _('Portafoglio') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('debt') %}
+        <a href="{{ url_for('debt.index') }}"
+           class="nav-item {% if 'debt' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-credit-card"></i> <span class="nav-label" title="{{ _('Debiti') }}">{{ _('Debiti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('gigs') %}
+        <a href="{{ url_for('gigs.index') }}"
+           class="nav-item {% if request.endpoint.startswith('gigs.') %}active{% endif %}">
+          <i class="bi bi-tools"></i> <span class="nav-label" title="{{ _('Lavoretti') }}">{{ _('Lavoretti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('loans') %}
+        <a href="{{ url_for('loans.index') }}"
+           class="nav-item {% if request.endpoint.startswith('loans.') %}active{% endif %}">
+          <i class="bi bi-arrow-left-right"></i> <span class="nav-label" title="{{ _('Prestiti tra persone') }}">{{ _('Prestiti tra persone') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('insurance') %}
+        <a href="{{ url_for('insurance.index') }}"
+           class="nav-item {% if 'insurance' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-shield-check"></i> <span class="nav-label" title="{{ _('Assicurazioni') }}">{{ _('Assicurazioni') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('utilities') %}
+        <a href="{{ url_for('utilities.index') }}"
+           class="nav-item {% if request.endpoint.startswith('utilities.') %}active{% endif %}">
+          <i class="bi bi-lightning-charge"></i> <span class="nav-label" title="{{ _('Bollette') }}">{{ _('Bollette') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('documents') %}
+        <a href="{{ url_for('documents.index') }}"
+           class="nav-item {% if 'documents' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-folder2-open"></i> <span class="nav-label" title="{{ _('Documenti') }}">{{ _('Documenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('tax') %}
+        <a href="{{ url_for('tax.index') }}"
+           class="nav-item {% if request.endpoint.startswith('tax.') %}active{% endif %}">
+          <i class="bi bi-percent"></i> <span class="nav-label" title="{{ _('Fisco') }}">{{ _('Fisco') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        </div></div>
+      </div>
+      {% endif %}
+
       <!-- STRUMENTI -->
-      <div class="nav-section">
-        <div class="nav-section-title">Strumenti</div>
-        {% if settings.module_snapshots %}
+      <div class="nav-section" data-section="strumenti">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-strumenti">
+          <span class="nav-label">{{ _('Strumenti') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-strumenti"><div>
+        {% if shown('snapshots') %}
         <a href="{{ url_for('snapshots.index') }}"
            class="nav-item {% if 'snapshots' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-camera"></i> Istantanee
+          <i class="bi bi-camera"></i> <span class="nav-label" title="{{ _('Istantanee') }}">{{ _('Istantanee') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        {% if settings.module_export %}
+        {% if shown('export') %}
+        <a href="{{ url_for('export.import_page') }}"
+           class="nav-item {% if request.endpoint in ('export.import_page', 'export.bank_preview', 'export.import_csv', 'export.bank_ai', 'export.bank_ai_wait', 'export.bank_ai_result') %}active{% endif %}">
+          <i class="bi bi-box-arrow-in-down"></i> <span class="nav-label" title="{{ _('Importa') }}">{{ _('Importa') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
         <a href="{{ url_for('export.index') }}"
-           class="nav-item {% if 'export' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-box-arrow-up"></i> Esporta
+           class="nav-item {% if request.endpoint == 'export.index' %}active{% endif %}">
+          <i class="bi bi-box-arrow-up"></i> <span class="nav-label" title="{{ _('Esporta') }}">{{ _('Esporta') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
-        <a href="{{ url_for('settings.index') }}"
-           class="nav-item {% if 'settings' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-gear"></i> Impostazioni
+        {% if shown('health') %}
+        <a href="{{ url_for('health.index') }}"
+           class="nav-item {% if request.endpoint.startswith('health.') %}active{% endif %}">
+          <i class="bi bi-clipboard-check"></i> <span class="nav-label" title="{{ _('Salute dei dati') }}">{{ _('Salute dei dati') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
+        {% endif %}
+        {% if shown('clients') %}
+        <a href="{{ url_for('clients.index') }}"
+           class="nav-item {% if request.endpoint.startswith('clients.') %}active{% endif %}">
+          <i class="bi bi-people"></i> <span class="nav-label" title="{{ _('Clienti') }}">{{ _('Clienti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        {% if shown('groups') and working_client() %}
+        <a href="{{ url_for('groups.index') }}"
+           class="nav-item {% if request.endpoint.startswith('groups.') %}active{% endif %}">
+          <i class="bi bi-house-heart"></i> <span class="nav-label" title="{{ _('Gruppi e famiglia') }}">{{ _('Gruppi e famiglia') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
+        </div></div>
       </div>
 
     </nav>
+    <script>(function(){
+      var closed = [];
+      try { closed = JSON.parse(localStorage.getItem('mfp-nav-collapsed') || '[]'); } catch (e) {}
+      document.querySelectorAll('.nav-section').forEach(function (section) {
+        if (closed.indexOf(section.dataset.section) >= 0 && !section.querySelector('.nav-item.active')) {
+          section.classList.add('collapsed');
+          section.querySelector('.nav-section-title').setAttribute('aria-expanded', 'false');
+        }
+      });
+    }());</script>
 
-    <!-- User footer -->
+    <!-- Footer, fixed under the scrolling menu: always visible without scrolling. The user (account, sign out), then
+         the reminders, light/dark and the settings; with the menu reduced to icons the user goes to the very bottom -->
     <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="sidebar-user-avatar">
-          {{ current_user.username[0]|upper if current_user is defined and current_user.is_authenticated else 'U' }}
-        </div>
-        <div class="sidebar-user-info">
-          <div class="sidebar-user-name">
-            {{ current_user.username if current_user is defined and current_user.is_authenticated else 'User' }}
+      {% set signed_in = current_user is defined and current_user.is_authenticated %}
+      <div class="sidebar-user-row">
+        <div class="sidebar-user-wrap">
+          <button type="button" class="sidebar-user" id="user-menu-btn" aria-haspopup="menu" aria-expanded="false"
+                  aria-controls="user-menu" title="{{ (current_user.username ~ ' · ' ~ (_('Amministratore') if current_user.is_admin else _('Utente'))) if signed_in else _('Utente') ~ ' · ' ~ _('Account Personale') }}" {{ 'disabled' if not signed_in }}>
+            <span class="sidebar-user-avatar">{{ current_user.username[0]|upper if signed_in else 'U' }}</span>
+            <span class="sidebar-user-info">
+              <span class="sidebar-user-name">{{ current_user.username if signed_in else _('Utente') }}</span>
+            </span>
+          </button>
+          {% if signed_in %}
+          <div class="user-menu" id="user-menu" role="menu" hidden>
+            <a href="{{ url_for('settings.account') }}" class="user-menu-item" role="menuitem"><i class="bi bi-person-gear"></i> {{ _('Il tuo account') }}</a>
+            <form method="POST" action="{{ url_for('auth.logout') }}" class="user-menu-form">
+              <button type="submit" class="user-menu-item" role="menuitem"><i class="bi bi-box-arrow-right"></i> {{ _('Esci') }}</button>
+            </form>
           </div>
-          <div class="sidebar-user-role">Account Personale</div>
+          {% endif %}
         </div>
-        <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="Logout">
-          <i class="bi bi-box-arrow-right"></i>
+        {% if shown('notifications') %}
+        {% set reminder_count = notification_count() %}
+        <a href="{{ url_for('notifications.index') }}" class="sidebar-tool topbar-bell"
+           title="{{ _('Promemoria') }}" aria-label="{{ _('Promemoria') }}{{ ' (%d)'|format(reminder_count) if reminder_count }}"
+           {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
+          <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
+        </a>
+        {% endif %}
+        <button type="button" id="theme-toggle" class="sidebar-tool theme-button"
+                aria-label="{{ _('Passa alla modalità scura') }}" title="{{ _('Passa alla modalità scura') }}">
+          <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
+          <i class="bi bi-moon-stars-fill theme-icon-dark" aria-hidden="true"></i>
+        </button>
+        <a href="{{ url_for('settings.index') }}" class="sidebar-tool sidebar-settings" title="{{ _('Impostazioni') }}"
+           aria-label="{{ _('Impostazioni') }}" {% if request.endpoint and request.endpoint.startswith('settings.') %}aria-current="page"{% endif %}>
+          <i class="bi bi-gear"></i>
         </a>
       </div>
     </div>
 
   </aside>
+  {% endif %}
 
   <!-- ══ Main ═══════════════════════════════════════════════════════════════ -->
   <div class="main-content">
 
+    {% if not embedded %}
     <!-- Topbar -->
     <header class="topbar">
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" style="display:none;">
+      <!-- Phones and tablets only: the sidebar is hidden there, this opens it over the page -->
+      <button id="sidebar-open" type="button" class="btn btn-ghost btn-icon sidebar-open-btn"
+              aria-controls="sidebar" aria-label="{{ _('Espandi il menu') }}" title="{{ _('Espandi il menu') }}">
         <i class="bi bi-list" style="font-size:20px;"></i>
       </button>
 
+      <!-- Back to the page seen before (in the app or in a browser): hidden when there is none -->
+      <button id="nav-back" type="button" class="btn btn-ghost btn-icon nav-back" hidden
+              aria-label="{{ _('Torna indietro') }}" title="{{ _('Torna alla pagina precedente') }}">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+
       <div class="topbar-title">
-        <h1>{% block page_title %}Page{% endblock %}</h1>
+        <h1>{% block page_title %}{{ _('Page') }}{% endblock %}</h1>
         <ul class="breadcrumb">
-          <li><a href="{{ url_for('dashboard.dashboard') }}">Home</a></li>
+          <li><a href="{{ url_for('dashboard.dashboard') }}">{{ _('Home') }}</a></li>
           {% block breadcrumb %}{% endblock %}
         </ul>
       </div>
@@ -190,18 +350,29 @@
       <div class="topbar-actions">
         {% block topbar_actions %}{% endblock %}
 
-        <!-- Dark / Light mode toggle -->
-        <button id="theme-toggle" class="btn btn-ghost btn-icon" title="Cambia tema"
-                style="font-size:18px;">
-          <i class="bi bi-moon-stars" id="theme-icon-dark"></i>
-          <i class="bi bi-sun" id="theme-icon-light" style="display:none;"></i>
-        </button>
+        <!-- The client being worked on (F11): always in sight when there is more than one archive -->
+        {% set working_on = working_client() %}
+        {% if working_on %}
+        <a {% if allowed('clients') %}href="{{ url_for('clients.index') }}" {% endif %}class="client-chip" id="client-chip"
+           title="{{ _('Stai lavorando su «%(name)s»: clicca per cambiare cliente', name=working_on.name) }}">
+          <span class="client-badge" style="background:{{ working_on.color }}">{{ working_on.initials }}</span>
+          <span class="client-name">{{ working_on.name }}</span>
+        </a>
+        {% if allowed('groups') %}{% for group in client_groups(working_on) %}
+        <a href="{{ url_for('groups.consolidated', group_id=group.id) }}" class="client-chip group-chip"
+           title="{{ _('Consolidato del gruppo «%(name)s»', name=group.name) }}" aria-label="{{ _('Consolidato del gruppo «%(name)s»', name=group.name) }}">
+          <i class="bi bi-house-heart" style="color:{{ group.color }}" aria-hidden="true"></i>
+          <span class="client-name">{{ group.name }}</span>
+        </a>
+        {% endfor %}{% endif %}
+        {% endif %}
 
-        <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);">
+        <span class="text-xs text-muted">
           {{ moment().format('D MMM YYYY') if moment is defined else '' }}
         </span>
       </div>
     </header>
+    {% endif %}
 
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -225,10 +396,63 @@
   </div><!-- /main-content -->
 </div><!-- /app-wrapper -->
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<!-- App JS -->
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% if allowed('transactions') and not embedded %}
+<!-- Nuova transazione: a round + at the bottom left of the page, like the AI button on the right -->
+<a href="{{ url_for('transactions.add') }}" class="add-bubble" id="add-bubble" title="{{ _('Nuova Transazione') }}" aria-label="{{ _('Nuova Transazione') }}"><i class="bi bi-plus-lg"></i></a>
+<div class="modal-overlay" id="add-chooser" onclick="if (event.target === this) closeModal('add-chooser')">
+  <div class="modal add-chooser" role="dialog" aria-modal="true" aria-labelledby="add-chooser-title">
+    <div class="modal-header">
+      <h3 class="modal-title" id="add-chooser-title">{{ _('Nuova transazione') }}</h3>
+      <button type="button" class="modal-close" onclick="closeModal('add-chooser')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body add-choices">
+      <a class="add-choice" href="{{ url_for('transactions.new') }}"
+         data-popup="{{ url_for('transactions.new', embed=1, next=url_for('transactions.embed_done'), **{'from': 'add'}) }}" title="{{ _('Transazione singola') }}">
+        <span class="add-choice-head"><i class="bi bi-plus-circle"></i> <strong>{{ _('Transazione singola') }}</strong></span>
+        <span>{{ _('Inserisci una singola entrata o uscita.') }}</span>
+      </a>
+      <a class="add-choice" href="{{ url_for('export.import_page') }}"
+         data-popup="{{ url_for('export.import_page', embed=1, only='bank') }}" title="{{ _('Carica un file') }}">
+        <span class="add-choice-head"><i class="bi bi-file-earmark-arrow-up"></i> <strong>{{ _('Carica un file') }}</strong></span>
+        <span>{{ _('Carica un file con più transazioni: Excel, CSV o PDF del tuo estratto conto bancario.') }}</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if shown('assistant') and not embedded %}
+<!-- Chiedi ai tuoi dati: a round button at the bottom right opens a narrow panel on the right with the chat -->
+<button type="button" class="ask-bubble" id="ask-bubble" aria-controls="ask-panel" aria-expanded="false"
+        title="{{ _('Chiedi ai tuoi dati') }}" aria-label="{{ _('Chiedi ai tuoi dati') }}"><i class="bi bi-stars"></i></button>
+<aside class="ask-panel" id="ask-panel" hidden aria-label="{{ _('Chiedi ai tuoi dati') }}"
+       data-status="{{ url_for('assistant.status') }}" data-ask="{{ url_for('assistant.ask') }}">
+  <header class="ask-head">
+    <span class="ask-title"><i class="bi bi-stars"></i> {{ _('Chiedi ai tuoi dati') }}</span>
+    <button type="button" class="ask-clear" id="ask-clear" title="{{ _('Nuova conversazione') }}" aria-label="{{ _('Nuova conversazione') }}"><i class="bi bi-arrow-counterclockwise"></i></button>
+    <button type="button" class="ask-close" id="ask-close" title="{{ _('Chiudi') }}" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+  </header>
+  <div class="ask-note text-xs text-muted" id="ask-note"></div>
+  <div class="ask-messages" id="ask-messages" aria-live="polite"></div>
+  <div class="ask-examples" id="ask-examples"></div>
+  <form class="ask-form" id="ask-form">
+    <textarea id="ask-input" class="form-control" rows="2" maxlength="500" placeholder="{{ _('Fai una domanda sui tuoi numeri…') }}" aria-label="{{ _('Domanda') }}"></textarea>
+    <button type="submit" class="btn btn-primary btn-icon" title="{{ _('Chiedi') }}" aria-label="{{ _('Chiedi') }}"><i class="bi bi-send"></i></button>
+  </form>
+</aside>
+{% endif %}
+
+<!-- Texts used by main.js -->
+<script>window.MFP_TEXT = {{ {
+  "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
+  "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
+  "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"), "no_match": _("Nessun risultato"), "select_all": _("Seleziona tutto"), "deselect_all": _("Deseleziona tutto"), "show_hide": _("Mostra o nascondi"), "show": _("Mostra"), "hide": _("Nascondi"), "to_bottom": _("Vai in fondo alla pagina"), "to_top": _("Torna su"), "to_list": _("Vai alla lista transazioni"), "resize": _("Trascina per allargare o stringere la colonna"), "saved": _("Fatto."),
+  "ask_local": _("Il modello gira sul tuo computer: nulla esce."), "ask_cloud": _("Il modello è su internet (Anthropic): il riassunto dei tuoi numeri lascia il computer."),
+  "ask_none": _("Nessun modello AI configurato: sceglilo nelle Impostazioni."), "ask_wait": _("Sto pensando…"),
+  "ask_check": _("Risposta di un modello AI: controlla i numeri nelle pagine indicate."), "ask_error": _("Non è stato possibile rispondere."),
+}|tojson }};</script>
+<!-- Chart.js and its helpers: only on the pages with charts -->
+{% block chart_scripts %}{% endblock %}
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 {% block scripts %}{% endblock %}

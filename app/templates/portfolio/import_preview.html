@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('Anteprima operazioni del broker') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.broker_upload') }}">{{ _('Importa dal broker') }}</a></li><li>{{ _('Anteprima') }}</li>{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('portfolio.broker_confirm') }}" id="broker-form">
+  <input type="hidden" name="payload" value="{{ payload }}" />
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ filename }}</div>
+        <div class="card-header-sub">
+          {{ _('%(count)s operazioni trovate', count=preview.rows|length) }}
+          · {{ _('formato Degiro') if preview.layout == 'degiro' else _('formato generico') }}
+          {% if preview.unread %} · {{ _('%(count)s righe ignorate (versamenti, dividendi o righe illeggibili)', count=preview.unread|length) }}{% endif %}
+        </div>
+      </div>
+      <div style="min-width:220px;">
+        <label class="form-label" for="account-id">{{ _('Conto del broker') }}</label>
+        <select name="account_id" id="account-id" class="form-select">
+          <option value="">{{ _('— nessun conto —') }}</option>
+          {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == suggested else '' }}>{{ a.name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px;"></th>
+            <th>{{ _('Data') }}</th>
+            <th>{{ _('Titolo nel file') }}</th>
+            <th>{{ _('Operazione') }}</th>
+            <th class="text-right">{{ _('Quote') }}</th>
+            <th class="text-right">{{ _('Prezzo €') }}</th>
+            <th class="text-right">{{ _('Commissione €') }}</th>
+            <th style="width:240px;">{{ _('Titolo del portafoglio') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in preview.rows %}
+          {% set i = loop.index0 %}
+          <tr class="{{ 'row-off' if row.duplicate else '' }}">
+            <td>
+              {% if row.duplicate %}<i class="bi bi-check2-all text-muted" title="{{ _('Già importato') }}"></i>
+              {% else %}<input type="checkbox" name="include" value="{{ i }}" class="check" checked aria-label="{{ _('Importa la riga') }}" />{% endif %}
+            </td>
+            <td class="nowrap">{{ row.on|it_date }}</td>
+            <td>{{ row.name }}<div class="text-xs text-muted">{{ row.isin or '' }} {{ row.ticker or '' }}</div>
+              {% if row.duplicate %}<span class="badge badge-muted">{{ _('Già importato') }}</span>{% endif %}</td>
+            <td>{{ _('Vendita') if row.units < 0 else _('Acquisto') }}</td>
+            <td class="text-right nowrap">{{ row.units|abs|number(4) }}</td>
+            <td class="text-right nowrap">{{ row.price|money }}</td>
+            <td class="text-right nowrap">{{ row.fee|money }}</td>
+            <td>
+              {% if not row.duplicate %}
+              <select name="holding-{{ i }}" class="form-select" aria-label="{{ _('Titolo del portafoglio') }}">
+                <option value="">{{ _('Nuovo titolo: %(name)s', name=row.name|truncate(30)) }}</option>
+                {% for h in holdings %}<option value="{{ h.id }}" {{ 'selected' if h.id == row.holding_id else '' }}>{{ h.name }}</option>{% endfor %}
+              </select>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+      <a href="{{ url_for('portfolio.broker_upload') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Importa le operazioni scelte') }}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

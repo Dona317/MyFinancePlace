@@ -1,0 +1,14 @@
+{# The portfolio's pages, as a row of tabs under the top bar (`nav_active`: the current one) #}
+{% from "partials/tabs.html" import tab_bar %}
+<div class="portfolio-tabs mb-16">
+{{ tab_bar([
+  ('holdings', url_for('portfolio.index'), _('Posizioni')),
+  ('highlights', url_for('portfolio.highlights_page'), _('In evidenza')),
+  ('performance', url_for('portfolio.performance_page'), _('Rendimenti')),
+  ('income', url_for('portfolio.income'), _('Rendite')),
+  ('composition', url_for('portfolio.composition_page'), _('Composizione')),
+  ('model', url_for('portfolio.rebalance'), _('Portafoglio modello')),
+  ('rules', url_for('portfolio.rules'), _('Regole e PAC')),
+  ('import', url_for('portfolio.broker_upload'), _('Importa dal broker')),
+], nav_active, _('Sezioni del portafoglio')) }}
+</div>

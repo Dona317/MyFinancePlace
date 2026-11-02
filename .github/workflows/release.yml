@@ -1,0 +1,48 @@
+name: Release
+
+# A stable version (F23): pushing the tag v1.2.0 builds the desktop app for Windows, macOS and Linux (the same jobs
+# as desktop.yml, each started once), then publishes them in a GitHub Release with notes made from the commits.
+# The tag must match app/version.py.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The tag matches app/version.py
+        run: |
+          version=$(python3 -c 'v = {}; exec(open("app/version.py").read(), v); print(v["__version__"])')
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} but app/version.py says ${version}: change one of the two"
+            exit 1
+          fi
+
+  build:
+    needs: check
+    uses: ./.github/workflows/desktop.yml
+    with:
+      release: true
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: release
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -l release
+          gh release create "${GITHUB_REF_NAME}" release/* --repo "${GITHUB_REPOSITORY}" --title "MyFinancePlace ${GITHUB_REF_NAME#v}" --generate-notes

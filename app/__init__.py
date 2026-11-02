@@ -1,75 +1,51 @@
+import os
+
 from apiflask import APIFlask
-from apiflask import APIBlueprint
-from flask import session
+
 from config import config
-from .routes.settings import DEFAULT_SETTINGS
-from .extensions import db, migrate
+
+from .extensions import babel, db, login_manager, migrate
+from .services.ui_settings import current_language
 
 
 def create_app(config_name="default"):
     app = APIFlask(
         __name__,
-        title='MyFinancePlace | API',
-        version='1.0.0',
-        docs_path='/swagger'
+        title="MyFinancePlace | API",
+        version="1.0.0",
+        docs_path="/swagger",
+        instance_path=os.environ.get("MFP_INSTANCE_PATH") or None,  # the desktop app keeps it in the user's data folder
     )
     app.config.from_object(config[config_name])
+    config[config_name].init_app(app)  # production: SECRET_KEY check, ProxyFix, logging to stdout
+    app.config["DESCRIPTION"] = "REST API per MyFinancePlace."
+    app.config["CONTACT"] = {"name": "MyFinancePlace", "email": "dennisturco@gmail.com"}
+
+    # No limits on request size: large statements and previews with thousands of rows must go through.
+    # (Newer Flask/Werkzeug versions default to 1000 form fields / 500 KB per form; switch those off.)
+    class UnlimitedRequest(app.request_class):
+        max_form_memory_size = None
+        max_form_parts = None
+
+    app.request_class = UnlimitedRequest
 
     db.init_app(app)
-    migrate.init_app(app, db)
+    # Absolute: the desktop app runs from anywhere, with the migrations bundled next to the app package
+    migrate.init_app(app, db, directory=os.path.join(os.path.dirname(app.root_path), "migrations"))
+    # Interface language (Settings → Visualizzazione): Italian is the source, English the translation
+    app.config.setdefault("BABEL_DEFAULT_LOCALE", "it")
+    babel.init_app(app, locale_selector=current_language)
+    login_manager.init_app(app)
 
-    from . import models  # noqa: F401 — ensures models are registered with SQLAlchemy
+    from . import models  # noqa: F401 — registers the models with SQLAlchemy
+    from .services import currency  # noqa: F401 — fills transactions.amount_base on save
+    from .web.blueprints import register_blueprints
+    from .web.context import register_context
+    from .web.filters import register_filters
+    from .web.hooks import register_hooks
 
-
-    app.config["DESCRIPTION"] = """
-    REST API per MyFinancePlace.
-    """
-
-    app.config["CONTACT"] = {
-        "name": "MyFinancePlace",
-        "email": "dennisturco@gmail.com"
-    }
-
-    # app.config["LICENSE"] = {
-    #     "name": "Proprietary"
-    # }
-
-
-    # ── Register blueprints ────────────────────────────────────────────────────
-    from .routes.auth import auth_bp
-    from .routes.dashboard import dashboard_bp
-    from .routes.accounting import accounting_bp
-    from .routes.lifestyle import lifestyle_bp
-    from .routes.transactions import transactions_bp
-    from .routes.portfolio import portfolio_bp
-    from .routes.debt import debt_bp
-    from .routes.documents import documents_bp
-    from .routes.snapshots import snapshots_bp
-    from .routes.export import export_bp
-    from .routes.settings import settings_bp
-    from .routes.insurance import insurance_bp
-
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(dashboard_bp)
-    app.register_blueprint(accounting_bp)
-    app.register_blueprint(lifestyle_bp)
-    app.register_blueprint(transactions_bp)
-    app.register_blueprint(portfolio_bp)
-    app.register_blueprint(debt_bp)
-    app.register_blueprint(documents_bp)
-    app.register_blueprint(snapshots_bp)
-    app.register_blueprint(export_bp)
-    app.register_blueprint(settings_bp)
-    app.register_blueprint(insurance_bp)
-
-    # ── Settings context processor ─────────────────────────────────────────────
-    # Makes `settings` available in every template automatically.
-    # Priority: session (user has saved preferences) → defaults (all on).
-    @app.context_processor
-    def inject_settings():
-        current = {**DEFAULT_SETTINGS}
-        current.update(session.get("settings", {}))
-        return {"settings": current}
-
+    register_blueprints(app)
+    register_filters(app)
+    register_context(app)
+    register_hooks(app)
     return app
-

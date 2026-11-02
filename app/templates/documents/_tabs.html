@@ -1,0 +1,5 @@
+{% from "partials/tabs.html" import tab_bar %}
+<div class="mb-16">
+  {{ tab_bar([('all', url_for('documents.index'), _('Archivio')),
+              ('expiring', url_for('documents.expiring'), _('In scadenza'))], active, _('Documenti')) }}
+</div>

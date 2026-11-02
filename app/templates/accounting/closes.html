@@ -1,0 +1,53 @@
+{% extends "accounting/base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/info.html" import info %}
+{% block page_title %}{{ _('Contabilità') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Bilanci annuali') }}</li>{% endblock %}
+
+{% block statement %}
+{# The statements of each closed year: during the year they fill up; on 1 January the year before is saved as it
+   is. A change to a transaction of a closed year is shown here and in the bell: «Aggiorna» saves a new version. #}
+{% for item in years if item.changed %}
+<div class="alert alert-warning mb-16 close-changed"><i class="bi bi-exclamation-triangle"></i>
+  {{ _('Hai cambiato transazioni del %(year)s dopo la chiusura: i bilanci salvati non corrispondono più ai dati.', year=item.year) }}
+  <form method="POST" action="{{ url_for('accounting.close_year', year=item.year) }}" class="inline-filter">
+    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Aggiorna i bilanci %(year)s', year=item.year) }}</button>
+  </form>
+</div>
+{% endfor %}
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-header-title"><i class="bi bi-journal-text"></i> {{ _('Bilanci annuali') }}
+      {{ info(_('Al 1° gennaio stato patrimoniale, conto economico e flusso di cassa dell’anno prima vengono salvati così come sono.')) }}</div>
+    <div class="card-header-sub">{{ _('Il %(year)s si compila man mano: si chiude il 1° gennaio.', year=this_year) }}</div>
+  </div>
+  {% if years %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Anno') }}</th><th>{{ _('Versione') }}</th><th>{{ _('Salvato il') }}</th>
+        <th class="text-right">{{ _('Patrimonio netto al 31/12') }}</th><th class="text-right">{{ _('Entrate') }}</th>
+        <th class="text-right">{{ _('Uscite') }}</th><th class="text-right">{{ _('Flusso netto') }}</th><th>{{ _('Stato') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for item in years %}{% for row in item.versions %}
+        {% set sheet, income, flow = row.data.balance_sheet, row.data.income_statement.summary, row.data.cash_flow %}
+        <tr class="{{ 'text-muted' if not loop.first }}">
+          <td>{% if loop.first %}<strong>{{ row.year }}</strong>{% endif %}</td>
+          <td>v{{ row.version }}{% if row.automatic %} <span class="badge badge-muted">{{ _('automatica') }}</span>{% endif %}</td>
+          <td>{{ row.closed_at|it_date }}</td>
+          <td class="amount text-right">{{ sheet.net_worth|money }}</td>
+          <td class="amount text-right">{{ income.income|money }}</td>
+          <td class="amount text-right">{{ income.expenses|money }}</td>
+          <td class="amount text-right {{ 'negative' if flow.net_change < 0 }}">{{ flow.net_change|money }}</td>
+          <td>{% if not loop.first %}{{ _('sostituita') }}{% elif item.changed %}<span class="text-warning"><i class="bi bi-exclamation-triangle"></i> {{ _('dati cambiati') }}</span>{% else %}<span class="text-positive"><i class="bi bi-check2-circle"></i> {{ _('aggiornata') }}</span>{% endif %}</td>
+          <td class="text-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('accounting.close_file', close_id=row.id) }}" title="{{ _('Scarica i tre prospetti salvati') }}"><i class="bi bi-download"></i> JSON</a></td>
+        </tr>
+        {% endfor %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  {{ empty_state(text=_('Nessun anno chiuso ancora: al 1° gennaio i bilanci dell’anno prima vengono salvati qui.'), icon='bi-journal-text', compact=True) }}
+  {% endif %}
+</div>
+{% endblock %}

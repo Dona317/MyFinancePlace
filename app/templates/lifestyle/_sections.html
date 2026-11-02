@@ -1,0 +1,149 @@
+{# «Spese e tendenze», part of Uscite (2 Nov 2026): the year of the period — the categories month by month, their nature
+   (fixed, not monthly, variable), the spending groups and this month against the one before. Needs report, year, groups. #}
+{% from "partials/info.html" import info %}
+{% from "partials/empty.html" import empty_state %}
+<div class="card mb-16">
+    <div class="card-header">
+      <div class="card-header-title">{{ _('Andamento Mensile per Categoria') }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s', year=year) }}</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:280px;"><canvas id="categoryTrend"></canvas></div>
+    </div>
+  </div>
+
+<!-- Fisse / non mensili / variabili (F8) ─────────────────────────────── -->
+{% set nat = report.natures %}
+<div class="card mb-16 nature-card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Natura delle spese') }} {{ info(_("• Fissa: ogni mese (affitto, bollette)\n• Non mensile: poche volte l'anno (tasse, assicurazioni)\n• Variabile: la parte che si può ridurre")) }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s · la natura si sceglie in Impostazioni → Categorie', year=year) }}</div>
+    </div>
+    <a href="{{ url_for('settings.categories_page') }}" class="btn btn-ghost btn-sm">{{ _('Categorie') }}</a>
+  </div>
+  <div class="card-body">
+    {% if nat.total %}
+    <div class="nature-bar" role="img" aria-label="{% for p in nat.parts %}{{ p.label }} {{ '%.0f'|format(p.share) }}%{{ ', ' if not loop.last }}{% endfor %}">
+      {% for p in nat.parts if p.amount %}<span class="nature-{{ p.key }}" style="width:{{ p.share }}%;"></span>{% endfor %}
+    </div>
+    <div class="nature-legend">
+      {% for p in nat.parts %}
+      <div class="nature-item">
+        <span class="nature-dot nature-{{ p.key }}"></span>
+        <span class="nature-label">{{ p.label }}</span>
+        <span class="amount">{{ p.amount|money }}</span>
+        <span class="text-muted text-xs">{{ '%.0f'|format(p.share) }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="text-sm text-muted mt-8 mb-0">{{ _('Comprimibile: le spese variabili, %(amount)s in media al mese.', amount=(nat.amounts.variable / report.months_elapsed)|money) }}</p>
+    {% else %}
+    <p class="text-sm text-muted mb-0">{{ _('Nessuna spesa registrata in questo periodo.') }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Two levels: the spending group (Necessità, Scelte e svago, Risparmio) and, under it, the categories -->
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Spese per gruppo e categoria') }} {{ info(_('Le uscite per gruppo di spesa e, dentro, per categoria.')) }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s: prima il gruppo di spesa, poi le categorie che lo compongono', year=year) }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if groups %}
+    <div class="cluster-groups">
+      {% for g in groups %}
+      <details class="cluster-group" {{ 'open' if loop.first }}>
+        <summary>
+          <span class="cluster-name">{{ g.label }}</span>
+          <span class="cluster-figures">{{ g.amount|money }} <small>({{ g.share|number(1) }}%)</small></span>
+          <span class="cluster-bar"><span style="width:{{ g.share }}%;"></span></span>
+        </summary>
+        <ul class="category-legend cluster-categories">
+          {% for c in g.categories %}
+          <li>
+            <a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type='expense', start='%d-01-01' % year, end='%d-12-31' % year) }}"
+               title="{{ _('Transazioni di «%(category)s» nel periodo', category=c.category|tr) }}">{{ c.category|tr }}</a>
+            <span class="category-legend-value">{{ c.amount|money }} <small>({{ c.share|number(1) }}%)</small></span>
+          </li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:32px;"><div class="empty-state-text">{{ _('Nessuna spesa in questo anno.') }}</div></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Tabella dettaglio categorie ─────────────────────────────────────── -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-header-title">{{ _('Dettaglio per Categoria') }}</div>
+    <div class="card-header-sub">{{ _('%(month)s %(year)s vs mese precedente', month=report.reference_month, year=year) }}</div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Categoria') }}</th>
+          <th class="text-right">{{ _('Questo Mese') }}</th>
+          <th class="text-right">{{ _('Mese Scorso') }}</th>
+          <th class="text-right">{{ _('Variazione') }}</th>
+          <th style="min-width:140px;">{{ _('%% sul Totale') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in report.rows %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:28px;height:28px;border-radius:6px;background:var(--clr-primary-light);display:flex;align-items:center;justify-content:center;color:var(--clr-primary);font-size:13px;">
+                <i class="bi bi-tag"></i>
+              </div>
+              {{ row.category }}
+            </div>
+          </td>
+          <td class="amount text-right">{{ row.this_month|money }}</td>
+          <td class="amount" style="text-align:right;color:var(--clr-text-muted);">{{ row.last_month|money }}</td>
+          <td class="text-right">
+            {% if row.change is none %}
+              <span class="badge badge-muted">—</span>
+            {% elif row.change > 0 %}
+              <span class="badge badge-negative">+{{ "%.1f"|format(row.change) }}%</span>
+            {% else %}
+              <span class="badge badge-positive">{{ "%.1f"|format(row.change) }}%</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="progress-bar-wrap" style="flex:1;height:6px;">
+                <div class="progress-bar-fill" style="width:{{ row.share }}%;"></div>
+              </div>
+              <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);width:40px;text-align:right;">{{ "%.0f"|format(row.share) }}%</span>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">
+          {{ empty_state(text=_('Nessuna spesa registrata in questo periodo.'), icon='bi-inbox', compact=True) }}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>{{ _('Totale') }}</td>
+          <td class="amount text-right">{{ report.this_month_total|money }}</td>
+          <td class="amount text-right">{{ report.last_month_total|money }}</td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+

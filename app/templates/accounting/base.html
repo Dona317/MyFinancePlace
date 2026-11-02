@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{# Contabilità: one page, four tabs — each tab is a page of its own (its address, its controls), the bar on top
+   leads from one to the other in this order. A statement switched off in the settings has no tab. #}
+
+{% block content %}
+{% set tabs = [] %}
+{% if settings.accounting_balance_sheet %}{{ tabs.append(('accounting.balance_sheet', 'clipboard-data', _('Stato patrimoniale'))) or '' }}{% endif %}
+{% if settings.accounting_income_statement %}{{ tabs.append(('accounting.income_statement', 'receipt', _('Conto economico'))) or '' }}{% endif %}
+{% if settings.accounting_cash_flow %}{{ tabs.append(('accounting.cash_flow', 'arrow-left-right', _('Flusso di cassa'))) or '' }}{% endif %}
+{{ tabs.append(('accounting.growth', 'graph-up-arrow', _('Crescita del patrimonio'))) or '' }}
+{{ tabs.append(('accounting.closes', 'journal-text', _('Bilanci annuali'))) or '' }}
+<nav class="statement-tabs accounting-tabs" aria-label="{{ _('Prospetti') }}">
+  {% for endpoint, icon, label in tabs %}
+  <a class="statement-tab" href="{{ url_for(endpoint) }}"
+     {% if request.endpoint == endpoint %}aria-current="page" aria-selected="true"{% else %}aria-selected="false"{% endif %}>
+    <i class="bi bi-{{ icon }}"></i> {{ label }}
+  </a>
+  {% endfor %}
+</nav>
+{% block statement %}{% endblock %}
+{% endblock %}

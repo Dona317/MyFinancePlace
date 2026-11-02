@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/actions.html" import icon_link, delete_button %}
+{% import "partials/blocks.html" as blocks with context %}
+{% block page_title %}{{ _('Promemoria') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Promemoria') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  {{ blocks.edit_controls(_('Modifica dei promemoria'), _('Sposta, allarga o nascondi i blocchi della pagina')) }}
+  {% if items %}
+  <form method="POST" action="{{ url_for('notifications.dismiss') }}" id="layout-manage">
+    <input type="hidden" name="all" value="1" />
+    <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-check2-all"></i> {{ _('Segna tutti come visti') }}</button>
+  </form>
+  {% endif %}
+  {% if with_deadlines %}
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('deadlines.calendar_file') }}" title="{{ _('Per Google Calendar, Outlook o il calendario del telefono') }}">
+    <i class="bi bi-calendar3"></i> {{ _('Scarica .ics') }}</a>
+  {% endif %}
+  <button type="button" class="btn btn-primary btn-sm" onclick="openModal('new-reminder')"><i class="bi bi-plus-lg"></i> {{ _('Nuovo promemoria') }}</button>
+{% endblock %}
+
+{% macro reminder_fields(prefix, r=none) -%}
+<div class="grid-2" style="gap:12px;">
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-title">{{ _('Cosa scade') }}</label>
+    <input type="text" id="{{ prefix }}-title" name="title" class="form-control" required maxlength="200" value="{{ r.title if r else '' }}" placeholder="{{ _('es. bollo auto, revisione, abbonamento ai mezzi') }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-due">{{ _('Data') }}</label>
+    <input type="date" id="{{ prefix }}-due" name="due" class="form-control" required value="{{ r.due.isoformat() if r else '' }}" /></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-repeat">{{ _('Si ripete') }}</label>
+    <select id="{{ prefix }}-repeat" name="repeat" class="form-select">{% for key, label in repeats.items() %}<option value="{{ key }}" {{ 'selected' if r and r.repeat == key }}>{{ _(label) }}</option>{% endfor %}</select></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-amount">{{ _('Importo (€, facoltativo)') }}</label>
+    <input type="text" inputmode="decimal" id="{{ prefix }}-amount" name="amount" class="form-control" value="{{ r.amount|plain if r and r.amount is not none else '' }}" /></div>
+</div>
+<div class="grid-2" style="gap:12px;">
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-notice">{{ _('Avvisami') }}</label>
+    <select id="{{ prefix }}-notice" name="notice_days" class="form-select" data-no-search>{% for days, label in notices.items() %}<option value="{{ days }}" {{ 'selected' if (r.notice_days if r else 7) == days }}>{{ _(label) }}</option>{% endfor %}</select></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-notes">{{ _('Nota') }}</label>
+    <input type="text" id="{{ prefix }}-notes" name="notes" class="form-control" maxlength="300" value="{{ r.notes or '' if r else '' }}" /></div>
+</div>
+{%- endmacro %}
+
+{# sort_index: the line can be sorted by date or amount (the next deadlines) #}
+{% macro item_line(d, with_day=false, sort_index=none) -%}
+<li class="deadline-item deadline-{{ d.kind }}" title="{{ d.title }}{{ ' · ' ~ d.detail if d.detail }}"{% if sort_index is not none %} data-order="{{ sort_index }}" data-value="{{ d.amount or 0 }}"{% endif %}>
+  <i class="bi bi-{{ d.icon }}"></i>
+  {% if with_day %}<span class="deadline-day nowrap">{{ d.day|it_date }}</span>{% endif %}
+  <span class="deadline-title">{% if d.url %}<a href="{{ d.url }}">{{ d.title }}</a>{% else %}{{ d.title }}{% endif %}
+    {% if d.detail %}<span class="text-muted text-xs">· {{ d.detail }}</span>{% endif %}</span>
+  {% if d.amount %}<span class="nowrap {{ 'text-negative' if d.outgoing else 'text-positive' }}">{{ d.amount|money }}</span>{% endif %}
+</li>
+{%- endmacro %}
+
+{% block content %}
+{% if with_deadlines %}
+<div class="kpi-grid mb-16">
+  {{ kpi('calendar-event', _('Scadenze nel mese'), value=grid['items']|length) }}
+  {{ kpi('arrow-up-circle', _('Da pagare nel mese'), value=grid.to_pay|money, cls='kpi-negative' if grid.to_pay else 'kpi-neutral') }}
+  {{ kpi('calendar-check', _('Nei prossimi 60 giorni'), value=upcoming_60|length) }}
+</div>
+{% endif %}
+
+<div class="fc-grid dash-grid" id="blocks-grid">
+{% for w in layout if w.id == 'reminders' or with_deadlines %}
+{% call blocks.block(w, titles[w.id]) %}
+
+  {% if w.id == 'reminders' %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-bell"></i> {{ _('Promemoria') }}</div></div>
+    {% if items %}
+    <ul class="notification-list">
+      {% for n in items %}
+      <li class="notification notification-{{ n.level }}">
+        <i class="bi bi-{{ n.icon }}"></i>
+        <a href="{{ n.url }}" class="notification-body">
+          <span class="cell-title">{{ n.title }}</span>
+          <span class="text-sm text-muted">{{ n.detail }}</span>
+        </a>
+        <form method="POST" action="{{ url_for('notifications.dismiss') }}">
+          <input type="hidden" name="key" value="{{ n.key }}" />
+          <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Segna come visto') }}" aria-label="{{ _('Segna come visto: %(title)s', title=n.title) }}"><i class="bi bi-x-lg"></i></button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="card-body">{{ empty_state(text=_('Qui compaiono le polizze in scadenza, le spese ricorrenti e le rate dei prossimi 7 giorni, i budget quasi esauriti e gli obiettivi in ritardo.'), icon='bi-bell-slash', title=_('Nessun promemoria'), compact=True) }}</div>
+    {% endif %}
+    {% if hidden %}
+    <details class="card-footer">
+      <summary class="text-sm text-muted" style="cursor:pointer;">{{ _('Già visti (%(count)s)', count=hidden|length) }}</summary>
+      <ul class="notification-list">
+        {% for n in hidden %}
+        <li class="notification text-muted"><i class="bi bi-{{ n.icon }}"></i><a href="{{ n.url }}" class="notification-body"><span>{{ n.title }}</span><span class="text-xs">{{ n.detail }}</span></a></li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+  </div>
+
+  {% elif w.id == 'calendar' %}
+<div class="card deadline-month">
+  <div class="card-header deadline-month-bar">
+    <a class="btn btn-ghost btn-icon" href="{{ url_for('deadlines.index', month=grid.previous.strftime('%Y-%m')) }}" aria-label="{{ _('Mese prima') }}"><i class="bi bi-chevron-left"></i></a>
+    <div class="card-header-title">{{ month_title }}</div>
+    <a class="btn btn-ghost btn-icon" href="{{ url_for('deadlines.index', month=grid.next.strftime('%Y-%m')) }}" aria-label="{{ _('Mese dopo') }}"><i class="bi bi-chevron-right"></i></a>
+  </div>
+  <div class="deadline-grid" role="table">
+    {% set weekdays = [_('Lun'), _('Mar'), _('Mer'), _('Gio'), _('Ven'), _('Sab'), _('Dom')] %}
+    <div class="deadline-week deadline-head" role="row">{% for name in weekdays %}<div role="columnheader">{{ name }}</div>{% endfor %}</div>
+    {% for week in grid.weeks %}
+    <div class="deadline-week" role="row">
+      {% for day, items in week %}
+      <div role="cell" class="deadline-cell{{ ' deadline-out' if not day }}{{ ' deadline-today' if day == today }}{{ ' deadline-empty' if day and not items }}">
+        {% if day %}<div class="deadline-date">{{ day.day }}<span class="deadline-weekday"> {{ weekdays[loop.index0] }}</span></div>
+        {% if items %}<ul class="deadline-list">{% for d in items %}{{ item_line(d) }}{% endfor %}</ul>{% endif %}{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if not grid['items'] %}<div class="card-body">{{ empty_state(_('Nessuna scadenza in questo mese.'), icon='bi-calendar-event', compact=true) }}</div>{% endif %}
+</div>
+
+  {% elif w.id == 'next' %}
+  {# every deadline ahead, also beyond the month shown: by date, or by amount (the biggest first) #}
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title"><i class="bi bi-calendar2-week"></i> {{ _('Prossime scadenze') }}</div>
+      <div class="next-sort" role="group" aria-label="{{ _('Ordina') }}">
+        <button type="button" class="next-sort-btn on" data-sort="day">{{ _('Data') }}</button>
+        <button type="button" class="next-sort-btn" data-sort="amount">{{ _('Importo') }}</button>
+      </div>
+    </div>
+    <div class="card-body next-deadlines">
+      {% if next_items %}<ul class="deadline-list" id="next-list">
+        {% for d in next_items %}{{ item_line(d, true, loop.index0) }}{% endfor %}
+      </ul>
+      {% else %}{{ empty_state(_('Niente in arrivo.'), icon='bi-calendar-check', compact=true) }}{% endif %}
+    </div>
+  </div>
+
+  {% elif w.id == 'mine' %}
+    <div class="card">
+      <div class="card-header"><div>
+        <div class="card-header-title"><i class="bi bi-calendar-check"></i> {{ _('Le tue scadenze') }}</div>
+        <div class="card-header-sub">{{ _('Bollo auto, revisione, tagliando, rinnovi: quello che l’app non può sapere da sola.') }}</div>
+      </div></div>
+      {% if reminders %}
+      <div class="table-wrapper"><table class="table-compact"><tbody>
+        {% for r in reminders %}
+        <tr id="reminder-{{ r.id }}" class="{{ 'text-muted' if r.done }}">
+          <td class="nowrap">{{ r.due|it_date }}</td>
+          <td>{{ r.title }}{% if r.repeat != 'none' %} <span class="badge badge-muted">{{ _(repeats[r.repeat]) }}</span>{% endif %}{% if r.done %} <span class="badge badge-positive">{{ _('fatto') }}</span>{% endif %}
+            {% if r.event %} <a class="badge badge-muted" href="{{ url_for('events.detail', event_id=r.event_id) }}" title="{{ _('Evento collegato: si aggiornano insieme') }}"><i class="bi bi-link-45deg"></i> {{ _('evento') }}</a>{% endif %}</td>
+          <td class="text-right nowrap">{{ r.amount|money if r.amount is not none else '' }}</td>
+          <td><div class="cell-actions">
+            <form method="POST" action="{{ url_for('deadlines.done', reminder_id=r.id) }}">
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Fatto: passa alla prossima') if r.repeat != 'none' else _('Fatto') }}" aria-label="{{ _('Fatto') }}"><i class="bi bi-check-lg"></i></button></form>
+            {{ icon_link(url_for('deadlines.index', edit=r.id) ~ '#reminder-form', 'bi-pencil', _('Modifica')) }}
+            {{ delete_button(url_for('deadlines.delete', reminder_id=r.id), _('Eliminare la scadenza e il suo evento «%(name)s»? I movimenti restano.', name=r.event.name) if r.event else _('Eliminare la scadenza?'), _('Elimina')) }}
+          </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody></table></div>
+      {% endif %}
+      <div class="card-body" id="reminder-form">
+        {% if edit %}
+        <form method="POST" action="{{ url_for('deadlines.edit', reminder_id=edit.id) }}">
+          {{ reminder_fields('e', edit) }}
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+          <a class="btn btn-ghost" href="{{ url_for('deadlines.index') }}">{{ _('Annulla') }}</a>
+        </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('deadlines.create') }}">
+          {{ reminder_fields('n') }}
+          <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+  {% elif w.id == 'fiscal' %}
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><i class="bi bi-percent"></i> {{ _('Scadenze fiscali') }}</div></div>
+      <div class="card-body">
+        <p class="text-sm text-muted">{{ _('IMU (16 giugno e 16 dicembre), saldo e acconti IRPEF (30 giugno e 30 novembre), 730 (30 settembre), modello Redditi con bollo e IVAFE dei conti all’estero (31 ottobre). Se una data cade di sabato o festivo slitta al primo giorno lavorativo.') }}</p>
+        <form method="POST" action="{{ url_for('deadlines.fiscal') }}">
+          <input type="hidden" name="on" value="{{ '0' if fiscal else '1' }}" />
+          <button type="submit" class="btn btn-secondary btn-sm">{{ _('Nascondi le scadenze fiscali') if fiscal else _('Mostra le scadenze fiscali') }}</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+{% endcall %}
+{% endfor %}
+</div>
+
+{# «Nuovo promemoria»: what, when, how often, how long before to be told, an amount and a note #}
+<div class="modal-overlay" id="new-reminder" onclick="if (event.target === this) closeModal('new-reminder')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="new-reminder-title">
+    <form method="POST" action="{{ url_for('deadlines.create') }}">
+      <div class="modal-header">
+        <h3 class="modal-title" id="new-reminder-title"><i class="bi bi-bell"></i> {{ _('Nuovo promemoria') }}</h3>
+        <button type="button" class="modal-close" onclick="closeModal('new-reminder')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">{{ reminder_fields('m') }}</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('new-reminder')">{{ _('Annulla') }}</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ blocks.script() }}
+<script>
+initBlockEditor({
+  saveUrl: {{ url_for('deadlines.save_layout')|tojson }},
+  grids: [{ el: document.getElementById('blocks-grid'), key: 'widgets', spans: 3, heights: true }],
+});
+// the next deadlines by date (as they come) or by amount, the biggest first
+document.querySelectorAll('.next-sort-btn').forEach(button => button.addEventListener('click', () => {
+  const list = document.getElementById('next-list');
+  if (!list) return;
+  document.querySelectorAll('.next-sort-btn').forEach(b => b.classList.toggle('on', b === button));
+  const rows = [...list.children];
+  rows.sort(button.dataset.sort === 'amount'
+    ? (a, b) => (+b.dataset.value - +a.dataset.value) || (+a.dataset.order - +b.dataset.order)
+    : (a, b) => +a.dataset.order - +b.dataset.order);
+  list.append(...rows);
+}));
+</script>
+{% endblock %}

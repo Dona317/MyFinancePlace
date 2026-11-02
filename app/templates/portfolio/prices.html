@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% block title %}{{ _('Aggiorna prezzi') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Aggiorna Prezzi') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Prezzi') }}</li>{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Prezzi attuali') }}</div>
+      <div class="card-header-sub">{{ _('Scrivi solo quelli cambiati: gli altri restano come sono.') }}</div>
+    </div>
+    {% if online %}
+    <form method="POST" action="{{ url_for('portfolio.prices_online') }}">
+      <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Yahoo Finance e CoinGecko: invia solo i ticker') }}"><i class="bi bi-cloud-download"></i> {{ _('Aggiorna da internet') }}</button>
+    </form>
+    {% else %}
+    <a href="{{ url_for('settings.index', _anchor='online') }}" class="text-xs text-muted">{{ _('Prezzi da internet: spenti') }}</a>
+    {% endif %}
+  </div>
+  {% if holdings %}
+  <form method="POST">
+    <div class="card-body" style="padding-bottom:0;">
+      <div class="form-group" style="max-width:220px;">
+        <label class="form-label" for="prices-on">{{ _('Data dei prezzi') }}</label>
+        <input type="date" id="prices-on" name="on" class="form-control" value="{{ values.get('on') or today.isoformat() }}" max="{{ today.isoformat() }}" />
+        <div class="form-hint">{{ _('Una data passata aggiunge i prezzi allo storico senza cambiare quelli più recenti.') }}</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ _('Strumento') }}</th>
+            <th class="text-right">{{ _('Quantità') }}</th>
+            <th class="text-right">{{ _('Prezzo attuale') }}</th>
+            <th>{{ _('Aggiornato') }}</th>
+            <th class="text-right">{{ _('Nuovo prezzo (€)') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in holdings %}
+          {% set field = 'price-' ~ h.id %}
+          <tr>
+            <td><div class="cell-title">{{ h.name }}</div><div class="text-xs text-muted">{{ h.ticker or h.asset_class|tr }}{% if online and supported(h) %} · <i class="bi bi-cloud-check" title="{{ _('Prezzo da internet') }}"></i>{% endif %}</div></td>
+            <td class="amount text-right">{{ h.quantity|number(8) }}</td>
+            <td class="amount text-right">{{ h.price|money }}</td>
+            <td class="text-xs text-muted nowrap">{{ h.price_date|it_date }}</td>
+            <td class="text-right">
+              <input type="text" inputmode="decimal" name="{{ field }}" class="form-control" style="max-width:140px;margin-left:auto;"
+                     value="{{ values[field] if field in values else '' }}" placeholder="{{ h.price|plain }}"
+                     aria-label="{{ _('Nuovo prezzo di %(name)s', name=h.name) }}" autocomplete="off" />
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body">
+      <div class="form-actions">
+        <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva prezzi') }}</button>
+      </div>
+    </div>
+  </form>
+  {% else %}
+  {% call empty_state(text=_('Nessuna posizione da aggiornare.')) %}
+    <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}</a>
+  {% endcall %}
+  {% endif %}
+</div>
+{% endblock %}

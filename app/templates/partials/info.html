@@ -1,0 +1,5 @@
+{# The «i» of an explanation: a small icon next to a button, a setting or a title; hovering or clicking it opens a
+   note card with what that control does. #}
+{% macro info(text, title=none) -%}
+<span class="info-tip" tabindex="0" role="button" aria-label="{{ title or _('Informazioni') }}" data-tip="{{ text }}"><i class="bi bi-info-circle" aria-hidden="true"></i></span>
+{%- endmacro %}

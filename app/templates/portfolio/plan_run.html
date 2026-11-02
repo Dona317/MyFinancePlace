@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block page_title %}{{ _('Rata del PAC') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rules') }}">{{ _('Regole e PAC') }}</a></li><li>{{ plan.name }}</li>{% endblock %}
+
+{% block content %}
+<form method="POST" id="plan-run-form">
+  <input type="hidden" name="rows" value="{{ purchases|length }}" />
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ plan.name }} · {{ plan.amount|money }}</div>
+        <div class="card-header-sub">
+          {{ _('Diviso secondo «%(model)s», ai prezzi più recenti. Correggi quote e prezzi con quelli eseguiti dal broker.', model=plan.template.name if plan.template else _('il portafoglio modello attivo')) }}
+          {% if not is_due %}<span class="text-muted">{{ _('(nessuna rata in scadenza: puoi comunque investire ora)') }}</span>{% endif %}
+        </div>
+      </div>
+      <div style="min-width:180px;">
+        <label class="form-label" for="on">{{ _('Data') }}</label>
+        <input type="date" name="on" id="on" class="form-control" value="{{ today.isoformat() }}" />
+      </div>
+    </div>
+    {% if purchases %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th style="width:32px;"></th><th>{{ _('Parte') }}</th><th>{{ _('Titolo') }}</th><th class="text-right">{{ _('Importo') }}</th>
+            <th style="width:130px;">{{ _('Quote') }}</th><th style="width:130px;">{{ _('Prezzo €') }}</th></tr>
+        </thead>
+        <tbody>
+          {% for p in purchases %}
+          {% set i = loop.index0 %}
+          <tr>
+            <td><input type="checkbox" name="buy-{{ i }}" value="1" class="check" checked aria-label="{{ _('Compra') }}" />
+              <input type="hidden" name="holding-{{ i }}" value="{{ p.holding.id if p.holding else '' }}" />
+              <input type="hidden" name="label-{{ i }}" value="{{ p.label }}" />
+              <input type="hidden" name="isin-{{ i }}" value="{{ p.isin or '' }}" />
+              <input type="hidden" name="ticker-{{ i }}" value="{{ p.ticker or '' }}" /></td>
+            <td>{{ p.label }}</td>
+            <td>{% if p.holding %}{{ p.holding.name }}{% else %}{{ _('Nuovo titolo: %(name)s', name=p.ticker or p.isin or p.label) }}{% endif %}</td>
+            <td class="text-right nowrap">{{ p.amount|money }}</td>
+            <td><input type="text" inputmode="decimal" name="units-{{ i }}" value="{{ p.units|plain if p.units is not none else '' }}" class="form-control" aria-label="{{ _('Quote') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="price-{{ i }}" value="{{ p.price|plain if p.price is not none else '' }}" class="form-control" placeholder="0,00" aria-label="{{ _('Prezzo €') }}" /></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+      <a href="{{ url_for('portfolio.rules') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma acquisti') }}</button>
+    </div>
+    {% else %}
+    <div class="card-body text-muted">{{ _('Niente da comprare: il modello non ha parti sotto il loro obiettivo.') }}</div>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

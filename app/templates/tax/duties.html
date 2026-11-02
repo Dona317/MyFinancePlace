@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block title %}{{ _('Bollo e IVAFE') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Fisco') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('tax.index') }}">{{ _('Fisco') }}</a></li><li>{{ _('Bollo e IVAFE') }}</li>{% endblock %}
+
+{% block content %}
+{% include "tax/_tabs.html" %}
+
+<div class="kpi-grid mb-16">
+  {{ kpi('receipt', _('Totale stimato'), amount=-data.total, cls='kpi-warning', sub=(_('anno in corso: valori a oggi') if data.partial else _('anno %(year)s', year=year))) }}
+  {% for tax, amount in data.totals.items() %}
+  {{ kpi('bank2', _(tax), amount=-amount, cls='kpi-neutral') }}
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Conti e investimenti') }}</div>
+      <div class="card-header-sub">{{ _('Conti correnti: 34,20 € se la giacenza media supera 5.000 €. Conti deposito e titoli: 2 per mille del valore. All’estero: IVAFE.') }}</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table class="table-compact" id="tax-duties">
+      <thead><tr><th>{{ _('Conto o titolo') }}</th><th>{{ _('Imposta') }}</th><th class="text-right col-optional">{{ _('Base') }}</th><th class="text-right">{{ _('Importo') }}</th></tr></thead>
+      <tbody>
+      {% for d in data.duties %}
+        <tr>
+          <td>{% if d.account %}<a href="{{ url_for('accounts.detail', account_id=d.account.id) }}">{{ d.name }}</a>{% else %}{{ d.name }}{% endif %}</td>
+          <td><span class="badge {{ 'badge-primary' if d.tax == 'Imposta di bollo' else 'badge-warning' }}">{{ _(d.tax) }}</span></td>
+          <td class="amount text-right col-optional">{{ d.base|money }} <div class="text-xs text-muted">{{ _(d.basis) }}</div></td>
+          <td class="amount text-right">{{ d.amount|money }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="text-sm text-muted">{{ _('Nessun conto corrente, conto deposito o investimento.') }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

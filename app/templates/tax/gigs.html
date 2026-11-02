@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "partials/kpi.html" import kpi %}
+{% block page_title %}{{ _('Fisco') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('tax.index') }}">{{ _('Fisco') }}</a></li><li>{{ _('Lavori occasionali') }}</li>{% endblock %}
+
+{% block content %}
+{% include "tax/_tabs.html" %}
+<p class="text-sm text-muted mb-16">{{ _('Le prestazioni occasionali sono «redditi diversi»: nel 730 il quadro D (rigo D5, codice 2), nel modello Redditi il quadro RL. Il reddito è il lordo meno le spese del lavoro; le ritenute già versate dai committenti si scalano dall’imposta.') }}</p>
+<div class="kpi-grid mb-16">
+  {{ kpi('cash-stack', _('Compensi lordi'), value=data.gross|money) }}
+  {{ kpi('receipt', _('Spese del lavoro'), value=data.expenses|money) }}
+  {{ kpi('clipboard-data', _('Reddito'), value=data.taxable|money, sub=_('lordo meno spese')) }}
+  {{ kpi('percent', _('Ritenute subite'), value=data.withheld|money) }}
+</div>
+{% if data.over_threshold %}
+<div class="alert alert-warning mb-16"><i class="bi bi-exclamation-triangle"></i>
+  {{ _('Oltre la soglia di %(threshold)s: su %(amount)s si versano i contributi alla Gestione separata INPS.', threshold=threshold|money, amount=data.over_threshold|money) }}</div>
+{% endif %}
+<div class="card">
+  <div class="card-header"><div class="card-header-title">{{ _('Per committente') }}</div></div>
+  <div class="table-wrapper"><table class="table-compact">
+    <tbody>{% for name, total, count in data.by_client %}<tr><td>{{ name }}</td><td class="text-right nowrap">{{ total|money }}</td></tr>
+    {% else %}<tr><td class="text-muted">{{ _('Nessun lavoro registrato nel %(year)s.', year=year) }} <a href="{{ url_for('gigs.index', year=year) }}">{{ _('Lavoretti') }}</a></td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% endblock %}

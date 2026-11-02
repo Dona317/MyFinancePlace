@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/kpi.html" import kpi %}
+{% block page_title %}{{ _('Fisco') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Fisco') }}</li>{% endblock %}
+
+{% block content %}
+{% include "tax/_tabs.html" %}
+
+<div class="kpi-grid mb-16">
+  {{ kpi('percent', _('Detrazioni stimate'), amount=data.detrazioni, cls='kpi-positive', sub=_('meno imposta nel 730 %(next)s', next=year + 1)) }}
+  {{ kpi('dash-circle', _('Deduzioni'), amount=data.deduzioni, cls='kpi-primary',
+         sub=_('meno reddito: valgono %(low)s–%(high)s', low=(data.deduzioni * data.rates[0] / 100)|money, high=(data.deduzioni * data.rates[-1] / 100)|money)) }}
+  {{ kpi('list-check', _('Voci con spese'), value=data.lines|length, cls='kpi-neutral', sub=_('su %(count)s del quadro E', count=data.all_lines|length)) }}
+  {{ kpi('tag', _('Da assegnare'), value=data.unassigned|length, cls=('kpi-warning' if data.unassigned else 'kpi-neutral'), sub=_('spese con tag «detraibile» fuori dalle voci')) }}
+</div>
+
+<div class="card mb-16">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Quadro E — anno %(year)s', year=year) }}</div>
+      <div class="card-header-sub">{{ _('Le spese delle categorie collegate a ogni voce, con franchigia e massimale') }}</div>
+    </div>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('tax.deductions_csv', year=year) }}"><i class="bi bi-filetype-csv"></i> CSV</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table-compact" id="tax-730">
+      <thead><tr>
+        <th>{{ _('Voce') }}</th><th class="col-optional">{{ _('Rigo') }}</th>
+        <th class="text-right">{{ _('Pagato') }}</th><th class="text-right col-optional">{{ _('Conta') }}</th>
+        <th class="text-right">{{ _('Beneficio') }}</th>
+      </tr></thead>
+      <tbody>
+      {% for line in data.lines %}
+        <tr>
+          <td>
+            <details>
+              <summary><strong>{{ _(line.item.label) }}</strong>
+                {% if line.in_cash %}<span class="badge badge-warning" title="{{ _('Pagamenti in contanti: per molte voci serve un pagamento tracciabile') }}">{{ _('%(count)s in contanti', count=line.in_cash) }}</span>{% endif %}
+              </summary>
+              <div class="text-xs text-muted mt-8">
+                {% if line.item.threshold %}{{ _('franchigia %(amount)s', amount=line.item.threshold|money) }} · {% endif %}
+                {% if line.item.ceiling %}{{ _('massimo %(amount)s', amount=line.item.ceiling|money) }}{% if line.item.per_person %} × {{ line.people }}{% endif %} · {% endif %}
+                {{ _('detrazione %(rate)s%%', rate=line.item.rate|number) if line.item.kind == 'detrazione' else _('deduzione dal reddito') }}
+                {% if line.item.note %}<br>{{ _(line.item.note) }}{% endif %}
+              </div>
+              <ul class="text-xs mt-8 tax-entries">
+                {% for tx, amount in line.entries %}
+                <li><a href="{{ url_for('transactions.edit', tx_id=tx.id) }}">{{ tx.date|it_date }} · {{ tx.description }}</a> — {{ amount|money }}</li>
+                {% endfor %}
+              </ul>
+            </details>
+          </td>
+          <td class="col-optional text-xs nowrap">{{ line.item.form_line }}</td>
+          <td class="amount text-right nowrap">{{ line.paid|money }}</td>
+          <td class="amount text-right nowrap col-optional">{{ line.counted|money }}</td>
+          <td class="amount text-right nowrap positive">{{ line.benefit|money }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5">{{ empty_state(text=_('Nessuna spesa nelle categorie collegate alle voci del 730 per questo anno. Collega le categorie qui sotto.')) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if data.unassigned %}
+<div class="card mb-16">
+  <div class="card-header"><div class="card-header-title">{{ _('Spese con tag «detraibile» o «deducibile» da assegnare') }}</div></div>
+  <div class="card-body">
+    <ul class="text-sm">
+      {% for tx in data.unassigned %}
+      <li><a href="{{ url_for('transactions.edit', tx_id=tx.id) }}">{{ tx.date|it_date }} · {{ tx.description }}</a> — {{ tx.magnitude|money }} <span class="badge badge-muted">{{ tx.category or _('senza categoria') }}</span></li>
+      {% endfor %}
+    </ul>
+    <p class="text-xs text-muted">{{ _('Collega la loro categoria a una voce qui sotto, oppure cambia la categoria della spesa.') }}</p>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Categorie collegate alle voci') }}</div>
+      <div class="card-header-sub">{{ _('Una categoria conta per una sola voce; le sue sottocategorie la seguono') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('tax.save_categories', year=year) }}" id="tax-map">
+      <div class="tax-map-grid">
+      {% for item in items %}
+        {% set chosen = mapping.get(item.code, []) %}
+        <details class="tax-map-item" {{ 'open' if chosen }}>
+          <summary><strong>{{ _(item.label) }}</strong> <span class="text-xs text-muted">{{ item.form_line }}</span>
+            {% if chosen %}<span class="text-xs">— {{ chosen|join(', ') }}</span>{% endif %}</summary>
+          <div class="tax-map-options">
+            {% for name in category_names %}
+            <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" class="check" name="cat-{{ item.code }}" value="{{ name }}" {{ 'checked' if name in chosen }} /> {{ name }}</label>
+            {% endfor %}
+          </div>
+          {% if item.per_person %}
+          <label class="form-label mt-8" for="people-{{ item.code }}">{{ _('Quanti studenti o figli') }}</label>
+          <input type="number" min="1" max="20" id="people-{{ item.code }}" name="people-{{ item.code }}" class="form-control" style="max-width:120px;" value="{{ people.get(item.code, 1) }}" />
+          {% endif %}
+        </details>
+      {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-primary mt-16"><i class="bi bi-check2"></i> {{ _('Salva collegamenti') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
