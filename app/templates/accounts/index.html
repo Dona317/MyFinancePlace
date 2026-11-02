@@ -48,14 +48,15 @@
             {% if not a.active %}<span class="badge badge-muted">{{ _('chiuso') }}</span>{% endif %}
           </td>
           <td>{{ kinds.get(a.kind, a.kind) }}{% if a.currency != 'EUR' %} · {{ a.currency }}{% endif %}</td>
-          <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money(row.symbol) }}</td>
+          <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money(row.symbol) }}
+            {% if row.currencies and row.currencies|length > 1 %}<div class="text-xs text-muted">{% for code, value in row.currencies.items() %}{{ value|money(code) }}{{ ' · ' if not loop.last }}{% endfor %}</div>{% endif %}</td>
           <td class="text-xs">{% if a.reconciled_on %}<i class="bi bi-check2-circle text-positive"></i> {{ _('al %(date)s', date=a.reconciled_on|it_date) }}{% else %}<span class="text-muted">{{ _('mai') }}</span>{% endif %}</td>
           <td class="text-right"><a href="{{ url_for('transactions.index', account=a.id) }}">{{ row.count }}</a></td>
           <td>
             <div class="cell-actions">
               {{ icon_link(url_for('accounts.detail', account_id=a.id), 'bi-check2-square', _('Riconcilia'), _('Riconcilia %(name)s', name=a.name)) }}
               {{ icon_link(url_for('accounts.edit', account_id=a.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=a.name)) }}
-              {{ delete_button(url_for('accounts.delete', account_id=a.id), _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name), _('Elimina %(name)s', name=a.name)) }}
+              {% if not a.fixed %}{{ delete_button(url_for('accounts.delete', account_id=a.id), _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name), _('Elimina %(name)s', name=a.name)) }}{% endif %}
             </div>
           </td>
         </tr>
@@ -63,7 +64,16 @@
       </tbody>
     </table>
   </div>
-  {% else %}
+  {% endif %}
+  {% if waiting %}
+  {# Contanti and Debiti, not used yet: ready, listed once something is written on them #}
+  <div class="card-body text-sm text-muted fixed-waiting">
+    <i class="bi bi-info-circle"></i>
+    {{ _('Pronti, compaiono qui appena li usi:') }}
+    {% for a in waiting %}<a href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>{{ ', ' if not loop.last }}{% endfor %}
+  </div>
+  {% endif %}
+  {% if not rows and not waiting %}
   {% call empty_state(text=_('Aggiungi conti correnti, carte, conti deposito e contanti: vedrai il saldo di ognuno, potrai importare gli estratti sul conto giusto e riconciliarli con la banca.'), icon='bi-bank', title=_('Nessun conto')) %}
     <a href="{{ url_for('accounts.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Conto') }}</a>
   {% endcall %}

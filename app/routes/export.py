@@ -548,7 +548,7 @@ def bank_confirm():
         return redirect(url_for("export.import_page"))
 
     account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
-    if account is None and any(a.kind != "cash" for a in accounts.active()):
+    if account is None and any(a.kind not in ("cash", "debt") for a in accounts.active()):
         # the account is required: giroconti, balances and reconciliation all depend on where the movements are
         flash(_("Scegli il conto da cui proviene l'estratto conto: carica di nuovo il file."), "error")
         return redirect(url_for("export.import_page"))

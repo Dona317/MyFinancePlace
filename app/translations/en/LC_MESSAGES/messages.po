@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-02 10:49+0100\n"
+"POT-Creation-Date: 2026-11-02 11:00+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2429,8 +2429,14 @@ msgstr "Cash"
 msgid "Contanti che hai ora"
 msgstr "Cash you have now"
 
+msgid "Contanti in altre valute (all’inizio)"
+msgstr "Cash in other currencies (at the start)"
+
 msgid "Contanti in negativo"
 msgstr "Cash below zero"
+
+msgid "Contanti per valuta"
+msgstr "Cash by currency"
 
 msgid "Conti"
 msgstr "Accounts"
@@ -2896,6 +2902,9 @@ msgstr "Debts"
 
 msgid "Debiti rimborsati (quota capitale)"
 msgstr "Debts repaid (principal)"
+
+msgid "Debiti vari"
+msgstr "Other debts"
 
 msgid "Debiti verso persone"
 msgstr "Owed by me to people"
@@ -3464,6 +3473,13 @@ msgstr "E.g. 15/08/2026 or 2026-08-15."
 
 msgid "Es. Alimentari; se manca viene proposta."
 msgstr "E.g. Groceries; suggested if missing."
+
+msgid ""
+"Es. un po’ di franchi svizzeri: il saldo li conta al cambio del giorno, "
+"nella valuta del conto."
+msgstr ""
+"E.g. some Swiss francs: the balance counts them at the day's exchange "
+"rate, in the account's currency."
 
 msgid "Esci"
 msgstr "Sign out"
@@ -4608,6 +4624,10 @@ msgstr "Amount of the part"
 
 msgid "Importo netto (€)"
 msgstr "Net amount (€)"
+
+#, python-format
+msgid "Importo non valido per %(code)s."
+msgstr "Invalid amount for %(code)s."
 
 msgid "Importo obiettivo"
 msgstr "Target amount"
@@ -7924,6 +7944,9 @@ msgstr "Reminders as system notifications"
 #, python-brace-format
 msgid "Pronti {count} file"
 msgstr "{count} files ready"
+
+msgid "Pronti, compaiono qui appena li usi:"
+msgstr "Ready, they show up here as soon as you use them:"
 
 #, python-brace-format
 msgid "Pronto: {name}"
@@ -11896,6 +11919,10 @@ msgstr "«%(iban)s» is not a valid IBAN: check the digits."
 #, python-format
 msgid "«%(name)s» c'è già."
 msgstr "“%(name)s” is already there."
+
+#, python-format
+msgid "«%(name)s» c'è sempre: può restare a zero, ma non si elimina."
+msgstr "«%(name)s» is always there: it can stay at zero, but it cannot be deleted."
 
 #, python-format
 msgid ""

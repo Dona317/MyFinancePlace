@@ -1,16 +1,18 @@
-"""What runs before every request, in this order: open the client's archive, refuse requests from other sites or
-with NUL characters, ask to sign in, hide the modules switched off in Settings and the sections blocked for the user.
-Plus /health."""
+"""What runs before every request, in this order: open the client's archive, make its fixed accounts (Contanti,
+Debiti), refuse requests from other sites or with NUL characters, ask to sign in, hide the modules switched off in
+Settings and the sections blocked for the user. Plus /health."""
 from urllib.parse import urlsplit
 
 from flask import Flask, current_app, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db, login_manager
+from app.models.account import Account
 from app.models.user import User
-from app.services import sections, studio, users
+from app.services import accounts, sections, studio, users
 from app.services.ui_settings import current_settings, module_setting
 from app.version import __version__
 
@@ -36,6 +38,18 @@ def open_client_archive():
     """The client being worked on (F11): its database for the whole request."""
     if request.endpoint != "static":
         studio.open_from_session()
+
+
+def ensure_fixed_accounts():
+    """F30: every archive has Contanti and Debiti (one quick look per request; made the first time). The tests turn
+    it on where they need it (FIXED_ACCOUNTS), so that the others keep an archive with no accounts."""
+    if request.endpoint in (None, "static", "health") or (current_app.testing and not current_app.config.get("FIXED_ACCOUNTS")):
+        return
+    try:
+        if Account.query.filter(Account.fixed.isnot(None)).count() < len(accounts.FIXED):
+            accounts.ensure_fixed()
+    except SQLAlchemyError:  # an archive not upgraded yet: the next request tries again
+        db.session.rollback()
 
 
 def refuse_foreign_and_broken_requests():
@@ -99,5 +113,6 @@ def load_user(user_id):
 def register_hooks(app: Flask) -> None:
     login_manager.user_loader(load_user)
     app.get("/health")(app.doc(hide=True)(health))
-    for hook in (open_client_archive, refuse_foreign_and_broken_requests, require_login, block_disabled_modules):
+    for hook in (open_client_archive, ensure_fixed_accounts, refuse_foreign_and_broken_requests, require_login,
+                 block_disabled_modules):
         app.before_request(hook)

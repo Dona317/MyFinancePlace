@@ -10,6 +10,7 @@ from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from app.services import accounts, cash, display, family, owners
 from app.services import currency as currency_service
+from app.services.parsing import to_decimal
 from app.services.tax_rules import REGIMES as TAX_REGIMES
 
 accounts_bp = APIBlueprint(
@@ -22,9 +23,24 @@ accounts_bp = APIBlueprint(
 CURRENCIES = list(currency_service.CURRENCIES)
 
 
+def _foreign_from_form(account: Account) -> dict | None:
+    """The cash in other currencies at the start: pairs of currency and amount (a currency once, its own left out)."""
+    out = {}
+    for code, raw in zip(request.form.getlist("foreign_code"), request.form.getlist("foreign_amount"), strict=False):
+        code = (code or "").upper()
+        if code not in CURRENCIES or code == account.currency or not (raw or "").strip():
+            continue
+        value = to_decimal(raw)
+        if value is None:
+            raise ValueError(_("Importo non valido per %(code)s.", code=code))
+        out[code] = str(value)
+    return out or None
+
+
 def _account_from_form(account: Account) -> Account:
-    account.name = form_text("name", _("Nome"), required=True)
-    account.kind = form_choice("kind", _("Tipo"), accounts.KINDS)
+    if account.fixed is None:
+        account.name = form_text("name", _("Nome"), required=True)
+        account.kind = form_choice("kind", _("Tipo"), accounts.KINDS)
     currency = (request.form.get("currency") or "EUR").upper()
     account.currency = currency if currency in CURRENCIES else "EUR"
     account.opening_balance = form_decimal("opening_balance", _("Saldo iniziale"), allow_negative=True) or 0
@@ -42,6 +58,10 @@ def _account_from_form(account: Account) -> Account:
     account.tax_regime = form_choice("tax_regime", _("Regime fiscale"), TAX_REGIMES) if request.form.get("tax_regime") \
         else "amministrato"
     account.abroad = "abroad" in request.form
+    if account.kind == "cash":
+        account.opening_foreign = _foreign_from_form(account)
+    if account.fixed:
+        account.active = True  # a fixed account is never closed: it can stay at zero
     if account.fee_min is not None and account.fee_max is not None and account.fee_min > account.fee_max:
         raise ValueError(_("Commissioni: il minimo non può superare il massimo."))
     duplicate = Account.query.filter(Account.name == account.name, Account.id != account.id).first()
@@ -52,15 +72,22 @@ def _account_from_form(account: Account) -> Account:
 
 def _render_form(account, values):
     return render_template("accounts/form.html", tax_regimes=TAX_REGIMES, account=account, kinds=accounts.KINDS, currencies=CURRENCIES,
-                           values=values)
+                           values=values, foreign=accounts.foreign_openings(account) if account else {})
 
 
 @accounts_bp.route("/")
 def index():
+    # Contanti and Debiti are listed once they are used (F30); until then a line says they are ready
     rows = accounts.summary()
+    waiting = [r["account"] for r in rows if not accounts.used(r["account"])]
+    rows = [r for r in rows if r["account"] not in waiting]
+    for row in rows:
+        if row["account"].kind == "cash":
+            row["currencies"] = accounts.by_currency(row["account"])
     return render_template(
-        "accounts/index.html", rows=rows, kinds=accounts.KINDS, icons=accounts.ICONS,
-        total=sum(r["balance_base"] for r in rows if r["account"].active), unassigned=accounts.unassigned_count(),
+        "accounts/index.html", rows=rows, kinds=accounts.KINDS, icons=accounts.ICONS, waiting=waiting,
+        total=sum(r["balance_base"] for r in rows if r["account"].active and r["account"].kind != "debt"),
+        unassigned=accounts.unassigned_count(),
     )
 
 
@@ -75,6 +102,7 @@ def detail(account_id):
 
 def _render_detail(account: Account, recent: list[Transaction], result: dict | None):
     return render_template("accounts/detail.html", account=account, balance=accounts.balance(account),
+                           currencies=accounts.by_currency(account) if account.kind == "cash" else {},
                            recent=recent, kinds=accounts.KINDS, today=date.today(), result=result,
                            symbol=currency_service.symbol(account.currency), estimated=accounts.estimated(account),
                            in_account=lambda tx: accounts.amount_in(tx, account))
@@ -145,5 +173,8 @@ def favorite(account_id):
 @accounts_bp.route("/<int:account_id>/delete", methods=["POST"])
 def delete(account_id):
     account = db.get_or_404(Account, account_id)
+    if account.fixed:
+        flash(_("«%(name)s» c'è sempre: può restare a zero, ma non si elimina.", name=account.name), "warning")
+        return redirect(url_for("accounts.index"))
     return delete_and_redirect(account, _("Conto «%(name)s» eliminato: le sue transazioni restano, senza conto.",
                                           name=account.name), url_for("accounts.index"))

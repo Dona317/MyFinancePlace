@@ -18,6 +18,10 @@ class Account(db.Model):
     notes            = db.Column(db.Text)
     owner            = db.Column(db.String(80))  # whose it is (F20): a holder's name, «joint», empty = family
     active           = db.Column(db.Boolean, nullable=False, default=True)
+    # F30: the two accounts every archive has, «cash» (Contanti) and «debt» (Debiti): their name and kind stay, they
+    # are not deleted; the cash's opening amounts in other currencies ({"CHF": 50}, the base one is opening_balance)
+    fixed            = db.Column(db.String(10), unique=True, index=True)
+    opening_foreign  = db.Column(db.JSON)
     reconciled_on    = db.Column(db.Date)            # last time the balance was checked against a statement
     reconciled_balance = db.Column(db.Numeric(38, 2))  # the balance the statement showed that day
     # Broker commission rules (F17): fixed + percent of the traded amount, within a minimum and a maximum;

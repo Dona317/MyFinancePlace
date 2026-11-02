@@ -22,6 +22,15 @@
   <a href="{{ url_for('transactions.index', account=account.id) }}">{{ _('Vedi le transazioni') }}</a>
 </div>
 {% endif %}
+{% if currencies|length > 1 %}
+{# the cash in several currencies: each one, and its value in the account's currency is the balance above #}
+<div class="card mb-16" id="cash-currencies">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-currency-exchange"></i> {{ _('Contanti per valuta') }}</div></div>
+  <div class="card-body cash-currencies">
+    {% for code, value in currencies.items() %}<span class="badge badge-muted">{{ value|money(code) }}</span>{% endfor %}
+  </div>
+</div>
+{% endif %}
 {% if account.kind == 'cash' %}
 <div class="card mb-16" id="cash-count">
   <div class="card-header"><div>

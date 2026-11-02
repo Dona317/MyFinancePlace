@@ -1,6 +1,11 @@
 """
 Bank accounts, cards and cash: the balance of each one and its reconciliation with a bank statement.
 
+Every archive has two fixed accounts (F30): «Contanti», the cash, which can hold several currencies (what is in the
+wallet in each one, and its value in the base currency), and «Debiti», what is owed to no bank in particular (bought
+now and paid later): its balance below zero is a liability. Both are there from the start, can stay at zero and are
+listed only once they are used; their name and kind do not change and they are not deleted.
+
 Balance of an account on a date = opening balance + income − expenses − transfers going out
 + transfers coming in (transactions whose counter_account is this account), all in the account's currency:
 a transaction in another currency counts with the amount the bank charged (`account_amount`, or
@@ -19,9 +24,81 @@ from app.services import currency
 from app.services.i18n import _l
 
 KINDS = {"current": _l("Conto corrente"), "card": _l("Carta di credito"), "prepaid": _l("Carta prepagata"),
-         "savings": _l("Conto deposito"), "cash": _l("Contanti"), "other": _l("Altro")}
+         "savings": _l("Conto deposito"), "cash": _l("Contanti"), "debt": _l("Debiti"), "other": _l("Altro")}
 ICONS = {"current": "bank", "card": "credit-card", "prepaid": "credit-card-2-front", "savings": "piggy-bank",
-         "cash": "cash-coin", "other": "wallet2"}
+         "cash": "cash-coin", "debt": "receipt", "other": "wallet2"}
+# the fixed accounts: role → (name, kind)
+FIXED = {"cash": ("Contanti", "cash"), "debt": ("Debiti", "debt")}
+
+
+def ensure_fixed() -> bool:
+    """Contanti and Debiti exist (made the first time; an earlier cash account becomes the fixed one). True when
+    something was made or marked."""
+    changed = False
+    for role, (name, kind) in FIXED.items():
+        if Account.query.filter_by(fixed=role).first() is not None:
+            continue
+        account = Account.query.filter_by(kind=kind, fixed=None).order_by(Account.active.desc(), Account.id).first()
+        if account is None:
+            unique, number = name, 2
+            while Account.query.filter_by(name=unique).first() is not None:
+                unique, number = f"{name} {number}", number + 1
+            account = Account(name=unique, kind=kind, currency=currency.base())
+            db.session.add(account)
+        account.fixed, account.kind, account.active = role, kind, True
+        changed = True
+    if changed:
+        db.session.commit()
+    return changed
+
+
+def fixed(role: str) -> Account | None:
+    return Account.query.filter_by(fixed=role).first()
+
+
+def used(account: Account) -> bool:
+    """A fixed account is listed once it is used: an opening amount, or a transaction on it."""
+    if account.fixed is None or account.opening_balance or any((account.opening_foreign or {}).values()):
+        return True
+    return Transaction.query.filter((Transaction.account_id == account.id)
+                                    | (Transaction.counter_account_id == account.id)).first() is not None
+
+
+def debt_ids() -> list[int]:
+    return [a.id for a in Account.query.filter_by(kind="debt")]
+
+
+def foreign_openings(account: Account) -> dict[str, Decimal]:
+    """The opening amounts of the cash in currencies other than its own, cleaned."""
+    out = {}
+    for code, amount in (account.opening_foreign or {}).items():
+        try:
+            value = Decimal(str(amount))
+        except ArithmeticError:
+            continue
+        if code in currency.CURRENCIES and code != account.currency and value:
+            out[code] = value
+    return out
+
+
+def by_currency(account: Account, on: date | None = None) -> dict[str, float]:
+    """What the cash holds in each currency (opening + what came in − what went out, each in its own currency)."""
+    totals = defaultdict(Decimal)
+    totals[account.currency or currency.BASE] += Decimal(account.opening_balance or 0)
+    for code, value in foreign_openings(account).items():
+        totals[code] += value
+    touching = (Transaction.account_id == account.id) | (
+        (Transaction.counter_account_id == account.id) & (Transaction.type == "transfer"))
+    query = Transaction.query.filter(touching)
+    if on is not None:
+        query = query.filter(Transaction.date <= on)
+    for tx in query:
+        if tx.type == "transfer" and tx.account_id == tx.counter_account_id:
+            continue
+        value = abs(Decimal(tx.amount))
+        arriving = tx.counter_account_id == account.id and tx.account_id != account.id
+        totals[tx.currency or currency.BASE] += value if tx.type == "income" or arriving else -value
+    return {code: round(float(value), 2) for code, value in sorted(totals.items()) if value}
 
 
 def active() -> list[Account]:
@@ -89,7 +166,17 @@ def balance(account: Account, on: date | None = None) -> float:
     # in another currency (few): one by one, with the bank's amount or the exchange rate
     for tx in Transaction.query.filter(leaving | arriving, _foreign(account), *dated):
         total += change(tx, account)
+    # the cash's opening amounts in other currencies, at the day's exchange rate
+    for code, value in foreign_openings(account).items():
+        total += Decimal(str(currency.to_base(value, code, on or date.today(), target=account.currency or currency.BASE)))
     return round(float(total), 2)
+
+
+def owed(on: date | None = None) -> float:
+    """What the Debiti accounts owe (in the base currency): their balance below zero."""
+    target, day = currency.base(), on or date.today()
+    return round(sum(max(0.0, -float(currency.to_base(balance(a, on), a.currency, day, target=target)))
+                     for a in Account.query.filter_by(kind="debt")), 2)
 
 
 def change(tx: Transaction, account: Account) -> Decimal:
@@ -169,5 +256,9 @@ def opening_total() -> float:
     """The accounts' opening balances in the base currency (each converted on its account's first day)."""
     first = dict(db.session.query(Transaction.account_id, func.min(Transaction.date)).group_by(Transaction.account_id).all())
     target = currency.base()
-    return float(sum(currency.to_base(a.opening_balance or 0, a.currency, first.get(a.id) or date.today(), target=target)
-                     for a in Account.query.all()))
+    total = 0.0
+    for a in Account.query.filter(Account.kind != "debt"):  # a debt's opening is owed, not cash
+        day = first.get(a.id) or date.today()
+        total += float(currency.to_base(a.opening_balance or 0, a.currency, day, target=target))
+        total += sum(float(currency.to_base(v, code, day, target=target)) for code, v in foreign_openings(a).items())
+    return total

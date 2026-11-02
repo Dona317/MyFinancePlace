@@ -11,15 +11,37 @@
     <div class="card-header"><div class="card-header-title"><i class="bi bi-bank"></i> {{ _('Modifica «%(name)s»', name=account.name) if is_edit else _('Nuovo conto o carta') }}</div></div>
     <div class="card-body">
       <form method="POST">
+        {% if a.fixed %}
+        {# Contanti and Debiti: always there, with their own name and kind #}
+        <p class="form-hint mb-16"><i class="bi bi-lock"></i> {{ _('Conto fisso: nome e tipo non cambiano e non si elimina; può restare a zero.') }}</p>
+        {% else %}
         <div class="grid-2">
           {{ f.text(values, 'name', _('Nome'), a.name, required=true, placeholder=_('es. Fineco, Carta Amex, Contanti')) }}
           {{ f.select(values, 'kind', _('Tipo'), kinds.items()|list, a.kind or 'current') }}
         </div>
+        {% endif %}
         <div class="grid-2">
           {{ f.select(values, 'currency', _('Valuta'), currencies, a.currency or 'EUR') }}
           {{ f.number(values, 'opening_balance', _('Saldo iniziale (nella valuta del conto)'), a.opening_balance, placeholder='0,00',
                       hint=_('Il saldo prima della prima transazione registrata su questo conto.')) }}
         </div>
+        {% if a.kind == 'cash' %}
+        {# the cash in other currencies: what was in the wallet at the start, one line per currency #}
+        <fieldset class="fee-rules mb-16">
+          <legend class="form-label">{{ _('Contanti in altre valute (all’inizio)') }}</legend>
+          <p class="form-hint">{{ _('Es. un po’ di franchi svizzeri: il saldo li conta al cambio del giorno, nella valuta del conto.') }}</p>
+          {% for code, amount in (foreign.items()|list + [('', '')] * 3)[:foreign|length + 3] %}
+          <div class="grid-2">
+            <select name="foreign_code" class="form-select" aria-label="{{ _('Valuta') }}">
+              <option value="">—</option>
+              {% for c in currencies if c != a.currency %}<option value="{{ c }}" {{ 'selected' if c == code }}>{{ c }}</option>{% endfor %}
+            </select>
+            <input type="text" inputmode="decimal" name="foreign_amount" class="form-control" value="{{ amount|string if amount != '' else '' }}"
+                   placeholder="0,00" aria-label="{{ _('Importo') }}" autocomplete="off" />
+          </div>
+          {% endfor %}
+        </fieldset>
+        {% endif %}
         <div class="grid-2">
           {{ f.text(values, 'bank', _('Banca'), a.bank, placeholder=_('es. Fineco'),
                     hint=_('Più conti della stessa banca: «Fineco 1», «Fineco 2» come nome, «Fineco» qui.')) }}

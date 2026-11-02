@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-from sqlalchemy import case, func
+from sqlalchemy import case, false, func
 
 from app.extensions import db
 from app.models.personal_loan import PersonalLoan
@@ -68,8 +68,17 @@ def cash_balance(on: date | None = None) -> float:
     investing = (Transaction.type == "transfer") & Transaction.holding_id.isnot(None)
     bought = investing & Transaction.counter_account_id.is_(None)
     sold = investing & Transaction.account_id.is_(None) & Transaction.counter_account_id.isnot(None)
-    signed = func.sum(case((Transaction.type == "expense", -value), (bought, -value), (sold, value), else_=value))
-    query = db.session.query(func.coalesce(signed, 0)).filter(Transaction.type.in_(["income", "expense"]) | bought | sold)
+    # F30: income and expenses on a Debiti account change what is owed, not the cash; a giroconto from a Debiti
+    # account to another one brings cash (a loan received), one to it takes cash (a debt paid back)
+    debts = accounts.debt_ids()
+    on_debt = Transaction.account_id.in_(debts) if debts else false()
+    to_debt = Transaction.counter_account_id.in_(debts) if debts else false()
+    borrowed = (Transaction.type == "transfer") & on_debt & Transaction.counter_account_id.isnot(None) & ~to_debt
+    repaid = (Transaction.type == "transfer") & to_debt & Transaction.account_id.isnot(None) & ~on_debt
+    flows = Transaction.type.in_(["income", "expense"]) & (Transaction.account_id.is_(None) | ~on_debt)
+    signed = func.sum(case((borrowed, value), (repaid, -value), (Transaction.type == "expense", -value), (bought, -value),
+                           (sold, value), else_=value))
+    query = db.session.query(func.coalesce(signed, 0)).filter(flows | bought | sold | borrowed | repaid)
     if on is not None:
         query = query.filter(Transaction.date <= on)
     return _money(opening_cash() + accounts.opening_total() + float(query.scalar()))
@@ -314,6 +323,7 @@ def financed_assets(on: date | None = None) -> list[dict]:
 # ── Balance Sheet ──────────────────────────────────────────────────────────────
 
 PEOPLE_OWE_ME, I_OWE_PEOPLE = N_("Crediti verso persone"), N_("Debiti verso persone")
+OTHER_DEBTS = N_("Debiti vari")  # F30: the Debiti account
 
 
 def _people_balances(on: date) -> tuple[float, float]:
@@ -353,6 +363,9 @@ def balance_sheet(on: date | None = None) -> dict:
             line = N_("Prestiti a lungo termine")
         liabilities[line] += summary["balance"]
         debt_rows.append({"name": debt.name, "type": debt.type, "line": line, "balance": summary["balance"]})
+    other_debts = accounts.owed(on)  # F30: the Debiti account below zero
+    if other_debts:
+        liabilities[OTHER_DEBTS] += other_debts
     owed, owing = _people_balances(on)  # F22: money between people
     if owed:
         assets[PEOPLE_OWE_ME] += owed
@@ -362,7 +375,7 @@ def balance_sheet(on: date | None = None) -> dict:
     current_assets = {k: _money(v) for k, v in assets.items() if k in CURRENT_ASSET_LINES}
     other_assets = {k: _money(v) for k, v in assets.items() if k not in CURRENT_ASSET_LINES and v}
     current_liabilities = {k: _money(v) for k, v in liabilities.items()
-                           if k in ("Carte di credito", "Prestiti in scadenza entro 12 mesi", I_OWE_PEOPLE)}
+                           if k in ("Carte di credito", "Prestiti in scadenza entro 12 mesi", I_OWE_PEOPLE, OTHER_DEBTS)}
     long_liabilities = {k: _money(v) for k, v in liabilities.items() if k not in current_liabilities}
 
     total_assets = _money(sum(assets.values()))
