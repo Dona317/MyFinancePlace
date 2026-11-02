@@ -46,7 +46,7 @@ def render_page():
         context.update(grid=grid, month_title=format_date(grid["month"], "LLLL yyyy").capitalize(),
                        upcoming=upcoming, upcoming_60=[d for d in upcoming if d.day <= today + timedelta(days=60)],
                        next_items=upcoming[:NEXT_ROWS], reminders=Reminder.query.order_by(Reminder.due).all(),
-                       repeats=deadlines.REPEATS, edit=db.session.get(Reminder, request.args.get("edit", type=int) or 0),
+                       repeats=deadlines.REPEATS, notices=deadlines.NOTICES, edit=db.session.get(Reminder, request.args.get("edit", type=int) or 0),
                        fiscal=deadlines.fiscal_on())
     return render_template("deadlines/index.html", **context)
 
@@ -74,7 +74,7 @@ def _save(reminder: Reminder | None):
     with flash_errors(rollback=True):
         saved = deadlines.save(reminder, title=form.get("title", ""), due=to_date(form.get("due")),
                                repeat=form.get("repeat", "none"), amount=to_decimal(form.get("amount")),
-                               notes=form.get("notes"))
+                               notes=form.get("notes"), notice_days=form.get("notice_days", type=int))
         db.session.commit()
         flash(_("Scadenza «%(title)s» salvata.", title=saved.title), "success")
         return redirect(url_for("deadlines.index", month=f"{saved.due:%Y-%m}"))

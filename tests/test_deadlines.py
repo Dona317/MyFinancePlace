@@ -178,3 +178,22 @@ def test_one_page_for_reminders_and_deadlines_with_blocks_to_arrange(client, db)
     assert client.post("/deadlines/layout", json={"reset": True}).get_json()["layout"][0]["id"] == "reminders"
     assert client.post("/deadlines/layout", json=[]).status_code == 400
     assert client.post("/deadlines/layout", json={}).status_code == 400
+
+
+def test_a_reminder_is_announced_as_many_days_before_as_it_asks(app, db):
+    _reminder(db, title="Rinnovo passaporto", due=date(2026, 12, 20), repeat="none", notice_days=30)
+    _reminder(db, title="Bollo moto", due=date(2026, 12, 20), repeat="none", notice_days=1)
+    _reminder(db, title="Revisione", due=date(2026, 12, 20), repeat="none", notice_days=99)  # unknown: a week
+    titles = lambda day: sorted(r.title for r, _ in deadlines.due_reminders(day))  # noqa: E731
+    assert titles(date(2026, 11, 21)) == ["Rinnovo passaporto"]
+    assert titles(date(2026, 12, 13)) == ["Revisione", "Rinnovo passaporto"]
+    assert titles(date(2026, 12, 19)) == ["Bollo moto", "Revisione", "Rinnovo passaporto"]
+
+
+def test_new_reminder_from_the_window_is_saved(client, db):
+    page = client.get("/deadlines/").get_data(as_text=True)
+    assert 'id="m-notice" name="notice_days"' in page and "Anteprima: questa funzione" not in page
+    client.post("/deadlines/new", data={"title": "Carta d'identità", "due": "2027-03-01", "repeat": "none",
+                                        "notice_days": "30", "notes": "Comune"})
+    saved = Reminder.query.one()
+    assert (saved.title, saved.notice_days, saved.notes) == ("Carta d'identità", 30, "Comune")

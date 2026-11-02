@@ -33,6 +33,10 @@ from app.services.i18n import N_, tr
 
 FISCAL_SETTING = "deadlines.fiscal"
 REPEATS = {"none": N_("Una volta"), "monthly": N_("Ogni mese"), "yearly": N_("Ogni anno")}
+# how long before its date a reminder is announced (the bell): days → label
+NOTICES = {0: N_("Il giorno stesso"), 1: N_("Il giorno prima"), 3: N_("3 giorni prima"), 7: N_("Una settimana prima"),
+           14: N_("Due settimane prima"), 30: N_("Un mese prima")}
+DEFAULT_NOTICE = 7
 # (month, day, title, note): the usual dates; when one falls on a holiday it moves to the next working day
 FISCAL_DATES = (
     (6, 16, N_("IMU: acconto"), N_("Prima rata dell'IMU sulle case diverse dall'abitazione principale")),
@@ -76,7 +80,7 @@ def set_fiscal(on: bool) -> None:
 # ── Hand-written ones ──────────────────────────────────────────────────────────
 
 def save(reminder: Reminder | None, *, title: str, due: date | None, repeat: str, amount: Decimal | None,
-         notes: str | None) -> Reminder:
+         notes: str | None, notice_days: int | None = None) -> Reminder:
     title = " ".join((title or "").split())[:200]
     if not title:
         raise ValueError(_("Scrivi cosa scade."))
@@ -87,6 +91,7 @@ def save(reminder: Reminder | None, *, title: str, due: date | None, repeat: str
     reminder = reminder or Reminder()
     reminder.title, reminder.due, reminder.repeat = title, due, repeat if repeat in REPEATS else "none"
     reminder.amount, reminder.notes = amount, (notes or "").strip() or None
+    reminder.notice_days = notice_days if notice_days in NOTICES else DEFAULT_NOTICE
     db.session.add(reminder)
     return reminder
 
@@ -284,7 +289,8 @@ def upcoming(today: date | None = None, days: int = 60) -> list[Deadline]:
     return between(today, today + timedelta(days=days))
 
 
-def due_reminders(today: date, days: int = 7) -> list[tuple[Reminder, date]]:
-    """Hand-written deadlines within a week, for the reminders."""
+def due_reminders(today: date) -> list[tuple[Reminder, date]]:
+    """Hand-written deadlines to announce today: each one from as many days before its date as it asks (a week if
+    not said), until the day itself."""
     return [(r, day) for r in Reminder.query.order_by(Reminder.due)
-            for day in occurrences(r, today, today + timedelta(days=days))]
+            for day in occurrences(r, today, today + timedelta(days=r.notice_days if r.notice_days in NOTICES else DEFAULT_NOTICE))]

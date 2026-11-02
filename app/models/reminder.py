@@ -17,4 +17,5 @@ class Reminder(db.Model):
     amount     = db.Column(db.Numeric(38, 2))
     notes      = db.Column(db.Text)
     done       = db.Column(db.Boolean, nullable=False, default=False)  # a one-off already dealt with
+    notice_days = db.Column(db.Integer, nullable=False, default=7, server_default="7")  # announced this many days before
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
