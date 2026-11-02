@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, cash, display, family, owners
+from app.services import accounts, cash, display, family, owners, wealth
 from app.services import currency as currency_service
 from app.services.parsing import to_decimal
 from app.services.tax_rules import REGIMES as TAX_REGIMES
@@ -77,16 +77,17 @@ def _render_form(account, values):
 
 @accounts_bp.route("/")
 def index():
-    # Contanti and Debiti are listed once they are used (F30); until then a line says they are ready
+    # the banks and cards in the table; Contanti and «Debiti totali» (the debts of the Debiti section plus the Debiti
+    # account) as two cards on top, at a glance (F30)
     rows = accounts.summary()
-    waiting = [r["account"] for r in rows if not accounts.used(r["account"])]
-    rows = [r for r in rows if r["account"] not in waiting]
-    for row in rows:
-        if row["account"].kind == "cash":
-            row["currencies"] = accounts.by_currency(row["account"])
+    cash = next((r for r in rows if r["account"].fixed == "cash"), None)
+    debt = next((r for r in rows if r["account"].fixed == "debt"), None)
+    rows = [r for r in rows if not r["account"].fixed]
     return render_template(
-        "accounts/index.html", rows=rows, kinds=accounts.KINDS, icons=accounts.ICONS, waiting=waiting,
-        total=sum(r["balance_base"] for r in rows if r["account"].active and r["account"].kind != "debt"),
+        "accounts/index.html", rows=rows, kinds=accounts.KINDS, icons=accounts.ICONS, cash=cash, debt_account=debt,
+        currencies=accounts.by_currency(cash["account"]) if cash else {},
+        debts=wealth.debt_picture(),
+        total=sum(r["balance_base"] for r in rows if r["account"].active) + (cash["balance_base"] if cash else 0),
         unassigned=accounts.unassigned_count(),
     )
 
@@ -102,7 +103,9 @@ def detail(account_id):
 
 def _render_detail(account: Account, recent: list[Transaction], result: dict | None):
     return render_template("accounts/detail.html", account=account, balance=accounts.balance(account),
+                           debts=wealth.debt_picture() if account.fixed == "debt" else None,
                            currencies=accounts.by_currency(account) if account.kind == "cash" else {},
+                           tracking=cash.tracking(account, date.today().year) if account.kind == "cash" else None,
                            recent=recent, kinds=accounts.KINDS, today=date.today(), result=result,
                            symbol=currency_service.symbol(account.currency), estimated=accounts.estimated(account),
                            in_account=lambda tx: accounts.amount_in(tx, account))

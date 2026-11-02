@@ -11,8 +11,18 @@
 
 {% block content %}
 <div class="kpi-grid mb-24">
-  {{ kpi('bank', _('Saldo Totale'), value=total|money, cls='kpi-primary', sub=(_('conti attivi'))) }}
+  {{ kpi('bank', _('Saldo Totale'), value=total|money, cls='kpi-primary', sub=(_('conti attivi e contanti'))) }}
   {{ kpi('wallet2', _('Conti'), value=rows|length, sub=(_('%(count)s attivi', count=rows|selectattr('account.active')|list|length))) }}
+  {# the two fixed accounts, at a glance: the cash (each currency below) and every debt (the Debiti section and the Debiti account) #}
+  {% if cash %}
+  {% call kpi('cash-coin', _('Contanti'), value=cash.balance|money(cash.symbol), cls='kpi-positive') %}
+    {% if currencies|length > 1 %}{% for code, value in currencies.items() %}{{ value|money(code) }}{{ ' · ' if not loop.last }}{% endfor %} · {% endif %}<a href="{{ url_for('accounts.detail', account_id=cash.account.id) }}">{{ _('apri') }}</a>
+  {% endcall %}
+  {% endif %}
+  {# every debt of the Debiti section; the Debiti account holds the part no transaction explains (F40) #}
+  {% call kpi('receipt', _('Debiti totali'), value=debts.total|money, cls='kpi-purple') %}
+    {% if debts.residual %}{{ _('%(amount)s non spiegati da transazioni', amount=debts.residual|money) }} · {% endif %}<a href="{{ url_for('debt.index') }}">{{ _('vedi i debiti') }}</a>
+  {% endcall %}
   {% call kpi('question-circle', _('Senza Conto'), value=unassigned, cls=('kpi-warning' if unassigned else 'kpi-positive')) %}{% if unassigned %}<a href="{{ url_for('transactions.index', account='none') }}">{{ _('assegnale') }}</a>{% else %}{{ _('tutte assegnate') }}{% endif %}{% endcall %}
 </div>
 
@@ -30,13 +40,13 @@
             <form method="POST" action="{{ url_for('accounts.favorite', account_id=a.id) }}" class="inline-filter">
               <button type="submit" class="btn btn-ghost btn-icon btn-sm star-btn{{ ' on' if a.favorite }}" aria-pressed="{{ 'true' if a.favorite else 'false' }}"
                       title="{{ _('Conto preferito: proposto quando importi un estratto conto') if a.favorite else _('Rendi preferito: proposto quando importi un estratto conto') }}">
-                <i class="bi bi-star{{ '-fill' if a.favorite }}"></i>
+                <i class="bi {% if a.favorite %}bi-star-fill{% else %}bi-star{% endif %}"></i>
               </button>
             </form>
             {% endif %}
           </td>
           <td>
-            <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>{% if a.owner %} <span class="badge badge-muted">{{ owner_label(a.owner) }}</span>{% endif %}
+            <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}{{ ' acc-cash' if a.kind == 'cash' }}{{ ' acc-debt' if a.kind == 'debt' }}"></i> {{ a.name }}</a>{% if a.owner %} <span class="badge badge-muted">{{ owner_label(a.owner) }}</span>{% endif %}
             <div class="text-xs text-muted account-codes">
               {% if a.bank %}<span>{{ a.bank }}</span>{% endif %}
               {% if a.account_number %}<span class="font-mono">{{ _('N.') }} {{ a.account_number|masked }}
@@ -49,14 +59,14 @@
           </td>
           <td>{{ kinds.get(a.kind, a.kind) }}{% if a.currency != 'EUR' %} · {{ a.currency }}{% endif %}</td>
           <td class="amount text-right {{ 'negative' if row.balance < 0 }}">{{ row.balance|money(row.symbol) }}
-            {% if row.currencies and row.currencies|length > 1 %}<div class="text-xs text-muted">{% for code, value in row.currencies.items() %}{{ value|money(code) }}{{ ' · ' if not loop.last }}{% endfor %}</div>{% endif %}</td>
+</td>
           <td class="text-xs">{% if a.reconciled_on %}<i class="bi bi-check2-circle text-positive"></i> {{ _('al %(date)s', date=a.reconciled_on|it_date) }}{% else %}<span class="text-muted">{{ _('mai') }}</span>{% endif %}</td>
           <td class="text-right"><a href="{{ url_for('transactions.index', account=a.id) }}">{{ row.count }}</a></td>
           <td>
             <div class="cell-actions">
               {{ icon_link(url_for('accounts.detail', account_id=a.id), 'bi-check2-square', _('Riconcilia'), _('Riconcilia %(name)s', name=a.name)) }}
               {{ icon_link(url_for('accounts.edit', account_id=a.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=a.name)) }}
-              {% if not a.fixed %}{{ delete_button(url_for('accounts.delete', account_id=a.id), _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name), _('Elimina %(name)s', name=a.name)) }}{% endif %}
+              {{ delete_button(url_for('accounts.delete', account_id=a.id), _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name), _('Elimina %(name)s', name=a.name)) }}
             </div>
           </td>
         </tr>
@@ -65,15 +75,7 @@
     </table>
   </div>
   {% endif %}
-  {% if waiting %}
-  {# Contanti and Debiti, not used yet: ready, listed once something is written on them #}
-  <div class="card-body text-sm text-muted fixed-waiting">
-    <i class="bi bi-info-circle"></i>
-    {{ _('Pronti, compaiono qui appena li usi:') }}
-    {% for a in waiting %}<a href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}"></i> {{ a.name }}</a>{{ ', ' if not loop.last }}{% endfor %}
-  </div>
-  {% endif %}
-  {% if not rows and not waiting %}
+  {% if not rows %}
   {% call empty_state(text=_('Aggiungi conti correnti, carte, conti deposito e contanti: vedrai il saldo di ognuno, potrai importare gli estratti sul conto giusto e riconciliarli con la banca.'), icon='bi-bank', title=_('Nessun conto')) %}
     <a href="{{ url_for('accounts.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Conto') }}</a>
   {% endcall %}

@@ -22,6 +22,14 @@
   <a href="{{ url_for('transactions.index', account=account.id) }}">{{ _('Vedi le transazioni') }}</a>
 </div>
 {% endif %}
+{% if debts %}
+{# the Debiti account: the total of the debts, what its transactions explain, the rest that must exist to balance #}
+<div class="kpi-grid mb-16">
+  {% call kpi('receipt', _('Debiti totali'), value=debts.total|money, cls='kpi-purple') %}<a href="{{ url_for('debt.index') }}">{{ _('vedi i debiti') }}</a>{% endcall %}
+  {{ kpi('list-check', _('Spiegati da transazioni'), value=debts.explained|money, cls='kpi-purple', sub=_('movimenti su questo conto')) }}
+  {{ kpi('question-circle', _('Residuo non spiegato'), value=debts.residual|money, cls='kpi-purple', sub=_('serve perché i conti tornino')) }}
+</div>
+{% endif %}
 {% if currencies|length > 1 %}
 {# the cash in several currencies: each one, and its value in the account's currency is the balance above #}
 <div class="card mb-16" id="cash-currencies">
@@ -32,6 +40,43 @@
 </div>
 {% endif %}
 {% if account.kind == 'cash' %}
+{# how much of the cash spent this year was written down: the less is «non annotato», the truer the reports #}
+<div class="card mb-16" id="cash-tracking">
+  <div class="card-header">
+    <div class="card-header-title"><i class="bi bi-cash-coin acc-cash"></i> {{ _('Spese in contanti tracciate nel %(year)s', year=tracking.year) }}</div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="openModal('cash-intro')"><i class="bi bi-info-circle"></i> {{ _('Come funziona') }}</button>
+  </div>
+  <div class="card-body">
+    {% if tracking.share is not none %}
+    <div class="cash-track-bar" role="img" aria-label="{{ _('%(share)s%% tracciate', share=tracking.share|number(0)) }}">
+      <span style="width:{{ tracking.share }}%"></span>
+    </div>
+    <p class="text-sm mb-0">{{ _('<strong>%(share)s%%</strong> annotate una per una (%(recorded)s), %(unrecorded)s finite in «Spese non annotate».', share=tracking.share|number(0), recorded=tracking.recorded|money(symbol), unrecorded=tracking.unrecorded|money(symbol)) }}
+      {% if tracking.unrecorded %}{{ _('Annotale appena le fai con il + in basso: i report diventano più veri.') }}{% else %}{{ _('Ottimo: nessuna spesa persa.') }}{% endif %}</p>
+    {% else %}
+    <p class="text-sm text-muted mb-0">{{ _('Nessuna spesa in contanti quest’anno. Quando paghi in contanti, annotala con il + in basso.') }}</p>
+    {% endif %}
+  </div>
+</div>
+
+{# How the cash works: shown the first time the page opens, again with «Come funziona» #}
+<div class="modal-overlay" id="cash-intro" onclick="if (event.target === this) closeModal('cash-intro')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cash-intro-title">
+    <div class="modal-header">
+      <h3 class="modal-title" id="cash-intro-title"><i class="bi bi-cash-coin acc-cash"></i> {{ _('Come funzionano i contanti') }}</h3>
+      <button type="button" class="modal-close" onclick="closeModal('cash-intro')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body cash-intro">
+      <p><i class="bi bi-arrow-left-right"></i> <span>{{ _('<strong>Prelievi e versamenti</strong> al bancomat si spostano da soli tra il conto e Contanti: sono giroconti, non spese né entrate.') }}</span></p>
+      <p><i class="bi bi-plus-circle"></i> <span>{{ _('<strong>Ogni spesa in contanti</strong> la annoti tu, con il + in basso, sul conto Contanti: così sai dove finiscono i soldi.') }}</span></p>
+      <p><i class="bi bi-check2-all"></i> <span>{{ _('<strong>Conta i contanti</strong> ogni tanto: se nel portafoglio c’è meno del saldo, la differenza diventa «Spese non annotate».') }}</span></p>
+      <p class="text-muted">{{ _('Le spese non annotate sono soldi spesi senza sapere per cosa: meno sono, più i tuoi report sono veri.') }}</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('cash-intro')">{{ _('Ho capito') }}</button>
+    </div>
+  </div>
+</div>
 <div class="card mb-16" id="cash-count">
   <div class="card-header"><div>
     <div class="card-header-title"><i class="bi bi-cash-coin"></i> {{ _('Conta i contanti') }}</div>
@@ -103,4 +148,13 @@
   {{ empty_state(text=_('Nessun movimento su questo conto. Assegnalo alle transazioni o scegli il conto quando importi un estratto.')) }}
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if account.kind == 'cash' %}
+<script>
+/* the cash explained the first time its page opens (this browser) */
+if (!store.get('mfp-cash-intro')) { openModal('cash-intro'); store.set('mfp-cash-intro', '1'); }
+</script>
+{% endif %}
 {% endblock %}

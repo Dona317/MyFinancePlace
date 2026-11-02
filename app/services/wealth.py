@@ -323,7 +323,20 @@ def financed_assets(on: date | None = None) -> list[dict]:
 # ── Balance Sheet ──────────────────────────────────────────────────────────────
 
 PEOPLE_OWE_ME, I_OWE_PEOPLE = N_("Crediti verso persone"), N_("Debiti verso persone")
-OTHER_DEBTS = N_("Debiti vari")  # F30: the Debiti account
+OTHER_DEBTS = N_("Debiti vari")  # F40: what the Debiti account owes beyond the debts of the Debiti section
+
+
+def debt_picture(on: date | None = None) -> dict:
+    """F40: «Debiti totali» is the total of the Debiti section (loans, mortgages, cards). The Debiti account holds
+    what its transactions explain; the rest of the total, which no transaction explains but must exist for the
+    accounts to balance, is its «residuo non spiegato». When the account owes more than the section (debts written
+    only as transactions) the difference is a debt of its own, «Debiti vari», and it is part of the total too: the
+    same debt is never counted twice."""
+    today = on or date.today()
+    section = round(sum(max(0.0, debt_summary(d, today)["balance"]) for d in Debt.query.all()), 2)
+    explained = accounts.owed(on)
+    return {"section": section, "explained": explained, "residual": round(max(0.0, section - explained), 2),
+            "extra": round(max(0.0, explained - section), 2), "total": round(max(section, explained), 2)}
 
 
 def _people_balances(on: date) -> tuple[float, float]:
@@ -363,7 +376,7 @@ def balance_sheet(on: date | None = None) -> dict:
             line = N_("Prestiti a lungo termine")
         liabilities[line] += summary["balance"]
         debt_rows.append({"name": debt.name, "type": debt.type, "line": line, "balance": summary["balance"]})
-    other_debts = accounts.owed(on)  # F30: the Debiti account below zero
+    other_debts = debt_picture(on)["extra"]  # F40: only what the Debiti section does not already count
     if other_debts:
         liabilities[OTHER_DEBTS] += other_debts
     owed, owing = _people_balances(on)  # F22: money between people

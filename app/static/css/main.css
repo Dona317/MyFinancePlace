@@ -427,7 +427,8 @@ a:hover { color: var(--clr-primary-hover); }
 .kpi-negative { --kpi-accent: var(--clr-negative); --kpi-accent-bg: var(--clr-negative-bg); }
 .kpi-neutral  { --kpi-accent: var(--clr-neutral);  --kpi-accent-bg: var(--clr-neutral-bg); }
 .kpi-warning  { --kpi-accent: var(--clr-warning);  --kpi-accent-bg: var(--clr-warning-bg); }
-.kpi-purple   { --kpi-accent: var(--chart-5);      --kpi-accent-bg: var(--clr-purple-bg); }
+.kpi-purple   { --kpi-accent: var(--chart-5);      --kpi-accent-bg: var(--clr-purple-bg); }  /* the debts */
+.kpi-blue     { --kpi-accent: var(--chart-3);      --kpi-accent-bg: color-mix(in srgb, var(--chart-3) 14%, transparent); }  /* the investments */
 
 .kpi-card {
   background: var(--clr-bg-card);
@@ -1522,7 +1523,9 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 
 /* ── Accounts: the favourite star, the bank and the codes shown as last digits with a copy button ── */
 .star-btn { color: var(--clr-text-muted); }
-.star-btn.on, .star-btn:hover { color: var(--clr-warning); }
+.star-btn:hover { color: var(--clr-warning); }
+/* the favourite: a full white star */
+.star-btn.on, .star-btn.on:hover { color: #fff; }
 .account-codes { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 2px; }
 .account-codes > span { display: inline-flex; align-items: center; gap: 4px; }
 .copy-btn { border: none; background: none; color: var(--clr-text-muted); cursor: pointer; padding: 0 2px; font-size: 12px; line-height: 1; }
@@ -2093,9 +2096,11 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 .col-resizer-off { cursor: default; }
 .col-resizer-off:hover::after { background: var(--clr-border); width: 1px; }
 
-/* the period box and the presets on its right, together in the middle of the top bar */
-.dash-center { display: flex; align-items: center; gap: 10px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
-.dash-presets { display: flex; align-items: center; gap: 4px; }
+/* the period box in the middle of the top bar, the presets halfway between it and the buttons on the right: an
+   empty space on the left as wide as the presets' one */
+.dash-center { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.dash-center::before { content: ""; flex: 1; }
+.dash-presets { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1; }
 .preset-btn { padding: 4px 10px; border: 1px solid var(--clr-border); border-radius: 999px; background: var(--clr-bg-card);
   color: var(--clr-text-secondary); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; white-space: nowrap; max-width: 140px;
   overflow: hidden; text-overflow: ellipsis; }
@@ -2113,3 +2118,28 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
   #dash-part { max-width: 130px; }
 }
 .dash-period-word { font-weight: inherit; }
+
+/* the colour pattern: cash green, debts purple (investments blue), wherever their icon shows */
+.acc-cash { color: var(--clr-positive); }
+.acc-debt { color: var(--chart-5); }
+
+/* the register's titles: a click sorts (an arrow on the column in use); Categoria and Importo have a funnel */
+.tx-table .sort-link { color: inherit; text-decoration: none; }
+.tx-table .sort-link:hover, .tx-table .sort-link.is-sorted { color: var(--clr-primary); }
+.col-filter { position: relative; display: inline-block; margin-left: 4px; text-transform: none; letter-spacing: 0; }
+.col-filter-btn { border: 0; background: none; padding: 0 2px; color: var(--clr-text-muted); cursor: pointer; font-size: 11px; }
+.col-filter-btn:hover, .col-filter-btn.is-on { color: var(--clr-primary); }
+.col-pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 130; min-width: 220px; padding: 10px; display: grid; gap: 8px;
+  background: var(--clr-bg-card); border: 1px solid var(--clr-border); border-radius: var(--border-radius); box-shadow: var(--shadow-lg);
+  text-align: left; font-weight: 400; white-space: normal; }
+th.text-right .col-pop { left: auto; right: 0; }
+.col-pop[hidden] { display: none; }
+.col-pop-range { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.col-pop-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.tx-table thead th { overflow: visible; }
+
+/* the cash page: how much of the cash spent was written down */
+.cash-track-bar { height: 8px; border-radius: 999px; background: var(--clr-bg-input); overflow: hidden; margin-bottom: 8px; }
+.cash-track-bar > span { display: block; height: 100%; background: var(--clr-positive); border-radius: 999px; }
+.cash-intro p { display: flex; gap: 10px; align-items: flex-start; }
+.cash-intro p > .bi { color: var(--clr-positive); margin-top: 2px; }

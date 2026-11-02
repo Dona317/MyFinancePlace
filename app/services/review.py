@@ -57,11 +57,22 @@ def _withdrawal(tx: Transaction) -> bool:
     return account is not None and account.kind != "cash"
 
 
+def _deposit(tx: Transaction) -> bool:
+    """Cash paid in at the bank booked as an income of a bank account."""
+    if tx.type != "income" or not tx.account_id or not cash.is_deposit(tx.description, tx.bank_description):
+        return False
+    account = db.session.get(Account, tx.account_id)
+    return account is not None and account.kind != "cash"
+
+
 def _first_check(tx: Transaction) -> Finding | None:
     text = _text(tx)
     if _withdrawal(tx):
         return Finding(tx, "cash", "", _("Prelievo dalla banca: è un giroconto con Contanti"),
                        _("Il denaro passa dal conto alla cassa: non è una spesa né un'entrata."))
+    if _deposit(tx):
+        return Finding(tx, "cash", "", _("Versamento di contanti: è un giroconto da Contanti"),
+                       _("Il denaro passa dalla cassa al conto: non è un'entrata."))
     if tx.type == "expense" and _has(text, INCOME_WORDS) and not _has(text, EXPENSE_WORDS):
         return Finding(tx, "type", "income", _("Probabile entrata registrata come uscita"),
                        _("La causale parla di un accredito o di uno stipendio."))
@@ -125,5 +136,8 @@ def apply(tx: Transaction, kind: str, value: str) -> bool:
         return True
     if kind == "cash" and _withdrawal(tx):
         tx.type, tx.counter_account_id = "transfer", cash.wallet(create=True).id
+        return True
+    if kind == "cash" and _deposit(tx):
+        tx.type, tx.account_id, tx.counter_account_id = "transfer", cash.wallet(create=True).id, tx.account_id
         return True
     return False

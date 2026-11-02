@@ -88,3 +88,80 @@ def test_page_and_negative_wallet(client, db):
     assert "Contanti trovati" in page and accounts.balance(wallet) == 20
     page = client.post(f"/accounts/{wallet.id}/count", data={"counted": "20"}, follow_redirects=True).get_data(as_text=True)
     assert "Tutto torna" in page and "Ultima conta" in page and cash.negative() == []
+
+
+DEPOSITS = ("﻿" + HEADER + "\n".join([
+    "08.10.2026;08.10.2026;VERSAMENTO CONTANTI ATM 1234;Versamento;300,00",
+    "09.10.2026;09.10.2026;Bonifico da Mario;Bonifico;80,00",
+]) + "\n").encode()
+
+
+def test_deposits():
+    assert cash.is_deposit("VERSAMENTO CONTANTI ATM 1234")
+    assert cash.is_deposit("Vers. contanti", None) and cash.is_deposit("Accredito", "cash deposit at ATM")
+    assert not cash.is_deposit("Versamento affitto") and not cash.is_deposit("PRELIEVO BANCOMAT")
+
+
+def test_import_takes_cash_paid_in_from_the_wallet(client, db):
+    bank = Account(name="Banca", kind="current", opening_balance=Decimal(1000))
+    db.session.add(bank)
+    db.session.commit()
+    html = client.post("/export/bank", data={"file": (io.BytesIO(DEPOSITS), "estratto.csv"), "bank": "auto"},
+                       content_type="multipart/form-data").get_data(as_text=True)
+    rows = sorted(set(re.findall(r'name="include" value="(\d+)"', html)), key=int)
+    client.post("/export/bank/confirm", data=form_data(html, "preview-form", include=rows, account_id=str(bank.id)))
+    wallet = cash.wallet()
+    paid_in = Transaction.query.filter_by(account_id=wallet.id).one()
+    assert (paid_in.type, paid_in.counter_account_id, float(paid_in.amount)) == ("transfer", bank.id, 300.0)
+    assert accounts.balance(bank) == 1380 and accounts.balance(wallet) == -300
+    assert Transaction.query.filter_by(description="Bonifico da Mario").one().type == "income"
+
+
+def test_realign_turns_the_register_into_giroconti(db):
+    bank = Account(name="Banca", kind="current")
+    db.session.add(bank)
+    db.session.commit()
+    out = make_tx(account_id=bank.id, description="PRELIEVO BANCOMAT ATM", amount=100, type="expense", category="Altro")
+    paid_in = make_tx(account_id=bank.id, description="Versamento contanti sportello", amount=40, type="income",
+                      category="Altre entrate")
+    salary = make_tx(account_id=bank.id, description="Stipendio", amount=1500, type="income")
+    db.session.add_all([out, paid_in, salary])
+    db.session.commit()
+    assert cash.realign() == 2
+    wallet = cash.wallet()
+    assert (out.type, out.account_id, out.counter_account_id, out.category) == ("transfer", bank.id, wallet.id, "Giroconto")
+    assert (paid_in.type, paid_in.account_id, paid_in.counter_account_id) == ("transfer", wallet.id, bank.id)
+    assert salary.type == "income" and cash.realign() == 0
+    assert accounts.balance(wallet) == 60
+
+
+def test_realign_without_bank_accounts(db):
+    assert cash.realign() == 0
+
+
+def test_the_register_review_suggests_the_giroconto_for_cash_paid_in(db):
+    from app.services import review
+    bank = Account(name="Banca", kind="current")
+    db.session.add(bank)
+    db.session.commit()
+    tx = make_tx(account_id=bank.id, description="VERSAMENTO CONTANTI", amount=40, type="income")
+    db.session.add(tx)
+    db.session.commit()
+    findings, _note = review.review([tx], [])
+    assert [(f.kind, f.title) for f in findings] == [("cash", "Versamento di contanti: è un giroconto da Contanti")]
+    assert review.apply(tx, "cash", "") is True
+    assert (tx.type, tx.account_id, tx.counter_account_id) == ("transfer", cash.wallet().id, bank.id)
+
+
+def test_the_cash_page_shows_how_much_was_written_down(client, db):
+    wallet = cash.wallet(create=True)
+    year = date.today().year
+    db.session.add_all([make_tx(account_id=wallet.id, amount=30, date=date(year, 1, 5), category="Alimentari"),
+                        make_tx(account_id=wallet.id, amount=10, date=date(year, 1, 6), category=cash.UNRECORDED),
+                        make_tx(account_id=wallet.id, amount=99, date=date(year - 1, 5, 1), category=cash.UNRECORDED)])
+    db.session.commit()
+    assert cash.tracking(wallet, year) == {"year": year, "recorded": 30.0, "unrecorded": 10.0, "share": 75.0}
+    assert cash.tracking(wallet, year + 1)["share"] is None
+    html = client.get(f"/accounts/{wallet.id}").get_data(as_text=True)
+    assert "Spese in contanti tracciate" in html and "<strong>75%</strong>" in html and "Come funzionano i contanti" in html
+    assert "mfp-cash-intro" in html

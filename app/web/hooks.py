@@ -13,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db, login_manager
 from app.models.account import Account
 from app.models.user import User
-from app.services import accounts, sections, studio, users, year_close
+from app.services import accounts, cash, sections, studio, users, year_close
 from app.services.ui_settings import current_settings, module_setting
 from app.version import __version__
 
@@ -57,8 +57,9 @@ _CLOSED_TODAY: set = set()  # (archive, day) already looked at by close_past_yea
 
 
 def close_past_years():
-    """From 1 January the statements of the year before (and of any earlier one never closed) are saved: looked at
-    once a day per archive. Off in the tests unless YEAR_CLOSE is set."""
+    """Once a day per archive: the cash movements of the register realigned (giroconti with Contanti), then from 1
+    January the statements of the year before (and of any earlier one never closed) saved. Off in the tests unless
+    YEAR_CLOSE is set."""
     if request.endpoint in (None, "static", "health") or (current_app.testing and not current_app.config.get("YEAR_CLOSE")):
         return
     client = g.get("client")
@@ -66,6 +67,7 @@ def close_past_years():
     if key in _CLOSED_TODAY:
         return
     try:
+        cash.realign()  # withdrawals and cash paid in saved as expense or income become giroconti with Contanti
         year_close.ensure()
         _CLOSED_TODAY.add(key)
     except SQLAlchemyError:  # an archive not upgraded yet: the next request tries again

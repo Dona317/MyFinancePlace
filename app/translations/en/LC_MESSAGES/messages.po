@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-02 11:09+0100\n"
+"POT-Creation-Date: 2026-11-02 14:44+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -92,6 +92,10 @@ msgstr "%(amount)s less"
 #, python-format
 msgid "%(amount)s in più"
 msgstr "%(amount)s more"
+
+#, python-format
+msgid "%(amount)s non spiegati da transazioni"
+msgstr "%(amount)s not explained by transactions"
 
 #, python-format
 msgid "%(amount)s pagati quest'anno"
@@ -577,6 +581,10 @@ msgid "%(share)s%% delle entrate degli ultimi 12 mesi viene da fonti stabili"
 msgstr "%(share)s%% of the income of the last 12 months comes from stable sources"
 
 #, python-format
+msgid "%(share)s%% tracciate"
+msgstr "%(share)s%% tracked"
+
+#, python-format
 msgid "%(shown)s di %(total)s"
 msgstr "%(shown)s of %(total)s"
 
@@ -803,6 +811,36 @@ msgid ""
 "; per %(count)s è rimasta la categoria già assegnata (il modello non era "
 "sicuro)"
 msgstr "; %(count)s kept the category already assigned (the model was not sure)"
+
+#, python-format
+msgid ""
+"<strong>%(share)s%%</strong> annotate una per una (%(recorded)s), "
+"%(unrecorded)s finite in «Spese non annotate»."
+msgstr ""
+"<strong>%(share)s%%</strong> written down one by one (%(recorded)s), "
+"%(unrecorded)s ended up in «Spese non annotate»."
+
+msgid ""
+"<strong>Conta i contanti</strong> ogni tanto: se nel portafoglio c’è meno"
+" del saldo, la differenza diventa «Spese non annotate»."
+msgstr ""
+"<strong>Count your cash</strong> now and then: if the wallet holds less "
+"than the balance, the difference becomes «Spese non annotate»."
+
+msgid ""
+"<strong>Ogni spesa in contanti</strong> la annoti tu, con il + in basso, "
+"sul conto Contanti: così sai dove finiscono i soldi."
+msgstr ""
+"<strong>Every cash expense</strong> you write down yourself, with the + "
+"at the bottom, on the Cash account: so you know where the money goes."
+
+msgid ""
+"<strong>Prelievi e versamenti</strong> al bancomat si spostano da soli "
+"tra il conto e Contanti: sono giroconti, non spese né entrate."
+msgstr ""
+"<strong>Withdrawals and deposits</strong> at the ATM move by themselves "
+"between the account and Cash: they are transfers, neither spending nor "
+"income."
 
 msgid "= media"
 msgstr "= average"
@@ -1217,6 +1255,11 @@ msgstr "Year before: %(amount)s"
 
 msgid "Anno scorso"
 msgstr "Last year"
+
+msgid "Annotale appena le fai con il + in basso: i report diventano più veri."
+msgstr ""
+"Write them down as soon as you spend, with the + at the bottom: your "
+"reports get truer."
 
 msgid "Annuale"
 msgstr "Yearly"
@@ -2196,6 +2239,9 @@ msgstr "How it ends"
 msgid "Come funziona"
 msgstr "How it works"
 
+msgid "Come funzionano i contanti"
+msgstr "How cash works"
+
 msgid ""
 "Come hai già categorizzato transazioni simili: il modello AI non è stato "
 "interpellato"
@@ -2929,6 +2975,9 @@ msgstr "Debts"
 msgid "Debiti rimborsati (quota capitale)"
 msgstr "Debts repaid (principal)"
 
+msgid "Debiti totali"
+msgstr "Total debts"
+
 msgid "Debiti vari"
 msgstr "Other debts"
 
@@ -3287,6 +3336,10 @@ msgid "Eliminare il tetto «%(name)s»?"
 msgstr "Delete the limit “%(name)s”?"
 
 #, python-format
+msgid "Eliminare l'evento «%(name)s» e il suo promemoria? I movimenti restano."
+msgstr "Delete the event «%(name)s» and its reminder? The movements stay."
+
+#, python-format
 msgid "Eliminare l'evento «%(name)s»? I movimenti restano."
 msgstr "Delete the event “%(name)s”? Its movements stay."
 
@@ -3323,6 +3376,10 @@ msgstr "Delete the rule “%(keyword)s”?"
 
 msgid "Eliminare la regola?"
 msgstr "Delete the rule?"
+
+#, python-format
+msgid "Eliminare la scadenza e il suo evento «%(name)s»? I movimenti restano."
+msgstr "Delete the deadline and its event «%(name)s»? The movements stay."
 
 msgid "Eliminare la scadenza?"
 msgstr "Delete the deadline?"
@@ -3603,6 +3660,9 @@ msgstr "Events"
 msgid "Evento"
 msgstr "Event"
 
+msgid "Evento collegato: si aggiornano insieme"
+msgstr "Linked event: they are updated together"
+
 msgid "Evento creato: aggiungi i suoi movimenti."
 msgstr "Event created: add its movements."
 
@@ -3703,8 +3763,14 @@ msgstr "File cannot be read."
 msgid "Filtra"
 msgstr "Filter"
 
+msgid "Filtra per categoria"
+msgstr "Filter by category"
+
 msgid "Filtra per classe"
 msgstr "Filter by class"
+
+msgid "Filtra per importo"
+msgstr "Filter by amount"
 
 msgid "Filtra per tipo"
 msgstr "Filter by type"
@@ -4095,6 +4161,9 @@ msgstr ""
 "They take precedence over the default rules. «Learned» = created when you"
 " corrected the category of a transaction"
 
+msgid "Ho capito"
+msgstr "Got it"
+
 msgid "Ho capito: un backup completo"
 msgstr "I understand: a full backup"
 
@@ -4154,6 +4223,13 @@ msgstr ""
 
 msgid "I più pesanti"
 msgstr "The heaviest"
+
+msgid ""
+"I preset della dashboard servono a salvare una configurazione dei grafici"
+" e delle schede. Doppio clic per rinominarlo."
+msgstr ""
+"Dashboard presets save a configuration of the charts and the cards. "
+"Double-click to rename one."
 
 msgid ""
 "I prezzi da internet sono spenti: accendili in Impostazioni → Dati da "
@@ -4311,6 +4387,9 @@ msgid "Il denaro passa dal conto alla cassa: non è una spesa né un'entrata."
 msgstr ""
 "The money moves from the account to the cash: it is neither an expense "
 "nor an income."
+
+msgid "Il denaro passa dalla cassa al conto: non è un'entrata."
+msgstr "The money moves from the cash to the account: it is not income."
 
 msgid ""
 "Il documento Word è protetto da password: salvalo senza password e "
@@ -4657,11 +4736,17 @@ msgstr "Amount (€)"
 msgid "Importo (€, facoltativo)"
 msgstr "Amount (€, optional)"
 
+msgid "Importo a"
+msgstr "Amount to"
+
 msgid "Importo accreditato sul conto d'arrivo"
 msgstr "Amount credited to the receiving account"
 
 msgid "Importo addebitato sul conto"
 msgstr "Amount charged to the account"
+
+msgid "Importo da"
+msgstr "Amount from"
 
 #, python-format
 msgid "Importo da aggiungere a %(name)s"
@@ -5419,6 +5504,13 @@ msgid ""
 msgstr ""
 "Expenses in Bills › Power, Gas, Water and Internet not recorded yet: just"
 " write the consumption."
+
+msgid ""
+"Le spese non annotate sono soldi spesi senza sapere per cosa: meno sono, "
+"più i tuoi report sono veri."
+msgstr ""
+"Unrecorded spending is money spent without knowing on what: the less "
+"there is, the truer your reports."
 
 #, python-format
 msgid "Le spese più grandi, rispetto al %(year)s"
@@ -6485,6 +6577,13 @@ msgstr ""
 "salary) or import a few months of transactions: regular series show up "
 "here by themselves."
 
+msgid ""
+"Nessuna spesa in contanti quest’anno. Quando paghi in contanti, annotala "
+"con il + in basso."
+msgstr ""
+"No cash spending this year. When you pay cash, write it down with the + "
+"at the bottom."
+
 msgid "Nessuna spesa in questo anno."
 msgstr "No expenses this year."
 
@@ -7048,13 +7147,6 @@ msgid "Ogni parte ha bisogno di un nome e di un obiettivo in %."
 msgstr "Each part needs a name and a target in %."
 
 msgid ""
-"Ogni preset ricorda blocchi, schede e periodo. Se cambi qualcosa, «Salva "
-"preset» lo aggiorna. Doppio clic sul nome per rinominarlo."
-msgstr ""
-"Each preset remembers blocks, cards and period. If you change something, "
-"«Save preset» updates it. Double-click the name to rename it."
-
-msgid ""
 "Ogni quadrato è un giorno: più è scuro, più hai speso. Passa sopra per "
 "l'importo, clicca per i movimenti."
 msgstr ""
@@ -7170,6 +7262,10 @@ msgstr "You are now working on “%(name)s”."
 msgid "Ordina"
 msgstr "Sort"
 
+#, python-format
+msgid "Ordina per %(column)s"
+msgstr "Sort by %(column)s"
+
 msgid "Ordinate per scadenza"
 msgstr "Sorted by expiry"
 
@@ -7193,6 +7289,9 @@ msgstr "Gold"
 
 msgid "Ott"
 msgstr "Oct"
+
+msgid "Ottimo: nessuna spesa persa."
+msgstr "Great: no spending lost."
 
 msgid "PAC"
 msgstr "PAC"
@@ -8006,9 +8105,6 @@ msgstr "Reminders as system notifications"
 msgid "Pronti {count} file"
 msgstr "{count} files ready"
 
-msgid "Pronti, compaiono qui appena li usi:"
-msgstr "Ready, they show up here as soon as you use them:"
-
 #, python-brace-format
 msgid "Pronto: {name}"
 msgstr "Ready: {name}"
@@ -8456,6 +8552,9 @@ msgstr "Remaining"
 
 msgid "Residuo Oggi"
 msgstr "Remaining Today"
+
+msgid "Residuo non spiegato"
+msgstr "Unexplained remainder"
 
 msgid ""
 "Resta nei saldi ma non entra in report, budget, ritmo della spesa e "
@@ -9573,6 +9672,10 @@ msgstr "Spending and Trends"
 msgid "Spese funebri"
 msgstr "Funeral expenses"
 
+#, python-format
+msgid "Spese in contanti tracciate nel %(year)s"
+msgstr "Cash spending tracked in %(year)s"
+
 msgid "Spese mediche"
 msgstr "Medical expenses"
 
@@ -9600,6 +9703,9 @@ msgstr "Spent %(spent)s of %(planned)s (%(share)s%%)"
 
 msgid "Speso"
 msgstr "Spent"
+
+msgid "Spiegati da transazioni"
+msgstr "Explained by transactions"
 
 msgid "Sposta dopo"
 msgstr "Move down"
@@ -9993,6 +10099,9 @@ msgstr "Portfolio holding"
 
 msgid "Titolo nel file"
 msgstr "Instrument in the file"
+
+msgid "Togli"
+msgstr "Clear"
 
 msgid "Togli dall'evento le selezionate"
 msgstr "Take the selected ones out of the event"
@@ -10826,6 +10935,9 @@ msgstr "Check"
 msgid "Versa"
 msgstr "Deposit"
 
+msgid "Versamento di contanti: è un giroconto da Contanti"
+msgstr "Cash paid in: it is a transfer from Cash"
+
 msgid "Versamento mensile"
 msgstr "Monthly saving"
 
@@ -10969,6 +11081,12 @@ msgstr "current year: values as of today"
 msgid "aperto"
 msgstr "open"
 
+msgid "apri"
+msgstr "open"
+
+msgid "apri il promemoria"
+msgstr "open the reminder"
+
 msgid "archiviato"
 msgstr "archived"
 
@@ -11044,8 +11162,8 @@ msgstr "column “%(path)s” not found"
 msgid "confronta con l'estratto qui sotto"
 msgstr "compare with the statement below"
 
-msgid "conti attivi"
-msgstr "active accounts"
+msgid "conti attivi e contanti"
+msgstr "active accounts and cash"
 
 msgid "controllare e correggere ogni riga"
 msgstr "check and correct every row"
@@ -11318,6 +11436,9 @@ msgstr "e.g. tutoring, website, moving"
 msgid "es. veterinario, cibo, toelettatura"
 msgstr "e.g. vet, food, grooming"
 
+msgid "evento"
+msgstr "event"
+
 msgid "fatto"
 msgstr "done"
 
@@ -11521,6 +11642,9 @@ msgstr "multiplier %(value)s"
 
 msgid "movimenti"
 msgstr "movements"
+
+msgid "movimenti su questo conto"
+msgstr "movements on this account"
 
 msgid "movimento"
 msgstr "movement"
@@ -11779,6 +11903,9 @@ msgstr "the ticker is needed"
 msgid "serve l'ISIN"
 msgstr "the ISIN is needed"
 
+msgid "serve perché i conti tornino"
+msgstr "needed for the accounts to balance"
+
 msgid "servono le entrate degli ultimi 12 mesi"
 msgstr "the income of the last 12 months is needed"
 
@@ -11916,6 +12043,9 @@ msgstr "expenses"
 
 msgid "valore a fine anno"
 msgstr "value at year end"
+
+msgid "vedi i debiti"
+msgstr "see the debts"
 
 #, python-format
 msgid "vendite %(sales)s · dividendi e cedole %(income)s"

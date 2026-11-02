@@ -177,6 +177,7 @@
 .bi-lightning-charge::before { content: "\f46d"; }
 .bi-line::before { content: "\f660"; }
 .bi-link::before { content: "\f471"; }
+.bi-link-45deg::before { content: "\f470"; }
 .bi-list::before { content: "\f479"; }
 .bi-list-check::before { content: "\f473"; }
 .bi-list-ul::before { content: "\f478"; }
@@ -246,6 +247,7 @@
 .bi-spotify::before { content: "\f666"; }
 .bi-stack::before { content: "\f585"; }
 .bi-star::before { content: "\f588"; }
+.bi-star-fill::before { content: "\f586"; }
 .bi-stars::before { content: "\f589"; }
 .bi-stop::before { content: "\f593"; }
 .bi-stop-circle::before { content: "\f591"; }

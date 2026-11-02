@@ -4,6 +4,7 @@ from datetime import date
 import pytest
 
 from app.models.account import Account
+from app.models.wealth import Debt
 from app.services import accounts, wealth
 from tests.conftest import make_tx
 
@@ -22,16 +23,47 @@ def _add(db, **values):
     return tx
 
 
-def test_the_two_accounts_are_made_once_and_wait_until_used(client, db, fixed_on):
+def test_the_two_accounts_are_made_once_and_shown_as_cards(client, db, fixed_on):
     html = client.get("/accounts/").get_data(as_text=True)
     cash, debt = accounts.fixed("cash"), accounts.fixed("debt")
     assert (cash.name, cash.kind, debt.name, debt.kind) == ("Contanti", "cash", "Debiti", "debt")
-    assert "Pronti, compaiono qui appena li usi" in html and 'class="cell-title"' not in html
+    # not in the table of the banks: two cards on top
+    assert 'class="cell-title"' not in html and "Debiti totali" in html and "vedi i debiti" in html
     client.get("/accounts/")
     assert Account.query.count() == 2  # not made again
-    _add(db, account_id=cash.id, amount=12)
+    bank = Account(name="Fineco", kind="current", currency="EUR")
+    db.session.add_all([bank, Debt(name="Mutuo", type="Mutuo", principal=10000, annual_rate=0, start_date=date(2026, 1, 1),
+                                   term_months=100)])
+    db.session.commit()
+    _add(db, account_id=cash.id, amount=12, currency="CHF")
+    _add(db, account_id=cash.id, amount=30, type="income")
+    _add(db, account_id=debt.id, amount=250)
     html = client.get("/accounts/").get_data(as_text=True)
-    assert 'class="cell-title"' in html and "Debiti</a>" in html  # Contanti listed, Debiti still waiting
+    assert html.count('class="cell-title"') == 1 and "Fineco" in html  # only the bank in the table
+    assert "-CHF 12,00" in html and "non spiegati da transazioni" in html
+    loans = wealth.debt_summary(Debt.query.one(), date.today())["balance"]
+    money = lambda v: f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")  # noqa: E731
+    assert money(loans) in html and money(loans - 250) in html  # «Debiti totali», the part no transaction explains
+
+
+def test_debiti_totali_is_the_section_and_the_account_its_explained_part(client, db):
+    accounts.ensure_fixed()
+    debt = accounts.fixed("debt")
+    db.session.add(Debt(name="Prestito auto", type="Prestito", principal=1000, annual_rate=0, balance=1000,
+                        start_date=date(2026, 1, 1), term_months=10))
+    db.session.commit()
+    _add(db, account_id=debt.id, amount=300)  # bought now, paid later: part of the same debt
+    picture = wealth.debt_picture()
+    assert picture == {"section": 1000.0, "explained": 300.0, "residual": 700.0, "extra": 0.0, "total": 1000.0}
+    sheet = wealth.balance_sheet()
+    assert sheet["total_liabilities"] == 1000 and "Debiti vari" not in sheet["current_liabilities"]  # not twice
+    page = client.get(f"/accounts/{debt.id}").get_data(as_text=True)
+    assert "Residuo non spiegato" in page and "Spiegati da transazioni" in page
+    # the account owes more than the section: the difference is a debt of its own
+    _add(db, account_id=debt.id, amount=900)
+    picture = wealth.debt_picture()
+    assert (picture["total"], picture["residual"], picture["extra"]) == (1200.0, 0.0, 200.0)
+    assert wealth.balance_sheet()["current_liabilities"]["Debiti vari"] == 200
 
 
 def test_an_earlier_cash_account_becomes_the_fixed_one(db):
@@ -82,7 +114,7 @@ def test_what_goes_on_debiti_is_owed_not_paid_with_cash(db):
     _add(db, account_id=debt.id, amount=300, date=date(2026, 2, 1))  # bought now, paid later
     assert wealth.cash_balance() == 1000 and accounts.owed() == 300
     sheet = wealth.balance_sheet()
-    assert sheet["current_liabilities"]["Debiti vari"] == 300
+    assert sheet["current_liabilities"]["Debiti vari"] == 300  # no debt in the Debiti section: all of it is extra
     # 100 paid back from the bank: less cash, less owed
     _add(db, account_id=bank.id, counter_account_id=debt.id, amount=100, type="transfer", date=date(2026, 3, 1))
     assert wealth.cash_balance() == 900 and accounts.owed() == 200

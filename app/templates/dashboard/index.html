@@ -41,7 +41,7 @@
   <button type="button" class="preset-btn{{ ' is-active' if loop.index == presets.active }}" data-preset="{{ loop.index }}"
           aria-pressed="{{ 'true' if loop.index == presets.active else 'false' }}" title="{{ _('Doppio clic per rinominare') }}">{{ item.name }}</button>
   {% endfor %}
-  {{ info(_('Ogni preset ricorda blocchi, schede e periodo. Se cambi qualcosa, «Salva preset» lo aggiorna. Doppio clic sul nome per rinominarlo.')) }}
+  {{ info(_('I preset della dashboard servono a salvare una configurazione dei grafici e delle schede. Doppio clic per rinominarlo.')) }}
   <button type="button" class="btn btn-primary btn-sm preset-save" id="preset-save"{{ ' hidden' if not preset_changed }}
           title="{{ _('Salva sul preset in uso la disposizione e il periodo di adesso') }}"><i class="bi bi-save"></i> <span class="preset-save-word">{{ _('Salva preset') }}</span></button>
 </div>
@@ -123,7 +123,7 @@
 {% endcall %}
 {% elif k.id == 'investments' and settings.dashboard_investments and allowed('portfolio') %}
 {% call kpi_slot(k) %}
-  <div class="kpi-card kpi-click kpi-purple" data-href="{{ url_for('portfolio.index') }}" title="{{ _('Apri il portafoglio') }}">
+  <div class="kpi-card kpi-click kpi-blue" data-href="{{ url_for('portfolio.index') }}" title="{{ _('Apri il portafoglio') }}">
     <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
     <div class="kpi-label">{{ _('Investimenti') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.total_investments }}">—</div>
@@ -135,7 +135,7 @@
 {% endcall %}
 {% elif k.id == 'debt' and settings.dashboard_debt and allowed('debt') %}
 {% call kpi_slot(k) %}
-  <div class="kpi-card kpi-click kpi-warning" data-href="{{ url_for('debt.index') }}" title="{{ _('Apri i debiti') }}">
+  <div class="kpi-card kpi-click kpi-purple" data-href="{{ url_for('debt.index') }}" title="{{ _('Apri i debiti') }}">
     <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
     <div class="kpi-label">{{ _('Debito Totale') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.total_debt }}">—</div>
@@ -454,12 +454,12 @@ const worth = {{ net_worth_trend|tojson }};
 makeBarChart('netWorthChart', worth.labels, [
   { label: {{ _('Liquidità')|tojson }}, data: worth.cash, color: 'primary', stack: 'w' },
   {% if allowed('portfolio') %}
-  { label: {{ _('Investimenti')|tojson }}, data: worth.investments, color: 'purple', stack: 'w' },
+  { label: {{ _('Investimenti')|tojson }}, data: worth.investments, color: 'blue', stack: 'w' },
   { label: {{ _('Altri beni')|tojson }}, data: worth.other, color: 'neutral', stack: 'w' },
   {% else %}
   { label: {{ _('Altri beni')|tojson }}, data: worth.other.map((v, i) => v + worth.investments[i]), color: 'neutral', stack: 'w' },
   {% endif %}
-  { label: {{ _('Debiti')|tojson }}, data: worth.debts, color: 'negative', stack: 'w' },
+  { label: {{ _('Debiti')|tojson }}, data: worth.debts, color: 'purple', stack: 'w' },
   { label: {{ _('Patrimonio netto')|tojson }}, data: worth.net_worth, color: 'positive', type: 'line' },
 ], { legend: true, stacked: true });
 {% endif %}

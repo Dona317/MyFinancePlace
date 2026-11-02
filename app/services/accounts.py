@@ -3,8 +3,9 @@ Bank accounts, cards and cash: the balance of each one and its reconciliation wi
 
 Every archive has two fixed accounts (F30): «Contanti», the cash, which can hold several currencies (what is in the
 wallet in each one, and its value in the base currency), and «Debiti», what is owed to no bank in particular (bought
-now and paid later): its balance below zero is a liability. Both are there from the start, can stay at zero and are
-listed only once they are used; their name and kind do not change and they are not deleted.
+now and paid later): its balance below zero is a liability. Both are there from the start and can stay at zero; «Conti e
+carte» shows them as two cards on top (Contanti, Debiti totali), not in the table of the banks; their name and kind do
+not change and they are not deleted.
 
 Balance of an account on a date = opening balance + income − expenses − transfers going out
 + transfers coming in (transactions whose counter_account is this account), all in the account's currency:
@@ -54,14 +55,6 @@ def ensure_fixed() -> bool:
 
 def fixed(role: str) -> Account | None:
     return Account.query.filter_by(fixed=role).first()
-
-
-def used(account: Account) -> bool:
-    """A fixed account is listed once it is used: an opening amount, or a transaction on it."""
-    if account.fixed is None or account.opening_balance or any((account.opening_foreign or {}).values()):
-        return True
-    return Transaction.query.filter((Transaction.account_id == account.id)
-                                    | (Transaction.counter_account_id == account.id)).first() is not None
 
 
 def debt_ids() -> list[int]:

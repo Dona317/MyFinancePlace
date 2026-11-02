@@ -27,7 +27,7 @@
 <div class="kpi-grid" style="margin-bottom:24px;">
   {{ kpi('bank', _('Patrimonio netto'), value=data.net_worth|money, cls='kpi-positive' if data.net_worth >= 0 else 'kpi-negative',
          sub=_('liquidità %(cash)s · investimenti %(investments)s', cash=data.cash|money, investments=data.investments|money)) }}
-  {{ kpi('credit-card', _('Debiti'), value=data.liabilities|money, cls='kpi-negative' if data.liabilities else 'kpi-neutral') }}
+  {{ kpi('credit-card', _('Debiti'), value=data.liabilities|money, cls='kpi-purple') }}
   {{ kpi('arrow-down-circle', _('Entrate 12 mesi'), value=data.income_12|money, cls='kpi-positive') }}
   {{ kpi('arrow-up-circle', _('Uscite 12 mesi'), value=data.expenses_12|money, cls='kpi-negative',
          sub=(_('passaggi interni esclusi: %(amount)s', amount=data.internal_total|money) if data.internal_total else none)) }}

@@ -123,6 +123,16 @@ def _cash_withdrawal(row: StatementRow, wallet: list) -> None:
     row.own_account_id = wallet[0].id
 
 
+def _cash_deposit(row: StatementRow, wallet: list) -> None:
+    """Cash paid in at the bank («versamento contanti») comes from the wallet: a giroconto from «Contanti»."""
+    if row.type == "transfer" or row.amount <= 0 or not cash.is_deposit(row.description, row.details):
+        return
+    if not wallet:
+        wallet.append(cash.wallet(create=True))
+    row.type, row.category, row.counterparty = "transfer", "Giroconto", None
+    row.own_account_id = wallet[0].id
+
+
 def _held_isins() -> set[str]:
     return {isin for (isin,) in Holding.query.with_entities(Holding.isin).filter(Holding.isin.isnot(None))}
 
@@ -151,6 +161,7 @@ def enrich(rows: list[StatementRow], bank_key: str) -> list[StatementRow]:
             row.counterparty = row.counterparty or merchant.extract(row.description, row.details)
         _own_transfer(row, own)
         _cash_withdrawal(row, wallet)
+        _cash_deposit(row, wallet)
         _investment(row, isins)
 
         base = fingerprint(row, 0, bank_key)
