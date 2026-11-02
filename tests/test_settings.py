@@ -70,7 +70,7 @@ def test_disabled_modules_are_not_reachable(client, db):
         assert "Questa sezione è disattivata" in response.get_data(as_text=True)
     assert client.post("/portfolio/new", data={"name": "X"}).status_code == 404
     # everything else still works, and so does Settings to switch them back on
-    for url in ("/debt/", "/accounting/income-statement", "/lifestyle/", "/settings/", "/transactions/"):
+    for url in ("/debt/", "/accounting/income-statement", "/reports/spending", "/settings/", "/transactions/"):
         assert client.get(url).status_code == 200, url
     save_all_but(client)
     assert client.get("/portfolio/").status_code == 200

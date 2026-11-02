@@ -63,8 +63,8 @@
             </td>
           </tr>
           {% for line in report.expense_lines %}
-          <tr>
-            <td>{{ line.category }}</td>
+          <tr{% if line.apart %} class="line-apart"{% endif %}>
+            <td>{{ line.category }}{% if line.apart %} <span class="badge badge-muted" title="{{ _('Contanti spesi senza sapere per cosa: una voce a sé, non una categoria') }}">{{ _('a parte') }}</span>{% endif %}</td>
             <td class="amount text-right">{{ line.amount|money }}</td>
             <td style="text-align:right;color:var(--clr-text-muted);">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
           </tr>
@@ -110,7 +110,7 @@
 {% block scripts %}
 <script>
 const monthly = {{ report.monthly|tojson }};
-const expenseLines = {{ report.expense_lines|tojson }};
+const expenseLines = {{ report.expense_lines|rejectattr('apart')|list|tojson }};  // the unrecorded cash apart (F39)
 makeBarChart('isMonthlyChart', monthly.labels, [
   { label:{{ _('Entrate')|tojson }}, data: monthly.income, color: 'income' },
   { label:{{ _('Spese')|tojson }},   data: monthly.expenses, color: 'expense' },

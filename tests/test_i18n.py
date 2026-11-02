@@ -41,7 +41,7 @@ def test_english_everywhere_once_chosen(client, db):
     # texts used by the scripts, and the theme button
     assert '"to_dark": "Switch to dark mode"' in dashboard and 'aria-label="Switch to dark mode"' in dashboard
     # chart month labels
-    assert '"Jan"' in client.get("/lifestyle/").get_data(as_text=True)
+    assert '"Jan"' in client.get("/reports/spending").get_data(as_text=True)
 
 
 def test_english_validation_messages_and_stored_words(client, db):

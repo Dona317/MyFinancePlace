@@ -94,7 +94,7 @@ def test_cash_leaves_for_an_investment_and_comes_back_from_a_sale(app, db):
 
 
 def test_every_page_has_data(client, demo_data):
-    for url in ("/dashboard", "/reports/summary?year=2024", "/reports/", "/lifestyle/?year=2025", "/forecast/",
+    for url in ("/dashboard", "/reports/summary?year=2024", "/reports/", "/reports/spending?period=custom&start=2025-01-01&end=2025-12-31", "/forecast/",
                 "/subscriptions/", "/subscriptions/?kind=income", "/accounts/", "/accounting/balance-sheet",
                 "/accounting/cash-flow?year=2025", "/accounting/income-statement?year=2025", "/lifestyle/budget",
                 "/lifestyle/goals", "/snapshots/", "/portfolio/", "/debt/", "/transactions/?category=Casa"):

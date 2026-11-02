@@ -65,8 +65,8 @@ def test_pages_show_the_nature(client, db):
     db.session.add_all([make_tx(date=date(2026, 3, 5), amount=800, category="Affitto"),
                         make_tx(date=date(2026, 3, 9), amount=200, category="Alimentari")])
     db.session.commit()
-    html = client.get("/lifestyle/?year=2026").get_data(as_text=True)
+    html = client.get("/reports/spending?period=custom&start=2026-01-01&end=2026-12-31").get_data(as_text=True)
     assert "Natura delle spese" in html and "nature-fixed" in html and "Comprimibile" in html
     summary = client.get("/reports/summary?year=2026").get_data(as_text=True)
     assert 'class="nature-dot nature-fixed summary-nature"' in summary
-    assert "Nessuna spesa registrata" in client.get("/lifestyle/?year=2025").get_data(as_text=True)
+    assert "Nessuna spesa registrata" in client.get("/reports/spending?period=custom&start=2025-01-01&end=2025-12-31").get_data(as_text=True)

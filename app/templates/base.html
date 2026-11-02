@@ -75,6 +75,13 @@
            class="nav-item {% if request.endpoint == 'reports.spending' %}active{% endif %}">
           <i class="bi bi-arrow-up-circle"></i> <span class="nav-label" title="{{ _('Uscite') }}">{{ _('Uscite') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
+        {% if shown('subscriptions') %}
+        {# what comes back every month, spent or earned: under Entrate and Uscite #}
+        <a href="{{ url_for('subscriptions.index') }}"
+           class="nav-item {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
+          <i class="bi bi-arrow-repeat"></i> <span class="nav-label" title="{{ _('Abbonamenti') }}">{{ _('Abbonamenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+        </a>
+        {% endif %}
         <a href="{{ url_for('reports.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') and request.endpoint not in ('reports.income', 'reports.spending') %}active{% endif %}">
           <i class="bi bi-bar-chart-line"></i> <span class="nav-label" title="{{ _('Report') }}">{{ _('Report') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
@@ -98,8 +105,8 @@
       </div>
       {% endif %}
 
-      <!-- STILE DI VITA: what you set yourself (Strategia), what happened (Analisi), what is coming (Pianificazione) -->
-      {% if shown_any('lifestyle', 'budget', 'goals', 'events', 'forecast', 'subscriptions', 'deadlines') %}
+      <!-- STILE DI VITA: what you set yourself (Strategia), what is coming (Pianificazione) -->
+      {% if shown_any('budget', 'goals', 'events', 'forecast', 'deadlines') %}
       <div class="nav-section" data-section="stiledivita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-stiledivita">
           <span class="nav-label">{{ _('Stile di Vita') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
@@ -118,23 +125,6 @@
         <a href="{{ url_for('lifestyle.budget') }}"
            class="nav-item {% if request.endpoint in ('lifestyle.budget', 'lifestyle.budget_save') %}active{% endif %}">
           <i class="bi bi-clipboard-check"></i> <span class="nav-label" title="{{ _('Budget') }}">{{ _('Budget') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
-        </div>
-        {% endif %}
-        {% if shown_any('lifestyle', 'subscriptions') %}
-        <div class="nav-subtitle"><span class="nav-label">{{ _('Analisi') }}</span></div>
-        <div class="nav-subtitle-items">
-        {% if shown('lifestyle') %}
-        <a href="{{ url_for('lifestyle.index') }}"
-           class="nav-item {% if request.endpoint == 'lifestyle.index' %}active{% endif %}">
-          <i class="bi bi-pie-chart"></i> <span class="nav-label" title="{{ _('Spese e Tendenze') }}">{{ _('Spese e Tendenze') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
-        </a>
-        {% endif %}
-        {% if shown('subscriptions') %}
-        <a href="{{ url_for('subscriptions.index') }}"
-           class="nav-item {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
-          <i class="bi bi-arrow-repeat"></i> <span class="nav-label" title="{{ _('Abbonamenti') }}">{{ _('Abbonamenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
         </div>

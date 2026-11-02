@@ -1,4 +1,5 @@
 import re
+from datetime import date
 
 import pytest
 
@@ -10,7 +11,7 @@ from tests.form_helper import assert_divs_balanced
     "/dashboard",
     "/accounting/income-statement?year=2026",
     "/accounting/cash-flow?year=2026",
-    "/lifestyle/?year=2026",
+    "/reports/spending?period=custom&start=2026-01-01&end=2026-12-31",
     "/transactions/",
     "/export/",
     "/forecast/",
@@ -19,7 +20,7 @@ def test_pages_render_with_data(client, sample_data, url):
     assert client.get(url).status_code == 200
 
 
-@pytest.mark.parametrize("url", ["/dashboard", "/accounting/income-statement", "/accounting/cash-flow", "/lifestyle/"])
+@pytest.mark.parametrize("url", ["/dashboard", "/accounting/income-statement", "/accounting/cash-flow", "/reports/spending"])
 def test_pages_render_empty(client, app, url):
     assert client.get(url).status_code == 200
 
@@ -65,7 +66,7 @@ def test_api_rejects_invalid_type(client, db):
 
 @pytest.mark.parametrize("url", [
     "/dashboard", "/transactions/", "/transactions/?category=Nope",
-    "/accounting/income-statement", "/accounting/cash-flow", "/lifestyle/", "/export/",
+    "/accounting/income-statement", "/accounting/cash-flow", "/reports/spending", "/export/",
     "/transactions/duplicates", "/settings/ai", "/settings/", "/transactions/new", "/forecast/",
 ])
 def test_pages_have_balanced_divs(client, sample_data, url):
@@ -89,8 +90,8 @@ def test_sidebar_sections_are_collapsible(client, app):
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
     # (section titles and subtitles have one too)
     links = len(re.findall(r'class="nav-item', html))
-    subtitles = len(re.findall(r'class="nav-subtitle"', html))  # Strategia, Analisi, Pianificazione have a label too
-    assert subtitles == 3
+    subtitles = len(re.findall(r'class="nav-subtitle"', html))  # Strategia and Pianificazione have a label too
+    assert subtitles == 2
     assert links == len(re.findall(r'<span class="nav-label"[ >]', html)) - len(sections) - subtitles
     assert 'href="/transactions/add"' not in sidebar and 'class="add-bubble"' in html  # the round + out of the menu
 
@@ -145,3 +146,32 @@ def test_static_files_carry_a_version(client, app):
     for name in ("css/theme.css", "css/main.css", "js/main.js", "js/charts.js", "vendor/chart.umd.min.js",
                  "vendor/icons/icons.css"):
         assert re.search(rf'/static/{name}\?v=\d+"', html), name
+
+
+def test_spese_e_tendenze_is_part_of_uscite(client, db):
+    assert client.get("/lifestyle/").headers["Location"].endswith("/reports/spending")
+    html = client.get("/reports/spending").get_data(as_text=True)
+    assert "Andamento Mensile per Categoria" in html and "Natura delle spese" in html and "Spese per gruppo e categoria" in html
+    assert "Natura delle spese" not in client.get("/reports/income").get_data(as_text=True)
+    menu = client.get("/dashboard").get_data(as_text=True)
+    assert 'href="/lifestyle/"' not in menu and menu.index('href="/reports/spending"') < menu.index('href="/subscriptions/"')
+
+
+def test_entrate_and_uscite_show_the_forecast_after_the_cards(client, db, monkeypatch):
+    from app.routes import reports as route
+    monkeypatch.setattr(route, "_outlook", lambda kind: {"rows": [{"label": "Nov 26", "value": 10}, {"label": "Dic 26", "value": 20}],
+                                                          "total": 20, "method": "Media mobile"})
+    html = client.get("/reports/income").get_data(as_text=True)
+    assert "Previsione delle entrate" in html and html.index("report-outlook") < html.index("Entrate per categoria")
+    assert "Previsione delle uscite" in client.get("/reports/spending").get_data(as_text=True)
+
+
+def test_the_outlook_needs_three_months_of_history(app, db):
+    from app.routes.reports import _outlook
+    from tests.conftest import make_tx
+    assert _outlook("expenses") is None
+    for month in range(1, 7):
+        db.session.add(make_tx(amount=100, date=date(2026, month, 5)))
+    db.session.commit()
+    outlook = _outlook("expenses")
+    assert outlook and len(outlook["rows"]) == 4 and outlook["method"]

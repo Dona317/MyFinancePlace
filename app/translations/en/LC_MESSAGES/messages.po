@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-02 14:44+0100\n"
+"POT-Creation-Date: 2026-11-02 18:33+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -848,6 +848,14 @@ msgstr "= average"
 msgid "A"
 msgstr "To"
 
+#, python-format
+msgid ""
+"A parte: «Spese non annotate» %(amount)s (%(share)s%% delle uscite), "
+"contanti spesi senza sapere per cosa."
+msgstr ""
+"Apart: «Spese non annotate» %(amount)s (%(share)s%% of spending), cash "
+"spent without knowing on what."
+
 msgid "A — Attività Operative"
 msgstr "A — Operating Activities"
 
@@ -1171,9 +1179,6 @@ msgstr "Administered: the broker computes and pays the taxes"
 
 msgid "Amministratore"
 msgstr "Administrator"
-
-msgid "Analisi"
-msgstr "Analysis"
 
 msgid "Analizza file"
 msgstr "Analyze file"
@@ -1895,9 +1900,6 @@ msgstr "Category"
 msgid "Categoria *"
 msgstr "Category *"
 
-msgid "Categoria Top"
-msgstr "Top Category"
-
 msgid "Categoria attuale"
 msgstr "Current category"
 
@@ -2505,6 +2507,9 @@ msgstr "Cash below zero"
 
 msgid "Contanti per valuta"
 msgstr "Cash by currency"
+
+msgid "Contanti spesi senza sapere per cosa: una voce a sé, non una categoria"
+msgstr "Cash spent without knowing on what: a line of its own, not a category"
 
 msgid "Conti"
 msgstr "Accounts"
@@ -3420,6 +3425,15 @@ msgstr "Income"
 msgid "Entrata già registrata"
 msgstr "Income already recorded"
 
+msgid ""
+"Entrata o uscita che si ripete (es. stipendio, affitto, abbonamento): "
+"entra nelle previsioni e in Abbonamenti. L’importo può cambiare di volta "
+"in volta."
+msgstr ""
+"An income or expense that repeats (e.g. salary, rent, subscription): it "
+"goes into the forecasts and Subscriptions. The amount can change each "
+"time."
+
 #, python-format
 msgid "Entrata ricorrente: %(description)s"
 msgstr "Recurring income: %(description)s"
@@ -3999,10 +4013,6 @@ msgstr "Gas"
 
 msgid "Gen"
 msgstr "Jan"
-
-#, python-format
-msgid "Gen → %(month)s %(year)s"
-msgstr "Jan → %(month)s %(year)s"
 
 msgid "Gestione"
 msgstr "Manage"
@@ -5780,9 +5790,6 @@ msgstr "Commodities"
 msgid "Media"
 msgstr "Average"
 
-msgid "Media Mensile"
-msgstr "Monthly Average"
-
 msgid ""
 "Media a pesi lineari: x̂ = Σ i·xᵢ / Σ i, con peso 1 al mese più vecchio e"
 " N al più recente. Segue i cambiamenti più della media semplice."
@@ -5885,6 +5892,10 @@ msgstr "Months of saving to rebuild it"
 
 msgid "Metodo"
 msgstr "Method"
+
+#, python-format
+msgid "Metodo: %(method)s"
+msgstr "Method: %(method)s"
 
 msgid "Metti nell'evento"
 msgstr "Put in the event"
@@ -7940,6 +7951,12 @@ msgstr "Supplementary pension"
 msgid "Previsione"
 msgstr "Forecast"
 
+msgid "Previsione delle entrate"
+msgstr "Income forecast"
+
+msgid "Previsione delle uscite"
+msgstr "Spending forecast"
+
 msgid "Previsione per categoria"
 msgstr "Forecast by category"
 
@@ -8133,6 +8150,10 @@ msgstr "Next deadlines"
 #, python-format
 msgid "Prossimi %(days)s giorni"
 msgstr "Next %(days)s days"
+
+#, python-format
+msgid "Prossimi %(num)s mesi: %(amount)s"
+msgstr "Next %(num)s months: %(amount)s"
 
 msgid "Prossimi 12 mesi"
 msgstr "Next 12 months"
@@ -8652,6 +8673,9 @@ msgstr "Remember me on this device"
 
 msgid "Ricorrente"
 msgstr "Recurring"
+
+msgid "Ricorrente pianificata"
+msgstr "Planned recurring"
 
 msgid "Ricorrenti"
 msgstr "Recurring"
@@ -9624,9 +9648,6 @@ msgstr "Turn off"
 msgid "Spesa"
 msgstr "Expense"
 
-msgid "Spesa maggiore"
-msgstr "Largest expense"
-
 #, python-format
 msgid "Spesa media %(amount)s al mese"
 msgstr "Average spending %(amount)s a month"
@@ -9643,12 +9664,6 @@ msgstr "Recurring expense: %(description)s"
 
 msgid "Spese"
 msgstr "Expenses"
-
-msgid "Spese Discrezionali"
-msgstr "Discretionary Spending"
-
-msgid "Spese Totali"
-msgstr "Total Spending"
 
 msgid "Spese all'anno in pensione (€)"
 msgstr "Expenses a year in retirement (€)"
@@ -9678,9 +9693,6 @@ msgstr "Cash spending tracked in %(year)s"
 
 msgid "Spese mediche"
 msgstr "Medical expenses"
-
-msgid "Spese per Categoria"
-msgstr "Spending by Category"
 
 msgid "Spese per categoria"
 msgstr "Spending by category"
@@ -10237,9 +10249,6 @@ msgstr "Tracking of financial goals with progress bars"
 
 msgid "Transazione"
 msgstr "Transaction"
-
-msgid "Transazione Ricorrente"
-msgstr "Recurring Transaction"
 
 msgid "Transazione aggiornata."
 msgstr "Transaction updated."
@@ -11014,6 +11023,9 @@ msgstr "Złoty"
 msgid "a %(age)s anni"
 msgstr "at %(age)s"
 
+msgid "a parte"
+msgstr "apart"
+
 msgid "aggiornata"
 msgstr "up to date"
 
@@ -11139,6 +11151,9 @@ msgstr "categories"
 msgid "chiuso"
 msgstr "closed"
 
+msgid "chiusura"
+msgstr "closing"
+
 #, python-format
 msgid "circa %(amount)s al mese"
 msgstr "about %(amount)s a month"
@@ -11250,9 +11265,6 @@ msgstr "deductible"
 
 msgid "deduzione dal reddito"
 msgstr "deduction from income"
-
-msgid "del totale spese"
-msgstr "of total spending"
 
 msgid "della categoria"
 msgstr "of the category"

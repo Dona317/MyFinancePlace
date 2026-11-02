@@ -271,9 +271,11 @@
                      {{ 'checked' if v.is_recurring else '' }}
                      onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
               <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">
-                {{ _('Transazione Ricorrente') }}
+                {{ _('Ricorrente pianificata') }}
               </label>
             </div>
+            {# an income too: the salary, a rent received — the amount can change each time, the forecast follows it #}
+            <p class="form-hint" style="margin:-6px 0 10px;">{{ _('Entrata o uscita che si ripete (es. stipendio, affitto, abbonamento): entra nelle previsioni e in Abbonamenti. L’importo può cambiare di volta in volta.') }}</p>
             <div id="recurring-opts" style="display:{{ 'block' if v.is_recurring else 'none' }};">
               <div class="grid-2">
                 <div class="form-group" style="margin-bottom:0;">

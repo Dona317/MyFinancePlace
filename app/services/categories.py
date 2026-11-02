@@ -125,8 +125,8 @@ BROAD_DEFAULTS = [
      False, "fixed", ["Abitazione", "Bollette", "Affitto", "Mutuo", "Condominio", "Manutenzione"]),
     ("Alimentari", "expense", "supermercati e spesa, ristoranti, bar, delivery", False, None,
      ["Cibo e bevande", "Ristoranti", "Bar e caffè", "Delivery"]),
-    ("Veicoli", "expense", "auto e moto: assicurazione, manutenzione, bollo, leasing, noleggi", False, "periodic",
-     ["Veicolo", "Veicoli e beni mobili", "Manutenzione veicolo", "Assicurazione veicolo", "Leasing", "Noleggi", "Bollo auto"]),
+    ("Veicoli", "expense", "auto e moto: assicurazione, manutenzione, bollo, leasing, noleggi, accessori", False, "periodic",
+     ["Veicolo", "Accessori veicoli", "Manutenzione veicolo", "Assicurazione veicolo", "Leasing", "Noleggi", "Bollo auto"]),
     ("Trasporti e carburanti", "expense", "carburante, treni, mezzi pubblici, taxi, autostrade, parcheggi", False, None,
      ["Trasporto", "Trasporto pubblico", "Benzina e petroli", "Taxi", "Pedaggi e parcheggi"]),
     ("Svago e intrattenimento", "expense", "uscite, cinema, concerti, giochi, tempo libero", True, None,
@@ -138,8 +138,8 @@ BROAD_DEFAULTS = [
      ["Altro", "Eventi della vita"]),
     ("Tasse", "expense", "imposte e tasse pagate: F24, IRPEF, IMU, bollo, conguagli", False, "periodic",
      ["Conguaglio di fine anno", "F24", "IMU", "Bollo"]),
-    ("Regali e beneficenza", "expense", "regali fatti ad altri, beneficenza, donazioni", True, "periodic",
-     ["Regali", "Regali e piaceri", "Beneficenza"]),
+    ("Regali", "both", "regali fatti ad altri (e ricevuti), sfizi", True, "periodic", ["Regali e piaceri", "Regali ricevuti"]),
+    ("Beneficenza", "expense", "beneficenza e donazioni", True, "periodic", ["Donazioni"]),
     ("Prestito", "expense", "rate di prestiti e finanziamenti, quota capitale, interessi, commissioni", False, "fixed",
      ["Rata", "Versamento capitale", "Interessi", "Commissioni"]),
     ("Abbonamenti", "expense", "streaming, musica, software, app, giornali", True, "fixed",
@@ -157,6 +157,7 @@ BROAD_DEFAULTS = [
     ("Giroconto", "both", "trasferimenti tra conti propri, ricariche carte proprie", False, None, []),
 ]
 BROAD_SETTING = "categories.broad"  # set: this archive uses the broad categories (new archives, or after «Riordina»)
+BROAD_V2_SETTING = "categories.broad_v2"  # set: Regali, Beneficenza and «Accessori veicoli» (2 Nov 2026) are there
 BROAD_FALLBACK = "Imprevisti o altro"
 # The old categories (the earlier defaults and the owner's export) and where they go: (broad category, tag kept)
 REMAP = {
@@ -167,7 +168,7 @@ REMAP = {
     "Cibo e bevande": ("Alimentari", "Cibo e bevande"), "Spesa": ("Alimentari", None), "Ristoranti": ("Alimentari", "Ristoranti"),
     "Ristorante": ("Alimentari", "Ristoranti"), "Bar e caffè": ("Alimentari", "Bar e caffè"), "Delivery": ("Alimentari", "Delivery"),
     "Piccole consumazioni": ("Alimentari", "Bar e caffè"),
-    "Veicolo": ("Veicoli", "Veicolo"), "Veicoli, beni mobili": ("Veicoli", "Veicoli e beni mobili"),
+    "Veicolo": ("Veicoli", "Veicolo"), "Veicoli, beni mobili": ("Veicoli", "Accessori veicoli"),
     "Manutenzione veicolo": ("Veicoli", "Manutenzione veicolo"), "Assicurazione veicolo": ("Veicoli", "Assicurazione veicolo"),
     "Assicurazione auto": ("Veicoli", "Assicurazione veicolo"), "Leasing": ("Veicoli", "Leasing"), "Noleggi": ("Veicoli", "Noleggi"),
     "Auto": ("Veicoli", None), "Macchina": ("Veicoli", None),
@@ -183,9 +184,8 @@ REMAP = {
     "Istruzione, sviluppo personale": ("Cultura", "Istruzione e sviluppo personale"), "Istruzione": ("Cultura", "Istruzione e sviluppo personale"),
     "Altro": ("Imprevisti o altro", None), "Eventi della vita": ("Imprevisti o altro", "Eventi della vita"),
     "Tasse e imposte": ("Tasse", None),
-    "Regali": ("Regali e beneficenza", "Regali"), "Regali, piaceri": ("Regali e beneficenza", "Regali e piaceri"),
-    "Beneficenza, regali": ("Regali e beneficenza", "Beneficenza"), "Regali e donazioni": ("Regali e beneficenza", None),
-    "Gift": ("Regali e beneficenza", "Regali"),
+    "Regali, piaceri": ("Regali", "Regali e piaceri"), "Beneficenza, regali": ("Beneficenza", None),
+    "Regali e donazioni": ("Regali", None), "Gift": ("Regali", None),
     "Prestiti, interessi": ("Prestito", None), "Prestiti": ("Prestito", None), "Commissioni": ("Prestito", "Commissioni"),
     "TV, streaming": ("Abbonamenti", "TV e streaming"), "Streaming": ("Abbonamenti", "TV e streaming"),
     "Software, app, giochi": ("Abbonamenti", "Software, app e giochi"), "Software": ("Abbonamenti", "Software, app e giochi"),
@@ -243,6 +243,35 @@ def ensure_defaults() -> None:
         _seed_personal()
     if not settings_store.get(SEEDED_CAR_SETTING):
         _seed_car()
+    if broad() and not settings_store.get(BROAD_V2_SETTING):
+        _broad_v2()
+
+
+def _broad_v2() -> None:
+    """The broad categories as decided on 2 Nov 2026, in an archive already brought to them: «Regali e beneficenza»
+    becomes «Regali» (a gift is a gift) and «Beneficenza» (what carried that tag); the tag «Veicoli e beni mobili»
+    (gloves, accessories) becomes «Accessori veicoli». Once per archive."""
+    rows = {c.name: c for c in Category.query.all()}
+    position = max((c.position for c in rows.values()), default=-1) + 1
+    for name, kind, hint, discretionary, nature, tags in BROAD_DEFAULTS:
+        if name in ("Regali", "Beneficenza") and name not in rows:
+            db.session.add(Category(name=name, kind=kind, hint=hint, discretionary=discretionary, nature=nature,
+                                    tags=list(tags), position=position))
+            position += 1
+    for tx in Transaction.query.filter_by(category="Regali e beneficenza").all():
+        tx.category = "Beneficenza" if "Beneficenza" in (tx.tags or []) else "Regali"
+    for model in (TransactionSplit, Document, CategoryRule):
+        model.query.filter_by(category="Regali e beneficenza").update({"category": "Regali"}, synchronize_session=False)
+    _move_budgets("Regali e beneficenza", "Regali")
+    if "Regali e beneficenza" in rows:
+        db.session.delete(rows["Regali e beneficenza"])
+    for tx in Transaction.query.filter(Transaction.tags.any("Veicoli e beni mobili")).all():
+        tx.tags = list(dict.fromkeys("Accessori veicoli" if t == "Veicoli e beni mobili" else t for t in tx.tags))
+    vehicles = rows.get("Veicoli")
+    if vehicles is not None:
+        vehicles.tags = list(dict.fromkeys("Accessori veicoli" if t == "Veicoli e beni mobili" else t for t in (vehicles.tags or [])))
+    settings_store.set(BROAD_V2_SETTING, "1")  # commits everything
+    forget()
 
 
 def _seed_car() -> None:
@@ -265,7 +294,8 @@ def _seed_broad() -> None:
     for position, (name, kind, hint, discretionary, nature, tags) in enumerate(BROAD_DEFAULTS):
         db.session.add(Category(name=name, kind=kind, hint=hint, discretionary=discretionary, nature=nature,
                                 tags=list(tags), position=position))
-    for key in (SEEDED_SETTING, SEEDED_V2_SETTING, SEEDED_V3_SETTING, SEEDED_PERSONAL_SETTING, SEEDED_CAR_SETTING, BROAD_SETTING):
+    for key in (SEEDED_SETTING, SEEDED_V2_SETTING, SEEDED_V3_SETTING, SEEDED_PERSONAL_SETTING, SEEDED_CAR_SETTING, BROAD_SETTING,
+                BROAD_V2_SETTING):
         settings_store.set(key, "1")  # commits the categories too
     forget()
 

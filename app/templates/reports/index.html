@@ -67,6 +67,30 @@
   </div>
 </div>
 
+{% if outlook %}
+{# the forecast right after the cards on top: the same for Entrate and Uscite, the method of the Previsioni page #}
+<div class="card mb-16 report-outlook">
+  <div class="card-header">
+    <div>
+      <div class="report-eyebrow">{{ _('Previsione delle entrate') if section == 'income' else _('Previsione delle uscite') }}</div>
+      <div class="card-header-title">{{ _('Prossimi %(num)s mesi: %(amount)s', num=outlook.rows|length - 1, amount=outlook.total|money) }}</div>
+      <div class="card-header-sub">{{ _('Metodo: %(method)s', method=outlook.method) }}</div>
+    </div>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('forecast.index') }}">{{ _('Previsioni') }} <i class="bi bi-arrow-right"></i></a>
+  </div>
+  <div class="card-body outlook-months">
+    {% for row in outlook.rows %}
+    <div class="outlook-month{{ ' is-current' if loop.first }}">
+      <span class="text-xs text-muted">{{ row.label }}{% if loop.first %} · {{ _('chiusura') }}{% endif %}</span>
+      <strong class="{{ 'text-positive' if section == 'income' else 'text-negative' }}">{{ row.value|money }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
+{% if f.tab != 'cashflow' %}
+
 <!-- By category ─────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
   <div class="card-header">
@@ -126,6 +150,12 @@
     <div class="chart-container" style="height:280px;"><canvas id="flowChart" aria-label="{{ _('Entrate e uscite per mese') }}"></canvas></div>
   </div>
 </div>
+{% endif %}
+
+{% if trend_report %}
+{# «Spese e tendenze», part of Uscite: the year of the period #}
+{% set report = trend_report %}
+{% include "lifestyle/_sections.html" %}
 {% endif %}
 
 <!-- Transactions and summary ─────────────────────────────────────────────── -->
@@ -226,7 +256,13 @@ document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click'
 let saved = 'doughnut';
 try { saved = localStorage.getItem('mfp-report-view') || 'doughnut'; } catch (e) {}
 showView(saved);
-{% elif f.tab == 'cashflow' %}
+{% endif %}
+{% if trend_report %}
+// «Spese e tendenze»: the categories month by month
+const trend = {{ trend_report.trend|tojson }};
+makeLineChart('categoryTrend', trend.labels, trend.datasets.map(d => ({ ...d, fill: false })), { palette: 'expense' });
+{% endif %}
+{% if f.tab == 'cashflow' %}
 const flow = {{ flow|tojson }};
 makeBarChart('flowChart', flow.labels, [
   { label: {{ _('Entrate')|tojson }}, data: flow.income, color: 'income' },

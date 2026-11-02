@@ -65,9 +65,14 @@ def category_breakdown(start: date, end: date, tx_type: str = "expense") -> list
     return breakdown(Transaction.query.filter(Transaction.date >= start, Transaction.date < end), tx_type)
 
 
+# F39: the cash a count found missing is a line of its own, after the categories and not one of them: their shares
+# leave it out (its own share is of the whole spending), the charts show it apart
+APART = "Spese non annotate"
+
+
 def breakdown(query, tx_type: str, within: str | None = None) -> list[dict]:
     """Total per main category of one type (subcategories added to theirs), biggest first, with its share (%).
-    `within` a main category: its own split, by subcategory."""
+    `within` a main category: its own split, by subcategory. «Spese non annotate» comes last, marked `apart`."""
     query = with_lines(query.filter(Transaction.type == tx_type))
     if within:
         query = query.filter(LINE_CATEGORY.in_(categories.with_children(within)))
@@ -78,10 +83,15 @@ def breakdown(query, tx_type: str, within: str | None = None) -> list[dict]:
         entry = grouped.setdefault(key or UNCATEGORIZED, [0.0, 0])
         entry[0] += float(amount or 0)
         entry[1] += count
+    apart = grouped.pop(APART, None) if not within else None
     total = sum(amount for amount, _ in grouped.values())
     items = [{"category": name, "amount": amount, "count": count, "share": share(amount, total)}
              for name, (amount, count) in grouped.items() if round(amount, 2)]  # a category summing to zero: no slice
-    return sorted(items, key=lambda item: item["amount"], reverse=True)
+    items.sort(key=lambda item: item["amount"], reverse=True)
+    if apart and round(apart[0], 2):
+        items.append({"category": APART, "amount": apart[0], "count": apart[1], "apart": True,
+                      "share": share(apart[0], total + apart[0])})
+    return items
 
 
 def monthly_series(year: int) -> dict:

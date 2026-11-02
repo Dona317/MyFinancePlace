@@ -1,50 +1,16 @@
-{% extends "base.html" %}
+{# «Spese e tendenze», part of Uscite (2 Nov 2026): the year of the period — the categories month by month, their nature
+   (fixed, not monthly, variable), the spending groups and this month against the one before. Needs report, year, groups. #}
 {% from "partials/info.html" import info %}
-{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/empty.html" import empty_state %}
-{% from "partials/kpi.html" import kpi %}
-
-{% block title %}{{ _('Spese e Tendenze') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Stile di Vita') }}{% endblock %}
-{% block breadcrumb %}<li>{{ _('Spese e Tendenze') }}</li>{% endblock %}
-
-{% block topbar_actions %}
-  {% include "partials/year_select.html" %}
-{% endblock %}
-
-{% block content %}
-
-<!-- KPI Spese ────────────────────────────────────────────────────────── -->
-<div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  {{ kpi('cart3', _('Spese Totali'), amount=report.total_expenses, cls='kpi-negative', value_class='text-negative', sub=(_('Anno %(year)s', year=year))) }}
-  {{ kpi('calendar3', _('Media Mensile'), amount=report.monthly_average, cls='kpi-primary', sub=(_('Gen → %(month)s %(year)s', month=report.reference_month, year=year))) }}
-  {{ kpi('graph-up', _('Categoria Top'), value=(report.top_category or '—'), value_style='font-size:var(--font-size-xl);', cls='kpi-warning', sub=(_('Spesa maggiore'))) }}
-  {{ kpi('piggy-bank', _('Spese Discrezionali'), value="%.1f"|format(report.discretionary_share) ~ '%', cls='kpi-positive', sub=_('del totale spese')) }}
-</div>
-
-<!-- Grafici principali ──────────────────────────────────────────────── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-title">{{ _('Spese per Categoria') }}</div>
-      <div class="card-header-sub">{{ _('Anno %(year)s', year=year) }}</div>
-    </div>
-    <div class="card-body">
-      <div class="chart-container" style="height:280px;"><canvas id="categoryDoughnut"></canvas></div>
-    </div>
-  </div>
-
-  <div class="card">
+<div class="card mb-16">
     <div class="card-header">
       <div class="card-header-title">{{ _('Andamento Mensile per Categoria') }}</div>
+      <div class="card-header-sub">{{ _('Anno %(year)s', year=year) }}</div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:280px;"><canvas id="categoryTrend"></canvas></div>
     </div>
   </div>
-
-</div>
 
 <!-- Fisse / non mensili / variabili (F8) ─────────────────────────────── -->
 {% set nat = report.natures %}
@@ -181,13 +147,3 @@
   </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
-<script>
-const breakdown = {{ report.breakdown|tojson }};
-const trend = {{ report.trend|tojson }};
-makeDoughnutChart('categoryDoughnut', breakdown.map(c => c.category), breakdown.map(c => c.amount), { palette: 'expense' });
-makeLineChart('categoryTrend', trend.labels, trend.datasets.map(d => ({ ...d, fill: false })), { palette: 'expense' });
-</script>
-{% endblock %}

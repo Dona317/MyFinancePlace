@@ -12,8 +12,10 @@ from app.routes.helpers import csv_text, download, year_arg
 from app.services import (
     accounts,
     analytics,
+    analytics_clusters,
     annual_review,
     categories,
+    forecast,
     groups,
     i18n,
     pdf_report,
@@ -65,6 +67,20 @@ def _rows(filters: dict):
     return query, tx_type, reports.transactions(query, tx_type, filters["category"] or None, filters["sort"])
 
 
+OUTLOOK_MONTHS = 3  # the months the forecast of Entrate and Uscite looks ahead, after the current one
+
+
+def _outlook(kind: str) -> dict | None:
+    """The forecast of the income or the expenses: the current month and the next ones, with the method of the
+    Previsioni page; None without enough history (3 complete months)."""
+    prefs = forecast.preferences()
+    fc = forecast.load(prefs["method"], prefs["window"], OUTLOOK_MONTHS, prefs["recurring"])
+    if fc.history_months < 3 or not fc.months:
+        return None
+    rows = [{"label": r["label"], "value": r[kind]} for r in fc.months[:OUTLOOK_MONTHS + 1]]
+    return {"rows": rows, "total": round(sum(r["value"] for r in rows[1:]), 2), "method": str(forecast.METHODS[prefs["method"]][0])}
+
+
 @reports_bp.route("/income")
 def income():
     """Entrate: a section of its own, the income of the period by category, its transactions and the net."""
@@ -100,6 +116,12 @@ def index(tab: str | None = None):
                                              Transaction.date < filters["end"])
     # the net of the period (income − expenses = saved), with the way to the cash flow of the same year
     context["net"] = analytics.totals(filters["start"], filters["end"])
+    if tab in ("income", "spending"):
+        context["outlook"] = _outlook("income" if tab == "income" else "expenses")
+    if tab == "spending":  # «Spese e tendenze», for the year of the period
+        year = filters["start"].year
+        context.update(trend_report=analytics.lifestyle_report(year), year=year,
+                       groups=analytics_clusters.cluster_breakdown(*analytics.year_bounds(year)))
     account_list = accounts.active()
     return render_template(
         "reports/index.html", **context, section=tab, tabs=reports.TABS, periods=reports.PERIODS, sorts=reports.SORTS,

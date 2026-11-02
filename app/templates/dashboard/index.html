@@ -175,7 +175,7 @@
     <div class="chart-container" style="height:200px;"><canvas id="{{ kind }}PieChart" class="clickable-chart"></canvas></div>
     {# legend as a grid: colour, category, amount and share, like the chart slices (8 colours, repeating) #}
     <ul class="category-legend" id="{{ kind }}-legend">
-      {% for c in breakdown %}
+      {% for c in breakdown|rejectattr('apart') %}
       <li>
         <span class="category-legend-dot" style="background:var(--{{ 'inc' if kind == 'income' else 'exp' }}-{{ (loop.index0 % 8) + 1 }});"></span>
         {% if tx_ok %}<a class="category-legend-name" href="{{ url_for('transactions.index', category=c.category, type=kind, start=pie_start.isoformat(), end=pie_last.isoformat()) }}"
@@ -186,6 +186,10 @@
       </li>
       {% endfor %}
     </ul>
+    {% for c in breakdown if c.apart %}
+    <p class="category-apart text-xs"><i class="bi bi-cash-coin acc-cash"></i>
+      {{ _('A parte: «Spese non annotate» %(amount)s (%(share)s%% delle uscite), contanti spesi senza sapere per cosa.', amount=c.amount|money, share=c.share|number(1)) }}</p>
+    {% endfor %}
     {% else %}
     {{ empty_state(text=_('Nessuna spesa in questo periodo.') if kind == 'expense' else _('Nessuna entrata in questo periodo.'), compact=True) }}
     {% endif %}
@@ -471,7 +475,7 @@ const trendLines = (trend) => trend.datasets.map(ds => (
 ));
 const txUrl = {{ (not tx_ok)|tojson }} ? null : (category, type) => {{ tx_url|tojson }} + '?' + new URLSearchParams(
   { category, type, start: {{ pie_start.isoformat()|tojson }}, end: {{ pie_last.isoformat()|tojson }} });
-[['expense', {{ expense_breakdown|tojson }}, {{ expense_breakdown|map(attribute='category')|map('tr')|list|tojson }}, {{ expense_trend|tojson }}],
+[['expense', {{ expense_breakdown|rejectattr('apart')|list|tojson }}, {{ expense_breakdown|rejectattr('apart')|map(attribute='category')|map('tr')|list|tojson }}, {{ expense_trend|tojson }}],
  ['income',  {{ income_breakdown|tojson }},  {{ income_breakdown|map(attribute='category')|map('tr')|list|tojson }},  {{ income_trend|tojson }}]]
   .forEach(([kind, breakdown, labels, trend]) => {
     if (shown(kind + '_pie') && breakdown.length) {

@@ -165,3 +165,16 @@ def test_the_cash_page_shows_how_much_was_written_down(client, db):
     html = client.get(f"/accounts/{wallet.id}").get_data(as_text=True)
     assert "Spese in contanti tracciate" in html and "<strong>75%</strong>" in html and "Come funzionano i contanti" in html
     assert "mfp-cash-intro" in html
+
+
+def test_unrecorded_cash_is_a_line_of_its_own(client, db):
+    from app.services import analytics
+    for category, amount in (("Alimentari", 60), ("Casa", 40), (cash.UNRECORDED, 25)):
+        db.session.add(make_tx(category=category, amount=amount, date=date(2026, 3, 1)))
+    db.session.commit()
+    lines = analytics.category_breakdown(date(2026, 1, 1), date(2027, 1, 1))
+    assert [(line["category"], line["share"], line.get("apart", False)) for line in lines] == [
+        ("Alimentari", 60.0, False), ("Casa", 40.0, False), (cash.UNRECORDED, 20.0, True)]  # its share of all 125
+    html = client.get("/dashboard?year=2026").get_data(as_text=True)
+    assert "A parte: «Spese non annotate»" in html
+    assert "a parte</span>" in client.get("/accounting/income-statement?year=2026").get_data(as_text=True)

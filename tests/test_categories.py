@@ -161,3 +161,27 @@ def test_personal_list_is_added_once_without_duplicates(db):
     categories.ensure_defaults()
     assert "Calcetto" not in {c.name for c in categories.all_categories()}  # deleted stays deleted
     assert categories._stem("Ristoranti") == categories._stem("ristorante")
+
+
+def test_broad_archives_get_regali_beneficenza_and_vehicle_accessories(db):
+    from app.models.category import Category
+    from app.services import categories as service
+    service.reorder()  # brought to the broad categories, as decided on 2 Nov
+    names = {c.name for c in Category.query}
+    assert {"Regali", "Beneficenza", "Veicoli"} <= names and "Regali e beneficenza" not in names
+    assert "Accessori veicoli" in Category.query.filter_by(name="Veicoli").one().tags
+    # an archive brought to the broad categories before: the old category and tag move
+    service.settings_store.set(service.BROAD_V2_SETTING, None)
+    db.session.add(Category(name="Regali e beneficenza", kind="expense"))
+    vehicles = Category.query.filter_by(name="Veicoli").one()
+    vehicles.tags = ["Veicolo", "Veicoli e beni mobili"]
+    db.session.add_all([make_tx(description="Regalo mamma", category="Regali e beneficenza"),
+                        make_tx(description="Unicef", category="Regali e beneficenza", tags=["Beneficenza"]),
+                        make_tx(description="Guanti moto", category="Veicoli", tags=["Veicoli e beni mobili"])])
+    db.session.commit()
+    service.ensure_defaults()
+    by = {t.description: t for t in Transaction.query}
+    assert by["Regalo mamma"].category == "Regali" and by["Unicef"].category == "Beneficenza"
+    assert by["Guanti moto"].tags == ["Accessori veicoli"]
+    assert Category.query.filter_by(name="Regali e beneficenza").first() is None
+    assert Category.query.filter_by(name="Veicoli").one().tags == ["Veicolo", "Accessori veicoli"]
