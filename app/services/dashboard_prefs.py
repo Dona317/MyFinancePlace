@@ -145,7 +145,7 @@ WIDGETS = {
     "sankey":        (_l("Dove va il denaro"), 3, "dashboard_sankey"),
     "year_total":    (_l("Totale dell'anno"), 1, "dashboard_net"),
     "savings_trend": (_l("Tasso di risparmio mese per mese"), 2, "dashboard_savings_trend"),
-    "recent":        (_l("Transazioni"), 2, "dashboard_recent_tx"),
+    "recent":        (_l("Ultime transazioni"), 2, "dashboard_recent_tx"),
     "health":        (_l("Salute finanziaria"), 1, "dashboard_health"),
 }
 LAYOUT_SETTING = "dashboard.layout"

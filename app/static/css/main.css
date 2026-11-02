@@ -1596,7 +1596,8 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .shock-table td { padding: 4px 0; border-bottom: 1px solid var(--clr-border-light); }
 .shock-table td + td { padding-left: 8px; }
 
-.recent-controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.recent-controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; }
+.card-header:has(> .recent-controls) > .card-header-title { white-space: nowrap; }
 .form-select-sm { padding: 4px 28px 4px 8px; font-size: var(--font-size-xs); width: auto; }
 .recent-rows[hidden], .recent-rows tr[hidden] { display: none; }
 

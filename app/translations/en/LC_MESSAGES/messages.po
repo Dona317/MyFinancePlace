@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 23:40+0100\n"
+"POT-Creation-Date: 2026-11-02 09:25+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -9182,8 +9182,8 @@ msgstr ""
 #, python-format
 msgid "Seleziona tutta la ricerca (%(num)d transazione)"
 msgid_plural "Seleziona tutta la ricerca (%(num)d transazioni, tutte le pagine)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Select the whole search (%(num)d transaction)"
+msgstr[1] "Select the whole search (%(num)d transactions, all pages)"
 
 msgid "Seleziona tutti"
 msgstr "Select all"
@@ -9390,6 +9390,9 @@ msgstr "Text only"
 
 msgid "Solo transazioni, reimportabile"
 msgstr "Transactions only, can be re-imported"
+
+msgid "Solo un conto"
+msgstr "One account only"
 
 msgid "Solo una categoria"
 msgstr "One category only"
@@ -10255,6 +10258,9 @@ msgstr "Last digits of IBAN or card"
 
 msgid "Ultime registrate"
 msgstr "Last recorded"
+
+msgid "Ultime transazioni"
+msgstr "Latest transactions"
 
 #, python-format
 msgid "Ultimi %(count)s mesi"

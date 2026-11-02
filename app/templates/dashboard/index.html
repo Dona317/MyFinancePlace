@@ -305,7 +305,7 @@
   {% elif w.id == 'recent' %}
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ _('Transazioni') }}</div>
+      <div class="card-header-title">{{ _('Ultime transazioni') }}</div>
       <div class="recent-controls">
         <label class="sr-only" for="recent-mode">{{ _('Quali transazioni') }}</label>
         <select id="recent-mode" class="form-select form-select-sm" title="{{ _('Le ultime registrate, o le più grandi del periodo delle uscite') }}">
@@ -316,6 +316,13 @@
         <select id="recent-category" class="form-select form-select-sm" title="{{ _('Solo una categoria') }}">
           <option value="">{{ _('Tutte le categorie') }}</option>
           {% for name in (recent_transactions + impact_transactions)|map(attribute='category')|reject('none')|unique|sort %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
+        </select>
+        {# the accounts shown: one account (or card, or cash), or all of them #}
+        <label class="sr-only" for="recent-account">{{ _('Conto') }}</label>
+        <select id="recent-account" class="form-select form-select-sm" title="{{ _('Solo un conto') }}">
+          <option value="">{{ _('Tutti i conti') }}</option>
+          {% for account in (recent_transactions + impact_transactions)|map(attribute='account')|reject('none')|unique|sort(attribute='name') %}<option value="{{ account.id }}">{{ account.name }}</option>{% endfor %}
+          {% if (recent_transactions + impact_transactions)|selectattr('account_id', 'none')|list %}<option value="none">{{ _('— Senza conto —') }}</option>{% endif %}
         </select>
         <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
       </div>
@@ -328,7 +335,7 @@
         {% for mode, rows in (('recent', recent_transactions), ('impact', impact_transactions)) %}
         <tbody class="recent-rows" data-mode="{{ mode }}" {{ 'hidden' if mode == 'impact' }}>
           {% for tx in rows %}
-          <tr data-category="{{ tx.category or '' }}">
+          <tr data-category="{{ tx.category or '' }}" data-account="{{ tx.account_id or 'none' }}">
             <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ (tx.date|it_date) }}</td>
             <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
             <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
@@ -523,16 +530,18 @@ if (shown('savings_trend')) (function () {
 }());
 {% endif %}
 
-/* ── The transactions block: the last ones or the biggest of the period, of one category ── */
+/* ── The transactions block: the last ones or the biggest of the period, of one category, of one account ── */
 {
 const mode = document.getElementById('recent-mode');
 const category = document.getElementById('recent-category');
+const account = document.getElementById('recent-account');
 const apply = () => {
   document.querySelectorAll('.recent-rows').forEach(body => {
     body.hidden = body.dataset.mode !== mode.value;
     let count = 0;
     body.querySelectorAll('tr[data-category]').forEach(row => {
-      const ok = !category.value || row.dataset.category === category.value;
+      const ok = (!category.value || row.dataset.category === category.value)
+        && (!account?.value || row.dataset.account === account.value);
       row.hidden = !ok || count >= 8;
       if (ok) count += 1;
     });
@@ -543,6 +552,7 @@ if (mode && category) {
   try { const saved = localStorage.getItem('mfp-recent-mode'); if (saved) mode.value = saved; } catch (e) { /* private window */ }
   mode.addEventListener('change', apply);
   category.addEventListener('change', apply);
+  account?.addEventListener('change', apply);
   apply();
 }
 }
