@@ -182,3 +182,9 @@ pyrightconfig.json
 
 # Live test output (scripts/live/run.sh)
 scripts/live/out/
+
+# Local editor and assistant settings (each machine its own)
+.claude/
+.vscode/
+# Coverage report of the local check (scripts/untested_functions.py)
+cov.json
