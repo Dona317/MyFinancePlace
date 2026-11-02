@@ -1611,7 +1611,6 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
   box-shadow: var(--shadow-md);
 }
 .settings-dirty { margin-right: auto; color: var(--clr-warning); font-weight: 600; }
-.window-default { display: flex; gap: 8px; align-items: center; }
 
 /* ── A page shown inside the app's pop-up (?embed=1): no sidebar, no top bar ── */
 html.embedded .main-content { margin-left: 0; }

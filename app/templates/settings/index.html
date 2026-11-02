@@ -106,30 +106,9 @@
     <div class="settings-section">
       <div class="settings-section-header">
         <i class="bi bi-calendar3" style="color:var(--clr-primary);"></i>
-        {{ _('Dashboard — Periodi e previsioni delle schede') }}
+        {{ _('Dashboard — Previsioni delle schede') }}
       </div>
       <div class="settings-section-body">
-        <div class="toggle-wrap">
-          <div class="toggle-info">
-            <label class="toggle-label" for="s-window">{{ _('Periodo predefinito delle schede') }}</label>
-            <div class="toggle-hint">{{ _('Per entrate, uscite e tasso di risparmio, finché non scegli un periodo nella scheda. Gli ultimi N mesi li scrivi tu.') }}</div>
-          </div>
-          <div class="window-default">
-            <select id="s-window" name="dashboard_default_window" class="form-select" style="width:auto;">
-              {% for key, label in window_presets %}<option value="{{ key }}" {{ 'selected' if default_window.period == key }}>{{ label }}</option>{% endfor %}
-              <option value="last_n" {{ 'selected' if default_window.period == 'last_n' }}>{{ _('Ultimi N mesi') }}</option>
-            </select>
-            <input type="number" name="dashboard_default_months" min="1" max="120" class="form-control" style="width:80px;"
-                   value="{{ default_window.n or 3 }}" aria-label="{{ _('Numero di mesi') }}" />
-          </div>
-        </div>
-        <div class="toggle-wrap">
-          <div class="toggle-info">
-            <div class="toggle-label">{{ _('Periodi scelti nelle schede') }}</div>
-            <div class="toggle-hint">{{ _('Riporta tutte le schede al periodo predefinito (il mese in corso).') }}</div>
-          </div>
-          <button type="submit" form="reset-windows-form" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina i periodi') }}</button>
-        </div>
         <div class="toggle-wrap">
           <div class="toggle-info">
             <label class="toggle-label" for="s-forecast">{{ _('Previsione sotto le schede') }}</label>
@@ -366,10 +345,6 @@
 
   </div><!-- /right content -->
 </div><!-- /settings-layout -->
-</form>
-<form method="POST" action="{{ url_for('dashboard.reset_windows') }}" id="reset-windows-form"
-      data-confirm="{{ _('Riportare tutte le schede al periodo predefinito?') }}">
-  <input type="hidden" name="next" value="{{ url_for('settings.index', _anchor='dashboard') }}" />
 </form>
 
 {% endblock %}

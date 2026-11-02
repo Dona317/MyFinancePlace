@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from apiflask import APIBlueprint
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
@@ -260,27 +260,6 @@ def dashboard():
         presets=presets,
         preset_changed=dashboard_prefs.preset_changed(preset, {"year": year, "year_to": year_to, "part": part}, today),
     )
-
-
-@dashboard_bp.route("/dashboard/window", methods=["POST"])
-def save_window():
-    """The time window of one card: {"card": "income", "window": {"period": "last_n", "n": 4}}, kept for every visit."""
-    data = request.get_json(silent=True)
-    if not isinstance(data, dict):
-        return jsonify(error=_("Atteso un oggetto JSON.")), 400
-    try:
-        window = dashboard_prefs.save_window(data.get("card"), data.get("window"))
-    except ValueError as exc:
-        return jsonify(error=str(exc)), 400
-    return jsonify(window=window, label=dashboard_prefs.window_label(window))
-
-
-@dashboard_bp.route("/dashboard/windows/reset", methods=["POST"])
-def reset_windows():
-    """Settings → Dashboard: every card back to the default window (this month)."""
-    dashboard_prefs.reset_windows()
-    flash(_("Finestre temporali delle schede riportate al mese in corso."), "success")
-    return redirect(request.form.get("next") or url_for("settings.index", _anchor="dashboard"))
 
 
 @dashboard_bp.route("/dashboard/layout", methods=["POST"])

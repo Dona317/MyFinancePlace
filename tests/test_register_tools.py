@@ -158,21 +158,6 @@ def test_applying_a_suggestion_changes_the_transaction(client, db):
 
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 
-def test_a_card_keeps_its_own_window(client, db):
-    response = client.post("/dashboard/window", json={"card": "income", "window": {"period": "last_n", "n": 4}})
-    assert response.get_json()["label"] == "Ultimi 4 mesi"
-    assert dashboard_prefs.window("income") == {"period": "last_n", "n": 4}
-    assert dashboard_prefs.window("expenses") == {"period": "this_month"}  # the others keep the default
-    assert client.post("/dashboard/window", json={"card": "income", "window": {"period": "nope"}}).status_code == 400
-    client.post("/dashboard/windows/reset")
-    assert dashboard_prefs.window("income") == {"period": "this_month"}
-
-
-def test_a_custom_window_covers_both_dates(db):
-    start, end = dashboard_prefs.window_range({"period": "custom", "start": "2026-03-10", "end": "2026-03-01"})
-    assert (start, end) == (date(2026, 3, 1), date(2026, 3, 11))  # dates in any order, the last day included
-
-
 def test_the_layout_is_saved_and_cleaned(client, db):
     client.post("/dashboard/layout", json={"widgets": [{"id": "health", "span": 3}, {"id": "nope"}, {"id": "health"}]})
     layout = dashboard_prefs.layout()
@@ -206,11 +191,9 @@ def test_the_period_can_span_several_years(client, sample_data):
 
 
 def test_settings_save_keeps_the_tab_and_the_dashboard_choices(client, db):
-    response = client.post("/settings/save", data={"tab": "moduli", "dashboard_forecast": "year",
-                                                   "dashboard_default_window": "last_n", "dashboard_default_months": "6"})
+    response = client.post("/settings/save", data={"tab": "moduli", "dashboard_forecast": "year"})
     assert response.headers["Location"].endswith("#moduli")
     assert dashboard_prefs.forecast_choice() == "year"
-    assert dashboard_prefs.default_window() == {"period": "last_n", "n": 6}
 
 
 # ── Accounts and the account of an import ─────────────────────────────────────

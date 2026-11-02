@@ -1,111 +1,22 @@
 """
 The dashboard's choices, saved for every visit (in app_settings, not in the browser):
-- the time window of each top card that adds up money over a period (income, expenses, savings rate): a preset
-  («questo mese», «ultimi 3 mesi», …), the last N months the user types, or two dates; a default for all of them;
-- the forecast the same cards show under the figure (closing of this month, next month, next 12 months, none);
+- the forecast the top cards show under the figure (closing of this month, next month, next 12 months, none);
 - the blocks below the cards: their order, their width (a third, two thirds or the whole row: never more than
-  three per row) and whether they are hidden from the page. Settings → Dashboard lists them in the same order.
+  three per row) and whether they are hidden from the page. Settings → Dashboard lists them in the same order;
+- three presets, each with the blocks, the cards and the period of the page.
+The cards that add up money (income, expenses, savings rate) follow the period of the page.
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 
 from flask_babel import gettext as _
-from flask_babel import ngettext
 
-from app.services import display, reports, settings_store
+from app.services import settings_store
 from app.services.i18n import _l
-from app.services.periods import month_index, month_start
 
-# ── Time windows of the top cards ──────────────────────────────────────────────
-
-PRESETS = ("this_month", "last_month", "last_3", "last_6", "last_12", "this_year", "last_year")
+# The top cards that add up money over the period of the page
 WINDOW_CARDS = ("income", "expenses", "savings_rate")
-DEFAULT_WINDOW = {"period": "this_month"}
-MAX_MONTHS = 120
-WINDOWS_SETTING = "dashboard.windows"
-DEFAULT_WINDOW_SETTING = "dashboard.default_window"
-
-
-def _clean(window) -> dict | None:
-    """A window as saved: {"period": preset} | {"period": "last_n", "n": 1..120} | {"period": "custom", "start", "end"}."""
-    if not isinstance(window, dict):
-        return None
-    period = window.get("period")
-    if period in PRESETS:
-        return {"period": period}
-    if period == "last_n":
-        try:
-            n = int(window.get("n"))
-        except (TypeError, ValueError):
-            return None
-        return {"period": "last_n", "n": n} if 1 <= n <= MAX_MONTHS else None
-    if period == "custom":
-        try:
-            start, end = date.fromisoformat(str(window.get("start"))), date.fromisoformat(str(window.get("end")))
-        except ValueError:
-            return None
-        start, end = min(start, end), max(start, end)
-        return {"period": "custom", "start": start.isoformat(), "end": end.isoformat()}
-    return None
-
-
-def default_window() -> dict:
-    return _clean(settings_store.get_json(DEFAULT_WINDOW_SETTING, expect=dict)) or dict(DEFAULT_WINDOW)
-
-
-def set_default_window(window) -> dict:
-    window = _clean(window) or dict(DEFAULT_WINDOW)
-    settings_store.set_json(DEFAULT_WINDOW_SETTING, window)
-    return window
-
-
-def window(card: str) -> dict:
-    """The window of a card: the one the user chose for it, else the default."""
-    saved = settings_store.get_json(WINDOWS_SETTING, {}, expect=dict)
-    return _clean(saved.get(card)) or default_window()
-
-
-def save_window(card: str, value) -> dict:
-    if card not in WINDOW_CARDS:
-        raise ValueError(_("Scheda sconosciuta."))
-    clean = _clean(value)
-    if clean is None:
-        raise ValueError(_("Finestra temporale non valida."))
-    saved = settings_store.get_json(WINDOWS_SETTING, {}, expect=dict)
-    saved[card] = clean
-    settings_store.set_json(WINDOWS_SETTING, saved)
-    return clean
-
-
-def reset_windows() -> None:
-    """Every card back to the default window («questo mese» unless the default was changed)."""
-    settings_store.set(WINDOWS_SETTING, None)
-    settings_store.set(DEFAULT_WINDOW_SETTING, None)
-
-
-def window_range(value: dict, today: date | None = None) -> tuple[date, date]:
-    """[first day, day after the last) of a window."""
-    today = today or date.today()
-    value = _clean(value) or dict(DEFAULT_WINDOW)
-    if value["period"] == "last_n":
-        current = month_index(today)
-        return month_start(current - value["n"] + 1), month_start(current + 1)
-    if value["period"] == "custom":
-        return date.fromisoformat(value["start"]), date.fromisoformat(value["end"]) + timedelta(days=1)
-    return reports.period_range(value["period"], today=today)
-
-
-def window_label(value: dict) -> str:
-    if value["period"] == "last_n":
-        return ngettext("Ultimo mese", "Ultimi %(num)d mesi", value["n"])
-    if value["period"] == "custom":
-        return f"{display.day(date.fromisoformat(value['start']))} – {display.day(date.fromisoformat(value['end']))}"
-    return str(reports.PERIODS[value["period"]])
-
-
-def preset_choices() -> list[tuple[str, str]]:
-    return [(key, str(reports.PERIODS[key])) for key in PRESETS]
 
 
 # ── The forecast under the cards ──────────────────────────────────────────────
