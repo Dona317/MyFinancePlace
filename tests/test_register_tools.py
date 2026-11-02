@@ -254,7 +254,7 @@ def test_accounting_opens_on_its_first_tab(client, db):
     response = client.get("/accounting/")
     assert response.status_code == 302 and response.headers["Location"].endswith("/accounting/balance-sheet")
     page = client.get("/accounting/growth").get_data(as_text=True)
-    assert page.count('class="statement-tab"') == 4 and "Crescita del patrimonio" in page
+    assert page.count('class="statement-tab"') == 5 and "Crescita del patrimonio" in page and "Bilanci annuali" in page
 
 
 def test_income_and_expenses_have_palettes_of_their_own(client, sample_data):

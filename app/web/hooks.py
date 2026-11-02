@@ -1,9 +1,10 @@
 """What runs before every request, in this order: open the client's archive, make its fixed accounts (Contanti,
-Debiti), refuse requests from other sites or with NUL characters, ask to sign in, hide the modules switched off in
+Debiti), close the past years (once a day), refuse requests from other sites or with NUL characters, ask to sign in, hide the modules switched off in
 Settings and the sections blocked for the user. Plus /health."""
+from datetime import date
 from urllib.parse import urlsplit
 
-from flask import Flask, current_app, jsonify, redirect, render_template, request, url_for
+from flask import Flask, current_app, g, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
 from sqlalchemy import text
@@ -12,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db, login_manager
 from app.models.account import Account
 from app.models.user import User
-from app.services import accounts, sections, studio, users
+from app.services import accounts, sections, studio, users, year_close
 from app.services.ui_settings import current_settings, module_setting
 from app.version import __version__
 
@@ -48,6 +49,25 @@ def ensure_fixed_accounts():
     try:
         if Account.query.filter(Account.fixed.isnot(None)).count() < len(accounts.FIXED):
             accounts.ensure_fixed()
+    except SQLAlchemyError:  # an archive not upgraded yet: the next request tries again
+        db.session.rollback()
+
+
+_CLOSED_TODAY: set = set()  # (archive, day) already looked at by close_past_years
+
+
+def close_past_years():
+    """From 1 January the statements of the year before (and of any earlier one never closed) are saved: looked at
+    once a day per archive. Off in the tests unless YEAR_CLOSE is set."""
+    if request.endpoint in (None, "static", "health") or (current_app.testing and not current_app.config.get("YEAR_CLOSE")):
+        return
+    client = g.get("client")
+    key = (client.id if client is not None else None, date.today())
+    if key in _CLOSED_TODAY:
+        return
+    try:
+        year_close.ensure()
+        _CLOSED_TODAY.add(key)
     except SQLAlchemyError:  # an archive not upgraded yet: the next request tries again
         db.session.rollback()
 
@@ -113,6 +133,6 @@ def load_user(user_id):
 def register_hooks(app: Flask) -> None:
     login_manager.user_loader(load_user)
     app.get("/health")(app.doc(hide=True)(health))
-    for hook in (open_client_archive, ensure_fixed_accounts, refuse_foreign_and_broken_requests, require_login,
-                 block_disabled_modules):
+    for hook in (open_client_archive, ensure_fixed_accounts, close_past_years, refuse_foreign_and_broken_requests,
+                 require_login, block_disabled_modules):
         app.before_request(hook)

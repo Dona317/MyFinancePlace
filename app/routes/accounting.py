@@ -1,11 +1,14 @@
+import json
 from datetime import date
 
 from apiflask import APIBlueprint
-from flask import flash, redirect, render_template, request, url_for
+from flask import Response, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
+from app.extensions import db
+from app.models.year_close import YearClose
 from app.routes.helpers import form_decimal, year_arg
-from app.services import analytics, family, net_worth_growth, owners, settings_store, wealth
+from app.services import analytics, family, net_worth_growth, owners, settings_store, wealth, year_close
 from app.services.parsing import to_date
 from app.services.ui_settings import current_settings
 
@@ -18,7 +21,7 @@ accounting_bp = APIBlueprint(
 
 # Contabilità: the tabs in their order, each with the setting that switches it off (none: always there)
 TABS = (("accounting.balance_sheet", "accounting_balance_sheet"), ("accounting.income_statement", "accounting_income_statement"),
-        ("accounting.cash_flow", "accounting_cash_flow"), ("accounting.growth", None))
+        ("accounting.cash_flow", "accounting_cash_flow"), ("accounting.growth", None), ("accounting.closes", None))
 
 
 @accounting_bp.route("/")
@@ -83,3 +86,30 @@ def growth():
     rows = net_worth_growth.months(months)
     return render_template("accounting/growth.html", rows=rows, velocity=net_worth_growth.velocity(rows), months=months,
                            labels=[r.end.strftime("%m/%y") for r in rows])
+
+
+@accounting_bp.route("/closes")
+def closes():
+    """The statements of each closed year: saved on 1 January, again on request when its transactions changed."""
+    return render_template("accounting/closes.html", years=year_close.overview(), this_year=date.today().year)
+
+
+@accounting_bp.route("/closes/<int:year>", methods=["POST"])
+def close_year(year: int):
+    """Save the statements of a past year again (a new version), with the transactions as they are now."""
+    if not 1900 < year < date.today().year:
+        flash(_("Si chiudono solo gli anni passati."), "warning")
+        return redirect(url_for("accounting.closes"))
+    row = year_close.close(year)
+    flash(_("Bilanci %(year)s salvati (versione %(version)s).", year=year, version=row.version), "success")
+    return redirect(url_for("accounting.closes"))
+
+
+@accounting_bp.route("/closes/<int:close_id>.json")
+def close_file(close_id: int):
+    """A saved version, as a file to keep."""
+    row = db.get_or_404(YearClose, close_id)
+    body = json.dumps({"year": row.year, "version": row.version, "closed_at": row.closed_at.isoformat(), **row.data},
+                      ensure_ascii=False, indent=2)
+    return Response(body, mimetype="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="bilanci-{row.year}-v{row.version}.json"'})

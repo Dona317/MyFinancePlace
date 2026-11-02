@@ -30,6 +30,7 @@ from app.services import (
     settings_store,
     updates,
     wealth,
+    year_close,
 )
 from app.services.i18n import tr
 
@@ -188,6 +189,15 @@ def _deadlines(today: date) -> list[Notification]:
                          day, url_for("deadlines.index", month=f"{day:%Y-%m}")) for r, day in deadlines.due_reminders(today)]
 
 
+def _year_closes(today: date) -> list[Notification]:
+    """A closed year whose transactions were changed afterwards: its statements can be saved again."""
+    return [Notification(f"year-close-{row.year}-{row.version}", "warning", "journal-text",
+                         _("Bilanci %(year)s da aggiornare", year=row.year),
+                         _("Hai cambiato transazioni del %(year)s dopo la chiusura del %(day)s.", year=row.year,
+                           day=display.day(row.closed_at)),
+                         today, url_for("accounting.closes")) for row in year_close.changed()]
+
+
 def _documents(today: date) -> list[Notification]:
     """A warranty ending within 30 days, a document expiring within 60 (or expired: renew it)."""
     items = []
@@ -232,7 +242,7 @@ def _update(today: date) -> list[Notification]:
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
            (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"),
-           (_deadlines, "deadlines"), (_documents, "documents"),
+           (_deadlines, "deadlines"), (_documents, "documents"), (_year_closes, "accounting"),
            (_backup, "export"), (_update, "notifications"))
 
 

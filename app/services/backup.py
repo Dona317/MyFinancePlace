@@ -50,6 +50,7 @@ from app.models import (
     Transaction,
     TransactionSplit,
     UtilityReading,
+    YearClose,
 )
 from app.services import currency, document_store, money, settings_store, studio
 
@@ -64,7 +65,7 @@ SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 MODELS = [AppSetting, Account, Category, CategoryRule, ExchangeRate, Holding, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
           InsurancePolicy, Goal, Budget, Document, Snapshot, PortfolioTemplate, TemplateSlot, SlotHolding,
           PortfolioRule, InvestmentPlan, ContributionLimit, Taxonomy, TaxonomyCategory, HoldingCategory, Gig, PersonalLoan, Reminder,
-          UtilityReading]  # parents before the rows that point to them
+          UtilityReading, YearClose]  # parents before the rows that point to them
 
 
 class BackupError(Exception):

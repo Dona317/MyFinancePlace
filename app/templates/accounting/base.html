@@ -8,6 +8,7 @@
 {% if settings.accounting_income_statement %}{{ tabs.append(('accounting.income_statement', 'receipt', _('Conto economico'))) or '' }}{% endif %}
 {% if settings.accounting_cash_flow %}{{ tabs.append(('accounting.cash_flow', 'arrow-left-right', _('Flusso di cassa'))) or '' }}{% endif %}
 {{ tabs.append(('accounting.growth', 'graph-up-arrow', _('Crescita del patrimonio'))) or '' }}
+{{ tabs.append(('accounting.closes', 'journal-text', _('Bilanci annuali'))) or '' }}
 <nav class="statement-tabs accounting-tabs" aria-label="{{ _('Prospetti') }}">
   {% for endpoint, icon, label in tabs %}
   <a class="statement-tab" href="{{ url_for(endpoint) }}"
