@@ -2,13 +2,14 @@ from collections import defaultdict
 from datetime import date
 
 from apiflask import APIBlueprint
-from flask import render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
+from app.models.account import Account
 from app.models.wealth import Debt, Holding
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_int, form_text, save_form
-from app.services import family, wealth
+from app.services import accounts, display, family, wealth
 
 debt_bp = APIBlueprint(
     "debt",
@@ -36,12 +37,23 @@ def _debt_from_form(debt: Debt) -> Debt:
     debt.holding_id = holding_id if holding_id and db.session.get(Holding, holding_id) else None
     if not debt.principal:
         raise ValueError(_("Capitale iniziale: deve essere maggiore di zero."))
+    # F34: a new loan received on one of the accounts — its own debt account, and the money as a giroconto
+    bank = db.session.get(Account, request.form.get("received_on", type=int) or 0)
+    if debt.id is None and bank is not None and bank.kind not in ("debt",):
+        db.session.add(debt)
+        db.session.flush()
+        wealth.loan_received(debt, bank)
     return debt
+
+
+def _banks() -> list[Account]:
+    return [a for a in accounts.active() if a.kind != "debt"]
 
 
 def _render_form(debt, values):
     return render_template("debt/form.html", debt=debt, debt_types=wealth.DEBT_TYPES, values=values,
-                           holdings=[(h.id, h.name) for h in Holding.query.order_by(Holding.name)])
+                           holdings=[(h.id, h.name) for h in Holding.query.order_by(Holding.name)],
+                           banks=[(a.id, a.name) for a in _banks()])
 
 
 @debt_bp.route("/")
@@ -75,8 +87,39 @@ def detail(debt_id):
         summary=wealth.debt_summary(debt),
         plan=wealth.schedule(debt),
         financed=[row for row in wealth.financed_assets() if debt in row["debts"]],
-        today=date.today(),
+        today=date.today(), banks=_banks(), favorite=accounts.favorite(),
     )
+
+
+@debt_bp.route("/<int:debt_id>/account", methods=["POST"])
+def open_account(debt_id):
+    """F34: the loan gets its own debt account (its balance is what is still owed)."""
+    debt = db.get_or_404(Debt, debt_id)
+    wealth.open_loan_account(debt)
+    db.session.commit()
+    flash(_("Conto del prestito «%(name)s» aperto: le rate versate lo riducono.", name=debt.account.name), "success")
+    return redirect(url_for("debt.detail", debt_id=debt.id))
+
+
+@debt_bp.route("/<int:debt_id>/payment", methods=["POST"])
+def payment(debt_id):
+    """F34: an installment paid from an account: the interest of the plan as an expense, the rest lowers the debt."""
+    debt = db.get_or_404(Debt, debt_id)
+    bank = db.session.get(Account, request.form.get("account_id", type=int) or 0)
+    try:
+        amount = form_decimal("amount", _("Importo"), required=True)
+        on = form_date("on", _("Data")) or date.today()
+        if bank is None or bank.kind == "debt":
+            raise ValueError(_("Scegli il conto da cui paghi la rata."))
+        rows = wealth.loan_payment(debt, bank, amount, on)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("debt.detail", debt_id=debt.id))
+    db.session.commit()
+    interest = sum(float(r.amount) for r in rows if r.type == "expense")
+    flash(_("Rata registrata: %(capital)s di capitale, %(interest)s di interessi.", capital=display.money(float(amount) - interest),
+            interest=display.money(interest)), "success")
+    return redirect(url_for("debt.detail", debt_id=debt.id))
 
 
 @debt_bp.route("/new", methods=["GET", "POST"])

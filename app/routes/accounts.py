@@ -87,7 +87,8 @@ def index():
         "accounts/index.html", rows=rows, kinds=accounts.KINDS, icons=accounts.ICONS, cash=cash, debt_account=debt,
         currencies=accounts.by_currency(cash["account"]) if cash else {},
         debts=wealth.debt_picture(),
-        total=sum(r["balance_base"] for r in rows if r["account"].active) + (cash["balance_base"] if cash else 0),
+        total=sum(r["balance_base"] for r in rows if r["account"].active and r["account"].kind != "debt")
+        + (cash["balance_base"] if cash else 0),
         unassigned=accounts.unassigned_count(),
     )
 

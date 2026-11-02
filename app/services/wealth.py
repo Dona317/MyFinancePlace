@@ -6,14 +6,17 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, timedelta
+from decimal import Decimal
 
+from flask_babel import gettext as _
 from sqlalchemy import case, false, func
 
 from app.extensions import db
+from app.models.account import Account
 from app.models.personal_loan import PersonalLoan
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
-from app.services import accounts, settings_store
+from app.services import accounts, currency, settings_store
 from app.services.i18n import N_
 from app.services.periods import add_months, last_complete_months
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total
@@ -142,6 +145,8 @@ def balance_on(debt: Debt, on: date | None = None, plan: list[Installment] | Non
     """
     today = date.today()
     on = on or today
+    if debt.account_id and on <= today:  # F34: a loan with its own account — what the account still owes
+        return _money(max(0.0, -accounts.balance(debt.account, on)))
     if debt.balance is not None and on >= today:
         return _money(debt.balance)
     if debt.start_date and on < debt.start_date:
@@ -151,6 +156,59 @@ def balance_on(debt: Debt, on: date | None = None, plan: list[Installment] | Non
         return _money(debt.balance if debt.balance is not None else debt.principal)
     paid = [row for row in plan if row.due <= on]
     return _money(paid[-1].balance if paid else debt.principal)
+
+
+# ── F34: a loan received as an account of its own ─────────────────────────────
+
+LOAN_CATEGORY = "Prestito"
+INTEREST_TAG = "Interessi"
+
+
+def open_loan_account(debt: Debt) -> Account:
+    """The debt account of a loan (named after it), made the first time."""
+    if debt.account is not None:
+        return debt.account
+    name, number = debt.name, 2
+    while Account.query.filter_by(name=name).first() is not None:
+        name, number = f"{debt.name} {number}", number + 1
+    debt.account = Account(name=name, kind="debt", currency=currency.base(), notes=_("Conto del prestito «%(name)s»", name=debt.name))
+    db.session.add(debt.account)
+    db.session.flush()
+    return debt.account
+
+
+def loan_received(debt: Debt, bank: Account, on: date | None = None) -> Transaction:
+    """The money of the loan arrives on `bank`: a giroconto from the loan's account (not an income)."""
+    account = open_loan_account(debt)
+    tx = Transaction(date=on or debt.start_date or date.today(), amount=debt.principal, currency=account.currency,
+                     type="transfer", category="Giroconto", account_id=account.id, counter_account_id=bank.id,
+                     debt_id=debt.id, description=_("Prestito ricevuto: %(name)s", name=debt.name), tags=[])
+    db.session.add(tx)
+    return tx
+
+
+def loan_payment(debt: Debt, bank: Account, amount, on: date | None = None) -> list[Transaction]:
+    """An installment paid from `bank`: the interest the plan gives for that month is an expense («Prestito»,
+    tag «Interessi»), the rest goes back to the loan's account and lowers the debt. Without a plan (or at zero
+    interest) all of it is capital."""
+    on = on or date.today()
+    amount = Decimal(str(amount))
+    if amount <= 0:
+        raise ValueError(_("La rata deve essere maggiore di zero."))
+    account = open_loan_account(debt)
+    due = [row for row in schedule(debt) if (row.due.year, row.due.month) == (on.year, on.month)]
+    interest = min(Decimal(str(due[0].interest)), amount) if due and debt.annual_rate else Decimal(0)
+    rows = []
+    if interest:
+        rows.append(Transaction(date=on, amount=interest, currency=bank.currency, type="expense", category=LOAN_CATEGORY,
+                                account_id=bank.id, debt_id=debt.id, tags=[INTEREST_TAG],
+                                description=_("Interessi: %(name)s", name=debt.name)))
+    if amount - interest:
+        rows.append(Transaction(date=on, amount=amount - interest, currency=bank.currency, type="transfer",
+                                category="Giroconto", account_id=bank.id, counter_account_id=account.id, debt_id=debt.id,
+                                tags=[], description=_("Rata: %(name)s", name=debt.name)))
+    db.session.add_all(rows)
+    return rows
 
 
 def interest_between(debt: Debt, start: date, end: date, plan: list[Installment] | None = None) -> float:

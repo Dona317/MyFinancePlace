@@ -13,7 +13,7 @@
 {% block content %}
 
 <div class="kpi-grid mb-24">
-  {{ kpi('credit-card-2-back', _('Residuo Oggi'), value=summary.balance|money, cls='kpi-purple', sub=(_('saldo inserito da te') if d.balance is not none else _('dal piano di ammortamento'))) }}
+  {{ kpi('credit-card-2-back', _('Residuo Oggi'), value=summary.balance|money, cls='kpi-purple', sub=(_('dal conto del prestito') if d.account_id else _('saldo inserito da te') if d.balance is not none else _('dal piano di ammortamento'))) }}
   {% call kpi('calendar-check', _('Rata Mensile'), value=(summary.installment|money if summary.installment else '—'), cls='kpi-warning') %}{{ d.type|tr }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}{% endcall %}
   {{ kpi('hourglass-split', _('Rate Rimanenti'), value=summary.months_left, sub=(_('ultima il %(date)s', date=summary.end_date|it_date) if summary.end_date else '')) }}
   {{ kpi('percent', _('Interessi Ancora da Pagare'), value=summary.interest_left|money, cls='kpi-primary', sub=(_("%(amount)s pagati quest'anno", amount=summary.interest_ytd|money))) }}
@@ -24,6 +24,33 @@
   {{ _('La rata (%(amount)s) non copre nemmeno gli interessi del primo mese: così il debito non si estingue mai. Controlla rata e tasso.', amount=summary.installment|money) }}
 </div>
 {% endif %}
+
+{# F34: the loan's own debt account and the installments paid into it #}
+<div class="card mb-16" id="loan-account">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-receipt acc-debt"></i> {{ _('Conto del prestito') }}</div>
+      <div class="card-header-sub">{% if d.account %}{{ _('Il residuo è quanto il conto deve ancora: ogni rata versata lo riduce.') }}{% else %}{{ _('Apri il conto del prestito: il residuo verrà dalle rate versate, non dal piano.') }}{% endif %}</div>
+    </div>
+    {% if d.account %}<a class="btn btn-ghost btn-sm" href="{{ url_for('accounts.detail', account_id=d.account_id) }}">{{ d.account.name }} <i class="bi bi-arrow-right"></i></a>
+    {% else %}<form method="POST" action="{{ url_for('debt.open_account', debt_id=d.id) }}"><button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Apri il conto') }}</button></form>{% endif %}
+  </div>
+  {% if d.account and banks %}
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('debt.payment', debt_id=d.id) }}" class="grid-4" style="align-items:end;">
+      <div class="form-group"><label class="form-label" for="lp-amount">{{ _('Rata pagata (€)') }}</label>
+        <input type="text" inputmode="decimal" id="lp-amount" name="amount" class="form-control" required autocomplete="off"
+               value="{{ summary.installment|plain if summary.installment else '' }}" /></div>
+      <div class="form-group"><label class="form-label" for="lp-on">{{ _('Data') }}</label>
+        <input type="date" id="lp-on" name="on" class="form-control" value="{{ today.isoformat() }}" /></div>
+      <div class="form-group"><label class="form-label" for="lp-account">{{ _('Dal conto') }}</label>
+        <select id="lp-account" name="account_id" class="form-select">{% for a in banks %}<option value="{{ a.id }}" {{ 'selected' if favorite and favorite.id == a.id }}>{{ a.name }}</option>{% endfor %}</select></div>
+      <div class="form-group"><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> {{ _('Registra la rata') }}</button></div>
+    </form>
+    <p class="form-hint mb-0">{{ _('Gli interessi del piano di quel mese diventano una spesa «Prestito», il resto riduce il debito.') }}</p>
+  </div>
+  {% endif %}
+</div>
 
 {{ financed_table(financed, _('Bene finanziato')) }}
 

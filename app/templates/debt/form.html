@@ -35,6 +35,11 @@
         {{ f.select(values, 'holding_id', _('Bene finanziato (facoltativo)'), holdings,
                     d.holding_id, blank=_('— nessuno —')) }}
         {% endif %}
+        {% if not is_edit and banks %}
+        {# F34: a loan received is not an income: its own debt account, and the money a giroconto to the bank #}
+        {{ f.select(values, 'received_on', _('Prestito ricevuto sul conto (facoltativo)'), banks, none, blank=_('— non registrare l’accredito —')) }}
+        <p class="form-hint" style="margin-top:-8px;">{{ _('Apre il conto del prestito e registra l’accredito come giroconto, non come entrata.') }}</p>
+        {% endif %}
         {{ f.owner(values, d.owner) }}
         {{ f.textarea(values, 'notes', _('Note'), d.notes) }}
         {{ f.actions(url_for('debt.detail', debt_id=debt.id) if is_edit else url_for('debt.index'),

@@ -104,8 +104,12 @@ class Debt(db.Model):
     # The asset it financed (F20: the mortgage of the house, the loan of the car): its equity is value − balance
     holding_id      = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="SET NULL"), index=True)
     owner           = db.Column(db.String(80))  # whose it is (F20): a holder's name, «joint», empty = family
+    # F34: a loan received has a debt account of its own: the money received leaves it, the installments go back
+    # to it; its balance below zero is what is still owed
+    account_id      = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)
 
     holding = db.relationship("Holding")
+    account = db.relationship("Account", foreign_keys=[account_id])
 
 
 class InsurancePolicy(db.Model):

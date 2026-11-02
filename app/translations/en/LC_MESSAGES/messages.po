@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-02 18:33+0100\n"
+"POT-Creation-Date: 2026-11-02 18:39+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1339,11 +1339,28 @@ msgstr "Apply now to transactions without a category"
 msgid "Apr"
 msgstr "Apr"
 
+msgid ""
+"Apre il conto del prestito e registra l’accredito come giroconto, non "
+"come entrata."
+msgstr ""
+"Opens the loan's account and records the money received as a transfer, "
+"not as income."
+
 msgid "Apri"
 msgstr "Open"
 
 msgid "Apri i debiti"
 msgstr "Open the debts"
+
+msgid "Apri il conto"
+msgstr "Open the account"
+
+msgid ""
+"Apri il conto del prestito: il residuo verrà dalle rate versate, non dal "
+"piano."
+msgstr ""
+"Open the loan's account: the balance will come from the installments "
+"paid, not from the plan."
 
 msgid "Apri il dettaglio"
 msgstr "Open the detail"
@@ -2563,6 +2580,17 @@ msgstr "Account the statement comes from"
 msgid "Conto del broker"
 msgstr "Broker account"
 
+msgid "Conto del prestito"
+msgstr "Loan account"
+
+#, python-format
+msgid "Conto del prestito «%(name)s»"
+msgstr "Account of the loan «%(name)s»"
+
+#, python-format
+msgid "Conto del prestito «%(name)s» aperto: le rate versate lo riducono."
+msgstr "Loan account «%(name)s» opened: the installments paid reduce it."
+
 msgid "Conto deposito"
 msgstr "Savings account"
 
@@ -2903,6 +2931,9 @@ msgstr "From"
 
 msgid "Dal 1° gennaio"
 msgstr "Since 1 January"
+
+msgid "Dal conto"
+msgstr "From the account"
 
 msgid "Dal giorno"
 msgstr "From the day"
@@ -4082,6 +4113,13 @@ msgstr "Administrators always see every section."
 msgid "Gli ho restituito"
 msgstr "I gave it back"
 
+msgid ""
+"Gli interessi del piano di quel mese diventano una spesa «Prestito», il "
+"resto riduce il debito."
+msgstr ""
+"That month's interest from the plan becomes a «Prestito» expense, the "
+"rest reduces the debt."
+
 #, python-format
 msgid ""
 "Gli obiettivi devono fare 100 %%. Un titolo conta in una parte se lo "
@@ -4636,6 +4674,11 @@ msgstr ""
 "What is left on mortgages, loans and cards according to the amortization "
 "plan (or the balance you entered)."
 
+msgid "Il residuo è quanto il conto deve ancora: ogni rata versata lo riduce."
+msgstr ""
+"The balance is what the account still owes: every installment paid "
+"reduces it."
+
 msgid ""
 "Il saldo dei contanti è sotto zero: manca un prelievo o un'entrata in "
 "contanti, oppure conta il portafoglio."
@@ -5041,6 +5084,10 @@ msgstr "Interest Still to Pay"
 msgid "Interessi del mutuo prima casa"
 msgstr "Interest on the main-home mortgage"
 
+#, python-format
+msgid "Interessi: %(name)s"
+msgstr "Interest: %(name)s"
+
 msgid "Internet e telefono"
 msgstr "Internet and phone"
 
@@ -5329,6 +5376,9 @@ msgid ""
 msgstr ""
 "The installment (%(amount)s) does not even cover the first month's "
 "interest: the debt would never be paid off. Check installment and rate."
+
+msgid "La rata deve essere maggiore di zero."
+msgstr "The installment must be greater than zero."
 
 msgid "La rata non copre gli interessi"
 msgstr "The installment does not cover the interest"
@@ -7945,6 +7995,13 @@ msgstr "Personal Loan"
 msgid "Prestito Studentesco"
 msgstr "Student Loan"
 
+msgid "Prestito ricevuto sul conto (facoltativo)"
+msgstr "Loan received on the account (optional)"
+
+#, python-format
+msgid "Prestito ricevuto: %(name)s"
+msgstr "Loan received: %(name)s"
+
 msgid "Previdenza complementare"
 msgstr "Supplementary pension"
 
@@ -8379,6 +8436,17 @@ msgstr "Monthly installment"
 msgid "Rata mensile (€)"
 msgstr "Monthly installment (€)"
 
+msgid "Rata pagata (€)"
+msgstr "Installment paid (€)"
+
+#, python-format
+msgid "Rata registrata: %(capital)s di capitale, %(interest)s di interessi."
+msgstr "Installment recorded: %(capital)s capital, %(interest)s interest."
+
+#, python-format
+msgid "Rata: %(name)s"
+msgstr "Installment: %(name)s"
+
 msgid "Rate / Reddito"
 msgstr "Installments / Income"
 
@@ -8422,6 +8490,9 @@ msgstr "Record"
 
 msgid "Registra la commissione come spesa:"
 msgstr "Record the commission as an expense:"
+
+msgid "Registra la rata"
+msgstr "Record the installment"
 
 msgid "Registra la restituzione"
 msgstr "Record the repayment"
@@ -9183,6 +9254,9 @@ msgid ""
 msgstr ""
 "Pick from the tags already used or type a new one and press Enter. The "
 "counterparty (e.g. the shop) goes in the tags."
+
+msgid "Scegli il conto da cui paghi la rata."
+msgstr "Choose the account you pay the installment from."
 
 msgid "Scegli il conto da cui proviene l'estratto conto: carica di nuovo il file."
 msgstr "Choose the account the statement comes from: upload the file again."
@@ -11238,6 +11312,9 @@ msgstr "since"
 msgid "dal %(year)s: %(left)s su %(amount)s, fino al 31/12/%(until)s"
 msgstr "from %(year)s: %(left)s of %(amount)s, until 31/12/%(until)s"
 
+msgid "dal conto del prestito"
+msgstr "from the loan account"
+
 msgid "dal piano di ammortamento"
 msgstr "from the amortization plan"
 
@@ -12351,6 +12428,9 @@ msgstr "— not set —"
 
 msgid "— non indicato —"
 msgstr "— not set —"
+
+msgid "— non registrare l’accredito —"
+msgstr "— do not record the money received —"
 
 msgid "— quello attivo —"
 msgstr "— the active one —"
