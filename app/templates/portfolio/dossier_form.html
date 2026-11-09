@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% import "partials/fields.html" as f %}
 {% set d = dossier %}
 {% block page_title %}{{ _('Modifica conto titoli') if d else _('Nuovo conto titoli') }}{% endblock %}
@@ -9,8 +10,7 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title"><i class="bi bi-safe"></i> {{ _('Conto titoli «%(name)s»', name=d.name) if d else _('Nuovo conto titoli') }}</div>
-        <div class="card-header-sub">{{ _('Il dossier del broker. La liquidità è il saldo del suo conto di regolamento: acquisti, vendite, dividendi e commissioni si muovono lì.') }}</div>
+        <div class="card-header-title"><i class="bi bi-safe"></i> {{ _('Conto titoli «%(name)s»', name=d.name) if d else _('Nuovo conto titoli') }} {{ info(_('Il dossier del broker. La liquidità è il saldo del suo conto di regolamento: acquisti, vendite, dividendi e commissioni si muovono lì.')) }}</div>
       </div>
     </div>
     <div class="card-body">
@@ -24,7 +24,7 @@
           {{ f.select(values, 'tax_regime', _('Regime fiscale'), regimes.items()|list, d.tax_regime if d else 'amministrato') }}
         </div>
         <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="abroad" class="check" {{ 'checked' if (values.abroad if values else (d and d.abroad)) }} /> {{ _("Conto all'estero (IVAFE al posto dell'imposta di bollo)") }}</label>
-        <div class="card-header-sub mb-8">{{ _('Commissioni: fissa + percentuale sul controvalore, entro un minimo e un massimo. Vuote = nessuna regola.') }}</div>
+        <div class="form-label mb-8">{{ _('Commissioni') }} {{ info(_('Commissioni: fissa + percentuale sul controvalore, entro un minimo e un massimo. Vuote = nessuna regola.')) }}</div>
         <div class="grid-2">
           {{ f.number(values, 'fee_fixed', _('Fissa (€)'), d.fee_fixed if d, placeholder='0,00') }}
           {{ f.number(values, 'fee_percent', _('Percentuale (%%)'), d.fee_percent if d, placeholder='0,19') }}

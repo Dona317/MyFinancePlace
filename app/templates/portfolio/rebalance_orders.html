@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% import "partials/fields.html" as f %}
 {% block page_title %}{{ _('Ordini del ribilanciamento') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount) }}">{{ _('Ribilanciamento') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
@@ -11,10 +12,7 @@
   <div class="card mb-16">
     <div class="card-header">
       <div>
-        <div class="card-header-title"><i class="bi bi-list-check"></i> {{ plan.template.name }}</div>
-        <div class="card-header-sub">
-          {{ _('1. Esegui questi ordini dal tuo broker. 2. Correggi quote, prezzi e commissioni con quelli eseguiti (il prezzo spesso cambia di poco). 3. Togli la spunta agli ordini non eseguiti e conferma: diventano acquisti e vendite.') }}
-        </div>
+        <div class="card-header-title"><i class="bi bi-list-check"></i> {{ plan.template.name }} {{ info(_('1. Esegui questi ordini dal tuo broker. 2. Correggi quote, prezzi e commissioni con quelli eseguiti (il prezzo spesso cambia di poco). 3. Togli la spunta agli ordini non eseguiti e conferma: diventano acquisti e vendite.')) }}</div>
       </div>
     </div>
     <div class="card-body">

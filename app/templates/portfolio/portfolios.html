@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
 
@@ -16,8 +17,7 @@
 <div class="card mb-24">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-collection"></i> {{ _('Portafogli') }}</div>
-      <div class="card-header-sub">{{ _('Gli obiettivi per cui investi («Pensione», «Casa»…). Un portafoglio può stare su più conti titoli e un conto titoli può ospitarne più d\'uno. La stella è il predefinito: le nuove operazioni vanno lì se non ne scegli un altro.') }}</div>
+      <div class="card-header-title"><i class="bi bi-collection"></i> {{ _('Portafogli') }} {{ info(_('Gli obiettivi per cui investi («Pensione», «Casa»…). Un portafoglio può stare su più conti titoli e un conto titoli può ospitarne più d\'uno. La stella è il predefinito: le nuove operazioni vanno lì se non ne scegli un altro.')) }}</div>
     </div>
   </div>
   <div class="table-wrapper">
@@ -79,8 +79,7 @@
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-safe"></i> {{ _('Conti titoli') }}</div>
-      <div class="card-header-sub">{{ _('Dove il broker tiene i titoli. Ognuno ha un conto di liquidità, su cui si muovono acquisti, vendite, dividendi e commissioni.') }}</div>
+      <div class="card-header-title"><i class="bi bi-safe"></i> {{ _('Conti titoli') }} {{ info(_('Dove il broker tiene i titoli. Ognuno ha un conto di liquidità, su cui si muovono acquisti, vendite, dividendi e commissioni.')) }}</div>
     </div>
   </div>
   {% if rows %}
