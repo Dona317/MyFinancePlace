@@ -174,3 +174,17 @@ def test_an_order_sells_where_the_units_are_and_buys_where_the_holding_sits(app,
         buy = Transaction.query.filter(Transaction.units == 2).one()
         assert (buy.securities_account_id, buy.account_id) == (etf.opening_account_id, directa.id)
         assert securities.main_place(Holding(name="Nuovo", asset_class="ETF", quantity=0, avg_price=0)) is None
+
+
+def test_capital_gains_use_the_average_cost_of_each_securities_account(app, db, setup):
+    from app.services import capital_gains
+
+    directa, degiro, etf = setup  # 10 units at 100 opening
+    with app.test_request_context():
+        portfolio_ops.record(etf, Operation("buy", date(2025, 2, 1), directa, units=Decimal(10), price=Decimal(120)))
+        portfolio_ops.record(etf, Operation("buy", date(2025, 2, 2), degiro, units=Decimal(10), price=Decimal(200)))
+        # sold on Directa: its dossier holds the opening 10 at 100 and 10 at 120 → average 110 (not 140 over all)
+        portfolio_ops.record(etf, Operation("sell", date(2025, 6, 2), directa, units=Decimal(5), price=Decimal(150)))
+        db.session.commit()
+        (sale,) = capital_gains.realized()[0]
+    assert (sale.cost, sale.proceeds) == (Decimal("550.00"), Decimal(750)) and sale.result == Decimal(200)
