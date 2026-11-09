@@ -45,6 +45,9 @@ class Holding(db.Model):
     opening_quantity = db.Column(db.Numeric(38, 8))
     opening_price    = db.Column(db.Numeric(38, 6))
     opening_date     = db.Column(db.Date)
+    # where the opening position sits and what it is for (F42); empty = no dossier, the default portfolio
+    opening_account_id   = db.Column(db.Integer, db.ForeignKey("securities_accounts.id", ondelete="SET NULL"))
+    opening_portfolio_id = db.Column(db.Integer, db.ForeignKey("portfolios.id", ondelete="SET NULL"))
 
     @property
     def price(self) -> float:

@@ -22,9 +22,10 @@ from sqlalchemy import func
 
 from app.extensions import db
 from app.models.account import Account
+from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import broker, display, money, wealth
+from app.services import broker, display, money, securities, wealth
 from app.services.i18n import _l
 
 INCOME_CATEGORY = "Dividendi e cedole"
@@ -111,8 +112,12 @@ def holdings_of(transaction_ids) -> set[int]:
 
 
 def recompute_ids(holding_ids) -> None:
-    """After transactions were edited or deleted: the holdings they were (or are now) linked to."""
-    for holding_id in {i for i in holding_ids if i}:
+    """After transactions were edited or deleted: the holdings they were (or are now) linked to (and any operation
+    newly linked to a holding gets its securities account and portfolio, F42)."""
+    ids = {i for i in holding_ids if i}
+    if ids:
+        securities.ensure_assigned()
+    for holding_id in ids:
         holding = db.session.get(Holding, holding_id)
         if holding is not None:
             recompute(holding)
@@ -129,6 +134,10 @@ class Operation:
     fee: Decimal | None = None         # the broker's commission of a purchase or sale
     notes: str | None = None
     import_ref: str | None = None      # the row of a broker statement it was read from (never imported twice)
+    # where it sits and what it is for (F42); empty = the settlement account's securities account, the default
+    # portfolio
+    securities_account: SecuritiesAccount | None = None
+    portfolio: Portfolio | None = None
 
 
 def _description(holding: Holding, op: Operation) -> str:
@@ -176,6 +185,8 @@ def record(holding: Holding, op: Operation) -> list[Transaction]:
                                account_id=op.account.id if op.account else None)]
         db.session.add_all(created)
         db.session.flush()
+    place = op.securities_account or (securities.for_settlement(op.account) if op.account is not None else None)
+    securities.assign(created, place, op.portfolio)
     recompute(holding)
     return created
 

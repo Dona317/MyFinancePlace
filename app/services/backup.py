@@ -38,9 +38,11 @@ from app.models import (
     InsurancePolicy,
     InvestmentPlan,
     PersonalLoan,
+    Portfolio,
     PortfolioRule,
     PortfolioTemplate,
     Reminder,
+    SecuritiesAccount,
     SlotHolding,
     Snapshot,
     SpendingEvent,
@@ -52,7 +54,7 @@ from app.models import (
     UtilityReading,
     YearClose,
 )
-from app.services import currency, document_store, money, settings_store, studio
+from app.services import currency, document_store, money, securities, settings_store, studio
 
 FORMAT = "myfinanceplace-backup"
 VERSION = 2
@@ -62,7 +64,7 @@ KEEP_SAFETY_COPIES = 10
 SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 
 # Insertion order: a table comes after the tables it points to (documents and dismissals → transactions)
-MODELS = [AppSetting, Account, Category, CategoryRule, ExchangeRate, Holding, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
+MODELS = [AppSetting, Account, SecuritiesAccount, Portfolio, Category, CategoryRule, ExchangeRate, Holding, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
           InsurancePolicy, Goal, Budget, Document, Snapshot, PortfolioTemplate, TemplateSlot, SlotHolding,
           PortfolioRule, InvestmentPlan, ContributionLimit, Taxonomy, TaxonomyCategory, HoldingCategory, Gig, PersonalLoan, Reminder,
           UtilityReading, YearClose]  # parents before the rows that point to them
@@ -245,6 +247,9 @@ def restore(data: dict, files: dict[str, bytes]) -> dict:
         db.session.commit()
         settings_store.forget()
         currency.recompute()
+        # a backup from before F42: its trades get their securities accounts and the default portfolio
+        if securities.ensure_assigned():
+            db.session.commit()
     except BackupError:
         db.session.rollback()
         raise
