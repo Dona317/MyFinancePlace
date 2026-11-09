@@ -3,7 +3,7 @@
 Unico punto di controllo di cosa fare dopo. Complementa (non sostituisce) [ROADMAP](../ROADMAP.md) (stato
 delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMPETITOR](ANALISI_COMPETITOR.md).
 
-**Ultimo aggiornamento**: 31 ottobre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
+**Ultimo aggiornamento**: 9 novembre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
 **MVP**: completo · **Test**: 732, copertura 96,6% · **Migrazioni**: 24
 
 | Stato | Significato |
@@ -49,8 +49,14 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
 | D5 | ✅ Fisco italiano: **sì, completo** (deciso l'8 ott 2026) | ✅ | F15 entra nel piano |
 | D7 | ✅ Database dell'eseguibile: **PostgreSQL incorporato** (deciso l'8 ott 2026) | ✅ | F16 parte; nessuna riscrittura per SQLite |
 | D6 | ❌ Partita doppia | ❌ | già scartata (ROADMAP → Scartato) |
+| D8 | Struttura dei portafogli (9 nov 2026). **Proposta**: ogni operazione ha un conto titoli e un portafoglio (molti-a-molti: un portafoglio su N conti, un conto con più portafogli), posizioni derivate e ricalcolabili. Alternativa: portafoglio come etichetta sulle posizioni | ⏸ | blocca F42 e tutto il piano Portafoglio |
+| D9 | Metodo di costo (9 nov 2026). **Proposta**: costo medio ponderato **per conto titoli** come regola (come la banca in regime amministrato; norma da verificare con F56a), FIFO solo come confronto per i conti esteri; lotti solo se serve il FIFO | ⏸ | blocca F44 |
+| D10 | Fornitore dei prezzi (9 nov 2026). **Proposta**: Yahoo per uso personale + Stooq + CSV + prezzi a mano, chiave dell'utente facoltativa; nessuno scraping nuovo senza aver letto ToS e robots.txt; verificare quelli già attivi (justETF, Borsa Italiana, Morningstar) | ⏸ | rischio ToS (Yahoo «personal use only») |
+| D11 | Fonte del look-through degli ETF: file dell'emittente caricati a mano, o servizio con licenza a pagamento | ⏸ | blocca F57 |
+| D12 | Perimetro del rendimento: solo dossier (acquisti = flussi) o dossier + conto di regolamento (flussi = versamenti e prelievi) | ⏸ | blocca F47 |
+| D13 | Dove vive la dashboard Portafoglio. **Proposta**: pagina d'ingresso del Portafoglio (Panoramica); alternativa: blocchi nella dashboard generale | ⏸ | blocca F48 |
 
-Resta aperta solo D1 (novembre). Uso deciso l'8 ott 2026: **l'app la usa una persona sola per gestire più clienti, ognuno con il proprio archivio** (F11).
+Resta aperta D1 (novembre); dal 9 nov 2026 anche D8–D13 del piano Portafoglio (§3, «Macro-sezione Portafoglio»). Uso deciso l'8 ott 2026: **l'app la usa una persona sola per gestire più clienti, ognuno con il proprio archivio** (F11).
 
 ---
 
@@ -124,6 +130,52 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 | F41 | A | M | ⬜ | **▶ PROSSIMA — Carte collegate ai conti (deciso il 2 novembre)** | Oggi nel modulo del conto c'è un'anteprima TBD. Da fare: le carte (debito, credito, prepagata) addebitate su un conto, con i loro movimenti raccolti lì; da F24 |
 | F25 | M | S | ✅ | **Exe rigenerato a ogni push** (31 ottobre; deciso il 1° novembre) | **Deciso**: basta che a ogni push l'exe venga ricostruito in locale nella cartella di distribuzione, `desktop/dist/MyFinancePlace` (dove c'è già `MyFinancePlace.exe`). **Fatto**: l'hook `.githooks/pre-push` lo ricostruisce in background (3–4 minuti, il push non aspetta; registro in `desktop/build/last-push-build.log`). **Acceso** dall'utente da terminale il 2 novembre (`git config core.hooksPath .githooks`) — l'assistente non può attivare da solo un'azione automatica permanente. La CI (`desktop.yml`) continua a costruire Windows/macOS/Linux come artefatti |
 
+### Macro-sezione Portafoglio / Investimenti (piano del 9 novembre 2026)
+
+Da [Grafici dati e piano Portafoglio](../reports/Grafici%20dati%20e%20piano%20Portafoglio.md) e dal file
+[Buchi e Piano Portafoglio Nov 2026.xlsx](Strategy%20and%20Business/Buchi%20e%20Piano%20Portafoglio%20Nov%202026.xlsx)
+(fogli Piano Portafoglio, Dashboard Portafoglio, Ribilanciamento e notifiche, Registro ordini, Aperti e decisioni).
+Verificato sul codice: un solo `Holding` senza conto né portafoglio, nessun tipo «conto titoli», un solo portafoglio
+modello attivo, costo medio delle plusvalenze per titolo su tutti i conti (`capital_gains.py`), prezzi solo in euro,
+valore nel tempo solo dalle Istantanee. Ordine: fasi 0 e 1 prima di tutto il resto (cambiano il modello dati).
+**I punti fiscali «da verificare» vanno controllati sulle fonti ufficiali (F56a) prima di scrivere codice che calcola imposte.**
+
+| ID | Pri | Sforzo | Stato | Funzione | Note |
+|---|---|---|---|---|---|
+| F42 | A | L | ⬜ | **Fase 0 — Più portafogli su N conti titoli** (D8) | Nuovo tipo di conto «Conto titoli» con conto di regolamento, regime e commissioni (copiati dal conto di oggi), metodo di costo; tabelle `portfolios` e `portfolio_accounts`; ogni operazione con `securities_account_id` e `portfolio_id` (molti-a-molti: «Pensione» su Fineco e Directa, Directa con «Pensione» e «Casa»); cache `positions` per titolo × conto × portafoglio, ricalcolabile; `holdings` resta lo strumento. Selettore Tutti · Portafoglio · Conto titoli; Impostazioni → Portafogli; pagina per conto titoli. Migrazione: «Portafoglio principale» + un conto titoli per ogni conto con operazioni; nella vista Tutti nessun numero cambia (test). 8–10 gg |
+| F43 | M | M | ⬜ | **Fase 0 — Prezzi nella valuta d'origine** | `holding_prices`: prezzo in valuta, valuta, cambio (il prezzo in euro resta); base per rendimento in valuta ed effetto cambio |
+| F44 | A | M | ⬜ | **Fase 0 — Costo medio per conto titoli** (D9) | Oggi il costo medio è per titolo su tutti i conti: con lo stesso ETF su due broker la stima diverge da quella delle banche. PMC per (titolo, conto titoli); lotti e cessioni (`lots`, `lot_disposals`, come Wealthfolio) solo se si vuole anche il FIFO |
+| F45 | A | M | ⬜ | **Fase 1 — Registro ordini con prezzi, commissioni e tasse** | Tabella `trade_details` uno a uno con la transazione: data e ora, data valuta, mercato (MIC), lato, tipo ordine, id ordine del broker, quantità, prezzo, valuta, cambio, lordo, commissione (proposta dalle regole del conto, F17), altre spese, **Tobin tax** (azioni italiane: 0,2% nel 2026, proposta 0,4% — aliquota proposta solo dopo F56a), tasse estere, ritenuta, totale regolato con controllo di quadratura, **allegato del fissato bollato** (Documento), origine, impronta anti-doppioni. Il bollo resta un movimento periodico del conto |
+| F46 | A | M | ⬜ | **Fase 1 — Portafoglio → Ordini** | Elenco unico di tutte le operazioni (oggi solo nella pagina del titolo): filtri per portafoglio, conto, titolo, lato, periodo; totali di commissioni e tasse; CSV; ordini «in bozza» da PAC e ribilanciamento da confermare |
+| F47 | A | L | ⬜ | **Fase 2 — Valore nel tempo ricostruito dai prezzi** (D12) | Cache `daily_valuations` per portafoglio/conto/totale: quantità × chiusura × cambio BCE (+ liquidità se nel perimetro), ultimo prezzo riportato con flag; TWR a catena giornaliera (come Wealthfolio e PP), XIRR robusto che dice «non calcolabile», note di qualità visibili. Il grafico non dipende più dalle Istantanee |
+| F48 | A | M | ⬜ | **Fase 2 — Dashboard Portafoglio** (D13) | Portafoglio → Panoramica a blocchi (motore di `dashboard_prefs`): KPI (valore, versato netto, guadagno, realizzato e rendite dell'anno, TWR/XIRR con spiegazione, variazione giorno/settimana, liquidità), valore vs versato, allocazione vs target con semaforo e «Ribilancia», allocazioni, prossimi eventi (PAC, cedole, avvisi), rendite, costi e tasse (commissioni, Tobin, bollo, TER, tassa latente, minusvalenze con scadenza), heatmap mensile, drawdown, migliori/peggiori, conti titoli, ultimi ordini, salute dei dati. Elenco nel foglio «Dashboard Portafoglio» |
+| F49 | A | M | ⬜ | **Fase 2 — Grafici del portafoglio** | Valore vs versato (area), heatmap dei rendimenti mensili, drawdown nel tempo, treemap dell'allocazione (plugin Chart.js in locale), effetto cambio separato |
+| F50 | A | L | ⬜ | **Fase 3 — Ribilanciamento per portafoglio, anche solo con acquisti** | Sopra F19d, senza duplicarlo: un modello per portafoglio (`portfolio_templates.portfolio_id`); banda per parte, assoluta, relativa o «5/25»; modalità completa e solo acquisti (esistono) + **versamento minimo** come justETF (al target: D = max(vᵢ/wᵢ) − V; o dentro le bande) + **prelievo con ribilanciamento**; commissione e **tassa stimata** sulle vendite (26% / 12,5% pro quota, con le minusvalenze del conto; dopo F56a); su quale conto comprare; lista ordini CSV/PDF o ordini in bozza (F46) |
+| F51 | A | M | ⬜ | **Fase 3 — Notifiche di ribilanciamento legate a eventi** | Nuovi tipi di regola sopra F19e: **drift** per portafoglio (dopo i prezzi), **nuovo versamento / liquidità** sul conto di regolamento oltre una soglia, **data PAC** (N giorni prima, con la ripartizione che riduce lo scostamento), **calendario** (mese, trimestre, anno, data), **movimento di mercato** (portafoglio o indice ±X% in N giorni); quiete (non ripetere finché dura) e rinvio. Canali di oggi: campanella, notifiche desktop (F14), Scadenzario |
+| F52 | M | S | ⬜ | **Fase 3 — PAC per portafoglio e conto titoli** | `investment_plans.portfolio_id`, `securities_account_id`; la conferma crea ordini nel registro |
+| F53 | A | L | ⬜ | **Fase 4 — BTP e obbligazioni come strumenti** | Tipo (BTP, BTP Italia, BTP Valore con step-up e premio, BOT/zero coupon, corporate), cedola, frequenza, scadenza, rimborso, indicizzazione; `bond_flows` con calendario delle cedole, rateo e rendimento a scadenza; cedole attese in Rendite e nei prossimi eventi |
+| F54 | M | M | ⬜ | **Fase 4 — Buoni fruttiferi postali, libretti, conti deposito** | Valore di rimborso tabellare per serie (niente prezzo di mercato), valutazioni manuali con promemoria «non aggiornato da 90 giorni»; bollo dei BFP e soglia dei 5.000 € da verificare (F56a) |
+| F55 | A | L | ⏸ | **Fase 4 — Parser dei broker italiani** | Fineco xlsx «Movimenti Dossier Titoli», Directa (CSV/PDF), Trade Republic CSV, IBKR Flex XML, Scalable, Revolut, sopra i preset di F61; un parser per broker con test su testi anonimizzati in `samples/` (modello: estrattori di Portfolio Performance, licenza EPL: studiare, non copiare). **Serve che tu fornisca gli estratti** (come F4) |
+| F56 | A | L | ⬜ | **Fase 4 — Fisco del portafoglio** | **F56a**: verifica sulle fonti ufficiali (Agenzia delle Entrate, Normattiva) di Tobin tax 2027, bollo titoli, IVAFE «per conto o per rapporto», cumulo BFP, ETF non armonizzati, costo medio per rapporto, deroga EMT — prima di qualunque calcolo nuovo. **F56b**: natura fiscale e quota titoli di Stato sullo strumento, tassa latente, zainetto per conto titoli con scadenze, **quadro RW calcolato**, quadro RM, pro rata del bollo (i «da fare poi» di F15); tutto come stima e verifica dei conteggi della banca |
+| F57 | M | M | ⬜ | **Fase 5 — Costi (TER) e look-through degli ETF** (D11) | TER sul titolo e costo annuo stimato; esposizione per paese, settore e valuta da file dell'emittente (`holding_exposures`), non via scraping |
+| F58 | B | M | ⬜ | **Fase 5 — Contributo e rischio** | Contributo per titolo (€ e %), Sharpe, semideviazione, durata del drawdown; controlli in più nella Salute dei dati (vendita oltre la quantità, cambi in conflitto) |
+| F59 | B | S | ⬜ | **Fase 5 — Benchmark multipli** | Più benchmark a confronto, distanza dal massimo storico |
+| F60 | A | — | ⏸ | **Elenco repository starred di Dona317 da ricevere e analizzare** | «Progetti da prendere spunto»: l'utente invia l'elenco; ogni repository va confrontato con questo piano e con il file Excel. La revisione del 9 novembre non è finita finché non è fatto |
+
+### Buchi generali da grafici e gestione del dato (9 novembre 2026)
+
+Dallo stesso report (fogli Grafici, Sezioni, Gestione dato, Buchi): i più importanti fuori dal Portafoglio.
+
+| ID | Pri | Sforzo | Stato | Funzione | Note |
+|---|---|---|---|---|---|
+| F61 | A | M | ⬜ | **Preset di import salvati per banca e broker** | Oggi la mappatura delle colonne si indovina ogni volta e non si salva (`routes/export.py`); come i preset di ezBookkeeping e i template di Wealthfolio; serve anche a F55 |
+| F62 | M | M | ⬜ | **Annulla un import intero + registro delle modifiche** | Ogni import con il suo numero; «Annulla questo import» (come Sure); registro di chi ha cambiato cosa (come Firefly III). Oggi l'annulla vale un passo per 30 minuti |
+| F63 | M | L | ⬜ | **Report personalizzati salvabili** | Dal «grafici del costruttore» di F24: tipo di grafico, raggruppamento (categoria, gruppo, controparte, conto, mese, tag), periodo relativo o fisso, filtri; il report salvato diventa una scheda della dashboard (come Actual e Monarch) |
+| F64 | M | S | ⬜ | **Saldo di ogni conto nel tempo** | Grafico nella pagina del conto e saldo progressivo nel registro |
+| F65 | M | M | ⬜ | **Confronto col periodo precedente e ritmo di spesa** | Linea tratteggiata del periodo prima sui grafici di report e dashboard (come Copilot); linea della spesa cumulata contro il ritmo ideale nel budget |
+| F66 | M | S | ⬜ | **Modelli di transazione e «duplica»** | Richiesti in Firefly III, Sure e Portfolio Performance |
+| F67 | B | S | ⬜ | **Giroconti tra valute diverse e grafici in PNG** | Abbinamento con tolleranza sul cambio (Sure: 2 giorni, 3%); «Scarica immagine» sui grafici |
+
 Esclusi per scelta: collegamento automatico alle banche, budget "a buste", partita doppia.
 
 ---
@@ -164,3 +216,4 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
 6. **F29 «Dopo»**: chat con memoria e risposte in streaming.
 7. **F24** resti della revisione di ottobre (carte collegate ai conti, cluster oltre due livelli, grafici del costruttore, dati per utente).
 8. F10c (heatmap a calendario, analisi per tag); D1 (unire su `main`) a novembre 2026.
+9. **Piano Portafoglio (9 nov 2026)**, dopo F41: decidere D8–D13 → F56a (verifica fiscale) → F42–F44 → F45–F46 → F47–F49 → F50–F52 → F53–F56b → F57–F59; F61 insieme a F55. **F60** (repository starred di Dona317) appena arriva l'elenco.
