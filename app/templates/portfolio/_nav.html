@@ -2,6 +2,7 @@
 {% from "partials/tabs.html" import tab_bar %}
 <div class="portfolio-tabs mb-16">
 {{ tab_bar([
+  ('overview', url_for('portfolio.overview_page'), _('Panoramica')),
   ('holdings', url_for('portfolio.index'), _('Posizioni')),
   ('portfolios', url_for('portfolio.portfolios_page'), _('Portafogli e conti titoli')),
   ('orders', url_for('portfolio.orders_page'), _('Ordini')),

@@ -16,12 +16,14 @@
 .bi-arrow-clockwise::before { content: "\f116"; }
 .bi-arrow-counterclockwise::before { content: "\f117"; }
 .bi-arrow-down-circle::before { content: "\f119"; }
+.bi-arrow-down-right::before { content: "\f123"; }
 .bi-arrow-down-up::before { content: "\f127"; }
 .bi-arrow-left::before { content: "\f12f"; }
 .bi-arrow-left-right::before { content: "\f12b"; }
 .bi-arrow-repeat::before { content: "\f130"; }
 .bi-arrow-right::before { content: "\f138"; }
 .bi-arrow-up-circle::before { content: "\f13a"; }
+.bi-arrow-up-right::before { content: "\f144"; }
 .bi-arrow-up-short::before { content: "\f145"; }
 .bi-arrows::before { content: "\f6a2"; }
 .bi-arrows-angle-contract::before { content: "\f149"; }
@@ -57,6 +59,7 @@
 .bi-calendar-check::before { content: "\f1e2"; }
 .bi-calendar-event::before { content: "\f1e8"; }
 .bi-calendar-month::before { content: "\f1ed"; }
+.bi-calendar2-check::before { content: "\f1f8"; }
 .bi-calendar2-week::before { content: "\f209"; }
 .bi-calendar3::before { content: "\f214"; }
 .bi-camera::before { content: "\f220"; }

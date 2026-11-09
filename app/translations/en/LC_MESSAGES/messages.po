@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 19:32+0000\n"
+"POT-Creation-Date: 2026-11-09 19:35+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -158,6 +158,10 @@ msgstr "%(count)s checks found something to fix."
 #, python-format
 msgid "%(count)s da confermare"
 msgstr "%(count)s to confirm"
+
+#, python-format
+msgid "%(count)s fuori tolleranza"
+msgstr "%(count)s out of band"
 
 #, python-format
 msgid "%(count)s già presenti sono state ignorate."
@@ -1280,6 +1284,10 @@ msgid ""
 "compongono"
 msgstr "Year %(year)s: first the spending group, then the categories it is made of"
 
+#, python-format
+msgid "Anno %(year)s: rendite, costi e tasse"
+msgstr "Year %(year)s: income, costs and taxes"
+
 msgid "Anno corrente"
 msgstr "This year"
 
@@ -1571,6 +1579,9 @@ msgstr "Warning at %(share)s%% and when you go over it. Leave empty for no budge
 msgid "Azionario"
 msgstr "Equities"
 
+msgid "Azionario, obbligazionario, misto, commodities…: a cosa sei esposto."
+msgstr "Equities, bonds, mixed, commodities…: what you are exposed to."
+
 msgid ""
 "Azionario, obbligazionario, oro…: a cosa sei esposto. Si sceglie sul "
 "titolo; finché non la scegli è stimata dal tipo di strumento e dal nome."
@@ -1850,6 +1861,9 @@ msgstr "Fall from the average price (percent)"
 
 msgid "Calo massimo"
 msgstr "Maximum drawdown"
+
+msgid "Calo massimo dal picco"
+msgstr "Largest fall from the peak"
 
 msgid "Cambi presenti"
 msgstr "Rates available"
@@ -2918,6 +2932,9 @@ msgstr ""
 msgid "Crea un conto"
 msgstr "Create an account"
 
+msgid "Crea un modello"
+msgstr "Create a model"
+
 msgid "Crea utente"
 msgstr "Create user"
 
@@ -3030,6 +3047,15 @@ msgstr "From the markets"
 
 msgid "Dai movimenti"
 msgstr "From the movements"
+
+msgid ""
+"Dai movimenti dell'anno legati ai titoli: plusvalenze realizzate (al "
+"costo medio di ogni conto titoli), dividendi e cedole netti, commissioni "
+"degli ordini e a parte, imposte registrate."
+msgstr ""
+"From the year's operations of the holdings: realized gains (at the "
+"average cost of each securities account), net dividends and coupons, fees"
+" of the orders and on their own, taxes recorded."
 
 msgid "Dai risparmi"
 msgstr "From savings"
@@ -3262,6 +3288,9 @@ msgstr "Cancelled: no longer in the forecast"
 #, python-format
 msgid "Disponibile la versione %(version)s"
 msgstr "Version %(version)s available"
+
+msgid "Distanza dai modelli"
+msgstr "Distance from the models"
 
 msgid "Distanza dal modello"
 msgstr "Distance from the model"
@@ -4948,6 +4977,13 @@ msgid "Il tuo menu è aggiornato."
 msgstr "Your menu is updated."
 
 msgid ""
+"Il valore a fine mese ai prezzi registrati fino a quel giorno, e quanto "
+"ci hai messo: la distanza tra le due linee è il guadagno."
+msgstr ""
+"The value at the end of each month at the prices recorded by then, and "
+"how much you put in: the gap between the two lines is the gain."
+
+msgid ""
 "Il valore degli investimenti a fine mese, ai prezzi registrati fino a "
 "quel giorno, e quanto ci hai messo (acquisti con commissioni meno "
 "vendite): la distanza tra le due linee è il guadagno."
@@ -5181,6 +5217,9 @@ msgstr ""
 "In %(months)s months you paid %(actual)s; with the other offer you would "
 "have paid %(other)s:"
 
+msgid "In arrivo"
+msgstr "Coming up"
+
 msgid ""
 "In arrivo: le carte addebitate su questo conto, con i loro movimenti "
 "raccolti qui."
@@ -5202,6 +5241,9 @@ msgstr "Ongoing"
 
 msgid "In evidenza"
 msgstr "Highlights"
+
+msgid "In linea"
+msgstr "In line"
 
 msgid "In scadenza"
 msgstr "Expiring"
@@ -5382,6 +5424,9 @@ msgstr "Investments and other assets"
 msgid "Investimenti e beni"
 msgstr "Investments and assets"
 
+msgid "Investimenti in breve"
+msgstr "Investments at a glance"
+
 msgid "Investimenti netti"
 msgstr "Net investments"
 
@@ -5397,6 +5442,9 @@ msgstr "Investments, debts, taxes"
 #, python-format
 msgid "Investimenti: %(total)s"
 msgstr "Investments: %(total)s"
+
+msgid "Investimenti: valore e versato"
+msgstr "Investments: value and money put in"
 
 msgid "Investimento"
 msgstr "Investment"
@@ -5772,6 +5820,13 @@ msgstr ""
 " → Investment trade). The tax regime is set on the broker's account."
 
 msgid ""
+"Le posizioni con il guadagno percentuale più alto e più basso sul prezzo "
+"medio."
+msgstr ""
+"The positions with the highest and lowest percentage gain on the average "
+"price."
+
+msgid ""
 "Le posizioni del Portafoglio (anche conti deposito, fondi pensione e "
 "immobili), al prezzo più recente: per le date passate contano solo quelle"
 " già acquistate."
@@ -5794,6 +5849,13 @@ msgstr ""
 #, python-format
 msgid "Le quote degli altri devono essere meno del totale (%(total)s)."
 msgstr "The others' shares must be less than the total (%(total)s)."
+
+msgid ""
+"Le rate dei PAC del prossimo mese e gli avvisi delle regole (scostamento,"
+" liquidità da investire, movimenti di mercato…)."
+msgstr ""
+"Next month's PAC instalments and the rules' alerts (drift, cash to "
+"invest, market moves…)."
 
 msgid "Le scelte vengono ricordate"
 msgstr "Your choices are remembered"
@@ -6233,6 +6295,9 @@ msgstr "They gave it back"
 msgid "Migliori"
 msgstr "Best"
 
+msgid "Migliori e peggiori"
+msgstr "Best and worst"
+
 msgid "Minimo (€)"
 msgstr "Minimum (€)"
 
@@ -6256,6 +6321,9 @@ msgstr "Mode"
 
 msgid "Modalità Scura"
 msgstr "Dark Mode"
+
+msgid "Modelli"
+msgstr "Models"
 
 msgid "Modelli AI"
 msgstr "AI Models"
@@ -6623,6 +6691,9 @@ msgstr "No account"
 msgid "Nessun conto corrente, conto deposito o investimento."
 msgstr "No current account, deposit account or investment."
 
+msgid "Nessun conto titoli."
+msgstr "No securities accounts."
+
 msgid ""
 "Nessun conto: crea prima i tuoi conti, così i movimenti vanno sul conto "
 "giusto e i giroconti tra i tuoi conti vengono riconosciuti."
@@ -6668,6 +6739,9 @@ msgstr "No investments."
 
 msgid "Nessun investimento: aggiungi i titoli in Posizioni."
 msgstr "No investments: add the holdings in Positions."
+
+msgid "Nessun investimento: aggiungi le posizioni nel Portafoglio."
+msgstr "No investments: add the positions in the Portfolio."
 
 #, python-format
 msgid "Nessun lavoro registrato nel %(year)s."
@@ -6857,6 +6931,9 @@ msgstr "No operations with these filters."
 
 msgid "Nessuna operazione di compravendita trovata nel file."
 msgstr "No purchases or sales found in the file."
+
+msgid "Nessuna operazione."
+msgstr "No operations."
 
 msgid ""
 "Nessuna operazione: aggiungi acquisti, vendite, dividendi e cedole con "
@@ -7729,6 +7806,9 @@ msgstr "Hidden panels:"
 msgid "Panoramica"
 msgstr "Overview"
 
+msgid "Panoramica investimenti"
+msgstr "Investments overview"
+
 msgid "Parola chiave"
 msgstr "Keyword"
 
@@ -7986,6 +8066,13 @@ msgstr ""
 "For non-state universities the ministry's limit by area and course "
 "applies."
 
+msgid ""
+"Per ogni portafoglio con un modello attivo: il peso di ogni parte contro "
+"il suo obiettivo; in rosso le parti fuori dalla tolleranza."
+msgstr ""
+"For each portfolio with an active model: the weight of each part against "
+"its target; in red the parts out of band."
+
 msgid "Per periodo"
 msgstr "By period"
 
@@ -8150,6 +8237,9 @@ msgstr ""
 
 msgid "Plusvalenze"
 msgstr "Capital gains"
+
+msgid "Plusvalenze realizzate"
+msgstr "Realized gains"
 
 msgid ""
 "Poche categorie ampie (Casa, Veicoli, Shopping…), i dettagli diventano "
@@ -8811,6 +8901,10 @@ msgid "Rata del PAC entro (giorni)"
 msgstr "PAC instalment within (days)"
 
 #, python-format
+msgid "Rata del PAC «%(name)s»"
+msgstr "PAC «%(name)s» instalment"
+
+#, python-format
 msgid "Rata del PAC «%(name)s» il %(day)s"
 msgstr "PAC «%(name)s» instalment on %(day)s"
 
@@ -8896,6 +8990,9 @@ msgstr "Recorded for %(person)s."
 msgid "Registrato «%(category)s» per %(amount)s."
 msgstr "Recorded “%(category)s” for %(amount)s."
 
+msgid "Registro"
+msgstr "Register"
+
 msgid "Registro ordini"
 msgstr "Order register"
 
@@ -8966,6 +9063,9 @@ msgstr "Performance"
 
 msgid "Rendimenti mese per mese"
 msgstr "Returns month by month"
+
+msgid "Rendimento"
+msgstr "Return"
 
 msgid "Rendimento (TWR)"
 msgstr "Return (TWR)"
@@ -9968,6 +10068,9 @@ msgstr ""
 
 msgid "Servono almeno 3 mesi completi di spese per la media."
 msgstr "At least 3 complete months of spending are needed for the average."
+
+msgid "Servono almeno due mesi di prezzi e operazioni."
+msgstr "At least two months of prices and operations are needed."
 
 msgid "Servono almeno due prezzi per il grafico: aggiungili qui sotto."
 msgstr "At least two prices are needed for the chart: add them below."
@@ -11037,6 +11140,9 @@ msgstr "Last 6 months"
 msgid "Ultimi movimenti"
 msgstr "Latest movements"
 
+msgid "Ultimi ordini"
+msgstr "Latest orders"
+
 msgid "Ultimo accesso"
 msgstr "Last sign-in"
 
@@ -11382,6 +11488,13 @@ msgstr "Value and money put in"
 msgid "Valore totale del portafoglio investimenti"
 msgstr "Total value of the investment portfolio"
 
+msgid ""
+"Valore, versato, guadagno, rendimento e classi di attivo; il grafico del "
+"valore contro il versato"
+msgstr ""
+"Value, money put in, gain, return and asset classes; the chart of value "
+"against money put in"
+
 msgid "Valuta"
 msgstr "Currency"
 
@@ -11487,6 +11600,9 @@ msgstr "Monthly saving (€)"
 msgid "Versato"
 msgstr "Paid in"
 
+msgid "Versato netto"
+msgstr "Net put in"
+
 msgid "Versione"
 msgstr "Version"
 
@@ -11557,6 +11673,9 @@ msgstr "at %(age)s"
 msgid "a parte"
 msgstr "apart"
 
+msgid "acquisti con commissioni meno vendite"
+msgstr "purchases with fees minus sales"
+
 msgid "aggiornata"
 msgstr "up to date"
 
@@ -11620,6 +11739,10 @@ msgstr "year %(year)s"
 
 msgid "anno in corso: valori a oggi"
 msgstr "current year: values as of today"
+
+#, python-format
+msgid "annuo sul denaro (XIRR) · TWR %(twr)s"
+msgstr "yearly money-weighted (XIRR) · TWR %(twr)s"
 
 msgid "aperto"
 msgstr "open"
@@ -11758,6 +11881,9 @@ msgstr ""
 
 msgid "da controllare"
 msgstr "needs attention"
+
+msgid "da fare"
+msgstr "to do"
 
 msgid "da incassare"
 msgstr "to collect"
@@ -12557,6 +12683,9 @@ msgstr "out of %(total)s transactions, from the model"
 msgid "suddivisa"
 msgstr "split"
 
+msgid "sui conti di liquidità dei conti titoli"
+msgstr "on the cash accounts of the securities accounts"
+
 msgid "sul costo medio di questo conto titoli"
 msgstr "on the average cost of this securities account"
 
@@ -12640,6 +12769,9 @@ msgstr "expenses"
 
 msgid "valore a fine anno"
 msgstr "value at year end"
+
+msgid "valore meno versato"
+msgstr "value minus money put in"
 
 msgid "vedi i debiti"
 msgstr "see the debts"

@@ -11,7 +11,7 @@ from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
 from app.routes.helpers import form_decimal, form_text
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, order_register, portfolio_ops, securities, wealth
+from app.services import accounts, order_register, portfolio_ops, portfolio_overview, securities, wealth
 from app.services.parsing import to_date
 
 
@@ -167,3 +167,14 @@ def orders_page():
     return render_template("portfolio/orders.html", register=found, filters=filters, names=names,
                            kinds=portfolio_ops.KINDS, nav_active="orders",
                            holdings=Holding.query.order_by(Holding.name).all())
+
+
+# ── The overview (F48) ─────────────────────────────────────────────────────────
+
+@portfolio_bp.route("/overview")
+def overview_page():
+    """The portfolio at a glance: value and money put in, returns, splits, models, what is coming, costs, orders."""
+    if securities.ensure_assigned():
+        db.session.commit()
+    return render_template("portfolio/overview.html", o=portfolio_overview.overview(), nav_active="overview",
+                           kinds=portfolio_ops.KINDS)
