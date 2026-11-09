@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 19:03+0000\n"
+"POT-Creation-Date: 2026-11-09 19:05+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -916,8 +916,20 @@ msgstr "Accumulated"
 msgid "Acqua"
 msgstr "Water"
 
+msgid "Acquisti"
+msgstr "Purchases"
+
 msgid "Acquisti (−) e vendite (+) di investimenti"
 msgstr "Purchases (−) and sales (+) of investments"
+
+msgid ""
+"Acquisti e vendite con prezzo e commissione, dividendi, cedole, "
+"commissioni e imposte di tutti i titoli. La matita apre l'operazione per "
+"correggere quote, prezzo, conto titoli e portafoglio."
+msgstr ""
+"Purchases and sales with price and fee, dividends, coupons, fees and "
+"taxes of every holding. The pencil opens the operation to correct units, "
+"price, securities account and portfolio."
 
 msgid ""
 "Acquisti e vendite diventano operazioni dei titoli; i titoli che non hai "
@@ -3242,6 +3254,9 @@ msgstr "Dividends"
 msgid "Dividendi (anno)"
 msgstr "Dividends (year)"
 
+msgid "Dividendi e cedole"
+msgstr "Dividends and coupons"
+
 msgid "Dividendo"
 msgstr "Dividend"
 
@@ -5070,6 +5085,9 @@ msgstr "Settings reset to the defaults."
 msgid "Impostazioni salvate con successo."
 msgstr "Settings saved successfully."
 
+msgid "Imposte"
+msgstr "Taxes"
+
 msgid ""
 "Imposte e oneri cambiano poco tra le offerte: confronta prezzi con la "
 "stessa voce (tutto compreso o solo energia)."
@@ -6754,6 +6772,9 @@ msgstr ""
 
 msgid "Nessuna modifica: le transazioni avevano già i valori scelti."
 msgstr "No change: the transactions already had the values chosen."
+
+msgid "Nessuna operazione con questi filtri."
+msgstr "No operations with these filters."
 
 msgid "Nessuna operazione di compravendita trovata nel file."
 msgstr "No purchases or sales found in the file."
@@ -8781,6 +8802,9 @@ msgstr "Recorded for %(person)s."
 msgid "Registrato «%(category)s» per %(amount)s."
 msgstr "Recorded “%(category)s” for %(amount)s."
 
+msgid "Registro ordini"
+msgstr "Order register"
+
 msgid "Regola"
 msgstr "Rule"
 
@@ -10754,6 +10778,9 @@ msgstr "All Snapshots"
 msgid "Tutte le categorie"
 msgstr "All categories"
 
+msgid "Tutte le operazioni"
+msgstr "All operations"
+
 #, python-format
 msgid "Tutte le parti sono entro ± %(band)s punti dal peso obiettivo"
 msgstr "All parts are within ± %(band)s points of their target weight"
@@ -10817,6 +10844,9 @@ msgstr "All types"
 
 msgid "Tutti i tipi di strumento"
 msgstr "All instrument types"
+
+msgid "Tutti i titoli"
+msgstr "All holdings"
 
 msgid "Tutto assegnato"
 msgstr "All assigned"
@@ -11322,6 +11352,9 @@ msgstr "Sell"
 msgid "Vendita"
 msgstr "Sale"
 
+msgid "Vendite"
+msgstr "Sales"
+
 msgid "Verdi"
 msgstr "Greens"
 
@@ -11576,6 +11609,9 @@ msgstr "check and correct every row"
 msgid "controvalore in euro"
 msgstr "value in euro"
 
+msgid "controvalore, commissioni escluse"
+msgstr "traded amount, fees excluded"
+
 msgid "cripto-attività"
 msgstr "crypto-assets"
 
@@ -11658,6 +11694,9 @@ msgstr "deductible"
 
 msgid "deduzione dal reddito"
 msgstr "deduction from income"
+
+msgid "degli ordini e a parte"
+msgstr "of the orders and on their own"
 
 msgid "della categoria"
 msgstr "of the category"
@@ -12116,6 +12155,9 @@ msgstr "no listing on a known exchange"
 msgid "nessuna regola sul conto: scrivila a mano, se c’è"
 msgstr "no rule on the account: type it, if there is one"
 
+msgid "netti incassati"
+msgstr "net, received"
+
 msgid "no piece table"
 msgstr "no piece table"
 
@@ -12268,6 +12310,9 @@ msgstr "managed regime"
 
 msgid "regime dichiarativo"
 msgstr "self-declared regime"
+
+msgid "registrate sui titoli"
+msgstr "recorded on the holdings"
 
 msgid "regole"
 msgstr "rules"

@@ -1,15 +1,18 @@
 """
 Portfolios and securities accounts (F42): the page that lists them (rename, the star of the default portfolio,
-archive), a securities account's form and its own page, with its positions and its liquidity.
+archive), a securities account's form and its own page, with its positions and its liquidity; the order register
+(F46).
 """
-from flask import flash, redirect, render_template, request, url_for
+from flask import Response, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.securities import Portfolio, SecuritiesAccount
+from app.models.wealth import Holding
 from app.routes.helpers import form_decimal, form_text
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, securities, wealth
+from app.services import accounts, order_register, portfolio_ops, securities, wealth
+from app.services.parsing import to_date
 
 
 def _summary(positions) -> dict:
@@ -143,3 +146,24 @@ def dossier_page(dossier_id):
     summary = _summary(held)
     return render_template("portfolio/dossier.html", dossier=dossier, positions=held, names=names, cash=cash,
                            summary=summary, total=summary["value"] + cash, nav_active="portfolios")
+
+
+# ── The order register (F46) ───────────────────────────────────────────────────
+
+@portfolio_bp.route("/orders")
+def orders_page():
+    """Every operation of every holding, filtered, with its totals; ?format=csv downloads it."""
+    args = request.args
+    filters = order_register.Filters(
+        portfolio_id=args.get("portfolio", type=int), securities_account_id=args.get("dossier", type=int),
+        holding_id=args.get("holding", type=int), kind=args.get("kind") if args.get("kind") in portfolio_ops.KINDS else None,
+        start=to_date(args.get("start")), end=to_date(args.get("end")))
+    found = order_register.register(filters)
+    names = {"portfolios": {p.id: p.name for p in securities.portfolios(active_only=False)},
+             "dossiers": {d.id: d.name for d in securities.accounts(active_only=False)}}
+    if args.get("format") == "csv":
+        return Response(order_register.to_csv(found, names), mimetype="text/csv",
+                        headers={"Content-Disposition": "attachment; filename=ordini.csv"})
+    return render_template("portfolio/orders.html", register=found, filters=filters, names=names,
+                           kinds=portfolio_ops.KINDS, nav_active="orders",
+                           holdings=Holding.query.order_by(Holding.name).all())
