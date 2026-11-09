@@ -73,7 +73,7 @@ def test_openfigi(app, sites):
         {"marketSector": "Equity", "securityType": "Common Stock"}, {"marketSector": "Govt", "securityType": "BTP"},
         {"marketSector": "Equity", "securityType": "Open-End Fund"}, {"marketSector": "Equity", "securityType": "Equity Option"},
         {"marketSector": "Comdty", "securityType": "Index"})]
-    assert kinds == ["Azione", "Obbligazione", "Fondo", "Derivato", None]
+    assert kinds == ["Azione", "Obbligazione", "Fondo comune", "Derivato", None]
 
 
 def test_justetf(app, sites):
@@ -121,7 +121,7 @@ def test_morningstar(app, sites):
     with app.test_request_context():
         found = morningstar.find(FUND)
         assert [(c.name, c.asset_class, c.price_source) for c in found][0] == (
-            "Fondo Esempio Azionario Europa A Acc", "Fondo", "morningstar")
+            "Fondo Esempio Azionario Europa A Acc", "Fondo comune", "morningstar")
         quote = morningstar.quote(FUND)
         assert (quote.price, quote.on, quote.currency) == (Decimal("12.345"), date(2026, 10, 9), "EUR")
         answers["snapshot.aspx?id=F00000XYZ1"] = "<html>NAV non disponibile</html>"
@@ -197,7 +197,7 @@ def test_bonds_funds_and_etfs_priced_by_their_sites(app, db, sites):
     answers, _ = sites
     _json_answers(answers)
     btp = Holding(name="BTP 2031", isin=BTP, asset_class="Obbligazione", quantity=10000, avg_price=Decimal("0.9"))
-    fund = Holding(name="Fondo", isin=FUND, asset_class="Fondo", quantity=100, avg_price=10)
+    fund = Holding(name="Fondo", isin=FUND, asset_class="Fondo comune", quantity=100, avg_price=10)
     etf = Holding(name="All-World", ticker="VWCE.DE", isin=ETF, asset_class="ETF", quantity=5, avg_price=100)
     db.session.add_all([btp, fund, etf])
     db.session.commit()

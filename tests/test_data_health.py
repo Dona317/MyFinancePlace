@@ -32,8 +32,8 @@ def test_every_check_finds_its_problem(app, db):
                                 price_date=TODAY),
                         Holding(name="Vecchio prezzo", asset_class="Azione", ticker="ENEL.MI", quantity=5, avg_price=6,
                                 price_date=date(2026, 9, 1)),
-                        Holding(name="Senza codici", asset_class="Fondo", quantity=1, avg_price=100),
-                        Holding(name="Manuale", asset_class="Fondo", quantity=1, avg_price=100, price_source="manual"),
+                        Holding(name="Senza codici", asset_class="Fondo comune", quantity=1, avg_price=100),
+                        Holding(name="Manuale", asset_class="Fondo comune", quantity=1, avg_price=100, price_source="manual"),
                         Holding(name="Casa", asset_class="Immobile", quantity=1, avg_price=1)])
     db.session.flush()
     db.session.add_all([

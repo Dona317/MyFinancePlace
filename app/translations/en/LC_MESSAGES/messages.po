@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 19:08+0000\n"
+"POT-Creation-Date: 2026-11-09 19:26+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1718,9 +1718,6 @@ msgstr "%(year)s statements saved (version %(version)s)."
 msgid "Bilanci annuali"
 msgstr "Yearly statements"
 
-msgid "Bilanciato"
-msgstr "Balanced"
-
 msgid "Bilancio dell’anno"
 msgstr "Year in review"
 
@@ -2376,6 +2373,9 @@ msgstr ""
 
 msgid "Commissioni: il minimo non può superare il massimo."
 msgstr "Commissions: the minimum cannot exceed the maximum."
+
+msgid "Commodities"
+msgstr "Commodities"
 
 msgid "Compagnia"
 msgstr "Company"
@@ -4097,11 +4097,14 @@ msgstr "Cash flow and savings — %(period)s"
 msgid "Flusso netto"
 msgstr "Net flow"
 
-msgid "Fondo"
-msgstr "Fund"
-
 msgid "Fondo Pensione"
 msgstr "Pension Fund"
+
+msgid "Fondo assicurativo"
+msgstr "Insurance fund"
+
+msgid "Fondo comune"
+msgstr "Mutual fund"
 
 msgid "Fondo d'emergenza"
 msgstr "Emergency fund"
@@ -6235,6 +6238,9 @@ msgstr "Losses still usable"
 
 msgid "Minusvalenze di anni precedenti compensate"
 msgstr "Losses of earlier years offset"
+
+msgid "Misto"
+msgstr "Mixed"
 
 msgid "Modalità"
 msgstr "Mode"

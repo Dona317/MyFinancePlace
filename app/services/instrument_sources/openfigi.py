@@ -22,7 +22,7 @@ def asset_class(item: dict) -> str | None:
     if "etp" in kind or "etf" in kind:
         return "ETF"
     if "fund" in kind:
-        return "Fondo"
+        return "Fondo comune"
     if sector == "equity":
         return "Azione"
     return None

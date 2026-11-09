@@ -1,7 +1,7 @@
 """
-Asset classes (F70): what a holding is exposed to — equities, bonds, gold… — kept apart from the instrument it is
-held through (`Holding.asset_class`: ETF, share, fund, bond…). An ETF on the MSCI World is an ETF (instrument) and
-equities (asset class); a gold ETC is an ETF and gold.
+Asset classes (F70): what a holding is exposed to — equities, bonds, mixed, commodities, gold… — kept apart from the
+instrument it is held through (`Holding.asset_class`: ETF, share, mutual fund, insurance fund, bond…). An ETF on the
+MSCI World is an ETF (instrument) and equities (asset class); a gold ETC is an ETF and gold.
 
 The user can set the class on the holding; until then it is estimated from the instrument and the name, so the
 portfolio's charts by asset class work from the first day.
@@ -16,12 +16,13 @@ EQUITY = N_("Azionario")
 BONDS = N_("Obbligazionario")
 CASH = N_("Monetario e liquidità")
 GOLD = N_("Oro e metalli preziosi")
-COMMODITIES = N_("Materie prime")
+COMMODITIES = N_("Commodities")
 REAL_ESTATE = N_("Immobiliare")
 CRYPTO = N_("Criptovalute")
-BALANCED = N_("Bilanciato")
+BALANCED = N_("Misto")
 OTHER = N_("Altro")
-CLASSES = [EQUITY, BONDS, CASH, GOLD, COMMODITIES, REAL_ESTATE, CRYPTO, BALANCED, OTHER]
+CLASSES = [EQUITY, BONDS, BALANCED, CASH, COMMODITIES, GOLD, REAL_ESTATE, CRYPTO, OTHER]
+RENAMED = {"Bilanciato": BALANCED, "Materie prime": COMMODITIES}  # names used on 9 Nov 2026, before the final ones
 
 # the instrument decides when it says it all
 BY_INSTRUMENT = {"Azione": EQUITY, "Obbligazione": BONDS, "Criptovaluta": CRYPTO, "Conto Risparmio": CASH,
@@ -36,14 +37,14 @@ BY_WORDS = [
     (BONDS, r"\bbond|aggregate|treasur|\bgovt\b|government|govern|obblig|\bbtp|corporate|\bcorp\b|high yield|"
             r"inflation|\bbund\b|\btips\b|fixed income|\bagg\b|\baggh\b|\bt-bill"),
     (REAL_ESTATE, r"\breit|real estate|immobil|property"),
-    (BALANCED, r"balanced|bilanciat|multi.?asset|lifestrategy|allocation|60/40|80/20|portfolio"),
+    (BALANCED, r"balanced|bilanciat|misto|flessibil|multi.?asset|lifestrategy|allocation|60/40|80/20|portfolio"),
 ]
 
 
 def estimate(instrument: str | None, name: str | None = None, ticker: str | None = None) -> str:
     """The asset class a holding most likely belongs to, from its instrument and its name."""
     text = f"{name or ''} {ticker or ''}".lower()
-    if instrument in ("ETF", "Fondo", "Oggetti di valore", "Derivato", "Altro", None, ""):
+    if instrument in ("ETF", "Fondo comune", "Fondo assicurativo", "Oggetti di valore", "Derivato", "Altro", None, ""):
         for asset_class, pattern in BY_WORDS:
             if re.search(pattern, text):
                 return asset_class
@@ -51,14 +52,18 @@ def estimate(instrument: str | None, name: str | None = None, ticker: str | None
         return BY_INSTRUMENT[instrument]
     if instrument == "Oggetti di valore":
         return OTHER
+    if instrument == "Fondo assicurativo":
+        return BALANCED  # most insurance funds mix bonds and equities
     return EQUITY  # an ETF or a fund that says nothing else: most of them are equity funds
 
 
 def of(holding) -> str:
     """The holding's asset class: the one set by the user, or the estimate."""
     chosen = getattr(holding, "allocation_class", None)
+    chosen = RENAMED.get(chosen, chosen)
     return chosen if chosen in CLASSES else estimate(holding.asset_class, holding.name, holding.ticker)
 
 
 def is_estimated(holding) -> bool:
-    return getattr(holding, "allocation_class", None) not in CLASSES
+    chosen = getattr(holding, "allocation_class", None)
+    return RENAMED.get(chosen, chosen) not in CLASSES

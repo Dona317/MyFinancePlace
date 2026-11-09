@@ -201,6 +201,9 @@ def is_full_backup(data: dict) -> bool:
 
 # Fix-ups of backups made by older versions, run after every restore (they change nothing on newer ones)
 LEGACY_FIXES = (
+    # made before F70: the mutual fund was «Fondo» (the same conversion as the migration c4e6a8b0d2f3)
+    text("UPDATE holdings SET asset_class = 'Fondo comune' WHERE asset_class = 'Fondo'"),
+    text("UPDATE template_slots SET asset_class = 'Fondo comune' WHERE asset_class = 'Fondo'"),
     # made before multi-currency: no value in euro
     text("UPDATE transactions SET amount_base = amount WHERE amount_base IS NULL"),
     # made before the counterparty became a tag: the same conversion as the migration b7c1d2e3f4a5

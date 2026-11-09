@@ -28,7 +28,8 @@ ASSET_CLASSES = {
     # class: (balance-sheet line, is it part of the investment portfolio?)
     N_("Azione"):          (INVESTMENTS, True),
     N_("ETF"):             (INVESTMENTS, True),
-    N_("Fondo"):           (INVESTMENTS, True),
+    N_("Fondo comune"):    (INVESTMENTS, True),    # a mutual fund (OICR), priced at its NAV
+    N_("Fondo assicurativo"): (INVESTMENTS, True),  # an insurance fund (unit-linked, ramo I/III), valued by hand
     N_("Obbligazione"):    (INVESTMENTS, True),
     N_("Criptovaluta"):    (INVESTMENTS, True),
     N_("Derivato"):        (INVESTMENTS, True),   # options, futures, certificates: quantity × multiplier × price
