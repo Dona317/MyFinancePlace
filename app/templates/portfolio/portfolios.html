@@ -36,8 +36,8 @@
         <tr class="{{ 'text-muted' if not p.active }}">
           <td>
             <form method="POST" action="{{ url_for('portfolio.portfolio_default', portfolio_id=p.id) }}" class="inline-filter">
-              <button type="submit" class="btn btn-ghost btn-icon btn-sm star-btn{{ ' on' if p.is_default }}" aria-pressed="{{ 'true' if p.is_default else 'false' }}"
-                      title="{{ _('Portafoglio predefinito') if p.is_default else _('Rendi predefinito') }}" {{ 'disabled' if p.is_default }}>
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm star-btn star-gold{{ ' on' if p.is_default }}" aria-pressed="{{ 'true' if p.is_default else 'false' }}"
+                      title="{{ _('Portafoglio predefinito') if p.is_default else _('Rendi predefinito') }}">
                 <i class="bi {% if p.is_default %}bi-star-fill{% else %}bi-star{% endif %}"></i>
               </button>
             </form>

@@ -1526,6 +1526,8 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .star-btn:hover { color: var(--clr-warning); }
 /* the favourite: a full white star */
 .star-btn.on, .star-btn.on:hover { color: #fff; }
+/* on a plain table row (the default portfolio, F42): a full gold star */
+.star-btn.on.star-gold, .star-btn.on.star-gold:hover { color: var(--clr-warning); }
 .account-codes { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 2px; }
 .account-codes > span { display: inline-flex; align-items: center; gap: 4px; }
 .copy-btn { border: none; background: none; color: var(--clr-text-muted); cursor: pointer; padding: 0 2px; font-size: 12px; line-height: 1; }
