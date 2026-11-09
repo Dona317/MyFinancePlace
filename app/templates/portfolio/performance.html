@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block page_title %}{{ _('Rendimenti') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Rendimenti') }}</li>{% endblock %}
@@ -76,6 +77,37 @@
     </div>
   </div>
 {% if report.returns %}</div>{% endif %}
+
+{% if report.returns %}
+{% set top = (report.returns|map('abs')|max) or 1 %}
+<div class="card mt-24" style="margin-top:24px;">
+  <div class="card-header"><div class="card-header-title">{{ _('Rendimenti mese per mese') }} {{ info(_('Il rendimento di ogni mese (TWR): verde se positivo, rosso se negativo, più intenso quanto più è grande. L\'ultima colonna è l\'anno, dai mesi concatenati.')) }}</div></div>
+  <div class="table-wrapper">
+    <table class="summary-table">
+      <thead><tr><th>{{ _('Anno') }}</th>
+        {% for m in range(1, 13) %}<th class="text-right">{{ month_names[m - 1] }}</th>{% endfor %}
+        <th class="text-right">{{ _('Anno') }}</th></tr></thead>
+      <tbody>
+        {% for year, months in report.heatmap|dictsort|reverse %}
+        <tr><td>{{ year }}</td>
+          {% for r in months %}
+          {% if r is none %}<td></td>
+          {% else %}<td class="text-right summary-cell {{ 'income' if r >= 0 else 'expense' }}" style="--heat: {{ '%.2f'|format((r|abs) / top) }};">{{ r|number(1) }}</td>{% endif %}
+          {% endfor %}
+          {% set ns = namespace(total=1.0) %}{% for r in months if r is not none %}{% set ns.total = ns.total * (1 + r / 100) %}{% endfor %}
+          <td class="text-right"><strong>{{ ((ns.total - 1) * 100)|number(1) }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card" style="margin-top:24px;">
+  <div class="card-header"><div class="card-header-title">{{ _('Calo dal massimo') }} {{ info(_('Di quanto il portafoglio era sotto il suo punto più alto precedente, mese per mese (TWR): zero quando è al massimo.')) }}</div></div>
+  <div class="card-body"><div style="height:220px;"><canvas id="drawdownChart"></canvas></div></div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
@@ -84,6 +116,9 @@
 makeLineChart('perfChart', {{ report.labels|tojson }}, [
   { label: {{ _('Portafoglio (TWR)')|tojson }}, data: {{ report.cumulative|tojson }} },
   {% if report.benchmark_twr is not none %}{ label: {{ (benchmark.ticker or _('Benchmark'))|tojson }}, data: {{ report.benchmark|tojson }}, dash: [6, 4] },{% endif %}
+]);
+makeLineChart('drawdownChart', {{ report.labels|tojson }}, [
+  { label: {{ _('Calo dal massimo (%%)')|tojson }}, data: {{ report.drawdowns|tojson }} },
 ]);
 </script>
 {% endif %}

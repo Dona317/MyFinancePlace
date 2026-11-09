@@ -18,6 +18,7 @@ from app.services import (
     composition,
     display,
     family,
+    performance,
     portfolio_ops,
     price_feed,
     securities,
@@ -145,6 +146,9 @@ def index():
         folios=securities.portfolios(), dossiers=securities.accounts(), folio_id=folio_id, dossier_id=dossier_id,
         trend={"labels": [s.taken_on.strftime("%d/%m/%y") for s in snapshots],
                "data": [float(s.investments) for s in snapshots]},
+        # F47: the value month by month from the prices and the money put in (the snapshots only as a fallback)
+        series=performance.value_series([h for h in family.holdings_of(person, wealth.holdings_on())
+                                         if wealth.ASSET_CLASSES.get(h.asset_class, ("", False))[1]]),
     )
 
 

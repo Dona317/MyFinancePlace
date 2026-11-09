@@ -60,13 +60,17 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Andamento del Portafoglio') }}</div>
-        <div class="card-header-sub">{{ _('Dalle istantanee') }}</div>
+        {% if series.value|length >= 2 %}
+        <div class="card-header-title">{{ _('Valore e versato') }} {{ info(_('Il valore degli investimenti a fine mese, ai prezzi registrati fino a quel giorno, e quanto ci hai messo (acquisti con commissioni meno vendite): la distanza tra le due linee è il guadagno.')) }}</div>
+        {% else %}
+        <div class="card-header-title">{{ _('Andamento del Portafoglio') }} {{ info(_('Dalle istantanee')) }}</div>
+        {% endif %}
       </div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
-        {% if trend.data|length >= 2 %}<canvas id="portfolioTrendChart"></canvas>
+        {% if series.value|length >= 2 %}<canvas id="valueInvestedChart"></canvas>
+        {% elif trend.data|length >= 2 %}<canvas id="portfolioTrendChart"></canvas>
         {% else %}<div class="chart-empty">
           {{ _('Il valore nel tempo viene dalle istantanee: creane una ogni mese da') }}
           <a href="{{ url_for('snapshots.index') }}">{{ _('&nbsp;Istantanee') }}</a>.
@@ -200,7 +204,12 @@ makeDoughnutChart('allocationChart',
   {{ summary.allocation | map(attribute=1) | map('round', 2) | list | tojson }}
 );
 {% endif %}
-{% if trend.data|length >= 2 %}
+{% if series.value|length >= 2 %}
+makeLineChart('valueInvestedChart', {{ series.labels | tojson }}, [
+  { label: {{ _('Valore')|tojson }}, data: {{ series.value | tojson }} },
+  { label: {{ _('Versato')|tojson }}, data: {{ series.invested | tojson }}, dash: [6, 4] }
+]);
+{% elif trend.data|length >= 2 %}
 makeLineChart('portfolioTrendChart', {{ trend.labels | tojson }}, [
   { label: {{ _('Investimenti')|tojson }}, data: {{ trend.data | tojson }} }
 ]);

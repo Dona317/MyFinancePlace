@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 19:06+0000\n"
+"POT-Creation-Date: 2026-11-09 19:08+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1841,6 +1841,13 @@ msgstr "Month calendar"
 msgid "Calendario delle spese"
 msgstr "Spending calendar"
 
+msgid "Calo dal massimo"
+msgstr "Fall from the peak"
+
+#, python-format
+msgid "Calo dal massimo (%%)"
+msgstr "Fall from the peak (%%)"
+
 msgid "Calo dal prezzo medio (in percentuale)"
 msgstr "Fall from the average price (percent)"
 
@@ -3220,6 +3227,13 @@ msgstr ""
 
 msgid "Di chi"
 msgstr "Whose"
+
+msgid ""
+"Di quanto il portafoglio era sotto il suo punto più alto precedente, mese"
+" per mese (TWR): zero quando è al massimo."
+msgstr ""
+"How far the portfolio was below its previous highest point, month by "
+"month (TWR): zero when at its peak."
 
 msgid "Dic"
 msgstr "Dec"
@@ -4873,6 +4887,14 @@ msgstr ""
 "The ratio must be a positive number other than 1 (e.g. 10 for “1 old = 10"
 " new”)."
 
+msgid ""
+"Il rendimento di ogni mese (TWR): verde se positivo, rosso se negativo, "
+"più intenso quanto più è grande. L'ultima colonna è l'anno, dai mesi "
+"concatenati."
+msgstr ""
+"Each month's return (TWR): green if positive, red if negative, stronger "
+"the larger it is. The last column is the year, from the months chained."
+
 msgid "Il report con questi filtri, in PDF"
 msgstr "The report with these filters, as PDF"
 
@@ -4912,6 +4934,15 @@ msgstr "Your account"
 
 msgid "Il tuo menu è aggiornato."
 msgstr "Your menu is updated."
+
+msgid ""
+"Il valore degli investimenti a fine mese, ai prezzi registrati fino a "
+"quel giorno, e quanto ci hai messo (acquisti con commissioni meno "
+"vendite): la distanza tra le due linee è il guadagno."
+msgstr ""
+"The value of the investments at the end of each month, at the prices "
+"recorded by that day, and how much you put in (purchases with fees minus "
+"sales): the gap between the two lines is the gain."
 
 msgid "Il valore nel tempo viene dalle istantanee: creane una ogni mese da"
 msgstr "The value over time comes from the snapshots: take one every month from"
@@ -8913,6 +8944,9 @@ msgstr "Cash Flow Statement"
 msgid "Rendimenti"
 msgstr "Performance"
 
+msgid "Rendimenti mese per mese"
+msgstr "Returns month by month"
+
 msgid "Rendimento (TWR)"
 msgstr "Return (TWR)"
 
@@ -11318,6 +11352,9 @@ msgstr ""
 
 msgid "Valore con la quantità attuale"
 msgstr "Value at the current quantity"
+
+msgid "Valore e versato"
+msgstr "Value and money put in"
 
 msgid "Valore totale del portafoglio investimenti"
 msgstr "Total value of the investment portfolio"

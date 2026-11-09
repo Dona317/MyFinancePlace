@@ -185,6 +185,7 @@ def performance_page():
     person = request.args.get("person", "")
     holdings = family.holdings_of(person, portfolio_models.investments())
     return render_template("portfolio/performance.html", report=performance.report(holdings), person=person,
+                           month_names=[str(_(m)) for m in periods.MONTH_LABELS],
                            xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
                            benchmark=performance.benchmark_settings())
 

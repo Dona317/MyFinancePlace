@@ -41,6 +41,8 @@ class Report:
     worst: tuple[str, float] | None = None
     benchmark_twr: float | None = None
     windows: dict = field(default_factory=dict)              # {"1A": (portfolio %, benchmark %)}
+    heatmap: dict = field(default_factory=dict)              # F49: {2025: [12 monthly returns in % or None]}
+    drawdowns: list[float] = field(default_factory=list)     # F49: % below the previous peak, month by month
 
 
 def _value(holdings: list[Holding], on: date) -> float:
@@ -180,6 +182,13 @@ def report(holdings: list[Holding], today: date | None = None) -> Report:
     best, worst = max(range(len(returns)), key=returns.__getitem__), min(range(len(returns)), key=returns.__getitem__)
     result.best, result.worst = (result.labels[best], result.returns[best]), (result.labels[worst], result.returns[worst])
 
+    for d, r in zip(dates, result.returns):  # the year × month table (the last point can be today: its month)
+        result.heatmap.setdefault(d.year, [None] * 12)[d.month - 1] = r
+    peak = 1.0
+    for c in cumulative:
+        peak = max(peak, 1 + c)
+        result.drawdowns.append(round(((1 + c) / peak - 1) * 100, 2))
+
     prices = benchmark_settings().get("prices") or {}
     bench = [None] * len(dates)
     start_price = _benchmark_on(prices, periods.first_of_month(dates[0]) - timedelta(days=1)) if prices else None
@@ -196,3 +205,37 @@ def report(holdings: list[Holding], today: date | None = None) -> Report:
             theirs = round((end / begin - 1) * 100, 2) if begin and end else None
         result.windows[label] = (mine, theirs)
     return result
+
+
+# ── Value against money put in (F47, F49) ──────────────────────────────────────
+
+def _invested(holdings: list[Holding], on: date) -> float:
+    """Money put into the holdings up to a date: their opening positions at cost, purchases (commissions in) minus
+    what the sales brought back. Holdings without trades count at cost from their purchase date."""
+    ids = [h.id for h in holdings]
+    total = 0.0
+    for h in holdings:
+        opened = h.opening_date or h.purchase_date
+        if opened is None or opened <= on:
+            quantity = h.opening_quantity if h.opening_quantity is not None else h.quantity
+            price = h.opening_price if h.opening_price is not None else h.avg_price
+            total += float(quantity or 0) * float(price or 0) * float(h.multiplier or 1)
+    trades = db.session.query(func.sum(func.sign(Transaction.units) * VALUE)).filter(
+        Transaction.holding_id.in_(ids or [0]), Transaction.units.isnot(None), Transaction.date <= on).scalar()
+    trade_ids = db.session.query(Transaction.id).filter(Transaction.holding_id.in_(ids or [0]),
+                                                        Transaction.units.isnot(None), Transaction.date <= on)
+    fees = db.session.query(func.sum(VALUE)).filter(Transaction.fee_for_id.in_(trade_ids)).scalar()
+    return total + float(trades or 0) + float(fees or 0)
+
+
+def value_series(holdings: list[Holding], today: date | None = None) -> dict:
+    """Month-end value of the holdings at the prices recorded by then, and the money put in by then (G37): the chart
+    the portfolio page shows instead of the snapshots."""
+    today = today or date.today()
+    first = _first_date(holdings)
+    if first is None or first >= today:
+        return {"labels": [], "value": [], "invested": []}
+    ends = _ends(first, today)
+    return {"labels": [d.strftime("%m/%y") for d in ends],
+            "value": [round(_value(holdings, d), 2) for d in ends],
+            "invested": [round(_invested(holdings, d), 2) for d in ends]}
