@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 19:05+0000\n"
+"POT-Creation-Date: 2026-11-09 19:06+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -80,6 +80,14 @@ msgstr "%(amount)s a month to get there on time"
 #, python-format
 msgid "%(amount)s al mese per arrivarci in tempo, al %(rate)s %% all'anno"
 msgstr "%(amount)s a month to get there on time, at %(rate)s %% a year"
+
+#, python-format
+msgid "%(amount)s da investire su «%(name)s»"
+msgstr "%(amount)s to invest on «%(name)s»"
+
+#, python-format
+msgid "%(amount)s divisi per ridurre lo scostamento dal modello."
+msgstr "%(amount)s split to reduce the drift from the model."
 
 #, python-format
 msgid "%(amount)s il %(day)s"
@@ -389,6 +397,10 @@ msgstr "%(name)s is not a model for this provider: choose %(which)s."
 #, python-format
 msgid "%(name)s pesa il %(pct)s %% degli investimenti"
 msgstr "%(name)s is %(pct)s %% of the investments"
+
+#, python-format
+msgid "%(name)s si è mosso del %(pct)s %% in %(days)s giorni"
+msgstr "%(name)s moved %(pct)s %% in %(days)s days"
 
 #, python-format
 msgid "%(name)s è salito sopra %(limit)s"
@@ -2771,6 +2783,13 @@ msgstr "Checked %(count)s transactions of the search"
 msgid "Controllo"
 msgstr "Check"
 
+msgid "Controllo del ribilanciamento ogni (mesi)"
+msgstr "Rebalancing check every (months)"
+
+#, python-format
+msgid "Controllo periodico ogni %(months)s mesi."
+msgstr "Periodic check every %(months)s months."
+
 msgid "Controllo registro"
 msgstr "Register check"
 
@@ -4588,6 +4607,9 @@ msgstr "The gross fee must be positive."
 msgid "Il consumo non può essere negativo."
 msgstr "Consumption cannot be negative."
 
+msgid "Il controllo periodico va ogni 1, 3, 6 o 12 mesi."
+msgstr "The periodic check goes every 1, 3, 6 or 12 months."
+
 #, python-format
 msgid "Il database ha rifiutato il backup: %(value)s"
 msgstr "The database rejected the backup: %(value)s"
@@ -4821,6 +4843,11 @@ msgid ""
 msgstr ""
 "The default portfolio cannot be deleted: put the star on another one "
 "first."
+
+msgid ""
+"Il portafoglio può essere uscito dalle bande: controlla il "
+"ribilanciamento."
+msgstr "The portfolio may be out of its bands: check the rebalancing."
 
 msgid "Il prezzo deve essere maggiore di zero."
 msgstr "The price must be greater than zero."
@@ -5915,6 +5942,9 @@ msgstr ""
 "Liquid money (%(liquid)s) divided by the average spending of the last "
 "%(n)s complete months"
 
+msgid "Liquidità da investire sui conti titoli oltre (€)"
+msgstr "Cash to invest on the securities accounts above (€)"
+
 msgid "Liquidità su"
 msgstr "Cash on"
 
@@ -6429,6 +6459,9 @@ msgstr "Movement"
 #, python-format
 msgid "Movimento %(number)s: data o importo non validi"
 msgstr "Transaction %(number)s: invalid date or amount"
+
+msgid "Movimento di mercato in 7 giorni oltre (in percentuale)"
+msgstr "Market move in 7 days above (percent)"
 
 msgid "Mutui"
 msgstr "Mortgages"
@@ -7890,6 +7923,9 @@ msgstr ""
 "For derivatives: how many units one contract is worth (e.g. 100 for a "
 "stock option). Otherwise 1."
 
+msgid "Per la rata del PAC indica da 1 a 31 giorni."
+msgstr "For the PAC instalment enter 1 to 31 days."
+
 msgid ""
 "Per le passività la differenza è mostrata dal punto di vista del "
 "patrimonio: un debito che scende è in verde."
@@ -8720,6 +8756,13 @@ msgstr ""
 msgid "Rata del PAC"
 msgstr "PAC instalment"
 
+msgid "Rata del PAC entro (giorni)"
+msgstr "PAC instalment within (days)"
+
+#, python-format
+msgid "Rata del PAC «%(name)s» il %(day)s"
+msgstr "PAC «%(name)s» instalment on %(day)s"
+
 msgid "Rata mensile"
 msgstr "Monthly installment"
 
@@ -8967,6 +9010,11 @@ msgstr "Resume"
 
 msgid "Ribilancia"
 msgstr "Rebalance"
+
+msgid ""
+"Ribilancia con i nuovi versamenti: compri solo ciò che è sotto "
+"l'obiettivo."
+msgstr "Rebalance with the new money: you only buy what is under target."
 
 msgid "Ribilanciamento"
 msgstr "Rebalancing"
@@ -12760,6 +12808,9 @@ msgstr "· exceeded"
 #, python-format
 msgid "È disponibile la versione %(version)s."
 msgstr "Version %(version)s is available."
+
+msgid "È il momento di controllare il ribilanciamento"
+msgstr "Time to check the rebalancing"
 
 msgid ""
 "È il primo avvio: questo sarà l'amministratore. Potrai aggiungere altri "
