@@ -127,3 +127,22 @@ def test_a_restored_backup_from_before_f42_gets_its_dossiers(app, db, setup):
     trade = Transaction.query.one()
     assert trade.securities_account_id == SecuritiesAccount.query.one().id
     assert trade.portfolio_id == Portfolio.query.filter_by(is_default=True).one().id
+
+
+def test_lists_and_position_values(app, db, setup):
+    directa, _degiro, etf = setup
+    etf.current_price, etf.multiplier = Decimal(120), Decimal(1)
+    closed = Portfolio(name="Vecchio", active=False, position=9)
+    db.session.add(closed)
+    db.session.commit()
+    with app.test_request_context():
+        dossier = securities.for_settlement(directa)
+        securities.default_portfolio()
+        db.session.commit()
+        assert [p.name for p in securities.portfolios()] == ["Portafoglio principale"]
+        assert [p.name for p in securities.portfolios(active_only=False)] == ["Portafoglio principale", "Vecchio"]
+        dossier.active = False
+        assert securities.accounts() == [] and securities.accounts(active_only=False) == [dossier]
+        (position,) = securities.positions([etf])
+    assert dossier.has_fee_rule and not SecuritiesAccount(name="Nuovo").has_fee_rule
+    assert (position.units, position.value, position.gain) == (10.0, 1200.0, 200.0)
