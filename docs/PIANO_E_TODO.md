@@ -178,6 +178,7 @@ Dallo stesso report (fogli Grafici, Sezioni, Gestione dato, Buchi): i più impor
 | F67 | B | S | ⬜ | **Giroconti tra valute diverse e grafici in PNG** | Abbinamento con tolleranza sul cambio (Sure: 2 giorni, 3%); «Scarica immagine» sui grafici · Catalogo: G69 (F68) |
 | F68 | A | L | ⬜ | **Catalogo grafici** (D14) | Da [Grafici da riportare](../reports/Grafici%20da%20riportare.md) e dai fogli «Catalogo grafici» e «Librerie grafici» del file Excel: 72 grafici, G01–G25 già presenti e G26–G72 da fare, ognuno con domanda, pagina, dati, implementazione, priorità e sforzo, più l'elenco «da non fare». **Priorità alta**: valore vs versato G37 (dopo F47), heatmap dei rendimenti mensili G38, drawdown G39, marcatori di acquisti/vendite e prezzo medio sul grafico del titolo G40, attuale vs target con bande G41, look-through alla justETF G42–G45 (ciambella per classe, barre paese e settore primi 10 + «Altri», prime aziende sottostanti; dopo F57), waterfall della variazione con bollo e tasse G51, ventaglio Monte Carlo riempito G59 e linea «necessario» G60. Non coperti da altre voci: debito contratto vs reale vs estinzione anticipata G35, quota capitale/interessi G36, copertura della spesa in pensione con la pensione INPS G61, `role`/`aria-label` nelle fabbriche di `charts.js` G70 (oggi 2 canvas su 39). Tecnica: Chart.js 4.4.3 + plugin MIT in locale solo dove servono; sunburst → ciambella a più anelli; Sankey resta SVG lato server; grafici nei PDF come SVG Python (serve un TTF per «€») |
 | F69 | A | M | 🔄 | **Storico prezzi di fine giornata (EOD) per ISIN** (D10) | **Passo 1 (9 nov)**: `scripts/check_price_sources.py` da lanciare sul PC dell'utente (la sandbox blocca questi siti): prova Morningstar (www e lt.), Yahoo, Stooq, Borsa Italiana, justETF, FT, investing.com (solo diagnosi), BCE; salva le risposte in `samples/price_sources/<data>/` (non versionata) e un `report.md` da mandare all'assistente. Lo script si presenta sempre come MyFinancePlace e **non aggira** muri anti-bot, login o token: una fonte dietro uno di questi è «bloccata» e **non entra nell'app** (vale anche per l'API dei grafici di Borsa Italiana se chiede token o cookie del WAF). **Passo 2**: `history(isin, start, end) -> History(currency, points, source, adjusted)` in ogni modulo di `instrument_sources`, registro `HISTORIES`; `quote()` = ultimo punto della serie; chiusura non rettificata in valuta d'origine con fonte e cambio (F43); `price_sync_state`; backfill dalla prima operazione − 10 giorni, poi ogni giorno dall'ultima data − 7; nessuna riga per i festivi (riporto in F47); host e token Morningstar modificabili; controllo di plausibilità tra fonti |
+| F70 | A | M | ⬜ | **Classe di attivo ≠ tipo di strumento** (richiesta del 9 nov) | Oggi `asset_class` mescola le due cose (ETF, Azione, Fondo…). Diventa il **tipo di strumento** (ETF, Azione, Fondo, Obbligazione, Criptovaluta…) e si aggiunge la **classe di attivo**: Azionario, Obbligazionario, Monetario e liquidità, Oro e metalli preziosi, Materie prime, Immobiliare, Criptovalute, Bilanciato, Altro. Migrazione con una stima (Azione → Azionario, Obbligazione → Obbligazionario, ETF e fondi dal nome: «bond», «aggregate», «treasury» → Obbligazionario, «gold», «oro» → Oro, altrimenti Azionario), modificabile; nelle Posizioni due grafici: per classe di attivo e per tipo di strumento |
 
 Esclusi per scelta: collegamento automatico alle banche, budget "a buste", partita doppia.
 
@@ -210,6 +211,26 @@ Esclusi per scelta: collegamento automatico alle banche, budget "a buste", parti
    (app aperta), confronta il piano con i commit della settimana e segnala le divergenze.
 
 ## 6. Proposta di ordine (aggiornata il 1° nov 2026)
+
+### Piano di lavoro autonomo (9 nov 2026, sera) — tutto senza internet
+
+Richiesta: «fai un bel piano e poi inizia a lavorare su tante cose». In ordine, ognuno con test, commit e push sul
+ramo di lavoro (PR #9):
+
+| # | Cosa | Voci | Stato |
+|---|---|---|---|
+| W1 | Note come **tooltip** («i» accanto all'etichetta), mai testo sotto i box | macro dei campi, pagine del Portafoglio | ✅ (resta W1b: i 38 `form-hint` scritti a mano nelle altre pagine) |
+| W2 | **Classe di attivo** (azionario, obbligazionario, oro…) separata dal **tipo di strumento** (ETF, azione, fondo…), con un grafico per ciascuna | F70 | ⬜ |
+| W3 | **Registro ordini**: Portafoglio → Ordini, tutte le operazioni con filtri, totali di commissioni e tasse, CSV | F46 | ⬜ |
+| W4 | **Notifiche di ribilanciamento** legate a eventi: scostamento per portafoglio, data del PAC, nuova liquidità, calendario | F51 | ⬜ |
+| W5 | **Valore nel tempo dai prezzi** (non dalle Istantanee) e grafici valore vs versato, rendimenti mensili, perdita dal massimo | F47, F49 (G37–G39) | ⬜ |
+| W6 | **Dashboard Portafoglio** a blocchi + 2–3 blocchi nella dashboard generale | F48 (D13) | ⬜ |
+| W7 | Portafoglio modello **per portafoglio** | F50 | ⬜ |
+| W8 | Plusvalenze con il **costo medio per conto titoli** | F44 (D9) | ⬜ |
+
+Fermi finché non arriva qualcosa da te: F69 (`report.md` delle fonti dei prezzi), F55 (estratti dei broker), F56a
+(fonti fiscali ufficiali, serve internet), F60 (elenco dei repository starred).
+
 
 1. ▶ **F32** categorie predefinite (rivedere la lista, rispondere alle 6 domande, poi applicare).
 2. **F25** accendere l'hook dell'exe (`git config core.hooksPath .githooks`).
