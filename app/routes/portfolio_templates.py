@@ -154,7 +154,8 @@ def _proposed_orders(plan) -> list[dict]:
 @portfolio_bp.route("/rebalance/orders", methods=["GET", "POST"])
 def rebalance_orders():
     """What to do at the broker, then — once done — the confirmation with the prices actually executed: each order
-    becomes a purchase or a sale, in the chosen securities account and portfolio."""
+    becomes a purchase or a sale, in the chosen securities account and portfolio or, when none is chosen, where the
+    units are (services.portfolio_ops.record_order)."""
     template = models.active()
     if template is None:
         flash(_("Scegli o crea prima un portafoglio modello."), "info")
@@ -170,8 +171,6 @@ def rebalance_orders():
         try:
             if on > date.today():
                 raise ValueError(_("La data non può essere nel futuro."))
-            if dossier is not None and account is None:
-                account = dossier.settlement_account
             for i in range(request.form.get("rows", type=int) or 0):
                 if not request.form.get(f"do-{i}"):
                     continue
@@ -181,9 +180,8 @@ def rebalance_orders():
                 if holding is None or not units or not price:
                     continue
                 side = "sell" if request.form.get(f"side-{i}") == "sell" else "buy"
-                portfolio_ops.record(holding, portfolio_ops.Operation(
-                    side, on, account, units=units, price=price, fee=fee, securities_account=dossier, portfolio=folio,
-                    notes=_("Ribilanciamento «%(name)s»", name=template.name)))
+                portfolio_ops.record_order(holding, side, on, units, price, fee, account, dossier, folio,
+                                           notes=_("Ribilanciamento «%(name)s»", name=template.name))
                 done += 1
             if not done:
                 raise ValueError(_("Nessun ordine da confermare: spunta quelli eseguiti e indica quote e prezzo."))
@@ -206,5 +204,5 @@ def rebalance_orders():
                            accounts=[(a.id, a.name) for a in accounts.active()],
                            dossiers=[(d.id, d.name) for d in dossiers], first=first,
                            folios=[(p.id, p.name) for p in securities.portfolios()],
-                           default_folio=securities.default_portfolio().id, mode=mode,
+                           mode=mode,
                            amount=request.values.get("amount", ""))

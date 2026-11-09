@@ -20,11 +20,11 @@
     <div class="card-body">
       <div class="grid-2">
         {{ f.date({}, 'on', _('Data di esecuzione'), today, required=true) }}
-        {{ f.select({}, 'securities_account_id', _('Conto titoli'), dossiers, first.id if first else none, blank=_('— quello del conto di liquidità —')) }}
+        {{ f.select({}, 'securities_account_id', _('Conto titoli'), dossiers, none, blank=_('— dove sono già le quote —')) }}
       </div>
       <div class="grid-2">
-        {{ f.select({}, 'account_id', _('Conto di liquidità'), accounts, first.settlement_account_id if first else none, blank=_('— dal conto titoli —')) }}
-        {{ f.select({}, 'portfolio_id', _('Portafoglio'), folios, default_folio) }}
+        {{ f.select({}, 'account_id', _('Conto di liquidità'), accounts, none, blank=_('— quello del conto titoli —')) }}
+        {{ f.select({}, 'portfolio_id', _('Portafoglio'), folios, none, blank=_('— dove sono le quote (le vendite) o il predefinito (gli acquisti) —')) }}
       </div>
     </div>
   </div>

@@ -146,3 +146,31 @@ def test_lists_and_position_values(app, db, setup):
         (position,) = securities.positions([etf])
     assert dossier.has_fee_rule and not SecuritiesAccount(name="Nuovo").has_fee_rule
     assert (position.units, position.value, position.gain) == (10.0, 1200.0, 200.0)
+
+
+def test_an_order_sells_where_the_units_are_and_buys_where_the_holding_sits(app, db, setup):
+    directa, degiro, etf = setup
+    pension = Portfolio(name="Pensione")
+    db.session.add(pension)
+    db.session.commit()
+    with app.test_request_context():
+        on_degiro = securities.for_settlement(degiro)
+        portfolio_ops.record(etf, Operation("buy", date(2025, 3, 1), degiro, units=Decimal(30), price=Decimal(100),
+                                            portfolio=pension))
+        etf.opening_account_id = securities.for_settlement(directa).id
+        db.session.commit()
+        # 10 in Directa (default portfolio), 30 in Degiro (pension): selling 35 takes 30 + 5, fee on the first part
+        assert portfolio_ops.record_order(etf, "sell", date(2025, 6, 1), Decimal(35), Decimal(110), Decimal(3)) == 2
+        db.session.commit()
+        sales = Transaction.query.filter(Transaction.units < 0).order_by(Transaction.id).all()
+        assert [(s.units, s.securities_account_id, s.portfolio_id, s.counter_account_id) for s in sales] == [
+            (Decimal(-30), on_degiro.id, pension.id, degiro.id),
+            (Decimal(-5), etf.opening_account_id, securities.default_portfolio().id, directa.id)]
+        assert Transaction.query.filter(Transaction.fee_for_id.isnot(None)).one().fee_for_id == sales[0].id
+        with pytest.raises(ValueError, match="più quote"):
+            portfolio_ops.record_order(etf, "sell", date(2025, 6, 2), Decimal(6), Decimal(110))
+        # a purchase with nothing chosen goes where most of it sits (Directa now), paid from its settlement account
+        portfolio_ops.record_order(etf, "buy", date(2025, 6, 3), Decimal(2), Decimal(111))
+        buy = Transaction.query.filter(Transaction.units == 2).one()
+        assert (buy.securities_account_id, buy.account_id) == (etf.opening_account_id, directa.id)
+        assert securities.main_place(Holding(name="Nuovo", asset_class="ETF", quantity=0, avg_price=0)) is None

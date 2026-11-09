@@ -313,6 +313,16 @@ def positions(holdings: list[Holding] | None = None, portfolio_id: int | None = 
     return sorted(out, key=lambda p: (p.holding.name.lower(), p.securities_account_id or 0, p.portfolio_id or 0))
 
 
+def main_place(holding: Holding) -> SecuritiesAccount | None:
+    """Where a new purchase of a holding goes when nothing is chosen: the securities account that already holds most
+    of it, or the only active one."""
+    held = [p for p in positions([holding]) if p.quantity > 0 and p.securities_account_id]
+    if held:
+        return db.session.get(SecuritiesAccount, max(held, key=lambda p: p.quantity).securities_account_id)
+    active = accounts()
+    return active[0] if len(active) == 1 else None
+
+
 def holdings_in(portfolio_id: int | None = None, securities_account_id: int | None = None) -> list[Holding]:
     """The holdings with units in a portfolio and/or a securities account."""
     seen: dict[int, Holding] = {}

@@ -138,6 +138,13 @@ class Operation:
     # portfolio
     securities_account: SecuritiesAccount | None = None
     portfolio: Portfolio | None = None
+    exact_place: bool = False  # True: securities_account as given, even None (a position held in no dossier)
+
+    def place(self) -> SecuritiesAccount | None:
+        """The securities account the operation sits in: the chosen one, or the settlement account's."""
+        if self.exact_place or self.securities_account is not None:
+            return self.securities_account
+        return securities.for_settlement(self.account) if self.account is not None else None
 
 
 def _description(holding: Holding, op: Operation) -> str:
@@ -159,8 +166,8 @@ def record(holding: Holding, op: Operation) -> list[Transaction]:
         if op.kind == "sell" and op.units > Decimal(holding.quantity or 0):
             raise ValueError(_("Non puoi vendere più quote di quelle che hai (%(units)s).",
                                units=display.plain(holding.quantity)))
-        if op.kind == "sell" and (op.securities_account is not None or op.portfolio is not None):
-            place = op.securities_account or (securities.for_settlement(op.account) if op.account else None)
+        if op.kind == "sell" and (op.securities_account is not None or op.portfolio is not None or op.exact_place):
+            place = op.place()
             folio = op.portfolio or securities.default_portfolio()
             held = sum((p.quantity for p in securities.positions([holding])
                         if p.securities_account_id == (place.id if place else None) and p.portfolio_id == folio.id),
@@ -195,10 +202,42 @@ def record(holding: Holding, op: Operation) -> list[Transaction]:
                                account_id=op.account.id if op.account else None)]
         db.session.add_all(created)
         db.session.flush()
-    place = op.securities_account or (securities.for_settlement(op.account) if op.account is not None else None)
-    securities.assign(created, place, op.portfolio)
+    securities.assign(created, op.place(), op.portfolio)
     recompute(holding)
     return created
+
+
+def record_order(holding: Holding, side: str, on: date, units: Decimal, price: Decimal, fee: Decimal | None = None,
+                 account: Account | None = None, securities_account: SecuritiesAccount | None = None,
+                 portfolio: Portfolio | None = None, notes: str | None = None) -> int:
+    """An executed order (from a rebalancing): with no securities account and no portfolio chosen, a sale takes the
+    units from where they are — the biggest position first, the commission on the first part — and a purchase goes
+    to the securities account that already holds the holding; the money moves on that account's settlement account.
+    How many operations were recorded."""
+    if side == "sell" and securities_account is None and portfolio is None:
+        held = sorted((p for p in securities.positions([holding]) if p.quantity > 0), key=lambda p: -p.quantity)
+        if sum((p.quantity for p in held), Decimal(0)) < units:
+            raise ValueError(_("Non puoi vendere più quote di quelle che hai (%(units)s).",
+                               units=display.plain(holding.quantity)))
+        left, count = units, 0
+        for position in held:
+            take = min(left, position.quantity)
+            place = db.session.get(SecuritiesAccount, position.securities_account_id) if position.securities_account_id else None
+            record(holding, Operation("sell", on, account or (place.settlement_account if place else None), units=take,
+                                      price=price, fee=fee if count == 0 else None, notes=notes,
+                                      securities_account=place, exact_place=True,
+                                      portfolio=db.session.get(Portfolio, position.portfolio_id)))
+            left, count = left - take, count + 1
+            if left <= 0:
+                break
+        return count
+    if securities_account is None and account is None:
+        securities_account = securities.main_place(holding)
+    if account is None and securities_account is not None:
+        account = securities_account.settlement_account
+    record(holding, Operation(side, on, account, units=units, price=price, fee=fee, notes=notes,
+                              securities_account=securities_account, portfolio=portfolio))
+    return 1
 
 
 # ── Returns ────────────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 18:51+0000\n"
+"POT-Creation-Date: 2026-11-09 18:55+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -12728,8 +12728,11 @@ msgstr "— No account —"
 msgid "— come la principale / variabile —"
 msgstr "— as the main one / variable —"
 
-msgid "— dal conto titoli —"
-msgstr "— from the securities account —"
+msgid "— dove sono già le quote —"
+msgstr "— where the units already are —"
+
+msgid "— dove sono le quote (le vendite) o il predefinito (gli acquisti) —"
+msgstr "— where the units are (sales) or the default one (purchases) —"
 
 msgid "— famiglia —"
 msgstr "— family —"
@@ -12764,11 +12767,11 @@ msgstr "— do not record the money received —"
 msgid "— quello attivo —"
 msgstr "— the active one —"
 
-msgid "— quello del conto di liquidità —"
-msgstr "— the cash account’s —"
-
 msgid "— quello del conto scelto —"
 msgstr "— the chosen account’s —"
+
+msgid "— quello del conto titoli —"
+msgstr "— the securities account’s —"
 
 msgid "— quello del conto —"
 msgstr "— the account’s —"
