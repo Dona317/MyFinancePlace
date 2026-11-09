@@ -1,0 +1,145 @@
+"""
+Portfolios and securities accounts (F42): the page that lists them (rename, the star of the default portfolio,
+archive), a securities account's form and its own page, with its positions and its liquidity.
+"""
+from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
+
+from app.extensions import db
+from app.models.securities import Portfolio, SecuritiesAccount
+from app.routes.helpers import form_decimal, form_text
+from app.routes.portfolio import portfolio_bp
+from app.services import accounts, securities, wealth
+
+
+def _summary(positions) -> dict:
+    return wealth.portfolio_summary(positions)
+
+
+@portfolio_bp.route("/portfolios")
+def portfolios_page():
+    if securities.ensure_assigned() or Portfolio.query.filter_by(is_default=True).count() == 0:
+        securities.default_portfolio()  # the star is always somewhere
+        db.session.commit()
+    folios = securities.portfolios(active_only=False)
+    dossiers = securities.accounts(active_only=False)
+    every = securities.positions()
+    value_of = {p.id: sum(x.value for x in every if x.portfolio_id == p.id) for p in folios}
+    rows = [{"dossier": d, "value": sum(x.value for x in every if x.securities_account_id == d.id),
+             "cash": securities.cash(d)} for d in dossiers]
+    return render_template("portfolio/portfolios.html", folios=folios, value_of=value_of,
+                           count_of={p.id: securities.operations_count(p) for p in folios}, rows=rows,
+                           nav_active="portfolios")
+
+
+def _back():
+    return redirect(url_for("portfolio.portfolios_page"))
+
+
+@portfolio_bp.route("/portfolios/new", methods=["POST"])
+def portfolio_new():
+    try:
+        folio = securities.save_portfolio(None, request.form.get("name", ""), request.form.get("description"))
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return _back()
+    db.session.commit()
+    flash(_("Portafoglio «%(name)s» creato.", name=folio.name), "success")
+    return _back()
+
+
+@portfolio_bp.route("/portfolios/<int:portfolio_id>/rename", methods=["POST"])
+def portfolio_rename(portfolio_id):
+    folio = db.get_or_404(Portfolio, portfolio_id)
+    try:
+        securities.save_portfolio(folio, request.form.get("name", ""), request.form.get("description"))
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return _back()
+    folio.active = True
+    db.session.commit()
+    flash(_("Portafoglio «%(name)s» salvato.", name=folio.name), "success")
+    return _back()
+
+
+@portfolio_bp.route("/portfolios/<int:portfolio_id>/default", methods=["POST"])
+def portfolio_default(portfolio_id):
+    folio = db.get_or_404(Portfolio, portfolio_id)
+    securities.set_default(folio)
+    db.session.commit()
+    flash(_("«%(name)s» è il portafoglio predefinito: le nuove operazioni vanno lì se non ne scegli un altro.",
+            name=folio.name), "success")
+    return _back()
+
+
+@portfolio_bp.route("/portfolios/<int:portfolio_id>/delete", methods=["POST"])
+def portfolio_delete(portfolio_id):
+    folio = db.get_or_404(Portfolio, portfolio_id)
+    name = folio.name
+    try:
+        securities.delete_portfolio(folio)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return _back()
+    archived = folio in db.session and not folio.active
+    db.session.commit()
+    flash(_("Portafoglio «%(name)s» archiviato: ha delle operazioni, che restano.", name=name) if archived
+          else _("Portafoglio «%(name)s» eliminato.", name=name), "success")
+    return _back()
+
+
+# ── Securities accounts ────────────────────────────────────────────────────────
+
+def _account_data() -> dict:
+    return {"name": form_text("name", _("Nome")), "broker": form_text("broker", _("Intermediario")),
+            "settlement_account_id": request.form.get("settlement_account_id", type=int),
+            "tax_regime": request.form.get("tax_regime"), "abroad": bool(request.form.get("abroad")),
+            "fee_fixed": form_decimal("fee_fixed", _("Commissione fissa")),
+            "fee_percent": form_decimal("fee_percent", _("Commissione %")),
+            "fee_min": form_decimal("fee_min", _("Commissione minima")),
+            "fee_max": form_decimal("fee_max", _("Commissione massima")),
+            "notes": form_text("notes", _("Note")), "active": bool(request.form.get("active"))}
+
+
+def _account_form(dossier: SecuritiesAccount | None):
+    values = {}
+    if request.method == "POST":
+        try:
+            dossier = securities.save_account(dossier, _account_data())
+        except ValueError as exc:
+            db.session.rollback()
+            flash(str(exc), "error")
+            values = request.form
+        else:
+            db.session.commit()
+            flash(_("Conto titoli «%(name)s» salvato.", name=dossier.name), "success")
+            return redirect(url_for("portfolio.dossier_page", dossier_id=dossier.id))
+    return render_template("portfolio/dossier_form.html", dossier=dossier, values=values,
+                           settlement=[(a.id, a.name) for a in accounts.active() if a.kind not in ("debt",)],
+                           regimes=securities.REGIMES), 400 if values else 200
+
+
+@portfolio_bp.route("/dossiers/new", methods=["GET", "POST"])
+def dossier_new():
+    return _account_form(None)
+
+
+@portfolio_bp.route("/dossiers/<int:dossier_id>/edit", methods=["GET", "POST"])
+def dossier_edit(dossier_id):
+    return _account_form(db.get_or_404(SecuritiesAccount, dossier_id))
+
+
+@portfolio_bp.route("/dossiers/<int:dossier_id>")
+def dossier_page(dossier_id):
+    """A securities account: its positions by portfolio and its liquidity, the settlement account's balance."""
+    dossier = db.get_or_404(SecuritiesAccount, dossier_id)
+    if securities.ensure_assigned():
+        db.session.commit()
+    held = securities.positions(securities_account_id=dossier.id)
+    names = {p.id: p.name for p in securities.portfolios(active_only=False)}
+    cash = securities.cash(dossier)
+    summary = _summary(held)
+    return render_template("portfolio/dossier.html", dossier=dossier, positions=held, names=names, cash=cash,
+                           summary=summary, total=summary["value"] + cash, nav_active="portfolios")

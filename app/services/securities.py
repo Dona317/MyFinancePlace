@@ -19,14 +19,17 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 
+from flask_babel import gettext as _
+
 from app.extensions import db
 from app.models.account import Account
 from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import money
+from app.services import money, tax_rules
 
 DEFAULT_PORTFOLIO = "Portafoglio principale"
+REGIMES = tax_rules.REGIMES
 
 
 # ── Portfolios and securities accounts ─────────────────────────────────────────
@@ -52,6 +55,85 @@ def portfolios(active_only: bool = True) -> list[Portfolio]:
 def accounts(active_only: bool = True) -> list[SecuritiesAccount]:
     query = SecuritiesAccount.query.filter_by(active=True) if active_only else SecuritiesAccount.query
     return query.order_by(SecuritiesAccount.name).all()
+
+
+def set_default(portfolio: Portfolio) -> None:
+    """The star: exactly one default portfolio, where new operations go when none is chosen."""
+    Portfolio.query.filter(Portfolio.is_default.is_(True)).update({"is_default": False}, synchronize_session=False)
+    portfolio.is_default, portfolio.active = True, True
+
+
+def save_portfolio(portfolio: Portfolio | None, name: str, description: str | None = None) -> Portfolio:
+    """Create or rename a portfolio (names are unique, case aside)."""
+    name = (name or "").strip()
+    if not name:
+        raise ValueError(_("Scrivi il nome del portafoglio."))
+    clash = Portfolio.query.filter(db.func.lower(Portfolio.name) == name.lower()).first()
+    if clash is not None and clash is not portfolio:
+        raise ValueError(_("Esiste già un portafoglio «%(name)s».", name=name))
+    if portfolio is None:
+        last = db.session.query(db.func.max(Portfolio.position)).scalar() or 0
+        portfolio = Portfolio(position=last + 1)
+        db.session.add(portfolio)
+    portfolio.name, portfolio.description = name, (description or "").strip() or None
+    db.session.flush()
+    if Portfolio.query.filter_by(is_default=True).first() is None:
+        set_default(portfolio)
+    return portfolio
+
+
+def operations_count(portfolio: Portfolio | None = None, securities_account: SecuritiesAccount | None = None) -> int:
+    query = Transaction.query
+    if portfolio is not None:
+        query = query.filter(Transaction.portfolio_id == portfolio.id)
+    if securities_account is not None:
+        query = query.filter(Transaction.securities_account_id == securities_account.id)
+    return query.count()
+
+
+def delete_portfolio(portfolio: Portfolio) -> None:
+    """Only an empty portfolio that is not the default one goes; one with operations is archived instead."""
+    if portfolio.is_default:
+        raise ValueError(_("Il portafoglio predefinito non si elimina: metti prima la stella su un altro."))
+    used = operations_count(portfolio) or Holding.query.filter_by(opening_portfolio_id=portfolio.id).count()
+    if used:
+        portfolio.active = False
+    else:
+        db.session.delete(portfolio)
+
+
+def save_account(dossier: SecuritiesAccount | None, data: dict) -> SecuritiesAccount:
+    """Create or change a securities account. It always has a settlement account: its liquidity."""
+    name = (data.get("name") or "").strip()
+    if not name:
+        raise ValueError(_("Scrivi il nome del conto titoli."))
+    clash = SecuritiesAccount.query.filter(db.func.lower(SecuritiesAccount.name) == name.lower()).first()
+    if clash is not None and clash is not dossier:
+        raise ValueError(_("Esiste già un conto titoli «%(name)s».", name=name))
+    settlement = db.session.get(Account, data.get("settlement_account_id") or 0)
+    if settlement is None:
+        raise ValueError(_("Scegli il conto di liquidità del conto titoli: ogni conto titoli ne ha uno."))
+    if dossier is None:
+        dossier = SecuritiesAccount()
+        db.session.add(dossier)
+    dossier.name, dossier.settlement_account_id = name, settlement.id
+    dossier.broker = (data.get("broker") or "").strip() or settlement.bank or settlement.name
+    dossier.tax_regime = data.get("tax_regime") if data.get("tax_regime") in REGIMES else "amministrato"
+    dossier.abroad = bool(data.get("abroad"))
+    for field in ("fee_fixed", "fee_percent", "fee_min", "fee_max"):
+        setattr(dossier, field, data.get(field))
+    dossier.notes = (data.get("notes") or "").strip() or None
+    dossier.active = bool(data.get("active", True))
+    db.session.flush()
+    return dossier
+
+
+def cash(dossier: SecuritiesAccount, on=None) -> float:
+    """The liquidity of a securities account: the balance of its settlement account."""
+    from app.services import accounts
+
+    account = dossier.settlement_account
+    return accounts.balance(account, on) if account is not None else 0.0
 
 
 def _unique_name(base: str) -> str:
@@ -139,21 +221,34 @@ def ensure_assigned() -> int:
 
 @dataclass
 class Position:
-    """One holding in one securities account for one portfolio."""
+    """One holding in one securities account for one portfolio. It reads like a holding (name, quantity, average
+    price, value, gain…), so the portfolio's tables and summary show positions and holdings alike."""
     holding: Holding
     securities_account_id: int | None
     portfolio_id: int | None
     quantity: Decimal = Decimal(0)
-    cost: Decimal = Decimal(0)  # what the units still held cost, commissions of the purchases included
+    cost_basis: Decimal = Decimal(0)  # what the units still held cost, commissions of the purchases included
+
+    def __getattr__(self, name):  # id, name, ticker, asset_class, price, price_date…: the holding's
+        if name.startswith("_") or name == "holding":
+            raise AttributeError(name)
+        return getattr(self.holding, name)
 
     @property
     def avg_price(self) -> Decimal:
-        return money.price(self.cost / self.quantity) if self.quantity > 0 else Decimal(0)
+        return money.price(self.cost_basis / self.quantity) if self.quantity > 0 else Decimal(0)
+
+    @property
+    def _multiplier(self) -> float:
+        return float(self.holding.multiplier if self.holding.multiplier is not None else 1)
 
     @property
     def units(self) -> float:
-        multiplier = self.holding.multiplier if self.holding.multiplier is not None else 1
-        return float(self.quantity) * float(multiplier)
+        return float(self.quantity) * self._multiplier
+
+    @property
+    def cost(self) -> float:
+        return float(self.cost_basis) * self._multiplier
 
     @property
     def value(self) -> float:
@@ -161,8 +256,11 @@ class Position:
 
     @property
     def gain(self) -> float:
-        multiplier = float(self.holding.multiplier if self.holding.multiplier is not None else 1)
-        return self.value - float(self.cost) * multiplier
+        return self.value - self.cost
+
+    @property
+    def gain_pct(self) -> float:
+        return self.gain / self.cost * 100 if self.cost else 0.0
 
 
 def positions(holdings: list[Holding] | None = None, portfolio_id: int | None = None,
@@ -186,7 +284,7 @@ def positions(holdings: list[Holding] | None = None, portfolio_id: int | None = 
             price = holding.opening_price if holding.opening_price is not None else holding.avg_price
             position = slot(holding, holding.opening_account_id, holding.opening_portfolio_id or default_id)
             position.quantity += quantity
-            position.cost += quantity * Decimal(price or 0)
+            position.cost_basis += quantity * Decimal(price or 0)
     if by_id:
         trades = (Transaction.query.filter(Transaction.holding_id.in_(list(by_id)), Transaction.units.isnot(None),
                                            Transaction.unit_price.isnot(None))
@@ -200,11 +298,11 @@ def positions(holdings: list[Holding] | None = None, portfolio_id: int | None = 
             position = slot(by_id[trade.holding_id], trade.securities_account_id, trade.portfolio_id or default_id)
             units, price = Decimal(trade.units), Decimal(trade.unit_price)
             if units > 0:
-                position.cost += units * price + fees[trade.id]
+                position.cost_basis += units * price + fees[trade.id]
                 position.quantity += units
             elif position.quantity > 0:
                 sold = min(-units, position.quantity)
-                position.cost -= position.cost / position.quantity * sold
+                position.cost_basis -= position.cost_basis / position.quantity * sold
                 position.quantity -= sold
             else:  # sold from a position that holds nothing here: kept visible, so the mismatch can be fixed
                 position.quantity += units

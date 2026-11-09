@@ -1,17 +1,22 @@
 """
 Model portfolios and rebalancing (F19d), on the portfolio's blueprint: the templates (own ones and ready ones to
-copy), the one active, and what to buy or sell to get back to it.
+copy), the one active, what to buy or sell to get back to it, and those orders confirmed once executed.
 """
+from datetime import date
 from decimal import Decimal
 
 from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
+from app.models.account import Account
 from app.models.portfolio_model import PortfolioTemplate
+from app.models.securities import Portfolio, SecuritiesAccount
+from app.models.wealth import Holding
 from app.routes.portfolio import portfolio_bp
+from app.services import accounts, broker, portfolio_ops, securities
 from app.services import portfolio_models as models
-from app.services.parsing import to_decimal
+from app.services.parsing import to_date, to_decimal
 
 EMPTY_SLOTS = 3  # blank rows offered under the template's slots
 
@@ -131,3 +136,75 @@ def rebalance():
     amount = to_decimal(request.args.get("amount")) or Decimal(0)
     plan = models.rebalance(template, mode, amount)
     return render_template("portfolio/rebalance.html", plan=plan)
+
+
+# ── From the rebalancing to the orders (F42) ───────────────────────────────────
+
+def _proposed_orders(plan) -> list[dict]:
+    """The moves of the rebalancing as orders: buy or sell, the holding, units and the latest price (all editable)."""
+    orders = []
+    for line in plan.lines:
+        if not line.move or line.via is None or not line.units:
+            continue
+        orders.append({"holding": line.via, "label": line.label, "side": "buy" if line.move > 0 else "sell",
+                       "units": abs(line.units), "price": Decimal(str(line.via.price)), "amount": abs(line.move)})
+    return orders
+
+
+@portfolio_bp.route("/rebalance/orders", methods=["GET", "POST"])
+def rebalance_orders():
+    """What to do at the broker, then — once done — the confirmation with the prices actually executed: each order
+    becomes a purchase or a sale, in the chosen securities account and portfolio."""
+    template = models.active()
+    if template is None:
+        flash(_("Scegli o crea prima un portafoglio modello."), "info")
+        return redirect(url_for("portfolio.models_index"))
+    mode = "full" if request.values.get("mode") == "full" else "new"
+    amount = to_decimal(request.values.get("amount")) or Decimal(0)
+    if request.method == "POST":
+        account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
+        dossier = db.session.get(SecuritiesAccount, request.form.get("securities_account_id", type=int) or 0)
+        folio = db.session.get(Portfolio, request.form.get("portfolio_id", type=int) or 0)
+        on = to_date(request.form.get("on")) or date.today()
+        done = 0
+        try:
+            if on > date.today():
+                raise ValueError(_("La data non può essere nel futuro."))
+            if dossier is not None and account is None:
+                account = dossier.settlement_account
+            for i in range(request.form.get("rows", type=int) or 0):
+                if not request.form.get(f"do-{i}"):
+                    continue
+                holding = db.session.get(Holding, request.form.get(f"holding-{i}", type=int) or 0)
+                units, price = to_decimal(request.form.get(f"units-{i}")), to_decimal(request.form.get(f"price-{i}"))
+                fee = to_decimal(request.form.get(f"fee-{i}"))
+                if holding is None or not units or not price:
+                    continue
+                side = "sell" if request.form.get(f"side-{i}") == "sell" else "buy"
+                portfolio_ops.record(holding, portfolio_ops.Operation(
+                    side, on, account, units=units, price=price, fee=fee, securities_account=dossier, portfolio=folio,
+                    notes=_("Ribilanciamento «%(name)s»", name=template.name)))
+                done += 1
+            if not done:
+                raise ValueError(_("Nessun ordine da confermare: spunta quelli eseguiti e indica quote e prezzo."))
+        except ValueError as exc:
+            db.session.rollback()
+            flash(str(exc), "error")
+            return redirect(url_for("portfolio.rebalance_orders", mode=mode, amount=request.values.get("amount")))
+        db.session.commit()
+        flash(_("%(count)s ordini del ribilanciamento registrati.", count=done), "success")
+        return redirect(url_for("portfolio.rebalance", mode=mode, amount=request.values.get("amount")))
+    plan = models.rebalance(template, mode, amount)
+    dossiers = securities.accounts()
+    first = dossiers[0] if len(dossiers) == 1 else None
+    orders = _proposed_orders(plan)
+    for order in orders:
+        rule = first or accounts.favorite()
+        fee = broker.commission(rule, order["units"] * order["price"]) if rule is not None else None
+        order["fee"] = fee
+    return render_template("portfolio/rebalance_orders.html", plan=plan, orders=orders, today=date.today(),
+                           accounts=[(a.id, a.name) for a in accounts.active()],
+                           dossiers=[(d.id, d.name) for d in dossiers], first=first,
+                           folios=[(p.id, p.name) for p in securities.portfolios()],
+                           default_folio=securities.default_portfolio().id, mode=mode,
+                           amount=request.values.get("amount", ""))

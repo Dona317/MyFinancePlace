@@ -82,6 +82,18 @@
         {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if key == person }}>{{ name }}</option>{% endfor %}
       </select>
       {% endif %}
+      {% if folios|length > 1 or folio_id %}
+      <select name="portfolio" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Portafoglio') }}">
+        <option value="">{{ _('Tutti i portafogli') }}</option>
+        {% for p in folios %}<option value="{{ p.id }}" {{ 'selected' if p.id == folio_id }}>{{ p.name }}{{ ' ★' if p.is_default }}</option>{% endfor %}
+      </select>
+      {% endif %}
+      {% if dossiers|length > 1 or dossier_id %}
+      <select name="dossier" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Conto titoli') }}">
+        <option value="">{{ _('Tutti i conti titoli') }}</option>
+        {% for d in dossiers %}<option value="{{ d.id }}" {{ 'selected' if d.id == dossier_id }}>{{ d.name }}</option>{% endfor %}
+      </select>
+      {% endif %}
       <noscript><button class="btn btn-ghost btn-sm">{{ _('Filtra') }}</button></noscript>
     </form>
   </div>
@@ -133,7 +145,7 @@
         </tr>
         {% endfor %}
       </tbody>
-      {% if not selected %}
+      {% if not selected or folio_id or dossier_id %}
       <tfoot>
         <tr>
           <td colspan="5">{{ _('Totale') }}</td>

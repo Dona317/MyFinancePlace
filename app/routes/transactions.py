@@ -30,6 +30,7 @@ from app.services import (
     family,
     merchant,
     portfolio_ops,
+    securities,
     undo,
 )
 from app.services import categories as category_service
@@ -270,6 +271,7 @@ def _render_form(tx: Transaction | None):
         category_tags=category_service.suggested_tags(),
         cluster_choices=clusters.choices(),
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
+        dossiers=securities.accounts(active_only=False), folios=securities.portfolios(active_only=False),
         events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )

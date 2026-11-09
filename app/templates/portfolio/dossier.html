@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/kpi.html" import kpi %}
+
+{% block title %}{{ dossier.name }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ dossier.name }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.portfolios_page') }}">{{ _('Portafogli e conti titoli') }}</a></li><li>{{ dossier.name }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('portfolio.dossier_edit', dossier_id=dossier.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
+{% endblock %}
+
+{% block content %}
+{% include "portfolio/_nav.html" %}
+<p class="text-muted mb-16">
+  {{ dossier.broker or '' }}{% if dossier.broker %} · {% endif %}{{ _('regime amministrato') if dossier.tax_regime == 'amministrato' else _('regime dichiarativo') }}{% if dossier.abroad %} · {{ _('estero') }}{% endif %}
+  {% if dossier.settlement_account %} · {{ _('liquidità su') }} <a href="{{ url_for('accounts.detail', account_id=dossier.settlement_account.id) }}">{{ dossier.settlement_account.name }}</a>{% endif %}
+</p>
+
+<div class="kpi-grid mb-24">
+  {{ kpi('safe', _('Totale'), value=total|money, cls='kpi-primary', sub=_('titoli + liquidità')) }}
+  {{ kpi('briefcase', _('Titoli'), value=summary.value|money, sub=_('ai prezzi più recenti')) }}
+  {{ kpi('cash-coin', _('Liquidità'), value=cash|money, sub=_('saldo del conto di regolamento')) }}
+  {{ kpi('graph-' ~ ('up' if summary.gain >= 0 else 'down') ~ '-arrow', _('Guadagno'), value=('+' if summary.gain > 0 else '') ~ summary.gain|money,
+         cls=('kpi-positive' if summary.gain >= 0 else 'kpi-negative'), value_class=('text-positive' if summary.gain >= 0 else 'text-negative'),
+         sub=_('sul costo medio di questo conto titoli')) }}
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="card-header-title">{{ _('Posizioni') }}</div></div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Strumento') }}</th>
+          <th>{{ _('Portafoglio') }}</th>
+          <th class="text-right">{{ _('Quantità') }}</th>
+          <th class="text-right">{{ _('Prezzo Medio') }}</th>
+          <th class="text-right">{{ _('Prezzo Attuale') }}</th>
+          <th class="text-right">{{ _('Valore') }}</th>
+          <th class="text-right">G/P</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in positions %}
+        <tr>
+          <td><div class="cell-title"><a href="{{ url_for('portfolio.detail', holding_id=p.holding.id) }}">{{ p.name }}</a></div>
+              {% if p.ticker %}<div class="text-xs text-muted">{{ p.ticker }}</div>{% endif %}</td>
+          <td>{{ names.get(p.portfolio_id, '—') }}</td>
+          <td class="amount text-right">{{ p.quantity|number(8) }}</td>
+          <td class="amount text-right">{{ p.avg_price|money }}</td>
+          <td class="amount text-right">{{ p.price|money }}</td>
+          <td class="amount text-right">{{ p.value|money }}</td>
+          <td class="amount text-right {{ 'positive' if p.gain >= 0 else 'negative' }}">{{ '+' if p.gain > 0 }}{{ p.gain|money }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+          <td><div class="cell-title"><i class="bi bi-cash-coin"></i> {{ _('Liquidità') }}</div>
+              <div class="text-xs text-muted">{{ dossier.settlement_account.name if dossier.settlement_account else _('nessun conto di liquidità') }}</div></td>
+          <td>—</td><td></td><td></td><td></td>
+          <td class="amount text-right">{{ cash|money }}</td>
+          <td></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="5">{{ _('Totale') }}</td><td class="amount text-right">{{ total|money }}</td><td></td></tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endblock %}

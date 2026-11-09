@@ -233,6 +233,24 @@
               <input type="text" inputmode="decimal" id="f-unit-price" name="unit_price" class="form-control" value="{{ v.unit_price }}" autocomplete="off" placeholder="105,40" />
             </div>
           </div>
+          {% if dossiers or folios %}
+          <div class="trade-grid">
+            <div class="form-group">
+              <label class="form-label" for="f-securities-account">{{ _('Conto titoli') }}</label>
+              <select id="f-securities-account" name="securities_account_id" class="form-select">
+                <option value="">{{ _('— quello del conto —') }}</option>
+                {% for d in dossiers %}<option value="{{ d.id }}" {{ 'selected' if v.securities_account_id == d.id|string }}>{{ d.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f-portfolio">{{ _('Portafoglio') }}</label>
+              <select id="f-portfolio" name="portfolio_id" class="form-select">
+                <option value="">{{ _('— il predefinito —') }}</option>
+                {% for p in folios %}<option value="{{ p.id }}" {{ 'selected' if v.portfolio_id == p.id|string }}>{{ p.name }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+          {% endif %}
           {% if action == 'new' %}
           <div class="trade-fee">
             <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="record_fee" class="check" id="f-record-fee" {{ 'checked' if v.record_fee }} />

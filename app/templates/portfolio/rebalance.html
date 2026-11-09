@@ -71,6 +71,12 @@
       </tbody>
     </table>
   </div>
+  {% if plan.lines|selectattr('move')|selectattr('via')|list %}
+  <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;">
+    <span class="text-sm text-muted">{{ _('Esegui gli ordini dal tuo broker, poi conferma quote, prezzi e commissioni reali: diventano acquisti e vendite.') }}</span>
+    <a href="{{ url_for('portfolio.rebalance_orders', mode=plan.mode, amount=request.args.get('amount', '')) }}" class="btn btn-primary"><i class="bi bi-list-check"></i> {{ _('Prepara gli ordini') }}</a>
+  </div>
+  {% endif %}
   {% if plan.mode == 'new' and not plan.amount %}
   <div class="card-body text-sm text-muted">{{ _('Indica quanto vuoi investire: verrà diviso tra le parti più sotto il loro obiettivo.') }}</div>
   {% endif %}

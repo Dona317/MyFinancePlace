@@ -159,6 +159,16 @@ def record(holding: Holding, op: Operation) -> list[Transaction]:
         if op.kind == "sell" and op.units > Decimal(holding.quantity or 0):
             raise ValueError(_("Non puoi vendere più quote di quelle che hai (%(units)s).",
                                units=display.plain(holding.quantity)))
+        if op.kind == "sell" and (op.securities_account is not None or op.portfolio is not None):
+            place = op.securities_account or (securities.for_settlement(op.account) if op.account else None)
+            folio = op.portfolio or securities.default_portfolio()
+            held = sum((p.quantity for p in securities.positions([holding])
+                        if p.securities_account_id == (place.id if place else None) and p.portfolio_id == folio.id),
+                       Decimal(0))
+            if op.units > held:
+                raise ValueError(_("In «%(place)s» per «%(folio)s» hai solo %(units)s quote.",
+                                   place=place.name if place else _("nessun conto titoli"), folio=folio.name,
+                                   units=display.plain(held)))
         units = op.units if op.kind == "buy" else -op.units
         account_id = op.account.id if op.account else None
         trade = Transaction(date=op.on, description=_description(holding, op), amount=money.cents(op.units * op.price),

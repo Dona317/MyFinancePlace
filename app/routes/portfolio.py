@@ -8,9 +8,10 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.account import Account
+from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, taxonomies, valuations, wealth
+from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, securities, taxonomies, valuations, wealth
 from app.services.i18n import _l
 from app.services.instrument_sources import custom
 from app.services.parsing import to_decimal
@@ -105,6 +106,13 @@ def index():
     selected = request.args.get("asset_class", "")
     person = request.args.get("person", "")
     holdings = family.holdings_of(person, wealth.holdings_on())
+    # F42: one portfolio and/or one securities account → their positions, which read like holdings
+    folio_id = request.args.get("portfolio", type=int)
+    dossier_id = request.args.get("dossier", type=int)
+    if securities.ensure_assigned():  # operations from before F42 or linked since: placed once
+        db.session.commit()
+    if folio_id or dossier_id:
+        holdings = securities.positions(holdings, portfolio_id=folio_id, securities_account_id=dossier_id)
     today = date.today()
     snapshots = Snapshot.query.order_by(Snapshot.taken_on, Snapshot.id).all()
     return render_template(
@@ -115,6 +123,7 @@ def index():
         asset_classes=wealth.ASSET_CLASSES,
         selected=selected,
         person=person,
+        folios=securities.portfolios(), dossiers=securities.accounts(), folio_id=folio_id, dossier_id=dossier_id,
         trend={"labels": [s.taken_on.strftime("%d/%m/%y") for s in snapshots],
                "data": [float(s.investments) for s in snapshots]},
     )
@@ -154,7 +163,15 @@ def _operation_from_form() -> portfolio_ops.Operation:
         price=form_decimal("price", _("Prezzo per quota")) if trade else None,
         amount=None if trade else form_decimal("amount", _("Importo")),
         fee=form_decimal("fee", _("Commissione")) if trade else None,
-        notes=form_text("notes", _("Note")))
+        notes=form_text("notes", _("Note")),
+        securities_account=_chosen(SecuritiesAccount, "securities_account_id"),
+        portfolio=_chosen(Portfolio, "portfolio_id"))
+
+
+def _chosen(model, field: str):
+    """The securities account or portfolio picked in a form; empty = the usual one (None)."""
+    chosen_id = request.form.get(field, type=int)
+    return db.session.get(model, chosen_id) if chosen_id else None
 
 
 @portfolio_bp.route("/<int:holding_id>/operation", methods=["GET", "POST"])
@@ -176,9 +193,14 @@ def operation(holding_id):
                   "success")
             return redirect(url_for("portfolio.detail", holding_id=holding.id))
     active = accounts.active()
+    dossiers = securities.accounts()
     return render_template("portfolio/operation.html", holding=holding, values=values, today=date.today(),
                            kinds=portfolio_ops.KINDS, accounts=[(a.id, a.name) for a in active],
-                           fee_rules=broker.rules(active)), 400 if values else 200
+                           fee_rules=broker.rules(active), dossiers=[(d.id, d.name) for d in dossiers],
+                           dossier_of={d.id: d.settlement_account_id for d in dossiers},
+                           folios=[(p.id, p.name) for p in securities.portfolios()],
+                           default_folio=securities.default_portfolio().id,
+                           positions=securities.positions([holding])), 400 if values else 200
 
 
 @portfolio_bp.route("/<int:holding_id>/edit", methods=["GET", "POST"])
@@ -319,5 +341,5 @@ def delete(holding_id):
     return delete_and_redirect(holding, _("Posizione «%(name)s» eliminata.", name=holding.name), url_for("portfolio.index"))
 
 
-# registers the broker import, link, model portfolio, rule and PAC routes on portfolio_bp
-from app.routes import portfolio_import, portfolio_rules, portfolio_templates  # noqa: E402,F401
+# registers the broker import, link, model portfolio, rule, PAC and portfolio/securities account routes on portfolio_bp
+from app.routes import portfolio_import, portfolio_rules, portfolio_securities, portfolio_templates  # noqa: E402,F401
