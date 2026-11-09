@@ -16,7 +16,7 @@ from app.models.account import Account
 from app.models.personal_loan import PersonalLoan
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
-from app.services import accounts, currency, settings_store
+from app.services import accounts, asset_classes, currency, settings_store
 from app.services.i18n import N_
 from app.services.periods import add_months, last_complete_months
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total
@@ -339,8 +339,10 @@ def portfolio_summary(holdings: list[Holding]) -> dict:
     cost = sum(h.cost for h in holdings)
     value = sum(h.value for h in holdings)
     allocation = defaultdict(float)
+    by_class = defaultdict(float)  # F70: by asset class (azionario, obbligazionario, oro…), not by instrument
     for h in holdings:
         allocation[h.asset_class] += h.value
+        by_class[asset_classes.of(h)] += h.value
     return {
         "value": _money(value),
         "cost": _money(cost),
@@ -348,6 +350,7 @@ def portfolio_summary(holdings: list[Holding]) -> dict:
         "gain_pct": round((value - cost) / cost * 100, 2) if cost else 0.0,
         "investments_value": _money(sum(h.value for h in invested)),
         "allocation": sorted(allocation.items(), key=lambda item: item[1], reverse=True),
+        "classes": sorted(by_class.items(), key=lambda item: item[1], reverse=True),
     }
 
 

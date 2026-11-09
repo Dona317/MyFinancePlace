@@ -18,7 +18,10 @@ class Holding(db.Model):
     id            = db.Column(db.Integer, primary_key=True)
     name          = db.Column(db.Text, nullable=False)
     ticker        = db.Column(db.Text)
-    asset_class   = db.Column(db.Text, nullable=False)
+    asset_class   = db.Column(db.Text, nullable=False)  # the instrument (F70): ETF, Azione, Fondo, Obbligazione…
+    # what it is exposed to (F70): Azionario, Obbligazionario, Oro e metalli preziosi… (services.asset_classes);
+    # empty = estimated from the instrument and the name
+    allocation_class = db.Column(db.String(40))
     quantity      = db.Column(db.Numeric(38, 8), nullable=False)
     avg_price     = db.Column(db.Numeric(38, 6), nullable=False)   # average purchase price per unit
     current_price = db.Column(db.Numeric(38, 6))                  # empty = still worth the purchase price

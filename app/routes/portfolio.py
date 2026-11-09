@@ -11,7 +11,20 @@ from app.models.account import Account
 from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, securities, taxonomies, valuations, wealth
+from app.services import (
+    accounts,
+    asset_classes,
+    broker,
+    composition,
+    display,
+    family,
+    portfolio_ops,
+    price_feed,
+    securities,
+    taxonomies,
+    valuations,
+    wealth,
+)
 from app.services.i18n import _l
 from app.services.instrument_sources import custom
 from app.services.parsing import to_decimal
@@ -58,7 +71,10 @@ def _instrument_from_form(holding: Holding) -> None:
 def _holding_from_form(holding: Holding) -> Holding:
     holding.name = form_text("name", _("Nome"), required=True)
     holding.ticker = form_text("ticker", _("Ticker"))
-    holding.asset_class = form_choice("asset_class", _("Classe"), wealth.ASSET_CLASSES)
+    holding.asset_class = form_choice("asset_class", _("Tipo di strumento"), wealth.ASSET_CLASSES)
+    chosen = request.form.get("allocation_class") or None  # empty: estimated from the instrument and the name
+    holding.allocation_class = form_choice("allocation_class", _("Classe di attivo"),
+                                           asset_classes.CLASSES) if chosen else None
     _instrument_from_form(holding)
     holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
     holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
@@ -94,6 +110,9 @@ def _holding_from_form(holding: Holding) -> Holding:
 
 def _render_form(holding, values):
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
+                           allocation_classes=asset_classes.CLASSES,
+                           estimated=asset_classes.estimate(holding.asset_class, holding.name, holding.ticker)
+                           if holding is not None else None,
                            suggested_rates=valuations.SUGGESTED_RATES,
                            sources=source_labels(), online=current_settings()["prices_online"],
                            regions=composition.REGIONS, sectors=composition.SECTORS)
@@ -120,7 +139,7 @@ def index():
         holdings=[h for h in holdings if not selected or h.asset_class == selected],
         summary=wealth.portfolio_summary(holdings),
         dividends_ytd=wealth.dividends(date(today.year, 1, 1), date(today.year + 1, 1, 1)),
-        asset_classes=wealth.ASSET_CLASSES,
+        asset_classes=wealth.ASSET_CLASSES, asset_class_of=asset_classes.of,
         selected=selected,
         person=person,
         folios=securities.portfolios(), dossiers=securities.accounts(), folio_id=folio_id, dossier_id=dossier_id,

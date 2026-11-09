@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 18:55+0000\n"
+"POT-Creation-Date: 2026-11-09 19:03+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1150,9 +1150,6 @@ msgstr "A year"
 msgid "All'estero o in un wallet privato (IVAFE / IC invece del bollo)"
 msgstr "Abroad or in a private wallet (IVAFE / IC instead of the stamp duty)"
 
-msgid "Allocazione per Classe"
-msgstr "Allocation by Class"
-
 msgid "Alta — descrizioni anche poco simili"
 msgstr "High — even loosely similar descriptions"
 
@@ -1550,6 +1547,13 @@ msgstr "Warning at %(share)s%% and when you go over it. Leave empty for no budge
 msgid "Azionario"
 msgstr "Equities"
 
+msgid ""
+"Azionario, obbligazionario, oro…: a cosa sei esposto. Si sceglie sul "
+"titolo; finché non la scegli è stimata dal tipo di strumento e dal nome."
+msgstr ""
+"Equities, bonds, gold…: what you are exposed to. Set it on the holding; "
+"until you do it is estimated from the instrument and the name."
+
 msgid "Azione"
 msgstr "Stock"
 
@@ -1689,6 +1693,9 @@ msgstr "%(year)s statements saved (version %(version)s)."
 
 msgid "Bilanci annuali"
 msgstr "Yearly statements"
+
+msgid "Bilanciato"
+msgstr "Balanced"
 
 msgid "Bilancio dell’anno"
 msgstr "Year in review"
@@ -2126,6 +2133,9 @@ msgstr "Doughnut"
 msgid "Classe"
 msgstr "Class"
 
+msgid "Classe di attivo"
+msgstr "Asset class"
+
 msgid "Classifica con AI"
 msgstr "Classify with AI"
 
@@ -2319,6 +2329,9 @@ msgstr "Percent commission"
 
 msgid "Commissione €"
 msgstr "Fee €"
+
+msgid "Commissioni"
+msgstr "Fees"
 
 msgid "Commissioni del broker (facoltative)"
 msgstr "Broker commissions (optional)"
@@ -2882,6 +2895,9 @@ msgstr "Average growth per month"
 msgid "Criptovaluta"
 msgstr "Crypto"
 
+msgid "Criptovalute"
+msgstr "Crypto"
+
 msgid "Cronologia ricerche"
 msgstr "Search history"
 
@@ -3364,6 +3380,9 @@ msgstr "ETF"
 
 msgid "ETF europei: nome e prezzo in euro"
 msgstr "European ETFs: name and price in euro"
+
+msgid "ETF, azioni, fondi, obbligazioni…: con che cosa investi."
+msgstr "ETFs, shares, funds, bonds…: what you invest through."
 
 msgid "Elenchi"
 msgstr "Lists"
@@ -3924,14 +3943,14 @@ msgstr "Filter"
 msgid "Filtra per categoria"
 msgstr "Filter by category"
 
-msgid "Filtra per classe"
-msgstr "Filter by class"
-
 msgid "Filtra per importo"
 msgstr "Filter by amount"
 
 msgid "Filtra per tipo"
 msgstr "Filter by type"
+
+msgid "Filtra per tipo di strumento"
+msgstr "Filter by instrument type"
 
 msgid "Filtri"
 msgstr "Filters"
@@ -6299,6 +6318,9 @@ msgstr ""
 msgid "Molto azionario, con un cuscinetto di obbligazioni."
 msgstr "Mostly equities, with a cushion of bonds."
 
+msgid "Monetario e liquidità"
+msgstr "Money market and cash"
+
 msgid "Mostra"
 msgstr "Show"
 
@@ -7267,6 +7289,9 @@ msgstr ""
 "Proposed: the one whose IBAN or number is in the file, or the favourite "
 "(★)."
 
+msgid "Obbligazionario"
+msgstr "Bonds"
+
 msgid "Obbligazione"
 msgstr "Bond"
 
@@ -7543,6 +7568,9 @@ msgstr "Horizon"
 msgid "Oro"
 msgstr "Gold"
 
+msgid "Oro e metalli preziosi"
+msgstr "Gold and precious metals"
+
 msgid "Ott"
 msgstr "Oct"
 
@@ -7807,6 +7835,9 @@ msgstr "For those not using the 730; also stamp duty and IVAFE on foreign accoun
 msgid "Per chi presenta il modello Redditi o ha imposte da versare con il 730"
 msgstr "For those filing the Redditi return or owing tax with the 730"
 
+msgid "Per classe di attivo"
+msgstr "By asset class"
+
 msgid "Per committente"
 msgstr "By client"
 
@@ -7878,6 +7909,9 @@ msgstr "For receipts and invoices of a purchase."
 
 msgid "Per settore"
 msgstr "By sector"
+
+msgid "Per tipo di strumento"
+msgstr "By instrument type"
 
 msgid "Per titolo"
 msgstr "By holding"
@@ -10419,6 +10453,12 @@ msgstr "Unknown rule type."
 msgid "Tipo di report"
 msgstr "Report type"
 
+msgid "Tipo di strumento"
+msgstr "Instrument type"
+
+msgid "Tipo e classe"
+msgstr "Type and class"
+
 msgid "Titolari"
 msgstr "Holders"
 
@@ -10714,9 +10754,6 @@ msgstr "All Snapshots"
 msgid "Tutte le categorie"
 msgstr "All categories"
 
-msgid "Tutte le classi"
-msgstr "All classes"
-
 #, python-format
 msgid "Tutte le parti sono entro ± %(band)s punti dal peso obiettivo"
 msgstr "All parts are within ± %(band)s points of their target weight"
@@ -10777,6 +10814,9 @@ msgstr "All prices are from the last 30 days."
 
 msgid "Tutti i tipi"
 msgstr "All types"
+
+msgid "Tutti i tipi di strumento"
+msgstr "All instrument types"
 
 msgid "Tutto assegnato"
 msgstr "All assigned"
@@ -12778,6 +12818,13 @@ msgstr "— the account’s —"
 
 msgid "— scegli il conto —"
 msgstr "— choose the account —"
+
+msgid "— stimata dal nome —"
+msgstr "— estimated from the name —"
+
+#, python-format
+msgid "— stimata: %(name)s —"
+msgstr "— estimated: %(name)s —"
 
 msgid "— tutti —"
 msgstr "— all —"

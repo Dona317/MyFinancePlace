@@ -3,6 +3,7 @@
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 
 {% block title %}{{ _('Portafoglio') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Portafoglio Investimenti') }}{% endblock %}
@@ -36,7 +37,18 @@
 <div class="row-2">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ _('Allocazione per Classe') }}</div>
+      <div class="card-header-title">{{ _('Per classe di attivo') }} {{ info(_('Azionario, obbligazionario, oro…: a cosa sei esposto. Si sceglie sul titolo; finché non la scegli è stimata dal tipo di strumento e dal nome.')) }}</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;">
+        {% if summary.classes %}<canvas id="assetClassChart"></canvas>
+        {% else %}<div class="chart-empty">{{ _('Aggiungi una posizione per vedere come è ripartito il patrimonio.') }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">{{ _('Per tipo di strumento') }} {{ info(_('ETF, azioni, fondi, obbligazioni…: con che cosa investi.')) }}</div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
@@ -69,8 +81,8 @@
   <div class="card-header">
     <div class="card-header-title">{{ _('Posizioni') }}</div>
     <form method="GET" class="inline-filter">
-      <select name="asset_class" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Filtra per classe') }}">
-        <option value="">{{ _('Tutte le classi') }}</option>
+      <select name="asset_class" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Filtra per tipo di strumento') }}">
+        <option value="">{{ _('Tutti i tipi di strumento') }}</option>
         {% for cls in asset_classes %}
         <option value="{{ cls }}" {{ 'selected' if cls == selected }}>{{ cls|tr }}</option>
         {% endfor %}
@@ -104,7 +116,7 @@
       <thead>
         <tr>
           <th>{{ _('Strumento') }}</th>
-          <th>{{ _('Classe') }}</th>
+          <th>{{ _('Tipo e classe') }}</th>
           <th class="text-right">{{ _('Quantità') }}</th>
           <th class="text-right">{{ _('Prezzo Medio') }}</th>
           <th class="text-right">{{ _('Prezzo Attuale') }}</th>
@@ -121,7 +133,8 @@
             <div class="cell-title"><a href="{{ url_for('portfolio.detail', holding_id=h.id) }}">{{ h.name }}</a></div>
             {% if h.ticker %}<div class="text-xs text-muted">{{ h.ticker }}</div>{% endif %}
           </td>
-          <td><span class="badge badge-primary">{{ h.asset_class|tr }}</span></td>
+          <td><span class="badge badge-primary">{{ h.asset_class|tr }}</span>
+            <div class="text-xs text-muted">{{ asset_class_of(h)|tr }}</div></td>
           <td class="amount text-right">{{ h.quantity|number(8) }}</td>
           <td class="amount text-right">{{ h.avg_price|money }}</td>
           <td class="amount text-right">
@@ -175,6 +188,12 @@
 
 {% block scripts %}
 <script>
+{% if summary.classes %}
+makeDoughnutChart('assetClassChart',
+  {{ summary.classes | map(attribute=0) | map('tr') | list | tojson }},
+  {{ summary.classes | map(attribute=1) | map('round', 2) | list | tojson }}
+);
+{% endif %}
 {% if summary.allocation %}
 makeDoughnutChart('allocationChart',
   {{ summary.allocation | map(attribute=0) | map('tr') | list | tojson }},
