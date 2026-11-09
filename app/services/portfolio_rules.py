@@ -79,18 +79,22 @@ def _day(holding: Holding, today: date) -> str:
 
 
 def _drift(rule: PortfolioRule, holdings: list[Holding], total: Decimal, today: date) -> list[Alert]:
-    template = portfolio_models.active()
-    if template is None:
-        return []
-    band = Decimal(rule.threshold) if rule.threshold else Decimal(template.band)
-    lines, _total = portfolio_models.standing(template, holdings)
-    return [Alert(f"rule-{rule.id}-{position}-{today:%Y-%m}", "warning",
-                  _("«%(part)s» è fuori dal modello di %(points)s punti", part=line.label,
-                    points=display.number(line.drift, 1)),
-                  _("Pesa %(weight)s %% contro un obiettivo del %(target)s %%", weight=display.number(line.weight, 1),
-                    target=display.number(line.target, 1)),
-                  today, url_for("portfolio.rebalance"))
-            for position, line in enumerate(lines) if abs(line.drift) > band]
+    """Every active model (all the investments, and one per portfolio, F50) against what it covers."""
+    alerts = []
+    for template in portfolio_models.actives():
+        band = Decimal(rule.threshold) if rule.threshold else Decimal(template.band)
+        mine = holdings if template.portfolio_id is None else None  # None: the portfolio's positions
+        lines, _total = portfolio_models.standing(template, mine)
+        scope = f"-p{template.portfolio_id}" if template.portfolio_id else ""
+        where = f" ({template.portfolio.name})" if template.portfolio_id and template.portfolio else ""
+        alerts += [Alert(f"rule-{rule.id}{scope}-{position}-{today:%Y-%m}", "warning",
+                         _("«%(part)s» è fuori dal modello di %(points)s punti", part=line.label,
+                           points=display.number(line.drift, 1)) + where,
+                         _("Pesa %(weight)s %% contro un obiettivo del %(target)s %%",
+                           weight=display.number(line.weight, 1), target=display.number(line.target, 1)),
+                         today, url_for("portfolio.rebalance", portfolio=template.portfolio_id))
+                   for position, line in enumerate(lines) if abs(line.drift) > band]
+    return alerts
 
 
 def _drawdown(rule: PortfolioRule, holdings: list[Holding], total: Decimal, today: date) -> list[Alert]:

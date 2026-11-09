@@ -66,13 +66,35 @@ def investment_classes() -> list[str]:
     return [name for name, (_line, investing) in ASSET_CLASSES.items() if investing]
 
 
-def active() -> PortfolioTemplate | None:
-    return PortfolioTemplate.query.filter_by(active=True).first()
+def active(portfolio_id: int | None = None) -> PortfolioTemplate | None:
+    """The active model of a portfolio (F50), or — None — the one of all the investments together."""
+    scope = PortfolioTemplate.portfolio_id.is_(None) if portfolio_id is None else PortfolioTemplate.portfolio_id == portfolio_id
+    return PortfolioTemplate.query.filter(PortfolioTemplate.active.is_(True), scope).first()
+
+
+def actives() -> list[PortfolioTemplate]:
+    """Every active model: the one of all the investments and one per portfolio that has one."""
+    return PortfolioTemplate.query.filter_by(active=True).order_by(PortfolioTemplate.portfolio_id.nullsfirst()).all()
 
 
 def activate(template: PortfolioTemplate) -> None:
-    PortfolioTemplate.query.filter(PortfolioTemplate.id != template.id).update({"active": False})
+    """The model becomes the active one of its portfolio (or of all the investments); the others stay as they are."""
+    db.session.flush()  # a new model gets its id first, or the update below would switch it off too
+    PortfolioTemplate.query.filter(PortfolioTemplate.id != template.id,
+                                   PortfolioTemplate.portfolio_id.is_(None) if template.portfolio_id is None
+                                   else PortfolioTemplate.portfolio_id == template.portfolio_id
+                                   ).update({"active": False})
     template.active = True
+
+
+def holdings_of(template: PortfolioTemplate) -> list:
+    """What a model is compared with: the positions of its portfolio, or all the investments."""
+    if template.portfolio_id is None:
+        return investments()
+    from app.services import securities
+
+    classes = set(investment_classes())
+    return [p for p in securities.positions(portfolio_id=template.portfolio_id) if p.asset_class in classes]
 
 
 def copy_ready(key: str) -> PortfolioTemplate:
@@ -186,7 +208,7 @@ def _value(holdings: list[Holding]) -> Decimal:
 
 def standing(template: PortfolioTemplate, holdings: list[Holding] | None = None) -> tuple[list[Line], Decimal]:
     """The lines of the template with what each holds now, and the total."""
-    holdings = investments() if holdings is None else holdings
+    holdings = holdings_of(template) if holdings is None else holdings
     placed, outside = assign(template, holdings)
     lines = [Line(s.label, Decimal(s.target), _value(placed[i]), placed[i], s.ticker or s.isin)
              for i, s in enumerate(template.slots)]

@@ -23,6 +23,14 @@
   </div>
   <div class="card-body">
     <form method="GET" style="display:flex;flex-wrap:wrap;gap:16px;align-items:end;">
+      {% if scopes|length > 1 or folio_id %}
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="portfolio">{{ _('Portafoglio') }}</label>
+        <select name="portfolio" id="portfolio" class="form-select" onchange="this.form.submit()">
+          {% for id, name in scopes %}<option value="{{ id or '' }}" {{ 'selected' if id == folio_id }}>{{ name }}</option>{% endfor %}
+        </select>
+      </div>
+      {% endif %}
       <div class="form-group" style="margin:0;">
         <label class="form-label" for="mode">{{ _('Modalità') }}</label>
         <select name="mode" id="mode" class="form-select">
@@ -75,7 +83,7 @@
   {% if plan.lines|selectattr('move')|selectattr('via')|list %}
   <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;">
     {{ info(_('Esegui gli ordini dal tuo broker, poi conferma quote, prezzi e commissioni reali: diventano acquisti e vendite.')) }}
-    <a href="{{ url_for('portfolio.rebalance_orders', mode=plan.mode, amount=request.args.get('amount', '')) }}" class="btn btn-primary"><i class="bi bi-list-check"></i> {{ _('Prepara gli ordini') }}</a>
+    <a href="{{ url_for('portfolio.rebalance_orders', mode=plan.mode, amount=request.args.get('amount', ''), portfolio=folio_id) }}" class="btn btn-primary"><i class="bi bi-list-check"></i> {{ _('Prepara gli ordini') }}</a>
   </div>
   {% endif %}
   {% if plan.mode == 'new' and not plan.amount %}

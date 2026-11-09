@@ -73,20 +73,28 @@ def _rows(template: PortfolioTemplate | None) -> list[dict]:
 def _page(template: PortfolioTemplate | None):
     values = request.form if request.method == "POST" else {
         "name": template.name if template else "", "description": (template.description or "") if template else "",
-        "band": f"{(template.band if template else Decimal(5)).normalize():f}".replace(".", ",")}
+        "band": f"{(template.band if template else Decimal(5)).normalize():f}".replace(".", ","),
+        "portfolio_id": str(template.portfolio_id or "") if template else request.args.get("portfolio", "")}
     return render_template("portfolio/model_form.html", template=template, values=values, rows=_rows(template),
-                           holdings=models.investments(), classes=models.investment_classes())
+                           holdings=models.investments(), classes=models.investment_classes(),
+                           folios=securities.portfolios())
 
 
 def _form(template: PortfolioTemplate | None):
     if request.method == "GET":
         return _page(template)
     is_new = template is None
-    target = template or PortfolioTemplate(active=PortfolioTemplate.query.count() == 0)
+    target = template or PortfolioTemplate(active=False)
+    folio = db.session.get(Portfolio, request.form.get("portfolio_id", type=int) or 0)
+    moved = not is_new and target.portfolio_id != (folio.id if folio else None)
     try:
         with db.session.no_autoflush:
             if is_new:
                 db.session.add(target)
+            target.portfolio_id = folio.id if folio else None
+            # F50: the first model of a portfolio (or of all the investments) becomes its active one
+            if is_new or moved:
+                target.active = models.active(target.portfolio_id) is None
             models.save(target, request.form.get("name", ""), request.form.get("description"),
                         to_decimal(request.form.get("band")), _slots_from_form())
     except models.TemplateError as exc:
@@ -95,7 +103,8 @@ def _form(template: PortfolioTemplate | None):
         return _page(None if is_new else db.session.get(PortfolioTemplate, template.id))
     db.session.commit()
     flash(_("Portafoglio modello salvato."), "success")
-    return redirect(url_for("portfolio.rebalance") if target.active else url_for("portfolio.models_index"))
+    return redirect(url_for("portfolio.rebalance", portfolio=target.portfolio_id) if target.active
+                    else url_for("portfolio.models_index"))
 
 
 @portfolio_bp.route("/models/new", methods=["GET", "POST"])
@@ -114,7 +123,7 @@ def models_activate(template_id):
     models.activate(template)
     db.session.commit()
     flash(_("«%(name)s» è ora il portafoglio modello di riferimento.", name=template.name), "success")
-    return redirect(url_for("portfolio.rebalance"))
+    return redirect(url_for("portfolio.rebalance", portfolio=template.portfolio_id))
 
 
 @portfolio_bp.route("/models/<int:template_id>/delete", methods=["POST"])
@@ -126,16 +135,29 @@ def models_delete(template_id):
     return redirect(url_for("portfolio.models_index"))
 
 
+def _scope():
+    """The portfolio whose model is looked at (?portfolio=id, F50), or None: all the investments together."""
+    folio_id = request.values.get("portfolio", type=int)
+    return folio_id if folio_id and db.session.get(Portfolio, folio_id) else None
+
+
+def _scopes() -> list[tuple[int | None, str]]:
+    """The scopes that have an active model, for the selector."""
+    return [(t.portfolio_id, t.portfolio.name if t.portfolio else _("Tutti gli investimenti")) for t in models.actives()]
+
+
 @portfolio_bp.route("/rebalance")
 def rebalance():
-    template = models.active()
+    folio_id = _scope()
+    template = models.active(folio_id)
     if template is None:
-        flash(_("Scegli o crea prima un portafoglio modello."), "info")
+        flash(_("Questo portafoglio non ha ancora un portafoglio modello attivo: creane uno e collegalo.") if folio_id
+              else _("Scegli o crea prima un portafoglio modello."), "info")
         return redirect(url_for("portfolio.models_index"))
     mode = "full" if request.args.get("mode") == "full" else "new"
     amount = to_decimal(request.args.get("amount")) or Decimal(0)
     plan = models.rebalance(template, mode, amount)
-    return render_template("portfolio/rebalance.html", plan=plan)
+    return render_template("portfolio/rebalance.html", plan=plan, scopes=_scopes(), folio_id=folio_id)
 
 
 # ── From the rebalancing to the orders (F42) ───────────────────────────────────
@@ -156,7 +178,8 @@ def rebalance_orders():
     """What to do at the broker, then — once done — the confirmation with the prices actually executed: each order
     becomes a purchase or a sale, in the chosen securities account and portfolio or, when none is chosen, where the
     units are (services.portfolio_ops.record_order)."""
-    template = models.active()
+    folio_id = _scope()
+    template = models.active(folio_id)
     if template is None:
         flash(_("Scegli o crea prima un portafoglio modello."), "info")
         return redirect(url_for("portfolio.models_index"))
@@ -188,10 +211,11 @@ def rebalance_orders():
         except ValueError as exc:
             db.session.rollback()
             flash(str(exc), "error")
-            return redirect(url_for("portfolio.rebalance_orders", mode=mode, amount=request.values.get("amount")))
+            return redirect(url_for("portfolio.rebalance_orders", mode=mode, amount=request.values.get("amount"),
+                                    portfolio=folio_id))
         db.session.commit()
         flash(_("%(count)s ordini del ribilanciamento registrati.", count=done), "success")
-        return redirect(url_for("portfolio.rebalance", mode=mode, amount=request.values.get("amount")))
+        return redirect(url_for("portfolio.rebalance", mode=mode, amount=request.values.get("amount"), portfolio=folio_id))
     plan = models.rebalance(template, mode, amount)
     dossiers = securities.accounts()
     first = dossiers[0] if len(dossiers) == 1 else None
@@ -204,5 +228,5 @@ def rebalance_orders():
                            accounts=[(a.id, a.name) for a in accounts.active()],
                            dossiers=[(d.id, d.name) for d in dossiers], first=first,
                            folios=[(p.id, p.name) for p in securities.portfolios()],
-                           mode=mode,
+                           mode=mode, folio_id=folio_id,
                            amount=request.values.get("amount", ""))

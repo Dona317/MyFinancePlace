@@ -62,7 +62,8 @@
 .bi-camera::before { content: "\f220"; }
 .bi-car-front::before { content: "\f7e1"; }
 .bi-cart::before { content: "\f242"; }
-.bi-cart3::before { content: "\f244"; }
+.bi-cart-dash::before { content: "\f23c"; }
+.bi-cart-plus::before { content: "\f23f"; }
 .bi-cash::before { content: "\f247"; }
 .bi-cash-coin::before { content: "\f632"; }
 .bi-cash-stack::before { content: "\f246"; }
@@ -147,6 +148,7 @@
 .bi-front::before { content: "\f3dd"; }
 .bi-funnel::before { content: "\f3e1"; }
 .bi-gear::before { content: "\f3e5"; }
+.bi-gift::before { content: "\f3ec"; }
 .bi-github::before { content: "\f3ed"; }
 .bi-globe::before { content: "\f3ee"; }
 .bi-graph-down-arrow::before { content: "\f672"; }

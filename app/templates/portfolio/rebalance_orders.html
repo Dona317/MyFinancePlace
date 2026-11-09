@@ -2,13 +2,14 @@
 {% from "partials/info.html" import info %}
 {% import "partials/fields.html" as f %}
 {% block page_title %}{{ _('Ordini del ribilanciamento') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount) }}">{{ _('Ribilanciamento') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount, portfolio=folio_id) }}">{{ _('Ribilanciamento') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
 
 {% block content %}
 <form method="POST" id="orders-form">
   <input type="hidden" name="rows" value="{{ orders|length }}" />
   <input type="hidden" name="mode" value="{{ mode }}" />
   <input type="hidden" name="amount" value="{{ amount }}" />
+  <input type="hidden" name="portfolio" value="{{ folio_id or '' }}" />
   <div class="card mb-16">
     <div class="card-header">
       <div>
@@ -22,7 +23,7 @@
       </div>
       <div class="grid-2">
         {{ f.select({}, 'account_id', _('Conto di liquidità'), accounts, none, blank=_('— quello del conto titoli —')) }}
-        {{ f.select({}, 'portfolio_id', _('Portafoglio'), folios, none, blank=_('— dove sono le quote (le vendite) o il predefinito (gli acquisti) —')) }}
+        {{ f.select({}, 'portfolio_id', _('Portafoglio'), folios, folio_id, blank=_('— dove sono le quote (le vendite) o il predefinito (gli acquisti) —')) }}
       </div>
     </div>
   </div>
@@ -56,7 +57,7 @@
       </table>
     </div>
     <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
-      <a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount) }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+      <a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount, portfolio=folio_id) }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
       <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma ordini eseguiti') }}</button>
     </div>
     {% else %}

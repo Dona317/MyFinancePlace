@@ -17,6 +17,9 @@ class PortfolioTemplate(db.Model):
     band        = db.Column(db.Numeric(5, 2), nullable=False, default=5, server_default="5")  # tolerated drift, in points
     active      = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
     created_at  = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # F50: the portfolio it is the model of (one active model per portfolio); empty = all the investments together
+    portfolio_id = db.Column(db.Integer, db.ForeignKey("portfolios.id", ondelete="SET NULL"), index=True)
+    portfolio    = db.relationship("Portfolio")
 
     slots = db.relationship("TemplateSlot", order_by="TemplateSlot.position", cascade="all, delete-orphan",
                             back_populates="template")
