@@ -23,6 +23,7 @@ from app.services import (
     lookthrough,
     performance,
     portfolio_charts,
+    portfolio_models,
     portfolio_ops,
     price_feed,
     securities,
@@ -227,7 +228,8 @@ def detail(holding_id):
                            asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
                            chart=portfolio_charts.price_chart(holding, points),  # G40: with the operations
                            look=lookthrough.summary(holding), manual_rows=lookthrough.MANUAL_ROWS,
-                           look_funds=lookthrough.FUNDS)
+                           look_funds=lookthrough.FUNDS,
+                           contribution=performance.contribution_of(holding, portfolio_models.investments()))
 
 
 def _operation_from_form() -> portfolio_ops.Operation:

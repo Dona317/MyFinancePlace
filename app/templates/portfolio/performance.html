@@ -6,6 +6,8 @@
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Rendimenti') }}</li>{% endblock %}
 
 {% macro pct(value) %}{% if value is none %}—{% else %}<span class="{{ 'text-positive' if value > 0 else ('text-negative' if value < 0) }}">{{ '+' if value > 0 else '' }}{{ value|number(2) }} %</span>{% endif %}{% endmacro %}
+{% macro signed(value) %}<span class="{{ 'text-positive' if value > 0 else ('text-negative' if value < 0) }}">{{ '+' if value > 0 else '' }}{{ value|money }}</span>{% endmacro %}
+{% macro n_months(n) %}{{ ngettext('%(num)s mese', '%(num)s mesi', n) }}{% endmacro %}
 
 {% block topbar_actions %}
 {% set people = owner_choices() %}
@@ -15,6 +17,7 @@
     <option value="">{{ _('Tutta la famiglia') }}</option>
     {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if key == person }}>{{ name }}</option>{% endfor %}
   </select>
+  <input type="hidden" name="period" value="{{ contribution.period }}" />
 </form>
 {% endif %}
 {% endblock %}
@@ -24,12 +27,32 @@
 {% if not report.returns %}
 <div class="card"><div class="card-body text-muted">{{ _('Servono almeno un mese di storia e i prezzi dei titoli: registra le operazioni o aggiorna i prezzi da internet.') }}</div></div>
 {% else %}
-<div class="kpi-grid" style="margin-bottom:24px;">
+<div class="kpi-grid" style="margin-bottom:16px;">
   {{ kpi('graph-up-arrow', _('Rendimento (TWR)'), value=pct(report.twr), cls='kpi-primary',
          sub=(_('%(pct)s all\'anno', pct=report.annualized|number(2) ~ ' %') if report.annualized is not none else _('da %(first)s', first=report.labels[0]))) }}
   {{ kpi('cash-coin', _('Rendimento sui tuoi soldi (XIRR)'), value=(xirr|number(2) ~ ' %') if xirr is not none else '—', sub=_('all\'anno, conta quando hai versato')) }}
   {{ kpi('bar-chart-steps', _('Volatilità'), value=(report.volatility|number(2) ~ ' %') if report.volatility is not none else '—', sub=_('all\'anno')) }}
   {{ kpi('graph-down-arrow', _('Calo massimo'), value=pct(report.max_drawdown), cls='kpi-negative', sub=_('dal punto più alto')) }}
+</div>
+
+{# F58, F59: risk #}
+{% set l_sharpe %}{{ _('Indice di Sharpe') }} {{ info(_('Quanto rendimento in più del tasso senza rischio (%(rate)s %% all\'anno) per ogni punto di volatilità: (media mensile − tasso mensile senza rischio) / deviazione standard mensile × √12. Sopra 1 è buono, sotto 0 avresti fatto meglio con un conto senza rischio. Il tasso si cambia in fondo alla pagina.', rate=report.risk_free|number(2))) }}{% endset %}
+{% set l_sortino %}{{ _('Indice di Sortino') }} {{ info(_('Come lo Sharpe, ma conta solo i mesi andati sotto il tasso senza rischio: (media mensile − tasso mensile senza rischio) / semideviazione × √12. La semideviazione è √(media dei quadrati dei mesi sotto il tasso), qui all\'anno.')) }}{% endset %}
+{% set l_duration %}{{ _('Durata del calo più lungo') }} {{ info(_('I mesi dal punto più alto a quando il portafoglio (TWR) ci è tornato. Se non ci è ancora tornato, il calo è in corso.')) }}{% endset %}
+{% set l_peak %}{{ _('Distanza dal massimo') }} {{ info(_('Di quanto il portafoglio (TWR) è oggi sotto il suo massimo storico: zero se è al massimo.')) }}{% endset %}
+{% set l_best12 %}{{ _('12 mesi migliori') }} {{ info(_('Il rendimento più alto e quello più basso su 12 mesi di fila (TWR), con il mese in cui finiscono. Servono almeno 12 mesi di storia.')) }}{% endset %}
+<div class="kpi-grid" style="margin-bottom:24px;">
+  {{ kpi('speedometer2', l_sharpe, value=report.sharpe|number(2) if report.sharpe is not none else '—',
+         sub=_('tasso senza rischio %(rate)s %%', rate=report.risk_free|number(2))) }}
+  {{ kpi('shield-check', l_sortino, value=report.sortino|number(2) if report.sortino is not none else '—',
+         sub=(_('semideviazione %(pct)s %% all\'anno', pct=report.downside|number(2)) if report.downside is not none else none)) }}
+  {{ kpi('hourglass-split', l_duration, value=n_months(report.drawdown_months) if report.drawdown_months else '—',
+         cls=('kpi-negative' if report.underwater_months else 'kpi-neutral'),
+         sub=(_('in corso da %(months)s', months=n_months(report.underwater_months)) if report.underwater_months else (_('recuperato') if report.drawdown_months else _('nessun calo')))) }}
+  {{ kpi('arrow-down-up', l_peak, value=pct(report.from_peak), cls=('kpi-negative' if report.from_peak else 'kpi-positive'),
+         sub=(_('al massimo storico') if not report.from_peak else _('sotto il massimo storico'))) }}
+  {{ kpi('trophy', l_best12, value=pct(report.best_12[1]) if report.best_12 else '—',
+         sub=(_('fino a %(month)s · peggiori %(pct)s %% (fino a %(worst)s)', month=report.best_12[0], pct=report.worst_12[1]|number(2), worst=report.worst_12[0]) if report.best_12 else _('servono 12 mesi'))) }}
 </div>
 
 <div class="card" style="margin-bottom:24px;">
@@ -45,12 +68,15 @@
     <div class="card-header"><div class="card-header-title">{{ _('Per periodo') }}</div></div>
     <div class="table-wrapper">
       <table>
-        <thead><tr><th>{{ _('Periodo') }}</th><th class="text-right">{{ _('Portafoglio') }}</th><th class="text-right">{{ benchmark.ticker or _('Benchmark') }}</th></tr></thead>
+        <thead><tr><th>{{ _('Periodo') }}</th><th class="text-right">{{ _('Portafoglio') }}</th>
+          {% for b in report.benchmarks %}<th class="text-right">{{ b.ticker }}</th>{% else %}<th class="text-right">{{ _('Benchmark') }}</th>{% endfor %}</tr></thead>
         <tbody>
-          {% for label, (mine, theirs) in report.windows.items() %}
-          <tr><td>{{ label }}</td><td class="text-right">{{ pct(mine) }}</td><td class="text-right">{{ pct(theirs) }}</td></tr>
+          {% for label, mine, theirs in report.periods %}
+          <tr><td>{{ label }}</td><td class="text-right">{{ pct(mine) }}</td>
+            {% for value in theirs %}<td class="text-right">{{ pct(value) }}</td>{% else %}<td class="text-right">—</td>{% endfor %}</tr>
           {% endfor %}
-          <tr><td>{{ _('Dall\'inizio') }}</td><td class="text-right">{{ pct(report.twr) }}</td><td class="text-right">{{ pct(report.benchmark_twr) }}</td></tr>
+          <tr><td>{{ _('Dall\'inizio') }}</td><td class="text-right">{{ pct(report.twr) }}</td>
+            {% for b in report.benchmarks %}<td class="text-right">{{ pct(b.twr) }}</td>{% else %}<td class="text-right">—</td>{% endfor %}</tr>
         </tbody>
       </table>
     </div>
@@ -62,21 +88,82 @@
 {% endif %}
   <div class="card">
     <div class="card-header"><div>
-      <div class="card-header-title">{{ _('Benchmark') }}</div>
-      <div class="card-header-sub">{{ _('Un indice o ETF con cui confrontarti, es. VWCE.MI (tutto il mondo) o SWDA.MI (paesi sviluppati). Si scaricano 10 anni di prezzi mensili.') }}</div>
+      <div class="card-header-title">{{ _('Benchmark') }} {{ info(_('Fino a %(count)s indici o ETF con cui confrontarti, es. VWCE.MI (tutto il mondo) o SWDA.MI (paesi sviluppati): ognuno è una linea tratteggiata nel grafico e una colonna nella tabella. Si scaricano 10 anni di prezzi mensili da internet.', count=max_benchmarks)) }}</div>
     </div></div>
     <div class="card-body">
+      {% if benchmarks %}
+      <ul style="margin:0 0 12px;padding:0;list-style:none;">
+        {% for b in benchmarks %}
+        <li style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 0;">
+          <span><strong>{{ b.ticker }}</strong>{% if b.updated %} <span class="text-xs text-muted">{{ _('aggiornato il %(day)s', day=b.updated) }}</span>{% endif %}</span>
+          <span style="display:flex;gap:4px;">
+            <form method="POST"><input type="hidden" name="ticker" value="{{ b.ticker }}" />
+              <button type="submit" class="btn btn-ghost btn-sm" title="{{ _('Scarica di nuovo') }}" aria-label="{{ _('Scarica di nuovo') }}"><i class="bi bi-arrow-repeat"></i></button></form>
+            <form method="POST"><input type="hidden" name="remove" value="{{ b.ticker }}" />
+              <button type="submit" class="btn btn-ghost btn-sm" title="{{ _('Togli') }}" aria-label="{{ _('Togli') }}"><i class="bi bi-x-lg"></i></button></form>
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if benchmarks|length < max_benchmarks %}
       <form method="POST" id="benchmark-form" style="display:flex;gap:8px;align-items:end;">
         <div class="form-group" style="margin:0;flex:1;">
           <label class="form-label" for="ticker">{{ _('Ticker') }}</label>
-          <input type="text" name="ticker" id="ticker" class="form-control" value="{{ benchmark.ticker or '' }}" placeholder="VWCE.MI" />
+          <input type="text" name="ticker" id="ticker" class="form-control" value="" placeholder="VWCE.MI" required />
         </div>
-        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Scarica') }}</button>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
       </form>
-      {% if benchmark.updated %}<div class="text-xs text-muted" style="margin-top:8px;">{{ _('Aggiornato il %(day)s', day=benchmark.updated) }}</div>{% endif %}
+      {% endif %}
+      <form method="POST" style="display:flex;gap:8px;align-items:end;margin-top:12px;">
+        <div class="form-group" style="margin:0;flex:1;">
+          <label class="form-label" for="risk_free">{{ _('Tasso senza rischio (%% all\'anno)') }} {{ info(_('Il rendimento che avresti senza rischi, es. un conto deposito o i BOT: serve agli indici di Sharpe e di Sortino. Di solito 2 %%.')) }}</label>
+          <input type="text" inputmode="decimal" name="risk_free" id="risk_free" class="form-control" value="{{ report.risk_free|number(2) }}" />
+        </div>
+        <button type="submit" class="btn btn-ghost btn-sm">{{ _('Salva') }}</button>
+      </form>
     </div>
   </div>
 {% if report.returns %}</div>{% endif %}
+
+{% if contribution.rows %}
+<div class="card" style="margin-top:24px;">
+  <div class="card-header" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <div class="card-header-title">{{ _('Contributo dei titoli') }} {{ info(_('Quanto ha aggiunto ogni titolo al risultato del periodo: plus o minusvalenza (realizzata e non: valore finale − valore iniziale − acquisti + vendite) + dividendi e cedole − commissioni − imposte. I punti %% sono sul capitale investito in media nel periodo: la loro somma è il rendimento semplice del periodo, che non coincide con il TWR (concatena i mesi) e, a differenza del TWR, toglie commissioni e imposte. I titoli venduti del tutto contano fino alla vendita.')) }}</div>
+      <div class="card-header-sub">{{ _('Dal %(day)s a oggi', day=contribution.start|it_date) }}</div>
+    </div>
+    <form method="GET" class="inline-filter">
+      <input type="hidden" name="person" value="{{ person }}" />
+      <select name="period" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Periodo') }}">
+        {% for key, label in period_choices.items() %}<option value="{{ key }}" {{ 'selected' if key == contribution.period }}>{{ label }}</option>{% endfor %}
+      </select>
+    </form>
+  </div>
+  <div class="card-body"><div style="height:{{ [120, contribution.rows|length * 32 + 40]|max }}px;"><canvas id="contributionChart"></canvas></div></div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Titolo') }}</th><th class="text-right">{{ _('Plus/minus') }}</th><th class="text-right">{{ _('Proventi') }}</th>
+        <th class="text-right">{{ _('Commissioni') }}</th><th class="text-right">{{ _('Imposte') }}</th>
+        <th class="text-right">{{ _('Contributo') }}</th><th class="text-right">{{ _('Punti %%') }}</th></tr></thead>
+      <tbody>
+        {% for r in contribution.rows %}
+        <tr><td><a href="{{ url_for('portfolio.detail', holding_id=r.holding.id) }}">{{ r.holding.name }}</a></td>
+          <td class="text-right">{{ signed(r.gain) }}</td><td class="text-right">{{ r.income|money }}</td>
+          <td class="text-right">{{ r.fees|money }}</td><td class="text-right">{{ r.taxes|money }}</td>
+          <td class="text-right"><strong>{{ signed(r.total) }}</strong></td><td class="text-right">{{ pct(r.points) }}</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr><th>{{ _('Totale') }}</th><th></th><th></th>
+        <th class="text-right">{{ contribution.fees|money }}</th><th class="text-right">{{ contribution.taxes|money }}</th>
+        <th class="text-right">{{ signed(contribution.total) }}</th><th class="text-right">{{ pct(contribution.points) }}</th></tr></tfoot>
+    </table>
+  </div>
+  <div class="card-body text-sm text-muted">
+    {{ _('Capitale investito in media: %(capital)s. Il guadagno su cui si calcola il TWR non toglie commissioni e imposte (%(costs)s): per questo è più alto della somma dei contributi.', capital=contribution.capital|money, costs=(contribution.fees + contribution.taxes)|money) }}
+  </div>
+</div>
+{% endif %}
 
 {% if report.returns %}
 {% set top = (report.returns|map('abs')|max) or 1 %}
@@ -115,11 +202,20 @@
 <script>
 makeLineChart('perfChart', {{ report.labels|tojson }}, [
   { label: {{ _('Portafoglio (TWR)')|tojson }}, data: {{ report.cumulative|tojson }} },
-  {% if report.benchmark_twr is not none %}{ label: {{ (benchmark.ticker or _('Benchmark'))|tojson }}, data: {{ report.benchmark|tojson }}, dash: [6, 4] },{% endif %}
-]);
+  {% for b in report.benchmarks if b.twr is not none %}{ label: {{ b.ticker|tojson }}, data: {{ b.series|tojson }}, dash: [6, 4], fill: false, pointRadius: 2 },
+  {% endfor %}
+], { percent: true });
 makeLineChart('drawdownChart', {{ report.labels|tojson }}, [
   { label: {{ _('Calo dal massimo (%%)')|tojson }}, data: {{ report.drawdowns|tojson }} },
 ]);
+</script>
+{% endif %}
+{% if contribution.rows %}
+<script>
+makeBarChart('contributionChart', {{ contribution.rows|map(attribute='holding.name')|list|tojson }}, [
+  { label: {{ _('Contributo')|tojson }}, data: {{ contribution.rows|map(attribute='total')|map('round', 2)|list|tojson }},
+    colors: {{ contribution.rows|map(attribute='total')|map('round', 2)|list|tojson }}.map(v => Number(v) >= 0 ? "positive" : "negative") },
+], { horizontal: true, legend: false });
 </script>
 {% endif %}
 {% endblock %}

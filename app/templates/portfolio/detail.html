@@ -36,6 +36,12 @@
          sub=_('vendite %(sales)s · dividendi e cedole %(income)s', sales=perf.realized|money, income=perf.income|money)) }}
   {{ kpi('percent', _('Rendimento annuo'), value=(perf.xirr|number(2) ~ '%') if perf.xirr is not none else '—',
          sub=_('ponderato per il denaro (XIRR), dalle operazioni')) }}
+  {% if contribution %}
+  {% set l_contribution %}{{ _('Contributo al portafoglio') }} {{ info(_('Quanto ha aggiunto questo titolo al risultato di tutto il portafoglio dall\'inizio: plus o minusvalenza (realizzata e non) + proventi − commissioni − imposte, e in punti percentuali del capitale investito in media. Il confronto con gli altri titoli è in Rendimenti.')) }}{% endset %}
+  {{ kpi('bar-chart-steps', l_contribution, value=('+' if contribution.total > 0 else '') ~ contribution.total|money,
+         cls=('kpi-positive' if contribution.total >= 0 else 'kpi-negative'),
+         sub=(_('%(points)s punti %%', points=contribution.points|number(2)) if contribution.points is not none else none)) }}
+  {% endif %}
 </div>
 
 {% if chart.prices >= 2 %}
