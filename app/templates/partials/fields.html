@@ -6,7 +6,7 @@
 {% from "partials/info.html" import info %}
 {# A field's note goes in the «i» next to its label (a tooltip), never as text under the box #}
 {% macro label_of(name, label, required=false, hint=none) -%}
-  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}</label>{% if hint %} {{ info(hint, label) }}{% endif %}
+  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}{% if hint %} {{ info(hint, label) }}{% endif %}</label>
 {%- endmacro %}
 
 {% macro value_of(values, name, current) -%}

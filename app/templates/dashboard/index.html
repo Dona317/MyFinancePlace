@@ -217,7 +217,7 @@
 {% set shock_names = {'car': _('Auto da riparare o sostituire'), 'appliance': _('Elettrodomestico (lavatrice, frigo)'), 'house': _('Casa (tetto, caldaia)'), 'health': _('Spese mediche')} %}
 
 <div class="fc-grid dash-grid" id="fc-grid">
-{% for w in layout if not (w.id == 'recent' and not allowed('transactions')) %}
+{% for w in layout if not (w.id == 'recent' and not allowed('transactions')) and not (w.id in ('investments', 'investments_trend') and not allowed('portfolio')) %}
 <section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-height="{{ w.height }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
   {% call blocks.tools() %}{{ widgets[w.id][0] }}{% endcall %}
 
