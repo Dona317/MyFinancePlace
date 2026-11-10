@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-02 18:39+0100\n"
+"POT-Creation-Date: 2026-11-02 23:27+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -415,6 +415,12 @@ msgid "%(name)s: versato"
 msgstr "%(name)s: paid in"
 
 #, python-format
+msgid "%(num)d carta"
+msgid_plural "%(num)d carte"
+msgstr[0] "%(num)d card"
+msgstr[1] "%(num)d cards"
+
+#, python-format
 msgid "%(num)d categoria confermata."
 msgid_plural "%(num)d categorie confermate."
 msgstr[0] "%(num)d category confirmed."
@@ -425,12 +431,6 @@ msgid "%(num)d debito"
 msgid_plural "%(num)d debiti"
 msgstr[0] "%(num)d debt"
 msgstr[1] "%(num)d debts"
-
-#, python-format
-msgid "%(num)d filtro attivo"
-msgid_plural "%(num)d filtri attivi"
-msgstr[0] "%(num)d filter on"
-msgstr[1] "%(num)d filters on"
 
 #, python-format
 msgid "%(num)d giroconto collegato al movimento già importato dall'altro conto."
@@ -1545,6 +1545,9 @@ msgstr "Emerging markets equities"
 msgid "Azioni paesi sviluppati"
 msgstr "Developed markets equities"
 
+msgid "Azioni sulla selezione"
+msgstr "Actions on the selection"
+
 msgid "Azioni, ETF, criptovalute, obbligazioni, conti risparmio"
 msgstr "Stocks, ETFs, crypto, bonds, savings accounts"
 
@@ -1805,6 +1808,9 @@ msgstr "Saved rates"
 msgid "Cambi ufficiali BCE"
 msgstr "Official ECB rates"
 
+msgid "Cambia i campi"
+msgstr "Change the fields"
+
 msgid "Cambia modello"
 msgstr "Change model"
 
@@ -1883,8 +1889,8 @@ msgstr "Credit Card"
 msgid "Carta di credito"
 msgstr "Credit card"
 
-msgid "Carta di debito, carta di credito…"
-msgstr "Debit card, credit card…"
+msgid "Carta di debito"
+msgstr "Debit card"
 
 msgid "Carta d’identità, patente, passaporto, tessera sanitaria…"
 msgstr "Identity card, driving licence, passport, health card…"
@@ -1892,8 +1898,14 @@ msgstr "Identity card, driving licence, passport, health card…"
 msgid "Carta prepagata"
 msgstr "Prepaid card"
 
+msgid "Carte"
+msgstr "Cards"
+
 msgid "Carte collegate al conto"
 msgstr "Cards linked to the account"
+
+msgid "Carte del conto"
+msgstr "Cards of the account"
 
 msgid "Carte di credito"
 msgstr "Credit cards"
@@ -2784,6 +2796,9 @@ msgstr "Create the client and open it"
 msgid "Crea il gruppo"
 msgstr "Create the group"
 
+msgid "Crea il suo archivio"
+msgstr "Create their archive"
+
 msgid "Crea il tuo account"
 msgstr "Create your account"
 
@@ -3046,6 +3061,13 @@ msgstr "Debt «%(name)s» added."
 #, python-format
 msgid "Debito «%(name)s» eliminato."
 msgstr "Debt «%(name)s» deleted."
+
+msgid ""
+"Debito, credito o prepagata: quante vuoi. Le ultime cifre servono a "
+"riconoscerla."
+msgstr ""
+"Debit, credit or prepaid: as many as you like. The last digits help to "
+"recognise it."
 
 msgid "Deduzioni"
 msgstr "Deductions from income"
@@ -3317,6 +3339,9 @@ msgstr "Delete this transaction"
 #, python-format
 msgid "Elimina regola %(keyword)s"
 msgstr "Delete rule %(keyword)s"
+
+msgid "Elimina selezionate"
+msgstr "Delete selected"
 
 msgid "Elimina selezionate ("
 msgstr "Delete selected ("
@@ -3666,6 +3691,12 @@ msgstr "Export and backup"
 msgid "Esporta e importa"
 msgstr "Export and import"
 
+msgid "Esporta gli archivi degli utenti"
+msgstr "Export the users' archives"
+
+msgid "Esporta i selezionati"
+msgstr "Export the selected ones"
+
 msgid "Esportazione Fiscale per Anno"
 msgstr "Tax Export by Year"
 
@@ -3810,6 +3841,9 @@ msgstr "Filter"
 
 msgid "Filtra per categoria"
 msgstr "Filter by category"
+
+msgid "Filtra per categoria o conto"
+msgstr "Filter by category or account"
 
 msgid "Filtra per classe"
 msgstr "Filter by class"
@@ -4926,13 +4960,6 @@ msgstr ""
 "In %(months)s months you paid %(actual)s; with the other offer you would "
 "have paid %(other)s:"
 
-msgid ""
-"In arrivo: le carte addebitate su questo conto, con i loro movimenti "
-"raccolti qui."
-msgstr ""
-"Coming soon: the cards charged to this account, with their movements "
-"gathered here."
-
 msgid "In attesa di avvio…"
 msgstr "Waiting to start…"
 
@@ -5033,9 +5060,6 @@ msgstr "Accident"
 
 msgid "Inizio"
 msgstr "Start"
-
-msgid "Inserisci Nuova Transazione"
-msgstr "Enter New Transaction"
 
 msgid "Inserisci Nuovo Debito"
 msgstr "Enter New Debt"
@@ -5498,6 +5522,13 @@ msgstr ""
 "Images are not supported: download the PDF, Excel or CSV of the movements"
 " from online banking."
 
+msgid "Le mie carte"
+msgstr "My cards"
+
+#, python-format
+msgid "Le più grandi del periodo: %(period)s"
+msgstr "The biggest of the period: %(period)s"
+
 msgid "Le più vecchie si cancellano da sole."
 msgstr "The oldest are deleted automatically."
 
@@ -5607,13 +5638,13 @@ msgstr "Your rules"
 msgid "Le tue scadenze"
 msgstr "Your deadlines"
 
+msgid "Le ultime registrate"
+msgstr "The latest recorded"
+
 msgid ""
 "Le ultime registrate o le più grandi del periodo, anche di una sola "
 "categoria"
 msgstr "The last recorded or the biggest of the period, also of one category only"
-
-msgid "Le ultime registrate, o le più grandi del periodo delle uscite"
-msgstr "The last recorded, or the biggest of the expenses period"
 
 msgid "Le uscite per gruppo di spesa e, dentro, per categoria."
 msgstr "Expenses by spending group and, inside, by category."
@@ -6081,6 +6112,10 @@ msgstr "Change the fields of the selected transactions together."
 msgid "Modifica la bolletta"
 msgstr "Edit the bill"
 
+#, python-format
+msgid "Modifica le carte di %(name)s"
+msgstr "Edit the cards of %(name)s"
+
 msgid "Modifica massiva"
 msgstr "Bulk edit"
 
@@ -6500,6 +6535,13 @@ msgstr ""
 "No bills: record one below, or start from a movement in the Bills "
 "category."
 
+msgid ""
+"Nessuna carta: aggiungile dal modulo di un conto (matita), anche più di "
+"una per conto."
+msgstr ""
+"No cards: add them from an account's form (pencil), more than one per "
+"account too."
+
 msgid "Nessuna categoria prevista."
 msgstr "No category forecast."
 
@@ -6782,6 +6824,9 @@ msgstr "Preset name"
 #, python-format
 msgid "Nome del tag %(name)s"
 msgstr "Name of tag %(name)s"
+
+msgid "Nome della carta"
+msgstr "Card name"
 
 msgid "Nome della categoria"
 msgstr "Category name"
@@ -7235,6 +7280,15 @@ msgstr "Each transaction goes to the new category and keeps the old one as a tag
 msgid "Ogni tre mesi"
 msgstr "Every three months"
 
+msgid ""
+"Ogni utente ha un archivio tutto suo: vede e modifica solo i suoi dati, "
+"nelle sezioni che può aprire. Gli amministratori vedono tutti gli "
+"archivi, gestiscono gli utenti e ne esportano i dati."
+msgstr ""
+"Each user has an archive of their own: they see and change only their "
+"data, in the sections they may open. Administrators see every archive, "
+"manage the users and export their data."
+
 msgid "Ollama attivo"
 msgstr "Ollama running"
 
@@ -7657,6 +7711,13 @@ msgstr ""
 "For non-state universities the ministry's limit by area and course "
 "applies."
 
+msgid ""
+"Per ognuno tutto il suo archivio (transazioni, conti, documenti…), come "
+"il backup completo: si ripristina da Impostazioni → Backup."
+msgstr ""
+"For each one their whole archive (transactions, accounts, documents…), "
+"like the full backup: it is restored from Settings → Backup."
+
 msgid "Per periodo"
 msgstr "By period"
 
@@ -7801,9 +7862,8 @@ msgstr ""
 "Several accounts of the same bank: «Fineco 1», «Fineco 2» as the name, "
 "«Fineco» here."
 
-#, python-format
-msgid "Più impattanti · %(period)s"
-msgstr "Biggest · %(period)s"
+msgid "Più grandi"
+msgstr "Biggest"
 
 msgid "Più recenti"
 msgstr "Newer"
@@ -8690,9 +8750,6 @@ msgstr "Revenue"
 msgid "Ricavi, spese e risparmio netto per periodo"
 msgstr "Revenue, spending and net savings by period"
 
-msgid "Ricerca e filtri"
-msgstr "Search and filters"
-
 msgid "Ricerca non riuscita."
 msgstr "Search failed."
 
@@ -9242,6 +9299,9 @@ msgstr "Choose at least one account, holding or category the payments go into."
 msgid "Scegli almeno un file da caricare."
 msgstr "Choose at least one file to upload."
 
+msgid "Scegli almeno un utente da esportare."
+msgstr "Choose at least one user to export."
+
 msgid "Scegli almeno una modifica."
 msgstr "Choose at least one change."
 
@@ -9691,12 +9751,6 @@ msgstr "Text only"
 msgid "Solo transazioni, reimportabile"
 msgstr "Transactions only, can be re-imported"
 
-msgid "Solo un conto"
-msgstr "One account only"
-
-msgid "Solo una categoria"
-msgstr "One category only"
-
 msgid "Somma di tutti i debiti in corso, con il TAN medio"
 msgstr "Sum of all the debts in progress, with the average rate"
 
@@ -10134,6 +10188,9 @@ msgstr "Type"
 msgid "Tipo di %(name)s"
 msgstr "Type of %(name)s"
 
+msgid "Tipo di carta"
+msgstr "Card type"
+
 msgid "Tipo di grafico"
 msgstr "Chart type"
 
@@ -10479,15 +10536,6 @@ msgstr "All"
 msgid "Tutti gli anni"
 msgstr "All years"
 
-msgid ""
-"Tutti gli utenti vedono e modificano gli stessi dati, nelle sezioni che "
-"possono aprire (colonna «Sezioni» qui sotto). Gli amministratori vedono "
-"tutto e gestiscono gli utenti."
-msgstr ""
-"All users see and change the same data, in the sections they may open "
-"(column «Sections» below). Administrators see everything and manage the "
-"users."
-
 msgid "Tutti i conti"
 msgstr "All accounts"
 
@@ -10545,14 +10593,17 @@ msgstr "Last count: %(day)s, %(amount)s."
 msgid "Ultima rata"
 msgstr "Last instalment"
 
+msgid "Ultime"
+msgstr "Latest"
+
+msgid "Ultime 4 cifre"
+msgstr "Last 4 digits"
+
 msgid "Ultime cifre IBAN / carta"
 msgstr "Last digits of IBAN / card"
 
 msgid "Ultime cifre IBAN o carta"
 msgstr "Last digits of IBAN or card"
-
-msgid "Ultime registrate"
-msgstr "Last recorded"
 
 msgid "Ultime transazioni"
 msgstr "Latest transactions"
@@ -10872,8 +10923,8 @@ msgid "Utente"
 msgstr "User"
 
 #, python-format
-msgid "Utente «%(name)s» creato: vede gli stessi dati di tutti."
-msgstr "User “%(name)s” created: they see the same data as everyone."
+msgid "Utente «%(name)s» creato, con un archivio tutto suo."
+msgstr "User «%(name)s» created, with an archive of their own."
 
 #, python-format
 msgid "Utente «%(name)s» eliminato."
@@ -11179,6 +11230,9 @@ msgstr "archived"
 msgid "archivio principale"
 msgstr "main archive"
 
+msgid "archivio suo"
+msgstr "own archive"
+
 msgid "assegnale"
 msgstr "assign them"
 
@@ -11434,6 +11488,9 @@ msgstr "e.g. Pets"
 
 msgid "es. Azioni globali"
 msgstr "e.g. Global equities"
+
+msgid "es. Bancomat, Visa"
+msgstr "e.g. Debit card, Visa"
 
 msgid "es. C:\\Users\\Anna\\OneDrive\\Backup"
 msgstr "e.g. C:\\Users\\Anna\\OneDrive\\Backup"
@@ -12055,6 +12112,9 @@ msgstr "out of %(total)s transactions, from the model"
 msgid "suddivisa"
 msgstr "split"
 
+msgid "suo"
+msgstr "own"
+
 #, python-format
 msgid "superato di %(amount)s"
 msgstr "exceeded by %(amount)s"
@@ -12079,6 +12139,9 @@ msgid ""
 "ticker «%(ticker)s» non trovato (per Borsa Italiana aggiungi .MI, per "
 "Xetra .DE)"
 msgstr "ticker «%(ticker)s» not found (add .MI for Borsa Italiana, .DE for Xetra)"
+
+msgid "togli"
+msgstr "remove"
 
 msgid "tolleranza del modello"
 msgstr "model's tolerance"
@@ -12233,6 +12296,10 @@ msgstr ""
 #, python-format
 msgid "«%(name)s» ha delle sottocategorie: non può diventarlo a sua volta."
 msgstr "“%(name)s” has subcategories: it cannot become one itself."
+
+#, python-format
+msgid "«%(name)s» ha ora il suo archivio, «%(archive)s»."
+msgstr "«%(name)s» now has their own archive, «%(archive)s»."
 
 #, python-format
 msgid ""

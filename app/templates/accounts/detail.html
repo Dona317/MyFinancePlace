@@ -6,7 +6,8 @@
 
 {% block topbar_actions %}
   <a href="{{ url_for('transactions.index', account=account.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-list-ul"></i> {{ _('Transazioni') }}</a>
-  <a href="{{ url_for('accounts.edit', account_id=account.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
+  <a href="{{ url_for('accounts.edit', account_id=account.id) }}" class="btn btn-ghost btn-sm" data-popup-size="wide"
+     data-popup="{{ url_for('accounts.edit', account_id=account.id, embed=1, next=url_for('transactions.embed_done', reload=1)) }}" title="{{ _('Modifica') }}"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
 {% endblock %}
 
 {% block content %}
@@ -20,6 +21,18 @@
 <div class="alert alert-info mb-16"><i class="bi bi-currency-exchange"></i>
   {{ ngettext("%(num)s movimento in un'altra valuta è contato al cambio del giorno: inserisci l'importo addebitato dalla banca per un saldo esatto.", "%(num)s movimenti in un'altra valuta sono contati al cambio del giorno: inserisci l'importo addebitato dalla banca per un saldo esatto.", estimated) }}
   <a href="{{ url_for('transactions.index', account=account.id) }}">{{ _('Vedi le transazioni') }}</a>
+</div>
+{% endif %}
+{% if account.cards %}
+{# F41: the cards charged on this account #}
+<div class="card mb-16 my-cards">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-credit-card"></i> {{ _('Carte del conto') }}</div></div>
+  <div class="card-body my-cards-list">
+    {% for c in account.cards %}
+    <span class="my-card"><i class="bi bi-{{ card_icons.get(c.kind, 'credit-card') }}"></i>
+      <span><strong>{{ c.name }}</strong>{% if c.last4 %} <span class="font-mono">•••• {{ c.last4 }}</span>{% endif %} <small class="text-muted">{{ card_kinds.get(c.kind, c.kind) }}</small></span></span>
+    {% endfor %}
+  </div>
 </div>
 {% endif %}
 {% if debts %}

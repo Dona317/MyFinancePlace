@@ -147,7 +147,7 @@
 {% elif k.id.startswith('tbd') %}
 {% call kpi_slot(k) %}
   <div class="kpi-card kpi-tbd">
-    <div class="kpi-label">{{ _('Nuova scheda') }}</div>
+    <div class="kpi-label">{{ kpi_titles[k.id] if k.id == 'tbd' else _('Nuova scheda') }}</div>
     <div class="kpi-value">TBD</div>
     <div class="kpi-sub">{{ _('Per una funzionalità futura') }}</div>
   </div>
@@ -319,50 +319,68 @@
   </div>
 
   {% elif w.id == 'recent' %}
-  <div class="card">
-    <div class="card-header">
+  {# The last transactions (or the biggest of the period): the register's table in small — a click on a title sorts,
+     long texts end in «…»; one switch on top, the filters (category, account) under a funnel. Narrow (a third of the
+     row), the category and the account go under the description instead of squeezing the columns. #}
+  {% set rows_all = recent_transactions + impact_transactions %}
+  <div class="card recent-card">
+    <div class="card-header recent-head">
       <div class="card-header-title">{{ _('Ultime transazioni') }}</div>
-      <div class="recent-controls">
-        <label class="sr-only" for="recent-mode">{{ _('Quali transazioni') }}</label>
-        <select id="recent-mode" class="form-select form-select-sm" title="{{ _('Le ultime registrate, o le più grandi del periodo delle uscite') }}">
-          <option value="recent">{{ _('Ultime registrate') }}</option>
-          <option value="impact">{{ _('Più impattanti · %(period)s', period=cards.expenses.label) }}</option>
-        </select>
-        <label class="sr-only" for="recent-category">{{ _('Categoria') }}</label>
-        <select id="recent-category" class="form-select form-select-sm" title="{{ _('Solo una categoria') }}">
-          <option value="">{{ _('Tutte le categorie') }}</option>
-          {% for name in (recent_transactions + impact_transactions)|map(attribute='category')|reject('none')|unique|sort %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
-        </select>
-        {# the accounts shown: one account (or card, or cash), or all of them #}
-        <label class="sr-only" for="recent-account">{{ _('Conto') }}</label>
-        <select id="recent-account" class="form-select form-select-sm" title="{{ _('Solo un conto') }}">
-          <option value="">{{ _('Tutti i conti') }}</option>
-          {% for account in (recent_transactions + impact_transactions)|map(attribute='account')|reject('none')|unique|sort(attribute='name') %}<option value="{{ account.id }}">{{ account.name }}</option>{% endfor %}
-          {% if (recent_transactions + impact_transactions)|selectattr('account_id', 'none')|list %}<option value="none">{{ _('— Senza conto —') }}</option>{% endif %}
-        </select>
-        <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
+      <div class="recent-tools">
+        <div class="seg" role="group" aria-label="{{ _('Quali transazioni') }}">
+          <button type="button" class="seg-btn" data-mode="recent" aria-pressed="true" title="{{ _('Le ultime registrate') }}">{{ _('Ultime') }}</button>
+          <button type="button" class="seg-btn" data-mode="impact" aria-pressed="false" title="{{ _('Le più grandi del periodo: %(period)s', period=period_label) }}">{{ _('Più grandi') }}</button>
+        </div>
+        <span class="col-filter recent-filter">
+          <button type="button" class="col-filter-btn" id="recent-filter-btn" aria-haspopup="true" aria-expanded="false" title="{{ _('Filtra per categoria o conto') }}"><i class="bi bi-funnel"></i></button>
+          <div class="col-pop recent-pop" id="recent-pop" hidden>
+            <label class="filter-field"><span>{{ _('Categoria') }}</span>
+              <select id="recent-category" class="form-select form-select-sm">
+                <option value="">{{ _('Tutte le categorie') }}</option>
+                {% for name in rows_all|map(attribute='category')|reject('none')|unique|sort %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
+              </select></label>
+            <label class="filter-field"><span>{{ _('Conto') }}</span>
+              <select id="recent-account" class="form-select form-select-sm">
+                <option value="">{{ _('Tutti i conti') }}</option>
+                {% for account in rows_all|map(attribute='account')|reject('none')|unique|sort(attribute='name') %}<option value="{{ account.id }}">{{ account.name }}</option>{% endfor %}
+                {% if rows_all|selectattr('account_id', 'none')|list %}<option value="none">{{ _('— Senza conto —') }}</option>{% endif %}
+              </select></label>
+            <div class="col-pop-actions"><button type="button" class="btn btn-ghost btn-sm" id="recent-filter-clear">{{ _('Togli') }}</button></div>
+          </div>
+        </span>
+        <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm recent-all" title="{{ _('Vedi tutto') }}"><span class="recent-all-word">{{ _('Vedi tutto') }}</span> <i class="bi bi-arrow-right"></i></a>
       </div>
     </div>
     <div class="table-wrapper">
-      <table>
+      <table class="tx-table recent-table" id="recent-table">
         <thead>
-          <tr><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th></tr>
+          <tr>
+            <th class="col-date"><button type="button" class="sort-link" data-sort="date">{{ _('Data') }}</button></th>
+            <th class="col-desc"><button type="button" class="sort-link" data-sort="description">{{ _('Descrizione') }}</button></th>
+            <th class="col-category"><button type="button" class="sort-link" data-sort="category">{{ _('Categoria') }}</button></th>
+            <th class="col-account"><button type="button" class="sort-link" data-sort="account">{{ _('Conto') }}</button></th>
+            <th class="col-amount text-right"><button type="button" class="sort-link" data-sort="amount">{{ _('Importo') }}</button></th>
+          </tr>
         </thead>
         {% for mode, rows in (('recent', recent_transactions), ('impact', impact_transactions)) %}
         <tbody class="recent-rows" data-mode="{{ mode }}" {{ 'hidden' if mode == 'impact' }}>
           {% for tx in rows %}
-          <tr data-category="{{ tx.category or '' }}" data-account="{{ tx.account_id or 'none' }}">
-            <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ (tx.date|it_date) }}</td>
-            <td style="font-weight:500;color:var(--clr-text-primary);">{{ tx.description }}</td>
-            <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
+          <tr data-category="{{ tx.category or '' }}" data-account="{{ tx.account_id or 'none' }}" data-date="{{ tx.date.isoformat() }}"
+              data-description="{{ tx.description|lower }}" data-account-name="{{ (tx.account.name if tx.account else '')|lower }}"
+              data-size="{{ (tx.amount_base or tx.amount or 0)|abs }}" data-order="{{ loop.index0 }}">
+            <td class="col-date nowrap text-xs text-muted">{{ tx.date|it_date }}</td>
+            <td class="col-desc"><div class="cell-clip" title="{{ tx.description }}"><span class="recent-desc">{{ tx.description }}</span></div>
+              <div class="recent-sub text-xs text-muted cell-clip">{{ tx.category or '—' }}{% if tx.account %} · {{ tx.account.name }}{% endif %}</div></td>
+            <td class="col-category"><div class="cell-clip">{% if tx.category %}<span class="badge badge-primary" title="{{ tx.category }}">{{ tx.category }}</span>{% else %}—{% endif %}</div></td>
+            <td class="col-account text-xs text-muted"><div class="cell-clip" title="{{ tx.account.name if tx.account else '' }}">{{ tx.account.name if tx.account else '—' }}</div></td>
             {% if tx.type == 'transfer' %}
-            <td class="amount" style="text-align:right;color:var(--clr-text-muted);white-space:nowrap;" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money }}</td>
+            <td class="col-amount amount text-right nowrap text-muted" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money }}</td>
             {% else %}
-            <td class="amount text-right" data-amount="{{ tx.signed_amount }}">—</td>
+            <td class="col-amount amount text-right nowrap" data-amount="{{ tx.signed_amount }}">—</td>
             {% endif %}
           </tr>
           {% else %}
-          <tr class="recent-empty"><td colspan="4">
+          <tr class="recent-empty"><td colspan="5">
             {% call empty_state(text=_('Nessuna transazione. Aggiungi la prima!'), icon='bi-inbox', compact=True) %}
               <a class="btn btn-primary btn-sm" href="{{ url_for('transactions.new') }}"><i class="bi bi-plus"></i> {{ _('Aggiungi Transazione') }}</a>
             {% endcall %}
@@ -546,29 +564,55 @@ if (shown('savings_trend')) (function () {
 }());
 {% endif %}
 
-/* ── The transactions block: the last ones or the biggest of the period, of one category, of one account ── */
+/* ── The transactions block: the last ones or the biggest of the period; a category, an account; sorted by a title ── */
 {
-const mode = document.getElementById('recent-mode');
-const category = document.getElementById('recent-category');
-const account = document.getElementById('recent-account');
-const apply = () => {
-  document.querySelectorAll('.recent-rows').forEach(body => {
-    body.hidden = body.dataset.mode !== mode.value;
-    let count = 0;
-    body.querySelectorAll('tr[data-category]').forEach(row => {
-      const ok = (!category.value || row.dataset.category === category.value)
-        && (!account?.value || row.dataset.account === account.value);
-      row.hidden = !ok || count >= 8;
-      if (ok) count += 1;
+const table = document.getElementById('recent-table');
+if (table) {
+  const category = document.getElementById('recent-category'), account = document.getElementById('recent-account');
+  const filterButton = document.getElementById('recent-filter-btn'), pop = document.getElementById('recent-pop');
+  const SHOWN = 10;
+  let mode = 'recent', sort = null, direction = 'desc';
+  try { mode = localStorage.getItem('mfp-recent-mode') === 'impact' ? 'impact' : 'recent'; } catch (e) { /* private window */ }
+  const keyOf = { date: r => r.dataset.date, description: r => r.dataset.description, category: r => r.dataset.category.toLowerCase(),
+                  account: r => r.dataset.accountName, amount: r => parseFloat(r.dataset.size) || 0 };
+  const apply = () => {
+    document.querySelectorAll('.recent-card .seg-btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    filterButton.classList.toggle('is-on', !!(category.value || account.value));
+    table.querySelectorAll('.recent-rows').forEach(body => {
+      body.hidden = body.dataset.mode !== mode;
+      const rows = [...body.querySelectorAll('tr[data-category]')];
+      // a click on a title: that column (again: the other way round); none chosen, the order of the list
+      rows.sort((a, b) => {
+        if (!sort) return a.dataset.order - b.dataset.order;
+        const x = keyOf[sort](a), y = keyOf[sort](b);
+        return (x < y ? -1 : x > y ? 1 : 0) * (direction === 'asc' ? 1 : -1);
+      }).forEach(row => body.appendChild(row));
+      let count = 0;
+      rows.forEach(row => {
+        const ok = (!category.value || row.dataset.category === category.value) && (!account.value || row.dataset.account === account.value);
+        row.hidden = !ok || count >= SHOWN;
+        if (ok) count += 1;
+      });
     });
-  });
-  try { localStorage.setItem('mfp-recent-mode', mode.value); } catch (e) { /* private window */ }
-};
-if (mode && category) {
-  try { const saved = localStorage.getItem('mfp-recent-mode'); if (saved) mode.value = saved; } catch (e) { /* private window */ }
-  mode.addEventListener('change', apply);
-  category.addEventListener('change', apply);
-  account?.addEventListener('change', apply);
+    table.querySelectorAll('.sort-link').forEach(b => {
+      b.classList.toggle('is-sorted', b.dataset.sort === sort);
+      b.dataset.dir = b.dataset.sort === sort ? direction : '';
+    });
+    try { localStorage.setItem('mfp-recent-mode', mode); } catch (e) { /* private window */ }
+  };
+  document.querySelectorAll('.recent-card .seg-btn').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode; apply(); }));
+  table.querySelectorAll('.sort-link').forEach(b => b.addEventListener('click', () => {
+    const column = b.dataset.sort;
+    direction = sort === column ? (direction === 'asc' ? 'desc' : 'asc') : (column === 'date' || column === 'amount' ? 'desc' : 'asc');
+    sort = column;
+    apply();
+  }));
+  // the funnel: its box under it; a click elsewhere closes it
+  filterButton.addEventListener('click', e => { e.stopPropagation(); pop.hidden = !pop.hidden; filterButton.setAttribute('aria-expanded', String(!pop.hidden)); });
+  pop.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', () => { pop.hidden = true; filterButton.setAttribute('aria-expanded', 'false'); });
+  [category, account].forEach(select => select.addEventListener('change', apply));
+  document.getElementById('recent-filter-clear').addEventListener('click', () => { category.value = ''; account.value = ''; apply(); pop.hidden = true; });
   apply();
 }
 }

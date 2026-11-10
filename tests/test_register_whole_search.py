@@ -51,11 +51,37 @@ def test_without_the_whole_search_only_the_ticked_rows_change(client, db):
     assert [tx.id for tx in Transaction.query] == [second.id]
 
 
-def test_the_search_card_closes_and_says_how_many_filters_are_on(client, db):
+def test_the_filters_panel_opens_with_a_filter_on_and_the_pill_counts_them(client, db):
     _add(db, 1, category="Alimentari")
-    html = client.get("/transactions/?category=Alimentari&type=expense").get_data(as_text=True)
-    assert 'id="search-box" open data-remember="mfp-search-open"' in html and "2 filtri attivi" in html
-    assert "filtro attivo" not in client.get("/transactions/").get_data(as_text=True)
+    html = client.get("/transactions/?category=Alimentari&type=expense&q=spesa").get_data(as_text=True)
+    # two filters on (the search text apart): the panel open, «Filtri · 2» lit, «Azzera» there
+    assert 'class="tx-panel is-open" id="search-box" data-remember="mfp-search-open" data-forced="1"' in html
+    assert "Filtri · 2" in html and 'id="filters-toggle" aria-controls="search-box"' in html and "Togli ricerca e filtri" in html
+    plain = client.get("/transactions/").get_data(as_text=True)
+    assert 'class="tx-panel" id="search-box"' in plain and "Filtri ·" not in plain and "Togli ricerca e filtri" not in plain
+    # the search alone: no filter counted, but «Azzera» shows
+    only_text = client.get("/transactions/?q=spesa").get_data(as_text=True)
+    assert "Filtri ·" not in only_text and "Togli ricerca e filtri" in only_text
+
+
+def test_search_filters_and_bulk_edit_live_inside_the_table_card(client, db):
+    _add(db, 2, category="Alimentari", tags=[AI_TAG])
+    db.session.add_all([Account(name="Fineco", kind="current", currency="EUR"),
+                        SpendingEvent(name="Viaggio", start=date(2026, 5, 1), end=date(2026, 6, 30))])
+    db.session.commit()
+    html = client.get("/transactions/").get_data(as_text=True)
+    card = html[html.index('<div class="card tx-card">'):html.index('id="tx-table"')]
+    # the toolbar, the filters (the amount written: two text fields) and the Modifica massiva, all in the table's card
+    for piece in ('id="filter-form"', 'id="register-q"', 'id="search-history"', 'id="search-box"', 'id="bulk-box"',
+                  'id="bulk-edit-form"', 'id="bulk-scope"', 'id="bulk-summary"', 'id="bulk-toggle" aria-controls="bulk-box"',
+                  'id="bulk-delete"', 'id="bulk-count"', 'id="assign-form"', 'id="bulk-assign"', 'id="event-form"',
+                  'id="bulk-event"', 'id="confirm-form"', 'id="bulk-confirm"', 'id="bulk-delete-icon"',
+                  'type="text" inputmode="decimal" name="min"', 'type="text" inputmode="decimal" name="max"',
+                  "Azioni sulla selezione", "Cambia i campi"):
+        assert piece in card, piece
+    form = card[card.index('id="filter-form"'):card.index('</form>', card.index('name="recurring"'))]
+    assert 'name="q"' in form and 'name="min"' in form and 'name="category"' in form  # one form: search and filters
+    assert "<details" not in html.split('<div class="card tx-card">')[0]  # no separate cards above the table
 
 
 def test_the_table_is_sorted_by_a_click_on_its_titles(client, db):

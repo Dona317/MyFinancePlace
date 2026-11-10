@@ -317,3 +317,31 @@ def test_claude_batches_run_in_parallel(app, monkeypatch):
     result = ai_classification.classify(items(*shops), ["Alimentari"])
     assert len(result) == 100 and all(s.category == "Alimentari" for s in result.values())
     assert threading.get_ident() not in threads  # answered by the worker threads
+
+
+def test_a_local_model_answer_is_capped_and_waited_for_briefly(app, monkeypatch):
+    """F27: a small local model held to a schema could write until the time ran out, the page hanging for minutes."""
+    from app.services import ai_classification, ai_extraction
+    seen = {}
+
+    def fake_urlopen(request, timeout):
+        import io
+        import json
+        seen["body"], seen["timeout"] = json.loads(request.data), timeout
+        return io.BytesIO(json.dumps({"message": {"content": '{"items": []}'}}).encode())
+    monkeypatch.setattr(ai_extraction.urllib.request, "urlopen", lambda request, timeout: _Closing(fake_urlopen(request, timeout)))
+    monkeypatch.setattr(ai_extraction, "provider", lambda: "ollama")
+    ai_classification._ask("llama3.2:1b", [{"id": 1, "text": "ESSELUNGA", "amount": -5}] * 3, ["Alimentari"])
+    assert seen["body"]["options"]["num_predict"] == 3 * ai_classification.TOKENS_PER_MOVEMENT + 200
+    assert seen["timeout"] == ai_classification.CLASSIFY_WAIT
+
+
+class _Closing:
+    def __init__(self, inner):
+        self.inner = inner
+
+    def __enter__(self):
+        return self.inner
+
+    def __exit__(self, *exc):
+        return False

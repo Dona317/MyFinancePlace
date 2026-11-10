@@ -7,7 +7,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
+from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, safe_next, save_form
 from app.services import accounts, cash, display, family, owners, wealth
 from app.services import currency as currency_service
 from app.services.parsing import to_decimal
@@ -62,6 +62,12 @@ def _account_from_form(account: Account) -> Account:
         account.opening_foreign = _foreign_from_form(account)
     if account.fixed:
         account.active = True  # a fixed account is never closed: it can stay at zero
+    # F41: its cards, one row each (the new ones at the bottom)
+    form = request.form
+    accounts.save_cards(account, [
+        {"id": int(i) if i.isdigit() else None, "name": n, "kind": k, "last4": d, "remove": str(i) in form.getlist("card_remove")}
+        for i, n, k, d in zip(form.getlist("card_id"), form.getlist("card_name"), form.getlist("card_kind"),
+                              form.getlist("card_last4"), strict=False)])
     if account.fee_min is not None and account.fee_max is not None and account.fee_min > account.fee_max:
         raise ValueError(_("Commissioni: il minimo non può superare il massimo."))
     duplicate = Account.query.filter(Account.name == account.name, Account.id != account.id).first()
@@ -72,7 +78,7 @@ def _account_from_form(account: Account) -> Account:
 
 def _render_form(account, values):
     return render_template("accounts/form.html", tax_regimes=TAX_REGIMES, account=account, kinds=accounts.KINDS, currencies=CURRENCIES,
-                           values=values, foreign=accounts.foreign_openings(account) if account else {})
+                           values=values, foreign=accounts.foreign_openings(account) if account else {}, card_kinds=accounts.CARD_KINDS)
 
 
 @accounts_bp.route("/")
@@ -89,7 +95,8 @@ def index():
         debts=wealth.debt_picture(),
         total=sum(r["balance_base"] for r in rows if r["account"].active and r["account"].kind != "debt")
         + (cash["balance_base"] if cash else 0),
-        unassigned=accounts.unassigned_count(),
+        unassigned=accounts.unassigned_count(), card_kinds=accounts.CARD_KINDS, card_icons=accounts.CARD_ICONS,
+        cards=[c for r in rows for c in r["account"].cards],
     )
 
 
@@ -104,6 +111,7 @@ def detail(account_id):
 
 def _render_detail(account: Account, recent: list[Transaction], result: dict | None):
     return render_template("accounts/detail.html", account=account, balance=accounts.balance(account),
+                           card_kinds=accounts.CARD_KINDS, card_icons=accounts.CARD_ICONS,
                            debts=wealth.debt_picture() if account.fixed == "debt" else None,
                            currencies=accounts.by_currency(account) if account.kind == "cash" else {},
                            tracking=cash.tracking(account, date.today().year) if account.kind == "cash" else None,
@@ -151,7 +159,7 @@ def count_cash(account_id):
 def new():
     if request.method == "POST":
         return save_form(Account(), _account_from_form, _render_form,
-                         lambda a: _("Conto «%(name)s» aggiunto.", name=a.name), lambda a: url_for("accounts.index"))
+                         lambda a: _("Conto «%(name)s» aggiunto.", name=a.name), lambda a: safe_next() or url_for("accounts.index"))
     return _render_form(None, {})
 
 
@@ -161,7 +169,7 @@ def edit(account_id):
     if request.method == "POST":
         return save_form(account, _account_from_form, _render_form,
                          lambda a: _("Conto «%(name)s» aggiornato.", name=a.name),
-                         lambda a: url_for("accounts.detail", account_id=a.id))
+                         lambda a: safe_next() or url_for("accounts.detail", account_id=a.id))
     return _render_form(account, {})
 
 

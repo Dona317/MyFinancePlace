@@ -443,8 +443,9 @@ def embed_done():
     at the bottom (the message, taken here so it does not wait for the next page)."""
     messages = get_flashed_messages()
     message = json.dumps(messages[-1] if messages else "")
+    reload = "true" if request.args.get("reload") else "false"  # the page under it reloads (Conti e carte)
     return ('<!doctype html><meta charset="utf-8"><script>'
-            f'parent.postMessage({{mfp: "tx-done", message: {message}}}, location.origin);</script>')
+            f'parent.postMessage({{mfp: "tx-done", message: {message}, reload: {reload}}}, location.origin);</script>')
 
 
 @transactions_bp.route("/<int:tx_id>/delete", methods=["POST"])

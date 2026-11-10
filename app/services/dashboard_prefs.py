@@ -110,7 +110,7 @@ KPI_CARDS = {
     "savings_rate": _l("Tasso di Risparmio"),
     "investments":  _l("Investimenti"),
     "debt":         _l("Debito Totale"),
-    "tbd":          _l("Nuova scheda"),
+    "tbd":          _l("Carte"),  # the cards of the accounts, at a glance (to come)
     "tbd2":         _l("Nuova scheda 2"),
     "tbd3":         _l("Nuova scheda 3"),
 }

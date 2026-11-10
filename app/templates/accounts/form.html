@@ -8,9 +8,12 @@
 {% block content %}
 <div class="page-form">
   <div class="card">
-    <div class="card-header"><div class="card-header-title"><i class="bi bi-bank"></i> {{ _('Modifica «%(name)s»', name=account.name) if is_edit else _('Nuovo conto o carta') }}</div></div>
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-bank"></i> {{ _('Modifica «%(name)s»', name=account.name) if is_edit else _('Nuovo conto o carta') }}</div>
+      {% if request.values.get('embed') == '1' %}<button type="button" class="btn btn-ghost btn-icon" data-close-embed title="{{ _('Chiudi senza salvare') }}" aria-label="{{ _('Chiudi senza salvare') }}"><i class="bi bi-x-lg"></i></button>{% endif %}</div>
     <div class="card-body">
       <form method="POST">
+        {% if request.values.get('embed') == '1' %}<input type="hidden" name="embed" value="1" />{% endif %}
+        {% if request.values.get('next') %}<input type="hidden" name="next" value="{{ request.values.get('next') }}" />{% endif %}
         {% if a.fixed %}
         {# Contanti and Debiti: always there, with their own name and kind #}
         <p class="form-hint mb-16"><i class="bi bi-lock"></i> {{ _('Conto fisso: nome e tipo non cambiano e non si elimina; può restare a zero.') }}</p>
@@ -54,12 +57,29 @@
           {{ f.text(values, 'iban_tail', _('Ultime cifre IBAN o carta'), a.iban_tail, placeholder=_('es. 4821')) }}
         </div>
         {{ f.owner(values, a.owner) }}
-        <!-- Cards linked to the account: a mockup, the feature is to be done -->
-        <div class="form-group mockup-tbd">
-          <label class="form-label" for="f-cards">{{ _('Carte collegate al conto') }} <span class="nav-badge nav-badge-tbd">TBD</span></label>
-          <select id="f-cards" class="form-select" disabled><option>{{ _('Carta di debito, carta di credito…') }}</option></select>
-          <div class="form-hint">{{ _('In arrivo: le carte addebitate su questo conto, con i loro movimenti raccolti qui.') }}</div>
-        </div>
+        {# F41: the cards charged on this account — several are fine; a row without a name is not saved #}
+        <fieldset class="fee-rules mb-16 account-cards">
+          <legend class="form-label">{{ _('Carte collegate al conto') }}</legend>
+          <p class="form-hint">{{ _('Debito, credito o prepagata: quante vuoi. Le ultime cifre servono a riconoscerla.') }}</p>
+          {% for c in (a.cards if is_edit else []) %}
+          <div class="card-row">
+            <input type="hidden" name="card_id" value="{{ c.id }}" />
+            <input type="text" name="card_name" class="form-control" value="{{ c.name }}" aria-label="{{ _('Nome della carta') }}" maxlength="80" />
+            <select name="card_kind" class="form-select" aria-label="{{ _('Tipo di carta') }}">{% for key, label in card_kinds.items() %}<option value="{{ key }}" {{ 'selected' if c.kind == key }}>{{ label }}</option>{% endfor %}</select>
+            <input type="text" inputmode="numeric" name="card_last4" class="form-control" value="{{ c.last4 or '' }}" placeholder="1234" maxlength="4" aria-label="{{ _('Ultime 4 cifre') }}" />
+            <label class="text-xs card-remove"><input type="checkbox" class="check" name="card_remove" value="{{ c.id }}" /> {{ _('togli') }}</label>
+          </div>
+          {% endfor %}
+          {% for i in range(2) %}
+          <div class="card-row">
+            <input type="hidden" name="card_id" value="" />
+            <input type="text" name="card_name" class="form-control" placeholder="{{ _('es. Bancomat, Visa') }}" aria-label="{{ _('Nome della carta') }}" maxlength="80" />
+            <select name="card_kind" class="form-select" aria-label="{{ _('Tipo di carta') }}">{% for key, label in card_kinds.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select>
+            <input type="text" inputmode="numeric" name="card_last4" class="form-control" placeholder="1234" maxlength="4" aria-label="{{ _('Ultime 4 cifre') }}" />
+            <span></span>
+          </div>
+          {% endfor %}
+        </fieldset>
         {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
         <fieldset class="fee-rules mb-16">
           <legend class="form-label">{{ _('Commissioni del broker (facoltative)') }}</legend>

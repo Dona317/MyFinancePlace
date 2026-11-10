@@ -42,7 +42,7 @@
   <div class="card">
     <div class="card-header"><div class="card-header-title"><i class="bi bi-person-plus"></i> {{ _('Aggiungi un utente') }}</div></div>
     <div class="card-body">
-      <p class="text-sm text-muted mb-16">{{ _('Tutti gli utenti vedono e modificano gli stessi dati, nelle sezioni che possono aprire (colonna «Sezioni» qui sotto). Gli amministratori vedono tutto e gestiscono gli utenti.') }}</p>
+      <p class="text-sm text-muted mb-16">{{ _('Ogni utente ha un archivio tutto suo: vede e modifica solo i suoi dati, nelle sezioni che può aprire. Gli amministratori vedono tutti gli archivi, gestiscono gli utenti e ne esportano i dati.') }}</p>
       <form method="POST" action="{{ url_for('settings.user_add') }}">
         <div class="grid-2" style="gap:16px;">
           <div class="form-group">
@@ -67,7 +67,7 @@
   <div class="card-header"><div class="card-header-title"><i class="bi bi-people"></i> {{ _('Utenti') }}</div></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>{{ _('Nome utente') }}</th><th>{{ _('Ruolo') }}</th><th>{{ _('Sezioni') }}</th>{% if archives %}<th>{{ _('Archivio di partenza') }}</th>{% endif %}<th>{{ _('Ultimo accesso') }}</th><th>{{ _('Reimposta password') }}</th><th></th></tr></thead>
+      <thead><tr><th>{{ _('Nome utente') }}</th><th>{{ _('Ruolo') }}</th><th>{{ _('Sezioni') }}</th><th>{{ _('Archivio di partenza') if archives else _('Archivio') }}</th><th>{{ _('Ultimo accesso') }}</th><th>{{ _('Reimposta password') }}</th><th></th></tr></thead>
       <tbody>
       {% for u in users %}
         <tr>
@@ -93,6 +93,10 @@
             </form>
           </td>
           {% endif %}
+          {% if not archives %}
+          <td class="text-sm">{% if u.default_client_id %}<span class="text-muted">{{ _('suo') }}</span>{% else %}
+            <form method="POST" action="{{ url_for('settings.user_archive', user_id=u.id) }}"><button type="submit" class="btn btn-ghost btn-sm">{{ _('Crea il suo archivio') }}</button></form>{% endif %}</td>
+          {% endif %}
           <td class="text-sm text-muted">{{ u.last_login.strftime('%d/%m/%Y %H:%M') if u.last_login else '—' }}</td>
           <td>
             <form method="POST" action="{{ url_for('settings.user_reset_password', user_id=u.id) }}" class="d-flex gap-8" style="flex-wrap:wrap;">
@@ -113,6 +117,23 @@
       {% endfor %}
       </tbody>
     </table>
+  </div>
+</div>
+
+{# F24: the administrator downloads the whole archive of the users chosen (one backup each, in one zip) #}
+<div class="card mt-16" id="users-export">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-download"></i> {{ _('Esporta gli archivi degli utenti') }}</div></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('settings.users_export') }}">
+      <div class="users-export-list">
+        {% for u in users %}
+        <label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="user_id" value="{{ u.id }}" /> {{ u.username }}
+          <span class="text-xs text-muted">{{ _('archivio suo') if u.default_client_id else _('archivio principale') }}</span></label>
+        {% endfor %}
+      </div>
+      <p class="form-hint">{{ _('Per ognuno tutto il suo archivio (transazioni, conti, documenti…), come il backup completo: si ripristina da Impostazioni → Backup.') }}</p>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-download"></i> {{ _('Esporta i selezionati') }}</button>
+    </form>
   </div>
 </div>
 {% endif %}

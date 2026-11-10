@@ -1,6 +1,7 @@
-"""What runs before every request, in this order: open the client's archive, make its fixed accounts (Contanti,
-Debiti), close the past years (once a day), refuse requests from other sites or with NUL characters, ask to sign in, hide the modules switched off in
-Settings and the sections blocked for the user. Plus /health."""
+"""What runs before every request, in this order: open the client's archive, refuse requests from other sites or with
+NUL characters, ask to sign in, keep a user who is not an administrator on their own archive, make its fixed accounts
+(Contanti, Debiti), close the past years (once a day), hide the modules switched off in Settings and the sections
+blocked for the user. Plus /health."""
 from datetime import date
 from urllib.parse import urlsplit
 
@@ -12,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db, login_manager
 from app.models.account import Account
+from app.models.client import Client
 from app.models.user import User
 from app.services import accounts, cash, sections, studio, users, year_close
 from app.services.ui_settings import current_settings, module_setting
@@ -104,6 +106,22 @@ def require_login():
     return redirect(url_for("auth.login", next=request.full_path.rstrip("?")))
 
 
+def confine_to_own_archive():
+    """F24: a user who is not an administrator works only on their own archive — whatever the session says — and
+    cannot open the pages that switch archive (clients, groups)."""
+    if current_app.config.get("LOGIN_DISABLED") or not current_user.is_authenticated or current_user.is_admin:
+        return None
+    if request.blueprint in ("clients", "groups"):
+        return refused()
+    own = current_user.default_client_id
+    current = studio.current()
+    if own and (current is None or current.id != own):
+        client = db.session.get(Client, own)
+        if client is not None and not client.archived:
+            studio.choose(client)
+    return None
+
+
 def block_disabled_modules():
     """A module switched off in Settings disappears from the menu and its pages answer "not found"; a section an
     administrator blocked for this user answers "access denied" (pages, API and downloads alike)."""
@@ -135,6 +153,6 @@ def load_user(user_id):
 def register_hooks(app: Flask) -> None:
     login_manager.user_loader(load_user)
     app.get("/health")(app.doc(hide=True)(health))
-    for hook in (open_client_archive, ensure_fixed_accounts, close_past_years, refuse_foreign_and_broken_requests,
-                 require_login, block_disabled_modules):
+    for hook in (open_client_archive, refuse_foreign_and_broken_requests, require_login, confine_to_own_archive,
+                 ensure_fixed_accounts, close_past_years, block_disabled_modules):
         app.before_request(hook)

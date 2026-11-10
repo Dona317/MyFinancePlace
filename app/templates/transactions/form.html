@@ -17,8 +17,8 @@
     <div class="card-header">
       <div class="card-header-title">
         {% if request.values.get("from") == "add" %}<button type="button" class="btn btn-ghost btn-icon form-back" data-popup-back title="{{ _('Indietro') }}" aria-label="{{ _('Indietro') }}"><i class="bi bi-arrow-left"></i></button>{% endif %}
-        <i class="bi bi-{{ 'pencil' if is_edit else 'plus-circle' }}"></i>
-        {{ _('Modifica Transazione') if is_edit else _('Inserisci Nuova Transazione') }}
+        {% if is_edit %}<i class="bi bi-pencil"></i>{% endif %}
+        {{ _('Modifica Transazione') if is_edit else _('Nuova transazione') }}
       </div>
       <div class="form-top-actions">
         {% if is_edit %}

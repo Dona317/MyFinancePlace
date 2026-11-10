@@ -26,6 +26,10 @@ OLD_AI_TAG = "categoria-ai"  # the same, before it was renamed
 
 BATCH_SIZE = 40          # movements per request: keeps tiny models within their context
 PARALLEL_REQUESTS = 4    # Claude batches sent at once (a local Ollama model answers one at a time anyway)
+# F27: a local model's answer is capped — about this many tokens per movement, plus the frame of the JSON — and waited
+# for at most CLASSIFY_WAIT seconds: an answer cut short is an error to show, never a page left hanging
+TOKENS_PER_MOVEMENT = 90
+CLASSIFY_WAIT = 180
 CONFIDENCE = ("alta", "media", "bassa")
 
 SYSTEM_PROMPT = """Classifichi movimenti bancari italiani per un'app di finanza personale.
@@ -134,7 +138,8 @@ def _ask(model: str, batch: list[dict], categories: list[str]) -> str:
             model, SYSTEM_PROMPT, [{"type": "text", "text": prompt}], schema, max_tokens=16000,
             too_long="Troppi movimenti in una volta: classificane meno.",
         )
-    return ai_extraction.ollama_json(model, SYSTEM_PROMPT, prompt, schema)
+    return ai_extraction.ollama_json(model, SYSTEM_PROMPT, prompt, schema, max_tokens=TOKENS_PER_MOVEMENT * len(batch) + 200,
+                                     wait=current_app.config.get("LLM_CLASSIFY_TIMEOUT", CLASSIFY_WAIT))
 
 
 def same_causale(item: dict) -> tuple[bool, str]:

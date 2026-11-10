@@ -386,8 +386,11 @@ def _extract_anthropic(raw: bytes, kind: str | None, text: str | None, model: st
 
 # ── Ollama (local) ─────────────────────────────────────────────────────────────
 
-def ollama_json(model: str, system: str, prompt: str, schema: dict, images: list[bytes] | None = None) -> str:
-    """One Ollama chat request whose reply is JSON constrained to `schema`; returns the JSON text."""
+def ollama_json(model: str, system: str, prompt: str, schema: dict, images: list[bytes] | None = None,
+                max_tokens: int | None = None, wait: float | None = None) -> str:
+    """One Ollama chat request whose reply is JSON constrained to `schema`; returns the JSON text. `max_tokens` caps
+    the reply (a small model held to a schema can otherwise go on writing until the time runs out, keeping Ollama
+    busy for everything else), `wait` the seconds to wait for it (default: LLM_TIMEOUT)."""
     url = base_url().rstrip("/") + "/api/chat"
     message = {"role": "user", "content": prompt}
     if images:
@@ -396,12 +399,12 @@ def ollama_json(model: str, system: str, prompt: str, schema: dict, images: list
         "model": model,
         "stream": False,
         "format": schema,  # Ollama structured outputs: constrain the reply to the schema
-        "options": {"temperature": 0, "num_ctx": OLLAMA_CONTEXT_TOKENS},
+        "options": {"temperature": 0, "num_ctx": OLLAMA_CONTEXT_TOKENS, **({"num_predict": max_tokens} if max_tokens else {})},
         "messages": [{"role": "system", "content": system}, message],
     }
     request = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     try:
-        with urllib.request.urlopen(request, timeout=timeout()) as response:
+        with urllib.request.urlopen(request, timeout=wait or timeout()) as response:
             return json.loads(response.read())["message"]["content"]
     except urllib.error.HTTPError as exc:
         if exc.code == 404:

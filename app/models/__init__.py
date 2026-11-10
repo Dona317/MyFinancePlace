@@ -1,6 +1,7 @@
 # Importing the models registers them with SQLAlchemy (tables, migrations).
 from .account import Account
 from .budget import Budget
+from .card import Card
 from .category import Category, CategoryRule
 from .client import Client, ClientGroup
 from .cluster import ClusterRule
@@ -21,7 +22,7 @@ from .wealth import Debt, Document, Goal, Holding, HoldingPrice, InsurancePolicy
 from .year_close import YearClose
 
 __all__ = [
-    "Account", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule", "ClusterRule",
+    "Account", "Card", "Transaction", "TransactionSplit", "AppSetting", "DuplicateDismissal", "Category", "CategoryRule", "ClusterRule",
     "ExchangeRate", "Budget", "User", "Client", "ClientGroup", "Holding", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
     "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan", "Reminder", "UtilityReading",

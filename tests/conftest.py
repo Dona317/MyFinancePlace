@@ -20,8 +20,21 @@ def app():
         _db.drop_all()
         _db.create_all()
         yield app
+        _db.session.rollback()
+        _drop_client_databases()
         _db.session.remove()
         _db.drop_all()
+
+
+def _drop_client_databases() -> None:
+    """The archives a test made (a client, a user's own archive): their databases go too, or the next run trips on them."""
+    from app.models.client import Client
+    from app.services import studio
+    try:
+        for client in Client.query.filter(Client.database.isnot(None)).all():
+            studio._drop(client)
+    except Exception:  # noqa: BLE001 - a test that broke the session: nothing more to clean here
+        _db.session.rollback()
 
 
 @pytest.fixture(autouse=True)

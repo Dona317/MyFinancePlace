@@ -116,9 +116,10 @@
           <a href="{{ link({'category': ''}) }}" aria-label="{{ _('Mostra tutte le categorie') }}"><i class="bi bi-x-lg"></i></a>
         </div>
         {% endif %}
+        {% set categories_only = items|rejectattr('apart')|list %}
         <ul class="report-legend">
-          {% for c in items %}
-          {% if loop.index0 == legend_shown %}</ul><details class="report-more"><summary>{{ _('Mostra tutte le categorie (%(count)s)', count=items|length) }} <i class="bi bi-chevron-down"></i></summary><ul class="report-legend">{% endif %}
+          {% for c in categories_only %}
+          {% if loop.index0 == legend_shown %}</ul><details class="report-more"><summary>{{ _('Mostra tutte le categorie (%(count)s)', count=categories_only|length) }} <i class="bi bi-chevron-down"></i></summary><ul class="report-legend">{% endif %}
           <li>
             <a href="{{ link({'category': (within or '') if f.category == c.category else c.category}) }}"
                class="{{ 'selected' if f.category == c.category }}">
@@ -129,7 +130,12 @@
           </li>
           {% endfor %}
         </ul>
-        {% if items|length > legend_shown %}</details>{% endif %}
+        {% if categories_only|length > legend_shown %}</details>{% endif %}
+        {# F39: the unrecorded cash, a line of its own under the categories #}
+        {% for c in items if c.apart %}
+        <p class="category-apart text-xs"><i class="bi bi-cash-coin acc-cash"></i>
+          {{ _('A parte: «Spese non annotate» %(amount)s (%(share)s%% delle uscite), contanti spesi senza sapere per cosa.', amount=c.amount|money, share=c.share|number(1)) }}</p>
+        {% endfor %}
       </div>
     </div>
     {% else %}
@@ -237,7 +243,7 @@
 {% block scripts %}
 <script>
 {% if f.tab != 'cashflow' and items %}
-const items = {{ items|tojson }};
+const items = {{ items|rejectattr('apart')|list|tojson }};  // the unrecorded cash apart (F39)
 const categoryUrl = {{ link({'category': '__CAT__'})|tojson }};
 const openCategory = i => { window.location = categoryUrl.replace('__CAT__', encodeURIComponent(items[i].category)); };
 const labels = items.map(c => c.category), values = items.map(c => c.amount);

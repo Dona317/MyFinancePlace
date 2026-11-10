@@ -175,3 +175,21 @@ def test_the_outlook_needs_three_months_of_history(app, db):
     db.session.commit()
     outlook = _outlook("expenses")
     assert outlook and len(outlook["rows"]) == 4 and outlook["method"]
+
+
+def test_the_last_transactions_card_sorts_filters_and_fits_a_third(client, db):
+    from tests.conftest import make_tx
+    db.session.add(make_tx(description="Spesa grande", amount=500, category="Casa"))
+    db.session.commit()
+    html = client.get("/dashboard").get_data(as_text=True)
+    assert 'id="recent-table"' in html and 'data-sort="amount"' in html and 'id="recent-filter-btn"' in html
+    assert 'class="seg-btn" data-mode="impact"' in html and 'class="recent-sub' in html and 'id="recent-mode"' not in html
+
+
+def test_uscite_keeps_the_unrecorded_cash_apart(client, db):
+    from tests.conftest import make_tx
+    for category, amount in (("Casa", 80), ("Spese non annotate", 20)):
+        db.session.add(make_tx(category=category, amount=amount, date=date.today()))
+    db.session.commit()
+    html = client.get("/reports/spending?period=this_month").get_data(as_text=True)
+    assert "A parte: «Spese non annotate»" in html and '<span class="report-legend-name">Spese non annotate</span>' not in html

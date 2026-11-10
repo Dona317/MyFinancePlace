@@ -1,11 +1,17 @@
-"""Settings → Account e utenti: your own password; administrators add, reset and delete users (data is shared)."""
+"""Settings → Account e utenti: your own password; administrators add, reset and delete users. Each user has an
+archive of their own (F24, decided on 2 Nov 2026); an administrator can export the archives of the users chosen."""
+import io
+import zipfile
+from datetime import date
+
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
 
 from app.extensions import db
+from app.models.client import Client
 from app.models.user import MIN_PASSWORD, User
-from app.routes.helpers import flash_errors
+from app.routes.helpers import download, flash_errors
 from app.routes.settings import settings_bp
 from app.services import groups, sections, studio, users
 
@@ -36,11 +42,49 @@ def account_password():
 @settings_bp.route("/users/add", methods=["POST"])
 def user_add():
     _admin_only()
-    with flash_errors():
+    with flash_errors(ValueError, studio.StudioError, rollback=True):
         user = users.create(request.form.get("username", ""), request.form.get("password", ""),
                             is_admin="is_admin" in request.form)
-        flash(_("Utente «%(name)s» creato: vede gli stessi dati di tutti.", name=user.username), "success")
+        own_archive(user)
+        flash(_("Utente «%(name)s» creato, con un archivio tutto suo.", name=user.username), "success")
     return redirect(url_for("settings.account"))
+
+
+def own_archive(user: User) -> Client:
+    """The archive of a user: a database of their own, opened at sign-in (F24). Made once."""
+    client = db.session.get(Client, user.default_client_id) if user.default_client_id else None
+    if client is None:
+        client = studio.create(user.username)
+        groups.set_start(user, client.id)
+    return client
+
+
+@settings_bp.route("/users/<int:user_id>/archive", methods=["POST"])
+def user_archive(user_id):
+    """An existing user without an archive of their own gets one (their data starts empty)."""
+    _admin_only()
+    user = db.get_or_404(User, user_id)
+    with flash_errors(studio.StudioError):
+        client = own_archive(user)
+        flash(_("«%(name)s» ha ora il suo archivio, «%(archive)s».", name=user.username, archive=client.name), "success")
+    return redirect(url_for("settings.account"))
+
+
+@settings_bp.route("/users/export", methods=["POST"])
+def users_export():
+    """The administrator downloads the whole archive of each user chosen: one zip with a backup per user (the same
+    file «Backup completo» makes, to restore it anywhere)."""
+    _admin_only()
+    chosen = User.query.filter(User.id.in_([int(i) for i in request.form.getlist("user_id") if i.isdigit()])).all()
+    if not chosen:
+        flash(_("Scegli almeno un utente da esportare."), "warning")
+        return redirect(url_for("settings.account"))
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as bundle:
+        for user in sorted(chosen, key=lambda u: u.username.lower()):
+            client = db.session.get(Client, user.default_client_id) if user.default_client_id else studio.primary()
+            bundle.writestr(f"{studio.slugify_file(user.username)}.zip", studio.backup(client))
+    return download(buffer.getvalue(), f"archivi-utenti-{date.today():%Y%m%d}.zip", "application/zip")
 
 
 @settings_bp.route("/users/<int:user_id>/password", methods=["POST"])

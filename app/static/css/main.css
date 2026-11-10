@@ -1599,8 +1599,6 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .shock-table td { padding: 4px 0; border-bottom: 1px solid var(--clr-border-light); }
 .shock-table td + td { padding-left: 8px; }
 
-.recent-controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; }
-.card-header:has(> .recent-controls) > .card-header-title { white-space: nowrap; }
 .form-select-sm { padding: 4px 28px 4px 8px; font-size: var(--font-size-xs); width: auto; }
 .recent-rows[hidden], .recent-rows tr[hidden] { display: none; }
 
@@ -1733,22 +1731,11 @@ html.focus .page-content { padding: 24px 16px 40px; }
   background: var(--clr-bg-input); border-radius: 0 0 var(--border-radius-lg, 14px) var(--border-radius-lg, 14px); }
 .confirm-overlay .modal-body { font-size: var(--font-size-md); }
 
-/* ── Transactions register: the search on top, the filters under it, the bulk-edit box, the quick edit ── */
-.register-search { padding: 14px 16px; display: grid; gap: 12px; margin: 0; }
-.register-search-main { display: flex; align-items: center; gap: 8px; }
-.register-search-main > i { color: var(--clr-text-muted); font-size: 18px; }
-.register-search-main input[type="search"] { flex: 1; font-size: var(--font-size-md); padding: 10px 12px; }
-.register-filters, .bulk-fields, .quick-fields { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; }
+/* ── Transactions register: the fields of the small filters and of the quick edit (the toolbar and its panels: at the end) ── */
+.quick-fields { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; }
 .filter-field { display: flex; flex-direction: column; gap: 3px; margin: 0; min-width: 140px; }
 .filter-field > span { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--clr-text-muted); }
 .filter-field .form-select, .filter-field .form-control { min-width: 140px; }
-.filter-check { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); white-space: nowrap; padding-bottom: 8px; }
-.bulk-box > summary { cursor: pointer; list-style: none; }
-.bulk-box > summary::-webkit-details-marker { display: none; }
-.bulk-box[open] > summary { border-bottom: 1px solid var(--clr-border-light); }
-.bulk-box > summary .card-header-title::after { content: "\F282"; font-family: bootstrap-icons; font-size: 12px; margin-left: 8px; transition: transform .2s; }
-.bulk-box[open] > summary .card-header-title::after { transform: rotate(180deg); }
-.bulk-apply { align-self: flex-end; margin-bottom: 2px; }
 .tx-row { cursor: pointer; }
 .tx-row:hover td { background: var(--clr-bg-input); }
 .tx-row.editing td { background: var(--clr-primary-light); }
@@ -1918,10 +1905,9 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .dash-period-box .form-select { width: auto; min-width: 0; }
 .topbar-right-actions { display: flex; align-items: center; gap: 8px; }
 
-/* ── Modifica: an orange dashed frame round the page and a stripe under the top bar, so it is plain that the page
+/* ── Modifica: an orange dashed frame round the page, so it is plain that the page
    is being arranged ── */
 .fc-editing .main-content, .fc-editing main { outline: 2px dashed var(--clr-primary); outline-offset: -6px; border-radius: 12px; }
-.fc-editing .topbar { box-shadow: inset 0 -3px 0 var(--clr-primary); }
 .fc-editing .fc-widget { outline: 1px dashed color-mix(in srgb, var(--clr-primary) 55%, transparent); outline-offset: 3px; border-radius: 10px; }
 /* a page with a box in the middle of the top bar (the dashboard period): the actions take the rest of the bar */
 .topbar-actions:has(.dash-period-box) { flex: 1; min-width: 0; }
@@ -2075,7 +2061,6 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 
 /* the search history inside the search box: the clock on its right, the last searches under it as soon as it is clicked */
 .search-field { position: relative; flex: 1; min-width: 0; }
-.register-search-main .search-field > input[type="search"] { width: 100%; padding-right: 52px; }
 .search-history-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 2px;
   border: none; background: none; color: var(--clr-text-muted); cursor: pointer; padding: 4px 6px; border-radius: 6px; }
 .search-history-btn:hover { color: var(--clr-primary); }
@@ -2156,3 +2141,120 @@ th.text-right .col-pop { left: auto; right: 0; }
 .report-list > .report-row:last-child { border-bottom: 0; }
 .card > .report-list:last-child { border-radius: 0 0 var(--border-radius) var(--border-radius); }
 .card > .card-header:last-child { border-bottom: 0; }
+
+/* F41: the cards — a row each in the account's form, small tiles in Conti e carte */
+.card-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) 90px 60px; gap: 8px; align-items: center; margin-bottom: 8px; }
+.card-remove { display: inline-flex; gap: 4px; align-items: center; }
+.my-cards-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.my-card { display: inline-flex; gap: 10px; align-items: center; padding: 10px 14px; border: 1px solid var(--clr-border); border-radius: var(--border-radius);
+  color: inherit; text-decoration: none; background: var(--clr-bg-input); }
+a.my-card:hover { border-color: var(--clr-primary); text-decoration: none; }
+.my-card > .bi { font-size: 20px; color: var(--clr-primary); }
+.my-card small { display: block; }
+/* a pop-up a little wider: the form of an account with its cards */
+.popup-box.popup-wide { max-width: 1040px; }
+
+/* ── Dashboard, «Ultime transazioni»: the register's table in small. One switch and a funnel on top; at a third of the
+   row the category and the account go under the description, the columns stay readable ── */
+.recent-card { container-type: inline-size; }
+.recent-head { gap: 8px; flex-wrap: nowrap; }
+.recent-head > .card-header-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.recent-tools { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.seg { display: inline-flex; border: 1px solid var(--clr-border); border-radius: 999px; overflow: hidden; }
+.seg-btn { border: 0; background: none; padding: 3px 10px; font-size: var(--font-size-xs); font-weight: 600; color: var(--clr-text-muted); cursor: pointer; }
+.seg-btn[aria-pressed="true"] { background: var(--clr-primary); color: var(--clr-on-primary); }
+.recent-filter .col-pop { left: auto; right: 0; min-width: 240px; }
+.recent-table { table-layout: fixed; width: 100%; }
+.recent-table th .sort-link { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
+.recent-table th .sort-link.is-sorted::after { content: " ↓"; }
+.recent-table th .sort-link.is-sorted[data-dir="asc"]::after { content: " ↑"; }
+.recent-table .col-date { width: 96px; }
+.recent-table .col-category { width: 26%; }
+.recent-table .col-account { width: 18%; }
+.recent-table .col-amount { width: 120px; }
+.recent-table td { overflow: hidden; }
+.recent-table .recent-desc { font-weight: 500; color: var(--clr-text-primary); }
+.recent-table .recent-sub { display: none; margin-top: 2px; }
+@container (max-width: 640px) {
+  .recent-table .col-account { display: none; }
+}
+@container (max-width: 480px) {
+  .recent-table .col-category { display: none; }
+  .recent-table .recent-sub { display: block; }
+  .recent-table .col-date { width: 88px; }
+  .recent-table .col-amount { width: 100px; }
+  .recent-all-word { display: none; }
+  .recent-head { flex-wrap: wrap; }  /* the title whole on its line, the switch and the funnel under it */
+  .recent-head > .card-header-title { white-space: normal; }
+}
+details.card:not([open]) > summary.card-header { border-bottom: 0; }  /* a closed card: no line on its rounded bottom */
+
+/* F24: the users whose archive the administrator exports */
+.users-export-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-bottom: 10px; }
+
+/* ── Transactions: toolbar, filters and bulk panels inside the table card (proposal B, 3 Nov 2026) ── */
+.tx-card .card-header { padding: 12px 16px; }
+.tx-head-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+.tx-delete-icon { color: var(--clr-negative); }
+.tx-search { margin: 0; }
+/* one slim row: the search takes the free room, then «Cerca», the two pills and «Azzera» */
+.tx-toolbar { display: flex; align-items: center; gap: 8px; padding: 9px 16px;
+  background: color-mix(in srgb, var(--clr-bg-input) 55%, var(--clr-bg-card)); border-bottom: 1px solid var(--clr-border-light); }
+.tx-search-field { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; }
+.tx-search-field > .bi-search { position: absolute; left: 10px; color: var(--clr-text-muted); font-size: 13px; pointer-events: none; z-index: 1; }
+.tx-search-field .search-field > input[type="search"] { width: 100%; height: 30px; padding: 0 52px 0 30px; font-size: var(--font-size-sm); }
+.tx-toolbar > .btn { height: 30px; flex-shrink: 0; }
+.tx-pill { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; flex-shrink: 0; white-space: nowrap;
+  border: 1px solid var(--clr-border); border-radius: 999px; background: var(--clr-bg-card); color: var(--clr-text-secondary);
+  font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; }
+.tx-pill:hover { border-color: var(--clr-primary); color: var(--clr-text-primary); }
+.tx-pill.is-on { background: var(--clr-primary-light); border-color: var(--clr-primary); color: var(--clr-primary); }
+.tx-pill-chevron { font-size: 10px; transition: transform .2s ease; }
+.tx-pill[aria-expanded="true"] .tx-pill-chevron { transform: rotate(180deg); }
+/* the panels: they open with a short, soft grow and fade; nothing moves when the page loads */
+.tx-panel { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden;
+  background: color-mix(in srgb, var(--clr-bg-input) 35%, var(--clr-bg-card)); }
+.tx-panel.is-open { grid-template-rows: 1fr; opacity: 1; visibility: visible; border-bottom: 1px solid var(--clr-border-light); }
+.tx-panel.tx-panel-ready { transition: grid-template-rows .2s ease, opacity .2s ease, visibility .2s; }
+/* the content stays clipped while the height grows (it never spills over the table); the space above and below is
+   the children's margin, so a closed panel really is 0px high */
+.tx-panel-inner { overflow: hidden; min-height: 0; padding: 0 16px; }
+.tx-panel-inner > :first-child { margin-top: 12px; }
+.tx-panel-inner > :last-child { margin-bottom: 14px; }
+.tx-panel-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--clr-text-muted);
+  margin: 0 0 8px; display: flex; align-items: center; gap: 6px; }
+.tx-panel-title:not(:first-child) { margin-top: 14px; }
+/* the small fields: a label above (11px, small caps), a 28px control; 4 a row, 2 on a tablet, 1 on a phone */
+.tx-filter-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 12px; align-items: end; }
+.tx-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tx-field > span { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--clr-text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-field .form-select, .tx-field .form-control { height: 28px; padding-top: 0; padding-bottom: 0; font-size: var(--font-size-xs); min-width: 0; width: 100%; }
+.tx-range { display: flex; align-items: center; gap: 6px; }
+.tx-range .tx-amount { flex: 1; }
+.tx-check { flex-direction: row; align-items: center; gap: 6px; font-size: var(--font-size-xs); height: 28px; align-self: end; }
+.tx-apply { justify-content: flex-end; align-items: flex-start; }
+.tx-apply .btn { height: 28px; }
+.tx-bulk-form { margin: 0; }
+.tx-bulk-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tx-inline-action { display: flex; gap: 6px; align-items: center; margin: 0; }
+.tx-inline-action .form-select { height: 28px; width: auto; max-width: 220px; font-size: var(--font-size-xs); padding-top: 0; padding-bottom: 0; }
+.tx-bulk-actions .btn { height: 28px; }
+.tx-danger { color: var(--clr-negative); border: 1px solid color-mix(in srgb, var(--clr-negative) 45%, transparent); background: none; }
+.tx-danger:not(:disabled):hover { background: var(--clr-negative-bg); }
+/* the card's own rounded corners where a panel or the toolbar meets them (a card with no rows ends on them) */
+.tx-card > .tx-search:last-child .tx-panel.is-open, .tx-card > .tx-search:last-child .tx-toolbar:last-child { border-radius: 0 0 var(--border-radius) var(--border-radius); }
+.tx-card > .tx-panel:last-child { border-radius: 0 0 var(--border-radius) var(--border-radius); }
+@media (max-width: 1024px) {
+  .tx-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .tx-toolbar { flex-wrap: wrap; }
+  .tx-search-field { flex: 1 1 100%; }
+  .tx-filter-grid { grid-template-columns: minmax(0, 1fr); }
+  .tx-inline-action { flex: 1 1 100%; }
+  .tx-inline-action .form-select { flex: 1; max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tx-panel.tx-panel-ready, .tx-pill-chevron { transition: none; }
+}

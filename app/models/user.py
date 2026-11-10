@@ -10,7 +10,8 @@ MIN_PASSWORD = 8
 
 
 class User(UserMixin, db.Model):
-    """Someone who can open the app. The data is shared; an administrator can block sections of the app for a user."""
+    """Someone who can open the app, on an archive of their own (F24); an administrator sees every archive, exports
+    them and can block sections of the app for a user."""
     __tablename__ = "users"
 
     id            = db.Column(db.Integer, primary_key=True)

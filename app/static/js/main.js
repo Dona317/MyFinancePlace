@@ -556,7 +556,7 @@ function initPopups() {
     overlay = document.createElement("div");
     overlay.className = "modal-overlay open popup-overlay";
     const box = document.createElement("div");
-    box.className = "modal popup-box";
+    box.className = "modal popup-box" + (link.dataset.popupSize === "wide" ? " popup-wide" : "");
     const frame = Object.assign(document.createElement("iframe"), { src: link.dataset.popup, title: link.title || "" });
     frame.className = "popup-frame";
     box.appendChild(frame);
@@ -572,8 +572,8 @@ function initPopups() {
     if (e.data.mfp === "popup-back") { close(); openModal("add-chooser"); }  // back to the choice of the round +
     if (e.data.mfp === "tx-done") {
       close();
-      // the register shows the change: reload it, the note comes after; elsewhere the note at once
-      if (document.getElementById("tx-table") || location.pathname.startsWith("/transactions")) {
+      // the register (or a page that asked for it) shows the change: reload it, the note comes after; elsewhere the note at once
+      if (e.data.reload || document.getElementById("tx-table") || location.pathname.startsWith("/transactions")) {
         try { sessionStorage.setItem("mfp-toast", e.data.message || ""); } catch (err) { /* private mode */ }
         window.location.reload();
       } else {

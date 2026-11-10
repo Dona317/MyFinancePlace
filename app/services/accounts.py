@@ -28,6 +28,33 @@ KINDS = {"current": _l("Conto corrente"), "card": _l("Carta di credito"), "prepa
          "savings": _l("Conto deposito"), "cash": _l("Contanti"), "debt": _l("Debiti"), "other": _l("Altro")}
 ICONS = {"current": "bank", "card": "credit-card", "prepaid": "credit-card-2-front", "savings": "piggy-bank",
          "cash": "cash-coin", "debt": "receipt", "other": "wallet2"}
+# F41: the cards of an account
+CARD_KINDS = {"debit": _l("Carta di debito"), "credit": _l("Carta di credito"), "prepaid": _l("Carta prepagata")}
+CARD_ICONS = {"debit": "credit-card-2-front", "credit": "credit-card", "prepaid": "credit-card-2-back"}
+
+
+def save_cards(account: Account, rows: list[dict]) -> None:
+    """The cards of an account as the form left them: [{"id", "name", "kind", "last4", "remove"}]; a row without
+    a name is ignored, a ticked «togli» deletes the card."""
+    from app.models.card import Card
+    current = {c.id: c for c in account.cards}
+    position = 0
+    for row in rows:
+        card = current.get(row.get("id"))
+        name = " ".join((row.get("name") or "").split())[:80]
+        if card is not None and (row.get("remove") or not name):
+            account.cards.remove(card)
+            continue
+        if not name:
+            continue
+        last4 = "".join(ch for ch in (row.get("last4") or "") if ch.isdigit())[-4:] or None
+        if card is None:
+            card = Card(name=name)
+            account.cards.append(card)
+        card.name, card.kind, card.last4, card.position = name, row.get("kind") if row.get("kind") in CARD_KINDS else "debit", last4, position
+        position += 1
+
+
 # the fixed accounts: role → (name, kind)
 FIXED = {"cash": ("Contanti", "cash"), "debt": ("Debiti", "debt")}
 

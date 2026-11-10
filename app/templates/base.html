@@ -166,7 +166,7 @@
         {% if shown('accounts') %}
         <a href="{{ url_for('accounts.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('accounts.') %}active{% endif %}">
-          <i class="bi bi-bank"></i> <span class="nav-label" title="{{ _('Conti e Carte') }}">{{ _('Conti e Carte') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+          <i class="bi bi-bank"></i> <span class="nav-label" title="{{ _('Conti e Carte') }}">{{ _('Conti e Carte') }}</span>
         </a>
         {% endif %}
         {% if shown('portfolio') %}

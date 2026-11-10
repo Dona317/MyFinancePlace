@@ -151,6 +151,12 @@ def slugify(name: str) -> str:
     return candidate
 
 
+def slugify_file(name: str) -> str:
+    """A file name from a user's or client's name: letters, digits and «_» only."""
+    ascii_name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    return re.sub(r"[^A-Za-z0-9]+", "_", ascii_name).strip("_")[:40] or "archivio"
+
+
 def _database_name(slug: str) -> str:
     base = re.sub(r"[^a-z0-9_]", "_", (db.engine.url.database or "mfp").lower())[:20]
     name = f"{base}_c_{slug}"[:63]

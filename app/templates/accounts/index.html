@@ -6,7 +6,7 @@
 {% block breadcrumb %}<li>{{ _('Conti e Carte') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo Conto') }}</a>
+  <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm" data-popup="{{ url_for('accounts.new', embed=1, next=url_for('transactions.embed_done', reload=1)) }}" data-popup-size="wide" title="{{ _('Nuovo Conto') }}"><i class="bi bi-plus-lg"></i> {{ _('Nuovo Conto') }}</a>
 {% endblock %}
 
 {% block content %}
@@ -24,6 +24,26 @@
     {% if debts.residual %}{{ _('%(amount)s non spiegati da transazioni', amount=debts.residual|money) }} · {% endif %}<a href="{{ url_for('debt.index') }}">{{ _('vedi i debiti') }}</a>
   {% endcall %}
   {% call kpi('question-circle', _('Senza Conto'), value=unassigned, cls=('kpi-warning' if unassigned else 'kpi-positive')) %}{% if unassigned %}<a href="{{ url_for('transactions.index', account='none') }}">{{ _('assegnale') }}</a>{% else %}{{ _('tutte assegnate') }}{% endif %}{% endcall %}
+</div>
+
+{# F41: my cards, at a glance — each one with its account; a click opens the account to change them #}
+<div class="card mb-16 my-cards">
+  <div class="card-header">
+    <div class="card-header-title"><i class="bi bi-credit-card"></i> {{ _('Le mie carte') }}</div>
+    <span class="text-xs text-muted">{{ ngettext('%(num)d carta', '%(num)d carte', cards|length) }}</span>
+  </div>
+  <div class="card-body my-cards-list">
+    {% for c in cards %}
+    <a class="my-card" href="{{ url_for('accounts.edit', account_id=c.account_id) }}" title="{{ _('Modifica le carte di %(name)s', name=c.account.name) }}"
+       data-popup="{{ url_for('accounts.edit', account_id=c.account_id, embed=1, next=url_for('transactions.embed_done', reload=1)) }}" data-popup-size="wide">
+      <i class="bi bi-{{ card_icons.get(c.kind, 'credit-card') }}"></i>
+      <span><strong>{{ c.name }}</strong>{% if c.last4 %} <span class="font-mono">•••• {{ c.last4 }}</span>{% endif %}
+        <small class="text-muted">{{ card_kinds.get(c.kind, c.kind) }} · {{ c.account.name }}</small></span>
+    </a>
+    {% else %}
+    <p class="text-sm text-muted mb-0">{{ _('Nessuna carta: aggiungile dal modulo di un conto (matita), anche più di una per conto.') }}</p>
+    {% endfor %}
+  </div>
 </div>
 
 <div class="card">
@@ -65,7 +85,8 @@
           <td>
             <div class="cell-actions">
               {{ icon_link(url_for('accounts.detail', account_id=a.id), 'bi-check2-square', _('Riconcilia'), _('Riconcilia %(name)s', name=a.name)) }}
-              {{ icon_link(url_for('accounts.edit', account_id=a.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=a.name)) }}
+              <a class="btn btn-ghost btn-icon btn-sm" href="{{ url_for('accounts.edit', account_id=a.id) }}" title="{{ _('Modifica') }}" aria-label="{{ _('Modifica %(name)s', name=a.name) }}"
+                 data-popup="{{ url_for('accounts.edit', account_id=a.id, embed=1, next=url_for('transactions.embed_done', reload=1)) }}" data-popup-size="wide"><i class="bi bi-pencil"></i></a>
               {{ delete_button(url_for('accounts.delete', account_id=a.id), _('Eliminare il conto «%(name)s»? Le transazioni restano, senza conto.', name=a.name), _('Elimina %(name)s', name=a.name)) }}
             </div>
           </td>
