@@ -1,5 +1,6 @@
 """
-Operations from outside the app (F19c), on the portfolio's blueprint: a broker statement imported with a review step,
+Operations from outside the app (F19c), on the portfolio's blueprint: a broker statement imported with a review step
+(its columns, or a document read by the AI model: the operations, or the current state they are derived from),
 and the bank account's movements of a holding (a purchase paid from the current account) linked to it.
 """
 import base64
@@ -14,12 +15,13 @@ from sqlalchemy import or_
 
 from app.extensions import db
 from app.models.account import Account
+from app.models.securities import SecuritiesAccount
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
 from app.routes.helpers import form_ids, uploaded_file
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, broker_import, import_presets, portfolio_ops, transfer
-from app.services.parsing import to_decimal
+from app.services import accounts, ai_extraction, broker_import, import_presets, portfolio_ops, portfolio_reading, securities, transfer
+from app.services.parsing import to_date, to_decimal
 
 LINK_LIMIT = 200
 AUTO = object()  # «apply the preset saved for these columns, if any»
@@ -46,7 +48,9 @@ def _file_from_token(token: str) -> tuple[str, bytes]:
 def broker_upload():
     """Step 1: the broker's CSV or Excel → the trades found, for review."""
     if request.method == "GET":
-        return render_template("portfolio/import.html")
+        return render_template("portfolio/import.html", ai=ai_extraction.describe(),
+                               ai_cloud=ai_extraction.provider() == "anthropic", dossiers=securities.accounts(),
+                               today=date.today())
     upload = uploaded_file()
     if upload is None:
         flash(_("Scegli il file del broker da importare."), "error")
@@ -68,6 +72,39 @@ def broker_columns():
         return _analyse(filename, raw, preset=preset)
     mapping = {name: request.form.get(f"col_{name}") or None for name in broker_import.FIELDS}
     return _analyse(filename, raw, mapping=mapping, preset=preset, edit=bool(request.form.get("edit")))
+
+
+@portfolio_bp.route("/import/ai", methods=["POST"])
+def broker_ai():
+    """A document of the broker read by the AI model: the operations it lists, or the current state (the positions)
+    compared with the recorded ones; either way the rows go to the review page."""
+    upload = uploaded_file()
+    if upload is None:
+        flash(_("Scegli il documento del broker da leggere."), "error")
+        return redirect(url_for("portfolio.broker_upload"))
+    mode = "state" if request.form.get("mode") == "state" else "operations"
+    dossier = db.session.get(SecuritiesAccount, request.form.get("dossier_id", type=int) or 0)
+    try:
+        if mode == "state":
+            reading = portfolio_reading.state(upload.filename, upload.read(), dossier.id if dossier else None,
+                                              to_date(request.form.get("on")), bool(request.form.get("complete")))
+        else:
+            reading = portfolio_reading.operations(upload.filename, upload.read())
+    except ai_extraction.AIExtractionError as exc:
+        flash(_("Lettura AI non riuscita: %(exc)s", exc=exc), "error")
+        return redirect(url_for("portfolio.broker_upload"))
+    if not reading.preview.rows:
+        flash(_("Le posizioni del documento sono quelle già registrate (%(count)s): nessuna operazione da aggiungere.",
+                count=reading.unchanged), "success")
+        for note in reading.notes or []:
+            flash(note, "warning")
+        return redirect(url_for("portfolio.broker_upload"))
+    active = accounts.active()
+    suggested = dossier.settlement_account_id if dossier else _suggested_account(active, upload.filename)
+    return render_template("portfolio/import_preview.html", preview=reading.preview, filename=upload.filename,
+                           payload=_serializer().dumps([r.as_dict() for r in reading.preview.rows]),
+                           holdings=Holding.query.order_by(Holding.name).all(), accounts=active, suggested=suggested,
+                           token=None, mapped="", preset=None, presets=[], reading=reading, dossier=dossier)
 
 
 def _broker_preset(preset_id: str | None) -> dict | None:
@@ -166,6 +203,8 @@ def broker_confirm():
         return redirect(url_for("portfolio.broker_upload"))
     account_id = request.form.get("account_id", type=int)
     account = db.session.get(Account, account_id) if account_id else None
+    dossier_id = request.form.get("dossier_id", type=int)
+    dossier = db.session.get(SecuritiesAccount, dossier_id) if dossier_id else None  # the state read was of this one
     known = {ref for (ref,) in Transaction.query.with_entities(Transaction.import_ref)
              .filter(Transaction.import_ref.in_([r["ref"] for r in rows]))}
     created, saved, skipped, refused = {}, 0, 0, []
@@ -180,7 +219,7 @@ def broker_confirm():
         units = Decimal(row["units"])
         op = portfolio_ops.Operation("buy" if units > 0 else "sell", date.fromisoformat(row["on"]), account,
                                      units=abs(units), price=Decimal(row["price"]),
-                                     fee=Decimal(row["fee"]) or None, import_ref=row["ref"])
+                                     fee=Decimal(row["fee"]) or None, import_ref=row["ref"], securities_account=dossier)
         try:
             with db.session.begin_nested():
                 portfolio_ops.record(holding, op)

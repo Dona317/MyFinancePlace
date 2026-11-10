@@ -4,6 +4,7 @@
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.broker_upload') }}">{{ _('Importa dal broker') }}</a></li><li>{{ _('Anteprima') }}</li>{% endblock %}
 
 {% block content %}
+{% if token %}
 <!-- The columns used: the preset applied (another one, or none) and the mapping screen -->
 <div class="card mb-16" id="broker-columns">
   <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;">
@@ -29,17 +30,29 @@
     </form>
   </div>
 </div>
+{% elif reading %}
+<div class="alert alert-info mb-16" id="ai-reading">
+  <i class="bi bi-stars"></i>
+  {% if preview.layout == 'state' %}
+  {{ _('Operazioni ricavate dallo stato al %(day)s: la differenza fra le quote del documento e quelle registrate%(where)s. %(count)s posizioni coincidono già.', day=reading.on|it_date, where=(' ' ~ _('nel conto titoli «%(name)s»', name=dossier.name)) if dossier else '', count=reading.unchanged) }}
+  {% else %}
+  {{ _('Operazioni lette dal modello AI: controlla date, quote e prezzi prima di importarle.') }}
+  {% endif %}
+  {% if reading.notes %}<div class="text-xs" style="margin-top:6px;">{{ _('Non usate: %(rows)s', rows=reading.notes|join(' · ')) }}</div>{% endif %}
+</div>
+{% endif %}
 
 <form method="POST" action="{{ url_for('portfolio.broker_confirm') }}" id="broker-form">
   <input type="hidden" name="payload" value="{{ payload }}" />
   <input type="hidden" name="mapped" value="{{ mapped }}" />
+  {% if dossier %}<input type="hidden" name="dossier_id" value="{{ dossier.id }}" />{% endif %}
   <div class="card">
     <div class="card-header">
       <div>
         <div class="card-header-title">{{ filename }}</div>
         <div class="card-header-sub">
           {{ _('%(count)s operazioni trovate', count=preview.rows|length) }}
-          · {{ _('formato Degiro') if preview.layout == 'degiro' else _('formato generico') }}
+          · {{ {'degiro': _('formato Degiro'), 'ai': _('letto con AI'), 'state': _('dallo stato attuale')}.get(preview.layout, _('formato generico')) }}
           {% if preview.unread %} · {{ _('%(count)s righe ignorate (versamenti, dividendi o righe illeggibili)', count=preview.unread|length) }}{% endif %}
         </div>
       </div>
@@ -93,6 +106,7 @@
         </tbody>
       </table>
     </div>
+    {% if token %}
     <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;" id="save-preset">
       <label class="form-label" style="margin:0;display:flex;align-items:center;gap:6px;">
         <input type="checkbox" name="save_preset" value="1" id="save-preset-check" {{ 'checked' if preset }} />
@@ -102,6 +116,7 @@
       <input type="text" name="preset_name" class="form-control" style="width:auto;" maxlength="60"
              value="{{ preset.name if preset else '' }}" placeholder="{{ _('es. Directa') }}" aria-label="{{ _('Nome del preset') }}" />
     </div>
+    {% endif %}
     <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
       <a href="{{ url_for('portfolio.broker_upload') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
       <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Importa le operazioni scelte') }}</button>

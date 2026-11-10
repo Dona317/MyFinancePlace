@@ -194,19 +194,28 @@ def read(filename: str, raw: bytes, mapping: dict | None = None) -> Preview:
     if problem:
         raise transfer.TableError(problem)
     layout = _layout(headers)
-    rows, unread, seen = [], [], {}
+    rows, unread = [], []
     for offset, record in enumerate(records):
         row = _row(record, cols, first_line + offset)
         if row is None:
             unread.append(first_line + offset)
             continue
+        rows.append(row)
+    if not rows:
+        raise transfer.TableError(_("Nessuna operazione di compravendita trovata nel file."))
+    return finish(rows, unread, layout, headers, cols)
+
+
+def finish(rows: list[BrokerRow], unread: list[int], layout: str, headers: list[str] | None = None,
+           cols: dict | None = None) -> Preview:
+    """The trades read (from a file's columns or by an AI model): their fingerprints, the holdings they match and
+    the ones already imported, oldest first."""
+    seen: dict[str, int] = {}
+    for row in rows:
         base = fingerprint(row.on, row.isin, row.ticker, row.name, row.units, row.price, 0)
         occurrence = seen.get(base, 0)
         seen[base] = occurrence + 1
         row.ref = fingerprint(row.on, row.isin, row.ticker, row.name, row.units, row.price, occurrence)
-        rows.append(row)
-    if not rows:
-        raise transfer.TableError(_("Nessuna operazione di compravendita trovata nel file."))
     holdings = Holding.query.all()
     known = {ref for (ref,) in Transaction.query.with_entities(Transaction.import_ref)
              .filter(Transaction.import_ref.in_([r.ref for r in rows]))}
@@ -214,7 +223,7 @@ def read(filename: str, raw: bytes, mapping: dict | None = None) -> Preview:
         row.holding_id = _match(row, holdings)
         row.duplicate = row.ref in known
     rows.sort(key=lambda r: (r.on, r.line))  # oldest first: a sale finds the units bought before it
-    return Preview(rows, unread, layout, headers, cols)
+    return Preview(rows, unread, layout, headers or [], cols or {})
 
 
 def guess_class(name: str) -> str:
