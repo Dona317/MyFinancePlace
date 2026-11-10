@@ -16,12 +16,11 @@
       <form method="POST">
         {% if online %}
         <div class="form-group">
-          <label class="form-label" for="lookup-q">{{ _('Cerca lo strumento') }}</label>
+          <label class="form-label" for="lookup-q">{{ _('Cerca lo strumento') }} {{ info(_('Con un ISIN cerca su tutti i siti attivi in Impostazioni → Fonti dei prezzi (Yahoo, OpenFIGI, justETF, Borsa Italiana, Morningstar); con un ticker o un nome solo su Yahoo. Scegli il risultato e il modulo si compila, fonte del prezzo compresa.'), _('Cerca lo strumento')) }}</label>
           <div class="d-flex gap-8">
             <input type="text" id="lookup-q" class="form-control" placeholder="{{ _('ISIN, ticker o nome (es. IE00BK5BQT80, ENEL.MI, Vanguard All-World)') }}" autocomplete="off" />
             <button type="button" id="lookup-go" class="btn btn-ghost"><i class="bi bi-search"></i> {{ _('Cerca') }}</button>
           </div>
-          <div class="form-hint">{{ _('Con un ISIN cerca su tutti i siti attivi in Impostazioni → Fonti dei prezzi (Yahoo, OpenFIGI, justETF, Borsa Italiana, Morningstar); con un ticker o un nome solo su Yahoo. Scegli il risultato e il modulo si compila, fonte del prezzo compresa.') }}</div>
           <ul id="lookup-results" class="lookup-results" hidden></ul>
         </div>
         {% endif %}
@@ -67,9 +66,9 @@
           <div class="grid-2">
             {{ f.number(values, 'multiplier', _('Moltiplicatore'), h.multiplier if h.multiplier is not none else 1, placeholder='1',
                         hint=_('Per i derivati: quante unità vale un contratto (es. 100 per un’opzione su azioni). Altrimenti 1.')) }}
-            {{ f.select(values, 'price_source', _('Fonte del prezzo'), sources.items()|list, h.price_source or 'auto') }}
+            {{ f.select(values, 'price_source', _('Fonte del prezzo'), sources.items()|list, h.price_source or 'auto',
+                        hint=_('Automatica: Yahoo Finance (e Stooq se Yahoo non risponde) per azioni, ETF, fondi, obbligazioni e derivati; CoinGecko per le cripto. «Solo a mano» per titoli non quotati, polizze, conti deposito.')) }}
           </div>
-          <p class="form-hint">{{ _('Automatica: Yahoo Finance (e Stooq se Yahoo non risponde) per azioni, ETF, fondi, obbligazioni e derivati; CoinGecko per le cripto. «Solo a mano» per titoli non quotati, polizze, conti deposito.') }}</p>
         </fieldset>
         <fieldset class="fee-rules mb-16">
           <legend class="form-label">{{ _('Caratteristiche del fondo') }} {{ info(_('Per ETF, fondi comuni e fondi assicurativi: tutte modificabili. La sede, se vuota, è il paese dell\'ISIN (IE00… → Irlanda).')) }}</legend>

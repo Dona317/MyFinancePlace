@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
 {% set is_edit = account is not none %}
 {% set a = account or {} %}
 {% block page_title %}{{ _('Modifica Conto') if is_edit else _('Nuovo Conto') }}{% endblock %}
@@ -28,8 +29,7 @@
         {% if a.kind == 'cash' %}
         {# the cash in other currencies: what was in the wallet at the start, one line per currency #}
         <fieldset class="fee-rules mb-16">
-          <legend class="form-label">{{ _('Contanti in altre valute (all’inizio)') }}</legend>
-          <p class="form-hint">{{ _('Es. un po’ di franchi svizzeri: il saldo li conta al cambio del giorno, nella valuta del conto.') }}</p>
+          <legend class="form-label">{{ _('Contanti in altre valute (all’inizio)') }} {{ info(_('Es. un po’ di franchi svizzeri: il saldo li conta al cambio del giorno, nella valuta del conto.'), _('Contanti in altre valute (all’inizio)')) }}</legend>
           {% for code, amount in (foreign.items()|list + [('', '')] * 3)[:foreign|length + 3] %}
           <div class="grid-2">
             <select name="foreign_code" class="form-select" aria-label="{{ _('Valuta') }}">
@@ -56,14 +56,12 @@
         {{ f.owner(values, a.owner) }}
         <!-- Cards linked to the account: a mockup, the feature is to be done -->
         <div class="form-group mockup-tbd">
-          <label class="form-label" for="f-cards">{{ _('Carte collegate al conto') }} <span class="nav-badge nav-badge-tbd">TBD</span></label>
+          <label class="form-label" for="f-cards">{{ _('Carte collegate al conto') }} {{ info(_('In arrivo: le carte addebitate su questo conto, con i loro movimenti raccolti qui.'), _('Carte collegate al conto')) }} <span class="nav-badge nav-badge-tbd">TBD</span></label>
           <select id="f-cards" class="form-select" disabled><option>{{ _('Carta di debito, carta di credito…') }}</option></select>
-          <div class="form-hint">{{ _('In arrivo: le carte addebitate su questo conto, con i loro movimenti raccolti qui.') }}</div>
         </div>
         {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
         <fieldset class="fee-rules mb-16">
-          <legend class="form-label">{{ _('Commissioni del broker (facoltative)') }}</legend>
-          <p class="form-hint">{{ _('Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una vendita su questo conto, la commissione viene calcolata e proposta. Vuoto = la inserisci tu.') }}</p>
+          <legend class="form-label">{{ _('Commissioni del broker (facoltative)') }} {{ info(_('Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una vendita su questo conto, la commissione viene calcolata e proposta. Vuoto = la inserisci tu.'), _('Commissioni del broker (facoltative)')) }}</legend>
           <div class="grid-4">
             {{ f.number(values, 'fee_fixed', _('Fisso (€)'), a.fee_fixed, placeholder='0,00') }}
             {{ f.number(values, 'fee_percent', _('Percentuale (%%)'), a.fee_percent, placeholder='0,19') }}

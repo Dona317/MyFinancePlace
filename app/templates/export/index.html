@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 
 {% block title %}{{ _('Esporta') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Esporta e backup') }}{% endblock %}
@@ -114,12 +115,11 @@
         <a href="{{ url_for('export.download_backup') }}" class="btn btn-primary"><i class="bi bi-file-earmark-zip"></i> {{ _('Scarica backup completo') }}</a>
       </div>
       <div>
-        <div class="font-semibold text-sm mb-8"><i class="bi bi-upload"></i> {{ _('Ripristina') }}</div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-upload"></i> {{ _('Ripristina') }} {{ info(_('Backup completo (.zip), backup cifrato (.mfpbackup) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti).'), _('Ripristina')) }}</div>
         <form method="POST" action="{{ url_for('export.restore') }}" enctype="multipart/form-data"
               data-confirm="{{ _('Ripristinare questo file? Se è un backup completo, TUTTI i dati attuali saranno sostituiti (una copia viene salvata prima).') }}">
           <div class="form-group">
             <input type="file" name="file" class="form-control" accept=".zip,.json,.mfpbackup" required aria-label="{{ _('File di backup') }}" />
-            <div class="form-hint">{{ _('Backup completo (.zip), backup cifrato (.mfpbackup) oppure export JSON delle transazioni (.json, le aggiunge a quelle esistenti).') }}</div>
           </div>
           <div class="form-group">
             <input type="password" name="password" class="form-control" autocomplete="off" placeholder="{{ _('Password (solo per un backup cifrato)') }}" aria-label="{{ _('Password del backup cifrato') }}" />
@@ -167,14 +167,12 @@
     {% endif %}
     <form method="POST" action="{{ url_for('export.auto_backup') }}">
       <div class="grid-3">
-        <div class="form-group"><label class="form-label" for="ab-folder">{{ _('Cartella') }}</label>
-          <input type="text" id="ab-folder" name="folder" class="form-control" required value="{{ auto.folder or '' }}" placeholder="{{ _('es. C:\\Users\\Anna\\OneDrive\\Backup') }}" />
-          <div class="form-hint">{{ _('Il percorso completo, sul computer dove gira l’app.') }}</div></div>
+        <div class="form-group"><label class="form-label" for="ab-folder">{{ _('Cartella') }} {{ info(_('Il percorso completo, sul computer dove gira l’app.'), _('Cartella')) }}</label>
+          <input type="text" id="ab-folder" name="folder" class="form-control" required value="{{ auto.folder or '' }}" placeholder="{{ _('es. C:\\Users\\Anna\\OneDrive\\Backup') }}" /></div>
         <div class="form-group"><label class="form-label" for="ab-frequency">{{ _('Ogni quanto') }}</label>
           <select id="ab-frequency" name="frequency" class="form-select">{% for key, (label, every) in frequencies.items() %}<option value="{{ key }}" {{ 'selected' if key == (auto.frequency or 'weekly') }}>{{ _(label) }}</option>{% endfor %}</select></div>
-        <div class="form-group"><label class="form-label" for="ab-keep">{{ _('Copie da tenere') }}</label>
-          <input type="number" id="ab-keep" name="keep" class="form-control" min="1" max="100" value="{{ auto.keep or 8 }}" />
-          <div class="form-hint">{{ _('Le più vecchie si cancellano da sole.') }}</div></div>
+        <div class="form-group"><label class="form-label" for="ab-keep">{{ _('Copie da tenere') }} {{ info(_('Le più vecchie si cancellano da sole.'), _('Copie da tenere')) }}</label>
+          <input type="number" id="ab-keep" name="keep" class="form-control" min="1" max="100" value="{{ auto.keep or 8 }}" /></div>
       </div>
       <div class="grid-2">
         <div class="form-group"><label class="form-label" for="ab-password">{{ _('Nuova password') if auto.enabled else _('Password') }}</label>

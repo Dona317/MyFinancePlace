@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
 {% set focus_page = true %}{# full screen: no sidebar; the X goes back to where you were #}
 
 {% set is_edit = transaction is not none %}
@@ -57,13 +58,12 @@
         <!-- Importo e Data ──────────────────────────────────────────── -->
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label" for="f-amount">{{ _('Importo') }}</label>
+            <label class="form-label" for="f-amount">{{ _('Importo') }} {{ info(_("Senza segno: vale la scelta Uscita / Entrata qui sopra. Scrivendo − o + davanti, la scelta cambia da sola."), _('Importo')) }}</label>
             <div style="position:relative;">
               <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--clr-text-muted);font-weight:600;">€</span>
               <input id="f-amount" type="text" inputmode="decimal" name="amount" class="form-control" style="padding-left:28px;"
                      placeholder="45,20" autocomplete="off" value="{{ v.amount }}" required />
             </div>
-            <div class="form-hint">{{ _("Senza segno: vale la scelta Uscita / Entrata qui sopra. Scrivendo − o + davanti, la scelta cambia da sola.") }}</div>
           </div>
           <div class="form-group">
             <label class="form-label" for="f-date">{{ _('Data') }}</label>
@@ -129,12 +129,11 @@
 
         <!-- Gruppo di spesa: the cluster above the category (spending on two levels) -->
         <div class="form-group">
-          <label class="form-label" for="f-cluster">{{ _('Gruppo di spesa') }} <span class="text-muted" style="font-weight:400;">{{ _('(sopra la categoria, solo uscite)') }}</span></label>
+          <label class="form-label" for="f-cluster">{{ _('Gruppo di spesa') }} {{ info(_('Automatico: usa la scelta fatta per transazioni simili, altrimenti la categoria. Scegliere un gruppo a mano lo ricorda.'), _('Gruppo di spesa')) }} <span class="text-muted" style="font-weight:400;">{{ _('(sopra la categoria, solo uscite)') }}</span></label>
           <select id="f-cluster" name="cluster" class="form-select">
             <option value="">{{ _('Automatico (dalle regole)') }}</option>
             {% for key, name in cluster_choices.items() %}<option value="{{ key }}" {{ 'selected' if v.cluster == key }}>{{ name }}</option>{% endfor %}
           </select>
-          <div class="form-hint">{{ _('Automatico: usa la scelta fatta per transazioni simili, altrimenti la categoria. Scegliere un gruppo a mano lo ricorda.') }}</div>
         </div>
         <fieldset class="form-group split-box" id="split-box" {% if not split_open %}hidden disabled{% endif %}>
           <legend class="form-label">{{ _('Suddivisione su più categorie') }}</legend>
@@ -169,16 +168,14 @@
         <!-- Shown when the transaction's currency is not the account's: what the bank charged / credited -->
         <div class="grid-2">
           <div class="form-group" id="account-amount-group" hidden>
-            <label class="form-label" for="f-account-amount">{{ _('Importo addebitato sul conto') }} (<span data-currency-of="f-account"></span>)</label>
+            <label class="form-label" for="f-account-amount">{{ _('Importo addebitato sul conto') }} (<span data-currency-of="f-account"></span>) {{ info(_('Vuoto: si usa il cambio del giorno.'), _('Importo addebitato sul conto')) }}</label>
             <input type="text" inputmode="decimal" id="f-account-amount" name="account_amount" class="form-control"
                    value="{{ v.account_amount }}" autocomplete="off" placeholder="{{ _('dal tuo estratto conto') }}" />
-            <div class="form-hint">{{ _('Vuoto: si usa il cambio del giorno.') }}</div>
           </div>
           <div class="form-group" id="counter-amount-group" hidden>
-            <label class="form-label" for="f-counter-amount">{{ _("Importo accreditato sul conto d'arrivo") }} (<span data-currency-of="f-counter"></span>)</label>
+            <label class="form-label" for="f-counter-amount">{{ _("Importo accreditato sul conto d'arrivo") }} (<span data-currency-of="f-counter"></span>) {{ info(_('Vuoto: si usa il cambio del giorno.'), _("Importo accreditato sul conto d'arrivo")) }}</label>
             <input type="text" inputmode="decimal" id="f-counter-amount" name="counter_amount" class="form-control"
                    value="{{ v.counter_amount }}" autocomplete="off" placeholder="{{ _('dal tuo estratto conto') }}" />
-            <div class="form-hint">{{ _('Vuoto: si usa il cambio del giorno.') }}</div>
           </div>
         </div>
         {% endif %}
@@ -215,7 +212,7 @@
         </div>
         {% if holdings %}
         <fieldset class="trade-box mb-16" id="trade-box" {{ 'hidden' if not v.holding_id }}>
-          <legend class="form-label">{{ _('Operazione in quote (facoltativa)') }}</legend>
+          <legend class="form-label">{{ _('Operazione in quote (facoltativa)') }} {% if action == 'new' %}{{ info(_('Quantità e prezzo medio della posizione si ricalcolano dalle sue operazioni.'), _('Operazione in quote (facoltativa)')) }}{% else %}{{ info(_('La commissione si registra solo con una nuova operazione; quantità e prezzo medio della posizione si ricalcolano anche quando modifichi questa.'), _('Operazione in quote (facoltativa)')) }}{% endif %}</legend>
           <div class="trade-grid">
             <div class="form-group">
               <label class="form-label" for="f-trade-side">{{ _('Tipo') }}</label>
@@ -258,9 +255,6 @@
             <input type="text" inputmode="decimal" id="f-fee" name="fee_amount" class="form-control" value="{{ v.fee_amount }}" autocomplete="off" placeholder="0,00" aria-label="{{ _('Commissione') }}" />
             <span class="text-xs text-muted" id="fee-hint" data-rule="{{ _('calcolata con le regole del conto: puoi correggerla') }}" data-manual="{{ _('nessuna regola sul conto: scrivila a mano, se c’è') }}"></span>
           </div>
-          <p class="form-hint mt-8">{{ _('Quantità e prezzo medio della posizione si ricalcolano dalle sue operazioni.') }}</p>
-          {% else %}
-          <p class="form-hint">{{ _('La commissione si registra solo con una nuova operazione; quantità e prezzo medio della posizione si ricalcolano anche quando modifichi questa.') }}</p>
           {% endif %}
         </fieldset>
         {% endif %}
@@ -273,12 +267,11 @@
 
         <!-- Tag ─────────────────────────────────────────────────────── -->
         <div class="form-group">
-          <label class="form-label" for="f-tags">{{ _('Tag') }}</label>
+          <label class="form-label" for="f-tags">{{ _('Tag') }} {{ info(_('Scegli dai tag già usati o scrivine uno nuovo e premi Invio. La controparte (es. il negozio) va nei tag.'), _('Tag')) }}</label>
           <input id="f-tags" type="text" name="tags" class="form-control" data-tag-input
                  data-suggestions="{{ tag_pool|tojson|forceescape }}" data-category-tags="{{ category_tags|tojson|forceescape }}"
                  placeholder="{{ _('es. Esselunga, deducibile, vacanza') }}"
                  value="{{ v.tags }}" />
-          <div class="form-hint">{{ _('Scegli dai tag già usati o scrivine uno nuovo e premi Invio. La controparte (es. il negozio) va nei tag.') }}</div>
         </div>
 
         <!-- Ricorrente ───────────────────────────────────────────────── -->
@@ -289,11 +282,10 @@
                      {{ 'checked' if v.is_recurring else '' }}
                      onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
               <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">
-                {{ _('Ricorrente pianificata') }}
+                {{ _('Ricorrente pianificata') }} {{ info(_('Entrata o uscita che si ripete (es. stipendio, affitto, abbonamento): entra nelle previsioni e in Abbonamenti. L’importo può cambiare di volta in volta.'), _('Ricorrente pianificata')) }}
               </label>
             </div>
             {# an income too: the salary, a rent received — the amount can change each time, the forecast follows it #}
-            <p class="form-hint" style="margin:-6px 0 10px;">{{ _('Entrata o uscita che si ripete (es. stipendio, affitto, abbonamento): entra nelle previsioni e in Abbonamenti. L’importo può cambiare di volta in volta.') }}</p>
             <div id="recurring-opts" style="display:{{ 'block' if v.is_recurring else 'none' }};">
               <div class="grid-2">
                 <div class="form-group" style="margin-bottom:0;">

@@ -38,11 +38,11 @@
 </div>
 {% endmacro %}
 
-{% macro select(values, name, label, options, current=none, blank=none) %}
+{% macro select(values, name, label, options, current=none, blank=none, hint=none) %}
 {# options: a list of values, or of (value, label) pairs #}
 {% set chosen = values[name] if values and name in values else current %}
 <div class="form-group">
-  <label class="form-label" for="f-{{ name }}">{{ label }}</label>
+  {{ label_of(name, label, hint=hint) }}
   <select id="f-{{ name }}" name="{{ name }}" class="form-select">
     {% if blank is not none %}<option value="">{{ blank }}</option>{% endif %}
     {% for option in options %}
