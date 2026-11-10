@@ -57,7 +57,7 @@ def test_exposure(app, db, stock):
 
 def test_pages(client, db, stock):
     page = client.get("/portfolio/composition").get_data(as_text=True)
-    assert "Per area geografica" in page and "Nord America" in page
+    assert "Per paese" in page and "Nord America" in page
     page = client.post(f"/portfolio/{stock.id}/split", data={"ratio": "10", "on": "2026-06-10"},
                        follow_redirects=True).get_data(as_text=True)
     assert "Frazionamento 1:10 applicato dal 10/06/2026: 1 operazioni precedenti adeguate." in page

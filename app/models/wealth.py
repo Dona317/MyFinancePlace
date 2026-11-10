@@ -110,6 +110,22 @@ class HoldingPrice(db.Model):
     estimated  = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
 
 
+class HoldingExposure(db.Model):
+    """What a fund holds, one row per country, sector, currency, company or asset class (F57, services.lookthrough):
+    read from the issuer's holdings file or typed by hand. `name` is the ISO code for a country, otherwise the
+    sector's, currency's, company's or asset class's name; `weight` is the % of the fund."""
+    __tablename__ = "holding_exposures"
+    __table_args__ = (db.UniqueConstraint("holding_id", "kind", "name"),)
+
+    id         = db.Column(db.Integer, primary_key=True)
+    holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="CASCADE"), nullable=False, index=True)
+    kind       = db.Column(db.String(20), nullable=False)  # country | sector | currency | holding | asset_class
+    name       = db.Column(db.Text, nullable=False)
+    weight     = db.Column(db.Numeric(9, 4), nullable=False)
+    as_of      = db.Column(db.Date, nullable=False)        # the date of the data (the file's, or the day typed)
+    source     = db.Column(db.Text)                        # «iShares CSV», «a mano»…
+
+
 class Debt(db.Model):
     """A mortgage, loan or credit card, repaid with constant monthly installments (French amortization)."""
     __tablename__ = "debts"

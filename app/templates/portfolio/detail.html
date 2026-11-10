@@ -60,6 +60,8 @@
   </div>
 </div>
 
+{% include "portfolio/_lookthrough.html" %}
+
 {% if bond %}
 <div class="card mb-24" id="bond-card">
   <div class="card-header"><div class="card-header-title">{{ _("Obbligazione") }}{% if bond.type %} · {{ bond.type|tr }}{% endif %}
