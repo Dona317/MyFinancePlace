@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 19:35+0000\n"
+"POT-Creation-Date: 2026-11-10 10:17+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -928,6 +928,9 @@ msgstr "Account and users"
 
 msgid "Accumulato"
 msgstr "Accumulated"
+
+msgid "Accumulazione"
+msgstr "Accumulating"
 
 msgid "Acqua"
 msgstr "Water"
@@ -1915,6 +1918,12 @@ msgstr "Initial principal: must be greater than zero."
 msgid "Carattere"
 msgstr "Font"
 
+msgid "Caratteristiche"
+msgstr "Characteristics"
+
+msgid "Caratteristiche del fondo"
+msgstr "Fund characteristics"
+
 msgid "Carica"
 msgstr "Upload"
 
@@ -2452,6 +2461,9 @@ msgstr "With Claude you need the variable"
 
 msgid "Con chi (separati da virgole)"
 msgstr "With whom (separated by commas)"
+
+msgid "Con copertura del cambio (EUR hedged)"
+msgstr "Currency hedged (EUR hedged)"
 
 msgid "Con e senza passaggio alle obbligazioni"
 msgstr "With and without the shift to bonds"
@@ -3139,6 +3151,9 @@ msgstr "Execution date"
 msgid "Data di inizio"
 msgstr "Start date"
 
+msgid "Data di lancio"
+msgstr "Launch date"
+
 msgid "Data di scadenza"
 msgstr "Expiry date"
 
@@ -3297,6 +3312,9 @@ msgstr "Distance from the model"
 
 msgid "Distanza date"
 msgstr "Date distance"
+
+msgid "Distribuzione"
+msgstr "Distributing"
 
 msgid "Distribuzione per Tipo"
 msgstr "Split by Type"
@@ -3634,6 +3652,9 @@ msgid "Eliminata «%(label)s»."
 msgid_plural "Eliminate %(num)d transazioni."
 msgstr[0] "«%(label)s» deleted."
 msgstr[1] "%(num)d transactions deleted."
+
+msgid "Emittente"
+msgstr "Issuer"
 
 msgid "Energia"
 msgstr "Energy"
@@ -4073,6 +4094,12 @@ msgstr "Tax %(year)s"
 msgid "Fisco"
 msgstr "Taxes"
 
+msgid "Fisica a campione"
+msgstr "Physical sampling"
+
+msgid "Fisica completa"
+msgstr "Full physical"
+
 msgid "Fissa"
 msgstr "Fixed"
 
@@ -4271,6 +4298,9 @@ msgstr "Debt Management"
 
 msgid "Gestione Finanze Personali"
 msgstr "Personal Finance Management"
+
+msgid "Gestione attiva"
+msgstr "Actively managed"
 
 msgid "Gestisci"
 msgstr "Manage"
@@ -4869,6 +4899,15 @@ msgstr ""
 "The new name applies to every transaction of the group; empty goes back "
 "to the default."
 
+msgid ""
+"Il paese in cui ha sede il fondo (domicilio): conta per le tasse (es. "
+"fondi esteri) e per la ritenuta sui dividendi. Se non la indichi è il "
+"paese dell'ISIN."
+msgstr ""
+"The country the fund is domiciled in: it matters for taxes (e.g. foreign "
+"funds) and for the withholding on dividends. When not set it is the "
+"ISIN's country."
+
 msgid "Il patrimonio negli anni"
 msgstr "Wealth over the years"
 
@@ -5303,6 +5342,12 @@ msgstr "Set it on the holding's form"
 msgid "Indicatori"
 msgstr "Indicators"
 
+msgid "Indice"
+msgstr "Index"
+
+msgid "Indice replicato"
+msgstr "Tracked index"
+
 msgid "Indietro"
 msgstr "Back"
 
@@ -5391,6 +5436,9 @@ msgstr "Interest: %(name)s"
 
 msgid "Intermediario"
 msgstr "Intermediary"
+
+msgid "Internazionale (Euroclear/Clearstream)"
+msgstr "International (Euroclear/Clearstream)"
 
 msgid "Internet e telefono"
 msgstr "Internet and phone"
@@ -5722,6 +5770,9 @@ msgstr ""
 "The change of the net worth split into saving (income minus expenses), "
 "markets (gains and losses of the holdings), debt repaid (the capital part"
 " of the instalments) and new assets."
+
+msgid "Lancio"
+msgstr "Launch"
 
 msgid "Larghezza: un terzo, due terzi, riga intera"
 msgstr "Width: a third, two thirds, whole row"
@@ -7207,6 +7258,9 @@ msgstr "You have no access to «%(name)s»"
 msgid "Non importate: %(rows)s"
 msgstr "Not imported: %(rows)s"
 
+msgid "Non indicata"
+msgstr "Not set"
+
 msgid "Non indicato"
 msgstr "Not set"
 
@@ -7963,6 +8017,13 @@ msgstr "Retirement and financial independence"
 msgid "Pensione integrativa"
 msgstr "Supplementary pension"
 
+msgid ""
+"Per ETF, fondi comuni e fondi assicurativi: tutte modificabili. La sede, "
+"se vuota, è il paese dell'ISIN (IE00… → Irlanda)."
+msgstr ""
+"For ETFs, mutual funds and insurance funds: all editable. The domicile, "
+"when empty, is the ISIN's country (IE00… → Ireland)."
+
 msgid "Per Google Calendar, Outlook o il calendario del telefono"
 msgstr "For Google Calendar, Outlook or the phone's calendar"
 
@@ -8096,6 +8157,9 @@ msgstr "Scans and photos need a \"vision\" model (e.g."
 
 msgid "Per scontrini e fatture di un acquisto."
 msgstr "For receipts and invoices of a purchase."
+
+msgid "Per sede"
+msgstr "By domicile"
 
 msgid "Per settore"
 msgstr "By sector"
@@ -8689,6 +8753,9 @@ msgstr "Test"
 msgid "Prova riuscita: %(price)s %(currency)s del %(day)s."
 msgstr "Test passed: %(price)s %(currency)s on %(day)s."
 
+msgid "Proventi"
+msgstr "Income"
+
 msgid "Provider"
 msgstr "Provider"
 
@@ -9124,6 +9191,9 @@ msgstr "Income expected in the next 12 months"
 
 msgid "Renminbi"
 msgstr "Renminbi"
+
+msgid "Replica"
+msgstr "Replication"
 
 msgid "Report"
 msgstr "Reports"
@@ -9953,6 +10023,15 @@ msgstr "Second IRPEF advance"
 msgid "Secondo i piani di ammortamento"
 msgstr "According to the amortization plans"
 
+msgid "Sede"
+msgstr "Domicile"
+
+msgid "Sede (paese)"
+msgstr "Domicile (country)"
+
+msgid "Sede: il codice del paese a due lettere (IE, LU, IT…)."
+msgstr "Domicile: the two-letter country code (IE, LU, IT…)."
+
 msgid "Segna come ricorrente"
 msgstr "Mark as recurring"
 
@@ -10156,6 +10235,9 @@ msgstr "Similar"
 
 msgid "Simulazione aggiornata."
 msgstr "Simulation updated."
+
+msgid "Sintetica (swap)"
+msgstr "Synthetic (swap)"
 
 msgid "Sistema"
 msgstr "Fix"
@@ -10537,6 +10619,16 @@ msgstr "Average rate %(rate)s%%"
 
 msgid "TAN. Zero per un prestito senza interessi."
 msgstr "Nominal rate. Zero for an interest-free loan."
+
+msgid "TER"
+msgstr "TER"
+
+#, python-format
+msgid "TER (%% annuo)"
+msgstr "TER (%% a year)"
+
+msgid "TER: una percentuale annua, di solito tra 0,05 e 3."
+msgstr "TER: a yearly percentage, usually between 0.05 and 3."
 
 #, python-format
 msgid "Tabella %(tablename__)s: manca il campo obbligatorio «%(name)s»."
@@ -11339,6 +11431,9 @@ msgstr ""
 "Once a day a single request to GitHub to learn the latest version; none "
 "of your data is sent and nothing installs by itself."
 
+msgid "Unione Europea"
+msgstr "European Union"
+
 msgid "Università"
 msgstr "University"
 
@@ -11843,6 +11938,9 @@ msgstr "value in euro"
 msgid "controvalore, commissioni escluse"
 msgstr "traded amount, fees excluded"
 
+msgid "coperto"
+msgstr "hedged"
+
 msgid "cripto-attività"
 msgstr "crypto-assets"
 
@@ -12060,6 +12158,9 @@ msgstr "e.g. Leasing, Rentals"
 msgid "es. Luca, Sara"
 msgstr "e.g. Luca, Sara"
 
+msgid "es. MSCI World, FTSE All-World"
+msgstr "e.g. MSCI World, FTSE All-World"
+
 msgid "es. Mario Rossi"
 msgstr "e.g. John Smith"
 
@@ -12107,6 +12208,9 @@ msgstr "e.g. car tax, MOT, transit pass"
 
 msgid "es. decathlon"
 msgstr "e.g. decathlon"
+
+msgid "es. iShares, Vanguard, Amundi"
+msgstr "e.g. iShares, Vanguard, Amundi"
 
 msgid "es. lavatrice Bosch, carta d’identità di Anna"
 msgstr "e.g. Bosch washing machine, Anna's identity card"
@@ -13084,6 +13188,9 @@ msgid "— nessuno: lo aggiorno a mano —"
 msgstr "— none: I update it by hand —"
 
 msgid "— non indicata —"
+msgstr "— not set —"
+
+msgid "— non indicati —"
 msgstr "— not set —"
 
 msgid "— non indicato —"

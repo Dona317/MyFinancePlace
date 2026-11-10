@@ -16,7 +16,7 @@ from app.models.account import Account
 from app.models.personal_loan import PersonalLoan
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
-from app.services import accounts, asset_classes, currency, settings_store
+from app.services import accounts, asset_classes, currency, fund_facts, settings_store
 from app.services.i18n import N_
 from app.services.periods import add_months, last_complete_months
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total
@@ -352,6 +352,7 @@ def portfolio_summary(holdings: list[Holding]) -> dict:
         "investments_value": _money(sum(h.value for h in invested)),
         "allocation": sorted(allocation.items(), key=lambda item: item[1], reverse=True),
         "classes": sorted(by_class.items(), key=lambda item: item[1], reverse=True),
+        "domiciles": fund_facts.by_domicile(holdings),  # by the fund's domicile (sede): Irlanda, Lussemburgo…
     }
 
 

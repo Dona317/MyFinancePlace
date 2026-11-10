@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
 {% set is_edit = holding is not none %}
 {% set h = holding or {} %}
 {% block page_title %}{{ _('Modifica posizione') if is_edit else _('Nuova posizione') }}{% endblock %}
@@ -69,6 +70,25 @@
             {{ f.select(values, 'price_source', _('Fonte del prezzo'), sources.items()|list, h.price_source or 'auto') }}
           </div>
           <p class="form-hint">{{ _('Automatica: Yahoo Finance (e Stooq se Yahoo non risponde) per azioni, ETF, fondi, obbligazioni e derivati; CoinGecko per le cripto. «Solo a mano» per titoli non quotati, polizze, conti deposito.') }}</p>
+        </fieldset>
+        <fieldset class="fee-rules mb-16">
+          <legend class="form-label">{{ _('Caratteristiche del fondo') }} {{ info(_('Per ETF, fondi comuni e fondi assicurativi: tutte modificabili. La sede, se vuota, è il paese dell\'ISIN (IE00… → Irlanda).')) }}</legend>
+          <div class="grid-3">
+            {{ f.text(values, 'issuer', _('Emittente'), h.issuer, placeholder=_('es. iShares, Vanguard, Amundi')) }}
+            {{ f.text(values, 'domicile', _('Sede (paese)'), h.domicile, placeholder=(domicile_hint or 'IE, LU, IT')) }}
+            {{ f.number(values, 'ter', _('TER (%% annuo)'), h.ter, placeholder='0,20') }}
+          </div>
+          <div class="grid-3">
+            {{ f.select(values, 'distribution', _('Proventi'), distribution.items()|list, h.distribution, blank=_('— non indicati —')) }}
+            {{ f.select(values, 'replication', _('Replica'), replication.items()|list, h.replication, blank=_('— non indicata —')) }}
+            {{ f.date(values, 'launch_date', _('Data di lancio'), h.launch_date) }}
+          </div>
+          <div class="grid-2">
+            {{ f.text(values, 'index_name', _('Indice replicato'), h.index_name, placeholder=_('es. MSCI World, FTSE All-World')) }}
+            <div class="form-group" style="align-self:end;">
+              <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="currency_hedged" class="check" {{ 'checked' if (values.currency_hedged if values else h.currency_hedged) }} /> {{ _('Con copertura del cambio (EUR hedged)') }}</label>
+            </div>
+          </div>
         </fieldset>
         {{ f.owner(values, h.owner) }}
         {{ f.number(values, 'depreciation_rate', _('Svalutazione annua (%%)'), h.depreciation_rate, placeholder=(suggested_rates.get(h.asset_class)|string if h and suggested_rates.get(h.asset_class) else ''),

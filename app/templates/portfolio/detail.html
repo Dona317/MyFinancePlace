@@ -44,6 +44,21 @@
 </div>
 {% endif %}
 
+{% set facts = [
+  (_('Emittente'), holding.issuer), (_('Sede'), domicile), (_('TER'), ((holding.ter|number(2)) ~ ' %') if holding.ter is not none else none),
+  (_('Proventi'), distribution.get(holding.distribution)|tr if holding.distribution else none),
+  (_('Replica'), replication.get(holding.replication)|tr if holding.replication else none),
+  (_('Indice'), holding.index_name), (_('Lancio'), holding.launch_date|it_date if holding.launch_date else none),
+  (_('Cambio'), _('coperto') if holding.currency_hedged else none), ('ISIN', holding.isin),
+  (_('Classe di attivo'), asset_class|tr)] %}
+<div class="card mb-24">
+  <div class="card-header"><div class="card-header-title">{{ _('Caratteristiche') }}</div>
+    <a href="{{ url_for('portfolio.edit', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a></div>
+  <div class="card-body d-flex gap-8" style="flex-wrap:wrap;column-gap:28px;">
+    {% for label, value in facts if value %}<div><div class="text-xs text-muted">{{ label }}</div><div>{{ value }}</div></div>{% endfor %}
+  </div>
+</div>
+
 <div class="card">
   <div class="card-header">
     <div>

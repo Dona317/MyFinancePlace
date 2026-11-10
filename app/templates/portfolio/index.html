@@ -48,6 +48,17 @@
   </div>
   <div class="card">
     <div class="card-header">
+      <div class="card-header-title">{{ _('Per sede') }} {{ info(_('Il paese in cui ha sede il fondo (domicilio): conta per le tasse (es. fondi esteri) e per la ritenuta sui dividendi. Se non la indichi è il paese dell\'ISIN.')) }}</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;">
+        {% if summary.domiciles %}<canvas id="domicileChart"></canvas>
+        {% else %}<div class="chart-empty">{{ _('Aggiungi una posizione per vedere come è ripartito il patrimonio.') }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
       <div class="card-header-title">{{ _('Per tipo di strumento') }} {{ info(_('ETF, azioni, fondi, obbligazioni…: con che cosa investi.')) }}</div>
     </div>
     <div class="card-body">
@@ -196,6 +207,12 @@
 makeDoughnutChart('assetClassChart',
   {{ summary.classes | map(attribute=0) | map('tr') | list | tojson }},
   {{ summary.classes | map(attribute=1) | map('round', 2) | list | tojson }}
+);
+{% endif %}
+{% if summary.domiciles %}
+makeDoughnutChart('domicileChart',
+  {{ summary.domiciles | map(attribute=0) | map('tr') | list | tojson }},
+  {{ summary.domiciles | map(attribute=1) | map('round', 2) | list | tojson }}
 );
 {% endif %}
 {% if summary.allocation %}

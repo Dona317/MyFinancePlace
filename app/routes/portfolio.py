@@ -18,6 +18,7 @@ from app.services import (
     composition,
     display,
     family,
+    fund_facts,
     performance,
     portfolio_ops,
     price_feed,
@@ -69,6 +70,26 @@ def _instrument_from_form(holding: Holding) -> None:
         if request.form.get("price_source") else "auto"
 
 
+def _fund_facts_from_form(holding: Holding) -> None:
+    """The fund's characteristics (all optional): issuer, domicile, TER, distribution, replication, index, launch
+    date and currency hedging."""
+    holding.issuer = form_text("issuer", _("Emittente"))
+    domicile = (form_text("domicile", _("Sede")) or "").upper()
+    if domicile and not re.fullmatch(r"[A-Z]{2}", domicile):
+        raise ValueError(_("Sede: il codice del paese a due lettere (IE, LU, IT…)."))
+    holding.domicile = domicile or None
+    holding.ter = form_decimal("ter", _("TER"))
+    if holding.ter is not None and holding.ter > 10:
+        raise ValueError(_("TER: una percentuale annua, di solito tra 0,05 e 3."))
+    holding.distribution = form_choice("distribution", _("Proventi"), fund_facts.DISTRIBUTION) \
+        if request.form.get("distribution") else None
+    holding.replication = form_choice("replication", _("Replica"), fund_facts.REPLICATION) \
+        if request.form.get("replication") else None
+    holding.index_name = form_text("index_name", _("Indice replicato"))
+    holding.launch_date = form_date("launch_date", _("Data di lancio"))
+    holding.currency_hedged = bool(request.form.get("currency_hedged"))
+
+
 def _holding_from_form(holding: Holding) -> Holding:
     holding.name = form_text("name", _("Nome"), required=True)
     holding.ticker = form_text("ticker", _("Ticker"))
@@ -77,6 +98,7 @@ def _holding_from_form(holding: Holding) -> Holding:
     holding.allocation_class = form_choice("allocation_class", _("Classe di attivo"),
                                            asset_classes.CLASSES) if chosen else None
     _instrument_from_form(holding)
+    _fund_facts_from_form(holding)
     holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
     holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
     price = form_decimal("current_price", _("Prezzo attuale"))
@@ -111,7 +133,9 @@ def _holding_from_form(holding: Holding) -> Holding:
 
 def _render_form(holding, values):
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
-                           allocation_classes=asset_classes.CLASSES,
+                           allocation_classes=asset_classes.CLASSES, distribution=fund_facts.DISTRIBUTION,
+                           replication=fund_facts.REPLICATION,
+                           domicile_hint=fund_facts.domicile_code(holding) if holding is not None else None,
                            estimated=asset_classes.estimate(holding.asset_class, holding.name, holding.ticker)
                            if holding is not None else None,
                            suggested_rates=valuations.SUGGESTED_RATES,
@@ -169,7 +193,9 @@ def detail(holding_id):
                            financed=[row for row in wealth.financed_assets() if row["holding"].id == holding.id],
                            perf=portfolio_ops.performance([holding]), kinds=portfolio_ops.KINDS,
                            taxonomies=taxonomies.all_taxonomies(), classified=taxonomies.of_holding(holding),
-                           kind_of=portfolio_ops.kind_of,
+                           kind_of=portfolio_ops.kind_of, domicile=fund_facts.domicile_name(holding),
+                           distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
+                           asset_class=asset_classes.of(holding),
                            chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})
 
 

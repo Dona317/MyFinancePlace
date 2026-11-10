@@ -22,6 +22,15 @@ class Holding(db.Model):
     # what it is exposed to (F70): Azionario, Obbligazionario, Oro e metalli preziosi… (services.asset_classes);
     # empty = estimated from the instrument and the name
     allocation_class = db.Column(db.String(40))
+    # The fund's characteristics (ETF, mutual or insurance fund), all editable by hand (services.fund_facts)
+    issuer           = db.Column(db.String(80))     # the management company: iShares, Vanguard, Amundi…
+    domicile         = db.Column(db.String(2))      # ISO country of the fund (sede): IE, LU…; empty = from the ISIN
+    ter              = db.Column(db.Numeric(6, 3))  # ongoing charges, % a year
+    distribution     = db.Column(db.String(12))     # "acc" (accumulating) | "dist" (distributing)
+    replication      = db.Column(db.String(12))     # "full" | "sampling" | "synthetic" | "active"
+    index_name       = db.Column(db.Text)           # the index it tracks
+    launch_date      = db.Column(db.Date)
+    currency_hedged  = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
     quantity      = db.Column(db.Numeric(38, 8), nullable=False)
     avg_price     = db.Column(db.Numeric(38, 6), nullable=False)   # average purchase price per unit
     current_price = db.Column(db.Numeric(38, 6))                  # empty = still worth the purchase price
