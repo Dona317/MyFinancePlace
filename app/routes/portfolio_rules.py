@@ -15,6 +15,7 @@ from app.routes.helpers import year_arg
 from app.routes.portfolio import portfolio_bp
 from app.services import (
     accounts,
+    bonds,
     composition,
     display,
     family,
@@ -162,7 +163,7 @@ def income():
     today = date.today()
     report = income_report.report(year_arg(today.year), today)
     return render_template("portfolio/income.html", report=report, kinds=income_report.KINDS,
-                           month_labels=periods.month_labels())
+                           month_labels=periods.month_labels(), coupons=bonds.upcoming(Holding.query.all(), today))
 
 
 # ── Performance (F20) ──────────────────────────────────────────────────────────

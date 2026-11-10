@@ -90,6 +90,24 @@
             </div>
           </div>
         </fieldset>
+        <fieldset class="fee-rules mb-16" id="bond-terms">
+          <legend class="form-label">{{ _("Caratteristiche dell'obbligazione") }} {{ info(_("Per BTP, BOT, CCT e obbligazioni societarie: la quantità è il nominale e il prezzo è per unità di nominale (0,98 per un corso di 98). Con la scadenza la pagina del titolo mostra le cedole, il rateo e il rendimento a scadenza.")) }}</legend>
+          <div class="grid-3">
+            {{ f.select(values, 'bond_type', _('Tipo di obbligazione'), bond_types.items()|list, h.bond_type, blank=_('— non indicato —')) }}
+            {{ f.number(values, 'coupon_rate', _('Cedola annua lorda (%%)'), h.coupon_rate, placeholder='3,5',
+                        hint=_('In percentuale del nominale, lorda. Vuota o zero per BOT e zero coupon.')) }}
+            {{ f.select(values, 'coupon_frequency', _("Cedole all'anno"), frequencies.items()|list, h.coupon_frequency, blank=_('— non indicate —')) }}
+          </div>
+          <div class="grid-3">
+            {{ f.date(values, 'maturity_date', _('Scadenza'), h.maturity_date) }}
+            {{ f.number(values, 'redemption', _('Rimborso a scadenza (%% del nominale)'), h.redemption, placeholder='100') }}
+            {{ f.date(values, 'first_coupon_date', _('Prima cedola'), h.first_coupon_date,
+                      hint=_('Facoltativa: le cedole prima di questa data non si contano. Le date seguono la scadenza, a ritroso.')) }}
+          </div>
+          <div class="grid-3">
+            {{ f.number(values, 'issue_price', _("Prezzo di emissione (%% del nominale)"), h.issue_price, placeholder='100') }}
+          </div>
+        </fieldset>
         {{ f.owner(values, h.owner) }}
         {{ f.number(values, 'depreciation_rate', _('Svalutazione annua (%%)'), h.depreciation_rate, placeholder=(suggested_rates.get(h.asset_class)|string if h and suggested_rates.get(h.asset_class) else ''),
                     hint=_('Per un’auto, un telefono, un computer: la percentuale di valore persa ogni anno dall’ultima valutazione (un’auto circa 15). Vuoto: il valore cambia solo con i prezzi o le valutazioni.')) }}
@@ -106,6 +124,17 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+(function () {
+  // The bond's terms only for bonds, unless some are already filled in
+  const kind = document.getElementById('f-asset_class'), box = document.getElementById('bond-terms');
+  if (!kind || !box) return;
+  const filled = Array.from(box.querySelectorAll('input, select')).some(el => el.value);
+  const toggle = () => { box.hidden = !filled && kind.value !== 'Obbligazione'; };
+  kind.addEventListener('change', toggle);
+  toggle();
+})();
+</script>
 {% if online %}
 <script>
 (function () {

@@ -14,6 +14,7 @@ from app.routes.helpers import delete_and_redirect, form_choice, form_date, form
 from app.services import (
     accounts,
     asset_classes,
+    bonds,
     broker,
     composition,
     display,
@@ -90,6 +91,29 @@ def _fund_facts_from_form(holding: Holding) -> None:
     holding.currency_hedged = bool(request.form.get("currency_hedged"))
 
 
+def _bond_terms_from_form(holding: Holding) -> None:
+    """A bond's terms (F53, all optional): type, coupon rate and frequency, maturity, redemption, first coupon date,
+    issue price."""
+    holding.bond_type = form_choice("bond_type", _("Tipo di obbligazione"), bonds.BOND_TYPES) \
+        if request.form.get("bond_type") else None
+    holding.coupon_rate = form_decimal("coupon_rate", _("Cedola annua lorda"))
+    if holding.coupon_rate is not None and holding.coupon_rate > 50:
+        raise ValueError(_("Cedola annua lorda: una percentuale del nominale, es. 3,5."))
+    frequency = request.form.get("coupon_frequency") or None
+    holding.coupon_frequency = int(form_choice("coupon_frequency", _("Cedole all'anno"),
+                                               [str(k) for k in bonds.FREQUENCIES])) if frequency else None
+    holding.maturity_date = form_date("maturity_date", _("Scadenza"))
+    holding.redemption = form_decimal("redemption", _("Rimborso a scadenza"))
+    if holding.redemption is not None and not 0 < holding.redemption <= 1000:
+        raise ValueError(_("Rimborso a scadenza: una percentuale del nominale, di solito 100."))
+    holding.first_coupon_date = form_date("first_coupon_date", _("Prima cedola"))
+    if holding.first_coupon_date and holding.maturity_date and holding.first_coupon_date > holding.maturity_date:
+        raise ValueError(_("La prima cedola non può essere dopo la scadenza."))
+    holding.issue_price = form_decimal("issue_price", _("Prezzo di emissione"))
+    if holding.issue_price is not None and not 0 < holding.issue_price <= 1000:
+        raise ValueError(_("Prezzo di emissione: una percentuale del nominale, es. 99,5."))
+
+
 def _holding_from_form(holding: Holding) -> Holding:
     holding.name = form_text("name", _("Nome"), required=True)
     holding.ticker = form_text("ticker", _("Ticker"))
@@ -99,6 +123,7 @@ def _holding_from_form(holding: Holding) -> Holding:
                                            asset_classes.CLASSES) if chosen else None
     _instrument_from_form(holding)
     _fund_facts_from_form(holding)
+    _bond_terms_from_form(holding)
     holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
     holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
     price = form_decimal("current_price", _("Prezzo attuale"))
@@ -135,6 +160,7 @@ def _render_form(holding, values):
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
                            allocation_classes=asset_classes.CLASSES, distribution=fund_facts.DISTRIBUTION,
                            replication=fund_facts.REPLICATION,
+                           bond_types=bonds.BOND_TYPES, frequencies=bonds.FREQUENCIES,
                            domicile_hint=fund_facts.domicile_code(holding) if holding is not None else None,
                            estimated=asset_classes.estimate(holding.asset_class, holding.name, holding.ticker)
                            if holding is not None else None,
@@ -195,7 +221,7 @@ def detail(holding_id):
                            taxonomies=taxonomies.all_taxonomies(), classified=taxonomies.of_holding(holding),
                            kind_of=portfolio_ops.kind_of, domicile=fund_facts.domicile_name(holding),
                            distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
-                           asset_class=asset_classes.of(holding),
+                           asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
                            chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})
 
 

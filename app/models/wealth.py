@@ -31,6 +31,14 @@ class Holding(db.Model):
     index_name       = db.Column(db.Text)           # the index it tracks
     launch_date      = db.Column(db.Date)
     currency_hedged  = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    # A bond's terms (F53, services.bonds): the nominal is the quantity, prices are per unit of nominal (0.98 = 98 %)
+    bond_type         = db.Column(db.String(20))     # services.bonds.BOND_TYPES: btp, btp_italia, bot, corporate…
+    coupon_rate       = db.Column(db.Numeric(7, 4))  # gross yearly coupon, % of the nominal
+    coupon_frequency  = db.Column(db.SmallInteger)   # coupons a year: 1, 2 or 4
+    maturity_date     = db.Column(db.Date)
+    redemption        = db.Column(db.Numeric(7, 3))  # paid back at maturity, % of the nominal; empty = 100
+    first_coupon_date = db.Column(db.Date)           # empty = every date of the grid back from the maturity
+    issue_price       = db.Column(db.Numeric(9, 4))  # % of the nominal
     quantity      = db.Column(db.Numeric(38, 8), nullable=False)
     avg_price     = db.Column(db.Numeric(38, 6), nullable=False)   # average purchase price per unit
     current_price = db.Column(db.Numeric(38, 6))                  # empty = still worth the purchase price
