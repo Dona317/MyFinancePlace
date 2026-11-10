@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% from "partials/info.html" import info %}
+{% from "partials/kpi.html" import kpi %}
+
+{% block title %}{{ _('Calcolo commissioni') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Calcolo commissioni') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Calcolo commissioni') }}</li>{% endblock %}
+
+{% block content %}
+{% include "portfolio/_nav.html" %}
+
+<div class="kpi-grid mb-24">
+  {{ kpi('wallet2', _('Valore del portafoglio'), value=r.total|money, sub=_('titoli %(invested)s + liquidità %(cash)s', invested=r.invested|money, cash=r.cash|money)) }}
+  {{ kpi('receipt', _('Commissione annua'), value=r.fee|money, cls='kpi-negative', sub=_('%(bps)s pb · %(quarter)s a trimestre · %(month)s al mese', bps=r.bps|number, quarter=(r.fee / 4)|money, month=(r.fee / 12)|money)) }}
+  {{ kpi('pie-chart', _('TER dei fondi'), value=r.ter|money if r.with_ter else '—', cls='kpi-warning', sub=_('costi correnti, già dentro il prezzo')) }}
+  {{ kpi('bank', _('Imposta di bollo'), value=r.stamp|money if r.with_stamp else '—', cls='kpi-warning', sub=_('0,2 %% dei titoli')) }}
+  {{ kpi('calculator', _('Costi totali'), value=r.costs|money, cls='kpi-negative', sub=_('%(pct)s %% del valore all\'anno · %(total)s in %(years)s anni', pct=r.costs_pct|number(3), total=r.over_years|money, years=r.years)) }}
+</div>
+
+<form method="GET" class="inline-filter mb-16" style="flex-wrap:wrap;">
+  <select name="portfolio" class="form-select" aria-label="{{ _('Portafoglio') }}">
+    <option value="">{{ _('Tutti i portafogli') }}</option>
+    {% for id, name in names.portfolios.items() %}<option value="{{ id }}" {{ 'selected' if id == portfolio_id }}>{{ name }}</option>{% endfor %}
+  </select>
+  <select name="dossier" class="form-select" aria-label="{{ _('Conto titoli') }}">
+    <option value="">{{ _('Tutti i conti titoli') }}</option>
+    {% for id, name in names.dossiers.items() %}<option value="{{ id }}" {{ 'selected' if id == dossier_id }}>{{ name }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Riparti dalle posizioni') }}</button>
+</form>
+
+<form method="POST" action="{{ url_for('portfolio.fees_page') }}">
+  {% if portfolio_id %}<input type="hidden" name="portfolio" value="{{ portfolio_id }}" />{% endif %}
+  {% if dossier_id %}<input type="hidden" name="dossier" value="{{ dossier_id }}" />{% endif %}
+  <div class="card mb-16">
+    <div class="card-header">
+      <div class="card-header-title">{{ _('Parametri') }} {{ info(_('La commissione si calcola sul valore di oggi: prezzo × quantità di ogni titolo più la liquidità. 1 punto base (pb) = 0,01 %%: 50 pb sono lo 0,50 %% all\'anno, 5 € ogni 1.000 €.')) }}</div>
+    </div>
+    <div class="form-grid" style="padding:16px;">
+      <div class="form-group">
+        <label class="form-label" for="f-bps">{{ _('Commissione (punti base all\'anno)') }} {{ info(_('La commissione annua del consulente, della gestione o del conto, in punti base sul totale: 100 pb = 1 %%.')) }}</label>
+        <input id="f-bps" type="text" inputmode="decimal" name="bps" value="{{ r.bps|plain }}" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-cash">{{ _('Liquidità') }} {{ info(_('Il saldo dei conti di regolamento dei conti titoli: cambialo per provare un\'altra cifra.')) }}</label>
+        <input id="f-cash" type="text" inputmode="decimal" name="cash" value="{{ r.cash|plain }}" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-years">{{ _('Anni') }} {{ info(_('I costi di un anno moltiplicati per gli anni, con il portafoglio fermo al valore di oggi.')) }}</label>
+        <input id="f-years" type="number" min="1" max="50" name="years" value="{{ r.years }}" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label"><input type="checkbox" name="with_ter" value="1" class="check" {{ 'checked' if r.with_ter }} /> {{ _('Conta il TER dei fondi') }}</label>
+        <label class="checkbox-label"><input type="checkbox" name="with_stamp" value="1" class="check" {{ 'checked' if r.with_stamp }} /> {{ _('Conta l\'imposta di bollo') }}</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">{{ _('Titoli') }} {{ info(_('Le posizioni di oggi: correggi quantità, prezzo o TER, oppure aggiungi titoli nelle righe vuote. Niente viene salvato.')) }}</div>
+    </div>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{{ _('Titolo') }}</th>
+            <th class="text-right">{{ _('Quantità') }}</th>
+            <th class="text-right">{{ _('Prezzo') }}</th>
+            <th class="text-right">{{ _('TER %%') }}</th>
+            <th class="text-right">{{ _('Valore') }}</th>
+            <th class="text-right">{{ _('Commissione') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set count = r.rows|length + empty_rows %}
+          {% for i in range(count) %}
+          {% set row = r.rows[i] if i < r.rows|length else none %}
+          <tr>
+            <td><input type="text" name="name-{{ i }}" value="{{ row.name if row else '' }}" class="form-control" style="padding:6px 8px;" aria-label="{{ _('Titolo') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="units-{{ i }}" value="{{ row.units|plain if row else '' }}" class="form-control text-right" style="padding:6px 8px;" aria-label="{{ _('Quantità') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="price-{{ i }}" value="{{ row.price|plain if row else '' }}" class="form-control text-right" style="padding:6px 8px;" aria-label="{{ _('Prezzo') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="ter-{{ i }}" value="{{ row.ter|plain if row and row.ter is not none else '' }}" class="form-control text-right" style="padding:6px 8px;width:80px;" aria-label="{{ _('TER %%') }}" /></td>
+            <td class="text-right nowrap">{{ row.value|money if row else '' }}</td>
+            <td class="text-right nowrap">{{ (row.value * r.bps / 10000)|money if row else '' }}</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="4">{{ _('Liquidità') }}</td>
+            <td class="text-right nowrap">{{ r.cash|money }}</td>
+            <td class="text-right nowrap">{{ (r.cash * r.bps / 10000)|money }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <input type="hidden" name="count" value="{{ count }}" />
+    <div style="padding:16px;">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-calculator"></i> {{ _('Calcola') }}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

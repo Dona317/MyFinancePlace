@@ -1,8 +1,10 @@
 """
 Portfolios and securities accounts (F42): the page that lists them (rename, the star of the default portfolio,
 archive), a securities account's form and its own page, with its positions and its liquidity; the order register
-(F46).
+(F46); the fee calculator.
 """
+from decimal import Decimal
+
 from flask import Response, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
@@ -11,7 +13,7 @@ from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
 from app.routes.helpers import form_decimal, form_text
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, order_register, portfolio_ops, portfolio_overview, securities, wealth
+from app.services import accounts, fee_calculator, order_register, portfolio_ops, portfolio_overview, securities, wealth
 from app.services.parsing import to_date
 
 
@@ -178,3 +180,23 @@ def overview_page():
         db.session.commit()
     return render_template("portfolio/overview.html", o=portfolio_overview.overview(), nav_active="overview",
                            kinds=portfolio_ops.KINDS)
+
+
+# ── The fee calculator ─────────────────────────────────────────────────────────
+
+@portfolio_bp.route("/fees", methods=["GET", "POST"])
+def fees_page():
+    """What a yearly fee in basis points costs on price × quantity of each asset plus the liquidity, with TER and
+    stamp duty: prefilled from the positions (all, ?portfolio= or ?dossier=), every number editable."""
+    portfolio_id, dossier_id = request.values.get("portfolio", type=int), request.values.get("dossier", type=int)
+    if request.method == "POST":
+        result = fee_calculator.from_form(request.form)
+    else:
+        if securities.ensure_assigned():
+            db.session.commit()
+        rows, cash = fee_calculator.starting_rows(portfolio_id, dossier_id)
+        result = fee_calculator.Result(rows, cash, fee_calculator.number(request.args.get("bps"), Decimal(0)))
+    names = {"portfolios": {p.id: p.name for p in securities.portfolios()},
+             "dossiers": {d.id: d.name for d in securities.accounts()}}
+    return render_template("portfolio/fees.html", r=result, names=names, portfolio_id=portfolio_id,
+                           dossier_id=dossier_id, empty_rows=fee_calculator.EMPTY_ROWS, nav_active="fees")
