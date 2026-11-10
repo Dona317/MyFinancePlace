@@ -167,9 +167,11 @@ def _proposed_orders(plan) -> list[dict]:
     """The moves of the rebalancing as orders: buy or sell, the holding, units and the latest price (all editable)."""
     orders = []
     for line in plan.lines:
-        if not line.move or line.via is None or not line.units:
+        if not line.move or line.via is None:
             continue
         if line.move > 0 or len(line.holdings) == 1:
+            if not line.units:
+                continue
             orders.append({"holding": line.via, "label": line.label, "side": "buy" if line.move > 0 else "sell",
                            "units": abs(line.units), "price": Decimal(str(line.via.price)), "amount": abs(line.move)})
             continue

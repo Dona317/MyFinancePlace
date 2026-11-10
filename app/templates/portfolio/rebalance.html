@@ -89,7 +89,8 @@
             {% if line.move > 0 %}{{ _('Compra') }} {{ line.move|money }}{% elif line.move < 0 %}{{ _('Vendi') }} {{ (line.move|abs)|money }}{% else %}—{% endif %}
             {% if line.units %}<div class="text-xs text-muted">{{ _('%(units)s quote', units=(line.units|abs)|number(4)) }}</div>{% endif %}</td>
           <td class="text-right nowrap">{{ line.tax|money if line.tax else '' }}</td>
-          <td class="text-sm">{% if line.move and line.via %}<a href="{{ url_for('portfolio.operation', holding_id=line.via.id) }}">{{ line.via.name }}</a>
+          <td class="text-sm">{% if line.move < 0 and line.holdings|length > 1 %}{{ _('Da più titoli (%(count)s): vedi gli ordini', count=line.holdings|length) }}
+            {% elif line.move and line.via %}<a href="{{ url_for('portfolio.operation', holding_id=line.via.id) }}">{{ line.via.name }}</a>
             {% elif line.move and line.suggestion %}{{ _('es. %(ticker)s', ticker=line.suggestion) }}{% endif %}</td>
         </tr>
         {% endfor %}

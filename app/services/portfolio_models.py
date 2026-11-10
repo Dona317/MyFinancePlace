@@ -311,5 +311,7 @@ def rebalance(template: PortfolioTemplate, mode: str = "new", amount: Decimal = 
         line.via = max(line.holdings, key=lambda h: h.value, default=None)
         if line.via is not None and line.move and line.via.price:
             line.units = (line.move / Decimal(str(line.via.price))).quantize(UNITS, rounding=ROUND_DOWN)
+        if line.move < 0 and len(line.holdings) > 1:
+            line.units = None  # a sale spread over several holdings (the orders split it): no units of one of them
         line.tax = _sale_tax(line, year)
     return Plan(template, lines, total, amount, mode, minimum)

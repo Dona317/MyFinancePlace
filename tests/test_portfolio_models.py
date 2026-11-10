@@ -191,3 +191,23 @@ def test_minimum_deposit_withdrawal_and_estimated_tax(client, db):
     page = client.get("/portfolio/rebalance?mode=min").get_data(as_text=True)
     assert "Versamento minimo" in page and "servono almeno" in page and "150,00" in page
     assert "Tasse stimate sulle vendite" in client.get("/portfolio/rebalance?mode=withdraw&amount=200").get_data(as_text=True)
+
+
+def test_a_sale_over_several_holdings_shows_no_units_of_one(client, db):
+    a = Holding(name="A", asset_class="ETF", quantity=10, avg_price=100, current_price=Decimal(100))
+    b = Holding(name="B", asset_class="Azione", quantity=5, avg_price=100, current_price=Decimal(100))
+    world = Holding(name="World", asset_class="ETF", isin="IE00BK5BQT80", quantity=0, avg_price=0,
+                    current_price=Decimal(100))
+    template = PortfolioTemplate(name="Solo mondo", band=5, active=True)
+    db.session.add_all([a, b, world, template])
+    db.session.flush()
+    portfolio_models.save(template, "Solo mondo", "", Decimal(5), [SlotInput("Mondo", Decimal(100), holding_ids=[world.id])])
+    db.session.commit()
+    with client.application.test_request_context():
+        plan = portfolio_models.rebalance(template, "full")
+    outside = plan.lines[-1]
+    assert outside.outside and outside.move == Decimal(-1500) and outside.units is None
+    page = client.get("/portfolio/rebalance?mode=full").get_data(as_text=True)
+    assert "Da più titoli (2)" in page
+    orders = client.get("/portfolio/rebalance/orders?mode=full").get_data(as_text=True)
+    assert orders.count('value="sell"') == 2  # one sale per holding of the line

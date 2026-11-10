@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 15:59+0000\n"
+"POT-Creation-Date: 2026-11-10 18:52+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -3107,6 +3107,10 @@ msgstr ""
 
 msgid "Da pagare nel mese"
 msgstr "To pay this month"
+
+#, python-format
+msgid "Da più titoli (%(count)s): vedi gli ordini"
+msgstr "From several holdings (%(count)s): see the orders"
 
 msgid "Da quando conta nello stato patrimoniale dei mesi passati."
 msgstr "From when it counts in the balance sheet of past months."
