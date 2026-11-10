@@ -47,7 +47,7 @@ def render_page():
                        upcoming=upcoming, upcoming_60=[d for d in upcoming if d.day <= today + timedelta(days=60)],
                        next_items=upcoming[:NEXT_ROWS], reminders=Reminder.query.order_by(Reminder.due).all(),
                        repeats=deadlines.REPEATS, notices=deadlines.NOTICES, edit=db.session.get(Reminder, request.args.get("edit", type=int) or 0),
-                       fiscal=deadlines.fiscal_on())
+                       fiscal=deadlines.fiscal_on(), google_import=deadlines.GOOGLE_IMPORT)
     return render_template("deadlines/index.html", **context)
 
 
@@ -123,9 +123,16 @@ def fiscal():
     return redirect(url_for("deadlines.index"))
 
 
+FUTURE_YEARS = 5  # «tutte le scadenze future»: from today, the recurring ones repeated for five years
+
+
 @deadlines_bp.route("/scadenze.ics")
 def calendar_file():
-    """The next twelve months (and the last one) for Google Calendar, Outlook or the phone's calendar."""
+    """The next twelve months (and the last one) for Google Calendar, Outlook or the phone's calendar; ?future=1:
+    every deadline from today on (five years of the recurring ones), nothing past."""
     today = date.today()
+    if request.args.get("future"):
+        return download(deadlines.ics(today, today.replace(year=today.year + FUTURE_YEARS)), "scadenze-future.ics",
+                        "text/calendar; charset=utf-8")
     return download(deadlines.ics(today - timedelta(days=31), today + timedelta(days=366)), "scadenze.ics",
                     "text/calendar; charset=utf-8")

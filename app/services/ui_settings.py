@@ -29,6 +29,7 @@ DEFAULT_SETTINGS = {
     "dashboard_sankey":         True,
     "dashboard_recent_tx":      True,
     "dashboard_health":         True,
+    "dashboard_portfolio_blocks": True,  # F48: two blocks with the investments (key figures, value vs money put in)
     "autonomy_target":          "6",   # months of spending the liquid money should cover (Salute Finanziaria)
     # ── Data from the internet ───────────────────────────────────────────
     "prices_online":            False,  # «Aggiorna da internet» in Portafoglio → Aggiorna prezzi (F5b)

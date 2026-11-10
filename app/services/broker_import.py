@@ -7,7 +7,8 @@ shown for review, then saved as the holdings' operations (services.portfolio_ops
 - Bonds are quoted in % of the nominal (BTP at 100,15): the price is turned into euro per euro of nominal, as the
   price sites do (instrument_sources.borsaitaliana).
 - Any other broker: the columns are found by their titles (date, ISIN or ticker, name, quantity, price, commission,
-  buy/sell or amount).
+  buy/sell or amount). The guess can be corrected on a mapping screen and saved as a preset (services.import_presets,
+  kind "broker"): `read` then takes the mapping instead of guessing.
 
 Every row gets a fingerprint, so importing the same statement again adds nothing. The holding is found by ISIN, then
 ticker, then name; a row about an instrument not owned yet creates it.
@@ -17,7 +18,7 @@ from __future__ import annotations
 import hashlib
 import re
 import unicodedata
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import date
 from decimal import Decimal
 
@@ -42,6 +43,8 @@ COLUMNS = {
             "fee", "costi"),
     "side": ("segno", "tipo", "operazione", "side", "buy sell", "type"),
 }
+# the fields of a trade, in the order of the mapping screen
+FIELDS = ("date", "side", "isin", "ticker", "name", "units", "price", "value", "fee")
 SELL_WORDS = ("vendita", "sell", "v", "s", "sale", "vend")
 BUY_WORDS = ("acquisto", "buy", "a", "b", "purchase", "acq")
 
@@ -71,6 +74,8 @@ class Preview:
     rows: list[BrokerRow]
     unread: list[int]   # lines that are not a trade (deposits, dividends, cash sweeps…) or could not be read
     layout: str         # "degiro" | "generico"
+    headers: list[str] = field(default_factory=list)
+    mapping: dict[str, str | None] = field(default_factory=dict)
 
 
 def _key(header: str) -> str:
@@ -91,18 +96,36 @@ def _column(headers: list[str], name: str, taken: set[str]) -> str | None:
     return None
 
 
-def _columns(headers: list[str]) -> dict[str, str | None]:
+def guess(headers: list[str]) -> dict[str, str | None]:
+    """Field → column of the file, found by the column titles (None where nothing fits)."""
     found, taken = {}, set()
     for name in ("isin", "ticker", "fee", "date", "units", "price", "value", "side", "name"):
         found[name] = _column(headers, name, taken)
         if found[name]:
             taken.add(found[name])
-    if not found["date"] or not found["units"] or not (found["isin"] or found["ticker"] or found["name"]):
-        raise transfer.TableError(_("Non trovo le colonne delle operazioni: servono almeno data, quantità e titolo "
-                                    "(ISIN, ticker o nome)."))
-    if not found["price"] and not found["value"]:
-        raise transfer.TableError(_("Non trovo il prezzo né il controvalore delle operazioni."))
-    return found
+    return {name: found[name] for name in FIELDS}
+
+
+def missing(cols: dict[str, str | None]) -> str | None:
+    """Why the mapping cannot read the trades (a message for the user), or None when it can."""
+    if not cols.get("date") or not cols.get("units") or not (cols.get("isin") or cols.get("ticker") or cols.get("name")):
+        return _("Non trovo le colonne delle operazioni: servono almeno data, quantità e titolo (ISIN, ticker o nome).")
+    if not cols.get("price") and not cols.get("value"):
+        return _("Non trovo il prezzo né il controvalore delle operazioni.")
+    return None
+
+
+def clean(headers: list[str], mapping: dict) -> dict[str, str | None]:
+    """A mapping from a form or a preset, kept to the known fields and to the file's columns."""
+    return {name: mapping.get(name) if mapping.get(name) in headers else None for name in FIELDS}
+
+
+def columns(filename: str, raw: bytes) -> tuple[list[str], dict[str, str | None], dict[str, str]]:
+    """The file's column titles, the guessed mapping and a sample value of each column (for the mapping screen)."""
+    headers, records, _first = transfer.read_table(filename, raw)
+    samples = {h: next((str(r.get(h) or "").strip() for r in records if str(r.get(h) or "").strip()), "")
+               for h in headers}
+    return headers, guess(headers), samples
 
 
 def _layout(headers: list[str]) -> str:
@@ -114,7 +137,7 @@ def _side(text: str | None) -> int | None:
     word = normalize(text or "")
     if not word:
         return None
-    if word in SELL_WORDS or word.startswith(("vend", "sell", "sale")):
+    if word in SELL_WORDS or word.startswith(("ven", "sell", "sale")):
         return -1
     if word in BUY_WORDS or word.startswith(("acq", "buy", "purch", "sottoscr")):
         return 1
@@ -162,23 +185,37 @@ def _match(row: BrokerRow, holdings: list[Holding]) -> int | None:
     return None
 
 
-def read(filename: str, raw: bytes) -> Preview:
-    """The trades of a broker statement, matched to the holdings, the ones already imported marked."""
+def read(filename: str, raw: bytes, mapping: dict | None = None) -> Preview:
+    """The trades of a broker statement, matched to the holdings, the ones already imported marked. The columns are
+    `mapping` (field → column title) when given, else guessed from the titles."""
     headers, records, first_line = transfer.read_table(filename, raw)
-    cols, layout = _columns(headers), _layout(headers)
-    rows, unread, seen = [], [], {}
+    cols = clean(headers, mapping) if mapping is not None else guess(headers)
+    problem = missing(cols)
+    if problem:
+        raise transfer.TableError(problem)
+    layout = _layout(headers)
+    rows, unread = [], []
     for offset, record in enumerate(records):
         row = _row(record, cols, first_line + offset)
         if row is None:
             unread.append(first_line + offset)
             continue
+        rows.append(row)
+    if not rows:
+        raise transfer.TableError(_("Nessuna operazione di compravendita trovata nel file."))
+    return finish(rows, unread, layout, headers, cols)
+
+
+def finish(rows: list[BrokerRow], unread: list[int], layout: str, headers: list[str] | None = None,
+           cols: dict | None = None) -> Preview:
+    """The trades read (from a file's columns or by an AI model): their fingerprints, the holdings they match and
+    the ones already imported, oldest first."""
+    seen: dict[str, int] = {}
+    for row in rows:
         base = fingerprint(row.on, row.isin, row.ticker, row.name, row.units, row.price, 0)
         occurrence = seen.get(base, 0)
         seen[base] = occurrence + 1
         row.ref = fingerprint(row.on, row.isin, row.ticker, row.name, row.units, row.price, occurrence)
-        rows.append(row)
-    if not rows:
-        raise transfer.TableError(_("Nessuna operazione di compravendita trovata nel file."))
     holdings = Holding.query.all()
     known = {ref for (ref,) in Transaction.query.with_entities(Transaction.import_ref)
              .filter(Transaction.import_ref.in_([r.ref for r in rows]))}
@@ -186,7 +223,7 @@ def read(filename: str, raw: bytes) -> Preview:
         row.holding_id = _match(row, holdings)
         row.duplicate = row.ref in known
     rows.sort(key=lambda r: (r.on, r.line))  # oldest first: a sale finds the units bought before it
-    return Preview(rows, unread, layout)
+    return Preview(rows, unread, layout, headers or [], cols or {})
 
 
 def guess_class(name: str) -> str:

@@ -78,9 +78,9 @@ def irpef_rates(year: int) -> tuple[Decimal, ...]:
 REGIMES = {"amministrato": N_("Amministrato: il broker calcola e versa le imposte"),
            "dichiarativo": N_("Dichiarativo: plusvalenze in dichiarazione (quadro RT)")}
 
-MARKET_CLASSES = ("Azione", "ETF", "Fondo", "Obbligazione", "Criptovaluta")
+MARKET_CLASSES = ("Azione", "ETF", "Fondo comune", "Fondo assicurativo", "Obbligazione", "Criptovaluta")
 CRYPTO = "Criptovaluta"
-FUND_CLASSES = ("ETF", "Fondo")  # their gains are redditi di capitale: not offset by past losses
+FUND_CLASSES = ("ETF", "Fondo comune", "Fondo assicurativo")  # their gains are redditi di capitale: not offset by past losses
 GOVERNMENT_BOND_RATE = D("12.5")
 GOVERNMENT_BOND_WEIGHT = D("0.4808")  # a loss offsets gains taxed at 12,5% for 48,08% of its amount
 LOSS_YEARS = 4  # a loss can be used until 31 December of the fourth following year

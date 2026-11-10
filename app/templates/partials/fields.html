@@ -3,43 +3,46 @@
   `values` is the submitted form after a validation error (so nothing typed is lost), otherwise {}.
   `current` is the stored value when editing.
 #}
+{% from "partials/info.html" import info %}
+{# A field's note goes in the «i» next to its label (a tooltip), never as text under the box #}
+{% macro label_of(name, label, required=false, hint=none) -%}
+  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}{% if hint %} {{ info(hint, label) }}{% endif %}</label>
+{%- endmacro %}
+
 {% macro value_of(values, name, current) -%}
   {{ values[name] if values and name in values else ('' if current is none or current is undefined else current) }}
 {%- endmacro %}
 
 {% macro text(values, name, label, current=none, required=false, placeholder='', hint=none, type='text') %}
 <div class="form-group">
-  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}</label>
+  {{ label_of(name, label, required, hint) }}
   <input type="{{ type }}" id="f-{{ name }}" name="{{ name }}" class="form-control" placeholder="{{ placeholder }}"
          value="{{ value_of(values, name, current) }}" {{ 'required' if required }} />
-  {% if hint %}<div class="form-hint">{{ hint }}</div>{% endif %}
 </div>
 {% endmacro %}
 
 {% macro number(values, name, label, current=none, required=false, placeholder='0', hint=none) %}
 <div class="form-group">
-  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}</label>
+  {{ label_of(name, label, required, hint) }}
   <input type="text" inputmode="decimal" id="f-{{ name }}" name="{{ name }}" class="form-control"
          placeholder="{{ placeholder }}" value="{{ value_of(values, name, current|plain) }}"
          {{ 'required' if required }} autocomplete="off" />
-  {% if hint %}<div class="form-hint">{{ hint }}</div>{% endif %}
 </div>
 {% endmacro %}
 
 {% macro date(values, name, label, current=none, required=false, hint=none) %}
 <div class="form-group">
-  <label class="form-label" for="f-{{ name }}">{{ label }}{% if required %} *{% endif %}</label>
+  {{ label_of(name, label, required, hint) }}
   <input type="date" id="f-{{ name }}" name="{{ name }}" class="form-control"
          value="{{ value_of(values, name, current.isoformat() if current else none) }}" {{ 'required' if required }} />
-  {% if hint %}<div class="form-hint">{{ hint }}</div>{% endif %}
 </div>
 {% endmacro %}
 
-{% macro select(values, name, label, options, current=none, blank=none) %}
+{% macro select(values, name, label, options, current=none, blank=none, hint=none) %}
 {# options: a list of values, or of (value, label) pairs #}
 {% set chosen = values[name] if values and name in values else current %}
 <div class="form-group">
-  <label class="form-label" for="f-{{ name }}">{{ label }}</label>
+  {{ label_of(name, label, hint=hint) }}
   <select id="f-{{ name }}" name="{{ name }}" class="form-select">
     {% if blank is not none %}<option value="">{{ blank }}</option>{% endif %}
     {% for option in options %}

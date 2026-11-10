@@ -58,6 +58,9 @@ WIDGETS = {
     "savings_trend": (_l("Tasso di risparmio mese per mese"), 2, "dashboard_savings_trend"),
     "recent":        (_l("Ultime transazioni"), 2, "dashboard_recent_tx"),
     "health":        (_l("Salute finanziaria"), 1, "dashboard_health"),
+    # F48 (D13): the investments in short, next to the full overview in the Portfolio
+    "investments":       (_l("Investimenti in breve"), 1, "dashboard_portfolio_blocks"),
+    "investments_trend": (_l("Investimenti: valore e versato"), 2, "dashboard_portfolio_blocks"),
 }
 LAYOUT_SETTING = "dashboard.layout"
 SPANS = (1, 2, 3)

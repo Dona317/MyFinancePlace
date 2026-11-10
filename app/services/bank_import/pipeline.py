@@ -174,7 +174,7 @@ def preview_from_mapping(headers: list[str], rows: list[dict], mapping: dict, fi
     _apply_file_overrides(parsed, extras)
     order = sorted(range(len(parsed)), key=lambda i: parsed[i].date)
     return StatementPreview(bank=BANKS["generic"], rows=[parsed[i] for i in order], pending_skipped=0,
-                            notes=checked.notes, unread=unread)
+                            notes=checked.notes, unread=unread, mapping=columns)
 
 
 def text_for_ai(filename: str, raw: bytes) -> str | None:

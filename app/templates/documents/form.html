@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Modifica Documento') }}{% endblock %}
 
 {% block breadcrumb %}<li><a href="{{ url_for('documents.index') }}">{{ _('Documenti') }}</a></li><li>{{ _('Modifica') }}</li>{% endblock %}
@@ -27,7 +28,8 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label" for="f-tx">{{ _('Transazione collegata') }}</label>
+          {% set tx_hint = _("Le transazioni del %(year)s: cambia l'anno fiscale e salva per vederne altre.", year=document.fiscal_year) if document.fiscal_year else _("Le 300 transazioni più recenti: cambia l'anno fiscale e salva per vederne altre.") %}
+          <label class="form-label" for="f-tx">{{ _('Transazione collegata') }} {{ info(tx_hint, _('Transazione collegata')) }}</label>
           <select id="f-tx" name="transaction_id" class="form-select">
             <option value="">{{ _('— nessuna —') }}</option>
             {% for tx in transactions %}
@@ -36,9 +38,6 @@
             </option>
             {% endfor %}
           </select>
-          <div class="form-hint">
-            {% if document.fiscal_year %}{{ _("Le transazioni del %(year)s: cambia l'anno fiscale e salva per vederne altre.", year=document.fiscal_year) }}{% else %}{{ _("Le 300 transazioni più recenti: cambia l'anno fiscale e salva per vederne altre.") }}{% endif %}
-          </div>
         </div>
         <div class="grid-3">
           {{ f.text({}, 'subject', _('Che cosa'), document.subject, placeholder=_('es. lavatrice Bosch, carta d’identità di Anna')) }}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Fonti dei prezzi') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Fonti dei prezzi') }}</li>{% endblock %}
 
@@ -9,13 +10,11 @@
   <div class="form-group"><label class="form-label" for="{{ prefix }}-format">{{ _('Formato') }}</label>
     <select id="{{ prefix }}-format" name="format" class="form-select">{% for f in formats %}<option value="{{ f }}" {{ 'selected' if s and s.format == f }}>{{ f|upper }}</option>{% endfor %}</select></div>
 </div>
-<div class="form-group"><label class="form-label" for="{{ prefix }}-url">{{ _('Indirizzo') }}</label>
-  <input type="url" id="{{ prefix }}-url" name="url" class="form-control" required value="{{ s.url if s else '' }}" placeholder="https://esempio.it/api/quote?isin={ISIN}" />
-  <div class="form-hint">{{ _('{ISIN} e {TICKER} diventano i codici del titolo, {DATA} la data di oggi (AAAA-MM-GG).') }}</div></div>
+<div class="form-group"><label class="form-label" for="{{ prefix }}-url">{{ _('Indirizzo') }} {{ info(_('{ISIN} e {TICKER} diventano i codici del titolo, {DATA} la data di oggi (AAAA-MM-GG).'), _('Indirizzo')) }}</label>
+  <input type="url" id="{{ prefix }}-url" name="url" class="form-control" required value="{{ s.url if s else '' }}" placeholder="https://esempio.it/api/quote?isin={ISIN}" /></div>
 <div class="grid-2" style="gap:12px;">
-  <div class="form-group"><label class="form-label" for="{{ prefix }}-path">{{ _('Dove leggere il prezzo') }}</label>
-    <input type="text" id="{{ prefix }}-path" name="path" class="form-control" required value="{{ s.path if s else '' }}" placeholder="data.price" />
-    <div class="form-hint">{{ _('JSON: chiavi e posizioni separate da punti (data.quotes.0.nav). HTML: l’etichetta prima del prezzo, oppure «re:» e un’espressione regolare con il prezzo nel primo gruppo. CSV: nome o numero della colonna (si legge l’ultima riga).') }}</div></div>
+  <div class="form-group"><label class="form-label" for="{{ prefix }}-path">{{ _('Dove leggere il prezzo') }} {{ info(_('JSON: chiavi e posizioni separate da punti (data.quotes.0.nav). HTML: l’etichetta prima del prezzo, oppure «re:» e un’espressione regolare con il prezzo nel primo gruppo. CSV: nome o numero della colonna (si legge l’ultima riga).'), _('Dove leggere il prezzo')) }}</label>
+    <input type="text" id="{{ prefix }}-path" name="path" class="form-control" required value="{{ s.path if s else '' }}" placeholder="data.price" /></div>
   <div class="form-group"><label class="form-label" for="{{ prefix }}-date">{{ _('Dove leggere la data (solo JSON, facoltativo)') }}</label>
     <input type="text" id="{{ prefix }}-date" name="date_path" class="form-control" value="{{ s.date_path if s else '' }}" placeholder="data.date" /></div>
   <div class="form-group"><label class="form-label" for="{{ prefix }}-currency">{{ _('Valuta') }}</label>

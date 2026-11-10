@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Ribilanciamento') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Ribilanciamento') }}</li>{% endblock %}
 
@@ -22,21 +24,42 @@
   </div>
   <div class="card-body">
     <form method="GET" style="display:flex;flex-wrap:wrap;gap:16px;align-items:end;">
+      {% if scopes|length > 1 or folio_id %}
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="portfolio">{{ _('Portafoglio') }}</label>
+        <select name="portfolio" id="portfolio" class="form-select" onchange="this.form.submit()">
+          {% for id, name in scopes %}<option value="{{ id or '' }}" {{ 'selected' if id == folio_id }}>{{ name }}</option>{% endfor %}
+        </select>
+      </div>
+      {% endif %}
       <div class="form-group" style="margin:0;">
         <label class="form-label" for="mode">{{ _('Modalità') }}</label>
         <select name="mode" id="mode" class="form-select">
           <option value="new" {{ 'selected' if plan.mode == 'new' else '' }}>{{ _('Solo con nuovi versamenti (solo acquisti)') }}</option>
           <option value="full" {{ 'selected' if plan.mode == 'full' else '' }}>{{ _('Completo (acquisti e vendite)') }}</option>
+          <option value="min" {{ 'selected' if plan.mode == 'min' else '' }}>{{ _('Versamento minimo per tornare in linea senza vendere') }}</option>
+          <option value="withdraw" {{ 'selected' if plan.mode == 'withdraw' else '' }}>{{ _('Prelievo con ribilanciamento (solo vendite)') }}</option>
         </select>
       </div>
       <div class="form-group" style="margin:0;">
-        <label class="form-label" for="amount">{{ _('Importo da investire (€)') }}</label>
+        <label class="form-label" for="amount">{{ _('Importo da prelevare (€)') if plan.mode == 'withdraw' else _('Importo da investire (€)') }}</label>
         <input type="text" inputmode="decimal" name="amount" id="amount" class="form-control" value="{{ ('%.2f'|format(plan.amount)).replace('.', ',') if plan.amount else '' }}" placeholder="0,00" />
       </div>
       <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> {{ _('Calcola') }}</button>
     </form>
   </div>
 </div>
+
+{% if bands.labels %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <div class="card-header-title">{{ _('Peso attuale e obiettivo') }} {{ info(_('Per ogni parte: la barra è il peso di oggi, il trattino verticale l\'obiettivo e la fascia chiara la tolleranza (obiettivo ± %(band)s punti). Una barra rossa è fuori dalla tolleranza.', band=plan.template.band|number(2))) }}</div>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:{{ 70 + 38 * bands.labels|length }}px;"><canvas id="targetBandChart"></canvas></div>
+  </div>
+</div>
+{% endif %}
 
 <div class="card">
   <div class="table-wrapper">
@@ -49,6 +72,7 @@
           <th class="text-right">{{ _('Obiettivo') }}</th>
           <th class="text-right">{{ _('Scostamento') }}</th>
           <th class="text-right">{{ _('Da comprare / vendere') }}</th>
+          <th class="text-right">{{ _('Tassa stimata') }} {{ info(_('Sulle vendite in guadagno: (prezzo − prezzo medio) × quote × aliquota (26 %%, 12,5 %% sui titoli di Stato). È una stima: la banca usa il costo medio del conto titoli e compensa le minusvalenze.')) }}</th>
           <th>{{ _('Con') }}</th>
         </tr>
       </thead>
@@ -64,15 +88,39 @@
           <td class="text-right nowrap {{ 'text-positive' if line.move > 0 else ('text-negative' if line.move < 0 else '') }}">
             {% if line.move > 0 %}{{ _('Compra') }} {{ line.move|money }}{% elif line.move < 0 %}{{ _('Vendi') }} {{ (line.move|abs)|money }}{% else %}—{% endif %}
             {% if line.units %}<div class="text-xs text-muted">{{ _('%(units)s quote', units=(line.units|abs)|number(4)) }}</div>{% endif %}</td>
-          <td class="text-sm">{% if line.move and line.via %}<a href="{{ url_for('portfolio.operation', holding_id=line.via.id) }}">{{ line.via.name }}</a>
+          <td class="text-right nowrap">{{ line.tax|money if line.tax else '' }}</td>
+          <td class="text-sm">{% if line.move < 0 and line.holdings|length > 1 %}{{ _('Da più titoli (%(count)s): vedi gli ordini', count=line.holdings|length) }}
+            {% elif line.move and line.via %}<a href="{{ url_for('portfolio.operation', holding_id=line.via.id) }}">{{ line.via.name }}</a>
             {% elif line.move and line.suggestion %}{{ _('es. %(ticker)s', ticker=line.suggestion) }}{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  {% if plan.mode == 'min' %}
+  <div class="card-body text-sm"><i class="bi bi-piggy-bank"></i> {{ _('Per tornare sugli obiettivi comprando e basta servono almeno %(amount)s.', amount=plan.minimum|money) }}</div>
+  {% endif %}
+  {% if plan.tax %}
+  <div class="card-body text-sm"><i class="bi bi-receipt"></i> {{ _('Tasse stimate sulle vendite: %(amount)s.', amount=plan.tax|money) }}</div>
+  {% endif %}
+  {% if plan.lines|selectattr('move')|selectattr('via')|list %}
+  <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;">
+    {{ info(_('Esegui gli ordini dal tuo broker, poi conferma quote, prezzi e commissioni reali: diventano acquisti e vendite.')) }}
+    <a href="{{ url_for('portfolio.rebalance_orders', mode=plan.mode, amount=request.args.get('amount', ''), portfolio=folio_id) }}" class="btn btn-primary"><i class="bi bi-list-check"></i> {{ _('Prepara gli ordini') }}</a>
+  </div>
+  {% endif %}
   {% if plan.mode == 'new' and not plan.amount %}
   <div class="card-body text-sm text-muted">{{ _('Indica quanto vuoi investire: verrà diviso tra le parti più sotto il loro obiettivo.') }}</div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if bands.labels %}
+<script>
+makeTargetBandChart('targetBandChart', {{ bands|tojson }}, {
+  weight: {{ _('Peso attuale')|tojson }}, target: {{ _('Obiettivo')|tojson }}, band: {{ _('Tolleranza')|tojson }}
+});
+</script>
+{% endif %}
 {% endblock %}

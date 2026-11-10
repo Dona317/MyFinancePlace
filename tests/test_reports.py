@@ -86,3 +86,13 @@ def test_csv_has_the_listed_transactions(client, db):
 def test_sidebar_link(client, db):
     html = client.get("/reports/").get_data(as_text=True)
     assert 'href="/reports/"' in html and "nav-item active" in html.split('href="/reports/"')[1][:80]
+
+
+def test_cash_flow_shows_the_previous_period_dashed(client, db):
+    db.session.add_all([make_tx(date=date(2025, 11, 10), description="Spesa nov", amount=40),
+                        make_tx(date=date(2025, 12, 10), description="Spesa dic", amount=60),
+                        make_tx(date=date(2026, 1, 10), description="Spesa gen", amount=70)])
+    db.session.commit()
+    page = client.get("/reports/?tab=cashflow&period=custom&start=2026-01-01&end=2026-02-28").get_data(as_text=True)
+    # January and February against November and December, on the same positions
+    assert '"previous_expenses": [40.0, 60.0]' in page and "Uscite del periodo prima" in page and "11/2025" in page

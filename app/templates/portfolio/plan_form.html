@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ plan.name if plan else _("Nuovo piano d'accumulo") }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rules') }}">{{ _('Regole e PAC') }}</a></li><li>{{ _('PAC') }}</li>{% endblock %}
 
@@ -22,13 +23,12 @@
         <div class="grid-2">
           {{ f.number(values, 'day', _('Giorno del mese'), plan.day if plan else 1, placeholder='1') }}
           <div class="form-group">
-            <label class="form-label" for="f-account_id">{{ _('Conto del broker') }}</label>
+            <label class="form-label" for="f-account_id">{{ _('Conto del broker') }} {{ info(_('Le commissioni si calcolano con la regola del conto.'), _('Conto del broker')) }}</label>
             {% set chosen = values.account_id if 'account_id' in values else (plan.account_id if plan else '') %}
             <select id="f-account_id" name="account_id" class="form-select">
               <option value="">{{ _('— nessun conto —') }}</option>
               {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id|string == chosen|string }}>{{ a.name }}</option>{% endfor %}
             </select>
-            <div class="form-hint">{{ _('Le commissioni si calcolano con la regola del conto.') }}</div>
           </div>
         </div>
         <div class="form-group">

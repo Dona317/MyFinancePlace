@@ -1526,6 +1526,8 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .star-btn:hover { color: var(--clr-warning); }
 /* the favourite: a full white star */
 .star-btn.on, .star-btn.on:hover { color: #fff; }
+/* on a plain table row (the default portfolio, F42): a full gold star */
+.star-btn.on.star-gold, .star-btn.on.star-gold:hover { color: var(--clr-warning); }
 .account-codes { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 2px; }
 .account-codes > span { display: inline-flex; align-items: center; gap: 4px; }
 .copy-btn { border: none; background: none; color: var(--clr-text-muted); cursor: pointer; padding: 0 2px; font-size: 12px; line-height: 1; }
@@ -1911,6 +1913,24 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .fc-editing .fc-widget { outline: 1px dashed color-mix(in srgb, var(--clr-primary) 55%, transparent); outline-offset: 3px; border-radius: 10px; }
 /* a page with a box in the middle of the top bar (the dashboard period): the actions take the rest of the bar */
 .topbar-actions:has(.dash-period-box) { flex: 1; min-width: 0; }
+/* a window narrower than the bar: «Periodo», the presets and «Modifica» go into a menu opened by the hamburger on the right */
+.topbar-menu-btn { display: none; }
+.topbar-tools { display: contents; }
+@media (max-width: 1200px) {
+  .topbar-actions:has(.dash-period-box) { position: relative; flex: 0 0 auto; }
+  .topbar-menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0;
+    border: 1px solid var(--clr-border); border-radius: var(--border-radius); background: var(--clr-bg-card); color: var(--clr-text-primary); cursor: pointer; }
+  .topbar-menu-btn[aria-expanded="true"] { border-color: var(--clr-primary); color: var(--clr-primary); }
+  .topbar-tools { display: none; position: absolute; top: calc(100% + 8px); right: 0; z-index: 1000; width: max-content; max-width: min(92vw, 560px);
+    flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; border: 1px solid var(--clr-border); border-radius: var(--border-radius);
+    background: var(--clr-bg-card); box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, .25)); }
+  .topbar-tools.is-open { display: flex; }
+  .topbar-tools .dash-center { flex-direction: column; align-items: stretch; gap: 10px; min-width: 0; }
+  .topbar-tools .dash-center::before { display: none; }
+  .topbar-tools .dash-presets { flex-wrap: wrap; justify-content: flex-start; }
+  .topbar-tools .topbar-right-actions { justify-content: flex-end; }
+  .topbar-tools .dash-period-word, .topbar-tools .preset-save-word { display: inline; }
+}
 .topbar:has(.dash-period-box) .topbar-title { flex: 0 1 auto; }
 .kpi-strip { grid-auto-columns: minmax(230px, 1fr); }
 /* Contabilità: the tabs are links, the one of the page is the selected one */
@@ -2093,7 +2113,7 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 .preset-btn.is-active { background: var(--clr-primary); border-color: var(--clr-primary); color: var(--clr-on-primary); }
 .preset-name-input { width: 110px; border: 0; padding: 0; background: transparent; color: inherit; font: inherit; outline: none; }
 .preset-save[hidden] { display: none; }
-.dash-presets .preset-btn { padding: 4px 9px; max-width: 110px; }
+.dash-presets .preset-btn { padding: 4px 9px; max-width: 110px; min-width: 0; flex: 0 1 auto; }
 /* a narrower window: the words «Periodo» and «Salva preset» go (the icons and the «i» stay), so the presets stay on
    the same line as the period */
 @media (max-width: 1600px) {
@@ -2258,3 +2278,6 @@ details.card:not([open]) > summary.card-header { border-bottom: 0; }  /* a close
 @media (prefers-reduced-motion: reduce) {
   .tx-panel.tx-panel-ready, .tx-pill-chevron { transition: none; }
 }
+/* Deadlines: «Aggiungi a Google Calendar» at the end of each line, quiet until hovered */
+.deadline-gcal { margin-left: 6px; color: var(--clr-text-muted); opacity: .6; }
+.deadline-gcal:hover, .deadline-gcal:focus-visible { color: var(--clr-primary); opacity: 1; }

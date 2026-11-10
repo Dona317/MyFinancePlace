@@ -76,7 +76,7 @@ def test_isin_only_finds_its_ticker_and_the_first_year_of_prices(app, db, web): 
 def test_isin_not_found(app, db, web):  # noqa: F811
     answers, _ = web
     answers["search?q="] = _search()
-    fund = Holding(name="Fondo", isin="LU0000000000", asset_class="Fondo", quantity=1, avg_price=10)
+    fund = Holding(name="Fondo", isin="LU0000000000", asset_class="Fondo comune", quantity=1, avg_price=10)
     db.session.add(fund)
     db.session.commit()
     with app.test_request_context():

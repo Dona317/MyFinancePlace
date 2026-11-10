@@ -18,7 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.services import request_cache
-from app.services.categories import FALLBACK
+from app.services.categories import BROAD_FALLBACK, FALLBACK
 from app.services.duplicates import meaningful_words
 
 MIN_EXAMPLES = 2       # a word seen once is an anecdote, not a habit
@@ -26,7 +26,7 @@ MIN_SHARE = 0.75       # the winning category must hold three quarters of the ev
 SURE_SHARE = 0.95
 TOO_COMMON = 0.25      # words in more than a quarter of the history ("pagamento", a city) carry no signal…
 COMMON_FROM = 20       # …once there is enough history to tell
-IGNORED = ("", FALLBACK)
+IGNORED = ("", FALLBACK, BROAD_FALLBACK)  # the fallbacks teach nothing (earlier list and broad categories)
 
 
 @dataclass

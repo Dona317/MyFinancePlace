@@ -5,7 +5,9 @@ name: Desktop app
 # it also makes the zips that go into the GitHub Release.
 on:
   push:
-    branches: ["**"]  # a tag is built by release.yml
+    # Only the main branches (decided 9 Nov 2026: no automatic run on pull requests or feature branches);
+    # a tag is built by release.yml, any branch by hand with Run workflow.
+    branches: [test-Cloud, main]
   workflow_dispatch:
   workflow_call:
     inputs:

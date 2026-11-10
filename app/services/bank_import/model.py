@@ -88,6 +88,7 @@ class StatementPreview:
     unread: list[str] = field(default_factory=list)   # "Riga 7: data mancante" — rows of the file not read
     balance_check: BalanceCheck | None = None
     discarded: int = 0                       # AI rows dropped because the date/amount was invalid
+    mapping: dict | None = None              # the columns used, for a manually mapped file
 
     @property
     def new_rows(self) -> list[StatementRow]:

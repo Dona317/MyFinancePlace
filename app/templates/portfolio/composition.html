@@ -17,19 +17,24 @@
 
 {% block content %}
 {% set nav_active = 'composition' %}{% include "portfolio/_nav.html" %}
-<p class="text-sm text-muted mb-16">{{ _('Dove e in cosa investi: area geografica e settore si indicano nella scheda di ogni titolo (un ETF su tutto il mondo è «Globale» e «Diversificato»).') }}</p>
+{% from "partials/info.html" import info %}
+<p class="text-sm text-muted mb-16">{{ _('Dove e in cosa investi davvero: i fondi contano con la loro composizione (paesi, settori, valute, società) caricata nella scheda di ogni titolo; gli altri titoli con area e settore indicati a mano.') }}
+  {% if look.total %}{{ _('Il %(pct)s %% del valore ha la composizione dei fondi.', pct=look.covered_pct|number(1)) }}{% endif %}</p>
 <div class="grid-2">
-  {% for key, title in (('region', _('Per area geografica')), ('sector', _('Per settore'))) %}
+  {% for key, title, note in (
+       ('country', _('Per paese'), _('Primi 10 paesi, poi «Altri». I titoli senza composizione contano con l\'area geografica della loro scheda (o il paese dell\'ISIN per azioni e obbligazioni); «Non coperto» è il valore di cui non si sa nulla.')),
+       ('sector', _('Per settore'), _('Primi 10 settori, poi «Altri». Senza composizione vale il settore della scheda del titolo, o la sua classe di attivo per obbligazioni, liquidità, oro e simili.')),
+       ('currency', _('Per valuta'), _('La valuta dei titoli contenuti nei fondi; per azioni e obbligazioni senza composizione, la valuta in cui sono quotate. Un ETF con il cambio coperto resta esposto alla valuta dei titoli qui, non nel rischio di cambio.'))) %}
   <div class="card">
-    <div class="card-header"><div class="card-header-title">{{ title }}</div></div>
+    <div class="card-header"><div class="card-header-title">{{ title }} {{ info(note) }}</div></div>
     <div class="card-body">
-      {% if exposure[key] %}
-      <div style="height:220px;"><canvas id="chart-{{ key }}"></canvas></div>
+      {% if look[key] %}
+      <div style="height:{{ 260 if key != 'currency' else 220 }}px;"><canvas id="chart-{{ key }}"></canvas></div>
       <table class="table-compact" style="margin-top:12px;">
         <tbody>
-          {% for name, value, pct in exposure[key] %}
-          <tr><td>{{ name|tr }}{% if name == unset %} <i class="bi bi-info-circle text-muted" title="{{ _('Indicalo nella scheda del titolo') }}"></i>{% endif %}</td>
-            <td class="text-right nowrap">{{ value|money }}</td><td class="text-right nowrap">{{ pct|number(1) }} %</td></tr>
+          {% for row in look[key] %}
+          <tr><td>{{ row.name }}{% if row.uncovered %} {{ info(_('Carica la composizione dei fondi, o indica area e settore, nella scheda del titolo.')) }}{% endif %}</td>
+            <td class="text-right nowrap">{{ row.value|money }}</td><td class="text-right nowrap">{{ row.pct|number(1) }} %</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -55,14 +60,55 @@
   </div>
   {% endfor %}
 </div>
+
+<div class="card mt-16">
+  <div class="card-header"><div class="card-header-title">{{ _('Prime 20 società') }}
+    {{ info(_('Le società che possiedi attraverso i fondi (le prime 25 di ogni fondo) e direttamente con le azioni: la quota è sul valore di tutto il portafoglio.')) }}</div></div>
+  {% if look.companies %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Società') }}</th><th class="text-right">{{ _('Valore') }}</th><th class="text-right">{{ _('Quota') }}</th><th>{{ _('Tramite') }}</th></tr></thead>
+      <tbody>
+        {% for c in look.companies %}
+        <tr><td>{{ c.name }}</td><td class="text-right nowrap">{{ c.value|money }}</td><td class="text-right nowrap">{{ c.pct|number(2) }} %</td>
+          <td class="text-sm">{% for name, weight in c.via %}{{ name }} ({{ weight|number(2) }} %){{ ', ' if not loop.last }}{% endfor %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="card-body text-muted">{{ _('Nessuna società: carica la composizione dei fondi nella scheda di ogni titolo.') }}</div>{% endif %}
+</div>
+
+<div class="card mt-16">
+  <div class="card-header"><div class="card-header-title">{{ _('Sovrapposizione tra fondi') }}
+    {{ info(_('Quanto due fondi contengono le stesse società: la somma, sulle società in comune, del peso più piccolo dei due. Si calcola sulle prime 25 società di ogni fondo, quindi è una stima per difetto.')) }}</div></div>
+  {% if look.overlaps %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Fondo') }}</th><th>{{ _('Fondo') }}</th><th class="text-right">{{ _('Società in comune') }}</th><th class="text-right">{{ _('Sovrapposizione') }}</th></tr></thead>
+      <tbody>
+        {% for p in look.overlaps %}
+        <tr><td><a href="{{ url_for('portfolio.detail', holding_id=p.a.id) }}">{{ p.a.name }}</a></td>
+          <td><a href="{{ url_for('portfolio.detail', holding_id=p.b.id) }}">{{ p.b.name }}</a></td>
+          <td class="text-right">{{ p.common }}</td><td class="text-right nowrap">{{ p.overlap|number(1) }} %</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="card-body text-muted">{{ _('Nessuna sovrapposizione: servono almeno due fondi con le società in comune.') }}</div>{% endif %}
+</div>
 <p class="text-sm text-muted mt-16"><a href="{{ url_for('settings.taxonomies_page') }}"><i class="bi bi-tags"></i> {{ _('Le tue classificazioni (rischio, tema, ESG…)') }}</a></p>
 {% endblock %}
 
 {% block scripts %}
 <script>
-{% for key in ('region', 'sector') %}{% if exposure[key] %}
-makeDoughnutChart('chart-{{ key }}', {{ exposure[key]|map(attribute=0)|map('tr')|list|tojson }}, {{ exposure[key]|map(attribute=1)|list|tojson }});
+{% for key in ('country', 'sector') %}{% if look[key] %}
+makeBarChart('chart-{{ key }}', {{ look[key]|map(attribute='name')|list|tojson }},
+             [{ label: {{ _('Quota (%%)')|tojson }}, data: {{ look[key]|map(attribute='pct')|list|tojson }}, palette: true }], { horizontal: true });
 {% endif %}{% endfor %}
+{% if look.currency %}
+makeDoughnutChart('chart-currency', {{ look.currency|map(attribute='name')|list|tojson }}, {{ look.currency|map(attribute='value')|list|tojson }});
+{% endif %}
 {% for t, rows in own %}{% if rows %}
 makeDoughnutChart('chart-t{{ t.id }}', {{ rows|map(attribute=0)|map('tr')|list|tojson }}, {{ rows|map(attribute=1)|list|tojson }});
 {% endif %}{% endfor %}

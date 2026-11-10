@@ -15,7 +15,7 @@ SITE = "borsaitaliana"
 ROOT = "https://www.borsaitaliana.it"
 SEARCH = ROOT + "/borsa/ricerca/risultati.html?q={isin}&lang=it"
 MARKETS = (("/obbligazioni/", "Obbligazione"), ("/etf/", "ETF"), ("/etc-etn/", "ETF"), ("/azioni/", "Azione"),
-           ("/cw/", "Derivato"), ("/certificati/", "Derivato"), ("/sedex/", "Derivato"), ("/fondi/", "Fondo"))
+           ("/cw/", "Derivato"), ("/certificati/", "Derivato"), ("/sedex/", "Derivato"), ("/fondi/", "Fondo comune"))
 PRICE_LABELS = ("Prezzo ultimo contratto", "Ultimo Prezzo", "Prezzo di riferimento", "Prezzo ufficiale")
 DATE_LABELS = ("Data - Ora Ultimo Contratto", "Data Ultimo Contratto", "Data e ora", "Data")
 

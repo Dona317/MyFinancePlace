@@ -58,3 +58,12 @@ def test_the_suggested_tags_are_edited_with_the_category(client, db):
                                                    "tags": "Fotografia, modellismo, Fotografia"})
     assert Category.query.filter_by(name="Hobby").one().tags == ["Fotografia", "modellismo"]
     assert 'data-category-tags=' in client.get("/transactions/new").get_data(as_text=True)
+
+
+def test_deleting_a_category_offers_the_fallback_of_the_archive(client, db):
+    categories.ensure_defaults()
+    add(db, description="Corso di ceramica", category="Hobby")
+    html = client.get("/settings/categories").get_data(as_text=True)
+    assert 'name="replacement" value="Imprevisti o altro"' in html and 'name="replacement" value="Altro"' not in html
+    client.post("/settings/categories/delete", data={"name": "Hobby", "replacement": "Imprevisti o altro"})
+    assert Transaction.query.one().category == "Imprevisti o altro"

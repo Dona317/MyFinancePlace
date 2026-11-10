@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Importa operazioni dal broker') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Importa dal broker') }}</li>{% endblock %}
 
@@ -25,6 +26,49 @@
         {{ _('Altri broker: un CSV o Excel con le colonne data, ISIN o ticker, nome, quantità e prezzo (facoltative: commissioni, tipo acquisto/vendita, controvalore).') }}
         {{ _('Lo stesso file importato due volte non crea doppioni.') }}
       </p>
+    </div>
+  </div>
+
+  <div class="card" id="ai-reading" style="margin-top:16px;">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Leggi un documento con l\'AI') }} {{ info(_('Un PDF, una foto o un documento del broker letto dal modello AI, come per le transazioni. Le operazioni lette, o ricavate dallo stato attuale, vanno nella stessa anteprima: niente viene salvato prima della conferma.')) }}</div>
+        <div class="card-header-sub">{{ _('Conferme d\'ordine, elenchi di operazioni, estratti conto titoli o schermate dell\'app.') }}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      {% if ai %}
+      <form method="POST" action="{{ url_for('portfolio.broker_ai') }}" enctype="multipart/form-data"
+            {% if ai_cloud %}data-confirm="{{ _('Il documento verrà inviato ad Anthropic (cloud) per la lettura. Continuare?') }}"{% endif %}>
+        <div class="form-group">
+          <label class="form-label" for="ai-file">{{ _('Documento') }}</label>
+          <input type="file" name="file" id="ai-file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.docx,.odt,.rtf" required />
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label"><input type="radio" name="mode" value="operations" checked /> {{ _('Operazioni') }} {{ info(_('Il documento elenca acquisti e vendite: ognuno diventa un\'operazione.')) }}</label>
+          <label class="checkbox-label"><input type="radio" name="mode" value="state" /> {{ _('Stato attuale') }} {{ info(_('Il documento mostra le posizioni di oggi: le quote in più rispetto a quelle registrate diventano acquisti, quelle in meno vendite, al prezzo del documento.')) }}</label>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="ai-dossier">{{ _('Conto titoli') }} {{ info(_('Per lo stato attuale: il conto titoli del documento, con cui confrontare le posizioni. Senza, il confronto è con tutte le posizioni.')) }}</label>
+            <select name="dossier_id" id="ai-dossier" class="form-select">
+              <option value="">{{ _('Tutti i conti titoli') }}</option>
+              {% for d in dossiers %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ai-on">{{ _('Data dello stato') }} {{ info(_('Il giorno delle operazioni ricavate: vuoto, la data scritta nel documento o oggi.')) }}</label>
+            <input type="date" name="on" id="ai-on" class="form-control" max="{{ today.isoformat() }}" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label"><input type="checkbox" name="complete" value="1" class="check" /> {{ _('Il documento mostra tutte le posizioni') }} {{ info(_('Un titolo registrato che nel documento non c\'è più viene venduto per intero, al suo ultimo prezzo.')) }}</label>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-stars"></i> {{ _('Leggi con AI') }}</button>
+      </form>
+      {% else %}
+      <p class="text-muted">{{ _('La lettura con AI non è configurata: scegli un modello in Impostazioni → Modelli AI.') }}</p>
+      {% endif %}
     </div>
   </div>
 </div>

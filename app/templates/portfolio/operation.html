@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Nuova operazione') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Operazione') }}</li>{% endblock %}
 
@@ -9,7 +10,7 @@
     <div class="card-header">
       <div>
         <div class="card-header-title">{{ holding.name }}</div>
-        <div class="card-header-sub">{{ _('Hai %(units)s quote, prezzo medio %(price)s, ultimo prezzo %(last)s.', units=holding.quantity|number(4), price=holding.avg_price|money, last=holding.price|money) }}</div>
+        <div class="card-header-sub">{{ _('Hai %(units)s quote, prezzo medio %(price)s, ultimo prezzo %(last)s.', units=holding.quantity|number(4), price=holding.avg_price|money, last=holding.price|money) }}{% if positions|length > 1 %}{% set where %}{{ _('Dove le hai:') }} {% for p in positions %}{{ p.quantity|number(4) }} {{ _('in') }} {{ dossiers|selectattr(0, 'equalto', p.securities_account_id)|map(attribute=1)|first|default(_('nessun conto titoli')) }} · {{ folios|selectattr(0, 'equalto', p.portfolio_id)|map(attribute=1)|first|default('—') }}{{ '; ' if not loop.last }}{% endfor %}{% endset %} {{ info(where, _('Dove le hai:')) }}{% endif %}</div>
       </div>
     </div>
     <div class="card-body">
@@ -32,6 +33,10 @@
             {{ f.number(values, 'fee', _('Commissione (€)'), none, placeholder='0,00',
                         hint=_('Calcolata dalla regola del conto, se ne ha una; correggila se serve.')) }}
           </div>
+        </div>
+        <div class="grid-2">
+          {{ f.select(values, 'securities_account_id', _('Conto titoli'), dossiers, none, blank=_('— quello del conto scelto —')) }}
+          {{ f.select(values, 'portfolio_id', _('Portafoglio'), folios, default_folio) }}
         </div>
         {{ f.textarea(values, 'notes', _('Note'), none) }}
         {{ f.actions(url_for('portfolio.detail', holding_id=holding.id), _('Salva operazione')) }}
@@ -62,6 +67,11 @@
       field('fee').value = gross ? fee.toFixed(2).replace('.', ',') : '';
     }
   }
+  const dossierOf = {{ dossier_of|tojson }};
+  field('account_id').addEventListener('change', () => {
+    const match = Object.keys(dossierOf).find(id => String(dossierOf[id]) === field('account_id').value);
+    if (match && !field('securities_account_id').value) field('securities_account_id').value = match;
+  });
   form.addEventListener('input', update);
   form.addEventListener('change', update);
   update();

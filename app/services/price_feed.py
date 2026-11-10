@@ -39,13 +39,13 @@ YAHOO_SEARCH = "https://query2.finance.yahoo.com/v1/finance/search?q={query}&quo
 STOOQ = "https://stooq.com/q/l/?s={symbol}&f=sd2t2ohlcv&h&e=csv"
 COINGECKO = "https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=eur&include_last_updated_at=true"
 CRYPTO_CLASSES = ("Criptovaluta",)
-MARKET_CLASSES = ("ETF", "Azione", "Obbligazione", "Fondo", "Derivato")  # priced on an exchange; the rest by hand
+MARKET_CLASSES = ("ETF", "Azione", "Obbligazione", "Fondo comune", "Derivato")  # priced on an exchange; the rest by hand
 SOURCES = ("auto", "yahoo", "stooq", "coingecko", "justetf", "borsaitaliana", "morningstar", "manual")
 COINGECKO_IDS = {"BTC": "bitcoin", "ETH": "ethereum", "SOL": "solana", "ADA": "cardano", "XRP": "ripple",
                  "DOT": "polkadot", "DOGE": "dogecoin", "LTC": "litecoin", "BNB": "binancecoin", "USDT": "tether",
                  "USDC": "usd-coin", "MATIC": "matic-network", "AVAX": "avalanche-2", "LINK": "chainlink"}
 # Yahoo's kinds of instrument → our asset classes (indices and currencies are not something one holds)
-QUOTE_TYPES = {"EQUITY": "Azione", "ETF": "ETF", "MUTUALFUND": "Fondo", "BOND": "Obbligazione", "FUTURE": "Derivato",
+QUOTE_TYPES = {"EQUITY": "Azione", "ETF": "ETF", "MUTUALFUND": "Fondo comune", "BOND": "Obbligazione", "FUTURE": "Derivato",
                "OPTION": "Derivato", "CRYPTOCURRENCY": "Criptovaluta"}
 # Listings shown first when a search finds the same instrument on several exchanges: Milan, then the euro ones
 PREFERRED_EXCHANGES = ("MIL", "GER", "AMS", "PAR", "EBS", "LSE")
@@ -316,7 +316,7 @@ def _price_order(holding: Holding) -> list[str]:
     """Where its price is read, in order: the source chosen for it, or by its class among the sites switched on."""
     if (holding.price_source or "auto") != "auto":
         return [holding.price_source]  # also «custom:<name>», a source of the user's own (F22)
-    by_class = {"Obbligazione": ["borsaitaliana", "yahoo"], "Fondo": ["morningstar", "yahoo"],
+    by_class = {"Obbligazione": ["borsaitaliana", "yahoo"], "Fondo comune": ["morningstar", "yahoo"],
                 "ETF": ["yahoo", "justetf", "morningstar", "stooq"]}
     on = set(sources.chosen())
     return [s for s in by_class.get(holding.asset_class, ["yahoo", "stooq"]) if s == "stooq" or s in on]

@@ -126,7 +126,7 @@
   <div class="card mb-16">
     <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;">
       <label class="form-label" for="import-account" style="margin:0;"><i class="bi bi-bank"></i> {{ _('Conto da cui proviene l’estratto') }} <span class="text-negative">*</span> {{ info(_('Seleziona il conto a cui associare queste transazioni; il predefinito è segnato con ★.')) }}</label>
-      {% set required = accounts|rejectattr('kind', 'equalto', 'cash')|list %}
+      {% set required = accounts|rejectattr('kind', 'in', ['cash', 'debt'])|list %}
       <select id="import-account" name="account_id" class="form-select" style="width:auto;" {{ 'required' if required }}>
         <option value="" {{ 'disabled' if required }} {{ 'selected' if not suggested_account }}>{{ _('— Scegli il conto —') }}</option>
         {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == suggested_account }}>{{ '★ ' if a.favorite }}{{ a.name }}{{ ' · ' ~ (a.iban or a.account_number)|masked if a.iban or a.account_number }}</option>{% endfor %}
@@ -138,6 +138,22 @@
   <div class="alert alert-warning mb-16"><i class="bi bi-exclamation-triangle"></i>
     <span>{{ _('Nessun conto: crea prima i tuoi conti, così i movimenti vanno sul conto giusto e i giroconti tra i tuoi conti vengono riconosciuti.') }}
       <a href="{{ url_for('accounts.new') }}">{{ _('Crea un conto') }}</a></span></div>
+  {% endif %}
+
+  {% if mapped %}
+  <!-- The columns of a mapped file, saved under a name for the next files with the same layout -->
+  <div class="card mb-16" id="save-preset">
+    <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;">
+      {% if preset %}<span class="badge badge-primary"><i class="bi bi-bookmark-check"></i> {{ _('Preset «%(name)s» applicato', name=preset.name) }}</span>{% endif %}
+      <label class="form-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" name="save_preset" value="1" id="save-preset-check" {{ 'checked' if preset }} />
+        {{ _('Salva come preset') if not preset else _('Aggiorna il preset') }}
+        {{ info(_('Ricorda le colonne scelte e il conto: la prossima volta che carichi un file con le stesse colonne vengono applicati da soli. Li gestisci in Importa → Preset di importazione.')) }}
+      </label>
+      <input type="text" name="preset_name" class="form-control" style="width:auto;" maxlength="60"
+             value="{{ preset.name if preset else '' }}" placeholder="{{ _('es. Fineco carta') }}" aria-label="{{ _('Nome del preset') }}" />
+    </div>
+  </div>
   {% endif %}
 
   {% set transfers = preview.rows|selectattr('pairs_with')|list + preview.rows|rejectattr('pairs_with')|selectattr('own_account_id')|list %}
@@ -536,18 +552,22 @@ classifyButton?.addEventListener('click', async () => {
         counterparty.classList.add('ai-suggested');
       }
       // A first classification never makes things worse: a specific category is not replaced by
-      // "Altro", and an unsure suggestion only fills rows that have no real category yet
+      // the fallback ("Altro", or "Imprevisti o altro" with the broad categories), and an unsure suggestion only
+      // fills rows that have no real category yet
       const current = category.value.trim();
-      const hasCategory = current && current !== 'Altro';
-      if (hasCategory && current !== s.category && (s.category === 'Altro' || s.confidence === 'bassa')) {
+      const fallbacks = ['Altro', {{ fallback_category()|tojson }}];
+      const hasCategory = current && !fallbacks.includes(current);
+      if (hasCategory && current !== s.category && (fallbacks.includes(s.category) || s.confidence === 'bassa')) {
         kept++;
         continue;
       }
       category.value = s.category;
       category.dataset.aiValue = s.category;  // remembered: accepted unchanged → tagged "da confermare (AI)"
+      category.dataset.aiTag = s.tag || '';    // the detail of a broad category, saved with it when kept
       category.classList.add(s.confidence === 'bassa' ? 'ai-low' : 'ai-suggested');
       category.title = s.from_history ? {{ _("Dal tuo storico: come hai categorizzato transazioni simili")|tojson }}
         : s.confidence === 'bassa' ? {{ _("Suggerito dall'AI (poco sicuro)")|tojson }} : fmt({{ _("Suggerito dall'AI (confidenza %(level)s)", level='%(level)s')|tojson }}, {level: s.confidence});
+      if (s.tag) category.title += ' · ' + fmt({{ _('tag «%(tag)s»', tag='%(tag)s')|tojson }}, {tag: s.tag});
       applied++;
       if (s.confidence === 'bassa') unsure++;
     }
@@ -579,6 +599,13 @@ document.getElementById('preview-form').addEventListener('submit', () => {
       marker.name = `aicat-${row.dataset.index}`;
       marker.value = '1';
       row.appendChild(marker);
+      if (category.dataset.aiTag) {
+        const tag = document.createElement('input');
+        tag.type = 'hidden';
+        tag.name = `aitag-${row.dataset.index}`;
+        tag.value = category.dataset.aiTag;
+        row.appendChild(tag);
+      }
     }
   });
 });

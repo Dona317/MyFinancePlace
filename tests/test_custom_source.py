@@ -125,8 +125,8 @@ def test_daily_price_from_it(app, db, pages, monkeypatch):
     answers, _ = pages
     custom.save(_source(url="https://fondo.example/q?isin={ISIN}"))
     answers[f"https://fondo.example/q?isin={ISIN}"] = json.dumps({"data": [{"nav": "20.5"}]})
-    fund = Holding(name="Fondo X", asset_class="Fondo", isin=ISIN, quantity=10, avg_price=18, price_source="custom:Fondo")
-    gone = Holding(name="Fondo Y", asset_class="Fondo", isin=ISIN, quantity=1, avg_price=1, price_source="custom:Sparita")
+    fund = Holding(name="Fondo X", asset_class="Fondo comune", isin=ISIN, quantity=10, avg_price=18, price_source="custom:Fondo")
+    gone = Holding(name="Fondo Y", asset_class="Fondo comune", isin=ISIN, quantity=1, avg_price=1, price_source="custom:Sparita")
     db.session.add_all([fund, gone])
     db.session.commit()
     results = {r.holding.name: r for r in price_feed.update_all([fund, gone])}
@@ -149,7 +149,7 @@ def test_settings_page(app, client, db, pages, monkeypatch):
                                     follow_redirects=True).get_data(as_text=True)
     client.post("/settings/price-sources/custom", data=form)
     assert custom.get("Fondo") is not None
-    fund = Holding(name="F", asset_class="Fondo", quantity=1, avg_price=1, price_source="custom:Fondo")
+    fund = Holding(name="F", asset_class="Fondo comune", quantity=1, avg_price=1, price_source="custom:Fondo")
     db.session.add(fund)
     db.session.commit()
     assert 'value="custom:Fondo" selected' in client.get(f"/portfolio/{fund.id}/edit").get_data(as_text=True)

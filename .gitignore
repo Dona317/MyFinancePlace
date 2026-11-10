@@ -181,10 +181,13 @@ pyrightconfig.json
 .claude/worktrees/
 
 # Live test output (scripts/live/run.sh)
-scripts/live/out/
+scripts/live/out*/
 
 # Local editor and assistant settings (each machine its own)
 .claude/
 .vscode/
 # Coverage report of the local check (scripts/untested_functions.py)
 cov.json
+
+# Answers saved by scripts/check_price_sources.py (F69): kept on the PC, curated before any test uses them
+samples/price_sources/

@@ -4,6 +4,7 @@ statement photo and classification by keywords. No model involved, same answers 
 """
 
 import json
+import os
 import sys
 import time
 from datetime import date
@@ -14,21 +15,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "samples" / "bank_s
 import generate as g  # noqa: E402  (the sample generator: the photo shows these movements)
 
 INSTALLED = {"qwen2.5vl:7b": 6.0e9, "qwen3:1.7b": 1.4e9, "llama3.2:1b": 1.3e9}
-RULES = [
+RULES = [  # the broad default categories of a new archive (F32)
     (("esselunga", "conad", "lidl", "carrefour"), "Alimentari", "alta"),
     (("netflix", "spotify", "iliad"), "Abbonamenti", "alta"),
     (("stipendio",), "Stipendio", "alta"),
-    (("uber", "trenitalia", "eni station", "q8", "ryanair", "telepass", "atm milano"), "Trasporto", "alta"),
     (
-        ("starbucks", "bar centrale", "ristorante", "pizzeria", "deliveroo", "just eat", "cinema", "booking"),
-        "Svago",
-        "media",
+        ("uber", "trenitalia", "eni station", "q8", "ryanair", "telepass", "atm milano"),
+        "Trasporti e carburanti",
+        "alta",
     ),
+    (("starbucks", "bar centrale", "ristorante", "pizzeria", "deliveroo", "just eat"), "Alimentari", "media"),
+    (("cinema", "booking"), "Svago e intrattenimento", "media"),
     (("affitto", "enel", "a2a"), "Casa", "alta"),
-    (("farmacia",), "Salute", "alta"),
-    (("commissioni",), "Commissioni", "alta"),
-    (("amazon", "decathlon", "feltrinelli"), "Altro", "media"),
+    (("farmacia",), "Benessere e sport", "alta"),
+    (("commissioni",), "Prestito", "alta"),
+    (("amazon", "decathlon", "feltrinelli"), "Shopping", "media"),
 ]
+FALLBACK = ("Altro", "Imprevisti o altro")  # the first of these the archive has
 NAMES = {
     "esselunga": "Esselunga",
     "conad": "Conad",
@@ -119,10 +122,11 @@ class H(BaseHTTPRequestHandler):
                 hit = next(
                     ((k, cat, conf) for keys, cat, conf in RULES for k in keys if k in text and cat in categories), None
                 )
+                fallback = next((c for c in FALLBACK if c in categories), categories[0])
                 items.append(
                     {
                         "id": m["id"],
-                        "category": hit[1] if hit else "Altro",
+                        "category": hit[1] if hit else fallback,
                         "counterparty": NAMES.get(hit[0], "") if hit else "",
                         "confidence": hit[2] if hit else "bassa",
                     }
@@ -150,4 +154,5 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    ThreadingHTTPServer(("127.0.0.1", 11434), H).serve_forever()
+    port = int(os.environ.get("FAKE_OLLAMA_PORT", "11434"))  # another port: set OLLAMA_URL for the app too
+    ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()

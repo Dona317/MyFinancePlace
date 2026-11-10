@@ -43,6 +43,11 @@ class Transaction(db.Model):
     # A broker commission: the trade it was charged for (deleted with it)
     fee_for_id = db.Column(db.Integer, db.ForeignKey("transactions.id", ondelete="CASCADE"), index=True)
     debt_id    = db.Column(db.Integer, db.ForeignKey("debts.id", ondelete="SET NULL"), index=True)
+    # An operation of a holding (F42): the securities account it sits in and the portfolio it belongs to (its
+    # money still moves on account_id / counter_account_id, the settlement account)
+    securities_account_id = db.Column(db.Integer, db.ForeignKey("securities_accounts.id", ondelete="SET NULL"),
+                                      index=True)
+    portfolio_id = db.Column(db.Integer, db.ForeignKey("portfolios.id", ondelete="SET NULL"), index=True)
     # The spending event it belongs to (F20: a trip, a wedding…)
     event_id   = db.Column(db.Integer, db.ForeignKey("spending_events.id", ondelete="SET NULL"), index=True)
 

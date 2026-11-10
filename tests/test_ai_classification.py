@@ -307,7 +307,7 @@ def test_claude_batches_run_in_parallel(app, monkeypatch):
     app.config.update(LLM_PROVIDER="anthropic", LLM_MODEL="claude-haiku-4-5")
     threads = set()
 
-    def ask(model, batch, categories):
+    def ask(model, batch, categories, tags=None):
         threads.add(threading.get_ident())
         assert ai_extraction.timeout() == 600  # app context available in the worker
         return json.dumps(fake_answer([{"id": i["id"], "causale": i["text"]} for i in batch], categories))
@@ -345,3 +345,15 @@ class _Closing:
 
     def __exit__(self, *exc):
         return False
+
+
+def test_the_broad_fallback_counts_as_no_category(client, ollama, db):
+    """With the broad categories «Imprevisti o altro» is the fallback: a row there takes the AI's suggestion."""
+    from app.services import categories, settings_store
+
+    settings_store.set(categories.BROAD_SETTING, "1")
+    tx = make_tx(description="ESSELUNGA MILANO", category="Imprevisti o altro", amount=30)
+    db.session.add(tx)
+    db.session.commit()
+    page = client.post("/transactions/classify", data={"ids": [str(tx.id)]}).get_data(as_text=True)
+    assert f'name="apply" value="{tx.id}" checked' in page  # the suggestion replaces the fallback

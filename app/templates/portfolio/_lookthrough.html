@@ -1,0 +1,77 @@
+{# F57: the look-through of a fund on its page — what it holds, the issuer's file, the top 10 typed by hand #}
+{% if holding.asset_class in look_funds or look.count %}
+<div class="card mb-24" id="lookthrough">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">{{ _('Composizione (spacchettamento)') }}
+        {{ info(_('Cosa contiene davvero il fondo: paesi, settori, valute e prime società. In Portafoglio → Composizione la tua esposizione è la somma, titolo per titolo, del valore per questi pesi; senza questi dati il titolo conta con area e settore della sua scheda.')) }}</div>
+      <div class="card-header-sub">
+        {% if look.as_of %}{{ _('Dati al %(day)s', day=look.as_of|it_date) }} · {{ look.sources|map('tr')|join(', ') }}
+        {% else %}{{ _('Nessun dato: carica il file delle partecipazioni o scrivi a mano i primi paesi e settori.') }}{% endif %}
+      </div>
+    </div>
+    {% if look.count %}
+    <form method="POST" action="{{ url_for('portfolio.lookthrough_clear', holding_id=holding.id) }}" data-confirm="{{ _('Cancellare la composizione di questo titolo?') }}">
+      <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-trash"></i> {{ _('Cancella') }}</button>
+    </form>
+    {% endif %}
+  </div>
+  {% if look.count %}
+  <div class="card-body grid-2" style="gap:16px;">
+    {% for kind, title in (('country', _('Paesi')), ('sector', _('Settori')), ('currency', _('Valute')), ('holding', _('Prime società'))) %}
+    {% set shown = 10 if kind == 'holding' else 6 %}
+    {% if look[kind] %}
+    <div>
+      <div class="text-xs text-muted">{{ title }}</div>
+      <table class="table-compact"><tbody>
+        {% for name, weight in look[kind][:shown] %}
+        <tr><td>{{ name }}</td><td class="text-right nowrap">{{ weight|number(2) }} %</td></tr>
+        {% endfor %}
+        {% if look[kind]|length > shown %}<tr><td colspan="2" class="text-xs text-muted">{{ _('e altri %(count)s', count=look[kind]|length - shown) }}</td></tr>{% endif %}
+      </tbody></table>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('portfolio.lookthrough_upload', holding_id=holding.id) }}" enctype="multipart/form-data" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="look-file">{{ _("Carica il file dell'emittente") }}
+          {{ info(_("Sul sito dell'emittente, nella pagina del fondo: iShares → «Partecipazioni» → «Scarica» (CSV o Excel); Vanguard → «Portafoglio» → «Esporta i dati»; Xtrackers → «Composizione» → «Scarica» (Excel); Amundi → «Composizione» → «Scarica»; SPDR → «Holdings» → «Download» (Excel). Il file resta sul tuo computer: l'app non si collega a internet. Si leggono il peso di ogni titolo, il paese, il settore e la valuta; si tengono le prime 25 società."), _("Carica il file dell'emittente")) }}</label>
+        <input type="file" name="file" id="look-file" class="form-control" accept=".csv,.txt,.xlsx,.xlsm,.xls,.ods,.xml" required />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label" for="look-date">{{ _('Dati al') }} {{ info(_('Facoltativa: se la lasci vuota vale la data scritta nel file, altrimenti oggi.'), _('Dati al')) }}</label>
+        <input type="date" name="as_of" id="look-date" class="form-control" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-upload"></i> {{ _('Carica') }}</button>
+    </form>
+  </div>
+  <details class="card-body">
+    <summary style="cursor:pointer;"><strong>{{ _('Scrivi a mano i primi 10 paesi e settori') }}</strong>
+      {{ info(_('Dalla scheda del fondo (factsheet o KID): il nome del paese in italiano o in inglese e il peso in percentuale. Sostituisce i paesi e i settori di prima; il resto conta come «Non coperto».')) }}</summary>
+    <form method="POST" action="{{ url_for('portfolio.lookthrough_manual', holding_id=holding.id) }}" style="margin-top:12px;">
+      <div class="grid-2" style="gap:16px;">
+        {% for kind, title in (('country', _('Paese')), ('sector', _('Settore'))) %}
+        <fieldset>
+          <legend class="form-label">{{ title }} · %</legend>
+          {% for i in range(manual_rows) %}
+          {% set row = look.manual[kind][i] if i < look.manual[kind]|length else none %}
+          <div class="d-flex gap-8" style="margin-bottom:4px;">
+            <input type="text" name="{{ kind }}_name" class="form-control" value="{{ (row[0]|tr) if row else '' }}" aria-label="{{ title }} {{ i + 1 }}" />
+            <input type="text" inputmode="decimal" name="{{ kind }}_weight" class="form-control" style="width:90px;" value="{{ row[1]|number(2) if row else '' }}" aria-label="{{ title }} {{ i + 1 }} (%)" />
+          </div>
+          {% endfor %}
+        </fieldset>
+        {% endfor %}
+      </div>
+      <div class="form-group" style="margin-top:8px;">
+        <label class="form-label" for="look-manual-date">{{ _('Dati al') }}</label>
+        <input type="date" name="as_of" id="look-manual-date" class="form-control" style="max-width:200px;" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+    </form>
+  </details>
+</div>
+{% endif %}

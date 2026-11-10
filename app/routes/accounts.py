@@ -110,7 +110,11 @@ def detail(account_id):
 
 
 def _render_detail(account: Account, recent: list[Transaction], result: dict | None):
-    return render_template("accounts/detail.html", account=account, balance=accounts.balance(account),
+    balance = accounts.balance(account)
+    # the balance after each movement listed (not after a reconciliation, which lists only the ones going out)
+    running = accounts.running_balances(account, recent, balance) if result is None else None
+    return render_template("accounts/detail.html", account=account, balance=balance, running=running,
+                           history=accounts.balance_history(account),
                            card_kinds=accounts.CARD_KINDS, card_icons=accounts.CARD_ICONS,
                            debts=wealth.debt_picture() if account.fixed == "debt" else None,
                            currencies=accounts.by_currency(account) if account.kind == "cash" else {},

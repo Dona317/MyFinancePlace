@@ -49,7 +49,8 @@ with sync_playwright() as p:
     p2.goto(B + "/settings/account")
     check("non-admin does not see user management", p2.locator("text=Aggiungi un utente").count() == 0)
     p2.goto(B + "/dashboard")
-    p2.click(".sidebar-footer button[type=submit]")
+    p2.click("#user-menu-btn")  # «Esci» is in the user menu of the sidebar
+    p2.click("#user-menu button[type=submit]")
     p2.wait_for_load_state()
     check("logout", "/auth/login" in p2.url, p2.url)
     c2.close()

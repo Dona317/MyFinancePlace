@@ -13,7 +13,7 @@ from app.extensions import db
 from app.models.category import CategoryRule
 from app.models.transaction import Transaction
 from app.services import request_cache
-from app.services.categories import FALLBACK
+from app.services.categories import BROAD_FALLBACK, FALLBACK
 from app.services.parsing import normalize
 
 MIN_KEYWORD = 3  # shorter words would match too much ("bar" is the shortest useful one)
@@ -79,10 +79,11 @@ def learn(counterparty: str | None, category: str | None) -> CategoryRule | None
 
 
 def apply(only_uncategorized: bool = True) -> int:
-    """Categorize existing transactions with the rules (by default only those without a category or in "Altro")."""
+    """Categorize existing transactions with the rules (by default only those without a category or in the fallback,
+    «Altro» or «Imprevisti o altro»)."""
     query = Transaction.query.filter(~Transaction.splits.any())  # a split made by hand is never overwritten
     if only_uncategorized:
-        query = query.filter((Transaction.category.is_(None)) | (Transaction.category == FALLBACK))
+        query = query.filter((Transaction.category.is_(None)) | (Transaction.category.in_((FALLBACK, BROAD_FALLBACK))))
     changed = 0
     hits: dict[int, int] = {}
     forget_cache()

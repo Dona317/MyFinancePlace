@@ -11,15 +11,17 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate
 from app.models.wealth import Holding
-from app.routes.helpers import year_arg
+from app.routes.helpers import uploaded_file, year_arg
 from app.routes.portfolio import portfolio_bp
 from app.services import (
     accounts,
+    bonds,
     composition,
     display,
     family,
     income_report,
     investment_plans,
+    lookthrough,
     performance,
     periods,
     portfolio_highlights,
@@ -162,7 +164,7 @@ def income():
     today = date.today()
     report = income_report.report(year_arg(today.year), today)
     return render_template("portfolio/income.html", report=report, kinds=income_report.KINDS,
-                           month_labels=periods.month_labels())
+                           month_labels=periods.month_labels(), coupons=bonds.upcoming(Holding.query.all(), today))
 
 
 # ── Performance (F20) ──────────────────────────────────────────────────────────
@@ -170,23 +172,51 @@ def income():
 @portfolio_bp.route("/performance", methods=["GET", "POST"])
 def performance_page():
     if request.method == "POST":
-        ticker = (request.form.get("ticker") or "").strip().upper()
-        if not ticker:
-            performance.save_benchmark("", {}, date.today())
-            flash(_("Benchmark tolto."), "success")
-        else:
-            try:
-                performance.save_benchmark(ticker, price_feed.benchmark_history(ticker), date.today())
-                db.session.commit()
-                flash(_("Storico di %(ticker)s scaricato.", ticker=ticker), "success")
-            except (ValueError, OSError) as exc:
-                flash(_("Benchmark non aggiornato: %(error)s", error=exc), "error")
-        return redirect(url_for("portfolio.performance_page", person=request.args.get("person", "")))
+        _performance_post()
+        return redirect(url_for("portfolio.performance_page", person=request.args.get("person", ""),
+                                period=request.args.get("period", "")))
     person = request.args.get("person", "")
+    period = request.args.get("period", "all")
     holdings = family.holdings_of(person, portfolio_models.investments())
     return render_template("portfolio/performance.html", report=performance.report(holdings), person=person,
+                           month_names=[str(_(m)) for m in periods.MONTH_LABELS],
                            xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
-                           benchmark=performance.benchmark_settings())
+                           benchmarks=performance.benchmarks(), max_benchmarks=performance.MAX_BENCHMARKS,
+                           contribution=performance.contributions(holdings, period),
+                           period_choices=performance.PERIODS)
+
+
+def _performance_post() -> None:
+    """The benchmarks (add or refresh one, remove one) and the risk-free rate (F58, F59)."""
+    if "risk_free" in request.form:
+        rate = to_decimal(request.form.get("risk_free"))
+        try:
+            if rate is None:
+                raise ValueError(rate)
+            performance.save_risk_free(float(rate))
+            flash(_("Tasso senza rischio salvato."), "success")
+        except ValueError:
+            flash(_("Indica un tasso tra -10 e 50 %."), "error")
+        return
+    removed = (request.form.get("remove") or "").strip().upper()
+    if removed:
+        performance.remove_benchmark(removed)
+        flash(_("Benchmark tolto."), "success")
+        return
+    ticker = (request.form.get("ticker") or "").strip().upper()
+    if not ticker:
+        performance.save_benchmark("", {}, date.today())
+        flash(_("Benchmark tolti."), "success")
+    elif not performance.can_add_benchmark(ticker):
+        flash(_("Al massimo %(count)s benchmark: togline uno prima di aggiungerne un altro.",
+                count=performance.MAX_BENCHMARKS), "error")
+    else:
+        try:
+            performance.save_benchmark(ticker, price_feed.benchmark_history(ticker), date.today())
+            db.session.commit()
+            flash(_("Storico di %(ticker)s scaricato.", ticker=ticker), "success")
+        except (ValueError, OSError) as exc:
+            flash(_("Benchmark non aggiornato: %(error)s", error=exc), "error")
 
 
 # ── Splits and composition (F20) ───────────────────────────────────────────────
@@ -216,6 +246,58 @@ def highlights_page():
 def composition_page():
     person = request.args.get("person", "")
     holdings = family.holdings_of(person, portfolio_models.investments())
-    return render_template("portfolio/composition.html", exposure=composition.exposure(holdings), person=person,
+    return render_template("portfolio/composition.html", look=lookthrough.portfolio(holdings), person=person,
                            unset=composition.UNSET,
                            own=[(t, taxonomies.exposure(t, holdings)) for t in taxonomies.all_taxonomies()])
+
+
+# ── Look-through of the funds (F57) ───────────────────────────────────────────
+
+def _back_to_lookthrough(holding):
+    return redirect(url_for("portfolio.detail", holding_id=holding.id) + "#lookthrough")
+
+
+@portfolio_bp.route("/<int:holding_id>/lookthrough/upload", methods=["POST"])
+def lookthrough_upload(holding_id):
+    """The holdings file downloaded from the issuer's site: countries, sectors, currencies, top companies."""
+    holding = db.get_or_404(Holding, holding_id)
+    upload = uploaded_file()
+    if upload is None:
+        flash(_("Scegli il file delle partecipazioni scaricato dal sito dell'emittente."), "error")
+        return _back_to_lookthrough(holding)
+    try:
+        parsed = lookthrough.import_file(holding, upload.filename, upload.read(), to_date(request.form.get("as_of")))
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return _back_to_lookthrough(holding)
+    db.session.commit()
+    flash(_("Composizione letta da %(source)s: %(rows)s righe, dati al %(day)s.", source=parsed.source,
+            rows=parsed.rows, day=display.day(parsed.as_of)), "success")
+    return _back_to_lookthrough(holding)
+
+
+@portfolio_bp.route("/<int:holding_id>/lookthrough/manual", methods=["POST"])
+def lookthrough_manual(holding_id):
+    """The top countries and sectors typed by hand (from the fund's factsheet)."""
+    holding = db.get_or_404(Holding, holding_id)
+    rows = {kind: list(zip(request.form.getlist(f"{kind}_name"), request.form.getlist(f"{kind}_weight")))
+            for kind in ("country", "sector")}
+    try:
+        lookthrough.manual(holding, rows, to_date(request.form.get("as_of")))
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return _back_to_lookthrough(holding)
+    db.session.commit()
+    flash(_("Composizione salvata."), "success")
+    return _back_to_lookthrough(holding)
+
+
+@portfolio_bp.route("/<int:holding_id>/lookthrough/clear", methods=["POST"])
+def lookthrough_clear(holding_id):
+    holding = db.get_or_404(Holding, holding_id)
+    lookthrough.clear(holding)
+    db.session.commit()
+    flash(_("Composizione cancellata: il titolo conta di nuovo con area e settore della sua scheda."), "success")
+    return _back_to_lookthrough(holding)

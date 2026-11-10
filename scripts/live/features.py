@@ -6,9 +6,10 @@ desktop and phone (screenshots in LIVE_SHOTS when set).
 """
 
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
-from common import AUTH, OUT, SHOTS, check, launch, local_assets, run, sql, summary
+from common import AUTH, OUT, SHOTS, check, choose, confirm, launch, local_assets, run, sql, summary
 from common import BASE as B
 from playwright.sync_api import sync_playwright
 
@@ -32,9 +33,21 @@ with sync_playwright() as p:
         pg.click(".main-content button[type=submit].btn-primary")
         pg.wait_for_load_state()
 
+    def statement_account(name="Conto Fineco"):
+        """The account of a statement in the preview: required once there are bank accounts."""
+        if pg.locator("#import-account").count():
+            choose(pg, "#import-account", sql(f"select id from accounts where name = '{name}'"))
+
+    def save_settings(tab, change):
+        """The settings page keeps its changes until «Salva»: open the tab, change, save."""
+        pg.goto(B + "/settings/#" + tab)
+        change()
+        with pg.expect_navigation():
+            pg.click("#settings-actions button[type=submit]")
+
     def currencies():
         pg.goto(B + "/settings/currencies")
-        pg.select_option("#c-cur", "USD")
+        choose(pg, "#c-cur", "USD")
         pg.fill("#c-on", "2026-06-01")
         pg.fill("#c-rate", "0,8")
         pg.click("text=Salva cambio")
@@ -43,18 +56,18 @@ with sync_playwright() as p:
         for name, cur, bal in (("Conto Fineco", "EUR", "1000"), ("Conto USD", "USD", "500")):
             pg.goto(B + "/accounts/new")
             pg.fill("[name=name]", name)
-            pg.select_option("[name=currency]", cur)
+            choose(pg, "select[name=currency]", cur)
             pg.fill("[name=opening_balance]", bal)
             pg.click(".page-form button[type=submit]")
             pg.wait_for_load_state()
-        check("two accounts created", sql("select count(*) from accounts") == "2")
+        check("two accounts created", sql("select count(*) from accounts where name in ('Conto Fineco', 'Conto USD')") == "2")
         pg.goto(B + "/transactions/new")
         pg.fill("#f-date", "2026-06-01")
         pg.fill("#f-amount", "-100")
         pg.fill("[name=description]", "Hotel New York")
-        pg.select_option("#f-account", label="Conto Fineco")
+        choose(pg, "#f-account", label="Conto Fineco")
         check("account amount hidden when currencies match", pg.is_hidden("#account-amount-group"))
-        pg.select_option("#f-currency", "USD")
+        choose(pg, "#f-currency", "USD")
         check("account amount asked for a USD expense on a EUR account", pg.is_visible("#account-amount-group"))
         submit()
         check(
@@ -71,12 +84,23 @@ with sync_playwright() as p:
     run("A. Currencies and accounts", currencies)
 
     def signed_tags_subcategories():
+        # a subcategory of Casa (the new archive has only the broad categories)
+        pg.goto(B + "/settings/categories")
+        pg.fill("#new-name", "Luce")
+        choose(pg, "#new-parent", "Casa")
+        pg.click("form:has(#new-name) button[type=submit]")
+        pg.wait_for_load_state()
+        check(
+            "subcategory Luce under Casa",
+            sql("select p.name from categories c join categories p on p.id=c.parent_id where c.name='Luce'") == "Casa",
+            alert(),
+        )
         pg.goto(B + "/transactions/new")
         pg.fill("#f-date", "2026-09-12")
         pg.fill("#f-amount", "-72,21")
         pg.fill("[name=description]", "Enel bolletta settembre")
-        check("sign shows expense", "Uscita" in pg.inner_text("#amount-kind"))
-        pg.select_option("#f-category", "Luce")
+        check("sign shows expense", pg.get_attribute("#type-switch .type-expense", "aria-checked") == "true")
+        choose(pg, "#f-category", "Luce")
         tag = pg.locator(".tag-picker-input").first
         tag.click()
         pg.keyboard.type("casa")
@@ -88,15 +112,15 @@ with sync_playwright() as p:
         check("signed expense with subcategory and tag", row.startswith("expense|72.21|Luce|") and "casa" in row, row)
         pg.goto(B + "/transactions/new")
         pg.fill("#f-date", "2026-09-27")
-        pg.fill("#f-amount", "1500")
+        pg.fill("#f-amount", "+1500")  # without a sign the Uscita / Entrata choice decides
         pg.fill("[name=description]", "Bonifico da ACME SPA per STIPENDIO 09/2026")
-        check("positive sign shows income", "Entrata" in pg.inner_text("#amount-kind"))
+        check("positive sign shows income", pg.get_attribute("#type-switch .type-income", "aria-checked") == "true")
         submit()
         check(
             "income saved from a positive amount",
             sql("select type from transactions where amount=1500 and description like 'Bonifico da ACME%'") == "income",
         )
-        pg.goto(B + "/transactions/?category=Bollette")
+        pg.goto(B + "/transactions/?category=Casa")
         check("filter by main category includes subcategories", "Enel bolletta settembre" in pg.inner_text("tbody"))
 
     run("B. Signed amounts, tags, subcategories", signed_tags_subcategories)
@@ -106,11 +130,11 @@ with sync_playwright() as p:
         pg.fill("#f-date", "2026-09-14")
         pg.fill("#f-amount", "-100")
         pg.fill("[name=description]", "Supermercato spesa e casa")
-        pg.select_option("#f-category", "Alimentari")
+        choose(pg, "#f-category", "Alimentari")
         pg.click("#split-open")
         rows = pg.locator(".split-row")
         rows.nth(0).locator(".split-amount").fill("70")
-        rows.nth(1).locator("select").select_option("Casa")
+        choose(pg, ".split-row >> nth=1 >> select", "Casa")
         check("left to assign shown as you type", "30" in pg.inner_text("#split-left"))
         rows.nth(1).locator(".split-amount").fill("30")
         submit()
@@ -132,8 +156,8 @@ with sync_playwright() as p:
         pg.fill("[name=description]", "Giroconto verso USD")
         pg.check("#f-transfer")
         check("transfer: destination account shown", pg.is_visible("#f-counter"))
-        pg.select_option("#f-account", label="Conto Fineco")
-        pg.select_option("#f-counter", label="Conto USD")
+        choose(pg, "#f-account", label="Conto Fineco")
+        choose(pg, "#f-counter", label="Conto USD")
         pg.fill("#f-counter-amount", "230")
         submit()
         check(
@@ -147,7 +171,7 @@ with sync_playwright() as p:
     def budget():
         pg.goto(B + "/lifestyle/budget?month=2026-09")
         pg.fill("input[name='every-Alimentari']", "300")
-        pg.fill("input[name='every-Bollette']", "150")
+        pg.fill("input[name='every-Casa']", "150")
         submit()
         check("budget saved", "300" in pg.input_value("input[name='every-Alimentari']"), alert())
         pg.goto(B + "/lifestyle/?year=2026")
@@ -177,7 +201,7 @@ with sync_playwright() as p:
             "01/09/2026;Pagamento POS ESSELUNGA MILANO;-45,20\n02/09/2026;Stipendio ACME;1800,00\n"
             "03/09/2026;NETFLIX.COM;-12,99\n05/09/2026;Farmacia Comunale;-8,50\n"
         )
-        pg.goto(B + "/export/")
+        pg.goto(B + "/export/import")
         pg.set_input_files("#import-file", str(OUT / "headerless.csv"))
         pg.wait_for_function("document.getElementById('import-status').textContent.length > 0")
         got = {f: pg.eval_on_selector(f"select[name=col_{f}]", "e=>e.value") for f in ("date", "amount", "description")}
@@ -186,6 +210,7 @@ with sync_playwright() as p:
         pg.click("#import-submit")
         pg.wait_for_load_state()
         check("wrong column: preview instead of an error", pg.locator(".row-include").count() == 4, alert())
+        statement_account()
         if pg.locator("#import-button").count():
             pg.click("#import-button")
             pg.wait_for_load_state()
@@ -203,21 +228,21 @@ with sync_playwright() as p:
         kpi = pg.inner_text(".kpi-grid")
         check("amounts written like the server does (€ 1.234,56)", "€ " in kpi and " €" not in kpi, kpi[:80])
         check("Sankey drawn", pg.locator("svg.sankey .sankey-band").count() > 2)
-        check("monthly net chart", pg.evaluate("!!Chart.getChart('netChart')"))
+        check(  # the monthly net is the savings bars of the cash flow chart since 31 Oct
+            "monthly cash flow chart with savings",
+            pg.evaluate("Chart.getChart('cashFlowChart')?.data.datasets.length") >= 3,
+            pg.evaluate("Chart.getChart('cashFlowChart')?.data.datasets.map(d => d.label)"),
+        )
         check("yearly three bars", pg.evaluate("Chart.getChart('yearChart')?.data.datasets[0].data.length") == 3)
         if SHOTS:
             pg.screenshot(path=f"{SHOTS}/dashboard_full.png", full_page=True)
-        pg.goto(B + "/settings/")
-        pg.click("label.toggle-switch:has(input[name=dashboard_sankey])")
-        pg.wait_for_load_state()
+        save_settings("dashboard", lambda: pg.click("label.toggle-switch:has(input[name=dashboard_sankey])"))
         pg.goto(B + "/dashboard?year=2026")
         check(
             "Sankey hidden from settings",
-            pg.locator("svg.sankey").count() == 0 and pg.locator("#netChart").count() == 1,
+            pg.locator("svg.sankey").count() == 0 and pg.locator("#cashFlowChart").count() == 1,
         )
-        pg.goto(B + "/settings/")
-        pg.click("label.toggle-switch:has(input[name=dashboard_sankey])")
-        pg.wait_for_load_state()
+        save_settings("dashboard", lambda: pg.click("label.toggle-switch:has(input[name=dashboard_sankey])"))
         pg.goto(B + "/dashboard?year=2026")
         check("Sankey back on", pg.locator("svg.sankey").count() == 1)
 
@@ -228,7 +253,7 @@ with sync_playwright() as p:
             "/reports/?period=this_year",
             "/reports/?tab=income&period=last_12",
             "/reports/?tab=cashflow&period=last_12",
-            "/reports/?period=custom&start=2026-09-01&end=2026-09-30&category=Bollette",
+            "/reports/?period=custom&start=2026-09-01&end=2026-09-30&category=Casa",
         ]:
             r = pg.goto(B + u)
             check(f"report {u}", r.status == 200 and pg.locator("table, canvas").count() > 0, r.status)
@@ -240,14 +265,14 @@ with sync_playwright() as p:
     def categories_rules():
         pg.goto(B + "/settings/categories")
         pg.fill("#new-name", "Animali")
-        pg.select_option("#new-kind", "expense")
+        choose(pg, "#new-kind", "expense")
         pg.fill("#new-hint", "veterinario, cibo")
         pg.click("form:has(#new-name) button[type=submit]")
         pg.wait_for_load_state()
         check("category added", sql("select count(*) from categories where name='Animali'") == "1", alert())
         if pg.locator("#new-parent").count():
             pg.fill("#new-name", "Veterinario")
-            pg.select_option("#new-parent", label="Animali")
+            choose(pg, "#new-parent", label="Animali")
             pg.click("form:has(#new-name) button[type=submit]")
             pg.wait_for_load_state()
             check(
@@ -260,11 +285,11 @@ with sync_playwright() as p:
         pg.wait_for_load_state()
         check("category renamed", sql("select count(*) from categories where name='Animali domestici'") == "1", alert())
         pg.click("button[aria-label='Elimina Animali domestici']")
-        pg.wait_for_load_state()
+        confirm(pg)
         check("category deleted", sql("select count(*) from categories where name='Animali domestici'") == "0", alert())
         pg.goto(B + "/settings/rules")
         pg.fill("#r-keyword", "farmacia")
-        pg.select_option("#r-category", "Salute")
+        choose(pg, "#r-category", "Benessere e sport")
         pg.click("form:has(#r-keyword) button[type=submit]")
         pg.wait_for_load_state()
         check("rule added", sql("select count(*) from category_rules where keyword ilike 'farmacia'") != "0", alert())
@@ -275,16 +300,12 @@ with sync_playwright() as p:
     run("I. Categories and rules", categories_rules)
 
     def language():
-        pg.goto(B + "/settings/")
-        with pg.expect_navigation():
-            pg.select_option("#s-language", "en")
+        save_settings("visualizza", lambda: choose(pg, "#s-language", "en"))
         pg.goto(B + "/dashboard?year=2026")
         check("interface in English", "Where the money goes" in pg.content() and "net worth" in pg.content().lower())
         pg.goto(B + "/transactions/new")
         check("English form", "Description" in pg.content())
-        pg.goto(B + "/settings/")
-        with pg.expect_navigation():
-            pg.select_option("#s-language", "it")
+        save_settings("visualizza", lambda: choose(pg, "#s-language", "it"))
         pg.goto(B + "/dashboard")
         check("back to Italian", "Patrimonio" in pg.content())
 
@@ -324,24 +345,23 @@ with sync_playwright() as p:
     def plan_features():
         # F8: the nature of a category, and the split of the year's spending by nature
         pg.goto(B + "/settings/categories")
-        row = pg.locator("tr:has(input[name=name][value='Bollette'])")
+        row = pg.locator("tr:has(input[name=name][value='Casa'])")
         row.locator("select[name=nature]").select_option("periodic")
         row.locator("button[title='Salva']").click()
         pg.wait_for_load_state()
-        check("category nature saved", sql("select nature from categories where name='Bollette'") == "periodic", alert())
+        check("category nature saved", sql("select nature from categories where name='Casa'") == "periodic", alert())
         pg.goto(B + "/lifestyle/?year=2026")
         check("spending by nature shown", pg.locator(".nature-card .nature-item").count() == 3)
         # F10a: months of autonomy on the dashboard, target from the settings
-        pg.goto(B + "/settings/")
-        with pg.expect_navigation():  # the select saves the settings by itself
-            pg.select_option("#s-autonomy", "12")
+        save_settings("dashboard", lambda: choose(pg, "#s-autonomy", "12"))
         pg.goto(B + "/dashboard")
         check("months of autonomy with the chosen target", "/ 12 mesi" in pg.inner_text(".autonomy") or "—" in pg.inner_text(".autonomy"),
               pg.inner_text(".autonomy"))
         # F9: subscriptions — confirm a detected series, end one, resume it
-        for month in (6, 7, 8, 9):
+        for months_ago in (3, 2, 1, 0):  # still active: the last payment is today
+            day = date.today() - timedelta(days=30 * months_ago)
             sql(f"insert into transactions (date, description, amount, amount_base, currency, type, category, tags, is_recurring)"
-                f" values ('2026-{month:02d}-03', 'Live Disney Plus', 8.99, 8.99, 'EUR', 'expense', 'Abbonamenti', '{{}}', false)")
+                f" values ('{day}', 'Live Disney Plus', 8.99, 8.99, 'EUR', 'expense', 'Abbonamenti', '{{}}', false)")
         pg.goto(B + "/subscriptions/")
         row = pg.locator("tr:has-text('Live Disney Plus')")
         check("detected series offered for confirmation", row.locator("text=da confermare").count() == 1)
@@ -350,7 +370,7 @@ with sync_playwright() as p:
         check("confirmed from the subscriptions page", "/subscriptions/" in pg.url and sql(
             "select count(*) from transactions where description='Live Disney Plus' and is_recurring") == "1", alert())
         pg.locator("tr:has-text('Live Disney Plus') button:has-text('Non più attivo')").click()
-        pg.wait_for_load_state()
+        confirm(pg)
         check("series ended", pg.locator("details:has-text('Live Disney Plus')").count() == 1, alert())
         pg.locator("details").evaluate("d => d.open = true")
         pg.locator("tr:has-text('Live Disney Plus') button:has-text('Riattiva')").click()
@@ -359,13 +379,15 @@ with sync_playwright() as p:
                                     " and recurrence_end is not null") == "0", alert())
         # F6: OFX and CAMT.053 statements through the usual preview
         for name, kind in (("conto_ofx_2026-04_2026-05.ofx", "OFX"), ("camt053_2026-09.xml", "CAMT.053")):
-            pg.goto(B + "/export/")
+            pg.goto(B + "/export/import")
             pg.set_input_files("input[type=file][accept*='.ofx']", str(SAMPLES / name))
             pg.locator("form:has(input[accept*='.ofx']) button[type=submit]").first.click()
             pg.wait_for_load_state()
-            check(f"{kind} statement previewed", kind in pg.inner_text(".kpi-grid") and pg.locator(".row-include").count() > 3,
-                  alert())
+            bank = pg.eval_on_selector("select[name=bank_choice]", "s => s.selectedOptions[0].text")  # the bank read
+            check(f"{kind} statement previewed", kind in bank and pg.locator(".row-include").count() > 3,
+                  f"bank={bank} rows={pg.locator('.row-include').count()} {alert()}")
         check("CAMT balance check", "Quadratura verificata" in pg.inner_text("#balance-check"))
+        statement_account()
         before = int(sql("select count(*) from transactions"))
         pg.click("#import-button")
         pg.wait_for_load_state()
@@ -397,7 +419,7 @@ with sync_playwright() as p:
                 h = h.split("#")[0]
                 if h and not any(
                     x in h
-                    for x in ("logout", "/csv", "/json", "download", "/pdf", "/tax/", "/backup", "delete", "/api")
+                    for x in ("logout", "/csv", "/json", "download", "/pdf", ".pdf", "/tax/", "/backup", "delete", "/api")
                 ):
                     urls.add(h)
         urls = sorted(urls)

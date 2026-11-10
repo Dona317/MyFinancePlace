@@ -41,7 +41,8 @@ def _month_arg() -> date:
 @lifestyle_bp.route("/budget")
 def budget():
     month = _month_arg()
-    lines = {line["category"]: line for line in budgets.status(month)}
+    status = budgets.status(month)
+    lines = {line["category"]: line for line in status}
     spent = budgets.spent_by_category(month)
     names = sorted(set(categories.expense_categories()) | set(lines) | set(spent), key=str.casefold)
     every_month = {b.category: b.amount for b in Budget.query.filter(Budget.month.is_(None))}
@@ -58,6 +59,7 @@ def budget():
         spent_total=sum(line["spent"] for line in lines.values()),
         unbudgeted=sum(v for k, v in spent.items() if k not in lines),
         prev=add_months(month, -1), next=add_months(month, 1), warning=budgets.WARNING_SHARE,
+        pace=budgets.pace(month, lines=status),
     )
 
 

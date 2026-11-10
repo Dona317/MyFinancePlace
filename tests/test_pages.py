@@ -193,3 +193,14 @@ def test_uscite_keeps_the_unrecorded_cash_apart(client, db):
     db.session.commit()
     html = client.get("/reports/spending?period=this_month").get_data(as_text=True)
     assert "A parte: «Spese non annotate»" in html and '<span class="report-legend-name">Spese non annotate</span>' not in html
+
+
+def test_every_page_drawing_a_chart_loads_the_chart_helpers():
+    """Chart.js and charts.js come only with {% block chart_scripts %}: a page calling makeLineChart without it breaks."""
+    from pathlib import Path
+
+    templates = Path(__file__).resolve().parents[1] / "app" / "templates"
+    missing = [str(path.relative_to(templates)) for path in templates.rglob("*.html")
+               if re.search(r"\bmake[A-Z]\w*Chart\(|new Chart\(", path.read_text(encoding="utf-8"))
+               and "chart_scripts" not in path.read_text(encoding="utf-8")]
+    assert missing == []

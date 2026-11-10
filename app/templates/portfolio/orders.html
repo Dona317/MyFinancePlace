@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "partials/actions.html" import icon_link %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/info.html" import info %}
+{% from "partials/kpi.html" import kpi %}
+
+{% block title %}{{ _('Ordini') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Registro ordini') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('portfolio.orders_page', format='csv', **request.args) }}" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> CSV</a>
+{% endblock %}
+
+{% block content %}
+{% include "portfolio/_nav.html" %}
+{% set t = register.totals %}
+<div class="kpi-grid mb-24">
+  {{ kpi('cart-plus', _('Acquisti'), value=t.buy|money, sub=_('controvalore, commissioni escluse')) }}
+  {{ kpi('cart-dash', _('Vendite'), value=t.sell|money, sub=_('controvalore, commissioni escluse')) }}
+  {{ kpi('receipt', _('Commissioni'), value=t.commissions|money, cls='kpi-negative', sub=_('degli ordini e a parte')) }}
+  {{ kpi('bank', _('Imposte'), value=t.tax|money, cls='kpi-warning', sub=_('registrate sui titoli')) }}
+  {{ kpi('cash-coin', _('Dividendi e cedole'), value=(t.dividend + t.coupon)|money, cls='kpi-positive', sub=_('netti incassati')) }}
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-header-title">{{ _('Operazioni') }} {{ info(_('Acquisti e vendite con prezzo e commissione, dividendi, cedole, commissioni e imposte di tutti i titoli. La matita apre l\'operazione per correggere quote, prezzo, conto titoli e portafoglio.')) }}</div>
+    <form method="GET" class="inline-filter" style="flex-wrap:wrap;">
+      <select name="portfolio" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Portafoglio') }}">
+        <option value="">{{ _('Tutti i portafogli') }}</option>
+        {% for id, name in names.portfolios.items() %}<option value="{{ id }}" {{ 'selected' if id == filters.portfolio_id }}>{{ name }}</option>{% endfor %}
+      </select>
+      <select name="dossier" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Conto titoli') }}">
+        <option value="">{{ _('Tutti i conti titoli') }}</option>
+        {% for id, name in names.dossiers.items() %}<option value="{{ id }}" {{ 'selected' if id == filters.securities_account_id }}>{{ name }}</option>{% endfor %}
+      </select>
+      <select name="holding" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Titolo') }}">
+        <option value="">{{ _('Tutti i titoli') }}</option>
+        {% for h in holdings %}<option value="{{ h.id }}" {{ 'selected' if h.id == filters.holding_id }}>{{ h.name }}</option>{% endfor %}
+      </select>
+      <select name="kind" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Operazione') }}">
+        <option value="">{{ _('Tutte le operazioni') }}</option>
+        {% for key, label in kinds.items() %}<option value="{{ key }}" {{ 'selected' if key == filters.kind }}>{{ label }}</option>{% endfor %}
+      </select>
+      <input type="date" name="start" class="form-control" value="{{ filters.start.isoformat() if filters.start else '' }}" onchange="this.form.submit()" aria-label="{{ _('Dal') }}" />
+      <input type="date" name="end" class="form-control" value="{{ filters.end.isoformat() if filters.end else '' }}" onchange="this.form.submit()" aria-label="{{ _('Al') }}" />
+      <noscript><button class="btn btn-ghost btn-sm">{{ _('Filtra') }}</button></noscript>
+    </form>
+  </div>
+  {% if register.rows %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Data') }}</th>
+          <th>{{ _('Operazione') }}</th>
+          <th>{{ _('Titolo') }}</th>
+          <th>{{ _('Conto titoli') }} · {{ _('Portafoglio') }}</th>
+          <th class="text-right">{{ _('Quote') }}</th>
+          <th class="text-right">{{ _('Prezzo') }}</th>
+          <th class="text-right">{{ _('Importo') }}</th>
+          <th class="text-right">{{ _('Commissione') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in register.rows %}{% set tx = row.tx %}
+        <tr>
+          <td class="nowrap">{{ tx.date|it_date }}</td>
+          <td><span class="badge {{ 'badge-positive' if row.kind in ('dividend', 'coupon', 'sell') else ('badge-primary' if row.kind == 'buy' else '') }}">{{ kinds[row.kind] }}</span>
+            {% if tx.notes %} {{ info(tx.notes, _('Note')) }}{% endif %}</td>
+          <td>{% if row.holding %}<a href="{{ url_for('portfolio.detail', holding_id=row.holding.id) }}">{{ row.holding.name }}</a>{% endif %}</td>
+          <td class="text-sm">{{ names.dossiers.get(tx.securities_account_id, '—') }} · {{ names.portfolios.get(tx.portfolio_id, '—') }}</td>
+          <td class="amount text-right">{{ (tx.units|abs)|number(4) if tx.units is not none else '' }}</td>
+          <td class="amount text-right">{{ tx.unit_price|money if tx.unit_price is not none else '' }}</td>
+          <td class="amount text-right">{{ row.gross|money }}</td>
+          <td class="amount text-right">{{ row.fee|money if row.fee else '' }}</td>
+          <td><div class="cell-actions">{{ icon_link(url_for('transactions.edit', tx_id=tx.id, next=request.full_path), 'bi-pencil', _('Modifica'), _('Modifica operazione')) }}</div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  {% call empty_state(text=_('Nessuna operazione con questi filtri.'), icon='bi-list-check', compact=True) %}{% endcall %}
+  {% endif %}
+</div>
+{% endblock %}

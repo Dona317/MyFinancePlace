@@ -71,7 +71,15 @@ def _write(path: Path, state: dict) -> None:
         return
     tmp = path.with_suffix(f".{threading.get_ident()}.tmp")
     tmp.write_text(json.dumps(state))
-    os.replace(tmp, path)
+    # on Windows the replace is refused while a status read has the file open: try again for a moment
+    for attempt in range(20):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            if attempt == 19:
+                raise
+            time.sleep(0.01 * (attempt + 1))
 
 
 def _update(token: str, **values) -> dict:

@@ -103,6 +103,55 @@ def status(month: date, today: date | None = None) -> list[dict]:
     return lines
 
 
+def _spent_by_day(names: list[str], start: date, end: date) -> dict[int, float]:
+    """Spending of these categories on each day of [start, end), by day of the month."""
+    rows = (lines_query(Transaction.date, func.sum(LINE_VALUE))
+            .filter(Transaction.type == "expense", Transaction.date >= start, Transaction.date < end,
+                    LINE_CATEGORY.in_(names))
+            .group_by(Transaction.date).all())
+    return {day.day: float(total or 0) for day, total in rows}
+
+
+def _cumulative(by_day: dict[int, float], days: int) -> list[float]:
+    out, total = [], 0.0
+    for day in range(1, days + 1):
+        total += by_day.get(day, 0.0)
+        out.append(round(total, 2))
+    return out
+
+
+def pace(month: date, today: date | None = None, lines: list[dict] | None = None) -> dict | None:
+    """The spending pace of the month in its budgeted categories (with their subcategories): what was spent up to
+    each day, the straight line from zero to the month's budget (carried amounts included), what was spent up to the
+    same day of the month before, and where the month ends at this pace. None without budgets. `lines`: the month's
+    status() when the caller already has it."""
+    today = today or date.today()
+    month = first_of_month(month)
+    lines = status(month, today) if lines is None else lines
+    if not lines:
+        return None
+    names = sorted({name for line in lines for name in categories.with_children(line["category"])})
+    start, end = month_bounds(month.year, month.month)
+    days = (end - start).days
+    planned = round(sum(line["available"] for line in lines), 2)
+    elapsed = days if today >= end else (today - start).days + 1 if today >= start else 0
+    actual = _cumulative(_spent_by_day(names, start, end), days)
+    before = add_months(month, -1)
+    before_days = (start - before).days
+    previous = _cumulative(_spent_by_day(names, before, start), before_days)
+    previous += [previous[-1]] * (days - before_days)  # a shorter month before: its total stays on the last days
+    spent = actual[elapsed - 1] if elapsed else 0.0
+    return {
+        "labels": [str(day) for day in range(1, days + 1)],
+        "actual": actual[:elapsed] + [None] * (days - elapsed),  # nothing drawn past today
+        "ideal": [round(planned * day / days, 2) for day in range(1, days + 1)],
+        "previous": previous[:days],
+        "planned": planned, "spent": spent, "elapsed": elapsed, "days": days,
+        # the month under way only: what it ends at if the spending goes on like this
+        "projected": round(spent / elapsed * days, 2) if 0 < elapsed < days else None,
+    }
+
+
 def set_asides(today: date | None = None) -> list[dict]:
     """The not-monthly categories (taxes, insurance, car, holidays…) with what they cost in the last 12 complete
     months and the monthly quota to put aside for them; their every-month budget and whether it rolls over."""

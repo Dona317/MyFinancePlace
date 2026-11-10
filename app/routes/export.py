@@ -23,6 +23,7 @@ from app.services import (
     bank_import,
     column_guess,
     encrypted_backup,
+    import_presets,
     statement_readers,
     transfer,
     upload_store,
@@ -63,6 +64,8 @@ def import_page():
         "export/import.html",
         banks=bank_import.BANKS,
         ai_reader=ai_extraction.describe(),
+        presets=import_presets.all_presets(),
+        preset_accounts={a.id: a.name for a in accounts.active()},
         **ai_classification.template_context(),
     )
 
@@ -207,8 +210,16 @@ def import_columns():
     except transfer.TableError as exc:
         return jsonify({"error": str(exc)}), 400
     guessed = column_guess.guess(headers, rows)
+    # a preset saved for exactly these columns replaces the guess; the others that fit can be picked instead
+    usable = import_presets.usable(headers, "bank")
+    matched = import_presets.match(headers, "bank")
+    presets = [{"id": p["id"], "name": p["name"], "mapping": {**dict.fromkeys(column_guess.FIELDS),
+                                                                 **import_presets.resolve(p, headers)}}
+               for p in usable]
+    applied = next((p for p in presets if matched and p["id"] == matched["id"]), None)
     return jsonify({"headers": headers, "rows": len(rows), "header_line": first_line - 1,
-                    "guess": guessed.mapping, "sure": guessed.sure})
+                    "guess": applied["mapping"] if applied else guessed.mapping, "sure": guessed.sure or bool(applied),
+                    "auto": guessed.mapping, "presets": presets, "preset": applied and applied["id"]})
 
 
 @export_bp.route("/import/columns/ai", methods=["POST"])
@@ -245,7 +256,10 @@ def import_csv():
     except bank_import.StatementImportError as exc:
         flash(str(exc), "error")
         return redirect(url_for("export.import_page"))
-    return _render_preview(preview, upload.filename)
+    preset = import_presets.get(request.form.get("preset"))
+    mapped = {"headers": headers, "mapping": preview.mapping,
+              "header_line": first_line - 1, "preset": preset and preset["id"]}
+    return _render_preview(preview, upload.filename, mapped=mapped, preset=preset)
 
 
 # ── Bank statement import (Fineco, Intesa Sanpaolo, generic) ───────────────────
@@ -256,12 +270,20 @@ def import_csv():
 #          "Read it with AI?" (user decides, picks the model) ──yes──▶ waiting page ──▶ editable preview ──▶ confirm
 #                                                                     (background job, see ai_jobs)
 
-def _render_preview(preview, filename: str, ai_retry: str | None = None, text: str = ""):
+def _render_preview(preview, filename: str, ai_retry: str | None = None, text: str = "",
+                    mapped: dict | None = None, preset: dict | None = None):
+    """The editable preview; `mapped` (the columns of a manually mapped file) lets the user save them as a preset,
+    `preset` is the one applied to the file (its account is proposed)."""
     payload = _preview_serializer().dumps({
         "bank": preview.bank.key,
         "ai": bool(preview.ai_model),
         "rows": [row.to_dict() for row in preview.rows],
+        "mapped": mapped,
     })
+    suggested = _suggested_account(preview.bank.name, text)
+    preset_account = (preset or {}).get("options", {}).get("account_id")
+    if preset_account and any(a.id == preset_account for a in accounts.active()):
+        suggested = preset_account
     return render_template(
         "export/bank_preview.html",
         preview=preview,
@@ -270,9 +292,11 @@ def _render_preview(preview, filename: str, ai_retry: str | None = None, text: s
         categories=known_categories(),
         tag_pool=all_tags(),
         accounts=accounts.active(),
-        suggested_account=_suggested_account(preview.bank.name, text),
+        suggested_account=suggested,
         banks=bank_import.BANKS,
         ai_retry=ai_retry,
+        mapped=mapped,
+        preset=preset,
         **ai_classification.template_context(),
     )
 
@@ -445,7 +469,7 @@ def bank_ai_cancel(token):
     return redirect(url_for("export.import_page"))
 
 
-PREVIEW_FIELDS = ("date", "description", "amount", "type", "category", "counterparty", "aicat")
+PREVIEW_FIELDS = ("date", "description", "amount", "type", "category", "counterparty", "aicat", "aitag")
 
 
 def _assign_account(tx, base: dict, account: Account) -> None:
@@ -565,7 +589,43 @@ def bank_confirm():
     flash(_import_message(len(created), bank_name, account, skipped, linked), "success")
     if invalid:
         flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")
+    _save_preset(data.get("mapped"), account)
     return redirect(url_for("transactions.index"))
+
+
+def _save_preset(mapped: dict | None, account: Account | None) -> None:
+    """«Salva come preset» ticked in the preview of a mapped file: its columns (and the account) under a name."""
+    if not mapped or not request.form.get("save_preset"):
+        return
+    name = import_presets.clean_name(request.form.get("preset_name"))
+    if not name:
+        flash(_("Preset non salvato: scrivi un nome."), "warning")
+        return
+    preset = import_presets.save(name, "bank", mapped["headers"], mapped["mapping"], {
+        "header_line": mapped.get("header_line"), "account_id": account.id if account else None})
+    flash(_("Preset «%(name)s» salvato: verrà applicato ai prossimi file con le stesse colonne.",
+            name=preset["name"]), "success")
+
+
+@export_bp.route("/import/presets/<preset_id>/rename", methods=["POST"])
+def rename_preset(preset_id):
+    try:
+        preset = import_presets.rename(preset_id, request.form.get("name", ""))
+    except KeyError:
+        abort(404)
+    except ValueError:
+        flash(_("Scegli un nome non vuoto e non già usato da un altro preset."), "error")
+    else:
+        flash(_("Preset rinominato in «%(name)s».", name=preset["name"]), "success")
+    return redirect(url_for("export.import_page") + "#import-presets")
+
+
+@export_bp.route("/import/presets/<preset_id>/delete", methods=["POST"])
+def delete_preset(preset_id):
+    if not import_presets.delete(preset_id):
+        abort(404)
+    flash(_("Preset eliminato."), "success")
+    return redirect(url_for("export.import_page") + "#import-presets")
 
 
 @export_bp.route("/bank/classify", methods=["POST"])

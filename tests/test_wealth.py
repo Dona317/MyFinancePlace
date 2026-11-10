@@ -170,7 +170,7 @@ def test_portfolio_crud_and_validation(client, db, instance):
     html = response.get_data(as_text=True)
     assert "Quantità: «tanti» non è un numero valido." in html and 'value="X"' in html
     response = client.post("/portfolio/new", data={"name": "X", "asset_class": "Oro", "quantity": "1", "avg_price": "1"})
-    assert "Classe: scelta non valida." in response.get_data(as_text=True)
+    assert "Tipo di strumento: scelta non valida." in response.get_data(as_text=True)
     assert Holding.query.count() == 1
 
     client.post("/portfolio/prices", data={f"price-{holding.id}": "70000"})

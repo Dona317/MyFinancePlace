@@ -35,13 +35,16 @@ from app.models import (
     Goal,
     Holding,
     HoldingCategory,
+    HoldingExposure,
     HoldingPrice,
     InsurancePolicy,
     InvestmentPlan,
     PersonalLoan,
+    Portfolio,
     PortfolioRule,
     PortfolioTemplate,
     Reminder,
+    SecuritiesAccount,
     SlotHolding,
     Snapshot,
     SpendingEvent,
@@ -53,7 +56,7 @@ from app.models import (
     UtilityReading,
     YearClose,
 )
-from app.services import currency, document_store, money, settings_store, studio
+from app.services import currency, document_store, money, securities, settings_store, studio
 
 FORMAT = "myfinanceplace-backup"
 VERSION = 2
@@ -63,7 +66,7 @@ KEEP_SAFETY_COPIES = 10
 SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 
 # Insertion order: a table comes after the tables it points to (documents and dismissals → transactions)
-MODELS = [AppSetting, Account, Card, Category, CategoryRule, ExchangeRate, Holding, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
+MODELS = [AppSetting, Account, Card, SecuritiesAccount, Portfolio, Category, CategoryRule, ExchangeRate, Holding, HoldingExposure, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
           InsurancePolicy, Goal, Budget, Document, Snapshot, PortfolioTemplate, TemplateSlot, SlotHolding,
           PortfolioRule, InvestmentPlan, ContributionLimit, Taxonomy, TaxonomyCategory, HoldingCategory, Gig, PersonalLoan, Reminder,
           UtilityReading, YearClose]  # parents before the rows that point to them
@@ -200,6 +203,9 @@ def is_full_backup(data: dict) -> bool:
 
 # Fix-ups of backups made by older versions, run after every restore (they change nothing on newer ones)
 LEGACY_FIXES = (
+    # made before F70: the mutual fund was «Fondo» (the same conversion as the migration c4e6a8b0d2f3)
+    text("UPDATE holdings SET asset_class = 'Fondo comune' WHERE asset_class = 'Fondo'"),
+    text("UPDATE template_slots SET asset_class = 'Fondo comune' WHERE asset_class = 'Fondo'"),
     # made before multi-currency: no value in euro
     text("UPDATE transactions SET amount_base = amount WHERE amount_base IS NULL"),
     # made before the counterparty became a tag: the same conversion as the migration b7c1d2e3f4a5
@@ -246,6 +252,9 @@ def restore(data: dict, files: dict[str, bytes]) -> dict:
         db.session.commit()
         settings_store.forget()
         currency.recompute()
+        # a backup from before F42: its trades get their securities accounts and the default portfolio
+        if securities.ensure_assigned():
+            db.session.commit()
     except BackupError:
         db.session.rollback()
         raise

@@ -129,13 +129,15 @@ def _holding(order: Order) -> Holding:
 def confirm(plan: InvestmentPlan, orders: list[Order], on: date) -> int:
     """Buy what was confirmed (with the broker's commission) and mark the period done."""
     bought = 0
+    template = plan.template or portfolio_models.active()
+    folio = template.portfolio if template is not None else None  # F50: a portfolio's model buys for it
     for order in orders:
         if order.units <= 0 or order.price <= 0:
             continue
         holding = _holding(order)
         fee = broker.commission(plan.account, money.cents(order.units * order.price))
         portfolio_ops.record(holding, portfolio_ops.Operation("buy", on, plan.account, units=order.units,
-                                                              price=order.price, fee=fee,
+                                                              price=order.price, fee=fee, portfolio=folio,
                                                               notes=_("PAC «%(name)s»", name=plan.name)))
         bought += 1
     if not bought:
