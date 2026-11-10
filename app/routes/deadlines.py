@@ -123,9 +123,16 @@ def fiscal():
     return redirect(url_for("deadlines.index"))
 
 
+FUTURE_YEARS = 5  # «tutte le scadenze future»: from today, the recurring ones repeated for five years
+
+
 @deadlines_bp.route("/scadenze.ics")
 def calendar_file():
-    """The next twelve months (and the last one) for Google Calendar, Outlook or the phone's calendar."""
+    """The next twelve months (and the last one) for Google Calendar, Outlook or the phone's calendar; ?future=1:
+    every deadline from today on (five years of the recurring ones), nothing past."""
     today = date.today()
+    if request.args.get("future"):
+        return download(deadlines.ics(today, today.replace(year=today.year + FUTURE_YEARS)), "scadenze-future.ics",
+                        "text/calendar; charset=utf-8")
     return download(deadlines.ics(today - timedelta(days=31), today + timedelta(days=366)), "scadenze.ics",
                     "text/calendar; charset=utf-8")

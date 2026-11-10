@@ -255,3 +255,20 @@ def test_google_calendar_links_and_import(client, db):
     page = client.get("/deadlines/").get_data(as_text=True)
     assert "Importa in Google Calendar" in page and "calendar.google.com/calendar/r/settings/export" in page
     assert "calendar.google.com/calendar/render?" in page and 'target="_blank"' in page
+
+
+def test_every_future_deadline_in_one_file(client, db):
+    from datetime import date, timedelta
+
+    from app.models.reminder import Reminder
+
+    today = date.today()
+    db.session.add_all([Reminder(title="Bollo auto", due=today + timedelta(days=10), repeat="yearly"),
+                        Reminder(title="Vecchio", due=today - timedelta(days=20))])
+    db.session.commit()
+    future = client.get("/deadlines/scadenze.ics?future=1")
+    assert future.mimetype == "text/calendar" and "scadenze-future.ics" in future.headers["Content-Disposition"]
+    text = future.get_data(as_text=True)
+    assert text.count("SUMMARY:Bollo auto") == 5 and "Vecchio" not in text  # five years, nothing past
+    assert "Vecchio" in client.get("/deadlines/scadenze.ics").get_data(as_text=True)  # the usual file keeps last month
+    assert "Importa tutte le scadenze future" in client.get("/deadlines/").get_data(as_text=True)

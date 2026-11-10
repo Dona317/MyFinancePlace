@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 10:21+0000\n"
+"POT-Creation-Date: 2026-11-10 10:22+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -5097,6 +5097,9 @@ msgstr "Import movements"
 
 msgid "Importa operazioni dal broker"
 msgstr "Import operations from the broker"
+
+msgid "Importa tutte le scadenze future"
+msgstr "Import every future deadline"
 
 msgid ""
 "Importa un estratto conto o inserisci le transazioni di almeno un mese "
@@ -11133,6 +11136,16 @@ msgstr "All passive income"
 
 msgid "Tutte le righe"
 msgstr "All rows"
+
+#, python-format
+msgid ""
+"Tutte le scadenze da oggi in poi (le ricorrenti per i prossimi %(years)s "
+"anni), niente di passato: scarica il file .ics e apre Google Calendar → "
+"Impostazioni → Importa, dove scegli il file e il calendario."
+msgstr ""
+"Every deadline from today on (the recurring ones for the next %(years)s "
+"years), nothing past: downloads the .ics file and opens Google Calendar →"
+" Settings → Import, where you choose the file and the calendar."
 
 msgid "Tutte le transazioni"
 msgstr "All transactions"
