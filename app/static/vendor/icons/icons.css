@@ -219,6 +219,7 @@
 .bi-piggy-bank::before { content: "\f64a"; }
 .bi-play::before { content: "\f4f5"; }
 .bi-play-circle::before { content: "\f4f3"; }
+.bi-plugin::before { content: "\f77d"; }
 .bi-plus::before { content: "\f4fe"; }
 .bi-plus-circle::before { content: "\f4fa"; }
 .bi-plus-lg::before { content: "\f64d"; }
@@ -273,6 +274,8 @@
 .bi-translate::before { content: "\f658"; }
 .bi-trash::before { content: "\f5de"; }
 .bi-trash3::before { content: "\f78b"; }
+.bi-tree::before { content: "\f5e2"; }
+.bi-triangle::before { content: "\f5e5"; }
 .bi-trophy::before { content: "\f5e7"; }
 .bi-tv::before { content: "\f5ed"; }
 .bi-type::before { content: "\f5f7"; }
