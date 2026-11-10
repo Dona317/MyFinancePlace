@@ -109,7 +109,12 @@ def index(tab: str | None = None):
         context.update(items=items, previous=previous, legend_shown=LEGEND_SHOWN, within=within,
                        total=sum(item["amount"] for item in items))
     else:
-        context["flow"] = reports.cash_flow(query, filters["start"], filters["end"])
+        context["flow"] = flow = reports.cash_flow(query, filters["start"], filters["end"])
+        # F65: the expenses of the period just before, month by month on the same positions (dashed on the chart)
+        prev_start, prev_end = reports.previous_range(filters["start"], filters["end"])
+        before = reports.cash_flow(reports.base_query(prev_start, prev_end, filters["account"]), prev_start, prev_end)
+        flow["previous_expenses"] = (before["expenses"] + [None] * len(flow["labels"]))[:len(flow["labels"])]
+        flow["previous_label"] = f"{prev_start:%m/%Y} – {prev_end - timedelta(days=1):%m/%Y}"
     if not filters["category"]:
         types = [tx_type] if tx_type else ["income", "expense"]
         context["excluded"] = excluded_total(Transaction.type.in_(types), Transaction.date >= filters["start"],
