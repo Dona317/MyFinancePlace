@@ -59,6 +59,7 @@
 .bi-calendar-check::before { content: "\f1e2"; }
 .bi-calendar-event::before { content: "\f1e8"; }
 .bi-calendar-month::before { content: "\f1ed"; }
+.bi-calendar-plus::before { content: "\f1ef"; }
 .bi-calendar2-check::before { content: "\f1f8"; }
 .bi-calendar2-week::before { content: "\f209"; }
 .bi-calendar3::before { content: "\f214"; }
@@ -154,6 +155,7 @@
 .bi-gift::before { content: "\f3ec"; }
 .bi-github::before { content: "\f3ed"; }
 .bi-globe::before { content: "\f3ee"; }
+.bi-google::before { content: "\f3f0"; }
 .bi-graph-down-arrow::before { content: "\f672"; }
 .bi-graph-up::before { content: "\f3f2"; }
 .bi-graph-up-arrow::before { content: "\f673"; }

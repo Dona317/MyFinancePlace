@@ -2158,3 +2158,7 @@ th.text-right .col-pop { left: auto; right: 0; }
 .report-list > .report-row:last-child { border-bottom: 0; }
 .card > .report-list:last-child { border-radius: 0 0 var(--border-radius) var(--border-radius); }
 .card > .card-header:last-child { border-bottom: 0; }
+
+/* Deadlines: «Aggiungi a Google Calendar» at the end of each line, quiet until hovered */
+.deadline-gcal { margin-left: 6px; color: var(--clr-text-muted); opacity: .6; }
+.deadline-gcal:hover, .deadline-gcal:focus-visible { color: var(--clr-primary); opacity: 1; }

@@ -47,7 +47,7 @@ def render_page():
                        upcoming=upcoming, upcoming_60=[d for d in upcoming if d.day <= today + timedelta(days=60)],
                        next_items=upcoming[:NEXT_ROWS], reminders=Reminder.query.order_by(Reminder.due).all(),
                        repeats=deadlines.REPEATS, notices=deadlines.NOTICES, edit=db.session.get(Reminder, request.args.get("edit", type=int) or 0),
-                       fiscal=deadlines.fiscal_on())
+                       fiscal=deadlines.fiscal_on(), google_import=deadlines.GOOGLE_IMPORT)
     return render_template("deadlines/index.html", **context)
 
 

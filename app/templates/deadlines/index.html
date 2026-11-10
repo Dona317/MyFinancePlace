@@ -17,6 +17,10 @@
   {% if with_deadlines %}
   <a class="btn btn-ghost btn-sm" href="{{ url_for('deadlines.calendar_file') }}" title="{{ _('Per Google Calendar, Outlook o il calendario del telefono') }}">
     <i class="bi bi-calendar3"></i> {{ _('Scarica .ics') }}</a>
+  <a class="btn btn-ghost btn-sm" id="gcal-import" href="{{ google_import }}" target="_blank" rel="noopener"
+     data-ics="{{ url_for('deadlines.calendar_file') }}"
+     title="{{ _('Scarica il file .ics e apre Google Calendar → Impostazioni → Importa: scegli il file appena scaricato e il calendario, poi «Importa». Per un solo evento usa l\'icona accanto a ogni scadenza.') }}">
+    <i class="bi bi-google"></i> {{ _('Importa in Google Calendar') }}</a>
   {% endif %}
   <button type="button" class="btn btn-primary btn-sm" onclick="openModal('new-reminder')"><i class="bi bi-plus-lg"></i> {{ _('Nuovo promemoria') }}</button>
 {% endblock %}
@@ -48,6 +52,7 @@
   <span class="deadline-title">{% if d.url %}<a href="{{ d.url }}">{{ d.title }}</a>{% else %}{{ d.title }}{% endif %}
     {% if d.detail %}<span class="text-muted text-xs">· {{ d.detail }}</span>{% endif %}</span>
   {% if d.amount %}<span class="nowrap {{ 'text-negative' if d.outgoing else 'text-positive' }}">{{ d.amount|money }}</span>{% endif %}
+  <a href="{{ d.google_url }}" target="_blank" rel="noopener" class="deadline-gcal" title="{{ _('Aggiungi a Google Calendar') }}" aria-label="{{ _('Aggiungi «%(title)s» a Google Calendar', title=d.title) }}"><i class="bi bi-calendar-plus"></i></a>
 </li>
 {%- endmacro %}
 
@@ -219,6 +224,12 @@
 {% block scripts %}
 {{ blocks.script() }}
 <script>
+// «Importa in Google Calendar»: the .ics is downloaded here while the link opens Google's import page in the browser
+document.getElementById('gcal-import')?.addEventListener('click', (e) => {
+  const file = document.createElement('a');
+  file.href = e.currentTarget.dataset.ics; file.download = 'scadenze.ics';
+  document.body.appendChild(file); file.click(); file.remove();
+});
 initBlockEditor({
   saveUrl: {{ url_for('deadlines.save_layout')|tojson }},
   grids: [{ el: document.getElementById('blocks-grid'), key: 'widgets', spans: 3, heights: true }],

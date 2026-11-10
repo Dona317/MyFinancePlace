@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 10:17+0000\n"
+"POT-Creation-Date: 2026-11-10 10:19+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1026,6 +1026,9 @@ msgstr "Add Holding to Portfolio"
 msgid "Aggiungi Transazione"
 msgstr "Add Transaction"
 
+msgid "Aggiungi a Google Calendar"
+msgstr "Add to Google Calendar"
+
 msgid "Aggiungi al Portafoglio"
 msgstr "Add to Portfolio"
 
@@ -1086,6 +1089,10 @@ msgstr "Add a part"
 
 msgid "Aggiungi una posizione per vedere come è ripartito il patrimonio."
 msgstr "Add a holding to see how your wealth is split."
+
+#, python-format
+msgid "Aggiungi «%(title)s» a Google Calendar"
+msgstr "Add «%(title)s» to Google Calendar"
 
 msgid "Aggiunta a mano"
 msgstr "Added by hand"
@@ -5072,6 +5079,9 @@ msgstr "Import from broker"
 
 msgid "Importa estratto conto"
 msgstr "Import bank statement"
+
+msgid "Importa in Google Calendar"
+msgstr "Import into Google Calendar"
 
 msgid "Importa la riga"
 msgstr "Import the row"
@@ -9797,6 +9807,15 @@ msgstr "Download the three saved statements"
 
 msgid "Scarica il backup"
 msgstr "Download the backup"
+
+msgid ""
+"Scarica il file .ics e apre Google Calendar → Impostazioni → Importa: "
+"scegli il file appena scaricato e il calendario, poi «Importa». Per un "
+"solo evento usa l'icona accanto a ogni scadenza."
+msgstr ""
+"Downloads the .ics file and opens Google Calendar → Settings → Import: "
+"choose the file just downloaded and the calendar, then «Import». For a "
+"single event use the icon next to each deadline."
 
 msgid "Scaricala dalla pagina della versione"
 msgstr "Download it from the release page"

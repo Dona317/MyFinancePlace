@@ -238,3 +238,20 @@ def test_a_new_event_makes_its_reminder(client, db):
     client.post("/events/", data={"name": "Viaggio Lisbona", "start": "2027-04-10", "end": "2027-04-15", "budget": "900"})
     reminder = Reminder.query.one()
     assert (reminder.title, reminder.due, float(reminder.amount), reminder.repeat) == ("Viaggio Lisbona", date(2027, 4, 10), 900.0, "none")
+
+
+def test_google_calendar_links_and_import(client, db):
+    from datetime import date
+    from decimal import Decimal
+    from urllib.parse import parse_qs, urlparse
+
+    from app.services import deadlines
+
+    item = deadlines.Deadline(date(2026, 12, 16), "fiscal", "Saldo IMU", "Seconda rata", amount=Decimal("412.50"))
+    query = parse_qs(urlparse(item.google_url).query)
+    assert item.google_url.startswith("https://calendar.google.com/calendar/render?")
+    assert query["action"] == ["TEMPLATE"] and query["dates"] == ["20261216/20261217"]
+    assert query["text"] == ["Saldo IMU — 412,50 €"] and query["details"] == ["Seconda rata"]
+    page = client.get("/deadlines/").get_data(as_text=True)
+    assert "Importa in Google Calendar" in page and "calendar.google.com/calendar/r/settings/export" in page
+    assert "calendar.google.com/calendar/render?" in page and 'target="_blank"' in page
