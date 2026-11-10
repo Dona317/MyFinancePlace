@@ -552,10 +552,12 @@ classifyButton?.addEventListener('click', async () => {
         counterparty.classList.add('ai-suggested');
       }
       // A first classification never makes things worse: a specific category is not replaced by
-      // "Altro", and an unsure suggestion only fills rows that have no real category yet
+      // the fallback ("Altro", or "Imprevisti o altro" with the broad categories), and an unsure suggestion only
+      // fills rows that have no real category yet
       const current = category.value.trim();
-      const hasCategory = current && current !== 'Altro';
-      if (hasCategory && current !== s.category && (s.category === 'Altro' || s.confidence === 'bassa')) {
+      const fallbacks = ['Altro', {{ fallback_category()|tojson }}];
+      const hasCategory = current && !fallbacks.includes(current);
+      if (hasCategory && current !== s.category && (fallbacks.includes(s.category) || s.confidence === 'bassa')) {
         kept++;
         continue;
       }

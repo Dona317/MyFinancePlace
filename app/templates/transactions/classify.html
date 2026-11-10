@@ -31,8 +31,9 @@
         </thead>
         <tbody>
           {% for tx, s in rows %}
-          {% set has_category = tx.category and tx.category != 'Altro' %}
-          {% set worse = s and has_category and s.category != tx.category and (s.category == 'Altro' or s.confidence == 'bassa') %}
+          {% set fallback = fallback_category() %}
+          {% set has_category = tx.category and tx.category not in ('Altro', fallback) %}
+          {% set worse = s and has_category and s.category != tx.category and (s.category in ('Altro', fallback) or s.confidence == 'bassa') %}
           {% set changes = s and (s.category != tx.category or (s.counterparty and s.counterparty != tx.counterparty)) %}
           <tr>
             <td>

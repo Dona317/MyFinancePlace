@@ -317,3 +317,15 @@ def test_claude_batches_run_in_parallel(app, monkeypatch):
     result = ai_classification.classify(items(*shops), ["Alimentari"])
     assert len(result) == 100 and all(s.category == "Alimentari" for s in result.values())
     assert threading.get_ident() not in threads  # answered by the worker threads
+
+
+def test_the_broad_fallback_counts_as_no_category(client, ollama, db):
+    """With the broad categories «Imprevisti o altro» is the fallback: a row there takes the AI's suggestion."""
+    from app.services import categories, settings_store
+
+    settings_store.set(categories.BROAD_SETTING, "1")
+    tx = make_tx(description="ESSELUNGA MILANO", category="Imprevisti o altro", amount=30)
+    db.session.add(tx)
+    db.session.commit()
+    page = client.post("/transactions/classify", data={"ids": [str(tx.id)]}).get_data(as_text=True)
+    assert f'name="apply" value="{tx.id}" checked' in page  # the suggestion replaces the fallback
