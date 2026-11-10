@@ -152,13 +152,13 @@
 <div class="card" id="import-presets" style="margin-top:16px;">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-bookmark-check"></i> {{ _('Preset di importazione') }} {{ info(_('Si salvano dall’anteprima di un file importato con la mappatura manuale («Salva come preset») e si applicano da soli ai file con le stesse colonne.')) }}</div>
+      <div class="card-header-title"><i class="bi bi-bookmark-check"></i> {{ _('Preset di importazione') }} {{ info(_('Si salvano dall’anteprima di un file importato con la mappatura manuale o di un file del broker (Portafoglio → Importa dal broker, «Salva come preset») e si applicano da soli ai file con le stesse colonne.')) }}</div>
     </div>
   </div>
   <div class="card-body">
     {% if presets %}
     <div class="table-wrapper"><table class="table-compact">
-      <thead><tr><th>{{ _('Nome') }}</th><th>{{ _('Colonne') }}</th><th>{{ _('Conto') }}</th><th></th></tr></thead>
+      <thead><tr><th>{{ _('Nome') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Colonne') }}</th><th>{{ _('Conto') }}</th><th></th></tr></thead>
       <tbody>
       {% for p in presets %}
         <tr>
@@ -168,6 +168,7 @@
               <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Rinomina') }}" aria-label="{{ _('Rinomina') }}"><i class="bi bi-pencil"></i></button>
             </form>
           </td>
+          <td class="text-xs">{{ _('Broker') if p.kind == 'broker' else _('Banca') }}</td>
           <td class="text-xs">{% for field, column in p.mapping.items() %}{{ column }}{{ ', ' if not loop.last }}{% endfor %}</td>
           <td class="text-xs">{{ preset_accounts.get(p.options.account_id, '—') if p.options else '—' }}</td>
           <td>

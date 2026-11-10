@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "partials/info.html" import info %}
+{% block page_title %}{{ _('Colonne del file del broker') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.broker_upload') }}">{{ _('Importa dal broker') }}</a></li><li>{{ _('Colonne') }}</li>{% endblock %}
+
+{% block content %}
+{% set nav_active = 'import' %}{% include "portfolio/_nav.html" %}
+<div class="page-form">
+  {% if problem %}<div class="alert alert-warning mb-16"><i class="bi bi-exclamation-triangle"></i> {{ problem }}</div>{% endif %}
+  <form method="POST" action="{{ url_for('portfolio.broker_columns') }}" id="broker-columns-form">
+    <input type="hidden" name="file_token" value="{{ token }}" />
+    <input type="hidden" name="preset" value="{{ preset.id if preset else '' }}" />
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-header-title">{{ filename }} {{ info(_('Per ogni dato dell’operazione scegli la colonna del file che lo contiene; i dati che il file non ha restano su «non presente». Dopo l’anteprima puoi salvare le colonne come preset, applicato da solo ai prossimi file con le stesse colonne.')) }}</div>
+          <div class="card-header-sub">{{ _('Scegli le colonne') }}
+            {% if preset %} · <span class="badge badge-primary"><i class="bi bi-bookmark-check"></i> {{ _('Preset «%(name)s» applicato', name=preset.name) }}</span>{% endif %}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        {% for name, label, note in fields %}
+        <div class="form-group">
+          <label class="form-label" for="col-{{ name }}">{{ label }} {{ info(note) }}</label>
+          <select name="col_{{ name }}" id="col-{{ name }}" class="form-select">
+            <option value="">{{ _('— non presente —') }}</option>
+            {% for h in headers %}
+            <option value="{{ h }}" {{ 'selected' if mapping.get(name) == h else '' }}>{{ h }}{% if samples.get(h) %} — {{ samples[h]|truncate(30) }}{% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <a href="{{ url_for('portfolio.broker_upload') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-eye"></i> {{ _('Mostra l’anteprima') }}</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
