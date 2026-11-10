@@ -160,7 +160,7 @@ def _field_labels() -> list[tuple[str, str, str]]:
         ("ticker", _("Ticker"), _("Il simbolo di borsa (ENEL.MI, VWRL…).")),
         ("name", _("Nome del titolo"), _("Serve almeno uno fra ISIN, ticker e nome.")),
         ("units", _("Quantità"), _("Le quote o il nominale comprati o venduti (obbligatoria).")),
-        ("price", _("Prezzo"), _("Il prezzo di una quota; le obbligazioni in % del nominale.")),
+        ("price", _("Prezzo"), _("Il prezzo di una quota; le obbligazioni in percentuale del nominale.")),
         ("value", _("Controvalore in euro"), _("L’importo totale in euro: con il prezzo in un’altra valuta, il prezzo in euro "
                                               "si ricava da qui. Serve il prezzo o il controvalore.")),
         ("fee", _("Commissione"), _("Le commissioni e i costi dell’operazione.")),

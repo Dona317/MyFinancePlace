@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 18:53+0000\n"
+"POT-Creation-Date: 2026-11-10 20:28+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -108,6 +108,10 @@ msgstr "%(amount)s not explained by transactions"
 #, python-format
 msgid "%(amount)s pagati quest'anno"
 msgstr "%(amount)s paid this year"
+
+#, python-format
+msgid "%(bps)s pb · %(quarter)s a trimestre · %(month)s al mese"
+msgstr "%(bps)s bp · %(quarter)s a quarter · %(month)s a month"
 
 #, python-format
 msgid "%(change)s sul %(year)s"
@@ -295,6 +299,10 @@ msgid "%(currency)s: %(count)s movimenti"
 msgstr "%(currency)s: %(count)s movements"
 
 #, python-format
+msgid "%(day)s: vendute %(sold)s, possedute %(held)s"
+msgstr "%(day)s: sold %(sold)s, held %(held)s"
+
+#, python-format
 msgid "%(days)s giorni"
 msgstr "%(days)s days"
 
@@ -423,6 +431,14 @@ msgid "%(name)s: %(error)s"
 msgstr "%(name)s: %(error)s"
 
 #, python-format
+msgid ""
+"%(name)s: manca il prezzo, la differenza di %(units)s quote non diventa "
+"un'operazione"
+msgstr ""
+"%(name)s: no price, the difference of %(units)s units does not become an "
+"operation"
+
+#, python-format
 msgid "%(name)s: puoi ancora versare %(amount)s"
 msgstr "%(name)s: you can still pay in %(amount)s"
 
@@ -527,6 +543,12 @@ msgstr[0] "%(num)s job"
 msgstr[1] "%(num)s jobs"
 
 #, python-format
+msgid "%(num)s mese"
+msgid_plural "%(num)s mesi"
+msgstr[0] "%(num)s month"
+msgstr[1] "%(num)s months"
+
+#, python-format
 msgid ""
 "%(num)s movimento in un'altra valuta è contato al cambio del giorno: "
 "inserisci l'importo addebitato dalla banca per un saldo esatto."
@@ -565,6 +587,10 @@ msgstr[0] "%(num)s payment in %(year)s"
 msgstr[1] "%(num)s payments in %(year)s"
 
 #, python-format
+msgid "%(pct)s %% del valore all'anno · %(total)s in %(years)s anni"
+msgstr "%(pct)s %% of the value a year · %(total)s in %(years)s years"
+
+#, python-format
 msgid "%(pct)s %% della crescita"
 msgstr "%(pct)s %% of the growth"
 
@@ -591,6 +617,10 @@ msgstr "%(person)s owes you %(amount)s"
 #, python-format
 msgid "%(person)s ti restituisce"
 msgstr "%(person)s pays you back"
+
+#, python-format
+msgid "%(points)s punti %%"
+msgstr "%(points)s %% points"
 
 #, python-format
 msgid ""
@@ -753,6 +783,10 @@ msgstr ".env"
 msgid ".zip"
 msgstr ".zip"
 
+#, python-format
+msgid "0,2 %% dei titoli"
+msgstr "0.2 %% of the securities"
+
 msgid "1 movimento era già stato importato e verrà ignorato."
 msgstr "1 movement had already been imported and will be skipped."
 
@@ -792,6 +826,9 @@ msgstr "Worst 10%%"
 
 msgid "12 mesi"
 msgstr "12 months"
+
+msgid "12 mesi migliori"
+msgstr "Best 12 months"
 
 msgid "26 (12,5 per i titoli di Stato)"
 msgstr "26 (12.5 for government bonds)"
@@ -971,6 +1008,13 @@ msgstr "Purchase"
 msgid "Acquisto casa"
 msgstr "Buying a home"
 
+msgid ""
+"Acquisto o vendita (A/V, Buy/Sell…). Senza, una quantità negativa è una "
+"vendita."
+msgstr ""
+"Purchase or sale (A/V, Buy/Sell…). Without it, a negative quantity is a "
+"sale."
+
 msgid "Adeguare quantità e prezzi precedenti?"
 msgstr "Adjust the earlier quantities and prices?"
 
@@ -1005,10 +1049,6 @@ msgstr ""
 
 msgid "Aggiornato"
 msgstr "Updated"
-
-#, python-format
-msgid "Aggiornato il %(day)s"
-msgstr "Updated on %(day)s"
 
 msgid "Aggiungi"
 msgstr "Add"
@@ -1145,6 +1185,10 @@ msgid "Al giorno"
 msgstr "Per day"
 
 #, python-format
+msgid "Al massimo %(count)s benchmark: togline uno prima di aggiungerne un altro."
+msgstr "At most %(count)s benchmarks: remove one before adding another."
+
+#, python-format
 msgid "Al massimo %(count)s fonti personalizzate."
 msgstr "At most %(count)s custom sources."
 
@@ -1214,6 +1258,9 @@ msgstr "Another bank: type its name…"
 msgid "Altre"
 msgstr "Others"
 
+msgid "Altri"
+msgstr "Others"
+
 msgid "Altri beni"
 msgstr "Other assets"
 
@@ -1281,6 +1328,9 @@ msgstr "Net worth trend"
 #, python-format
 msgid "Andamento del patrimonio — %(period)s"
 msgstr "Net worth trend — %(period)s"
+
+msgid "Anni"
+msgstr "Years"
 
 msgid "Anni da confrontare"
 msgstr "Years to compare"
@@ -1727,6 +1777,9 @@ msgstr "Benchmark"
 msgid "Benchmark non aggiornato: %(error)s"
 msgstr "Benchmark not updated: %(error)s"
 
+msgid "Benchmark tolti."
+msgstr "Benchmarks removed."
+
 msgid "Benchmark tolto."
 msgstr "Benchmark removed."
 
@@ -1747,6 +1800,12 @@ msgstr "Assets bought with a debt"
 
 msgid "Beni di consumo"
 msgstr "Consumer goods"
+
+msgid "Beni di consumo di base"
+msgstr "Consumer staples"
+
+msgid "Beni di consumo discrezionali"
+msgstr "Consumer discretionary"
 
 msgid "Bentornato"
 msgstr "Welcome back"
@@ -1803,6 +1862,9 @@ msgstr "Bank transfer"
 
 msgid "Borsa"
 msgstr "Exchange"
+
+msgid "Broker"
+msgstr "Broker"
 
 msgid "Broker, conto titoli, note facoltative..."
 msgstr "Broker, securities account, optional notes..."
@@ -1882,6 +1944,9 @@ msgstr "Calculate"
 msgid "Calcolata dalla regola del conto, se ne ha una; correggila se serve."
 msgstr "Computed from the account's rule, if it has one; correct it if needed."
 
+msgid "Calcolo commissioni"
+msgstr "Fee calculator"
+
 msgid "Calendario del mese"
 msgstr "Month calendar"
 
@@ -1913,6 +1978,9 @@ msgstr "Saved rates"
 msgid "Cambi ufficiali BCE"
 msgstr "Official ECB rates"
 
+msgid "Cambia colonne"
+msgstr "Change columns"
+
 msgid "Cambia modello"
 msgstr "Change model"
 
@@ -1936,8 +2004,14 @@ msgstr ""
 msgid "Cambio: deve essere maggiore di zero."
 msgstr "Rate: must be greater than zero."
 
+msgid "Cancella"
+msgstr "Clear"
+
 msgid "Cancella tutte"
 msgstr "Clear all"
+
+msgid "Cancellare la composizione di questo titolo?"
+msgstr "Clear this holding's composition?"
 
 msgid "Capitale"
 msgstr "Capital"
@@ -1950,6 +2024,16 @@ msgstr "Initial principal (€)"
 
 msgid "Capitale iniziale: deve essere maggiore di zero."
 msgstr "Initial principal: must be greater than zero."
+
+#, python-format
+msgid ""
+"Capitale investito in media: %(capital)s. Il guadagno su cui si calcola "
+"il TWR non toglie commissioni e imposte (%(costs)s): per questo è più "
+"alto della somma dei contributi."
+msgstr ""
+"Average capital invested: %(capital)s. The gain behind the TWR does not "
+"subtract fees and taxes (%(costs)s): that is why it is higher than the "
+"sum of the contributions."
 
 msgid "Carattere"
 msgstr "Font"
@@ -1980,6 +2064,16 @@ msgstr ""
 
 msgid "Carica il file"
 msgstr "Upload the file"
+
+msgid "Carica il file dell'emittente"
+msgstr "Upload the issuer's file"
+
+msgid ""
+"Carica la composizione dei fondi, o indica area e settore, nella scheda "
+"del titolo."
+msgstr ""
+"Upload the funds' composition, or set region and sector, on the holding's"
+" page."
 
 msgid "Carica prima la bolletta in Documenti."
 msgstr "Upload the bill to Documents first."
@@ -2372,6 +2466,9 @@ msgstr "Type column (income/expense/transfer)"
 msgid "Colonne"
 msgstr "Columns"
 
+msgid "Colonne del file del broker"
+msgstr "Columns of the broker's file"
+
 #, python-format
 msgid "Colonne proposte da %(model)s: controlla e importa."
 msgstr "Columns proposed by %(model)s: check and import."
@@ -2381,6 +2478,15 @@ msgstr "Columns only partly recognised: check the choices."
 
 msgid "Colonne riconosciute: controlla e importa."
 msgstr "Columns recognised: check and import."
+
+msgid ""
+"Colonne salvate per un broker: quello con le stesse colonne del file "
+"viene applicato da solo. Scegline un altro, o nessuno per usare le "
+"colonne riconosciute dai titoli."
+msgstr ""
+"Columns saved for a broker: the one with the same columns as the file is "
+"applied automatically. Choose another one, or none to use the columns "
+"recognised from the headers."
 
 msgid ""
 "Colonne salvate per una banca o una carta: quello con le stesse colonne "
@@ -2416,14 +2522,31 @@ msgstr ""
 "How you already categorized similar transactions: the AI model was not "
 "asked"
 
+msgid ""
+"Come lo Sharpe, ma conta solo i mesi andati sotto il tasso senza rischio:"
+" (media mensile − tasso mensile senza rischio) / semideviazione × √12. La"
+" semideviazione è √(media dei quadrati dei mesi sotto il tasso), qui "
+"all'anno."
+msgstr ""
+"Like the Sharpe ratio, but only the months below the risk-free rate "
+"count: (monthly mean − monthly risk-free rate) / downside deviation × "
+"√12. The downside deviation is √(mean of the squares of the months below "
+"the rate), shown here per year."
+
 msgid "Commissione"
 msgstr "Commission"
 
 msgid "Commissione %"
 msgstr "Fee %"
 
+msgid "Commissione (punti base all'anno)"
+msgstr "Fee (basis points a year)"
+
 msgid "Commissione (€)"
 msgstr "Commission (€)"
+
+msgid "Commissione annua"
+msgstr "Yearly fee"
 
 #, python-format
 msgid "Commissione di %(amount)s registrata come spesa."
@@ -2505,6 +2628,23 @@ msgstr "Full (purchases and sales)"
 msgid "Composizione"
 msgstr "Composition"
 
+msgid "Composizione (spacchettamento)"
+msgstr "Composition (look-through)"
+
+msgid ""
+"Composizione cancellata: il titolo conta di nuovo con area e settore "
+"della sua scheda."
+msgstr ""
+"Composition cleared: the holding counts again with the region and sector "
+"of its page."
+
+#, python-format
+msgid "Composizione letta da %(source)s: %(rows)s righe, dati al %(day)s."
+msgstr "Composition read from %(source)s: %(rows)s rows, data as of %(day)s."
+
+msgid "Composizione salvata."
+msgstr "Composition saved."
+
 msgid "Compra"
 msgstr "Buy"
 
@@ -2541,6 +2681,15 @@ msgid ""
 msgstr ""
 "With the exchange suffix: .MI Milan, .DE Xetra, .L London; none for the "
 "US."
+
+msgid ""
+"Con le categorie ampie il dettaglio è un tag: quello che la categoria "
+"suggerisce e che descrive meglio il movimento (Casa → Bollette). Lascialo"
+" vuoto per non aggiungerlo."
+msgstr ""
+"With the broad categories the detail is a tag: the one the category "
+"suggests that best describes the movement (Home → Bills). Leave it empty "
+"not to add it."
 
 msgid ""
 "Con quale importo proiettare le transazioni ricorrenti, in entrata e in "
@@ -2612,6 +2761,13 @@ msgstr "Confirm executed orders"
 msgid "Conferma selezionate"
 msgstr "Confirm selected"
 
+msgid ""
+"Conferme d'ordine, elenchi di operazioni, estratti conto titoli o "
+"schermate dell'app."
+msgstr ""
+"Order confirmations, lists of trades, securities statements or "
+"screenshots of the app."
+
 msgid "Confidenza"
 msgstr "Confidence"
 
@@ -2677,6 +2833,12 @@ msgstr "Cash count: spending not written down"
 
 msgid "Conta i contanti"
 msgstr "Count the cash"
+
+msgid "Conta il TER dei fondi"
+msgstr "Count the funds' TER"
+
+msgid "Conta l'imposta di bollo"
+msgstr "Count the stamp duty"
 
 msgid "Contabilità"
 msgstr "Accounting"
@@ -2843,6 +3005,15 @@ msgstr "Contract"
 msgid "Contributi per colf e badanti"
 msgstr "Contributions for domestic workers and carers"
 
+msgid "Contributo"
+msgstr "Contribution"
+
+msgid "Contributo al portafoglio"
+msgstr "Contribution to the portfolio"
+
+msgid "Contributo dei titoli"
+msgstr "Contribution of the holdings"
+
 msgid "Contribuzione mensile"
 msgstr "Monthly contribution"
 
@@ -2899,6 +3070,9 @@ msgstr "Counterparty (tag)"
 msgid "Controvalore"
 msgstr "Traded amount"
 
+msgid "Controvalore in euro"
+msgstr "Value in euro"
+
 msgid "Controvalore nella valuta dei totali al cambio del giorno"
 msgstr "Value in the totals currency at the rate of the day"
 
@@ -2950,6 +3124,17 @@ msgstr "What it includes"
 msgid "Cosa comprende %(name)s"
 msgstr "What %(name)s includes"
 
+msgid ""
+"Cosa contiene davvero il fondo: paesi, settori, valute e prime società. "
+"In Portafoglio → Composizione la tua esposizione è la somma, titolo per "
+"titolo, del valore per questi pesi; senza questi dati il titolo conta con"
+" area e settore della sua scheda."
+msgstr ""
+"What the fund really holds: countries, sectors, currencies and top "
+"companies. In Portfolio → Composition your exposure is the sum, holding "
+"by holding, of the value times these weights; without this data the "
+"holding counts with the region and sector of its page."
+
 msgid "Cosa scade"
 msgstr "What is due"
 
@@ -2959,6 +3144,9 @@ msgstr "What changed in %(month)s"
 
 msgid "Cosa è successo"
 msgstr "What happened"
+
+msgid "Costi totali"
+msgstr "Total costs"
 
 msgid "Costo"
 msgstr "Cost"
@@ -3099,6 +3287,9 @@ msgstr "To collect"
 msgid "Da incassare: %(client)s"
 msgstr "To collect: %(client)s"
 
+msgid "Da inizio anno"
+msgstr "Year to date"
+
 #, python-format
 msgid "Da ora le transazioni di «%(counterparty)s» andranno in «%(category)s»."
 msgstr ""
@@ -3158,6 +3349,10 @@ msgstr "Give the event a name."
 msgid "Dal"
 msgstr "From"
 
+#, python-format
+msgid "Dal %(day)s a oggi"
+msgstr "From %(day)s to today"
+
 msgid "Dal 1° gennaio"
 msgstr "Since 1 January"
 
@@ -3175,6 +3370,15 @@ msgstr "From your history: how you categorized similar transactions"
 
 msgid "Dall'inizio"
 msgstr "Since the start"
+
+msgid ""
+"Dalla scheda del fondo (factsheet o KID): il nome del paese in italiano o"
+" in inglese e il peso in percentuale. Sostituisce i paesi e i settori di "
+"prima; il resto conta come «Non coperto»."
+msgstr ""
+"From the fund's factsheet or KID: the country's name in Italian or "
+"English and the weight in percent. It replaces the earlier countries and "
+"sectors; the rest counts as «Not covered»."
 
 msgid ""
 "Dalle categorie di entrata alle categorie di uscita; la differenza è il "
@@ -3222,6 +3426,9 @@ msgstr "Date of the prices"
 msgid "Data dell'estratto"
 msgstr "Statement date"
 
+msgid "Data dello stato"
+msgstr "Date of the state"
+
 msgid "Data dello stato patrimoniale"
 msgstr "Balance sheet date"
 
@@ -3242,6 +3449,13 @@ msgstr "Expiry date"
 
 msgid "Data obiettivo"
 msgstr "Target date"
+
+msgid "Dati al"
+msgstr "Data as of"
+
+#, python-format
+msgid "Dati al %(day)s"
+msgstr "Data as of %(day)s"
 
 msgid "Dati da internet"
 msgstr "Data from the internet"
@@ -3329,6 +3543,9 @@ msgstr "Estimated tax credits"
 msgid "Dettagli"
 msgstr "Details"
 
+msgid "Dettaglio (tag)"
+msgstr "Detail (tag)"
+
 msgid "Dettaglio Spese"
 msgstr "Spending Details"
 
@@ -3351,6 +3568,13 @@ msgstr ""
 
 msgid "Di chi"
 msgstr "Whose"
+
+msgid ""
+"Di quanto il portafoglio (TWR) è oggi sotto il suo massimo storico: zero "
+"se è al massimo."
+msgstr ""
+"How far the portfolio (TWR) is below its all-time high today: zero at the"
+" high."
 
 msgid ""
 "Di quanto il portafoglio era sotto il suo punto più alto precedente, mese"
@@ -3389,6 +3613,9 @@ msgstr "Version %(version)s available"
 
 msgid "Distanza dai modelli"
 msgstr "Distance from the models"
+
+msgid "Distanza dal massimo"
+msgstr "Distance from the high"
 
 msgid "Distanza dal modello"
 msgstr "Distance from the model"
@@ -3501,12 +3728,13 @@ msgid "Doppio clic per rinominare"
 msgstr "Double-click to rename"
 
 msgid ""
-"Dove e in cosa investi: area geografica e settore si indicano nella "
-"scheda di ogni titolo (un ETF su tutto il mondo è «Globale» e "
-"«Diversificato»)."
+"Dove e in cosa investi davvero: i fondi contano con la loro composizione "
+"(paesi, settori, valute, società) caricata nella scheda di ogni titolo; "
+"gli altri titoli con area e settore indicati a mano."
 msgstr ""
-"Where and in what you invest: region and sector are set on each holding's"
-" form (an ETF on the whole world is “Global” and “Diversified”)."
+"Where and in what you really invest: funds count with their composition "
+"(countries, sectors, currencies, companies) uploaded on each holding's "
+"page; the other holdings with the region and sector set by hand."
 
 msgid ""
 "Dove il broker tiene i titoli. Ognuno ha un conto di liquidità, su cui si"
@@ -3552,6 +3780,9 @@ msgstr "Duplicates"
 
 msgid "Durata (mesi)"
 msgstr "Term (months)"
+
+msgid "Durata del calo più lungo"
+msgstr "Longest drawdown"
 
 msgid "ETF"
 msgstr "ETF"
@@ -4061,6 +4292,13 @@ msgstr ""
 "maturity, backwards."
 
 msgid ""
+"Facoltativa: se la lasci vuota vale la data scritta nel file, altrimenti "
+"oggi."
+msgstr ""
+"Optional: left empty, the date written in the file applies, otherwise "
+"today."
+
+msgid ""
 "Facoltativo: un bonifico verso questo IBAN da un altro tuo conto viene "
 "importato come giroconto."
 msgstr ""
@@ -4168,6 +4406,18 @@ msgstr "Recurrence end: cannot be before the date."
 msgid "Finestra mobile"
 msgstr "Rolling window"
 
+#, python-format
+msgid ""
+"Fino a %(count)s indici o ETF con cui confrontarti, es. VWCE.MI (tutto il"
+" mondo) o SWDA.MI (paesi sviluppati): ognuno è una linea tratteggiata nel"
+" grafico e una colonna nella tabella. Si scaricano 10 anni di prezzi "
+"mensili da internet."
+msgstr ""
+"Up to %(count)s indices or ETFs to compare with, e.g. VWCE.MI (whole "
+"world) or SWDA.MI (developed markets): each is a dashed line on the chart"
+" and a column in the table. 10 years of monthly prices are downloaded "
+"from the internet."
+
 msgid "Fino a (età)"
 msgstr "Until (age)"
 
@@ -4242,6 +4492,9 @@ msgstr "Cash flow and savings — %(period)s"
 
 msgid "Flusso netto"
 msgstr "Net flow"
+
+msgid "Fondo"
+msgstr "Fund"
 
 msgid "Fondo Pensione"
 msgstr "Pension Fund"
@@ -4589,11 +4842,25 @@ msgstr ""
 "exchange rates. They are refreshed every time you open the page."
 
 msgid ""
+"I costi di un anno moltiplicati per gli anni, con il portafoglio fermo al"
+" valore di oggi."
+msgstr ""
+"A year's costs times the years, with the portfolio staying at today's "
+"value."
+
+msgid ""
 "I guadagni di ETF e fondi esteri vanno nel quadro RM; le cripto in una "
 "sezione a parte del quadro RT."
 msgstr ""
 "Gains on foreign ETFs and funds go in quadro RM; crypto in a separate "
 "section of quadro RT."
+
+msgid ""
+"I mesi dal punto più alto a quando il portafoglio (TWR) ci è tornato. Se "
+"non ci è ancora tornato, il calo è in corso."
+msgstr ""
+"The months from the peak until the portfolio (TWR) got back to it. If it "
+"has not yet, the drawdown is ongoing."
 
 msgid "I metodi"
 msgstr "The methods"
@@ -4621,6 +4888,10 @@ msgstr ""
 "The movements don't add up with the document's balances: opening balance "
 "%(opening)s + movements %(movements)s ≠ closing balance %(closing)s "
 "(difference %(difference)s). Some row is probably missing or wrong."
+
+#, python-format
+msgid "I pesi superano il 100 %%."
+msgstr "The weights exceed 100 %%."
 
 msgid "I più pesanti"
 msgstr "The heaviest"
@@ -4720,6 +4991,10 @@ msgid "Identici"
 msgstr "Identical"
 
 #, python-format
+msgid "Il %(pct)s %% del valore ha la composizione dei fondi."
+msgstr "%(pct)s %% of the value has the funds' composition."
+
+#, python-format
 msgid "Il %(year)s si compila man mano: si chiude il 1° gennaio."
 msgstr "%(year)s fills up as you go: it is closed on 1 January."
 
@@ -4774,6 +5049,9 @@ msgstr "The classic balanced mix: equities to grow, bonds to cushion the falls."
 msgid "Il budget non può essere negativo."
 msgstr "The budget cannot be negative."
 
+msgid "Il codice ISIN del titolo: il modo più sicuro di riconoscerlo."
+msgstr "The holding's ISIN code: the surest way to recognise it."
+
 msgid "Il compenso lordo deve essere positivo."
 msgstr "The gross fee must be positive."
 
@@ -4802,6 +5080,20 @@ msgstr ""
 "The Word document is password protected: save it without a password and "
 "try again."
 
+msgid "Il documento elenca acquisti e vendite: ognuno diventa un'operazione."
+msgstr "The document lists purchases and sales: each one becomes an operation."
+
+msgid ""
+"Il documento mostra le posizioni di oggi: le quote in più rispetto a "
+"quelle registrate diventano acquisti, quelle in meno vendite, al prezzo "
+"del documento."
+msgstr ""
+"The document shows today's positions: units above the recorded ones "
+"become purchases, units below them sales, at the document's price."
+
+msgid "Il documento mostra tutte le posizioni"
+msgstr "The document shows all the positions"
+
 msgid "Il documento non contiene tabelle con i movimenti."
 msgstr "The document contains no tables with movements."
 
@@ -4814,6 +5106,11 @@ msgstr ""
 
 msgid "Il documento verrà inviato ad Anthropic"
 msgstr "The document will be sent to Anthropic"
+
+msgid ""
+"Il documento verrà inviato ad Anthropic (cloud) per la lettura. "
+"Continuare?"
+msgstr "The document will be sent to Anthropic (cloud) to be read. Continue?"
 
 msgid ""
 "Il dossier del broker. La liquidità è il saldo del suo conto di "
@@ -4891,6 +5188,16 @@ msgstr "The sheet is empty."
 msgid "Il formato non è stato riconosciuto: %(reason)s"
 msgstr "The format was not recognized: %(reason)s"
 
+msgid ""
+"Il giorno delle operazioni ricavate: vuoto, la data scritta nel documento"
+" o oggi."
+msgstr ""
+"The day of the derived operations: empty, the date written in the "
+"document or today."
+
+msgid "Il giorno dell’operazione (obbligatoria)."
+msgstr "The day of the operation (required)."
+
 msgid "Il giorno prima"
 msgstr "The day before"
 
@@ -4945,6 +5252,9 @@ msgid ""
 msgstr ""
 "The model returned no readable data: try again or use a better quality "
 "file."
+
+msgid "Il modello non ha restituito dati leggibili: riprova."
+msgstr "The model did not return readable data: try again."
 
 msgid "Il modello non ha restituito l'elenco dei movimenti."
 msgstr "The model did not return the list of movements."
@@ -5043,6 +5353,16 @@ msgstr "The portfolio may be out of its bands: check the rebalancing."
 msgid "Il prezzo deve essere maggiore di zero."
 msgstr "The price must be greater than zero."
 
+msgid "Il prezzo di una quota; le obbligazioni in percentuale del nominale."
+msgstr "The price of one unit; bonds as a percentage of the nominal."
+
+msgid ""
+"Il prezzo in valuta non si può convertire in euro: scarica o inserisci i "
+"tassi di cambio."
+msgstr ""
+"The price in a foreign currency cannot be converted to euro: download or "
+"enter the exchange rates."
+
 msgid ""
 "Il prezzo non si può cercare su internet: aggiungi l'ISIN o scegli il "
 "prezzo manuale."
@@ -5076,6 +5396,14 @@ msgstr ""
 "The ratio must be a positive number other than 1 (e.g. 10 for “1 old = 10"
 " new”)."
 
+#, python-format
+msgid ""
+"Il rendimento che avresti senza rischi, es. un conto deposito o i BOT: "
+"serve agli indici di Sharpe e di Sortino. Di solito 2 %%."
+msgstr ""
+"The return you would get without risk, e.g. a deposit account or T-bills:"
+" used by the Sharpe and Sortino ratios. Usually 2 %%."
+
 msgid ""
 "Il rendimento di ogni mese (TWR): verde se positivo, rosso se negativo, "
 "più intenso quanto più è grande. L'ultima colonna è l'anno, dai mesi "
@@ -5083,6 +5411,13 @@ msgid ""
 msgstr ""
 "Each month's return (TWR): green if positive, red if negative, stronger "
 "the larger it is. The last column is the year, from the months chained."
+
+msgid ""
+"Il rendimento più alto e quello più basso su 12 mesi di fila (TWR), con "
+"il mese in cui finiscono. Servono almeno 12 mesi di storia."
+msgstr ""
+"The highest and lowest return over 12 consecutive months (TWR), with the "
+"month they end. At least 12 months of history are needed."
 
 msgid "Il report con questi filtri, in PDF"
 msgstr "The report with these filters, as PDF"
@@ -5115,11 +5450,21 @@ msgstr ""
 "The cash balance is below zero: a withdrawal or a cash income is missing,"
 " or count the wallet."
 
+msgid ""
+"Il saldo dei conti di regolamento dei conti titoli: cambialo per provare "
+"un'altra cifra."
+msgstr ""
+"The balance of the securities accounts' settlement accounts: change it to"
+" try another amount."
+
 msgid "Il saldo del conto dopo il movimento."
 msgstr "The account balance after the movement."
 
 msgid "Il saldo prima della prima transazione registrata su questo conto."
 msgstr "The balance before the first transaction recorded on this account."
+
+msgid "Il simbolo di borsa (ENEL.MI, VWRL…)."
+msgstr "The ticker symbol (ENEL.MI, VWRL…)."
 
 msgid "Il testo del movimento."
 msgstr "The text of the movement."
@@ -5419,6 +5764,13 @@ msgstr ""
 "As a percentage of the nominal, gross. Empty or zero for BOTs and zero "
 "coupons."
 
+msgid ""
+"In quel giorno si vendono più quote di quante ce n'erano: manca un "
+"acquisto, la posizione iniziale o un frazionamento."
+msgstr ""
+"On that day more units are sold than were held: a purchase, the opening "
+"position or a split is missing."
+
 msgid "In scadenza"
 msgstr "Expiring"
 
@@ -5468,17 +5820,23 @@ msgstr "Enter units and price per unit, both above zero."
 msgid "Indica un importo maggiore di zero."
 msgstr "Enter an amount greater than zero."
 
+msgid "Indica un tasso tra -10 e 50 %."
+msgstr "Enter a rate between -10 and 50 %."
+
 msgid "Indica una soglia maggiore di zero."
 msgstr "Enter a threshold greater than zero."
-
-msgid "Indicalo nella scheda del titolo"
-msgstr "Set it on the holding's form"
 
 msgid "Indicatori"
 msgstr "Indicators"
 
 msgid "Indice"
 msgstr "Index"
+
+msgid "Indice di Sharpe"
+msgstr "Sharpe ratio"
+
+msgid "Indice di Sortino"
+msgstr "Sortino ratio"
 
 msgid "Indice replicato"
 msgstr "Tracked index"
@@ -5786,8 +6144,26 @@ msgid ""
 "Impostazioni → Modelli AI."
 msgstr "AI classification is not set up: choose a model in Settings → AI Models."
 
+#, python-format
+msgid ""
+"La commissione annua del consulente, della gestione o del conto, in punti"
+" base sul totale: 100 pb = 1 %%."
+msgstr ""
+"The yearly fee of the adviser, the management or the account, in basis "
+"points of the total: 100 bp = 1 %%."
+
 msgid "La commissione non può essere negativa."
 msgstr "The commission cannot be negative."
+
+#, python-format
+msgid ""
+"La commissione si calcola sul valore di oggi: prezzo × quantità di ogni "
+"titolo più la liquidità. 1 punto base (pb) = 0,01 %%: 50 pb sono lo 0,50 "
+"%% all'anno, 5 € ogni 1.000 €."
+msgstr ""
+"The fee is computed on today's value: price × quantity of each holding "
+"plus the cash. 1 basis point (bp) = 0.01 %%: 50 bp is 0.50 %% a year, €5 "
+"per €1,000."
 
 msgid ""
 "La commissione si registra solo con una nuova operazione; quantità e "
@@ -5818,6 +6194,11 @@ msgstr "AI reading is not set up."
 
 msgid "La lettura OCR sembra incompleta."
 msgstr "The OCR reading looks incomplete."
+
+msgid ""
+"La lettura con AI non è configurata: scegli un modello in Impostazioni → "
+"Modelli AI."
+msgstr "AI reading is not configured: choose a model in Settings → AI models."
 
 msgid "La lettura con intelligenza artificiale non è attiva (LLM_PROVIDER)."
 msgstr "Reading with artificial intelligence is not active (LLM_PROVIDER)."
@@ -5911,8 +6292,21 @@ msgstr ""
 "The expense is already split into categories: share it with people before"
 " splitting it."
 
+msgid "La tabella delle partecipazioni non ha righe con un peso."
+msgstr "The holdings table has no rows with a weight."
+
 msgid "La tolleranza va da 0 a 50 punti."
 msgstr "The tolerance goes from 0 to 50 points."
+
+msgid ""
+"La valuta dei titoli contenuti nei fondi; per azioni e obbligazioni senza"
+" composizione, la valuta in cui sono quotate. Un ETF con il cambio "
+"coperto resta esposto alla valuta dei titoli qui, non nel rischio di "
+"cambio."
+msgstr ""
+"The currency of the securities inside the funds; for shares and bonds "
+"without a composition, the currency they are quoted in. A currency-hedged"
+" ETF still shows its securities' currency here, not in its currency risk."
 
 msgid ""
 "La variazione del patrimonio netto divisa in risparmio (entrate meno "
@@ -5988,6 +6382,9 @@ msgstr ""
 "The descriptions will be sent to Anthropic (cloud) for classification. "
 "Continue?"
 
+msgid "Le commissioni e i costi dell’operazione."
+msgstr "The operation's fees and costs."
+
 msgid "Le commissioni si calcolano con la regola del conto."
 msgstr "Fees are computed with the account's rule."
 
@@ -6038,6 +6435,21 @@ msgstr ""
 "property), at the latest price: for past dates only those already bought "
 "count."
 
+#, python-format
+msgid ""
+"Le posizioni del documento sono quelle già registrate (%(count)s): "
+"nessuna operazione da aggiungere."
+msgstr ""
+"The document's positions are the ones already recorded (%(count)s): no "
+"operation to add."
+
+msgid ""
+"Le posizioni di oggi: correggi quantità, prezzo o TER, oppure aggiungi "
+"titoli nelle righe vuote. Niente viene salvato."
+msgstr ""
+"Today's positions: correct quantity, price or TER, or add holdings in the"
+" empty rows. Nothing is saved."
+
 msgid ""
 "Le prestazioni occasionali sono «redditi diversi»: nel 730 il quadro D "
 "(rigo D5, codice 2), nel modello Redditi il quadro RL. Il reddito è il "
@@ -6052,6 +6464,9 @@ msgstr ""
 #, python-format
 msgid "Le quote degli altri devono essere meno del totale (%(total)s)."
 msgstr "The others' shares must be less than the total (%(total)s)."
+
+msgid "Le quote o il nominale comprati o venduti (obbligatoria)."
+msgstr "The units or nominal bought or sold (required)."
 
 msgid ""
 "Le rate dei PAC del prossimo mese e gli avvisi delle regole (scostamento,"
@@ -6079,6 +6494,14 @@ msgstr ""
 "The sections switched off are blocked for «%(name)s»: not in their menu "
 "and they cannot open them, not even with a link or through the API. "
 "Dashboard and Settings always stay."
+
+msgid ""
+"Le società che possiedi attraverso i fondi (le prime 25 di ogni fondo) e "
+"direttamente con le azioni: la quota è sul valore di tutto il "
+"portafoglio."
+msgstr ""
+"The companies you own through the funds (the top 25 of each fund) and "
+"directly with shares: the share is of the whole portfolio's value."
 
 msgid "Le spese delle categorie collegate a ogni voce, con franchigia e massimale"
 msgstr ""
@@ -6179,6 +6602,12 @@ msgstr "Read the file with artificial intelligence?"
 
 msgid "Leggi"
 msgstr "Read"
+
+msgid "Leggi con AI"
+msgstr "Read with AI"
+
+msgid "Leggi un documento con l'AI"
+msgstr "Read a document with AI"
 
 msgid "Leggi una bolletta"
 msgstr "Read a bill"
@@ -6318,6 +6747,13 @@ msgstr "Mon"
 #, python-format
 msgid "L’anno non è finito: i numeri arrivano fino a oggi, %(day)s."
 msgstr "The year is not over: the numbers go up to today, %(day)s."
+
+msgid ""
+"L’importo totale in euro: con il prezzo in un’altra valuta, il prezzo in "
+"euro si ricava da qui. Serve il prezzo o il controvalore."
+msgstr ""
+"The total amount in euro: with the price in another currency, the price "
+"in euro is derived from it. The price or the value is needed."
 
 msgid "MM/DD/YYYY (US)"
 msgstr "MM/DD/YYYY (US)"
@@ -6711,6 +7147,9 @@ msgstr "Show the tax deadlines"
 msgid "Mostra le transazioni con questo tag"
 msgstr "Show the transactions with this tag"
 
+msgid "Mostra l’anteprima"
+msgstr "Show the preview"
+
 msgid "Mostra o nascondi"
 msgstr "Show or hide"
 
@@ -6837,6 +7276,9 @@ msgstr "In %(year)s"
 msgid "Nel %(year)s: spesa ordinaria %(ordinary)s, negli eventi %(events)s."
 msgstr "In %(year)s: ordinary spending %(ordinary)s, in events %(events)s."
 
+msgid "Nel documento non ho trovato acquisti o vendite di titoli."
+msgstr "No purchases or sales of securities found in the document."
+
 #, python-format
 msgid "Nel file .zip manca %(DATA_FILE)s: non è un backup di MyFinancePlace."
 msgstr "The .zip file has no %(DATA_FILE)s: it is not a MyFinancePlace backup."
@@ -6912,6 +7354,13 @@ msgstr ""
 
 msgid "Nessun conto: crealo da Conti e Carte, poi aggiungi qui il suo IBAN."
 msgstr "No accounts: create one in Accounts and Cards, then add its IBAN here."
+
+msgid ""
+"Nessun dato: carica il file delle partecipazioni o scrivi a mano i primi "
+"paesi e settori."
+msgstr ""
+"No data: upload the holdings file or type the top countries and sectors "
+"by hand."
 
 msgid "Nessun debito in corso."
 msgstr "No active debts."
@@ -7223,6 +7672,16 @@ msgstr ""
 "here by themselves."
 
 msgid ""
+"Nessuna società: carica la composizione dei fondi nella scheda di ogni "
+"titolo."
+msgstr "No companies: upload the funds' composition on each holding's page."
+
+msgid ""
+"Nessuna sovrapposizione: servono almeno due fondi con le società in "
+"comune."
+msgstr "No overlap: at least two funds with companies in common are needed."
+
+msgid ""
 "Nessuna spesa in contanti quest’anno. Quando paghi in contanti, annotala "
 "con il + in basso."
 msgstr ""
@@ -7377,6 +7836,9 @@ msgstr "Preset name"
 msgid "Nome del tag %(name)s"
 msgstr "Name of tag %(name)s"
 
+msgid "Nome del titolo"
+msgstr "Holding name"
+
 msgid "Nome della categoria"
 msgstr "Category name"
 
@@ -7407,6 +7869,9 @@ msgstr "Spending group names saved."
 
 msgid "Non cambiare"
 msgstr "Do not change"
+
+msgid "Non coperto"
+msgstr "Not covered"
 
 msgid "Non essenziale"
 msgstr "Non-essential"
@@ -7473,6 +7938,13 @@ msgid "Non trovo il prezzo né il controvalore delle operazioni."
 msgstr "Cannot find the price or the value of the operations."
 
 msgid ""
+"Non trovo la tabella delle partecipazioni: servono almeno le colonne del "
+"nome e del peso (%) dei titoli."
+msgstr ""
+"Holdings table not found: at least the columns of the securities' name "
+"and weight (%) are needed."
+
+msgid ""
 "Non trovo le colonne delle operazioni: servono almeno data, quantità e "
 "titolo (ISIN, ticker o nome)."
 msgstr ""
@@ -7481,6 +7953,10 @@ msgstr ""
 
 msgid "Non trovo le colonne di data e importo: sceglile a mano."
 msgstr "I cannot find the date and amount columns: choose them yourself."
+
+#, python-format
+msgid "Non usate: %(rows)s"
+msgstr "Not used: %(rows)s"
 
 msgid ""
 "Non viene salvata da nessuna parte: senza password i backup non si "
@@ -7826,6 +8302,9 @@ msgstr ""
 msgid "Ogni quanto"
 msgstr "How often"
 
+msgid "Ogni riga ha bisogno di un nome e di un peso tra 0 e 100 (es. 62,5)."
+msgstr "Each row needs a name and a weight between 0 and 100 (e.g. 62.5)."
+
 msgid ""
 "Ogni riquadro è una posizione, raggruppata per classe di attivo: l'area è"
 " proporzionale al valore. Mostra a colpo d'occhio dove è concentrato il "
@@ -7931,6 +8410,23 @@ msgstr "Trade: give units and price per unit, both greater than zero."
 msgid "Operazioni"
 msgstr "Operations"
 
+msgid ""
+"Operazioni lette dal modello AI: controlla date, quote e prezzi prima di "
+"importarle."
+msgstr ""
+"Operations read by the AI model: check dates, units and prices before "
+"importing them."
+
+#, python-format
+msgid ""
+"Operazioni ricavate dallo stato al %(day)s: la differenza fra le quote "
+"del documento e quelle registrate%(where)s. %(count)s posizioni "
+"coincidono già."
+msgstr ""
+"Operations derived from the state on %(day)s: the difference between the "
+"document's units and the recorded ones%(where)s. %(count)s positions "
+"already match."
+
 msgid "Oppure incolla più righe «data;prezzo»"
 msgstr "Or paste several «date;price» lines"
 
@@ -8005,6 +8501,16 @@ msgstr "Alternative PIR"
 msgid "PIR ordinario"
 msgstr "Ordinary PIR"
 
+msgid "Paese"
+msgstr "Country"
+
+#, python-format
+msgid "Paese non riconosciuto: «%(name)s»."
+msgstr "Country not recognised: «%(name)s»."
+
+msgid "Paesi"
+msgstr "Countries"
+
 msgid ""
 "Pagamenti ancora da fare, questo compreso, con la frequenza scelta: la "
 "data di fine si calcola da sola."
@@ -8035,6 +8541,9 @@ msgstr "Overview"
 
 msgid "Panoramica investimenti"
 msgstr "Investments overview"
+
+msgid "Parametri"
+msgstr "Parameters"
 
 msgid "Parola chiave"
 msgstr "Keyword"
@@ -8232,9 +8741,6 @@ msgstr ""
 msgid "Per archivio"
 msgstr "By archive"
 
-msgid "Per area geografica"
-msgstr "By region"
-
 msgid ""
 "Per calcolare il piano servono la <strong>data di inizio</strong> e la "
 "<strong>durata</strong> (o la rata mensile)."
@@ -8311,6 +8817,24 @@ msgstr ""
 "For non-state universities the ministry's limit by area and course "
 "applies."
 
+msgid ""
+"Per lo stato attuale: il conto titoli del documento, con cui confrontare "
+"le posizioni. Senza, il confronto è con tutte le posizioni."
+msgstr ""
+"For the current state: the document's securities account, to compare the "
+"positions with. Without it, the comparison is with all the positions."
+
+msgid ""
+"Per ogni dato dell’operazione scegli la colonna del file che lo contiene;"
+" i dati che il file non ha restano su «non presente». Dopo l’anteprima "
+"puoi salvare le colonne come preset, applicato da solo ai prossimi file "
+"con le stesse colonne."
+msgstr ""
+"For each field of the operation choose the file's column that holds it; "
+"fields the file does not have stay on «not present». After the preview "
+"you can save the columns as a preset, applied automatically to the next "
+"files with the same columns."
+
 #, python-format
 msgid ""
 "Per ogni parte: la barra è il peso di oggi, il trattino verticale "
@@ -8327,6 +8851,9 @@ msgid ""
 msgstr ""
 "For each portfolio with an active model: the weight of each part against "
 "its target; in red the parts out of band."
+
+msgid "Per paese"
+msgstr "By country"
 
 msgid "Per periodo"
 msgstr "By period"
@@ -8409,6 +8936,9 @@ msgstr ""
 "For a car, a phone, a computer: the share of value lost each year since "
 "the last valuation (a car about 15). Empty: the value changes only with "
 "prices or valuations."
+
+msgid "Per valuta"
+msgstr "By currency"
 
 #, python-format
 msgid "Percentuale (%%)"
@@ -8499,6 +9029,9 @@ msgstr ""
 "The darker the cell, the higher the expense (or income) compared with the"
 " other months of the same category. Click an amount to see its "
 "transactions."
+
+msgid "Plus/minus"
+msgstr "Gain/loss"
 
 msgid "Plusvalenze"
 msgstr "Capital gains"
@@ -8921,6 +9454,30 @@ msgstr "Before: %(amount)s"
 msgid "Primavera"
 msgstr "Spring"
 
+msgid "Prime 20 società"
+msgstr "Top 20 companies"
+
+msgid "Prime società"
+msgstr "Top companies"
+
+msgid ""
+"Primi 10 paesi, poi «Altri». I titoli senza composizione contano con "
+"l'area geografica della loro scheda (o il paese dell'ISIN per azioni e "
+"obbligazioni); «Non coperto» è il valore di cui non si sa nulla."
+msgstr ""
+"Top 10 countries, then «Others». Holdings without a composition count "
+"with the region of their page (or the ISIN's country for shares and "
+"bonds); «Not covered» is the value nothing is known about."
+
+msgid ""
+"Primi 10 settori, poi «Altri». Senza composizione vale il settore della "
+"scheda del titolo, o la sua classe di attivo per obbligazioni, liquidità,"
+" oro e simili."
+msgstr ""
+"Top 10 sectors, then «Others». Without a composition the sector of the "
+"holding's page applies, or its asset class for bonds, cash, gold and the "
+"like."
+
 msgid "Primo avvio"
 msgstr "First start"
 
@@ -9024,6 +9581,10 @@ msgid "Prudente: soprattutto obbligazioni, una parte di azioni."
 msgstr "Cautious: mostly bonds, some equities."
 
 #, python-format
+msgid "Punti %%"
+msgstr "%% points"
+
+#, python-format
 msgid ""
 "Quadratura verificata: saldo iniziale %(opening)s + movimenti "
 "%(movements)s = saldo finale %(closing)s."
@@ -9091,6 +9652,43 @@ msgstr ""
 "repay."
 
 msgid ""
+"Quanto due fondi contengono le stesse società: la somma, sulle società in"
+" comune, del peso più piccolo dei due. Si calcola sulle prime 25 società "
+"di ogni fondo, quindi è una stima per difetto."
+msgstr ""
+"How much two funds hold the same companies: the sum, over the companies "
+"in common, of the smaller of the two weights. Computed on each fund's top"
+" 25 companies, so it is an underestimate."
+
+#, python-format
+msgid ""
+"Quanto ha aggiunto ogni titolo al risultato del periodo: plus o "
+"minusvalenza (realizzata e non: valore finale − valore iniziale − "
+"acquisti + vendite) + dividendi e cedole − commissioni − imposte. I punti"
+" %% sono sul capitale investito in media nel periodo: la loro somma è il "
+"rendimento semplice del periodo, che non coincide con il TWR (concatena i"
+" mesi) e, a differenza del TWR, toglie commissioni e imposte. I titoli "
+"venduti del tutto contano fino alla vendita."
+msgstr ""
+"How much each holding added to the period's result: gain or loss "
+"(realised and not: end value − start value − purchases + sales) + "
+"dividends and coupons − fees − taxes. The %% points are of the average "
+"capital invested in the period: their sum is the period's simple return, "
+"which differs from the TWR (it chains the months) and, unlike the TWR, "
+"subtracts fees and taxes. Holdings sold out count until the sale."
+
+msgid ""
+"Quanto ha aggiunto questo titolo al risultato di tutto il portafoglio "
+"dall'inizio: plus o minusvalenza (realizzata e non) + proventi − "
+"commissioni − imposte, e in punti percentuali del capitale investito in "
+"media. Il confronto con gli altri titoli è in Rendimenti."
+msgstr ""
+"How much this holding added to the whole portfolio's result since the "
+"start: gain or loss (realised and not) + income − fees − taxes, and in "
+"percentage points of the average capital invested. The comparison with "
+"the other holdings is in Returns."
+
+msgid ""
 "Quanto puoi versare ogni anno in un fondo pensione (la parte deducibile) "
 "o in un PIR, e quanto hai già versato: contano i giroconti verso i conti "
 "scelti, i versamenti e gli acquisti dei titoli scelti (le vendite non "
@@ -9100,6 +9698,19 @@ msgstr ""
 "or a PIR, and how much you already have: transfers to the chosen "
 "accounts, payments into and purchases of the chosen holdings (sales free "
 "no room) and the expenses of the category all count."
+
+#, python-format
+msgid ""
+"Quanto rendimento in più del tasso senza rischio (%(rate)s %% all'anno) "
+"per ogni punto di volatilità: (media mensile − tasso mensile senza "
+"rischio) / deviazione standard mensile × √12. Sopra 1 è buono, sotto 0 "
+"avresti fatto meglio con un conto senza rischio. Il tasso si cambia in "
+"fondo alla pagina."
+msgstr ""
+"How much return above the risk-free rate (%(rate)s %% a year) for each "
+"point of volatility: (monthly mean − monthly risk-free rate) / monthly "
+"standard deviation × √12. Above 1 is good; below 0 a risk-free account "
+"would have done better. The rate is changed at the bottom of the page."
 
 msgid ""
 "Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: "
@@ -9157,6 +9768,10 @@ msgstr ""
 
 msgid "Quota"
 msgstr "Share"
+
+#, python-format
+msgid "Quota (%%)"
+msgstr "Share (%%)"
 
 msgid "Quota della liquidità che si porterebbe via"
 msgstr "Share of the cash it would take away"
@@ -9575,6 +10190,15 @@ msgid "Ricontrolla"
 msgstr "Review"
 
 msgid ""
+"Ricorda le colonne scelte e il conto del broker: la prossima volta che "
+"carichi un file con le stesse colonne vengono applicati da soli. Li "
+"gestisci in Esporta → Importa → Preset di importazione."
+msgstr ""
+"Remembers the chosen columns and the broker's account: next time you "
+"upload a file with the same columns they are applied automatically. "
+"Manage them in Export → Import → Import presets."
+
+msgid ""
 "Ricorda le colonne scelte e il conto: la prossima volta che carichi un "
 "file con le stesse colonne vengono applicati da soli. Li gestisci in "
 "Importa → Preset di importazione."
@@ -9719,6 +10343,9 @@ msgstr "Reorder all categories? The old ones are merged into the new ones."
 
 msgid "Riparti dai dati dell'archivio"
 msgstr "Start again from the archive"
+
+msgid "Riparti dalle posizioni"
+msgstr "Start again from the positions"
 
 msgid "Ripeti"
 msgstr "Redo"
@@ -10085,6 +10712,9 @@ msgstr "Download full backup"
 msgid "Scarica cambi BCE"
 msgstr "Download ECB rates"
 
+msgid "Scarica di nuovo"
+msgstr "Download again"
+
 msgid "Scarica e installa Ollama da"
 msgstr "Download and install Ollama from"
 
@@ -10162,11 +10792,17 @@ msgstr ""
 "Choose the cash account of the securities account: every securities "
 "account has one."
 
+msgid "Scegli il documento del broker da leggere."
+msgstr "Choose the broker's document to read."
+
 msgid "Scegli il file"
 msgstr "Choose the file"
 
 msgid "Scegli il file del broker da importare."
 msgstr "Choose the broker file to import."
+
+msgid "Scegli il file delle partecipazioni scaricato dal sito dell'emittente."
+msgstr "Choose the holdings file downloaded from the issuer's website."
 
 msgid "Scegli il file di backup da ripristinare."
 msgstr "Choose the backup file to restore."
@@ -10176,6 +10812,9 @@ msgstr "Choose the utility."
 
 msgid "Scegli la cartella dove salvare i backup."
 msgstr "Choose the folder to save the backups to."
+
+msgid "Scegli le colonne"
+msgstr "Choose the columns"
 
 msgid ""
 "Scegli le sezioni da vedere nel tuo menu: le altre spariscono solo per "
@@ -10240,6 +10879,12 @@ msgstr "Drift"
 
 msgid "Scostamento dal portafoglio modello (punti)"
 msgstr "Drift from the model portfolio (points)"
+
+msgid "Scrivi a mano i primi 10 paesi e settori"
+msgstr "Type the top 10 countries and sectors by hand"
+
+msgid "Scrivi almeno un paese o un settore con il suo peso."
+msgstr "Enter at least one country or sector with its weight."
 
 msgid "Scrivi cosa scade."
 msgstr "Write what is due."
@@ -10456,6 +11101,12 @@ msgstr "At least one administrator is needed."
 msgid "Serve almeno un'altra istantanea per disegnare l'andamento."
 msgstr "At least one more snapshot is needed to draw the trend."
 
+msgid "Serve almeno uno fra ISIN, ticker e nome."
+msgstr "At least one of ISIN, ticker and name is needed."
+
+msgid "Servizi di comunicazione"
+msgstr "Communication services"
+
 msgid "Servono Data, Descrizione e Importo con segno (oppure Uscite ed Entrate)."
 msgstr ""
 "Date, Description and a signed Amount are needed (or Outflows and "
@@ -10494,6 +11145,9 @@ msgstr "Weekly"
 
 msgid "Settore"
 msgstr "Sector"
+
+msgid "Settori"
+msgstr "Sectors"
 
 msgid "Sezione"
 msgstr "Section"
@@ -10547,13 +11201,13 @@ msgid "Si ripete"
 msgstr "Repeats"
 
 msgid ""
-"Si salvano dall’anteprima di un file importato con la mappatura manuale "
-"(«Salva come preset») e si applicano da soli ai file con le stesse "
-"colonne."
+"Si salvano dall’anteprima di un file importato con la mappatura manuale o"
+" di un file del broker (Portafoglio → Importa dal broker, «Salva come "
+"preset») e si applicano da soli ai file con le stesse colonne."
 msgstr ""
 "They are saved from the preview of a file imported with the manual "
-"mapping («Save as preset») and are applied by themselves to files with "
-"the same columns."
+"mapping or of a broker's file (Portfolio → Import from broker, «Save as "
+"preset») and are applied automatically to files with the same columns."
 
 msgid "Simili"
 msgstr "Similar"
@@ -10566,6 +11220,12 @@ msgstr "Synthetic (swap)"
 
 msgid "Sistema"
 msgstr "Fix"
+
+msgid "Società"
+msgstr "Company"
+
+msgid "Società in comune"
+msgstr "Companies in common"
 
 msgid "Soglia"
 msgstr "Threshold"
@@ -10649,6 +11309,12 @@ msgstr "Paused"
 
 msgid "Sottocategoria di"
 msgstr "Subcategory of"
+
+msgid "Sovrapposizione"
+msgstr "Overlap"
+
+msgid "Sovrapposizione tra fondi"
+msgstr "Overlap between funds"
 
 msgid "Spegni"
 msgstr "Turn off"
@@ -10769,6 +11435,9 @@ msgstr "Status"
 
 msgid "Stato Patrimoniale"
 msgstr "Balance Sheet"
+
+msgid "Stato attuale"
+msgstr "Current state"
 
 msgid "Stato patrimoniale"
 msgstr "Balance sheet"
@@ -10937,6 +11606,23 @@ msgstr "On your data the most accurate method overall is"
 msgid "Sul costo"
 msgstr "On cost"
 
+msgid ""
+"Sul sito dell'emittente, nella pagina del fondo: iShares → "
+"«Partecipazioni» → «Scarica» (CSV o Excel); Vanguard → «Portafoglio» → "
+"«Esporta i dati»; Xtrackers → «Composizione» → «Scarica» (Excel); Amundi "
+"→ «Composizione» → «Scarica»; SPDR → «Holdings» → «Download» (Excel). Il "
+"file resta sul tuo computer: l'app non si collega a internet. Si leggono "
+"il peso di ogni titolo, il paese, il settore e la valuta; si tengono le "
+"prime 25 società."
+msgstr ""
+"On the issuer's website, on the fund's page: iShares → «Holdings» → "
+"«Download» (CSV or Excel); Vanguard → «Portfolio» → «Export data»; "
+"Xtrackers → «Composition» → «Download» (Excel); Amundi → «Composition» → "
+"«Download»; SPDR → «Holdings» → «Download» (Excel). The file stays on "
+"your computer: the app does not connect to the internet. Each security's "
+"weight, country, sector and currency are read; the top 25 companies are "
+"kept."
+
 msgid "Sul valore"
 msgstr "On value"
 
@@ -10981,8 +11667,15 @@ msgid "TER"
 msgstr "TER"
 
 #, python-format
+msgid "TER %%"
+msgstr "TER %%"
+
+#, python-format
 msgid "TER (%% annuo)"
 msgstr "TER (%% a year)"
+
+msgid "TER dei fondi"
+msgstr "Funds' TER"
 
 msgid "TER: una percentuale annua, di solito tra 0,05 e 3."
 msgstr "TER: a yearly percentage, usually between 0.05 and 3."
@@ -11052,6 +11745,13 @@ msgstr "Savings rate"
 
 msgid "Tasso di risparmio mese per mese"
 msgstr "Savings rate month by month"
+
+#, python-format
+msgid "Tasso senza rischio (%% all'anno)"
+msgstr "Risk-free rate (%% a year)"
+
+msgid "Tasso senza rischio salvato."
+msgstr "Risk-free rate saved."
 
 msgid "Tecnologia"
 msgstr "Technology"
@@ -11129,6 +11829,9 @@ msgstr "Kind of movement"
 msgid "Tipo di obbligazione"
 msgstr "Bond type"
 
+msgid "Tipo di operazione"
+msgstr "Operation type"
+
 msgid "Tipo di operazione sconosciuto."
 msgstr "Unknown kind of operation."
 
@@ -11165,6 +11868,9 @@ msgstr "Holdings"
 
 msgid "Titoli con quantità negativa"
 msgstr "Holdings with a negative quantity"
+
+msgid "Titoli in valuta senza tassi di cambio"
+msgstr "Foreign-currency holdings without exchange rates"
 
 msgid "Titoli o fondi in cui si versa"
 msgstr "Holdings or funds paid into"
@@ -11315,6 +12021,9 @@ msgstr "Totals now in %(value)s: values recalculated with the saved rates."
 
 msgid "Tracciamento degli obiettivi finanziari con barre di progresso"
 msgstr "Tracking of financial goals with progress bars"
+
+msgid "Tramite"
+msgstr "Through"
 
 msgid "Transazione"
 msgstr "Transaction"
@@ -11600,6 +12309,9 @@ msgid ""
 "patrimonio."
 msgstr "Last 12 months: savings, months covered by cash, debts against net worth."
 
+msgid "Ultimi 3 anni"
+msgstr "Last 3 years"
+
 msgid "Ultimi 3 mesi"
 msgstr "Last 3 months"
 
@@ -11635,6 +12347,15 @@ msgstr "Last price %(price)s"
 #, python-format
 msgid "Ultimo tentativo non riuscito: %(error)s"
 msgstr "Last attempt failed: %(error)s"
+
+msgid ""
+"Un PDF, una foto o un documento del broker letto dal modello AI, come per"
+" le transazioni. Le operazioni lette, o ricavate dallo stato attuale, "
+"vanno nella stessa anteprima: niente viene salvato prima della conferma."
+msgstr ""
+"A PDF, a photo or a document of the broker read by the AI model, as for "
+"transactions. The operations read, or derived from the current state, go "
+"to the same preview: nothing is saved before you confirm."
 
 #, python-format
 msgid "Un altro promemoria"
@@ -11689,13 +12410,6 @@ msgid "Un imprevisto tipico"
 msgstr "A typical unexpected expense"
 
 msgid ""
-"Un indice o ETF con cui confrontarti, es. VWCE.MI (tutto il mondo) o "
-"SWDA.MI (paesi sviluppati). Si scaricano 10 anni di prezzi mensili."
-msgstr ""
-"An index or ETF to compare with, e.g. VWCE.MI (whole world) or SWDA.MI "
-"(developed markets). Ten years of monthly prices are downloaded."
-
-msgid ""
 "Un investimento è un giroconto verso il conto titoli: non riduce il "
 "patrimonio."
 msgstr ""
@@ -11729,6 +12443,13 @@ msgstr "A limit of my own"
 
 msgid "Un titolo può stare in più categorie, in percentuale"
 msgstr "A holding can be in several categories, by percentage"
+
+msgid ""
+"Un titolo registrato che nel documento non c'è più viene venduto per "
+"intero, al suo ultimo prezzo."
+msgstr ""
+"A recorded holding no longer in the document is sold in full, at its "
+"latest price."
 
 msgid ""
 "Un viaggio, un matrimonio, dei lavori in casa: raccogli i movimenti di "
@@ -11960,6 +12681,9 @@ msgstr ""
 msgid "Valore con la quantità attuale"
 msgstr "Value at the current quantity"
 
+msgid "Valore del portafoglio"
+msgstr "Portfolio value"
+
 msgid "Valore e versato"
 msgstr "Value and money put in"
 
@@ -12053,6 +12777,9 @@ msgstr "Sale"
 
 msgid "Vendite"
 msgstr "Sales"
+
+msgid "Vendite oltre le quote possedute"
+msgstr "Sales beyond the units held"
 
 msgid "Verdi"
 msgstr "Greens"
@@ -12151,6 +12878,9 @@ msgstr "Złoty"
 msgid "a %(age)s anni"
 msgstr "at %(age)s"
 
+msgid "a mano"
+msgstr "by hand"
+
 msgid "a parte"
 msgstr "apart"
 
@@ -12159,6 +12889,10 @@ msgstr "purchases with fees minus sales"
 
 msgid "aggiornata"
 msgstr "up to date"
+
+#, python-format
+msgid "aggiornato il %(day)s"
+msgstr "updated on %(day)s"
 
 msgid "ai prezzi attuali"
 msgstr "at current prices"
@@ -12179,6 +12913,9 @@ msgstr "at the exchange rate"
 
 msgid "al cambio del suo giorno (o del giorno più vicino prima)."
 msgstr "at the rate of its day (or the closest day before)."
+
+msgid "al massimo storico"
+msgstr "at the all-time high"
 
 msgid "al mese, per rispettare le date"
 msgstr "a month, to meet the dates"
@@ -12327,6 +13064,9 @@ msgstr "traded amount, fees excluded"
 msgid "coperto"
 msgstr "hedged"
 
+msgid "costi correnti, già dentro il prezzo"
+msgstr "ongoing charges, already in the price"
+
 msgid "cripto-attività"
 msgstr "crypto-assets"
 
@@ -12396,6 +13136,9 @@ msgstr "from your bank statement"
 
 msgid "dal tuo storico"
 msgstr "from your history"
+
+msgid "dallo stato attuale"
+msgstr "from the current state"
 
 #, python-format
 msgid "data non riconosciuta: '%(value)s'"
@@ -12510,6 +13253,9 @@ msgstr "e.g. Global equities"
 
 msgid "es. C:\\Users\\Anna\\OneDrive\\Backup"
 msgstr "e.g. C:\\Users\\Anna\\OneDrive\\Backup"
+
+msgid "es. Directa"
+msgstr "e.g. Directa"
 
 msgid "es. Directa SIM"
 msgstr "e.g. Directa SIM"
@@ -12629,6 +13375,13 @@ msgstr "done"
 msgid "fermo dal %(day)s"
 msgstr "unchanged since %(day)s"
 
+msgid "file"
+msgstr "file"
+
+#, python-format
+msgid "fino a %(month)s · peggiori %(pct)s %% (fino a %(worst)s)"
+msgstr "to %(month)s · worst %(pct)s %% (to %(worst)s)"
+
 #, python-format
 msgid "fino al %(day)s"
 msgstr "until %(day)s"
@@ -12704,6 +13457,10 @@ msgstr "in"
 msgid "in corso"
 msgstr "in progress"
 
+#, python-format
+msgid "in corso da %(months)s"
+msgstr "ongoing for %(months)s"
+
 msgid "in pari"
 msgstr "settled"
 
@@ -12762,6 +13519,9 @@ msgid ""
 "le tue (Impostazioni → Classificazioni): in Composizione ognuna ha il suo"
 " grafico"
 msgstr "your own (Settings → Classifications): each has its chart in Composition"
+
+msgid "letto con AI"
+msgstr "read with AI"
 
 #, python-format
 msgid "liquidità %(cash)s · investimenti %(investments)s"
@@ -12842,6 +13602,10 @@ msgstr "movement"
 msgid "nel %(year)s: %(amount)s"
 msgstr "in %(year)s: %(amount)s"
 
+#, python-format
+msgid "nel conto titoli «%(name)s»"
+msgstr "in the securities account «%(name)s»"
+
 msgid "nel file"
 msgstr "in the file"
 
@@ -12853,6 +13617,9 @@ msgstr "no price increases"
 
 msgid "nessun budget"
 msgstr "no budget"
+
+msgid "nessun calo"
+msgstr "no drawdown"
 
 msgid "nessun cambio nel file della BCE"
 msgstr "no rates in the ECB file"
@@ -13037,6 +13804,9 @@ msgstr "reached"
 msgid "rata %(n)s"
 msgstr "instalment %(n)s"
 
+msgid "recuperato"
+msgstr "recovered"
+
 msgid "reddito di capitale (ETF, fondi)"
 msgstr "investment income (ETFs, funds)"
 
@@ -13062,6 +13832,14 @@ msgstr "%(amount)s left"
 #, python-format
 msgid "riga %(line)s: %(error)s"
 msgstr "row %(line)s: %(error)s"
+
+#, python-format
+msgid "riga %(line)s: %(name)s senza data, quantità o prezzo"
+msgstr "row %(line)s: %(name)s without date, quantity or price"
+
+#, python-format
+msgid "riga %(line)s: %(name)s senza quantità"
+msgstr "row %(line)s: %(name)s without quantity"
 
 msgid "riporto"
 msgstr "rollover"
@@ -13115,6 +13893,10 @@ msgstr "scans and photos cannot be read."
 msgid "se si ripetono quelle degli ultimi 12"
 msgstr "if the last 12 months repeat"
 
+#, python-format
+msgid "semideviazione %(pct)s %% all'anno"
+msgstr "downside deviation %(pct)s %% a year"
+
 msgid "senza categoria"
 msgstr "no category"
 
@@ -13129,6 +13911,9 @@ msgstr "the ISIN is needed"
 
 msgid "serve perché i conti tornino"
 msgstr "needed for the accounts to balance"
+
+msgid "servono 12 mesi"
+msgstr "12 months needed"
 
 msgid "servono le entrate degli ultimi 12 mesi"
 msgstr "the income of the last 12 months is needed"
@@ -13154,6 +13939,9 @@ msgstr "replaces all current data"
 
 msgid "sostituita"
 msgstr "replaced"
+
+msgid "sotto il massimo storico"
+msgstr "below the all-time high"
 
 #, python-format
 msgid "spazio deducibile non usato: %(amount)s"
@@ -13201,12 +13989,20 @@ msgid "superato di %(amount)s"
 msgstr "exceeded by %(amount)s"
 
 #, python-format
+msgid "tag «%(tag)s»"
+msgstr "tag «%(tag)s»"
+
+#, python-format
 msgid "tasso %(rate)s%%"
 msgstr "rate %(rate)s%%"
 
 #, python-format
 msgid "tasso di risparmio %(rate)s %%"
 msgstr "savings rate %(rate)s %%"
+
+#, python-format
+msgid "tasso senza rischio %(rate)s %%"
+msgstr "risk-free rate %(rate)s %%"
 
 msgid "testo"
 msgstr "text"
@@ -13220,6 +14016,10 @@ msgid ""
 "ticker «%(ticker)s» non trovato (per Borsa Italiana aggiungi .MI, per "
 "Xetra .DE)"
 msgstr "ticker «%(ticker)s» not found (add .MI for Borsa Italiana, .DE for Xetra)"
+
+#, python-format
+msgid "titoli %(invested)s + liquidità %(cash)s"
+msgstr "securities %(invested)s + cash %(cash)s"
 
 msgid "titoli + liquidità"
 msgstr "securities + cash"
@@ -13605,6 +14405,9 @@ msgstr "— not set —"
 
 msgid "— non indicato —"
 msgstr "— not set —"
+
+msgid "— non presente —"
+msgstr "— not present —"
 
 msgid "— non registrare l’accredito —"
 msgstr "— do not record the money received —"
