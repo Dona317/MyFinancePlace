@@ -72,3 +72,23 @@ def test_one_portfolio_counts_no_liquidity(client, db):
     rows, cash = fee_calculator.starting_rows(portfolio_id=folio.id)
     assert [r.name for r in rows] == ["All-World"] and cash == 0
     assert client.get(f"/portfolio/fees?portfolio={folio.id}").status_code == 200
+
+
+def test_the_average_buying_price_gives_the_gain_and_the_costs_paid():
+    rows = [Row("All-World", Decimal(100), Decimal(110), abp=Decimal(100)), Row("Enel", Decimal(500), Decimal(8))]
+    r = Result(rows, Decimal(5000), Decimal(0), deposited=Decimal(19100))
+    assert (r.cost, r.gain) == (Decimal(14000), Decimal(1000))  # Enel without ABP counts at its price
+    assert r.paid == Decimal("100.00") and r.paid_pct == Decimal("0.52")  # 19.100 − (14.000 + 5.000)
+    assert Result(rows, Decimal(0), Decimal(0)).paid is None and Result(rows, Decimal(0), Decimal(0)).paid_pct is None
+    form = {"count": "1", "units-0": "10", "price-0": "12", "abp-0": "10", "deposited": "105", "cash": "0"}
+    read = fee_calculator.from_form(form)
+    assert read.rows[0].abp == 10 and read.paid == Decimal("5.00") and read.gain == 20
+
+
+def test_the_page_shows_the_abp_and_the_costs_paid(client, db):
+    _book(db)
+    page = client.get("/portfolio/fees").text
+    assert 'name="abp-0" value="100"' in page and "Plus/minus" in page and "Commissioni e costi pagati" not in page
+    posted = client.post("/portfolio/fees", data={"count": "1", "name-0": "All-World", "units-0": "10", "price-0": "110",
+                                                  "abp-0": "100", "cash": "4000", "deposited": "5.050", "bps": "0"})
+    assert "Commissioni e costi pagati" in posted.text and "50,00" in posted.text and "100,00" in posted.text

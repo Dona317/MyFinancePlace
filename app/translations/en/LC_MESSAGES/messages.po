@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 20:28+0000\n"
+"POT-Creation-Date: 2026-11-10 20:46+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -591,6 +591,10 @@ msgid "%(pct)s %% del valore all'anno · %(total)s in %(years)s anni"
 msgstr "%(pct)s %% of the value a year · %(total)s in %(years)s years"
 
 #, python-format
+msgid "%(pct)s %% del versato: versato − (quantità × ABP + liquidità)"
+msgstr "%(pct)s %% of the money put in: put in − (quantity × ABP + cash)"
+
+#, python-format
 msgid "%(pct)s %% della crescita"
 msgstr "%(pct)s %% of the growth"
 
@@ -936,6 +940,9 @@ msgstr "A — Operating Activities"
 
 msgid "A — Flusso operativo"
 msgstr "A — Operating cash flow"
+
+msgid "ABP"
+msgstr "ABP"
 
 msgid "ANTHROPIC_API_KEY"
 msgstr "ANTHROPIC_API_KEY"
@@ -1617,6 +1624,13 @@ msgstr ""
 
 msgid "Autunno"
 msgstr "Autumn"
+
+msgid ""
+"Average buying price: il prezzo medio di carico di una quota, dalle "
+"operazioni registrate."
+msgstr ""
+"Average buying price: the average cost of one unit, from the recorded "
+"operations."
 
 msgid "Avvia all'accensione del computer"
 msgstr "Start with the computer"
@@ -2576,6 +2590,9 @@ msgstr "Fees"
 
 msgid "Commissioni del broker (facoltative)"
 msgstr "Broker commissions (optional)"
+
+msgid "Commissioni e costi pagati"
+msgstr "Commissions and costs paid"
 
 msgid ""
 "Commissioni: fissa + percentuale sul controvalore, entro un minimo e un "
@@ -4925,6 +4942,17 @@ msgstr ""
 "The first %(count)s make %(pct)s%% of the portfolio (%(total)s holdings "
 "in all)."
 
+msgid ""
+"I soldi messi nel conto titoli dall'inizio, meno quelli ritirati. Con il "
+"versato il calcolo ricava le commissioni e i costi già pagati: versato − "
+"(quantità × ABP di ogni titolo + liquidità). Dividendi e cedole incassati"
+" li riducono, le imposte trattenute li aumentano."
+msgstr ""
+"The money put into the securities account since the start, less what was "
+"withdrawn. With it the calculation derives the commissions and costs "
+"already paid: put in − (quantity × ABP of each holding + cash). Dividends"
+" and coupons received lower them, taxes withheld raise them."
+
 msgid "I tag usati dalle transazioni, dal più usato"
 msgstr "The tags used by transactions, most used first"
 
@@ -6444,11 +6472,11 @@ msgstr ""
 "operation to add."
 
 msgid ""
-"Le posizioni di oggi: correggi quantità, prezzo o TER, oppure aggiungi "
-"titoli nelle righe vuote. Niente viene salvato."
+"Le posizioni di oggi: correggi quantità, prezzo, ABP o TER, oppure "
+"aggiungi titoli nelle righe vuote. Niente viene salvato."
 msgstr ""
-"Today's positions: correct quantity, price or TER, or add holdings in the"
-" empty rows. Nothing is saved."
+"Today's positions: correct quantity, price, ABP or TER, or add holdings "
+"in the empty rows. Nothing is saved."
 
 msgid ""
 "Le prestazioni occasionali sono «redditi diversi»: nel 730 il quadro D "
@@ -13368,6 +13396,9 @@ msgstr "abroad"
 msgid "evento"
 msgstr "event"
 
+msgid "facoltativo"
+msgstr "optional"
+
 msgid "fatto"
 msgstr "done"
 
@@ -14077,6 +14108,10 @@ msgstr "use a local model"
 
 msgid "uscite"
 msgstr "expenses"
+
+#, python-format
+msgid "valore %(value)s − carico %(cost)s"
+msgstr "value %(value)s − cost %(cost)s"
 
 msgid "valore a fine anno"
 msgstr "value at year end"

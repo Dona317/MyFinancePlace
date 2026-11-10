@@ -14,6 +14,10 @@
   {{ kpi('receipt', _('Commissione annua'), value=r.fee|money, cls='kpi-negative', sub=_('%(bps)s pb · %(quarter)s a trimestre · %(month)s al mese', bps=r.bps|number, quarter=(r.fee / 4)|money, month=(r.fee / 12)|money)) }}
   {{ kpi('pie-chart', _('TER dei fondi'), value=r.ter|money if r.with_ter else '—', cls='kpi-warning', sub=_('costi correnti, già dentro il prezzo')) }}
   {{ kpi('bank', _('Imposta di bollo'), value=r.stamp|money if r.with_stamp else '—', cls='kpi-warning', sub=_('0,2 %% dei titoli')) }}
+  {% if r.paid is not none %}
+  {{ kpi('cash-stack', _('Commissioni e costi pagati'), value=r.paid|money, cls='kpi-negative', sub=_('%(pct)s %% del versato: versato − (quantità × ABP + liquidità)', pct=r.paid_pct|number)) }}
+  {% endif %}
+  {{ kpi('graph-up-arrow', _('Plus/minus'), value=r.gain|money, cls='kpi-positive' if r.gain >= 0 else 'kpi-negative', sub=_('valore %(value)s − carico %(cost)s', value=r.invested|money, cost=r.cost|money)) }}
   {{ kpi('calculator', _('Costi totali'), value=r.costs|money, cls='kpi-negative', sub=_('%(pct)s %% del valore all\'anno · %(total)s in %(years)s anni', pct=r.costs_pct|number(3), total=r.over_years|money, years=r.years)) }}
 </div>
 
@@ -46,6 +50,10 @@
         <input id="f-cash" type="text" inputmode="decimal" name="cash" value="{{ r.cash|plain }}" class="form-control" />
       </div>
       <div class="form-group">
+        <label class="form-label" for="f-deposited">{{ _('Versato netto') }} {{ info(_('I soldi messi nel conto titoli dall\'inizio, meno quelli ritirati. Con il versato il calcolo ricava le commissioni e i costi già pagati: versato − (quantità × ABP di ogni titolo + liquidità). Dividendi e cedole incassati li riducono, le imposte trattenute li aumentano.')) }}</label>
+        <input id="f-deposited" type="text" inputmode="decimal" name="deposited" value="{{ r.deposited|plain if r.deposited is not none else '' }}" class="form-control" placeholder="{{ _('facoltativo') }}" />
+      </div>
+      <div class="form-group">
         <label class="form-label" for="f-years">{{ _('Anni') }} {{ info(_('I costi di un anno moltiplicati per gli anni, con il portafoglio fermo al valore di oggi.')) }}</label>
         <input id="f-years" type="number" min="1" max="50" name="years" value="{{ r.years }}" class="form-control" />
       </div>
@@ -58,7 +66,7 @@
 
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ _('Titoli') }} {{ info(_('Le posizioni di oggi: correggi quantità, prezzo o TER, oppure aggiungi titoli nelle righe vuote. Niente viene salvato.')) }}</div>
+      <div class="card-header-title">{{ _('Titoli') }} {{ info(_('Le posizioni di oggi: correggi quantità, prezzo, ABP o TER, oppure aggiungi titoli nelle righe vuote. Niente viene salvato.')) }}</div>
     </div>
     <div class="table-wrapper">
       <table class="table">
@@ -67,8 +75,10 @@
             <th>{{ _('Titolo') }}</th>
             <th class="text-right">{{ _('Quantità') }}</th>
             <th class="text-right">{{ _('Prezzo') }}</th>
+            <th class="text-right">{{ _('ABP') }} {{ info(_('Average buying price: il prezzo medio di carico di una quota, dalle operazioni registrate.')) }}</th>
             <th class="text-right">{{ _('TER %%') }}</th>
             <th class="text-right">{{ _('Valore') }}</th>
+            <th class="text-right">{{ _('Plus/minus') }}</th>
             <th class="text-right">{{ _('Commissione') }}</th>
           </tr>
         </thead>
@@ -80,14 +90,17 @@
             <td><input type="text" name="name-{{ i }}" value="{{ row.name if row else '' }}" class="form-control" style="padding:6px 8px;" aria-label="{{ _('Titolo') }}" /></td>
             <td><input type="text" inputmode="decimal" name="units-{{ i }}" value="{{ row.units|plain if row else '' }}" class="form-control text-right" style="padding:6px 8px;" aria-label="{{ _('Quantità') }}" /></td>
             <td><input type="text" inputmode="decimal" name="price-{{ i }}" value="{{ row.price|plain if row else '' }}" class="form-control text-right" style="padding:6px 8px;" aria-label="{{ _('Prezzo') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="abp-{{ i }}" value="{{ row.abp|plain if row and row.abp is not none else '' }}" class="form-control text-right" style="padding:6px 8px;" aria-label="{{ _('ABP') }}" /></td>
             <td><input type="text" inputmode="decimal" name="ter-{{ i }}" value="{{ row.ter|plain if row and row.ter is not none else '' }}" class="form-control text-right" style="padding:6px 8px;width:80px;" aria-label="{{ _('TER %%') }}" /></td>
             <td class="text-right nowrap">{{ row.value|money if row else '' }}</td>
+            <td class="text-right nowrap {{ 'text-positive' if row and row.gain >= 0 else 'text-negative' }}">{{ row.gain|money if row else '' }}</td>
             <td class="text-right nowrap">{{ (row.value * r.bps / 10000)|money if row else '' }}</td>
           </tr>
           {% endfor %}
           <tr>
-            <td colspan="4">{{ _('Liquidità') }}</td>
+            <td colspan="5">{{ _('Liquidità') }}</td>
             <td class="text-right nowrap">{{ r.cash|money }}</td>
+            <td></td>
             <td class="text-right nowrap">{{ (r.cash * r.bps / 10000)|money }}</td>
           </tr>
         </tbody>

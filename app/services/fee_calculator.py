@@ -2,6 +2,10 @@
 The fee calculator: what a fee in basis points a year costs on the portfolio as it is today — each asset's price
 times its quantity, plus the liquidity — with the funds' ongoing charges (TER) and the stamp duty next to it.
 
+With the average buying price (ABP) of each asset it also tells what was spent on commissions and costs so far:
+the money put in, less what it bought at the ABP (quantity × ABP) and the liquidity left, is what went elsewhere —
+commissions, stamp duty, taxes withheld (dividends and coupons received lower it).
+
 The rows start from the positions (all, one portfolio or one securities account) and the liquidity from the
 securities accounts' settlement accounts; on the page every number can be changed, and rows added, to try "what
 if" (another adviser's fee, a bigger portfolio).
@@ -26,10 +30,20 @@ class Row:
     units: Decimal
     price: Decimal
     ter: Decimal | None = None       # % a year
+    abp: Decimal | None = None       # average buying price (prezzo medio di carico)
 
     @property
     def value(self) -> Decimal:
         return self.units * self.price
+
+    @property
+    def cost(self) -> Decimal:
+        """Quantity × ABP (the value when the ABP is not known)."""
+        return self.units * (self.abp if self.abp is not None else self.price)
+
+    @property
+    def gain(self) -> Decimal:
+        return self.value - self.cost
 
     @property
     def ter_cost(self) -> Decimal:
@@ -44,6 +58,26 @@ class Result:
     with_ter: bool = True
     with_stamp: bool = True
     years: int = 10
+    deposited: Decimal | None = None  # the money put in, net of withdrawals: with it, the costs paid so far
+
+    @property
+    def cost(self) -> Decimal:
+        return sum((r.cost for r in self.rows), Decimal(0))
+
+    @property
+    def gain(self) -> Decimal:
+        return self.invested - self.cost
+
+    @property
+    def paid(self) -> Decimal | None:
+        """Commissions and costs paid so far: money put in − (quantity × ABP of each asset + liquidity)."""
+        return _round(self.deposited - self.cost - self.cash) if self.deposited is not None else None
+
+    @property
+    def paid_pct(self) -> Decimal | None:
+        if self.paid is None or not self.deposited:
+            return None
+        return (self.paid / self.deposited * 100).quantize(Decimal("0.01"))
 
     @property
     def invested(self) -> Decimal:
@@ -104,25 +138,30 @@ def starting_rows(portfolio_id: int | None = None, securities_account_id: int | 
     for position in securities.positions(portfolio_id=portfolio_id, securities_account_id=securities_account_id):
         holding = position.holding
         row = by_holding.setdefault(holding.id, Row(holding.name, Decimal(0), Decimal(str(holding.price)),
-                                                    Decimal(holding.ter) if holding.ter is not None else None))
+                                                    Decimal(holding.ter) if holding.ter is not None else None,
+                                                    Decimal(0)))
         row.units += Decimal(str(position.units))
+        row.abp += Decimal(str(position.cost))  # the cost first, divided by the units below
+    for row in by_holding.values():
+        row.abp = (row.abp / row.units).quantize(Decimal("0.000001")) if row.units else None
     dossiers = [d for d in securities.accounts() if securities_account_id in (None, d.id)]
     cash = sum((Decimal(str(securities.cash(d))) for d in dossiers), Decimal(0)) if portfolio_id is None else Decimal(0)
     return sorted(by_holding.values(), key=lambda r: -r.value), _round(cash)
 
 
 def from_form(form) -> Result:
-    """The calculation from the page's form: rows name-i / units-i / price-i / ter-i, cash, bps, ter, stamp, years."""
+    """The calculation from the page's form: rows name-i / units-i / price-i / abp-i / ter-i, cash, bps, ter, stamp,
+    years, deposited."""
     rows = []
     for index in range(int(number(form.get("count"), Decimal(0)) or 0)):
         units, price = number(form.get(f"units-{index}")), number(form.get(f"price-{index}"))
         if units is None or price is None or units < 0 or price < 0:
             continue
-        ter = number(form.get(f"ter-{index}"))
+        ter, abp = number(form.get(f"ter-{index}")), number(form.get(f"abp-{index}"))
         rows.append(Row((form.get(f"name-{index}") or "").strip() or "—", units, price,
-                        ter if ter is not None and ter >= 0 else None))
+                        ter if ter is not None and ter >= 0 else None, abp if abp is not None and abp >= 0 else None))
     years = int(number(form.get("years"), Decimal(10)) or 10)
     return Result(rows, number(form.get("cash"), Decimal(0)) or Decimal(0),
                   max(number(form.get("bps"), Decimal(0)) or Decimal(0), Decimal(0)),
                   with_ter=bool(form.get("with_ter")), with_stamp=bool(form.get("with_stamp")),
-                  years=min(max(years, 1), 50))
+                  years=min(max(years, 1), 50), deposited=number(form.get("deposited")))
