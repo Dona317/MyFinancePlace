@@ -101,11 +101,11 @@ def _uncategorized(today: date) -> Check:
     since = today - timedelta(days=UNCATEGORIZED_MONTHS * 31)
     query = Transaction.query.filter(Transaction.date >= since, Transaction.type != "transfer",
                                      or_(Transaction.category.is_(None), Transaction.category == "",
-                                         Transaction.category == categories.FALLBACK))
+                                         Transaction.category == categories.fallback()))
     return Check("uncategorized", "info", _("Movimenti senza categoria"),
                  _("Ultimi 12 mesi, in «%(name)s» o senza categoria: i report li contano a parte.",
-                   name=categories.FALLBACK), query.count(), [],
-                 url_for("transactions.index", category=categories.FALLBACK))
+                   name=categories.fallback()), query.count(), [],
+                 url_for("transactions.index", category=categories.fallback()))
 
 
 def _unpriceable(today: date) -> Check:

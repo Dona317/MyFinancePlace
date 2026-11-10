@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
 
 {% block page_title %}{{ _('Classificazione AI') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Classificazione AI') }}</li>{% endblock %}
@@ -26,6 +27,7 @@
             <th>{{ _('Categoria attuale') }}</th>
             <th style="width:180px;">{{ _('Nuova categoria') }}</th>
             <th style="width:180px;">{{ _('Controparte (tag)') }}</th>
+            {% if with_tags %}<th style="width:150px;">{{ _('Dettaglio (tag)') }}{{ info(_('Con le categorie ampie il dettaglio è un tag: quello che la categoria suggerisce e che descrive meglio il movimento (Casa → Bollette). Lascialo vuoto per non aggiungerlo.')) }}</th>{% endif %}
             <th>{{ _('Confidenza') }}</th>
           </tr>
         </thead>
@@ -58,13 +60,15 @@
                        class="form-control" style="padding:6px 8px;{{ 'border-color:var(--clr-warning);' if s.confidence == 'bassa' else 'border-color:var(--chart-5);' }}" /></td>
             <td><input type="text" name="counterparty-{{ tx.id }}" value="{{ s.counterparty or tx.counterparty or '' }}"
                        class="form-control" style="padding:6px 8px;" placeholder="{{ _('Controparte (tag)') }}" /></td>
+            {% if with_tags %}<td><input type="text" name="tag-{{ tx.id }}" value="{{ s.tag }}" list="tag-options"
+                       class="form-control" style="padding:6px 8px;" /></td>{% endif %}
             <td>
               <span class="badge {{ 'badge-positive' if s.confidence == 'alta' else ('badge-negative' if s.confidence == 'bassa' else 'badge-muted') }}">
                 {{ s.confidence }}</span>
               {% if s.from_history %}<div class="text-xs text-muted" title="{{ _('Come hai già categorizzato transazioni simili: il modello AI non è stato interpellato') }}"><i class="bi bi-clock-history"></i> {{ _('dal tuo storico') }}</div>{% endif %}
             </td>
             {% else %}
-            <td class="text-xs text-muted" colspan="3">{{ _('Nessun suggerimento') }}</td>
+            <td class="text-xs text-muted" colspan="{{ 4 if with_tags else 3 }}">{{ _('Nessun suggerimento') }}</td>
             {% endif %}
           </tr>
           {% endfor %}
@@ -74,6 +78,7 @@
   </div>
 
   {{ f.category_datalist("category-options", categories) }}
+  {% if with_tags %}<datalist id="tag-options">{% for tag in with_tags %}<option value="{{ tag }}"></option>{% endfor %}</datalist>{% endif %}
 
   <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
     <a href="{{ next_url or url_for('transactions.index') }}" class="btn btn-ghost"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>

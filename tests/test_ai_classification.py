@@ -307,7 +307,7 @@ def test_claude_batches_run_in_parallel(app, monkeypatch):
     app.config.update(LLM_PROVIDER="anthropic", LLM_MODEL="claude-haiku-4-5")
     threads = set()
 
-    def ask(model, batch, categories):
+    def ask(model, batch, categories, tags=None):
         threads.add(threading.get_ident())
         assert ai_extraction.timeout() == 600  # app context available in the worker
         return json.dumps(fake_answer([{"id": i["id"], "causale": i["text"]} for i in batch], categories))

@@ -563,9 +563,11 @@ classifyButton?.addEventListener('click', async () => {
       }
       category.value = s.category;
       category.dataset.aiValue = s.category;  // remembered: accepted unchanged → tagged "da confermare (AI)"
+      category.dataset.aiTag = s.tag || '';    // the detail of a broad category, saved with it when kept
       category.classList.add(s.confidence === 'bassa' ? 'ai-low' : 'ai-suggested');
       category.title = s.from_history ? {{ _("Dal tuo storico: come hai categorizzato transazioni simili")|tojson }}
         : s.confidence === 'bassa' ? {{ _("Suggerito dall'AI (poco sicuro)")|tojson }} : fmt({{ _("Suggerito dall'AI (confidenza %(level)s)", level='%(level)s')|tojson }}, {level: s.confidence});
+      if (s.tag) category.title += ' · ' + fmt({{ _('tag «%(tag)s»', tag='%(tag)s')|tojson }}, {tag: s.tag});
       applied++;
       if (s.confidence === 'bassa') unsure++;
     }
@@ -597,6 +599,13 @@ document.getElementById('preview-form').addEventListener('submit', () => {
       marker.name = `aicat-${row.dataset.index}`;
       marker.value = '1';
       row.appendChild(marker);
+      if (category.dataset.aiTag) {
+        const tag = document.createElement('input');
+        tag.type = 'hidden';
+        tag.name = `aitag-${row.dataset.index}`;
+        tag.value = category.dataset.aiTag;
+        row.appendChild(tag);
+      }
     }
   });
 });

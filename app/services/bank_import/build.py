@@ -27,6 +27,9 @@ def build_transaction(base: dict, bank_key: str, fields: dict | None = None, ai:
     counterparty = clean_text(fields.get("counterparty"))
     # the counterparty is the first tag (as in the transaction form)
     tags = ([counterparty] if counterparty else []) + ["importato", bank_key] + (["ai"] if ai else []) + ([] if base else ["manuale"])
+    detail = clean_text(fields.get("aitag")) if fields.get("aicat") else None
+    if detail and detail.casefold() not in {t.casefold() for t in tags}:
+        tags.append(detail)  # the detail of a broad category (F32) the AI suggested with it
     if fields.get("aicat"):
         tags.append(AI_TAG)  # category suggested by the AI and accepted unchanged: worth a later review
     return Transaction(
@@ -35,7 +38,7 @@ def build_transaction(base: dict, bank_key: str, fields: dict | None = None, ai:
         amount=money.cents(abs(amount)),
         currency=base.get("currency") or "EUR",
         type=tx_type,
-        category=clean_text(fields.get("category")) or categories.FALLBACK,
+        category=clean_text(fields.get("category")) or categories.fallback(),
         counterparty=counterparty,
         tags=tags,
         is_recurring=False,

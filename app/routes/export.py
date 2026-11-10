@@ -469,7 +469,7 @@ def bank_ai_cancel(token):
     return redirect(url_for("export.import_page"))
 
 
-PREVIEW_FIELDS = ("date", "description", "amount", "type", "category", "counterparty", "aicat")
+PREVIEW_FIELDS = ("date", "description", "amount", "type", "category", "counterparty", "aicat", "aitag")
 
 
 def _assign_account(tx, base: dict, account: Account) -> None:

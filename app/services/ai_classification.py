@@ -54,9 +54,12 @@ class Suggestion:
     counterparty: str
     confidence: str
     from_history: bool = False  # learned from the user's own transactions, not asked to the model
+    tag: str = ""  # with the broad categories (F32): the detail, one of the tags the category suggests
 
     def to_dict(self) -> dict:
         found = {"category": self.category, "counterparty": self.counterparty, "confidence": self.confidence}
+        if self.tag:
+            found["tag"] = self.tag
         return found | {"from_history": True} if self.from_history else found
 
 
@@ -85,8 +88,9 @@ def template_context() -> dict:
 
 # ── Classification ─────────────────────────────────────────────────────────────
 
-def response_schema(categories: list[str]) -> dict:
-    return {
+def response_schema(categories: list[str], tags: dict[str, list[str]] | None = None) -> dict:
+    """The JSON the model must answer with; with the broad categories' tags, also the detail tag of each movement."""
+    schema = {
         "type": "object",
         "properties": {
             "items": {
@@ -107,28 +111,51 @@ def response_schema(categories: list[str]) -> dict:
         "required": ["items"],
         "additionalProperties": False,
     }
+    every = sorted({t for c in categories for t in (tags or {}).get(c, [])}, key=str.casefold)
+    if every:
+        item = schema["properties"]["items"]["items"]
+        item["properties"]["tag"] = {"type": "string", "enum": [*every, ""]}
+        item["required"].append("tag")
+    return schema
 
 
-def _prompt(batch: list[dict], categories: list[str]) -> str:
-    known = category_hints()
-    listed = "\n".join(f"- {category_service.label(c)}" + (f": {known[c]}" if c in known else "") for c in categories)
+def tags_for(categories: list[str]) -> dict[str, list[str]]:
+    """The tags each category suggests, when the archive uses the broad categories (else none: no tag is asked)."""
+    if not category_service.broad():
+        return {}
+    suggested = category_service.suggested_tags()
+    return {c: suggested[c] for c in categories if suggested.get(c)}
+
+
+def _line(category: str, known: dict[str, str], tags: dict[str, list[str]]) -> str:
+    line = f"- {category_service.label(category)}" + (f": {known[category]}" if category in known else "")
+    return line + (f" [tag: {', '.join(tags[category])}]" if tags.get(category) else "")
+
+
+def _prompt(batch: list[dict], categories: list[str], tags: dict[str, list[str]] | None = None) -> str:
+    known, tags = category_hints(), tags or {}
+    listed = "\n".join(_line(c, known, tags) for c in categories)
     movements = [
         {"id": item["id"], "importo": round(float(item["amount"]), 2), "causale": item["text"]}
         for item in batch
     ]
-    examples = [(k, c) for k, c in category_rules.examples() if c in categories]
+    examples = [(k, category_service.resolve(c)) for k, c in category_rules.examples()
+                if category_service.resolve(c) in categories]
     learned = ""
     if examples:
         learned = ("Scelte fatte dall'utente in passato (parola nella causale → categoria), seguile:\n"
                    + "\n".join(f"- {k} → {c}" for k, c in examples) + "\n\n")
+    detail = ("Le categorie sono ampie e il dettaglio è un tag: per ogni movimento scegli in «tag» il tag, fra quelli "
+              "elencati per la categoria scelta, che descrive meglio il movimento (es. Casa → Bollette per una bolletta "
+              "della luce); stringa vuota se nessuno va bene o la categoria non ha tag.\n\n") if tags else ""
     return (
-        f"Categorie disponibili:\n{listed}\n\n{learned}"
+        f"Categorie disponibili:\n{listed}\n\n{detail}{learned}"
         f"Classifica questi {len(batch)} movimenti:\n{json.dumps(movements, ensure_ascii=False)}"
     )
 
 
-def _ask(model: str, batch: list[dict], categories: list[str]) -> str:
-    schema, prompt = response_schema(categories), _prompt(batch, categories)
+def _ask(model: str, batch: list[dict], categories: list[str], tags: dict[str, list[str]] | None = None) -> str:
+    schema, prompt = response_schema(categories, tags), _prompt(batch, categories, tags)
     if ai_extraction.provider() == "anthropic":
         return ai_extraction.anthropic_json(
             model, SYSTEM_PROMPT, [{"type": "text", "text": prompt}], schema, max_tokens=16000,
@@ -143,7 +170,8 @@ def same_causale(item: dict) -> tuple[bool, str]:
     return float(item["amount"]) < 0, text
 
 
-def _read(reply: str | None, batch: list[dict], categories: list[str]) -> dict[int, Suggestion]:
+def _read(reply: str | None, batch: list[dict], categories: list[str],
+          tags: dict[str, list[str]] | None = None) -> dict[int, Suggestion]:
     try:
         data = json.loads(reply or "")
     except (TypeError, json.JSONDecodeError):
@@ -158,7 +186,8 @@ def _read(reply: str | None, batch: list[dict], categories: list[str]) -> dict[i
             continue
         confidence = entry.get("confidence") if entry.get("confidence") in CONFIDENCE else "bassa"
         counterparty = " ".join(str(entry.get("counterparty") or "").split())
-        found[item_id] = Suggestion(category, counterparty, confidence)
+        tag = entry.get("tag") if entry.get("tag") in (tags or {}).get(category, []) else ""
+        found[item_id] = Suggestion(category, counterparty, confidence, tag=tag)
     return found
 
 
@@ -170,9 +199,11 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
     """
     if ai_extraction.provider() is None:
         raise AIExtractionError(_("La classificazione AI non è configurata: scegli un modello in Impostazioni → Modelli AI."))
-    categories = list(dict.fromkeys(c for c in categories if c))
+    # with the broad categories the old names (still on some transactions) are offered as the broad ones they went to
+    categories = list(dict.fromkeys(category_service.resolve(c) for c in categories if c))
     if category_service.fallback() not in categories:
         categories.append(category_service.fallback())
+    tags = tags_for(categories)
     model = model or model_name()
 
     # the user's history first: the model only gets what it cannot place
@@ -182,8 +213,9 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
         if not (item.get("text") or "").strip():
             continue
         guessed = history_classifier.guess(item["text"], float(item["amount"]) > 0, history)
-        if guessed and guessed.category in categories:
-            known[item["id"]] = Suggestion(guessed.category, guessed.counterparty, guessed.confidence, from_history=True)
+        category = category_service.resolve(guessed.category) if guessed else None
+        if guessed and category in categories:
+            known[item["id"]] = Suggestion(category, guessed.counterparty, guessed.confidence, from_history=True)
         else:
             groups.setdefault(same_causale(item), []).append(item)
     asked = [group[0] for group in groups.values()]  # one representative per distinct causale
@@ -193,7 +225,7 @@ def classify(items: list[dict], categories: list[str], model: str | None = None)
 
     def run(batch: list[dict]) -> dict[int, Suggestion]:
         with app.app_context():
-            return _read(_ask(model, batch, categories), batch, categories)
+            return _read(_ask(model, batch, categories, tags), batch, categories, tags)
 
     parallel = PARALLEL_REQUESTS if ai_extraction.provider() == "anthropic" else 1
     if parallel > 1 and len(batches) > 1:
