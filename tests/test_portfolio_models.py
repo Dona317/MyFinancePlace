@@ -169,3 +169,25 @@ def test_backup_keeps_the_templates(app, db, book):
         backup.restore(data, {})
     restored = PortfolioTemplate.query.one()
     assert [s.target for s in restored.slots] == [25, 25, 25, 25] and restored.slots[0].holding_ids == {world.id}
+
+
+def test_minimum_deposit_withdrawal_and_estimated_tax(client, db):
+    stocks = Holding(name="Azioni", asset_class="ETF", quantity=10, avg_price=50, current_price=Decimal(100))
+    bonds = Holding(name="Obbligazioni", asset_class="ETF", quantity=20, avg_price=5, current_price=Decimal(5))
+    template = PortfolioTemplate(name="80/20", band=5, active=True)
+    db.session.add_all([stocks, bonds, template])
+    db.session.flush()
+    portfolio_models.save(template, "80/20", "", Decimal(5), [
+        SlotInput("Azioni", Decimal(80), holding_ids=[stocks.id]), SlotInput("Obbligazioni", Decimal(20), holding_ids=[bonds.id])])
+    db.session.commit()
+    with client.application.test_request_context():
+        plan = portfolio_models.rebalance(template, "min")
+        # 1000 of shares must be 80 %: the total becomes 1250, so 150 of new money, all in bonds
+        assert plan.minimum == Decimal("150.00") and [line.move for line in plan.lines] == [Decimal(0), Decimal("150.00")]
+        taken = portfolio_models.rebalance(template, "withdraw", Decimal(200))
+        assert [line.move for line in taken.lines] == [Decimal("-200.00"), Decimal(0)]  # where it is above target
+        assert taken.lines[0].tax == Decimal("26.00") and taken.tax == Decimal("26.00")  # half of 200 is gain, 26 %
+        assert portfolio_models.rebalance(template, "full").tax > 0
+    page = client.get("/portfolio/rebalance?mode=min").get_data(as_text=True)
+    assert "Versamento minimo" in page and "servono almeno" in page and "150,00" in page
+    assert "Tasse stimate sulle vendite" in client.get("/portfolio/rebalance?mode=withdraw&amount=200").get_data(as_text=True)

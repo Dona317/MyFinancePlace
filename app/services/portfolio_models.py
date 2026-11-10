@@ -10,6 +10,7 @@ Model portfolios (F19d): how far the investments are from the active template, a
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import ROUND_DOWN, Decimal
 
 from flask_babel import gettext as _
@@ -17,7 +18,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.portfolio_model import PortfolioTemplate, SlotHolding, TemplateSlot
 from app.models.wealth import Holding
-from app.services import money
+from app.services import money, tax_rules
 from app.services.i18n import N_
 from app.services.wealth import ASSET_CLASSES
 
@@ -179,6 +180,7 @@ class Line:
     units: Decimal | None = None    # the move in units of the slot's main holding
     via: Holding | None = None      # the holding the move is made with
     outside: bool = False
+    tax: Decimal = Decimal(0)       # F50: estimated tax on the gain of a sale (26 %, 12,5 % on government bonds)
 
     @property
     def drift(self) -> Decimal:
@@ -190,8 +192,9 @@ class Plan:
     template: PortfolioTemplate
     lines: list[Line]
     total: Decimal                  # value of the investments now
-    amount: Decimal                 # new money to invest
-    mode: str                       # "new" | "full"
+    amount: Decimal                 # new money to invest (or, "withdraw", to take out)
+    mode: str                       # "new" | "full" | "min" (minimum deposit, buy only) | "withdraw"
+    minimum: Decimal | None = None  # "min": the smallest deposit that brings every part to its target
 
     @property
     def out_of_band(self) -> list[Line]:
@@ -200,6 +203,10 @@ class Plan:
     @property
     def leftover(self) -> Decimal:
         return self.amount - sum((line.move for line in self.lines), Decimal(0))
+
+    @property
+    def tax(self) -> Decimal:
+        return sum((line.tax for line in self.lines), Decimal(0))
 
 
 def _value(holdings: list[Holding]) -> Decimal:
@@ -242,6 +249,44 @@ def _round_to(lines: list[Line], amount: Decimal) -> None:
         biggest.move += amount - sum((line.move for line in lines), Decimal(0))
 
 
+def minimum_deposit(lines: list[Line], total: Decimal) -> Decimal:
+    """The smallest new money that, bought only, brings every part to its target (justETF's «versamento minimo»):
+    the part furthest above its target sets the new total, D = max(value ÷ target) − total."""
+    needed = max((line.value / (line.target / HUNDRED) for line in lines if line.target > 0 and not line.outside),
+                 default=total)
+    outside = sum((line.value for line in lines if line.outside), Decimal(0))
+    return max(Decimal(0), money.cents(needed + outside - total))
+
+
+def _withdraw(lines: list[Line], total: Decimal, amount: Decimal) -> None:
+    """Sell only, taking `amount` out where it is above target after the withdrawal, then by target."""
+    amount = min(amount, total)
+    after = total - amount
+    excess = {id(line): max(Decimal(0), line.value - after * line.target / HUNDRED) for line in lines}
+    extra = sum(excess.values(), Decimal(0))
+    for line in lines:
+        if extra >= amount:
+            share = amount * excess[id(line)] / extra if extra else Decimal(0)
+        else:
+            share = excess[id(line)] + (amount - extra) * line.target / HUNDRED
+        line.move = -money.cents(min(share, line.value))
+    biggest = min(lines, key=lambda line: line.move, default=None)  # the cents lost rounding go to the biggest sale
+    if biggest is not None and biggest.move < 0:
+        biggest.move -= amount + sum((line.move for line in lines), Decimal(0))
+
+
+def _sale_tax(line: Line, year: int) -> Decimal:
+    """Tax on the gain of a sale at the holding's latest price over its average price (none on a loss)."""
+    holding = line.via
+    if line.move >= 0 or holding is None or not holding.price:
+        return Decimal(0)
+    price, average = Decimal(str(holding.price)), Decimal(str(holding.avg_price or 0))
+    if price <= average:
+        return Decimal(0)
+    rate = tax_rules.gain_rate(holding.asset_class, year, getattr(holding, "tax_rate", None))
+    return money.cents(-line.move * (price - average) / price * rate / HUNDRED)
+
+
 def _full(lines: list[Line], total: Decimal, amount: Decimal) -> None:
     after = total + amount
     for line in lines:
@@ -252,9 +297,19 @@ def rebalance(template: PortfolioTemplate, mode: str = "new", amount: Decimal = 
               holdings: list[Holding] | None = None) -> Plan:
     lines, total = standing(template, holdings)
     amount = max(Decimal(0), amount)
-    (_full if mode == "full" else _with_new_money)(lines, total, amount)
+    mode = mode if mode in ("new", "full", "min", "withdraw") else "new"
+    minimum = None
+    if mode == "min":
+        amount = minimum = minimum_deposit(lines, total)
+        _with_new_money(lines, total, amount)
+    elif mode == "withdraw":
+        _withdraw(lines, total, amount)
+    else:
+        (_full if mode == "full" else _with_new_money)(lines, total, amount)
+    year = date.today().year
     for line in lines:
         line.via = max(line.holdings, key=lambda h: h.value, default=None)
         if line.via is not None and line.move and line.via.price:
             line.units = (line.move / Decimal(str(line.via.price))).quantize(UNITS, rounding=ROUND_DOWN)
-    return Plan(template, lines, total, amount, "full" if mode == "full" else "new")
+        line.tax = _sale_tax(line, year)
+    return Plan(template, lines, total, amount, mode, minimum)

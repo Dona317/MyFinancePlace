@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 10:19+0000\n"
+"POT-Creation-Date: 2026-11-10 10:21+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -5145,6 +5145,9 @@ msgstr "Amount to add to %(name)s"
 msgid "Importo da investire (€)"
 msgstr "Amount to invest (€)"
 
+msgid "Importo da prelevare (€)"
+msgstr "Amount to withdraw (€)"
+
 msgid "Importo della parte"
 msgstr "Amount of the part"
 
@@ -8180,6 +8183,10 @@ msgstr "By instrument type"
 msgid "Per titolo"
 msgstr "By holding"
 
+#, python-format
+msgid "Per tornare sugli obiettivi comprando e basta servono almeno %(amount)s."
+msgstr "To get back to the targets by buying only you need at least %(amount)s."
+
 msgid ""
 "Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un"
 " massimo. Quando registri un acquisto o una vendita su questo conto, la "
@@ -8448,6 +8455,9 @@ msgstr "Default"
 
 msgid "Preferito"
 msgstr "Favourite"
+
+msgid "Prelievo con ribilanciamento (solo vendite)"
+msgstr "Withdrawal with rebalancing (sales only)"
 
 msgid "Prelievo dalla banca: è un giroconto con Contanti"
 msgstr "Withdrawal from the bank: it is a transfer with Cash"
@@ -10612,6 +10622,16 @@ msgstr "On cost"
 msgid "Sul valore"
 msgstr "On value"
 
+#, python-format
+msgid ""
+"Sulle vendite in guadagno: (prezzo − prezzo medio) × quote × aliquota (26"
+" %%, 12,5 %% sui titoli di Stato). È una stima: la banca usa il costo "
+"medio del conto titoli e compensa le minusvalenze."
+msgstr ""
+"On sales at a gain: (price − average price) × units × rate (26 %%, 12.5 "
+"%% on government bonds). An estimate: the bank uses the securities "
+"account's average cost and offsets past losses."
+
 msgid "Svalutazione annua"
 msgstr "Yearly depreciation"
 
@@ -10673,6 +10693,13 @@ msgstr "Tag «%(name)s» removed from %(count)s transactions."
 #, python-format
 msgid "Tag «%(old)s» rinominato in «%(name)s» su %(count)s transazioni."
 msgstr "Tag «%(old)s» renamed to «%(name)s» on %(count)s transactions."
+
+msgid "Tassa stimata"
+msgstr "Estimated tax"
+
+#, python-format
+msgid "Tasse stimate sulle vendite: %(amount)s."
+msgstr "Estimated taxes on the sales: %(amount)s."
 
 msgid ""
 "Tasse, assicurazioni, auto, viaggi: un dodicesimo di quanto sono costate "
@@ -11710,6 +11737,9 @@ msgstr "Monthly saving"
 
 msgid "Versamento mensile (€)"
 msgstr "Monthly saving (€)"
+
+msgid "Versamento minimo per tornare in linea senza vendere"
+msgstr "Minimum deposit to get back in line without selling"
 
 msgid "Versato"
 msgstr "Paid in"

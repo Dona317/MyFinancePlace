@@ -154,7 +154,7 @@ def rebalance():
         flash(_("Questo portafoglio non ha ancora un portafoglio modello attivo: creane uno e collegalo.") if folio_id
               else _("Scegli o crea prima un portafoglio modello."), "info")
         return redirect(url_for("portfolio.models_index"))
-    mode = "full" if request.args.get("mode") == "full" else "new"
+    mode = request.args.get("mode") if request.args.get("mode") in ("full", "min", "withdraw") else "new"
     amount = to_decimal(request.args.get("amount")) or Decimal(0)
     plan = models.rebalance(template, mode, amount)
     return render_template("portfolio/rebalance.html", plan=plan, scopes=_scopes(), folio_id=folio_id)
@@ -183,7 +183,7 @@ def rebalance_orders():
     if template is None:
         flash(_("Scegli o crea prima un portafoglio modello."), "info")
         return redirect(url_for("portfolio.models_index"))
-    mode = "full" if request.values.get("mode") == "full" else "new"
+    mode = request.values.get("mode") if request.values.get("mode") in ("full", "min", "withdraw") else "new"
     amount = to_decimal(request.values.get("amount")) or Decimal(0)
     if request.method == "POST":
         account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
