@@ -14,7 +14,7 @@ from app.models.portfolio_model import PortfolioTemplate
 from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, broker, portfolio_ops, securities
+from app.services import accounts, broker, portfolio_charts, portfolio_ops, securities
 from app.services import portfolio_models as models
 from app.services.parsing import to_date, to_decimal
 
@@ -157,7 +157,8 @@ def rebalance():
     mode = request.args.get("mode") if request.args.get("mode") in ("full", "min", "withdraw") else "new"
     amount = to_decimal(request.args.get("amount")) or Decimal(0)
     plan = models.rebalance(template, mode, amount)
-    return render_template("portfolio/rebalance.html", plan=plan, scopes=_scopes(), folio_id=folio_id)
+    return render_template("portfolio/rebalance.html", plan=plan, scopes=_scopes(), folio_id=folio_id,
+                           bands=portfolio_charts.target_bands(plan))  # G41
 
 
 # ── From the rebalancing to the orders (F42) ───────────────────────────────────

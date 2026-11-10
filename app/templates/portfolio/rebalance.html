@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Ribilanciamento') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Ribilanciamento') }}</li>{% endblock %}
@@ -48,6 +49,17 @@
     </form>
   </div>
 </div>
+
+{% if bands.labels %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <div class="card-header-title">{{ _('Peso attuale e obiettivo') }} {{ info(_('Per ogni parte: la barra è il peso di oggi, il trattino verticale l\'obiettivo e la fascia chiara la tolleranza (obiettivo ± %(band)s punti). Una barra rossa è fuori dalla tolleranza.', band=plan.template.band|number(2))) }}</div>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:{{ 70 + 38 * bands.labels|length }}px;"><canvas id="targetBandChart"></canvas></div>
+  </div>
+</div>
+{% endif %}
 
 <div class="card">
   <div class="table-wrapper">
@@ -100,4 +112,14 @@
   <div class="card-body text-sm text-muted">{{ _('Indica quanto vuoi investire: verrà diviso tra le parti più sotto il loro obiettivo.') }}</div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if bands.labels %}
+<script>
+makeTargetBandChart('targetBandChart', {{ bands|tojson }}, {
+  weight: {{ _('Peso attuale')|tojson }}, target: {{ _('Obiettivo')|tojson }}, band: {{ _('Tolleranza')|tojson }}
+});
+</script>
+{% endif %}
 {% endblock %}

@@ -366,6 +366,186 @@ function buildDoughnutChart(ctx, labels, data, opts) {
   });
 }
 
+/* ── Portfolio charts (G40, G41, G50) ───────────────────────────────────── */
+
+const localeOf = () => document.documentElement.dataset.locale || "it-IT";
+const formatNumber = (v, digits = 2) => Number(v).toLocaleString(localeOf(), { maximumFractionDigits: digits });
+const formatPercent = (v) => `${formatNumber(v, 2)}%`;
+
+/**
+ * G40: the price of a holding with its operations. `chart` (services.portfolio_charts.price_chart): labels (days),
+ * data (the price, null on days without one), buys / sells ({x, y: unit price, units}), income ({x, y, amount, kind})
+ * and avg_price. `texts`: the names of the series (price, avg, buy, sell, dividend, coupon, units).
+ */
+function makePriceOpsChart(canvasId, chart, texts) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return null;
+  return registerChart(buildPriceOpsChart(ctx, chart, texts), () => buildPriceOpsChart(ctx, chart, texts));
+}
+
+function buildPriceOpsChart(ctx, chart, texts) {
+  const marker = (label, data, color, style, extra = {}) => ({
+    type: "line", label, data, showLine: false, pointStyle: style, pointRadius: 7, pointHoverRadius: 9,
+    borderColor: color, backgroundColor: color, borderWidth: 1, order: 0, ...extra,
+  });
+  const datasets = [{
+    type: "line", label: texts.price, data: chart.data, spanGaps: true, tension: 0.2, fill: true, order: 2,
+    borderColor: Theme.primary, backgroundColor: hexAlpha(Theme.primary, 0.08), borderWidth: 2,
+    pointRadius: chart.prices > 60 ? 0 : 2, pointHoverRadius: 4,
+  }];
+  if (chart.avg_price !== null && chart.avg_price !== undefined) {
+    datasets.push({
+      type: "line", label: texts.avg, data: chart.labels.map(() => chart.avg_price), borderDash: [6, 4], order: 1,
+      borderColor: Theme.amber, backgroundColor: Theme.amber, borderWidth: 1.5, pointRadius: 0, pointHitRadius: 0,
+      fill: false,
+    });
+  }
+  if (chart.buys.length) datasets.push(marker(texts.buy, chart.buys, Theme.positive, "triangle"));
+  if (chart.sells.length) datasets.push(marker(texts.sell, chart.sells, Theme.negative, "triangle", { pointRotation: 180 }));
+  if (chart.income.length) {
+    datasets.push(marker(texts.income, chart.income, Theme.blue, "circle", { pointRadius: 4, pointHoverRadius: 6 }));
+  }
+  const label = (c) => {
+    const raw = c.raw || {};
+    if (raw.units !== undefined) return `${c.dataset.label}: ${formatNumber(raw.units, 4)} ${texts.units} × ${formatMoney(raw.y)}`;
+    if (raw.amount !== undefined) return `${raw.kind === "coupon" ? texts.coupon : texts.dividend}: ${formatMoney(raw.amount)}`;
+    return c.parsed.y === null ? null : `${c.dataset.label}: ${formatMoney(c.parsed.y)}`;
+  };
+  return new Chart(ctx, {
+    type: "line",
+    data: { labels: chart.labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "nearest", axis: "x", intersect: false },
+      plugins: {
+        legend: { display: false },
+        htmlLegend: { display: datasets.length > 1 },
+        tooltip: { callbacks: { label } },
+      },
+      scales: {
+        x: { grid: { color: Theme.border }, ticks: { color: Theme.textMuted, maxTicksLimit: 10 } },
+        // the price axis starts near the lowest price, not at zero (the title says so)
+        y: { beginAtZero: false, grid: { color: Theme.border }, ticks: { color: Theme.textMuted, callback: v => formatMoney(v) } },
+      },
+    },
+  });
+}
+
+/**
+ * G41: the parts of a model portfolio, horizontal: the band (target ± tolerance) as a light floating bar behind,
+ * the weight now as a bar (red when out of the band), the target as a vertical tick. `data`
+ * (services.portfolio_charts.target_bands): labels, weight, target, band ([low, high]), off. `texts`: weight,
+ * target, band.
+ */
+function makeTargetBandChart(canvasId, data, texts) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return null;
+  return registerChart(buildTargetBandChart(ctx, data, texts), () => buildTargetBandChart(ctx, data, texts));
+}
+
+function buildTargetBandChart(ctx, data, texts) {
+  return new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: data.labels,
+      datasets: [
+        { label: texts.band, data: data.band, backgroundColor: hexAlpha(Theme.positive, 0.18),
+          borderColor: hexAlpha(Theme.positive, 0.45), borderWidth: 1, borderSkipped: false, grouped: false,
+          barPercentage: 0.9, categoryPercentage: 0.9, order: 3 },
+        { label: texts.weight, data: data.weight, grouped: false, barPercentage: 0.45, categoryPercentage: 0.9,
+          backgroundColor: data.off.map(off => hexAlpha(off ? Theme.negative : Theme.primary, 0.85)),
+          borderRadius: 3, order: 2 },
+        { type: "line", label: texts.target, data: data.target.map((t, i) => ({ x: t, y: data.labels[i] })),
+          showLine: false, pointStyle: "line", pointRotation: 90, pointRadius: 12, pointHoverRadius: 12,
+          borderWidth: 3, borderColor: Theme.textMuted, backgroundColor: Theme.textMuted, order: 1 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "y",
+      interaction: { mode: "index", axis: "y", intersect: false },
+      plugins: {
+        legend: { display: false },
+        htmlLegend: { display: true },
+        tooltip: { callbacks: { label: c => {
+          const raw = c.raw;
+          if (Array.isArray(raw)) return `${c.dataset.label}: ${formatNumber(raw[0])}–${formatPercent(raw[1])}`;
+          return `${c.dataset.label}: ${formatPercent(typeof raw === "object" ? raw.x : raw)}`;
+        } } },
+      },
+      scales: {
+        y: { grid: { display: false } },
+        x: { beginAtZero: true, grid: { color: Theme.border }, ticks: { callback: v => formatPercent(v) } },
+      },
+    },
+  });
+}
+
+/**
+ * G50: the allocation as a treemap, asset class → holding (`tree`: [{asset_class, name, value}],
+ * services.portfolio_charts.allocation_tree), with the vendored chartjs-chart-treemap. Without the plugin: one
+ * stacked horizontal bar, a segment per asset class.
+ */
+function makeTreemapChart(canvasId, tree) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return null;
+  return registerChart(buildTreemapChart(ctx, tree), () => buildTreemapChart(ctx, tree));
+}
+
+function treemapAvailable() {
+  try { return Boolean(Chart.registry.getController("treemap")); } catch (e) { return false; }
+}
+
+function buildTreemapChart(ctx, tree) {
+  const classes = [...new Set(tree.map(leaf => leaf.asset_class))];
+  const colorOf = (cls) => Theme.chart[Math.max(0, classes.indexOf(cls)) % Theme.chart.length];
+  const total = tree.reduce((sum, leaf) => sum + leaf.value, 0);
+  const share = (v) => total ? formatPercent(v / total * 100) : "–";
+  if (!treemapAvailable()) {
+    const sums = classes.map(cls => tree.filter(leaf => leaf.asset_class === cls).reduce((sum, leaf) => sum + leaf.value, 0));
+    return new Chart(ctx, {
+      type: "bar",
+      data: { labels: [""], datasets: classes.map((cls, i) => ({ label: cls, data: [sums[i]], backgroundColor: colorOf(cls), stack: "all" })) },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: "y",
+        plugins: { legend: { display: false }, htmlLegend: { display: true },
+                   tooltip: { callbacks: { label: c => `${c.dataset.label}: ${formatMoney(c.raw)} (${share(c.raw)})` } } },
+        scales: { x: { stacked: true, grid: { color: Theme.border }, ticks: { callback: v => formatMoney(v) } },
+                  y: { stacked: true, grid: { display: false } } },
+      },
+    });
+  }
+  // a rectangle of the plugin: `g` is its name (the class, or the holding), level `l` 0 is the class
+  const classOf = (raw) => raw.l === 0 ? raw.g : raw._data?.children?.[0]?.asset_class;
+  return new Chart(ctx, {
+    type: "treemap",
+    data: {
+      datasets: [{
+        tree, key: "value", groups: ["asset_class", "name"], spacing: 1, borderWidth: 1, borderRadius: 3,
+        borderColor: Theme.card,
+        backgroundColor: c => c.type === "data" ? hexAlpha(colorOf(classOf(c.raw)), c.raw.l === 0 ? 1 : 0.7) : "transparent",
+        captions: { display: true, color: "#FFFFFF", font: { weight: "600" }, padding: 4,
+                    formatter: c => `${c.raw.g} · ${share(c.raw.v)}` },
+        labels: { display: true, overflow: "hidden", color: "#FFFFFF", font: { size: 11 },
+                  formatter: c => [c.raw.g, share(c.raw.v)] },
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          title: items => items[0] ? items[0].raw.g : "",
+          label: c => `${c.raw.l > 0 ? classOf(c.raw) + " · " : ""}${formatMoney(c.raw.v)} (${share(c.raw.v)})`,
+        } },
+      },
+    },
+  });
+}
+
 /** Convert hex color to rgba with alpha */
 function hexAlpha(hex, alpha) {
   if (!/^#?[0-9a-f]{3}([0-9a-f]{3})?$/i.test(hex || "")) return hex;  // not a hex color: use as is

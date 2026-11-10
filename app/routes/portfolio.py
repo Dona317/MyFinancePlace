@@ -21,6 +21,7 @@ from app.services import (
     family,
     fund_facts,
     performance,
+    portfolio_charts,
     portfolio_ops,
     price_feed,
     securities,
@@ -189,6 +190,7 @@ def index():
         "portfolio/index.html",
         holdings=[h for h in holdings if not selected or h.asset_class == selected],
         summary=wealth.portfolio_summary(holdings),
+        tree=portfolio_charts.allocation_tree(holdings),  # G50: asset class → holding, for the treemap
         dividends_ytd=wealth.dividends(date(today.year, 1, 1), date(today.year + 1, 1, 1)),
         asset_classes=wealth.ASSET_CLASSES, asset_class_of=asset_classes.of,
         selected=selected,
@@ -222,7 +224,7 @@ def detail(holding_id):
                            kind_of=portfolio_ops.kind_of, domicile=fund_facts.domicile_name(holding),
                            distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
                            asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
-                           chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})
+                           chart=portfolio_charts.price_chart(holding, points))  # G40: with the operations
 
 
 def _operation_from_form() -> portfolio_ops.Operation:
