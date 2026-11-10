@@ -121,3 +121,22 @@ def test_what_goes_on_debiti_is_owed_not_paid_with_cash(db):
     # a loan received on the bank through Debiti: more cash, more owed
     _add(db, account_id=debt.id, counter_account_id=bank.id, amount=500, type="transfer", date=date(2026, 3, 2))
     assert wealth.cash_balance() == 1400 and accounts.owed() == 700
+
+
+def test_a_statement_can_be_saved_when_only_the_fixed_accounts_exist(client, db, fixed_on):
+    """Contanti and Debiti alone do not make the account of the statement required (the server does not ask either)."""
+    import io
+    import re
+
+    from app.models.transaction import Transaction
+    from tests.form_helper import form_data
+    from tests.statements import fineco_xlsx
+
+    client.get("/accounts/")  # makes Contanti and Debiti
+    assert Account.query.count() == 2
+    html = client.post("/export/bank", data={"file": (io.BytesIO(fineco_xlsx()), "movimenti.xlsx"), "bank": "auto"},
+                       content_type="multipart/form-data").get_data(as_text=True)
+    assert not re.search(r'<select id="import-account"[^>]*required', html)
+    rows = sorted(set(re.findall(r'name="include" value="(\d+)"', html)), key=int)
+    client.post("/export/bank/confirm", data=form_data(html, "preview-form", include=rows))
+    assert Transaction.query.count() > 0

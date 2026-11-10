@@ -192,3 +192,23 @@ def test_rebalance_orders_need_a_model_and_a_date_not_in_the_future(client, db, 
                                                             "holding-0": etf.id, "units-0": "1", "price-0": "1"},
                        follow_redirects=True)
     assert "nel futuro" in late.text
+
+
+def test_outside_the_model_each_holding_is_sold_for_what_it_holds(db, book):
+    """«Fuori dal modello» holds several holdings: one sale each, never more units than it has (not all of the line's
+    value in units of the biggest one)."""
+    from app.routes.portfolio_templates import _proposed_orders
+
+    _directa, etf, bonds = book
+    gold = Holding(name="Oro", ticker="SGLD", asset_class="ETF", quantity=4, avg_price=150, current_price=Decimal(200))
+    coin = Holding(name="Bitcoin", ticker="BTC", asset_class="Criptovaluta", quantity=Decimal("0.01"), avg_price=40000,
+                   current_price=Decimal(50000))
+    db.session.add_all([gold, coin])
+    template = PortfolioTemplate(name="Solo azioni", band=5, active=True)
+    db.session.add(template)
+    portfolio_models.save(template, "Solo azioni", "", Decimal(5), [SlotInput("Azioni", Decimal(100), holding_ids=[etf.id])])
+    template.active = True
+    db.session.commit()
+    plan = portfolio_models.rebalance(template, "full", holdings=[etf, bonds, gold, coin])
+    sales = {o["holding"].name: o["units"] for o in _proposed_orders(plan) if o["side"] == "sell"}
+    assert sales == {"Oro": Decimal(4), "Bitcoin": Decimal("0.01")}

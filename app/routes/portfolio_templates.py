@@ -3,7 +3,7 @@ Model portfolios and rebalancing (F19d), on the portfolio's blueprint: the templ
 copy), the one active, what to buy or sell to get back to it, and those orders confirmed once executed.
 """
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 
 from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
@@ -14,7 +14,7 @@ from app.models.portfolio_model import PortfolioTemplate
 from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, broker, portfolio_charts, portfolio_ops, securities
+from app.services import accounts, broker, money, portfolio_charts, portfolio_ops, securities
 from app.services import portfolio_models as models
 from app.services.parsing import to_date, to_decimal
 
@@ -169,8 +169,24 @@ def _proposed_orders(plan) -> list[dict]:
     for line in plan.lines:
         if not line.move or line.via is None or not line.units:
             continue
-        orders.append({"holding": line.via, "label": line.label, "side": "buy" if line.move > 0 else "sell",
-                       "units": abs(line.units), "price": Decimal(str(line.via.price)), "amount": abs(line.move)})
+        if line.move > 0 or len(line.holdings) == 1:
+            orders.append({"holding": line.via, "label": line.label, "side": "buy" if line.move > 0 else "sell",
+                           "units": abs(line.units), "price": Decimal(str(line.via.price)), "amount": abs(line.move)})
+            continue
+        # a sale from a line of several holdings («Fuori dal modello»): from the biggest down, never more than
+        # each one holds — the move in units of the biggest alone could be more than it has
+        left = -line.move
+        for holding in sorted(line.holdings, key=lambda h: h.value, reverse=True):
+            price = Decimal(str(holding.price))
+            if left <= 0 or price <= 0 or holding.units <= 0:
+                continue
+            held = Decimal(str(holding.units))
+            units = min(held, (left / price).quantize(models.UNITS, rounding=ROUND_DOWN))
+            if units > 0:
+                amount = money.cents(units * price)
+                orders.append({"holding": holding, "label": line.label, "side": "sell", "units": units,
+                               "price": price, "amount": amount})
+                left -= amount
     return orders
 
 

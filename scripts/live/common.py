@@ -50,6 +50,37 @@ def summary(label):
     return 0 if passed == len(results) else 1
 
 
+def choose(page, selector, value=None, label=None, index=None):
+    """
+    Pick an option of a select by value or by text, also when it is a combo field: a hidden
+    <select class="combo-select" id="X-select"> behind a text box #X. `selector` is the select's
+    (e.g. "select[name=category]"), or the combo's text box (e.g. "#f-category"); `index` counts the options.
+    Fires `input` and `change`, as a person choosing would.
+    """
+    page.eval_on_selector(selector, """(el, [value, label, index]) => {
+        if (el.tagName !== "SELECT") el = document.getElementById(el.id + "-select") || el;
+        if (el.tagName !== "SELECT") throw new Error("not a select or combo: " + el.id);
+        const opt = index !== null ? el.options[index]
+            : [...el.options].find(o => value !== null ? o.value === value : o.text.trim() === label);
+        if (!opt) throw new Error("no option " + (value ?? label ?? index) + " in " + (el.id || el.name));
+        el.value = opt.value;
+        const box = el.id.endsWith("-select") ? document.getElementById(el.id.slice(0, -7)) : null;
+        if (box) box.value = opt.value ? opt.text.trim() : "";  // a combo: the text box shows the choice
+        el.dispatchEvent(new Event("input", {bubbles: true}));
+        el.dispatchEvent(new Event("change", {bubbles: true}));
+    }""", [value, label, index])
+
+
+def confirm(page, answer="yes"):
+    """Answer the app's own confirmation box (forms with data-confirm, mfpConfirm); «yes» waits for the next page."""
+    button = page.locator(f".confirm-overlay [data-answer={answer}]")
+    if answer == "yes":
+        with page.expect_navigation():
+            button.click()
+    else:
+        button.click()
+
+
 def launch(playwright):
     return playwright.chromium.launch(executable_path=CHROMIUM)
 
