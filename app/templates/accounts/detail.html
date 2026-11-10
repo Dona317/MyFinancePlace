@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ account.name }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ account.name }}</li>{% endblock %}
 
@@ -37,6 +38,14 @@
   <div class="card-body cash-currencies">
     {% for code, value in currencies.items() %}<span class="badge badge-muted">{{ value|money(code) }}</span>{% endfor %}
   </div>
+</div>
+{% endif %}
+{% if recent %}
+{# the balance over the last 12 months, day by day (F64) #}
+<div class="card mb-16" id="balance-history">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-graph-up"></i> {{ _('Saldo negli ultimi 12 mesi') }}
+    {{ info(_('Il saldo a fine giornata: saldo iniziale più tutti i movimenti fino a quel giorno, giroconti compresi; quelli in altra valuta con l’importo della banca o al cambio del giorno.')) }}</div></div>
+  <div class="card-body"><div class="chart-container" style="height:240px;"><canvas id="balanceChart" role="img" aria-label="{{ _('Saldo del conto negli ultimi 12 mesi') }}"></canvas></div></div>
 </div>
 {% endif %}
 {% if account.kind == 'cash' %}
@@ -128,7 +137,7 @@
   {% if recent %}
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th></tr></thead>
+      <thead><tr><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th>{% if running %}<th class="text-right">{{ _('Saldo') }} {{ info(_('Il saldo del conto dopo il movimento.')) }}</th>{% endif %}</tr></thead>
       <tbody>
         {% for tx in recent %}
         {% set incoming = tx.type == 'income' or (tx.type == 'transfer' and tx.counter_account_id == account.id) %}
@@ -139,6 +148,7 @@
           <td>{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% endif %}</td>
           <td class="amount text-right {{ 'positive' if incoming else 'negative' }}">{{ '+' if incoming else '-' }}{{ in_account(tx)|money(symbol) }}
             {% if (tx.currency or 'EUR') != (account.currency or 'EUR') %}<div class="text-xs text-muted">{{ tx.amount|abs|money(tx.currency) }}{% if (tx.account_amount if tx.account_id == account.id else tx.counter_amount) is none %} · {{ _('al cambio') }}{% endif %}</div>{% endif %}</td>
+          {% if running %}<td class="amount text-right nowrap {{ 'negative' if running[loop.index0] < 0 }}">{{ running[loop.index0]|money(symbol) }}</td>{% endif %}
         </tr>
         {% endfor %}
       </tbody>
@@ -151,6 +161,14 @@
 {% endblock %}
 
 {% block scripts %}
+{% if recent %}
+<script>
+const balanceHistory = {{ history|tojson }};
+makeLineChart('balanceChart', balanceHistory.labels, [
+  { label: {{ _('Saldo')|tojson }}, data: balanceHistory.values, color: 'primary', pointRadius: 0, tension: 0 },
+], { legend: false, money: true, currency: {{ (account.currency or 'EUR')|tojson }} });
+</script>
+{% endif %}
 {% if account.kind == 'cash' %}
 <script>
 /* the cash explained the first time its page opens (this browser) */

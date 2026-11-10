@@ -225,7 +225,8 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Flusso di cassa e risparmio — %(period)s', period=period_label) }}</div>
+        <div class="card-header-title">{{ _('Flusso di cassa e risparmio — %(period)s', period=period_label) }}
+          {{ info(_('La linea tratteggiata grigia sono le uscite degli stessi mesi dell’anno prima.')) }}</div>
         <div class="card-header-sub">{{ _('Entrate, uscite e risparmio del mese; le barre sono il risparmio cumulato. Clic sulla legenda per mostrare anche entrate e uscite cumulate.') }}</div>
       </div>
       <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
@@ -469,6 +470,8 @@ if (shown('cashflow')) {
   makeBarChart('cashFlowChart', cashFlow.labels, [
     { label: {{ _('Entrate')|tojson }}, data: cashFlow.income, color: 'income', type: 'line' },
     { label: {{ _('Uscite')|tojson }}, data: cashFlow.expenses, color: 'expense', type: 'line' },
+    // the same months a year before, dashed and thin, on the same axis (F65)
+    { label: {{ _('Uscite anno prima')|tojson }}, data: cashFlow.expenses_previous, color: 'textMuted', type: 'line', dash: [6, 4], pointRadius: 0 },
     { label: {{ _('Risparmio del mese')|tojson }}, data: flow.saved, color: 'amber', type: 'line', dash: [5, 4] },  // the cumulated one stays orange
     { label: {{ _('Risparmio cumulato')|tojson }}, data: flow.saved_cumulative, color: 'primary', axis: 'right' },
     { label: {{ _('Entrate cumulate')|tojson }}, data: flow.income_cumulative, color: 'income', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },

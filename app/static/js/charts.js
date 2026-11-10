@@ -237,7 +237,7 @@ function buildLineChart(ctx, labels, datasets, opts = {}) {
         data:  ds.data,
         borderColor:     themeColor(ds.color, paletteOf(opts)[i % 8]),
         backgroundColor: hexAlpha(themeColor(ds.color, paletteOf(opts)[i % 8]), ds.fillAlpha ?? 0.08),
-        tension: 0.4,
+        tension: ds.tension ?? 0.4,                      // 0 for a balance or a cumulative sum (steps, not curves)
         fill: ds.fill !== undefined ? ds.fill : true,   // also "-1": fill down to the previous dataset (a band)
         pointRadius: ds.pointRadius ?? 4,
         pointHoverRadius: 6,
@@ -256,6 +256,11 @@ function buildLineChart(ctx, labels, datasets, opts = {}) {
         legend: { display: false },
         htmlLegend: { display: opts.legend !== false, filter: item => !datasets[item.datasetIndex].noLegend },
         ...(opts.percent ? { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${percent(c.raw)}` } } } : {}),
+        // opts.money: amounts in opts.currency (the base one by default); opts.footer(index): a last line of the tooltip
+        ...(opts.money || opts.footer ? { tooltip: { callbacks: {
+          ...(opts.money ? { label: c => `${c.dataset.label}: ${c.raw === null || c.raw === undefined ? "—" : formatMoney(c.raw, opts.currency)}` } : {}),
+          ...(opts.footer ? { footer: items => items.length ? opts.footer(items[0].dataIndex) : "" } : {}),
+        } } } : {}),
       },
       spanGaps: false,
       scales: {
