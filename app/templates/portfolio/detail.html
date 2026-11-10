@@ -2,6 +2,7 @@
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/actions.html" import icon_link %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ holding.name }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ holding.name }}</li>{% endblock %}
 
@@ -37,10 +38,10 @@
          sub=_('ponderato per il denaro (XIRR), dalle operazioni')) }}
 </div>
 
-{% if chart.data|length >= 2 %}
+{% if chart.prices >= 2 %}
 <div class="card mb-16">
-  <div class="card-header"><div class="card-header-title">{{ _('Prezzo') }}</div></div>
-  <div class="card-body"><div class="chart-container" style="height:240px;"><canvas id="priceChart"></canvas></div></div>
+  <div class="card-header"><div class="card-header-title">{{ _('Prezzo') }} {{ info(_('Il prezzo registrato giorno per giorno, con gli acquisti (triangoli in su) e le vendite (triangoli in giù) al loro prezzo per quota, i dividendi e le cedole nel giorno in cui li hai incassati, e il prezzo medio di carico delle quote che hai ora (tratteggiato). L\'asse dei prezzi non parte da zero.')) }}</div></div>
+  <div class="card-body"><div class="chart-container" style="height:280px;"><canvas id="priceChart"></canvas></div></div>
 </div>
 {% endif %}
 
@@ -154,9 +155,13 @@
 {% endblock %}
 
 {% block scripts %}
-{% if chart.data|length >= 2 %}
+{% if chart.prices >= 2 %}
 <script>
-makeLineChart('priceChart', {{ chart.labels|tojson }}, [{ label: {{ holding.name|tojson }}, data: {{ chart.data|tojson }} }], { legend: false });
+makePriceOpsChart('priceChart', {{ chart|tojson }}, {
+  price: {{ holding.name|tojson }}, avg: {{ _('Prezzo medio di carico')|tojson }}, buy: {{ _('Acquisti')|tojson }},
+  sell: {{ _('Vendite')|tojson }}, income: {{ _('Dividendi e cedole')|tojson }}, dividend: {{ _('Dividendo')|tojson }},
+  coupon: {{ _('Cedola')|tojson }}, units: {{ _('quote')|tojson }}
+});
 </script>
 {% endif %}
 {% endblock %}

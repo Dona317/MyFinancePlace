@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block chart_scripts %}{% include "partials/charts.html" %}
+{# chartjs-chart-treemap 4.2.2 (MIT, Jukka Kurkela), only on this page: the treemap of the allocation #}
+<script src="{{ url_for('static', filename='vendor/chartjs-chart-treemap.min.js') }}"></script>{% endblock %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
@@ -90,6 +92,17 @@
     </div>
   </div>
 </div>
+
+{% if tree %}
+<div class="card mb-24">
+  <div class="card-header">
+    <div class="card-header-title">{{ _('Mappa dell\'allocazione') }} {{ info(_('Ogni riquadro è una posizione, raggruppata per classe di attivo: l\'area è proporzionale al valore. Mostra a colpo d\'occhio dove è concentrato il patrimonio, anche quando le posizioni sono tante.')) }}</div>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:320px;"><canvas id="allocationTreemap" role="img" aria-label="{{ _('Mappa dell\'allocazione') }}"></canvas></div>
+  </div>
+</div>
+{% endif %}
 
 <!-- Tabella posizioni ─────────────────────────────────────────────────── -->
 <div class="card">
@@ -220,6 +233,9 @@ makeDoughnutChart('allocationChart',
   {{ summary.allocation | map(attribute=0) | map('tr') | list | tojson }},
   {{ summary.allocation | map(attribute=1) | map('round', 2) | list | tojson }}
 );
+{% endif %}
+{% if tree %}
+makeTreemapChart('allocationTreemap', {{ tree | tojson }});
 {% endif %}
 {% if series.value|length >= 2 %}
 makeLineChart('valueInvestedChart', {{ series.labels | tojson }}, [
