@@ -226,3 +226,9 @@ def test_fallbacks_and_market_values(app, db):
     assert {r["name"]: r["value"] for r in result["sector"]} == {"Obbligazionario": 300, "Utilities": 100}
     assert {r["name"]: r["value"] for r in result["currency"]} == {"EUR": 400}
     assert result["covered_pct"] == 0 and result["overlaps"] == []
+
+
+def test_a_country_given_as_its_iso_code():
+    from app.services.lookthrough import country_code
+    assert country_code("us") == "US" and country_code("IT") == "IT"
+    assert country_code("Stati Uniti") == "US" and country_code("ZZ") is None
