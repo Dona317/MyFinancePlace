@@ -60,6 +60,38 @@
   </div>
 </div>
 
+{% if bond %}
+<div class="card mb-24" id="bond-card">
+  <div class="card-header"><div class="card-header-title">{{ _("Obbligazione") }}{% if bond.type %} · {{ bond.type|tr }}{% endif %}
+      {{ info(_("Stime: il rendimento a scadenza è il tasso che rende le cedole e il rimborso pari al prezzo di oggi più il rateo (capitalizzazione annua). Il netto toglie l'aliquota (%(rate)s %%) dalle cedole e dal guadagno fino al rimborso. Non considera l'indicizzazione all'inflazione di BTP Italia e BTP€i, le cedole crescenti e il premio fedeltà dei BTP Valore, la variazione delle cedole dei CCT, il bollo e le commissioni.", rate=bond.tax_rate|number(1))) }}</div>
+    <a href="{{ url_for('portfolio.edit', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a></div>
+  <div class="card-body d-flex gap-8" style="flex-wrap:wrap;column-gap:28px;">
+    <div><div class="text-xs text-muted">{{ _('Cedola annua lorda') }}</div><div>{{ bond.coupon_rate|number(3) }} %{% if bond.coupon_rate %} · {{ bond.frequency|tr }}{% endif %}</div></div>
+    <div><div class="text-xs text-muted">{{ _('Scadenza') }}</div><div>{{ bond.maturity|it_date }} · {{ _('scaduta') if bond.expired else _('tra %(years)s anni', years=bond.years|number(1)) }}</div></div>
+    <div><div class="text-xs text-muted">{{ _('Rimborso') }}</div><div>{{ bond.redemption|number(2) }} %</div></div>
+    <div><div class="text-xs text-muted">{{ _('Prezzo') }}</div><div>{{ bond.price_pct|number(3) }} %</div></div>
+    {% if bond.next %}<div><div class="text-xs text-muted">{{ _('Prossima cedola') }}</div><div>{{ bond.next.on|it_date }} · {{ bond.next.gross|money }} <span class="text-muted text-sm">({{ _('netta %(amount)s', amount=bond.next.net|money) }})</span></div></div>{% endif %}
+    {% if bond.coupon_rate and not bond.expired %}<div><div class="text-xs text-muted">{{ _('Rateo maturato') }} {{ info(_('Gli interessi della cedola in corso maturati a oggi (giorni effettivi sul periodo): chi compra li paga a chi vende in aggiunta al prezzo.')) }}</div><div>{{ bond.accrued|money }} <span class="text-muted text-sm">({{ bond.accrued_pct|number(3) }} % · {{ _('netto %(amount)s', amount=bond.accrued_net|money) }})</span></div></div>{% endif %}
+    <div><div class="text-xs text-muted">{{ _('Rendimento a scadenza lordo') }}</div><div>{{ (bond.ytm|number(2) ~ ' %') if bond.ytm is not none else '—' }}</div></div>
+    <div><div class="text-xs text-muted">{{ _('Rendimento a scadenza netto') }}</div><div>{{ (bond.ytm_net|number(2) ~ ' %') if bond.ytm_net is not none else '—' }}</div></div>
+  </div>
+  {% if bond.coupons %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Prossime cedole') }}</th><th class="text-right">{{ _('Lorda') }}</th><th class="text-right">{{ _('Netta') }}</th><th class="text-right">{{ _('Rimborso') }}</th></tr></thead>
+      <tbody>
+        {% for c in bond.coupons %}
+        <tr><td class="nowrap">{{ c.on|it_date }}</td><td class="amount text-right">{{ c.gross|money if c.gross else '—' }}</td>
+          <td class="amount text-right">{{ c.net|money if c.gross else '—' }}</td>
+          <td class="amount text-right">{{ c.redemption|money if c.redemption else '' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
 <div class="card">
   <div class="card-header">
     <div>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block page_title %}{{ _('Rendite') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Rendite') }}</li>{% endblock %}
@@ -58,6 +59,26 @@
     </div>
   </div>
 </div>
+
+{% if coupons.rows %}
+<div class="card" style="margin-top:24px;" id="bond-coupons">
+  <div class="card-header"><div class="card-header-title">{{ _('Cedole attese nei prossimi 12 mesi') }}
+      {{ info(_("Dalle obbligazioni con cedola e scadenza indicate (Modifica posizione → Caratteristiche dell'obbligazione), sul nominale posseduto oggi. Lorde e nette dell'aliquota del titolo.")) }}</div>
+    <div class="card-header-sub">{{ _('%(gross)s lorde · %(net)s nette', gross=coupons.gross|money, net=coupons.net|money) }}</div></div>
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Data') }}</th><th>{{ _('Titolo') }}</th><th class="text-right">{{ _('Lorda') }}</th><th class="text-right">{{ _('Netta') }}</th></tr></thead>
+      <tbody>
+        {% for h, c in coupons.rows %}
+        <tr><td class="nowrap">{{ c.on|it_date }}</td>
+          <td><a href="{{ url_for('portfolio.detail', holding_id=h.id) }}">{{ h.name }}</a></td>
+          <td class="amount text-right">{{ c.gross|money }}</td><td class="amount text-right">{{ c.net|money }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
