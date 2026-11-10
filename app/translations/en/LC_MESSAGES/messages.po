@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 13:30+0000\n"
+"POT-Creation-Date: 2026-11-10 15:59+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -6100,8 +6100,8 @@ msgid "Le spese più grandi, rispetto al %(year)s"
 msgstr "The biggest expenses, compared with %(year)s"
 
 #, python-format
-msgid "Le sue %(count)s transazioni andranno in «Altro»."
-msgstr "Its %(count)s transactions will move to «Other»."
+msgid "Le sue %(count)s transazioni andranno in «%(category)s»."
+msgstr "Its %(count)s transactions will go to «%(category)s»."
 
 #, python-format
 msgid ""
