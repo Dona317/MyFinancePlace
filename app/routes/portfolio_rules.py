@@ -171,24 +171,51 @@ def income():
 @portfolio_bp.route("/performance", methods=["GET", "POST"])
 def performance_page():
     if request.method == "POST":
-        ticker = (request.form.get("ticker") or "").strip().upper()
-        if not ticker:
-            performance.save_benchmark("", {}, date.today())
-            flash(_("Benchmark tolto."), "success")
-        else:
-            try:
-                performance.save_benchmark(ticker, price_feed.benchmark_history(ticker), date.today())
-                db.session.commit()
-                flash(_("Storico di %(ticker)s scaricato.", ticker=ticker), "success")
-            except (ValueError, OSError) as exc:
-                flash(_("Benchmark non aggiornato: %(error)s", error=exc), "error")
-        return redirect(url_for("portfolio.performance_page", person=request.args.get("person", "")))
+        _performance_post()
+        return redirect(url_for("portfolio.performance_page", person=request.args.get("person", ""),
+                                period=request.args.get("period", "")))
     person = request.args.get("person", "")
+    period = request.args.get("period", "all")
     holdings = family.holdings_of(person, portfolio_models.investments())
     return render_template("portfolio/performance.html", report=performance.report(holdings), person=person,
                            month_names=[str(_(m)) for m in periods.MONTH_LABELS],
                            xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
-                           benchmark=performance.benchmark_settings())
+                           benchmarks=performance.benchmarks(), max_benchmarks=performance.MAX_BENCHMARKS,
+                           contribution=performance.contributions(holdings, period),
+                           period_choices=performance.PERIODS)
+
+
+def _performance_post() -> None:
+    """The benchmarks (add or refresh one, remove one) and the risk-free rate (F58, F59)."""
+    if "risk_free" in request.form:
+        rate = to_decimal(request.form.get("risk_free"))
+        try:
+            if rate is None:
+                raise ValueError(rate)
+            performance.save_risk_free(float(rate))
+            flash(_("Tasso senza rischio salvato."), "success")
+        except ValueError:
+            flash(_("Indica un tasso tra -10 e 50 %."), "error")
+        return
+    removed = (request.form.get("remove") or "").strip().upper()
+    if removed:
+        performance.remove_benchmark(removed)
+        flash(_("Benchmark tolto."), "success")
+        return
+    ticker = (request.form.get("ticker") or "").strip().upper()
+    if not ticker:
+        performance.save_benchmark("", {}, date.today())
+        flash(_("Benchmark tolti."), "success")
+    elif not performance.can_add_benchmark(ticker):
+        flash(_("Al massimo %(count)s benchmark: togline uno prima di aggiungerne un altro.",
+                count=performance.MAX_BENCHMARKS), "error")
+    else:
+        try:
+            performance.save_benchmark(ticker, price_feed.benchmark_history(ticker), date.today())
+            db.session.commit()
+            flash(_("Storico di %(ticker)s scaricato.", ticker=ticker), "success")
+        except (ValueError, OSError) as exc:
+            flash(_("Benchmark non aggiornato: %(error)s", error=exc), "error")
 
 
 # ── Splits and composition (F20) ───────────────────────────────────────────────

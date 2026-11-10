@@ -22,6 +22,7 @@ from app.services import (
     fund_facts,
     performance,
     portfolio_charts,
+    portfolio_models,
     portfolio_ops,
     price_feed,
     securities,
@@ -224,7 +225,8 @@ def detail(holding_id):
                            kind_of=portfolio_ops.kind_of, domicile=fund_facts.domicile_name(holding),
                            distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
                            asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
-                           chart=portfolio_charts.price_chart(holding, points))  # G40: with the operations
+                           chart=portfolio_charts.price_chart(holding, points),  # G40: with the operations
+                           contribution=performance.contribution_of(holding, portfolio_models.investments()))
 
 
 def _operation_from_form() -> portfolio_ops.Operation:
