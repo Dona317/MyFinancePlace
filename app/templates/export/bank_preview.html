@@ -140,6 +140,22 @@
       <a href="{{ url_for('accounts.new') }}">{{ _('Crea un conto') }}</a></span></div>
   {% endif %}
 
+  {% if mapped %}
+  <!-- The columns of a mapped file, saved under a name for the next files with the same layout -->
+  <div class="card mb-16" id="save-preset">
+    <div class="card-body d-flex align-center gap-12" style="flex-wrap:wrap;">
+      {% if preset %}<span class="badge badge-primary"><i class="bi bi-bookmark-check"></i> {{ _('Preset «%(name)s» applicato', name=preset.name) }}</span>{% endif %}
+      <label class="form-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" name="save_preset" value="1" id="save-preset-check" {{ 'checked' if preset }} />
+        {{ _('Salva come preset') if not preset else _('Aggiorna il preset') }}
+        {{ info(_('Ricorda le colonne scelte e il conto: la prossima volta che carichi un file con le stesse colonne vengono applicati da soli. Li gestisci in Importa → Preset di importazione.')) }}
+      </label>
+      <input type="text" name="preset_name" class="form-control" style="width:auto;" maxlength="60"
+             value="{{ preset.name if preset else '' }}" placeholder="{{ _('es. Fineco carta') }}" aria-label="{{ _('Nome del preset') }}" />
+    </div>
+  </div>
+  {% endif %}
+
   {% set transfers = preview.rows|selectattr('pairs_with')|list + preview.rows|rejectattr('pairs_with')|selectattr('own_account_id')|list %}
   {% if transfers %}
   <!-- Probable giroconti: applied as such unless unticked in their row below -->

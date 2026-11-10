@@ -99,6 +99,12 @@
           <input type="file" name="file" id="import-file" accept=".csv,.txt,.tsv,.xlsx,.xlsm,.xls,.ods" style="display:none;" />
         </label>
         <p id="import-status" class="text-xs" role="status" style="margin-top:8px;"></p>
+        <div class="form-group" id="import-preset-group" hidden>
+          <label class="form-label" for="import-preset">{{ _('Preset') }} {{ info(_('Colonne salvate per una banca o una carta: quello con le stesse colonne del file viene applicato da solo. Scegline un altro, o nessuno per usare le colonne riconosciute dai valori.')) }}</label>
+          <select name="preset" id="import-preset" class="form-select">
+            <option value="">{{ _('— Nessuno —') }}</option>
+          </select>
+        </div>
         {% if ai_classifier %}
         <button type="button" class="btn btn-outline btn-sm" id="import-ask-ai" hidden
                 title="{{ _('Al modello vanno solo le intestazioni e le prime %(count)s righe', count=10) }}{{ _(' (Anthropic, fuori dal tuo computer)') if ai_cloud else '' }}">
@@ -141,6 +147,43 @@
     </form>
   </div>
 </div>
+
+<!-- Saved column mappings ──────────────────────────────────────────── -->
+<div class="card" id="import-presets" style="margin-top:16px;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-bookmark-check"></i> {{ _('Preset di importazione') }} {{ info(_('Si salvano dall’anteprima di un file importato con la mappatura manuale («Salva come preset») e si applicano da soli ai file con le stesse colonne.')) }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if presets %}
+    <div class="table-wrapper"><table class="table-compact">
+      <thead><tr><th>{{ _('Nome') }}</th><th>{{ _('Colonne') }}</th><th>{{ _('Conto') }}</th><th></th></tr></thead>
+      <tbody>
+      {% for p in presets %}
+        <tr>
+          <td>
+            <form method="POST" action="{{ url_for('export.rename_preset', preset_id=p.id) }}" class="d-flex align-center gap-8">
+              <input type="text" name="name" value="{{ p.name }}" maxlength="60" class="form-control" style="width:auto;" aria-label="{{ _('Nome del preset') }}" required />
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Rinomina') }}" aria-label="{{ _('Rinomina') }}"><i class="bi bi-pencil"></i></button>
+            </form>
+          </td>
+          <td class="text-xs">{% for field, column in p.mapping.items() %}{{ column }}{{ ', ' if not loop.last }}{% endfor %}</td>
+          <td class="text-xs">{{ preset_accounts.get(p.options.account_id, '—') if p.options else '—' }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('export.delete_preset', preset_id=p.id) }}">
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina') }}" style="color:var(--clr-negative);"><i class="bi bi-trash3"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}
+    <p class="text-muted text-xs" style="margin:0;">{{ _('Nessun preset salvato.') }}</p>
+    {% endif %}
+  </div>
+</div>
 {% endif %}
 
 {% endblock %}
@@ -162,6 +205,26 @@ function fillSelects(headers, guess = {}) {
   document.getElementById('import-submit').disabled = headers.length === 0;
 }
 
+// Saved presets that fit the file: the one with the same columns comes preselected; «none» goes back to the guess.
+let presetMappings = {};
+function fillPresets(data) {
+  const select = document.getElementById('import-preset');
+  presetMappings = {'': data.auto || {}};
+  data.presets.forEach(p => { presetMappings[p.id] = p.mapping; });
+  select.innerHTML = '<option value="">' + {{ _('— Nessuno —')|tojson }} + '</option>' +
+    data.presets.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</option>`).join('');
+  select.value = data.preset || '';
+  document.getElementById('import-preset-group').hidden = data.presets.length === 0;
+}
+
+document.getElementById('import-preset').addEventListener('change', (e) => {
+  const mapping = presetMappings[e.target.value] || {};
+  document.querySelectorAll('.import-col').forEach(select => {
+    const required = select.dataset.required === 'true';
+    select.value = mapping[select.dataset.field] || (required ? select.options[0]?.value || '' : '');
+  });
+});
+
 initDropZone(document.getElementById('import-drop'), document.getElementById('import-file'));
 
 document.getElementById('import-file').addEventListener('change', async (e) => {
@@ -178,12 +241,16 @@ document.getElementById('import-file').addEventListener('change', async (e) => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || {{ _('File non leggibile.')|tojson }});
     fillSelects(data.headers, data.guess);
+    fillPresets(data);
     const askAi = document.getElementById('import-ask-ai');
     if (askAi) askAi.hidden = data.sure;  // the AI only when the values did not make it clear
-    status.textContent = (data.sure ? {{ _('Colonne riconosciute: controlla e importa.')|tojson }} + ' '
+    const applied = data.presets.find(p => p.id === data.preset);
+    status.textContent = (applied ? fmt({{ _('Preset «%(name)s» applicato.', name='%(name)s')|tojson }}, {name: applied.name}) + ' '
+                          : data.sure ? {{ _('Colonne riconosciute: controlla e importa.')|tojson }} + ' '
                                     : {{ _('Colonne riconosciute solo in parte: controlla le scelte.')|tojson }} + ' ') + fmt({{ _('%(count)s colonne trovate (intestazione alla riga %(line)s), %(rows)s righe.', count='%(count)s', line='%(line)s', rows='%(rows)s')|tojson }}, {count: data.headers.length, line: data.header_line, rows: data.rows});
   } catch (error) {
     fillSelects([]);
+    fillPresets({presets: []});
     status.textContent = error.message;
     status.style.color = 'var(--clr-negative-text)';
   }
@@ -205,6 +272,7 @@ document.getElementById('import-ask-ai')?.addEventListener('click', async (e) =>
     document.querySelectorAll('.import-col').forEach(select => {
       if (data.guess[select.dataset.field] !== undefined) select.value = data.guess[select.dataset.field] || '';
     });
+    document.getElementById('import-preset').value = '';  // the AI's columns, not a preset's
     status.textContent = fmt({{ _('Colonne proposte da %(model)s: controlla e importa.', model='%(model)s')|tojson }}, {model: data.model})
       + (data.notes.length ? ' ' + data.notes.join(' ') : '');
     status.style.color = 'var(--clr-text-muted)';
