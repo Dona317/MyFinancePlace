@@ -108,8 +108,8 @@
                 <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Salva') }}" aria-label="{{ _('Salva %(name)s', name=c.name) }}"><i class="bi bi-check-lg"></i></button>
               </form>
               {{ delete_button(url_for('settings.category_delete'),
-                               _('Eliminare «%(name)s»?', name=c.name) ~ ((' ' ~ _('Le sue %(count)s transazioni andranno in «Altro».', count=usage.get(c.name))) if usage.get(c.name) else ''),
-                               _('Elimina %(name)s', name=c.name), hidden={'name': c.name, 'replacement': 'Altro' if c.name != 'Altro' else ''}) }}
+                               _('Eliminare «%(name)s»?', name=c.name) ~ ((' ' ~ _('Le sue %(count)s transazioni andranno in «%(category)s».', count=usage.get(c.name), category=fallback)) if usage.get(c.name) and c.name != fallback else ''),
+                               _('Elimina %(name)s', name=c.name), hidden={'name': c.name, 'replacement': fallback if c.name != fallback else ''}) }}
             </div>
           </td>
         </tr>
