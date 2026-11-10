@@ -130,23 +130,31 @@ def realized(until: int | None = None) -> tuple[list[Sale], dict[str, Container]
     recorded: dict[int, Decimal] = defaultdict(Decimal)
     for tx in trades:
         recorded[tx.holding_id] += Decimal(tx.units)
+    opened: set[int] = set()  # holdings whose opening position has been placed in a securities account
     for tx in trades:
         holding = holdings.get(tx.holding_id)
         if holding is None or (until is not None and tx.date.year > until):
             continue
-        if holding.id not in positions:  # what was held before the first recorded trade: its opening position (F19)
-            if holding.opening_quantity is not None:
-                before = Decimal(holding.opening_quantity)
-                price = Decimal(holding.opening_price if holding.opening_price is not None else holding.avg_price or 0)
-            else:
-                before = max(Decimal(holding.quantity or 0) - recorded[holding.id], Decimal(0))
-                price = Decimal(holding.avg_price or 0)
-            positions[holding.id] = [before, before * price, before > 0]
-        quantity, cost, estimated = positions[holding.id]
+        # D9: the average cost is kept per securities account, as each bank computes it on its own dossier
+        key = (holding.id, tx.securities_account_id)
+        if key not in positions:
+            before, price = Decimal(0), Decimal(0)
+            # what was held before the first recorded trade (F19) sits in its securities account, or — none set —
+            # in the first one the holding is traded in
+            if holding.id not in opened and holding.opening_account_id in (None, tx.securities_account_id):
+                opened.add(holding.id)
+                if holding.opening_quantity is not None:
+                    before = Decimal(holding.opening_quantity)
+                    price = Decimal(holding.opening_price if holding.opening_price is not None else holding.avg_price or 0)
+                else:
+                    before = max(Decimal(holding.quantity or 0) - recorded[holding.id], Decimal(0))
+                    price = Decimal(holding.avg_price or 0)
+            positions[key] = [before, before * price, before > 0]
+        quantity, cost, estimated = positions[key]
         units, price, fee = Decimal(tx.units), Decimal(tx.unit_price), fees.get(tx.id, Decimal(0))
         account = tx.account if tx.account is not None else tx.counter_account
         if units > 0:
-            positions[holding.id] = [quantity + units, cost + units * price + fee, estimated]
+            positions[key] = [quantity + units, cost + units * price + fee, estimated]
             continue
         sold = -units
         oversold = sold > quantity
@@ -155,7 +163,7 @@ def realized(until: int | None = None) -> tuple[list[Sale], dict[str, Container]
         sale = Sale(tx.date, holding, account, sold, sold * price - fee, sale_cost.quantize(CENT),
                     tax_rules.gain_rate(holding.asset_class, tx.date.year, holding.tax_rate), _kind(holding),
                     estimated=estimated, oversold=oversold)
-        positions[holding.id] = [max(quantity - sold, Decimal(0)), cost - sale_cost, estimated]
+        positions[key] = [max(quantity - sold, Decimal(0)), cost - sale_cost, estimated]
         box = _container(account, containers)
         if sale.result < 0:
             box.losses.append(Loss(tx.date.year, -sale.result, -sale.result, sale.kind == "cripto"))

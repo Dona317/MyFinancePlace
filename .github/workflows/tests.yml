@@ -1,8 +1,11 @@
 name: Tests
 
+# No automatic run on pull requests or feature branches (decided 9 Nov 2026): only pushes to the main branches,
+# or by hand from the Actions tab (Run workflow).
 on:
   push:
-  pull_request:
+    branches: [test-Cloud, main]
+  workflow_dispatch:
 
 concurrency:
   group: tests-${{ github.ref }}

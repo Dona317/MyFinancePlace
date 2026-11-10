@@ -15,6 +15,7 @@ from app.services import (
     forecast,
     i18n,
     performance,
+    portfolio_overview,
     price_feed,
     sankey,
     settings_store,
@@ -145,14 +146,16 @@ def _chart_months(start: date, end: date, today: date) -> range:
 
 
 def _flow(months: range) -> dict:
-    """Income and expenses of each month of the period."""
+    """Income and expenses of each month of the period, and the expenses of the same months a year before (F65)."""
     labels, income, expenses = [], [], []
     for index in months:
         totals = analytics.totals(month_start(index), month_start(index + 1))
         labels.append(month_label(index))
         income.append(totals["income"])
         expenses.append(totals["expenses"])
-    return {"labels": labels, "income": income, "expenses": expenses}
+    before = analytics.monthly_totals(month_start(months[0] - 12), month_start(months[-1] - 11)) if months else {}
+    return {"labels": labels, "income": income, "expenses": expenses,
+            "expenses_previous": [before.get((month_start(index - 12), "expense"), 0.0) for index in months]}
 
 
 def _net_worth_trend(months: range, today: date) -> dict:
@@ -252,6 +255,7 @@ def dashboard():
         recent_transactions=recent,
         impact_transactions=impact,
         health=_health(kpis, last_12),
+        investments=portfolio_overview.dashboard_blocks(today) if shown & {"investments", "investments_trend"} else None,
         budget_alerts=budgets.alerts(today),
         autonomy_target=autonomy_target(),
         layout=layout,

@@ -2,7 +2,11 @@
 {% from "partials/tabs.html" import tab_bar %}
 <div class="portfolio-tabs mb-16">
 {{ tab_bar([
+  ('overview', url_for('portfolio.overview_page'), _('Panoramica')),
   ('holdings', url_for('portfolio.index'), _('Posizioni')),
+  ('portfolios', url_for('portfolio.portfolios_page'), _('Portafogli e conti titoli')),
+  ('orders', url_for('portfolio.orders_page'), _('Ordini')),
+  ('fees', url_for('portfolio.fees_page'), _('Calcolo commissioni')),
   ('highlights', url_for('portfolio.highlights_page'), _('In evidenza')),
   ('performance', url_for('portfolio.performance_page'), _('Rendimenti')),
   ('income', url_for('portfolio.income'), _('Rendite')),

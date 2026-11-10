@@ -84,7 +84,7 @@ def test_page(client, db, etf, monkeypatch):
     page = client.post("/portfolio/performance", data={"ticker": "X"}, follow_redirects=True).get_data(as_text=True)
     assert "Benchmark non aggiornato: rete" in page
     page = client.post("/portfolio/performance", data={"ticker": ""}, follow_redirects=True).get_data(as_text=True)
-    assert "Benchmark tolto." in page
+    assert "Benchmark tolti." in page
 
 
 def test_page_without_history(client, db):

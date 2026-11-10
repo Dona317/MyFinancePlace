@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Titolari e IBAN') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Titolari e IBAN') }}</li>{% endblock %}
 
@@ -14,9 +15,8 @@
     <div class="card-header"><div class="card-header-title"><i class="bi bi-person-check"></i> {{ _('Titolari') }}</div></div>
     <div class="card-body">
       <div class="form-group">
-        <label class="form-label" for="f-holders">{{ _('Nome e cognome, uno per riga') }}</label>
+        <label class="form-label" for="f-holders">{{ _('Nome e cognome, uno per riga') }} {{ info(_('Chi è intestatario o cointestatario dei conti. Vale anche con nome e cognome invertiti, come li scrivono molte banche («ROSSI MARIO»).'), _('Nome e cognome, uno per riga')) }}</label>
         <textarea id="f-holders" name="holders" class="form-control" rows="3" placeholder="{{ _('es. Mario Rossi') }}">{{ f.value_of(values, 'holders', '') }}</textarea>
-        <div class="form-hint">{{ _('Chi è intestatario o cointestatario dei conti. Vale anche con nome e cognome invertiti, come li scrivono molte banche («ROSSI MARIO»).') }}</div>
       </div>
     </div>
   </div>

@@ -23,6 +23,7 @@ from app.models.account import Account
 from app.models.transaction import Transaction
 from app.services import currency
 from app.services.i18n import _l
+from app.services.periods import add_months, month_index, month_start
 
 KINDS = {"current": _l("Conto corrente"), "card": _l("Carta di credito"), "prepaid": _l("Carta prepagata"),
          "savings": _l("Conto deposito"), "cash": _l("Contanti"), "debt": _l("Debiti"), "other": _l("Altro")}
@@ -255,3 +256,60 @@ def opening_total() -> float:
         total += float(currency.to_base(a.opening_balance or 0, a.currency, day, target=target))
         total += sum(float(currency.to_base(v, code, day, target=target)) for code, v in foreign_openings(a).items())
     return total
+
+
+DAILY_UP_TO_MONTHS = 12  # a balance history this long or shorter has a point a day, a longer one a point a month
+
+
+def _touching(account: Account):
+    """The transactions that move `account`: its own, and the transfers arriving on it."""
+    return (Transaction.account_id == account.id) | (
+        (Transaction.counter_account_id == account.id) & (Transaction.type == "transfer"))
+
+
+def _history_days(start: date, today: date, daily: bool) -> list[date]:
+    """Every day from `start` to `today`, or the end of each month (today for the current one)."""
+    if daily:
+        return [start + timedelta(days=offset) for offset in range((today - start).days + 1)]
+    days, month = [], month_start(month_index(start))
+    while month <= today:
+        following = month_start(month_index(month) + 1)
+        days.append(min(following - timedelta(days=1), today))
+        month = following
+    return days
+
+
+def balance_history(account: Account, months: int = 12, today: date | None = None) -> dict:
+    """The balance of `account` at the end of each day of the last `months` months (of each month for a longer
+    range; today is the last point), with the semantics of balance(): opening balance plus every movement up to that
+    day, transfers in and out, a foreign-currency one with the bank's amount or the day's rate. One query of the
+    account's transactions, added up in Python: {"days", "labels", "values", "daily"}."""
+    today = today or date.today()
+    daily = months <= DAILY_UP_TO_MONTHS
+    days = _history_days(add_months(today, -months) + timedelta(days=1), today, daily)
+    moves = (Transaction.query.filter(_touching(account), Transaction.date <= today)
+             .order_by(Transaction.date, Transaction.id).all())
+    openings = foreign_openings(account)
+    own = account.currency or currency.BASE
+    running, index, values = Decimal(account.opening_balance or 0), 0, []
+    for day in days:
+        while index < len(moves) and moves[index].date <= day:
+            running += change(moves[index], account)
+            index += 1
+        # the cash's opening amounts in other currencies, at that day's rate (as balance() does)
+        foreign = sum((Decimal(str(currency.to_base(value, code, day, target=own))) for code, value in openings.items()),
+                      Decimal(0))
+        values.append(round(float(running + foreign), 2))
+    return {"days": [d.isoformat() for d in days], "labels": [d.strftime("%d/%m/%y") for d in days],
+            "values": values, "daily": daily}
+
+
+def running_balances(account: Account, rows: list[Transaction], top: float) -> list[float]:
+    """The balance after each of `rows` (newest first, as the account page lists them), `top` being the balance
+    after the first one: going down the list, each row's movement is taken back."""
+    out, running = [], Decimal(str(top))
+    for tx in rows:
+        out.append(round(float(running), 2))
+        if tx.account_id == account.id or (tx.type == "transfer" and tx.counter_account_id == account.id):
+            running -= change(tx, account)
+    return out

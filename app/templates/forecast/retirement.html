@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block page_title %}{{ _('Pensione e indipendenza finanziaria') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('forecast.index') }}">{{ _('Previsioni') }}</a></li><li>{{ _('Pensione e FIRE') }}</li>{% endblock %}
 
 {% macro field(name, label, value, hint=none) %}
 <div class="form-group">
-  <label class="form-label" for="r-{{ name }}">{{ label }}</label>
+  <label class="form-label" for="r-{{ name }}">{{ label }}{% if hint %} {{ info(hint, label) }}{% endif %}</label>
   <input type="text" inputmode="decimal" id="r-{{ name }}" name="{{ name }}" class="form-control" value="{{ value|plain }}" />
-  {% if hint %}<div class="form-hint">{{ hint }}</div>{% endif %}
 </div>
 {% endmacro %}
 
@@ -72,8 +72,7 @@
         {{ field('withdrawal_rate', _('Prelievo sicuro (%%)'), plan.withdrawal_rate, _('la «regola del 4 %%»: 3–3,5 per orizzonti lunghi')) }}
       </div>
       <fieldset class="mb-16">
-        <legend class="form-label">{{ _('Passaggio graduale alle obbligazioni (facoltativo)') }}</legend>
-        <p class="form-hint">{{ _('Dopo la pensione la quota in obbligazioni sale in linea retta fino all’ultima età: una crisi nei primi anni di prelievi pesa meno. Rendimento e volatilità qui sopra diventano quelli della parte in azioni. Tutte e due le quote a 0: nessun passaggio.') }}</p>
+        <legend class="form-label">{{ _('Passaggio graduale alle obbligazioni (facoltativo)') }} {{ info(_('Dopo la pensione la quota in obbligazioni sale in linea retta fino all’ultima età: una crisi nei primi anni di prelievi pesa meno. Rendimento e volatilità qui sopra diventano quelli della parte in azioni. Tutte e due le quote a 0: nessun passaggio.'), _('Passaggio graduale alle obbligazioni (facoltativo)')) }}</legend>
         <div class="grid-3">
           {{ field('bonds_at_retirement', _('Obbligazioni alla pensione (%%)'), plan.bonds_at_retirement, _('es. 20')) }}
           {{ field('bonds_at_horizon', _('Obbligazioni alla fine (%%)'), plan.bonds_at_horizon, _('es. 50')) }}

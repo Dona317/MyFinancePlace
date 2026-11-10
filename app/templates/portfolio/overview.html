@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/info.html" import info %}
+{% from "partials/kpi.html" import kpi %}
+
+{% block title %}{{ _('Panoramica investimenti') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Panoramica investimenti') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Panoramica') }}</li>{% endblock %}
+
+{% macro pct(value) -%}{{ ((value|number(2)) ~ ' %') if value is not none else '—' }}{%- endmacro %}
+
+{% block content %}
+{% include "portfolio/_nav.html" %}
+
+<div class="kpi-grid mb-24">
+  {{ kpi('briefcase', _('Valore'), value=o.value|money, cls='kpi-primary', sub=_('ai prezzi più recenti')) }}
+  {{ kpi('piggy-bank', _('Versato netto'), value=o.invested|money, sub=_('acquisti con commissioni meno vendite')) }}
+  {{ kpi('graph-' ~ ('up' if o.gain >= 0 else 'down') ~ '-arrow', _('Guadagno'), value=('+' if o.gain > 0 else '') ~ o.gain|money,
+         cls=('kpi-positive' if o.gain >= 0 else 'kpi-negative'), value_class=('text-positive' if o.gain >= 0 else 'text-negative'),
+         sub=_('valore meno versato')) }}
+  {{ kpi('percent', _('Rendimento'), value=pct(o.xirr), sub=_('annuo sul denaro (XIRR) · TWR %(twr)s', twr=pct(o.twr))) }}
+  {{ kpi('cash-coin', _('Liquidità'), value=o.cash|money, sub=_('sui conti di liquidità dei conti titoli')) }}
+</div>
+
+<div class="row-2">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Valore e versato') }} {{ info(_('Il valore a fine mese ai prezzi registrati fino a quel giorno, e quanto ci hai messo: la distanza tra le due linee è il guadagno.')) }}</div>
+      <a href="{{ url_for('portfolio.performance_page') }}" class="btn btn-ghost btn-sm">{{ _('Rendimenti') }} <i class="bi bi-arrow-right"></i></a></div>
+    <div class="card-body"><div class="chart-container" style="height:240px;">
+      {% if o.series.value|length >= 2 %}<canvas id="ovValueChart"></canvas>
+      {% else %}<div class="chart-empty">{{ _('Servono almeno due mesi di prezzi e operazioni.') }}</div>{% endif %}
+    </div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Per classe di attivo') }} {{ info(_('Azionario, obbligazionario, misto, commodities…: a cosa sei esposto.')) }}</div>
+      <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost btn-sm">{{ _('Posizioni') }} <i class="bi bi-arrow-right"></i></a></div>
+    <div class="card-body"><div class="chart-container" style="height:240px;">
+      {% if o.classes %}<canvas id="ovClassChart"></canvas>
+      {% else %}<div class="chart-empty">{{ _('Nessun investimento.') }}</div>{% endif %}
+    </div></div>
+  </div>
+</div>
+
+<div class="row-2">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Distanza dai modelli') }} {{ info(_('Per ogni portafoglio con un modello attivo: il peso di ogni parte contro il suo obiettivo; in rosso le parti fuori dalla tolleranza.')) }}</div>
+      <a href="{{ url_for('portfolio.models_index') }}" class="btn btn-ghost btn-sm">{{ _('Modelli') }} <i class="bi bi-arrow-right"></i></a></div>
+    {% if o.models %}
+    <div class="card-body">
+      {% for m in o.models %}
+      <div class="d-flex align-center gap-8 mb-8" style="justify-content:space-between;">
+        <strong>{{ m.template.portfolio.name if m.template.portfolio else _('Tutti gli investimenti') }} · {{ m.template.name }}</strong>
+        <a href="{{ url_for('portfolio.rebalance', portfolio=m.template.portfolio_id) }}" class="btn btn-ghost btn-sm {{ 'text-negative' if m.off }}">
+          {% if m.off %}<i class="bi bi-exclamation-triangle"></i> {{ _('%(count)s fuori tolleranza', count=m.off) }}{% else %}<i class="bi bi-check2-circle"></i> {{ _('In linea') }}{% endif %}</a>
+      </div>
+      {% for line in m.lines %}
+      {% set off = (line.drift|abs) > m.template.band %}
+      <div class="d-flex align-center gap-8 text-sm mb-8">
+        <span style="min-width:140px;">{{ line.label }}</span>
+        <div style="flex:1;background:var(--clr-border);border-radius:4px;height:8px;position:relative;">
+          <div style="width:{{ [line.weight, 100]|min }}%;height:8px;border-radius:4px;background:var(--clr-{{ 'negative' if off else 'primary' }});"></div>
+          <div style="position:absolute;left:{{ [line.target, 100]|min }}%;top:-3px;width:2px;height:14px;background:var(--clr-text);" title="{{ _('Obiettivo') }}"></div>
+        </div>
+        <span class="nowrap {{ 'text-negative' if off }}" style="min-width:110px;text-align:right;">{{ line.weight|number(1) }} / {{ line.target|number(1) }} %</span>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+    {% else %}
+    {% call empty_state(text=_('Nessun portafoglio modello attivo.'), icon='bi-pie-chart', compact=True) %}
+      <a href="{{ url_for('portfolio.models_index') }}" class="btn btn-ghost btn-sm">{{ _('Crea un modello') }}</a>
+    {% endcall %}
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('In arrivo') }} {{ info(_('Le rate dei PAC del prossimo mese e gli avvisi delle regole (scostamento, liquidità da investire, movimenti di mercato…).')) }}</div>
+      <a href="{{ url_for('portfolio.rules') }}" class="btn btn-ghost btn-sm">{{ _('Regole e PAC') }} <i class="bi bi-arrow-right"></i></a></div>
+    {% if o.events %}
+    <div class="table-wrapper"><table><tbody>
+      {% for e in o.events %}
+      <tr>
+        <td class="nowrap text-sm">{{ e.day|it_date }}</td>
+        {% if e.kind == 'pac' %}
+        <td><i class="bi bi-calendar-check"></i> <a href="{{ url_for('portfolio.plan_run', plan_id=e.plan_id) }}">{{ _('Rata del PAC «%(name)s»', name=e.title) }}</a>{% if e.late %} <span class="badge badge-negative">{{ _('da fare') }}</span>{% endif %}</td>
+        <td class="amount text-right">{{ e.amount|money }}</td>
+        {% else %}
+        <td><i class="bi bi-bell"></i> <a href="{{ e.url }}">{{ e.title }}</a> {{ info(e.detail) }}</td><td></td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody></table></div>
+    {% else %}
+    {% call empty_state(text=_('Niente in arrivo.'), icon='bi-calendar2-check', compact=True) %}{% endcall %}
+    {% endif %}
+  </div>
+</div>
+
+<div class="row-2">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Anno %(year)s: rendite, costi e tasse', year=o.year) }} {{ info(_('Dai movimenti dell\'anno legati ai titoli: plusvalenze realizzate (al costo medio di ogni conto titoli), dividendi e cedole netti, commissioni degli ordini e a parte, imposte registrate.')) }}</div>
+      <a href="{{ url_for('portfolio.orders_page') }}" class="btn btn-ghost btn-sm">{{ _('Ordini') }} <i class="bi bi-arrow-right"></i></a></div>
+    <div class="table-wrapper"><table><tbody>
+      <tr><td>{{ _('Plusvalenze realizzate') }}</td><td class="amount text-right {{ 'positive' if o.realized_year >= 0 else 'negative' }}">{{ o.realized_year|money }}</td></tr>
+      <tr><td>{{ _('Dividendi e cedole') }}</td><td class="amount text-right positive">{{ o.income_year|money }}</td></tr>
+      <tr><td>{{ _('Commissioni') }}</td><td class="amount text-right negative">{{ o.fees_year|money }}</td></tr>
+      <tr><td>{{ _('Imposte') }}</td><td class="amount text-right negative">{{ o.taxes_year|money }}</td></tr>
+      <tr><td>{{ _('Calo massimo dal picco') }}</td><td class="amount text-right">{{ pct(o.max_drawdown) }}</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Migliori e peggiori') }} {{ info(_('Le posizioni con il guadagno percentuale più alto e più basso sul prezzo medio.')) }}</div></div>
+    <div class="table-wrapper"><table><tbody>
+      {% for h in o.best %}<tr><td><i class="bi bi-arrow-up-right text-positive"></i> <a href="{{ url_for('portfolio.detail', holding_id=h.id) }}">{{ h.name }}</a></td><td class="amount text-right positive">{{ '+' if h.gain_pct > 0 }}{{ h.gain_pct|number(1) }} %</td></tr>{% endfor %}
+      {% for h in o.worst if h not in o.best %}<tr><td><i class="bi bi-arrow-down-right text-negative"></i> <a href="{{ url_for('portfolio.detail', holding_id=h.id) }}">{{ h.name }}</a></td><td class="amount text-right {{ 'negative' if h.gain_pct < 0 else 'positive' }}">{{ h.gain_pct|number(1) }} %</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+</div>
+
+<div class="row-2">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Conti titoli') }}</div>
+      <a href="{{ url_for('portfolio.portfolios_page') }}" class="btn btn-ghost btn-sm">{{ _('Tutti') }} <i class="bi bi-arrow-right"></i></a></div>
+    {% if o.dossiers %}
+    <div class="table-wrapper"><table>
+      <thead><tr><th>{{ _('Conto titoli') }}</th><th class="text-right">{{ _('Titoli') }}</th><th class="text-right">{{ _('Liquidità') }}</th><th class="text-right">{{ _('Totale') }}</th></tr></thead>
+      <tbody>{% for row in o.dossiers %}<tr><td><a href="{{ url_for('portfolio.dossier_page', dossier_id=row.dossier.id) }}">{{ row.dossier.name }}</a></td>
+        <td class="amount text-right">{{ row.value|money }}</td><td class="amount text-right">{{ row.cash|money }}</td><td class="amount text-right">{{ (row.value + row.cash)|money }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}{% call empty_state(text=_('Nessun conto titoli.'), icon='bi-safe', compact=True) %}{% endcall %}{% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Ultimi ordini') }}</div>
+      <a href="{{ url_for('portfolio.orders_page') }}" class="btn btn-ghost btn-sm">{{ _('Registro') }} <i class="bi bi-arrow-right"></i></a></div>
+    {% if o.orders %}
+    <div class="table-wrapper"><table><tbody>
+      {% for row in o.orders %}<tr><td class="nowrap text-sm">{{ row.tx.date|it_date }}</td><td><span class="badge">{{ kinds[row.kind] }}</span></td>
+        <td>{{ row.holding.name if row.holding else '' }}</td><td class="amount text-right">{{ row.gross|money }}</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}{% call empty_state(text=_('Nessuna operazione.'), icon='bi-list-check', compact=True) %}{% endcall %}{% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if o.series.value|length >= 2 %}
+makeLineChart('ovValueChart', {{ o.series.labels|tojson }}, [
+  { label: {{ _('Valore')|tojson }}, data: {{ o.series.value|tojson }} },
+  { label: {{ _('Versato')|tojson }}, data: {{ o.series.invested|tojson }}, dash: [6, 4] }
+]);
+{% endif %}
+{% if o.classes %}
+makeDoughnutChart('ovClassChart', {{ o.classes|map(attribute=0)|map('tr')|list|tojson }}, {{ o.classes|map(attribute=1)|map('round', 2)|list|tojson }});
+{% endif %}
+</script>
+{% endblock %}

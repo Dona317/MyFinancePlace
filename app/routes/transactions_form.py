@@ -7,6 +7,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.event import SpendingEvent
+from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_int, form_text
@@ -76,6 +77,16 @@ def tx_from_form(tx: Transaction) -> Transaction:
         broker_account = tx.account_id or tx.counter_account_id
         tx.account_id, tx.counter_account_id = (broker_account, None) if tx.units > 0 else (None, broker_account)
         tx.splits = []
+    # where an operation of a holding sits and what it is for (F42); its commission follows it
+    if tx.holding_id:
+        if "securities_account_id" in request.form:  # a form without the fields keeps them (or gets the usual ones)
+            tx.securities_account_id = linked_id("securities_account_id", SecuritiesAccount)
+        if "portfolio_id" in request.form:
+            tx.portfolio_id = linked_id("portfolio_id", Portfolio)
+    else:
+        tx.securities_account_id = tx.portfolio_id = None
+    for fee in (Transaction.query.filter_by(fee_for_id=tx.id) if tx.id else []):
+        fee.securities_account_id, fee.portfolio_id = tx.securities_account_id, tx.portfolio_id
     _splits_from_form(tx)
     # the group above the category: the one picked, or (empty = automatic) the one the rules give
     chosen = request.form.get("cluster", "")
@@ -163,7 +174,8 @@ def form_values(tx: Transaction | None = None) -> dict:
             "date", "amount", "currency", "description", "category", "tags",
             "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
             "event_id", "type", "recurrence_end_mode", "recurrence_count",
-            "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount", "cluster")} | {
+            "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount", "cluster",
+            "securities_account_id", "portfolio_id")} | {
             "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows(),
             "record_fee": "record_fee" in form}
     if tx is None:
@@ -184,6 +196,7 @@ def form_values(tx: Transaction | None = None) -> dict:
         "unit_price": display.plain(tx.unit_price),
         "trade_side": "sell" if tx.units is not None and tx.units < 0 else "buy",
         "cluster": tx.cluster or "",
+        "securities_account_id": str(tx.securities_account_id or ""), "portfolio_id": str(tx.portfolio_id or ""),
     }
 
 

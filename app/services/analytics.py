@@ -214,7 +214,7 @@ def summary_table(year: int, months: int = 12) -> dict:
     }
 
 
-def _monthly_totals(start: date, end: date) -> dict[tuple[date, str], float]:
+def monthly_totals(start: date, end: date) -> dict[tuple[date, str], float]:
     """Income and expenses of each month of [start, end), in one query: {(first day of the month, type): total}."""
     month = func.date_trunc("month", Transaction.date)
     rows = (db.session.query(month, Transaction.type, func.sum(VALUE))
@@ -227,7 +227,7 @@ def last_12_months(today: date | None = None) -> dict:
     """Income / expenses for the 12 months ending with the month of `today`."""
     today = today or date.today()
     starts = [date(*shift_month(today.year, today.month, delta), 1) for delta in range(-11, 1)]
-    totals = _monthly_totals(starts[0], month_bounds(today.year, today.month)[1])
+    totals = monthly_totals(starts[0], month_bounds(today.year, today.month)[1])
     return {"labels": [month_label(month_index(start)) for start in starts],
             "income": [totals.get((start, "income"), 0.0) for start in starts],
             "expenses": [totals.get((start, "expense"), 0.0) for start in starts]}

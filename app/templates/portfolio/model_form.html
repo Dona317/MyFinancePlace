@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ template.name if template else _('Nuovo portafoglio modello') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.models_index') }}">{{ _('Portafogli modello') }}</a></li><li>{{ template.name if template else _('Nuovo') }}</li>{% endblock %}
 
@@ -13,10 +14,16 @@
           <input type="text" name="name" id="name" class="form-control" value="{{ values.name }}" required />
         </div>
         <div class="form-group">
-          <label class="form-label" for="band">{{ _('Tolleranza (punti %%)') }}</label>
+          <label class="form-label" for="band">{{ _('Tolleranza (punti %%)') }} {{ info(_('Oltre questo scostamento dal peso obiettivo una parte va ribilanciata (es. 5: un 60 %% tra 55 e 65 va bene).')) }}</label>
           <input type="text" inputmode="decimal" name="band" id="band" class="form-control" value="{{ values.band }}" />
-          <div class="form-hint">{{ _('Oltre questo scostamento dal peso obiettivo una parte va ribilanciata (es. 5: un 60 %% tra 55 e 65 va bene).') }}</div>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="model-portfolio">{{ _('Portafoglio') }} {{ info(_('Il modello vale per un portafoglio (le sue posizioni, su tutti i suoi conti titoli) o per tutti gli investimenti insieme. Ogni portafoglio ha il suo modello attivo.')) }}</label>
+        <select name="portfolio_id" id="model-portfolio" class="form-select">
+          <option value="">{{ _('Tutti gli investimenti') }}</option>
+          {% for p in folios %}<option value="{{ p.id }}" {{ 'selected' if values.portfolio_id == p.id|string }}>{{ p.name }}</option>{% endfor %}
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label" for="description">{{ _('Descrizione') }}</label>

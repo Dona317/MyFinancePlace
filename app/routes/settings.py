@@ -114,6 +114,7 @@ def categories_page():
                            mains=[c.name for c in mains], has_children={c.parent_id for c in rows},
                            usage=categories.usage(), kinds=categories.KINDS, natures=categories.NATURES,
                            unmanaged=sorted(categories.used_names() - {c.name for c in rows}), broad=categories.broad(),
+                           fallback=categories.fallback(),
                            clusters=[(key, clusters.label(key), clusters.tr(default)) for key, default in clusters.CLUSTERS.items()],
                            cluster_usage=_cluster_usage(), tags=tag_names.usage())
 

@@ -25,13 +25,14 @@
         <tr>
           <td><a href="{{ url_for('portfolio.models_edit', template_id=t.id) }}">{{ t.name }}</a>
             {% if t.active %}<span class="badge badge-positive">{{ _('Attivo') }}</span>{% endif %}
+            <span class="badge">{{ t.portfolio.name if t.portfolio else _('Tutti gli investimenti') }}</span>
             {% if t.description %}<div class="text-xs text-muted">{{ t.description }}</div>{% endif %}</td>
           <td class="text-sm">{% for s in t.slots %}{{ s.label }} {{ s.target|number(2) }} %{{ ' · ' if not loop.last }}{% endfor %}</td>
           <td class="text-right nowrap">± {{ t.band|number(2) }}</td>
           <td>
             <div class="cell-actions">
               {% if t.active %}
-              {{ icon_link(url_for('portfolio.rebalance'), 'bi-arrow-left-right', _('Ribilancia')) }}
+              {{ icon_link(url_for('portfolio.rebalance', portfolio=t.portfolio_id), 'bi-arrow-left-right', _('Ribilancia')) }}
               {% else %}
               <form method="POST" action="{{ url_for('portfolio.models_activate', template_id=t.id) }}">
                 <button class="btn btn-ghost btn-sm" type="submit"><i class="bi bi-check2-circle"></i> {{ _('Rendi attivo') }}</button>

@@ -18,7 +18,27 @@ class Holding(db.Model):
     id            = db.Column(db.Integer, primary_key=True)
     name          = db.Column(db.Text, nullable=False)
     ticker        = db.Column(db.Text)
-    asset_class   = db.Column(db.Text, nullable=False)
+    asset_class   = db.Column(db.Text, nullable=False)  # the instrument (F70): ETF, Azione, Fondo, Obbligazione…
+    # what it is exposed to (F70): Azionario, Obbligazionario, Oro e metalli preziosi… (services.asset_classes);
+    # empty = estimated from the instrument and the name
+    allocation_class = db.Column(db.String(40))
+    # The fund's characteristics (ETF, mutual or insurance fund), all editable by hand (services.fund_facts)
+    issuer           = db.Column(db.String(80))     # the management company: iShares, Vanguard, Amundi…
+    domicile         = db.Column(db.String(2))      # ISO country of the fund (sede): IE, LU…; empty = from the ISIN
+    ter              = db.Column(db.Numeric(6, 3))  # ongoing charges, % a year
+    distribution     = db.Column(db.String(12))     # "acc" (accumulating) | "dist" (distributing)
+    replication      = db.Column(db.String(12))     # "full" | "sampling" | "synthetic" | "active"
+    index_name       = db.Column(db.Text)           # the index it tracks
+    launch_date      = db.Column(db.Date)
+    currency_hedged  = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    # A bond's terms (F53, services.bonds): the nominal is the quantity, prices are per unit of nominal (0.98 = 98 %)
+    bond_type         = db.Column(db.String(20))     # services.bonds.BOND_TYPES: btp, btp_italia, bot, corporate…
+    coupon_rate       = db.Column(db.Numeric(7, 4))  # gross yearly coupon, % of the nominal
+    coupon_frequency  = db.Column(db.SmallInteger)   # coupons a year: 1, 2 or 4
+    maturity_date     = db.Column(db.Date)
+    redemption        = db.Column(db.Numeric(7, 3))  # paid back at maturity, % of the nominal; empty = 100
+    first_coupon_date = db.Column(db.Date)           # empty = every date of the grid back from the maturity
+    issue_price       = db.Column(db.Numeric(9, 4))  # % of the nominal
     quantity      = db.Column(db.Numeric(38, 8), nullable=False)
     avg_price     = db.Column(db.Numeric(38, 6), nullable=False)   # average purchase price per unit
     current_price = db.Column(db.Numeric(38, 6))                  # empty = still worth the purchase price
@@ -45,6 +65,9 @@ class Holding(db.Model):
     opening_quantity = db.Column(db.Numeric(38, 8))
     opening_price    = db.Column(db.Numeric(38, 6))
     opening_date     = db.Column(db.Date)
+    # where the opening position sits and what it is for (F42); empty = no dossier, the default portfolio
+    opening_account_id   = db.Column(db.Integer, db.ForeignKey("securities_accounts.id", ondelete="SET NULL"))
+    opening_portfolio_id = db.Column(db.Integer, db.ForeignKey("portfolios.id", ondelete="SET NULL"))
 
     @property
     def price(self) -> float:
@@ -85,6 +108,22 @@ class HoldingPrice(db.Model):
     # the asset wrote by itself (replaced when a new valuation is entered)
     note       = db.Column(db.Text)
     estimated  = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+
+
+class HoldingExposure(db.Model):
+    """What a fund holds, one row per country, sector, currency, company or asset class (F57, services.lookthrough):
+    read from the issuer's holdings file or typed by hand. `name` is the ISO code for a country, otherwise the
+    sector's, currency's, company's or asset class's name; `weight` is the % of the fund."""
+    __tablename__ = "holding_exposures"
+    __table_args__ = (db.UniqueConstraint("holding_id", "kind", "name"),)
+
+    id         = db.Column(db.Integer, primary_key=True)
+    holding_id = db.Column(db.Integer, db.ForeignKey("holdings.id", ondelete="CASCADE"), nullable=False, index=True)
+    kind       = db.Column(db.String(20), nullable=False)  # country | sector | currency | holding | asset_class
+    name       = db.Column(db.Text, nullable=False)
+    weight     = db.Column(db.Numeric(9, 4), nullable=False)
+    as_of      = db.Column(db.Date, nullable=False)        # the date of the data (the file's, or the day typed)
+    source     = db.Column(db.Text)                        # «iShares CSV», «a mano»…
 
 
 class Debt(db.Model):

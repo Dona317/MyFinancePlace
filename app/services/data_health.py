@@ -1,7 +1,8 @@
 """
 Data health (F20): what in the archive needs fixing, in one list, each problem with a link to where it is fixed.
 
-- danger: the numbers are wrong (a holding sold beyond what it held, money in a currency without exchange rates);
+- danger: the numbers are wrong (a holding sold beyond what it held, today or on the day of a sale, money in a
+  currency without exchange rates);
   these also become reminders (services.notifications)
 - warning: the numbers may be wrong (stale prices, giroconti with one side only, possible duplicates)
 - info: tidiness (movements without a category, instruments that cannot be priced, accounts never reconciled)
@@ -10,12 +11,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from decimal import Decimal
 
 from flask import url_for
 from flask_babel import gettext as _
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 
+from app.extensions import db
 from app.models.account import Account
+from app.models.currency import ExchangeRate
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
 from app.services import cash, categories, currency, display, duplicates, wealth
@@ -68,6 +72,43 @@ def _missing_rates(today: date) -> Check:
                        url_for("settings.currencies_page")) for row in found], url_for("settings.currencies_page"))
 
 
+def _sold_beyond(today: date) -> Check:
+    """A sale of more units than the holding had on that day (F58): the opening position plus the trades before,
+    the trades of one day taken together. The quantity is clamped at zero, so it does not show elsewhere."""
+    rows = (db.session.query(Transaction.holding_id, Transaction.date, func.sum(Transaction.units))
+            .filter(Transaction.holding_id.isnot(None), Transaction.units.isnot(None))
+            .group_by(Transaction.holding_id, Transaction.date).order_by(Transaction.holding_id, Transaction.date))
+    by_holding: dict[int, list] = {}
+    for hid, day, units in rows:
+        by_holding.setdefault(hid, []).append((day, Decimal(units or 0)))
+    found = []
+    for hid, days in by_holding.items():
+        h = db.session.get(Holding, hid)
+        held = (Decimal(h.opening_quantity) if h.opening_quantity is not None
+                else Decimal(h.quantity or 0) - sum((u for _d, u in days), Decimal(0)))
+        for day, units in days:
+            if units < 0 and held + units < Decimal("-0.00000001"):
+                found.append((h, day, -units, held))
+                break
+            held += units
+    found.sort(key=lambda row: row[0].name)
+    return Check("sold_beyond", "danger", _("Vendite oltre le quote possedute"),
+                 _("In quel giorno si vendono più quote di quante ce n'erano: manca un acquisto, la posizione iniziale o un frazionamento."),
+                 len(found), [_holding_item(h, _("%(day)s: vendute %(sold)s, possedute %(held)s", day=display.day(day),
+                                                 sold=display.plain(sold), held=display.plain(max(held, Decimal(0)))))
+                              for h, day, sold, held in found[:SHOWN]])
+
+
+def _holding_rates(today: date) -> Check:
+    """Holdings quoted in a currency without exchange rates: their prices cannot be turned into euro (F58)."""
+    with_rates = {c for (c,) in db.session.query(ExchangeRate.currency).distinct()}
+    found = [h for h in _investments() if h.currency and h.currency.upper() != currency.BASE
+             and h.currency.upper() not in with_rates]
+    return Check("holding_rates", "warning", _("Titoli in valuta senza tassi di cambio"),
+                 _("Il prezzo in valuta non si può convertire in euro: scarica o inserisci i tassi di cambio."),
+                 len(found), [_holding_item(h, h.currency) for h in found[:SHOWN]], url_for("settings.currencies_page"))
+
+
 def _stale_prices(today: date) -> Check:
     limit = today - timedelta(days=STALE_DAYS)
     found = [h for h in _investments() if h.price_source != "manual"
@@ -101,11 +142,11 @@ def _uncategorized(today: date) -> Check:
     since = today - timedelta(days=UNCATEGORIZED_MONTHS * 31)
     query = Transaction.query.filter(Transaction.date >= since, Transaction.type != "transfer",
                                      or_(Transaction.category.is_(None), Transaction.category == "",
-                                         Transaction.category == categories.FALLBACK))
+                                         Transaction.category == categories.fallback()))
     return Check("uncategorized", "info", _("Movimenti senza categoria"),
                  _("Ultimi 12 mesi, in «%(name)s» o senza categoria: i report li contano a parte.",
-                   name=categories.FALLBACK), query.count(), [],
-                 url_for("transactions.index", category=categories.FALLBACK))
+                   name=categories.fallback()), query.count(), [],
+                 url_for("transactions.index", category=categories.fallback()))
 
 
 def _unpriceable(today: date) -> Check:
@@ -134,7 +175,7 @@ def _negative_cash(today: date) -> Check:
                               for a, balance in found[:SHOWN]], url_for("accounts.index"))
 
 
-CHECKS = (_oversold, _negative_cash, _missing_rates, _stale_prices, _half_transfers, _duplicates, _uncategorized, _unpriceable,
+CHECKS = (_oversold, _negative_cash, _missing_rates, _sold_beyond, _holding_rates, _stale_prices, _half_transfers, _duplicates, _uncategorized, _unpriceable,
           _unreconciled)
 SEVERE = (_oversold, _missing_rates)  # cheap enough to run on every page, for the reminders
 

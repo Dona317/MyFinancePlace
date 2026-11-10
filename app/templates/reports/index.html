@@ -268,6 +268,8 @@ makeBarChart('flowChart', flow.labels, [
   { label: {{ _('Entrate')|tojson }}, data: flow.income, color: 'income' },
   { label: {{ _('Uscite')|tojson }}, data: flow.expenses, color: 'expense' },
   { label: {{ _('Netto')|tojson }}, data: flow.net, color: 'primary', type: 'line' },
+  { label: {{ _('Uscite del periodo prima')|tojson }} + ' (' + flow.previous_label + ')', data: flow.previous_expenses,
+    color: 'textMuted', type: 'line', dash: [6, 4], pointRadius: 0 },
 ], { legend: true });
 {% endif %}
 </script>

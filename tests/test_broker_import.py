@@ -13,7 +13,7 @@ import pytest
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import broker_import, transfer
+from app.services import broker_import
 from app.services.bank_import.model import StatementRow
 from app.services.bank_import.rows import _investment
 from tests.form_helper import form_data
@@ -135,8 +135,7 @@ def test_columns_sides_and_classes(app, db):
     assert broker_import._side("xyz") is None and broker_import._side("S") == -1 and broker_import._side("buy") == 1
     assert broker_import.guess_class("BTP Italia 2030") == "Obbligazione"
     assert broker_import.guess_class("Xtrackers MSCI World") == "ETF"
-    with pytest.raises(transfer.TableError):
-        broker_import._columns(["Data", "Titolo", "Quote"])
+    assert "prezzo" in broker_import.missing(broker_import.guess(["Data", "Titolo", "Quote"]))
 
 
 def test_match_by_ticker_and_name(app, db):

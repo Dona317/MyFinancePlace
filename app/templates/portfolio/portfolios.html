@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% from "partials/info.html" import info %}
+{% from "partials/actions.html" import delete_button, icon_link %}
+{% from "partials/empty.html" import empty_state %}
+
+{% block title %}{{ _('Portafogli e conti titoli') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Portafogli e conti titoli') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Portafogli e conti titoli') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('portfolio.dossier_new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo conto titoli') }}</a>
+{% endblock %}
+
+{% block content %}
+{% include "portfolio/_nav.html" %}
+
+<div class="card mb-24">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-collection"></i> {{ _('Portafogli') }} {{ info(_('Gli obiettivi per cui investi («Pensione», «Casa»…). Un portafoglio può stare su più conti titoli e un conto titoli può ospitarne più d\'uno. La stella è il predefinito: le nuove operazioni vanno lì se non ne scegli un altro.')) }}</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:48px;"></th>
+          <th>{{ _('Nome e descrizione') }}</th>
+          <th class="text-right">{{ _('Operazioni') }}</th>
+          <th class="text-right">{{ _('Valore') }}</th>
+          <th class="text-right">{{ _('Azioni') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in folios %}
+        <tr class="{{ 'text-muted' if not p.active }}">
+          <td>
+            <form method="POST" action="{{ url_for('portfolio.portfolio_default', portfolio_id=p.id) }}" class="inline-filter">
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm star-btn star-gold{{ ' on' if p.is_default }}" aria-pressed="{{ 'true' if p.is_default else 'false' }}"
+                      title="{{ _('Portafoglio predefinito') if p.is_default else _('Rendi predefinito') }}">
+                <i class="bi {% if p.is_default %}bi-star-fill{% else %}bi-star{% endif %}"></i>
+              </button>
+            </form>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('portfolio.portfolio_rename', portfolio_id=p.id) }}" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+              <input type="text" name="name" value="{{ p.name }}" class="form-control" style="max-width:240px;" required
+                     aria-label="{{ _('Nome del portafoglio %(name)s', name=p.name) }}" />
+              <input type="text" name="description" value="{{ p.description or '' }}" class="form-control" style="max-width:320px;"
+                     placeholder="{{ _('Descrizione (facoltativa)') }}" aria-label="{{ _('Descrizione di %(name)s', name=p.name) }}" />
+              <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-check-lg"></i> {{ _('Rinomina') if p.active else _('Ripristina') }}</button>
+              {% if not p.active %}<span class="badge">{{ _('Archiviato') }}</span>{% endif %}
+            </form>
+          </td>
+          <td class="amount text-right">{{ count_of[p.id] }}</td>
+          <td class="amount text-right">{{ value_of[p.id]|money }}</td>
+          <td>
+            <div class="cell-actions">
+              {{ icon_link(url_for('portfolio.index', portfolio=p.id), 'bi-eye', _('Vedi le posizioni'), _('Posizioni di %(name)s', name=p.name)) }}
+              {% if not p.is_default %}
+              {{ delete_button(url_for('portfolio.portfolio_delete', portfolio_id=p.id), _('Eliminare il portafoglio «%(name)s»? Se ha operazioni viene solo archiviato.', name=p.name), _('Elimina %(name)s', name=p.name)) }}
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('portfolio.portfolio_new') }}" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <input type="text" name="name" class="form-control" style="max-width:240px;" required placeholder="{{ _('es. Pensione, Casa, Figli') }}" aria-label="{{ _('Nome del nuovo portafoglio') }}" />
+      <input type="text" name="description" class="form-control" style="max-width:320px;" placeholder="{{ _('Descrizione (facoltativa)') }}" aria-label="{{ _('Descrizione del nuovo portafoglio') }}" />
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo portafoglio') }}</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-safe"></i> {{ _('Conti titoli') }} {{ info(_('Dove il broker tiene i titoli. Ognuno ha un conto di liquidità, su cui si muovono acquisti, vendite, dividendi e commissioni.')) }}</div>
+    </div>
+  </div>
+  {% if rows %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Conto titoli') }}</th>
+          <th>{{ _('Liquidità su') }}</th>
+          <th>{{ _('Regime') }}</th>
+          <th class="text-right">{{ _('Titoli') }}</th>
+          <th class="text-right">{{ _('Liquidità') }}</th>
+          <th class="text-right">{{ _('Totale') }}</th>
+          <th class="text-right">{{ _('Azioni') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}{% set d = row.dossier %}
+        <tr class="{{ 'text-muted' if not d.active }}">
+          <td>
+            <div class="cell-title"><a href="{{ url_for('portfolio.dossier_page', dossier_id=d.id) }}">{{ d.name }}</a></div>
+            <div class="text-xs text-muted">{{ d.broker or '' }}{% if d.abroad %} · {{ _('estero') }}{% endif %}{% if not d.active %} · {{ _('chiuso') }}{% endif %}</div>
+          </td>
+          <td>{{ d.settlement_account.name if d.settlement_account else '—' }}</td>
+          <td>{{ _('Amministrato') if d.tax_regime == 'amministrato' else _('Dichiarativo') }}</td>
+          <td class="amount text-right">{{ row.value|money }}</td>
+          <td class="amount text-right">{{ row.cash|money }}</td>
+          <td class="amount text-right">{{ (row.value + row.cash)|money }}</td>
+          <td>
+            <div class="cell-actions">
+              {{ icon_link(url_for('portfolio.dossier_edit', dossier_id=d.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=d.name)) }}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  {% call empty_state(text=_('Il primo conto titoli nasce da solo alla prima operazione su un conto, oppure crealo qui.'), icon='bi-safe', compact=True) %}
+    <a href="{{ url_for('portfolio.dossier_new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo conto titoli') }}</a>
+  {% endcall %}
+  {% endif %}
+</div>
+{% endblock %}

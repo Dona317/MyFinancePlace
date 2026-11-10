@@ -9,7 +9,7 @@ import io
 import json
 import sys
 
-from common import AUTH, BASE, OUT, SAMPLES, check, launch, local_assets, run, sql, summary
+from common import AUTH, BASE, OUT, SAMPLES, check, choose, confirm, launch, local_assets, run, sql, summary
 from playwright.sync_api import sync_playwright
 
 S = str(SAMPLES) + "/"
@@ -25,7 +25,7 @@ def alert_text():
 
 def import_file(filename, keep_all=True):
     """Upload a statement; returns True when the preview opened."""
-    pg.goto(BASE + "/export/")
+    pg.goto(BASE + "/export/import")
     pg.set_input_files("#bank-import input[type=file]", S + filename)
     pg.click("#bank-import button[type=submit]")
     pg.wait_for_load_state()
@@ -109,7 +109,7 @@ with sync_playwright() as p:
         )
         pg.goto(BASE + "/settings/ai")
         pg.click("form:has(input[name=name][value='llama3.2:1b']) button:has-text('Rimuovi')")
-        pg.wait_for_load_state()
+        confirm(pg)
         check("model removed", "Modello llama3.2:1b rimosso" in alert_text(), alert_text())
 
     run("2. AI models page", ai_settings)
@@ -213,7 +213,7 @@ with sync_playwright() as p:
             "movimenti classificati" in pg.inner_text("#ai-classify-status"),
             pg.inner_text("#ai-classify-status")[:100],
         )
-        first.locator("input[name^=description]").fill("Descrizione corretta a mano")
+        first.locator("[name^=description]").fill("Descrizione corretta a mano")
         first.locator(".row-category").fill("Categoria personalizzata")
         rows = pg.locator("tr.statement-row").count()
         pg.locator("tr.statement-row").nth(1).locator(".row-remove").click()
@@ -244,10 +244,10 @@ with sync_playwright() as p:
         pg.fill("input[name=date]", "2026-09-10")
         pg.fill("input[name=description]", "Palestra annuale")
         pg.fill("input[name=amount]", "-480")
-        pg.select_option("select[name=category]", "Salute")
+        choose(pg, "select[name=category]", "Benessere e sport")
         pg.check("input[name=is_recurring]")
         pg.select_option("select[name=recurrence]", "yearly")
-        pg.click("#edit-form button.btn-primary[type=submit]")
+        pg.click("button[form=edit-form]")
         pg.wait_for_load_state()
         check(
             "transaction added", count("description = 'Palestra annuale' and recurrence = 'yearly'") == 1, alert_text()
@@ -259,7 +259,7 @@ with sync_playwright() as p:
         tx_id = sql("select id from transactions where description = 'Palestra annuale'")
         pg.goto(BASE + f"/transactions/{tx_id}/edit")
         pg.fill("input[name=amount]", "-500")
-        pg.click("#edit-form button.btn-primary[type=submit]")
+        pg.click("button[form=edit-form]")
         pg.wait_for_load_state()
         check(
             "edit keeps frequency",
@@ -267,13 +267,13 @@ with sync_playwright() as p:
         )
         pg.goto(BASE + f"/transactions/{tx_id}/edit")
         pg.click("button[form=delete-form]")
-        pg.wait_for_load_state()
+        confirm(pg)
         check("delete from the edit page", count(f"id = {tx_id}") == 0, alert_text())
         pg.goto(BASE + "/transactions/?q=Riga aggiunta")
         before = count()
         pg.check("#select-all")
         pg.click("#bulk-delete")
-        pg.wait_for_load_state()
+        confirm(pg)
         check("bulk delete", count() == before - 1, alert_text())
         bad = pg.request.post(
             BASE + "/transactions/new",
@@ -286,7 +286,7 @@ with sync_playwright() as p:
     # ── 7. AI classification of saved transactions ─────────────────────────────
     def classify_saved():
         sql(
-            "update transactions set category = 'Altro' where id in (select id from transactions where description ilike '%esselunga%' limit 3)"
+            "update transactions set category = 'Imprevisti o altro' where id in (select id from transactions where description ilike '%esselunga%' limit 3)"
         )
         pg.goto(BASE + "/transactions/")
         pg.click("#ai-classify")
@@ -298,7 +298,7 @@ with sync_playwright() as p:
         pg.click("button:has-text('Applica i selezionati')")
         pg.wait_for_load_state()
         check("suggestions applied", "transazioni aggiornate" in alert_text(), alert_text())
-        check("no Esselunga left in Altro", count("description ilike '%esselunga%' and category = 'Altro'") == 0)
+        check("no Esselunga left in Imprevisti o altro", count("description ilike '%esselunga%' and category = 'Imprevisti o altro'") == 0)
 
     run("7. AI classification of saved transactions", classify_saved)
 
@@ -317,7 +317,7 @@ with sync_playwright() as p:
         check("not duplicates: remembered", "non verranno più proposte" in alert_text(), alert_text())
         before = count()
         pg.locator("form[action$='/duplicates/keep'] button").first.click()
-        pg.wait_for_load_state()
+        confirm(pg)
         check("keep one, delete the others", count() < before, alert_text())
 
     run("8. Duplicate finder", duplicate_finder)
@@ -339,7 +339,7 @@ with sync_playwright() as p:
         buffer = io.StringIO()
         csv.writer(buffer, delimiter=";").writerows(rows)
         open(str(OUT / "import.csv"), "w").write(buffer.getvalue())
-        pg.goto(BASE + "/export/")
+        pg.goto(BASE + "/export/import")
         pg.set_input_files("#import-file", str(OUT / "import.csv"))
         pg.select_option("select[name=col_date]", "Data")
         pg.select_option("select[name=col_description]", "Descrizione")
@@ -446,7 +446,7 @@ with sync_playwright() as p:
             "icons-only sidebar remembered", pg.evaluate("document.documentElement.classList.contains('sidebar-mini')")
         )
         pg.click("#sidebar-toggle")
-        pg.click(".topbar-settings")
+        pg.click(".sidebar-settings")
         pg.wait_for_load_state()
         check("settings button", pg.url.endswith("/settings/"))
         pg.goto(BASE + "/accounting/balance-sheet")

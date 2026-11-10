@@ -30,6 +30,7 @@ from app.services import (
     family,
     merchant,
     portfolio_ops,
+    securities,
     undo,
 )
 from app.services import categories as category_service
@@ -270,6 +271,7 @@ def _render_form(tx: Transaction | None):
         category_tags=category_service.suggested_tags(),
         cluster_choices=clusters.choices(),
         holdings=Holding.query.order_by(Holding.name).all(), debts=Debt.query.order_by(Debt.name).all(),
+        dossiers=securities.accounts(active_only=False), folios=securities.portfolios(active_only=False),
         events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
     )
@@ -577,6 +579,13 @@ def _classification_text(tx: Transaction) -> str:
     return tx.bank_description or " ".join(filter(None, [tx.description, tx.notes]))
 
 
+def _detail_tags(suggestions: dict) -> list[str]:
+    """The broad categories' tags, offered on the page when the AI suggested a detail tag for some row (F32)."""
+    if not any(s.tag for s in suggestions.values()):
+        return []
+    return sorted({t for tags in ai_classification.tags_for(known_categories()).values() for t in tags}, key=str.casefold)
+
+
 @transactions_bp.route("/classify", methods=["POST"])
 def classify():
     """Ask the AI for category/counterparty suggestions and show them for review (nothing is saved)."""
@@ -599,6 +608,7 @@ def classify():
         rows=[(tx, suggestions.get(tx.id)) for tx in transactions],
         model=ai_classification.model_name(),
         categories=known_categories(),
+        with_tags=_detail_tags(suggestions),
         next_url=safe_next(),
     )
 
@@ -619,6 +629,9 @@ def classify_apply():
             # the counterparty goes first among the tags (replacing the previous one), as in the form
             tags = [counterparty] + [t for t in tags if t.casefold() not in (counterparty.casefold(), (tx.counterparty or "").casefold())]
             tx.counterparty = counterparty
+        detail = (request.form.get(f"tag-{tx.id}") or "").strip()
+        if detail and detail.casefold() not in {t.casefold() for t in tags}:
+            tags.append(detail)  # the detail of a broad category (F32), as the AI suggested it or corrected
         if category == request.form.get(f"suggested-{tx.id}"):
             tags.append(AI_TAG)  # accepted as suggested: easy to find and double-check later
         tx.tags = tags

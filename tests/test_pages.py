@@ -175,3 +175,14 @@ def test_the_outlook_needs_three_months_of_history(app, db):
     db.session.commit()
     outlook = _outlook("expenses")
     assert outlook and len(outlook["rows"]) == 4 and outlook["method"]
+
+
+def test_every_page_drawing_a_chart_loads_the_chart_helpers():
+    """Chart.js and charts.js come only with {% block chart_scripts %}: a page calling makeLineChart without it breaks."""
+    from pathlib import Path
+
+    templates = Path(__file__).resolve().parents[1] / "app" / "templates"
+    missing = [str(path.relative_to(templates)) for path in templates.rglob("*.html")
+               if re.search(r"\bmake[A-Z]\w*Chart\(|new Chart\(", path.read_text(encoding="utf-8"))
+               and "chart_scripts" not in path.read_text(encoding="utf-8")]
+    assert missing == []

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 {% set month_name = month|dateformat('MMMM y') %}
 {% block title %}{{ _('Budget') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Budget Mensili') }}{% endblock %}
@@ -18,6 +20,20 @@
   {{ kpi('piggy-bank', _('Rimane'), value=((planned - spent_total)|money), value_class=('text-negative' if planned - spent_total < 0)) }}
   {{ kpi('question-diamond', _('Fuori Budget'), value=unbudgeted|money, cls='kpi-warning', sub=(_('spese in categorie senza budget'))) }}
 </div>
+
+{% if pace %}
+{# the spending pace (F65): spent up to each day vs the straight line to the budget, and the month before #}
+<div class="card mb-16" id="spending-pace">
+  <div class="card-header">
+    <div class="card-header-title"><i class="bi bi-speedometer2"></i> {{ _('Ritmo di spesa') }}
+      {{ info(_('La spesa cumulata del mese nelle categorie con budget, giorno per giorno, contro la retta che arriva al budget del mese a fine mese; tratteggiata, la spesa del mese scorso fino allo stesso giorno.')) }}</div>
+    {% if pace.projected is not none %}
+    <span class="badge {{ 'badge-negative' if pace.projected > pace.planned else 'badge-muted' }}">{{ _('A questo ritmo chiudi a %(amount)s', amount=pace.projected|money) }}</span>
+    {% endif %}
+  </div>
+  <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="paceChart" role="img" aria-label="{{ _('Spesa cumulata del mese contro il ritmo ideale') }}"></canvas></div></div>
+</div>
+{% endif %}
 
 <form method="POST" action="{{ url_for('lifestyle.budget_save', month=month.strftime('%Y-%m')) }}">
   <div class="card">
@@ -104,5 +120,24 @@
     </table>
   </div>
 </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if pace %}
+<script>
+const pace = {{ pace|tojson }};
+const paceText = {{ _('A questo ritmo chiudi a %(amount)s', amount='{amount}')|tojson }};
+makeLineChart('paceChart', pace.labels, [
+  { label: {{ _('Speso nel mese')|tojson }}, data: pace.actual, color: 'expense', pointRadius: 0, tension: 0, fillAlpha: 0.12 },
+  { label: {{ _('Ritmo ideale')|tojson }}, data: pace.ideal, color: 'primary', pointRadius: 0, tension: 0, fill: false, dash: [6, 4] },
+  { label: {{ _('Mese scorso')|tojson }}, data: pace.previous, color: 'textMuted', pointRadius: 0, tension: 0, fill: false, dash: [2, 3], borderWidth: 1.5 },
+], { money: true, footer: (i) => {
+  // a day of the month under way: where the month ends if the spending goes on like up to that day
+  const spent = pace.actual[i];
+  if (spent === null || pace.elapsed >= pace.days) return "";
+  return paceText.replace("{amount}", formatMoney(spent / (i + 1) * pace.days));
+} });
+</script>
 {% endif %}
 {% endblock %}

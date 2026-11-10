@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "partials/info.html" import info %}
+{% import "partials/fields.html" as f %}
+{% block page_title %}{{ _('Ordini del ribilanciamento') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount, portfolio=folio_id) }}">{{ _('Ribilanciamento') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
+
+{% block content %}
+<form method="POST" id="orders-form">
+  <input type="hidden" name="rows" value="{{ orders|length }}" />
+  <input type="hidden" name="mode" value="{{ mode }}" />
+  <input type="hidden" name="amount" value="{{ amount }}" />
+  <input type="hidden" name="portfolio" value="{{ folio_id or '' }}" />
+  <div class="card mb-16">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title"><i class="bi bi-list-check"></i> {{ plan.template.name }} {{ info(_('1. Esegui questi ordini dal tuo broker. 2. Correggi quote, prezzi e commissioni con quelli eseguiti (il prezzo spesso cambia di poco). 3. Togli la spunta agli ordini non eseguiti e conferma: diventano acquisti e vendite.')) }}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="grid-2">
+        {{ f.date({}, 'on', _('Data di esecuzione'), today, required=true) }}
+        {{ f.select({}, 'securities_account_id', _('Conto titoli'), dossiers, none, blank=_('— dove sono già le quote —')) }}
+      </div>
+      <div class="grid-2">
+        {{ f.select({}, 'account_id', _('Conto di liquidità'), accounts, none, blank=_('— quello del conto titoli —')) }}
+        {{ f.select({}, 'portfolio_id', _('Portafoglio'), folios, folio_id, blank=_('— dove sono le quote (le vendite) o il predefinito (gli acquisti) —')) }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    {% if orders %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th style="width:32px;"></th><th>{{ _('Ordine') }}</th><th>{{ _('Titolo') }}</th><th class="text-right">{{ _('Stima') }}</th>
+            <th style="width:120px;">{{ _('Quote') }}</th><th style="width:130px;">{{ _('Prezzo €') }}</th><th style="width:120px;">{{ _('Commissione €') }}</th>
+            <th class="text-right">{{ _('Controvalore') }}</th></tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}{% set i = loop.index0 %}
+          <tr>
+            <td><input type="checkbox" name="do-{{ i }}" value="1" class="check" checked aria-label="{{ _('Eseguito') }}" />
+              <input type="hidden" name="holding-{{ i }}" value="{{ o.holding.id }}" />
+              <input type="hidden" name="side-{{ i }}" value="{{ o.side }}" /></td>
+            <td><span class="badge {{ 'badge-positive' if o.side == 'buy' else 'badge-negative' }}">{{ _('Compra') if o.side == 'buy' else _('Vendi') }}</span>
+              <div class="text-xs text-muted">{{ o.label }}</div></td>
+            <td>{{ o.holding.name }}{% if o.holding.ticker %}<div class="text-xs text-muted">{{ o.holding.ticker }}</div>{% endif %}</td>
+            <td class="text-right nowrap">{{ o.amount|money }}</td>
+            <td><input type="text" inputmode="decimal" name="units-{{ i }}" value="{{ o.units|plain }}" class="form-control" aria-label="{{ _('Quote di %(name)s', name=o.holding.name) }}" /></td>
+            <td><input type="text" inputmode="decimal" name="price-{{ i }}" value="{{ o.price|plain }}" class="form-control" aria-label="{{ _('Prezzo eseguito di %(name)s', name=o.holding.name) }}" /></td>
+            <td><input type="text" inputmode="decimal" name="fee-{{ i }}" value="{{ o.fee|plain if o.fee is not none else '' }}" class="form-control" placeholder="0,00" aria-label="{{ _('Commissione di %(name)s', name=o.holding.name) }}" /></td>
+            <td class="text-right nowrap" data-gross="{{ i }}"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+      <a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount, portfolio=folio_id) }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma ordini eseguiti') }}</button>
+    </div>
+    {% else %}
+    <div class="card-body text-muted">{{ _('Nessun ordine: il portafoglio è già in linea con il modello, o le parti da comprare non hanno ancora un titolo.') }}</div>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById('orders-form');
+  const value = name => parseAmount(form.querySelector('[name="' + name + '"]')?.value || '') || 0;
+  function update() {
+    form.querySelectorAll('[data-gross]').forEach(cell => {
+      const i = cell.dataset.gross, gross = value('units-' + i) * value('price-' + i);
+      cell.textContent = gross ? gross.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }) : '';
+    });
+  }
+  form.addEventListener('input', update);
+  update();
+})();
+</script>
+{% endblock %}

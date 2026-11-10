@@ -33,7 +33,7 @@ def _search(isin: str) -> list[tuple[str, dict]]:
 
 
 def find(isin: str) -> list[Candidate]:
-    return [Candidate("", name, "ETF" if data.get("t") == "ETF" else "Fondo", None, isin, source=SITE,
+    return [Candidate("", name, "ETF" if data.get("t") == "ETF" else "Fondo comune", None, isin, source=SITE,
                       price_source=SITE) for name, data in _search(isin)[:3]]
 
 

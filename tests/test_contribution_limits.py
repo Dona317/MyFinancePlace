@@ -16,7 +16,7 @@ from tests.conftest import make_tx
 def money(db):
     bank, pir = Account(name="Banca"), Account(name="Conto PIR")
     fund = Holding(name="Fondo Cometa", asset_class="Fondo Pensione", quantity=1, avg_price=1000)
-    etf = Holding(name="PIR Equity", asset_class="Fondo", quantity=10, avg_price=100)
+    etf = Holding(name="PIR Equity", asset_class="Fondo comune", quantity=10, avg_price=100)
     db.session.add_all([bank, pir, fund, etf])
     db.session.flush()
     db.session.add_all([

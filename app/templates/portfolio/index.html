@@ -1,8 +1,11 @@
 {% extends "base.html" %}
-{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block chart_scripts %}{% include "partials/charts.html" %}
+{# chartjs-chart-treemap 4.2.2 (MIT, Jukka Kurkela), only on this page: the treemap of the allocation #}
+<script src="{{ url_for('static', filename='vendor/chartjs-chart-treemap.min.js') }}"></script>{% endblock %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/info.html" import info %}
 
 {% block title %}{{ _('Portafoglio') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Portafoglio Investimenti') }}{% endblock %}
@@ -36,7 +39,29 @@
 <div class="row-2">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ _('Allocazione per Classe') }}</div>
+      <div class="card-header-title">{{ _('Per classe di attivo') }} {{ info(_('Azionario, obbligazionario, oro…: a cosa sei esposto. Si sceglie sul titolo; finché non la scegli è stimata dal tipo di strumento e dal nome.')) }}</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;">
+        {% if summary.classes %}<canvas id="assetClassChart"></canvas>
+        {% else %}<div class="chart-empty">{{ _('Aggiungi una posizione per vedere come è ripartito il patrimonio.') }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">{{ _('Per sede') }} {{ info(_('Il paese in cui ha sede il fondo (domicilio): conta per le tasse (es. fondi esteri) e per la ritenuta sui dividendi. Se non la indichi è il paese dell\'ISIN.')) }}</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;">
+        {% if summary.domiciles %}<canvas id="domicileChart"></canvas>
+        {% else %}<div class="chart-empty">{{ _('Aggiungi una posizione per vedere come è ripartito il patrimonio.') }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">{{ _('Per tipo di strumento') }} {{ info(_('ETF, azioni, fondi, obbligazioni…: con che cosa investi.')) }}</div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
@@ -48,13 +73,17 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Andamento del Portafoglio') }}</div>
-        <div class="card-header-sub">{{ _('Dalle istantanee') }}</div>
+        {% if series.value|length >= 2 %}
+        <div class="card-header-title">{{ _('Valore e versato') }} {{ info(_('Il valore degli investimenti a fine mese, ai prezzi registrati fino a quel giorno, e quanto ci hai messo (acquisti con commissioni meno vendite): la distanza tra le due linee è il guadagno.')) }}</div>
+        {% else %}
+        <div class="card-header-title">{{ _('Andamento del Portafoglio') }} {{ info(_('Dalle istantanee')) }}</div>
+        {% endif %}
       </div>
     </div>
     <div class="card-body">
       <div class="chart-container" style="height:220px;">
-        {% if trend.data|length >= 2 %}<canvas id="portfolioTrendChart"></canvas>
+        {% if series.value|length >= 2 %}<canvas id="valueInvestedChart"></canvas>
+        {% elif trend.data|length >= 2 %}<canvas id="portfolioTrendChart"></canvas>
         {% else %}<div class="chart-empty">
           {{ _('Il valore nel tempo viene dalle istantanee: creane una ogni mese da') }}
           <a href="{{ url_for('snapshots.index') }}">{{ _('&nbsp;Istantanee') }}</a>.
@@ -64,13 +93,24 @@
   </div>
 </div>
 
+{% if tree %}
+<div class="card mb-24">
+  <div class="card-header">
+    <div class="card-header-title">{{ _('Mappa dell\'allocazione') }} {{ info(_('Ogni riquadro è una posizione, raggruppata per classe di attivo: l\'area è proporzionale al valore. Mostra a colpo d\'occhio dove è concentrato il patrimonio, anche quando le posizioni sono tante.')) }}</div>
+  </div>
+  <div class="card-body">
+    <div class="chart-container" style="height:320px;"><canvas id="allocationTreemap" role="img" aria-label="{{ _('Mappa dell\'allocazione') }}"></canvas></div>
+  </div>
+</div>
+{% endif %}
+
 <!-- Tabella posizioni ─────────────────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
     <div class="card-header-title">{{ _('Posizioni') }}</div>
     <form method="GET" class="inline-filter">
-      <select name="asset_class" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Filtra per classe') }}">
-        <option value="">{{ _('Tutte le classi') }}</option>
+      <select name="asset_class" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Filtra per tipo di strumento') }}">
+        <option value="">{{ _('Tutti i tipi di strumento') }}</option>
         {% for cls in asset_classes %}
         <option value="{{ cls }}" {{ 'selected' if cls == selected }}>{{ cls|tr }}</option>
         {% endfor %}
@@ -80,6 +120,18 @@
       <select name="person" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Persona') }}">
         <option value="">{{ _('Tutta la famiglia') }}</option>
         {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if key == person }}>{{ name }}</option>{% endfor %}
+      </select>
+      {% endif %}
+      {% if folios|length > 1 or folio_id %}
+      <select name="portfolio" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Portafoglio') }}">
+        <option value="">{{ _('Tutti i portafogli') }}</option>
+        {% for p in folios %}<option value="{{ p.id }}" {{ 'selected' if p.id == folio_id }}>{{ p.name }}{{ ' ★' if p.is_default }}</option>{% endfor %}
+      </select>
+      {% endif %}
+      {% if dossiers|length > 1 or dossier_id %}
+      <select name="dossier" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Conto titoli') }}">
+        <option value="">{{ _('Tutti i conti titoli') }}</option>
+        {% for d in dossiers %}<option value="{{ d.id }}" {{ 'selected' if d.id == dossier_id }}>{{ d.name }}</option>{% endfor %}
       </select>
       {% endif %}
       <noscript><button class="btn btn-ghost btn-sm">{{ _('Filtra') }}</button></noscript>
@@ -92,7 +144,7 @@
       <thead>
         <tr>
           <th>{{ _('Strumento') }}</th>
-          <th>{{ _('Classe') }}</th>
+          <th>{{ _('Tipo e classe') }}</th>
           <th class="text-right">{{ _('Quantità') }}</th>
           <th class="text-right">{{ _('Prezzo Medio') }}</th>
           <th class="text-right">{{ _('Prezzo Attuale') }}</th>
@@ -109,7 +161,8 @@
             <div class="cell-title"><a href="{{ url_for('portfolio.detail', holding_id=h.id) }}">{{ h.name }}</a></div>
             {% if h.ticker %}<div class="text-xs text-muted">{{ h.ticker }}</div>{% endif %}
           </td>
-          <td><span class="badge badge-primary">{{ h.asset_class|tr }}</span></td>
+          <td><span class="badge badge-primary">{{ h.asset_class|tr }}</span>
+            <div class="text-xs text-muted">{{ asset_class_of(h)|tr }}</div></td>
           <td class="amount text-right">{{ h.quantity|number(8) }}</td>
           <td class="amount text-right">{{ h.avg_price|money }}</td>
           <td class="amount text-right">
@@ -133,7 +186,7 @@
         </tr>
         {% endfor %}
       </tbody>
-      {% if not selected %}
+      {% if not selected or folio_id or dossier_id %}
       <tfoot>
         <tr>
           <td colspan="5">{{ _('Totale') }}</td>
@@ -163,13 +216,33 @@
 
 {% block scripts %}
 <script>
+{% if summary.classes %}
+makeDoughnutChart('assetClassChart',
+  {{ summary.classes | map(attribute=0) | map('tr') | list | tojson }},
+  {{ summary.classes | map(attribute=1) | map('round', 2) | list | tojson }}
+);
+{% endif %}
+{% if summary.domiciles %}
+makeDoughnutChart('domicileChart',
+  {{ summary.domiciles | map(attribute=0) | map('tr') | list | tojson }},
+  {{ summary.domiciles | map(attribute=1) | map('round', 2) | list | tojson }}
+);
+{% endif %}
 {% if summary.allocation %}
 makeDoughnutChart('allocationChart',
   {{ summary.allocation | map(attribute=0) | map('tr') | list | tojson }},
   {{ summary.allocation | map(attribute=1) | map('round', 2) | list | tojson }}
 );
 {% endif %}
-{% if trend.data|length >= 2 %}
+{% if tree %}
+makeTreemapChart('allocationTreemap', {{ tree | tojson }});
+{% endif %}
+{% if series.value|length >= 2 %}
+makeLineChart('valueInvestedChart', {{ series.labels | tojson }}, [
+  { label: {{ _('Valore')|tojson }}, data: {{ series.value | tojson }} },
+  { label: {{ _('Versato')|tojson }}, data: {{ series.invested | tojson }}, dash: [6, 4] }
+]);
+{% elif trend.data|length >= 2 %}
 makeLineChart('portfolioTrendChart', {{ trend.labels | tojson }}, [
   { label: {{ _('Investimenti')|tojson }}, data: {{ trend.data | tojson }} }
 ]);

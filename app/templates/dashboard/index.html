@@ -217,7 +217,7 @@
 {% set shock_names = {'car': _('Auto da riparare o sostituire'), 'appliance': _('Elettrodomestico (lavatrice, frigo)'), 'house': _('Casa (tetto, caldaia)'), 'health': _('Spese mediche')} %}
 
 <div class="fc-grid dash-grid" id="fc-grid">
-{% for w in layout if not (w.id == 'recent' and not allowed('transactions')) %}
+{% for w in layout if not (w.id == 'recent' and not allowed('transactions')) and not (w.id in ('investments', 'investments_trend') and not allowed('portfolio')) %}
 <section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-height="{{ w.height }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
   {% call blocks.tools() %}{{ widgets[w.id][0] }}{% endcall %}
 
@@ -225,7 +225,8 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Flusso di cassa e risparmio — %(period)s', period=period_label) }}</div>
+        <div class="card-header-title">{{ _('Flusso di cassa e risparmio — %(period)s', period=period_label) }}
+          {{ info(_('La linea tratteggiata grigia sono le uscite degli stessi mesi dell’anno prima.')) }}</div>
         <div class="card-header-sub">{{ _('Entrate, uscite e risparmio del mese; le barre sono il risparmio cumulato. Clic sulla legenda per mostrare anche entrate e uscite cumulate.') }}</div>
       </div>
       <a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
@@ -243,6 +244,33 @@
       <a href="{{ url_for('accounting.growth') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
     </div>
     <div class="card-body"><div class="chart-container" style="height:300px;"><canvas id="netWorthChart"></canvas></div></div>
+  </div>
+
+  {% elif w.id in ('investments', 'investments_trend') %}
+  {% set inv = investments %}
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">{{ _('Investimenti') if w.id == 'investments' else _('Investimenti: valore e versato') }}</div>
+      <a href="{{ url_for('portfolio.overview_page') }}" class="btn btn-ghost btn-sm">{{ _('Panoramica') }} <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% if not inv or inv.empty %}
+    <div class="card-body"><div class="chart-empty">{{ _('Nessun investimento: aggiungi le posizioni nel Portafoglio.') }}</div></div>
+    {% elif w.id == 'investments' %}
+    <div class="card-body">
+      <div class="d-flex gap-8" style="justify-content:space-between;flex-wrap:wrap;">
+        <div><div class="text-xs text-muted">{{ _('Valore') }}</div><strong>{{ inv.value|money }}</strong></div>
+        <div><div class="text-xs text-muted">{{ _('Versato') }}</div><strong>{{ inv.invested|money }}</strong></div>
+        <div><div class="text-xs text-muted">{{ _('Guadagno') }}</div><strong class="{{ 'text-positive' if inv.gain >= 0 else 'text-negative' }}">{{ '+' if inv.gain > 0 }}{{ inv.gain|money }}</strong></div>
+        <div><div class="text-xs text-muted">XIRR</div><strong>{{ ((inv.xirr|number(1)) ~ ' %') if inv.xirr is not none else '—' }}</strong></div>
+      </div>
+      <div class="chart-container" style="height:180px;margin-top:12px;"><canvas id="dashInvClassChart"></canvas></div>
+    </div>
+    {% else %}
+    <div class="card-body"><div class="chart-container" style="height:260px;">
+      {% if inv.series.value|length >= 2 %}<canvas id="dashInvValueChart"></canvas>
+      {% else %}<div class="chart-empty">{{ _('Servono almeno due mesi di prezzi e operazioni.') }}</div>{% endif %}
+    </div></div>
+    {% endif %}
   </div>
 
   {% elif w.id == 'expense_pie' %}{{ pie('expense', _('Uscite per categoria'), expense_breakdown) }}
@@ -442,6 +470,8 @@ if (shown('cashflow')) {
   makeBarChart('cashFlowChart', cashFlow.labels, [
     { label: {{ _('Entrate')|tojson }}, data: cashFlow.income, color: 'income', type: 'line' },
     { label: {{ _('Uscite')|tojson }}, data: cashFlow.expenses, color: 'expense', type: 'line' },
+    // the same months a year before, dashed and thin, on the same axis (F65)
+    { label: {{ _('Uscite anno prima')|tojson }}, data: cashFlow.expenses_previous, color: 'textMuted', type: 'line', dash: [6, 4], pointRadius: 0 },
     { label: {{ _('Risparmio del mese')|tojson }}, data: flow.saved, color: 'amber', type: 'line', dash: [5, 4] },  // the cumulated one stays orange
     { label: {{ _('Risparmio cumulato')|tojson }}, data: flow.saved_cumulative, color: 'primary', axis: 'right' },
     { label: {{ _('Entrate cumulate')|tojson }}, data: flow.income_cumulative, color: 'income', type: 'line', axis: 'right', dash: [2, 3], hidden: {{ (not settings.dashboard_cumulative)|tojson }} },
@@ -495,6 +525,18 @@ const txUrl = {{ (not tx_ok)|tojson }} ? null : (category, type) => {{ tx_url|to
       } : undefined });
   });
 
+{% if investments and not investments.empty %}
+if (shown('investments') && document.getElementById('dashInvClassChart')) {
+  makeDoughnutChart('dashInvClassChart', {{ investments.classes|map(attribute=0)|map('tr')|list|tojson }},
+    {{ investments.classes|map(attribute=1)|map('round', 2)|list|tojson }});
+}
+if (shown('investments_trend') && document.getElementById('dashInvValueChart')) {
+  makeLineChart('dashInvValueChart', {{ investments.series.labels|tojson }}, [
+    { label: {{ _('Valore')|tojson }}, data: {{ investments.series.value|tojson }} },
+    { label: {{ _('Versato')|tojson }}, data: {{ investments.series.invested|tojson }}, dash: [6, 4] }
+  ]);
+}
+{% endif %}
 if (shown('year_total')) {
   const totals = {{ period_totals|tojson }};
   const yearNet = Math.round((totals.income - totals.expenses) * 100) / 100;

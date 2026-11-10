@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+from urllib.parse import urlencode
 
 from flask import url_for
 from flask_babel import gettext as _
@@ -64,7 +65,18 @@ class Deadline:
     def icon(self) -> str:
         return ICONS.get(self.kind, "calendar-event")
 
+    @property
+    def google_url(self) -> str:
+        """Google Calendar's «new event» page filled with this deadline (an all-day event): opened in the browser,
+        where the user is signed in, it only needs «Salva»."""
+        summary = self.title + (f" — {self.amount:.2f} €".replace(".", ",") if self.amount else "")
+        return GOOGLE_NEW_EVENT + urlencode({
+            "action": "TEMPLATE", "text": summary, "details": self.detail or "",
+            "dates": f"{self.day:%Y%m%d}/{self.day + timedelta(days=1):%Y%m%d}"})
 
+
+GOOGLE_NEW_EVENT = "https://calendar.google.com/calendar/render?"
+GOOGLE_IMPORT = "https://calendar.google.com/calendar/r/settings/export"  # Impostazioni → Importa ed esporta
 ICONS = {"recurring": "arrow-repeat", "installment": "credit-card", "policy": "shield-check", "plan": "piggy-bank",
          "goal": "trophy", "loan": "arrow-left-right", "limit": "piggy-bank", "fiscal": "percent",
          "reminder": "calendar-check", "document": "file-earmark-text", "warranty": "shield-check"}

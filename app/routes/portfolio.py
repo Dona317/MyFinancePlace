@@ -8,9 +8,29 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.account import Account
+from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding, HoldingPrice, Snapshot
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
-from app.services import accounts, broker, composition, display, family, portfolio_ops, price_feed, taxonomies, valuations, wealth
+from app.services import (
+    accounts,
+    asset_classes,
+    bonds,
+    broker,
+    composition,
+    display,
+    family,
+    fund_facts,
+    lookthrough,
+    performance,
+    portfolio_charts,
+    portfolio_models,
+    portfolio_ops,
+    price_feed,
+    securities,
+    taxonomies,
+    valuations,
+    wealth,
+)
 from app.services.i18n import _l
 from app.services.instrument_sources import custom
 from app.services.parsing import to_decimal
@@ -54,11 +74,59 @@ def _instrument_from_form(holding: Holding) -> None:
         if request.form.get("price_source") else "auto"
 
 
+def _fund_facts_from_form(holding: Holding) -> None:
+    """The fund's characteristics (all optional): issuer, domicile, TER, distribution, replication, index, launch
+    date and currency hedging."""
+    holding.issuer = form_text("issuer", _("Emittente"))
+    domicile = (form_text("domicile", _("Sede")) or "").upper()
+    if domicile and not re.fullmatch(r"[A-Z]{2}", domicile):
+        raise ValueError(_("Sede: il codice del paese a due lettere (IE, LU, IT…)."))
+    holding.domicile = domicile or None
+    holding.ter = form_decimal("ter", _("TER"))
+    if holding.ter is not None and holding.ter > 10:
+        raise ValueError(_("TER: una percentuale annua, di solito tra 0,05 e 3."))
+    holding.distribution = form_choice("distribution", _("Proventi"), fund_facts.DISTRIBUTION) \
+        if request.form.get("distribution") else None
+    holding.replication = form_choice("replication", _("Replica"), fund_facts.REPLICATION) \
+        if request.form.get("replication") else None
+    holding.index_name = form_text("index_name", _("Indice replicato"))
+    holding.launch_date = form_date("launch_date", _("Data di lancio"))
+    holding.currency_hedged = bool(request.form.get("currency_hedged"))
+
+
+def _bond_terms_from_form(holding: Holding) -> None:
+    """A bond's terms (F53, all optional): type, coupon rate and frequency, maturity, redemption, first coupon date,
+    issue price."""
+    holding.bond_type = form_choice("bond_type", _("Tipo di obbligazione"), bonds.BOND_TYPES) \
+        if request.form.get("bond_type") else None
+    holding.coupon_rate = form_decimal("coupon_rate", _("Cedola annua lorda"))
+    if holding.coupon_rate is not None and holding.coupon_rate > 50:
+        raise ValueError(_("Cedola annua lorda: una percentuale del nominale, es. 3,5."))
+    frequency = request.form.get("coupon_frequency") or None
+    holding.coupon_frequency = int(form_choice("coupon_frequency", _("Cedole all'anno"),
+                                               [str(k) for k in bonds.FREQUENCIES])) if frequency else None
+    holding.maturity_date = form_date("maturity_date", _("Scadenza"))
+    holding.redemption = form_decimal("redemption", _("Rimborso a scadenza"))
+    if holding.redemption is not None and not 0 < holding.redemption <= 1000:
+        raise ValueError(_("Rimborso a scadenza: una percentuale del nominale, di solito 100."))
+    holding.first_coupon_date = form_date("first_coupon_date", _("Prima cedola"))
+    if holding.first_coupon_date and holding.maturity_date and holding.first_coupon_date > holding.maturity_date:
+        raise ValueError(_("La prima cedola non può essere dopo la scadenza."))
+    holding.issue_price = form_decimal("issue_price", _("Prezzo di emissione"))
+    if holding.issue_price is not None and not 0 < holding.issue_price <= 1000:
+        raise ValueError(_("Prezzo di emissione: una percentuale del nominale, es. 99,5."))
+
+
 def _holding_from_form(holding: Holding) -> Holding:
     holding.name = form_text("name", _("Nome"), required=True)
     holding.ticker = form_text("ticker", _("Ticker"))
-    holding.asset_class = form_choice("asset_class", _("Classe"), wealth.ASSET_CLASSES)
+    holding.asset_class = form_choice("asset_class", _("Tipo di strumento"), wealth.ASSET_CLASSES)
+    chosen = request.form.get("allocation_class") or None  # empty: estimated from the instrument and the name
+    holding.allocation_class = form_choice("allocation_class", _("Classe di attivo"),
+                                           asset_classes.CLASSES) if chosen else None
     _instrument_from_form(holding)
+    _fund_facts_from_form(holding)
+    _bond_terms_from_form(holding)
     holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
     holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
     price = form_decimal("current_price", _("Prezzo attuale"))
@@ -93,6 +161,12 @@ def _holding_from_form(holding: Holding) -> Holding:
 
 def _render_form(holding, values):
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
+                           allocation_classes=asset_classes.CLASSES, distribution=fund_facts.DISTRIBUTION,
+                           replication=fund_facts.REPLICATION,
+                           bond_types=bonds.BOND_TYPES, frequencies=bonds.FREQUENCIES,
+                           domicile_hint=fund_facts.domicile_code(holding) if holding is not None else None,
+                           estimated=asset_classes.estimate(holding.asset_class, holding.name, holding.ticker)
+                           if holding is not None else None,
                            suggested_rates=valuations.SUGGESTED_RATES,
                            sources=source_labels(), online=current_settings()["prices_online"],
                            regions=composition.REGIONS, sectors=composition.SECTORS)
@@ -105,18 +179,30 @@ def index():
     selected = request.args.get("asset_class", "")
     person = request.args.get("person", "")
     holdings = family.holdings_of(person, wealth.holdings_on())
+    # F42: one portfolio and/or one securities account → their positions, which read like holdings
+    folio_id = request.args.get("portfolio", type=int)
+    dossier_id = request.args.get("dossier", type=int)
+    if securities.ensure_assigned():  # operations from before F42 or linked since: placed once
+        db.session.commit()
+    if folio_id or dossier_id:
+        holdings = securities.positions(holdings, portfolio_id=folio_id, securities_account_id=dossier_id)
     today = date.today()
     snapshots = Snapshot.query.order_by(Snapshot.taken_on, Snapshot.id).all()
     return render_template(
         "portfolio/index.html",
         holdings=[h for h in holdings if not selected or h.asset_class == selected],
         summary=wealth.portfolio_summary(holdings),
+        tree=portfolio_charts.allocation_tree(holdings),  # G50: asset class → holding, for the treemap
         dividends_ytd=wealth.dividends(date(today.year, 1, 1), date(today.year + 1, 1, 1)),
-        asset_classes=wealth.ASSET_CLASSES,
+        asset_classes=wealth.ASSET_CLASSES, asset_class_of=asset_classes.of,
         selected=selected,
         person=person,
+        folios=securities.portfolios(), dossiers=securities.accounts(), folio_id=folio_id, dossier_id=dossier_id,
         trend={"labels": [s.taken_on.strftime("%d/%m/%y") for s in snapshots],
                "data": [float(s.investments) for s in snapshots]},
+        # F47: the value month by month from the prices and the money put in (the snapshots only as a fallback)
+        series=performance.value_series([h for h in family.holdings_of(person, wealth.holdings_on())
+                                         if wealth.ASSET_CLASSES.get(h.asset_class, ("", False))[1]]),
     )
 
 
@@ -137,8 +223,13 @@ def detail(holding_id):
                            financed=[row for row in wealth.financed_assets() if row["holding"].id == holding.id],
                            perf=portfolio_ops.performance([holding]), kinds=portfolio_ops.KINDS,
                            taxonomies=taxonomies.all_taxonomies(), classified=taxonomies.of_holding(holding),
-                           kind_of=portfolio_ops.kind_of,
-                           chart={"labels": [p.on.isoformat() for p in points], "data": [float(p.price) for p in points]})
+                           kind_of=portfolio_ops.kind_of, domicile=fund_facts.domicile_name(holding),
+                           distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
+                           asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
+                           chart=portfolio_charts.price_chart(holding, points),  # G40: with the operations
+                           look=lookthrough.summary(holding), manual_rows=lookthrough.MANUAL_ROWS,
+                           look_funds=lookthrough.FUNDS,
+                           contribution=performance.contribution_of(holding, portfolio_models.investments()))
 
 
 def _operation_from_form() -> portfolio_ops.Operation:
@@ -154,7 +245,15 @@ def _operation_from_form() -> portfolio_ops.Operation:
         price=form_decimal("price", _("Prezzo per quota")) if trade else None,
         amount=None if trade else form_decimal("amount", _("Importo")),
         fee=form_decimal("fee", _("Commissione")) if trade else None,
-        notes=form_text("notes", _("Note")))
+        notes=form_text("notes", _("Note")),
+        securities_account=_chosen(SecuritiesAccount, "securities_account_id"),
+        portfolio=_chosen(Portfolio, "portfolio_id"))
+
+
+def _chosen(model, field: str):
+    """The securities account or portfolio picked in a form; empty = the usual one (None)."""
+    chosen_id = request.form.get(field, type=int)
+    return db.session.get(model, chosen_id) if chosen_id else None
 
 
 @portfolio_bp.route("/<int:holding_id>/operation", methods=["GET", "POST"])
@@ -176,9 +275,14 @@ def operation(holding_id):
                   "success")
             return redirect(url_for("portfolio.detail", holding_id=holding.id))
     active = accounts.active()
+    dossiers = securities.accounts()
     return render_template("portfolio/operation.html", holding=holding, values=values, today=date.today(),
                            kinds=portfolio_ops.KINDS, accounts=[(a.id, a.name) for a in active],
-                           fee_rules=broker.rules(active)), 400 if values else 200
+                           fee_rules=broker.rules(active), dossiers=[(d.id, d.name) for d in dossiers],
+                           dossier_of={d.id: d.settlement_account_id for d in dossiers},
+                           folios=[(p.id, p.name) for p in securities.portfolios()],
+                           default_folio=securities.default_portfolio().id,
+                           positions=securities.positions([holding])), 400 if values else 200
 
 
 @portfolio_bp.route("/<int:holding_id>/edit", methods=["GET", "POST"])
@@ -319,5 +423,5 @@ def delete(holding_id):
     return delete_and_redirect(holding, _("Posizione «%(name)s» eliminata.", name=holding.name), url_for("portfolio.index"))
 
 
-# registers the broker import, link, model portfolio, rule and PAC routes on portfolio_bp
-from app.routes import portfolio_import, portfolio_rules, portfolio_templates  # noqa: E402,F401
+# registers the broker import, link, model portfolio, rule, PAC and portfolio/securities account routes on portfolio_bp
+from app.routes import portfolio_import, portfolio_rules, portfolio_securities, portfolio_templates  # noqa: E402,F401
