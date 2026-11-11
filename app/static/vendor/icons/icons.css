@@ -50,6 +50,7 @@
 .bi-box-arrow-right::before { content: "\f1c3"; }
 .bi-box-arrow-up::before { content: "\f1c6"; }
 .bi-box-arrow-up-right::before { content: "\f1c5"; }
+.bi-box-seam::before { content: "\f1c7"; }
 .bi-boxes::before { content: "\f685"; }
 .bi-briefcase::before { content: "\f1cc"; }
 .bi-bucket::before { content: "\f1da"; }
