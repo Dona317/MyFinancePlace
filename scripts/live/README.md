@@ -44,7 +44,7 @@ vengono toccati.
 | `wealth.py` | 20 | Portafoglio e prezzi, debiti, polizze, obiettivi, documenti, stato patrimoniale, istantanee, backup e ripristino |
 | `features.py` | 65 | Valute e conti, importi con segno, tag, sottocategorie, divisione, giroconti, budget, esercente dalla causale, CSV senza intestazione, dashboard (Sankey, flusso di cassa, interruttori), categorie e regole, inglese, cambio password, natura delle categorie, autonomia, abbonamenti, OFX/CAMT, giro di tutte le pagine in chiaro/scuro su desktop e telefono |
 | `securities.py` | 16 | Conti titoli e portafogli: due broker, operazioni dalla pagina del titolo, posizioni per conto, ribilanciamento in ordini |
-| `investments.py` | — | I dati fittizi degli investimenti: ripristino di `samples/dati_fittizi/investimenti/backup_investimenti.zip`, tutte le pagine del Portafoglio, ribilanciamento (totale, con nuovi soldi, ordini, per portafoglio), import degli estratti dei due conti titoli con i doppioni riconosciuti. Va per ultimo: il ripristino sostituisce i dati |
+| `investments.py` | 65 | I dati fittizi degli investimenti: ripristino di `samples/dati_fittizi/investimenti/backup_investimenti.zip`, tutte le pagine del Portafoglio, ribilanciamento (totale, con nuovi soldi, ordini, per portafoglio), import degli estratti dei due conti titoli con i doppioni riconosciuti. Va per ultimo: il ripristino sostituisce i dati |
 
 Gli script girano in quest'ordine sullo stesso database: ognuno parte dai dati lasciati dal precedente.
 Si possono rilanciare uno per uno (`python scripts/live/features.py`) con server e Ollama finto già accesi.

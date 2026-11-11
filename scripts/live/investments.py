@@ -132,7 +132,7 @@ with sync_playwright() as p:
             pg.click("#model-form button[type=submit].btn-primary")
         check("model: band saved", sql(f"SELECT band::int FROM portfolio_templates WHERE id = {model}") == "12")
         pg.goto(B + "/portfolio/rebalance?mode=full")
-        check("model: with a band of 12 points nothing is out of band", "fuori dalla tolleranza" not in pg.content())
+        check("model: with a band of 12 points nothing is out of band", "Tutte le parti sono entro ± 12" in pg.inner_text("main"))
         shot("rebalance_band_12")
         pg.goto(f"{B}/portfolio/models/{model}")
         pg.fill("#band", "5")
