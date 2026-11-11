@@ -10,7 +10,8 @@
       <div>
         <div class="card-header-title">{{ plan.name }} · {{ plan.amount|money }}</div>
         <div class="card-header-sub">
-          {{ _('Diviso secondo «%(model)s», ai prezzi più recenti. Correggi quote e prezzi con quelli eseguiti dal broker.', model=plan.template.name if plan.template else _('il portafoglio modello attivo')) }}
+          {{ _('Diviso secondo «%(model)s», ai prezzi più recenti. Correggi quote e prezzi con quelli eseguiti dal broker.', model=model.name if model else _('il portafoglio modello attivo')) }}
+          {% if place[1] or place[2] %}<div>{{ _('Compra per «%(folio)s» in «%(dossier)s».', folio=place[2].name if place[2] else _('il portafoglio predefinito'), dossier=place[1].name if place[1] else (place[0].name if place[0] else _('nessun conto titoli'))) }}</div>{% endif %}
           {% if not is_due %}<span class="text-muted">{{ _('(nessuna rata in scadenza: puoi comunque investire ora)') }}</span>{% endif %}
         </div>
       </div>

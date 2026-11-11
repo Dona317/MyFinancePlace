@@ -116,6 +116,15 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   controparti" for saved transactions; checked on every sample statement
 - **Full backup (.zip) and restore**, with an automatic copy of the replaced data; the older JSON export of
   the transactions can be re-imported
+- **PAC for a portfolio and a securities account** (F52, migration `d4f6a8c0e2b7`): a plan says for which
+  portfolio it buys and in which securities account; the purchases go there (and into the order register), the money
+  leaves that account's liquidity, the commission follows the securities account's rule; without a model of its own
+  a plan follows its portfolio's active model. Fix (11 Nov 2026): starring the portfolio that was already the
+  default one left no default (then a new «Portafoglio principale» appeared)
+- **Fictitious investments** (11 Nov 2026, `samples/dati_fittizi/genera_investimenti.py`): 10 ETFs of ten asset
+  classes, shares, bonds, mutual/insurance/pension funds on two securities accounts, a model portfolio out of band,
+  and the statements of both accounts (the history is recognized as already imported); checked by
+  `tests/test_investments_dataset.py` and by the live run `scripts/live/investments.py`
 
 ## 🔜 To do
 

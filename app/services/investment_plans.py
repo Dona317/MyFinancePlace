@@ -2,6 +2,11 @@
 Investment plans, the Italian PAC (F19e): an amount invested every month or quarter on a set day. When the day comes,
 a reminder asks to confirm; the confirmation page splits the amount as the model portfolio says (new money only:
 the parts furthest below their target first) at the latest prices, and the purchases become the holdings' operations.
+
+A plan can buy for one portfolio and in one securities account (F52): the purchases go there (the order register
+shows them like any other trade), the money leaves the securities account's liquidity unless another account is
+chosen, and the commission follows the securities account's rule (else the account's). Without a model of its own,
+a plan for a portfolio follows that portfolio's active model.
 """
 from __future__ import annotations
 
@@ -13,7 +18,9 @@ from decimal import ROUND_DOWN, Decimal
 from flask_babel import gettext as _
 
 from app.extensions import db
+from app.models.account import Account
 from app.models.portfolio_model import InvestmentPlan
+from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
 from app.services import broker, money, portfolio_models, portfolio_ops
 from app.services.i18n import N_
@@ -86,9 +93,32 @@ def _units(amount: Decimal, price: Decimal | None, fractional: bool) -> Decimal 
     return units.quantize(UNITS, rounding=ROUND_DOWN) if fractional else units.to_integral_value(rounding=ROUND_DOWN)
 
 
+def template_of(plan: InvestmentPlan):
+    """The model the plan follows: its own, else the active one of its portfolio, else the one of everything."""
+    if plan.template is not None:
+        return plan.template
+    return (portfolio_models.active(plan.portfolio_id) if plan.portfolio_id else None) or portfolio_models.active()
+
+
+def place_of(plan: InvestmentPlan) -> tuple[Account | None, SecuritiesAccount | None, Portfolio | None]:
+    """Where an instalment is bought: the money account, the securities account and the portfolio (None = the
+    usual defaults: the money account's securities account, the default portfolio)."""
+    dossier = plan.securities_account
+    account = plan.account or (dossier.settlement_account if dossier is not None else None)
+    template = template_of(plan)
+    folio = plan.portfolio or (template.portfolio if template is not None else None)  # F50: a portfolio's model
+    return account, dossier, folio
+
+
+def fee_for(plan: InvestmentPlan, gross: Decimal) -> Decimal | None:
+    account, dossier, _folio = place_of(plan)
+    rule = dossier if dossier is not None and dossier.has_fee_rule else account
+    return broker.commission(rule, gross)
+
+
 def proposal(plan: InvestmentPlan) -> list[Purchase]:
     """The instalment split among the parts of the plan's model (or the active one) at the latest prices."""
-    template = plan.template or portfolio_models.active()
+    template = template_of(plan)
     if template is None:
         raise PlanError(_("Il piano ha bisogno di un portafoglio modello: creane uno o rendine uno attivo."))
     slots = {slot.label: slot for slot in template.slots}
@@ -129,15 +159,15 @@ def _holding(order: Order) -> Holding:
 def confirm(plan: InvestmentPlan, orders: list[Order], on: date) -> int:
     """Buy what was confirmed (with the broker's commission) and mark the period done."""
     bought = 0
-    template = plan.template or portfolio_models.active()
-    folio = template.portfolio if template is not None else None  # F50: a portfolio's model buys for it
+    account, dossier, folio = place_of(plan)
     for order in orders:
         if order.units <= 0 or order.price <= 0:
             continue
         holding = _holding(order)
-        fee = broker.commission(plan.account, money.cents(order.units * order.price))
-        portfolio_ops.record(holding, portfolio_ops.Operation("buy", on, plan.account, units=order.units,
+        fee = fee_for(plan, money.cents(order.units * order.price))
+        portfolio_ops.record(holding, portfolio_ops.Operation("buy", on, account, units=order.units,
                                                               price=order.price, fee=fee, portfolio=folio,
+                                                              securities_account=dossier,
                                                               notes=_("PAC «%(name)s»", name=plan.name)))
         bought += 1
     if not bought:

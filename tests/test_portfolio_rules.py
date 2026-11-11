@@ -231,3 +231,65 @@ def test_plan_reminder(app, db, book):
         db.session.commit()
         items = [n for n in notifications.collect(TODAY) if n.key.startswith("plan-")]
     assert [(n.title, n.url.endswith("/run")) for n in items] == [("PAC «PAC»: € 300,00 da investire", True)]
+
+
+def test_plan_for_a_portfolio_and_a_securities_account(app, db, book):
+    """F52: the instalment is bought for the plan's portfolio, in its securities account, paid from that account's
+    liquidity, with the securities account's commission; without a model, the portfolio's active one is used."""
+    from app.models.securities import Portfolio, SecuritiesAccount
+    from app.services import securities
+
+    world, _bonds = book
+    cash = Account(name="Liquidità Fineco", kind="other", fee_fixed=Decimal("9"))
+    db.session.add(cash)
+    with app.test_request_context():
+        securities.save_portfolio(None, "Principale")
+        pension = securities.save_portfolio(None, "Pensione")
+        dossier = securities.save_account(None, {"name": "Dossier Fineco", "settlement_account_id": cash.id,
+                                                 "fee_fixed": Decimal("2.95")})
+        template = portfolio_models.copy_ready("all-equity")
+        template.portfolio_id = pension.id
+        portfolio_models.activate(template)
+        plan = InvestmentPlan(name="PAC pensione", amount=500, frequency="monthly", day=1, start=date(2026, 1, 1),
+                              portfolio=pension, securities_account=dossier)
+        db.session.add(plan)
+        db.session.commit()
+        assert investment_plans.template_of(plan) is template
+        assert investment_plans.place_of(plan) == (cash, dossier, pension)
+        assert investment_plans.fee_for(plan, Decimal(500)) == Decimal("2.95")  # the dossier's rule, not the account's
+        assert investment_plans.confirm(plan, [Order(world.id, "Azioni", None, None, Decimal(5), Decimal(100))],
+                                        date(2026, 10, 1)) == 1
+        db.session.commit()
+    trade = Transaction.query.filter(Transaction.units.isnot(None)).one()
+    fee = Transaction.query.filter(Transaction.fee_for_id == trade.id).one()
+    assert (trade.account_id, trade.securities_account_id, trade.portfolio_id) == (cash.id, dossier.id, pension.id)
+    assert (fee.amount, fee.securities_account_id, fee.portfolio_id) == (Decimal("2.95"), dossier.id, pension.id)
+    assert "PAC pensione" in trade.notes
+    assert Portfolio.query.count() == 2 and SecuritiesAccount.query.count() == 1
+
+
+def test_plan_pages_save_the_portfolio_and_the_securities_account(client, db, book):
+    from app.models.securities import Portfolio, SecuritiesAccount
+
+    cash = Account(name="Liquidità Directa", kind="other")
+    db.session.add(cash)
+    db.session.flush()
+    folio = Portfolio(name="Reddito", is_default=True)
+    dossier = SecuritiesAccount(name="Conto titoli Directa", settlement_account_id=cash.id)
+    db.session.add_all([folio, dossier])
+    db.session.commit()
+    page = client.get("/portfolio/plans/new").get_data(as_text=True)
+    assert "Conto titoli Directa" in page and "Reddito" in page
+    form = {"name": "PAC reddito", "amount": "300", "frequency": "monthly", "day": "5", "start": "2026-01-01",
+            "end": "", "account_id": "", "template_id": "", "portfolio_id": str(folio.id),
+            "securities_account_id": str(dossier.id)}
+    page = client.post("/portfolio/plans/new", data=form, follow_redirects=True).get_data(as_text=True)
+    assert "Reddito · Conto titoli Directa" in page
+    plan = InvestmentPlan.query.one()
+    assert (plan.portfolio_id, plan.securities_account_id) == (folio.id, dossier.id)
+    client.post("/portfolio/models/ready/80-20")
+    page = client.get(f"/portfolio/plans/{plan.id}/run").get_data(as_text=True)
+    assert "Compra per «Reddito» in «Conto titoli Directa»." in page
+    client.post(f"/portfolio/plans/{plan.id}", data={**form, "portfolio_id": "999", "securities_account_id": ""})
+    db.session.refresh(plan)
+    assert (plan.portfolio_id, plan.securities_account_id) == (None, None)

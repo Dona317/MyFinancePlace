@@ -10,6 +10,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate
+from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
 from app.routes.helpers import uploaded_file, year_arg
 from app.routes.portfolio import portfolio_bp
@@ -29,6 +30,7 @@ from app.services import (
     portfolio_ops,
     portfolio_rules,
     price_feed,
+    securities,
     taxonomies,
 )
 from app.services.parsing import to_date, to_decimal
@@ -79,6 +81,7 @@ def rule_delete(rule_id):
 def _plan_page(plan: InvestmentPlan | None, values):
     return render_template("portfolio/plan_form.html", plan=plan, values=values, accounts=accounts.active(),
                            templates=PortfolioTemplate.query.order_by(PortfolioTemplate.name).all(),
+                           folios=securities.portfolios(), dossiers=securities.accounts(),
                            frequencies=investment_plans.FREQUENCIES, today=date.today())
 
 
@@ -99,6 +102,9 @@ def _plan_form(plan: InvestmentPlan | None):
     plan.start, plan.end, plan.fractional = start, end, bool(form.get("fractional"))
     plan.account_id = account_id if account_id and db.session.get(Account, account_id) else None
     plan.template_id = template_id if template_id and db.session.get(PortfolioTemplate, template_id) else None
+    folio_id, dossier_id = form.get("portfolio_id", type=int), form.get("securities_account_id", type=int)
+    plan.portfolio_id = folio_id if folio_id and db.session.get(Portfolio, folio_id) else None
+    plan.securities_account_id = dossier_id if dossier_id and db.session.get(SecuritiesAccount, dossier_id) else None
     db.session.add(plan)
     db.session.commit()
     flash(_("Piano d'accumulo salvato."), "success")
@@ -154,6 +160,7 @@ def plan_run(plan_id):
         flash(str(exc), "error")
         return redirect(url_for("portfolio.models_index"))
     return render_template("portfolio/plan_run.html", plan=plan, purchases=purchases, today=date.today(),
+                           place=investment_plans.place_of(plan), model=investment_plans.template_of(plan),
                            is_due=investment_plans.is_due(plan, date.today()))
 
 

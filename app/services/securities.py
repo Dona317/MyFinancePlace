@@ -59,7 +59,11 @@ def accounts(active_only: bool = True) -> list[SecuritiesAccount]:
 
 def set_default(portfolio: Portfolio) -> None:
     """The star: exactly one default portfolio, where new operations go when none is chosen."""
-    Portfolio.query.filter(Portfolio.is_default.is_(True)).update({"is_default": False}, synchronize_session=False)
+    # the others only: a bulk update of this one too would not reach its loaded object (still «True» in the session),
+    # so setting it back to True would write nothing and leave no portfolio starred
+    db.session.flush()
+    (Portfolio.query.filter(Portfolio.is_default.is_(True), Portfolio.id != portfolio.id)
+     .update({"is_default": False}, synchronize_session=False))
     portfolio.is_default, portfolio.active = True, True
 
 

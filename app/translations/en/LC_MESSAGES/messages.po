@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 20:46+0000\n"
+"POT-Creation-Date: 2026-11-11 22:13+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2666,6 +2666,10 @@ msgid "Compra"
 msgstr "Buy"
 
 #, python-format
+msgid "Compra per «%(folio)s» in «%(dossier)s»."
+msgstr "Buys for «%(folio)s» in «%(dossier)s»."
+
+#, python-format
 msgid "Comprimibile: le spese variabili, %(amount)s in media al mese."
 msgstr "What can be cut: variable spending, %(amount)s a month on average."
 
@@ -3752,6 +3756,11 @@ msgstr ""
 "Where and in what you really invest: funds count with their composition "
 "(countries, sectors, currencies, companies) uploaded on each holding's "
 "page; the other holdings with the region and sector set by hand."
+
+msgid ""
+"Dove finiscono gli acquisti. I soldi escono dalla sua liquidità se non "
+"scegli un altro conto del broker; la commissione segue la sua regola."
+msgstr "Where the purchases go. The money leaves its cash account unless you choose another broker account; the commission follows its rule."
 
 msgid ""
 "Dove il broker tiene i titoli. Ognuno ha un conto di liquidità, su cui si"
@@ -8890,6 +8899,11 @@ msgid "Per portatili con 8 GB di RAM"
 msgstr "For laptops with 8 GB of RAM"
 
 msgid ""
+"Per quale portafoglio compra il piano. Vuoto: quello del portafoglio "
+"modello, altrimenti il predefinito."
+msgstr "Which portfolio the plan buys for. Empty: the model portfolio's, otherwise the default one."
+
+msgid ""
 "Per ricordare la categoria servono una categoria e una controparte "
 "(almeno 3 lettere)."
 msgstr ""
@@ -13475,6 +13489,9 @@ msgstr "the CSV has no rows"
 msgid "il portafoglio modello attivo"
 msgstr "the active model portfolio"
 
+msgid "il portafoglio predefinito"
+msgstr "the default portfolio"
+
 msgid "importi"
 msgstr "amounts"
 
@@ -14450,6 +14467,9 @@ msgstr "— do not record the money received —"
 msgid "— quello attivo —"
 msgstr "— the active one —"
 
+msgid "— quello del conto del broker —"
+msgstr "— the broker account's —"
+
 msgid "— quello del conto scelto —"
 msgstr "— the chosen account’s —"
 
@@ -14458,6 +14478,9 @@ msgstr "— the securities account’s —"
 
 msgid "— quello del conto —"
 msgstr "— the account’s —"
+
+msgid "— quello del modello —"
+msgstr "— the model's —"
 
 msgid "— scegli il conto —"
 msgstr "— choose the account —"

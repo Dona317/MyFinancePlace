@@ -1,0 +1,4 @@
+Data operazione;Data valuta;Descrizione;Titolo;Isin;Segno;Quantita;Divisa;Prezzo;Cambio;Controvalore;Commissioni amministrato
+03/11/2026;05/11/2026;Compravendita titoli;Xtrackers II EUR Overnight Rate Swap UCITS ETF;LU0290358497;A;13;EUR;155,2900;1,0000;2018,77;2,95
+05/11/2026;07/11/2026;Compravendita titoli;iShares MSCI World Small Cap UCITS ETF;IE00BF4RFH31;A;403;EUR;7,4500;1,0000;3002,35;2,95
+06/11/2026;08/11/2026;Compravendita titoli;Vanguard FTSE All-World UCITS ETF Acc;IE00BK5BQT80;V;20;EUR;170,6800;1,0000;3413,60;2,95

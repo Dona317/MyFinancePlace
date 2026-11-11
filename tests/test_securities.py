@@ -188,3 +188,22 @@ def test_capital_gains_use_the_average_cost_of_each_securities_account(app, db, 
         db.session.commit()
         (sale,) = capital_gains.realized()[0]
     assert (sale.cost, sale.proceeds) == (Decimal("550.00"), Decimal(750)) and sale.result == Decimal(200)
+
+
+def test_starring_the_portfolio_that_already_has_the_star_keeps_it(app, db):
+    """The first portfolio saved gets the star; starring it again (or once more after another one is created) must
+    leave exactly that one starred, not none — or the next operation would go to a new «Portafoglio principale»."""
+    with app.test_request_context():
+        growth = securities.save_portfolio(None, "Crescita")
+        securities.save_portfolio(None, "Reddito")
+        securities.set_default(growth)
+        db.session.commit()
+        db.session.expire_all()
+        assert [p.name for p in Portfolio.query.filter_by(is_default=True)] == ["Crescita"]
+        assert securities.default_portfolio().name == "Crescita"
+        income = Portfolio.query.filter_by(name="Reddito").one()
+        securities.set_default(income)
+        db.session.commit()
+        db.session.expire_all()
+        assert [p.name for p in Portfolio.query.filter_by(is_default=True)] == ["Reddito"]
+    assert Portfolio.query.count() == 2
