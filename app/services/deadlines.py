@@ -60,6 +60,10 @@ class Deadline:
     outgoing: bool = True
     url: str = ""
     key: str = ""        # stable, for the .ics UID
+    # a repeating deadline (a recurring movement, a PAC, a repeating reminder): the series it belongs to and its
+    # RFC 5545 rule, so the calendar gets one recurring event instead of a copy of each date
+    series: str = ""
+    rrule: str = ""
 
     @property
     def icon(self) -> str:
@@ -70,9 +74,32 @@ class Deadline:
         """Google Calendar's «new event» page filled with this deadline (an all-day event): opened in the browser,
         where the user is signed in, it only needs «Salva»."""
         summary = self.title + (f" — {self.amount:.2f} €".replace(".", ",") if self.amount else "")
-        return GOOGLE_NEW_EVENT + urlencode({
-            "action": "TEMPLATE", "text": summary, "details": self.detail or "",
-            "dates": f"{self.day:%Y%m%d}/{self.day + timedelta(days=1):%Y%m%d}"})
+        query = {"action": "TEMPLATE", "text": summary, "details": self.detail or "",
+                 "dates": f"{self.day:%Y%m%d}/{self.day + timedelta(days=1):%Y%m%d}"}
+        if self.rrule:
+            query["recur"] = f"RRULE:{self.rrule}"
+        return GOOGLE_NEW_EVENT + urlencode(query)
+
+
+def rrule(frequency: str, anchor: date, until: date | None = None, day: int | None = None) -> str:
+    """The RFC 5545 rule of a series that starts on `anchor`: weekly, monthly, every three months or yearly, on
+    `day` of the month (the anchor's when not given). A day past the 28th falls on the last day of the shorter
+    months, as the app counts (add_months): 31 → 30 April, 28 or 29 February."""
+    day = day or anchor.day
+    if frequency == "weekly":
+        parts = ["FREQ=WEEKLY"]
+    elif frequency == "yearly":
+        parts = ["FREQ=YEARLY", f"BYMONTH={anchor.month}"]
+        parts += ["BYMONTHDAY=28,29", "BYSETPOS=-1"] if (anchor.month, day) == (2, 29) else [f"BYMONTHDAY={day}"]
+    else:
+        parts = ["FREQ=MONTHLY"] + (["INTERVAL=3"] if frequency == "quarterly" else [])
+        if day > 28:
+            parts += ["BYMONTHDAY=" + ",".join(str(d) for d in range(28, day + 1)), "BYSETPOS=-1"]
+        else:
+            parts.append(f"BYMONTHDAY={day}")
+    if until is not None:
+        parts.append(f"UNTIL={until:%Y%m%d}")
+    return ";".join(parts)
 
 
 GOOGLE_NEW_EVENT = "https://calendar.google.com/calendar/render?"
@@ -159,9 +186,15 @@ def occurrences(reminder: Reminder, start: date, end: date) -> list[date]:
 
 def _recurring(start: date, end: date) -> list[Deadline]:
     templates = forecast.scheduled_templates(Transaction.query.filter(Transaction.is_recurring.is_(True)).all())
-    return [Deadline(day, "recurring", tx.description, amount=Decimal(str(tx.magnitude)),
-                     outgoing=tx.type == "expense", url=url_for("transactions.edit", tx_id=tx.id), key=f"tx{tx.id}")
-            for tx in templates for day in forecast.occurrences(tx, start, end + timedelta(days=1))]
+    found = []
+    for tx in templates:
+        frequency = tx.recurrence if tx.recurrence in forecast.FREQUENCIES else "monthly"
+        for day in forecast.occurrences(tx, start, end + timedelta(days=1)):
+            found.append(Deadline(day, "recurring", tx.description, amount=Decimal(str(tx.magnitude)),
+                                  outgoing=tx.type == "expense", url=url_for("transactions.edit", tx_id=tx.id),
+                                  key=f"tx{tx.id}", series=f"tx{tx.id}",
+                                  rrule=rrule(frequency, day, tx.recurrence_end, day=tx.date.day)))
+    return found
 
 
 def _installments(start: date, end: date) -> list[Deadline]:
@@ -192,7 +225,9 @@ def _plans(start: date, end: date) -> list[Deadline]:
             day = investment_plans.due_date(plan, month)
             if (day and start <= day <= end and day >= plan.start and not (plan.end and day > plan.end)):
                 found.append(Deadline(day, "plan", _("PAC «%(name)s»", name=plan.name), amount=Decimal(plan.amount),
-                                      url=url_for("portfolio.plan_run", plan_id=plan.id), key=f"plan{plan.id}-{day:%Y%m}"))
+                                      url=url_for("portfolio.plan_run", plan_id=plan.id), key=f"plan{plan.id}-{day:%Y%m}",
+                                      series=f"plan{plan.id}",
+                                      rrule=rrule(plan.frequency, day, plan.end, day=plan.day)))
             month = periods.add_months(month, 1)
     return found
 
@@ -257,9 +292,16 @@ def _fiscal(start: date, end: date) -> list[Deadline]:
 
 
 def _reminders(start: date, end: date) -> list[Deadline]:
-    return [Deadline(day, "reminder", r.title, r.notes or "", Decimal(r.amount) if r.amount is not None else None,
-                     url=url_for("deadlines.index", month=f"{day:%Y-%m}") + f"#reminder-{r.id}", key=f"reminder{r.id}-{day}")
-            for r in Reminder.query.order_by(Reminder.due) for day in occurrences(r, start, end)]
+    found = []
+    for r in Reminder.query.order_by(Reminder.due):
+        repeating = r.repeat in ("monthly", "yearly")
+        for day in occurrences(r, start, end):
+            found.append(Deadline(day, "reminder", r.title, r.notes or "",
+                                  Decimal(r.amount) if r.amount is not None else None,
+                                  url=url_for("deadlines.index", month=f"{day:%Y-%m}") + f"#reminder-{r.id}",
+                                  key=f"reminder{r.id}-{day}", series=f"reminder{r.id}" if repeating else "",
+                                  rrule=rrule(r.repeat, day, day=r.due.day) if repeating else ""))
+    return found
 
 
 # Each kind of deadline and the section it belongs to: none from a section switched off or blocked for the user
@@ -301,12 +343,13 @@ def _escape(text: str) -> str:
 
 
 def _fold(line: str) -> list[str]:
-    """Lines longer than 75 octets go on, indented by one space, on the next ones."""
+    """Lines longer than 75 octets go on, indented by one space, on the next ones (RFC 5545 §3.1: the space tells
+    the calendar the line goes on; without it the rest would be read as a line of its own)."""
     out, current = [], ""
     for char in line:
-        if len((current + char).encode()) > (75 if not out else 74):
+        if len((current + char).encode()) > 75:
             out.append(current)
-            current = char
+            current = " " + char
         else:
             current += char
     return out + [current]
@@ -316,11 +359,18 @@ def ics(start: date, end: date, now: datetime | None = None) -> str:
     stamp = (now or datetime.now()).strftime("%Y%m%dT%H%M%S")
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//MyFinancePlace//Scadenze//IT", "CALSCALE:GREGORIAN",
              "X-WR-CALNAME:MyFinancePlace"]
+    series = set()
     for item in between(start, end):
+        if item.series and item.series in series:
+            continue  # a repeating deadline: one event with its rule, from the first date in the window
         summary = item.title + (f" — {item.amount:.2f} €".replace(".", ",") if item.amount else "")
-        lines += ["BEGIN:VEVENT", f"UID:{item.kind}-{item.key or item.day}@myfinanceplace", f"DTSTAMP:{stamp}",
+        uid = f"{item.kind}-{item.series}" if item.series else f"{item.kind}-{item.key or item.day}"
+        lines += ["BEGIN:VEVENT", f"UID:{uid}@myfinanceplace", f"DTSTAMP:{stamp}",
                   f"DTSTART;VALUE=DATE:{item.day:%Y%m%d}", f"DTEND;VALUE=DATE:{item.day + timedelta(days=1):%Y%m%d}",
                   f"SUMMARY:{_escape(summary)}"]
+        if item.series:
+            series.add(item.series)
+            lines.append(f"RRULE:{item.rrule}")
         if item.detail:
             lines.append(f"DESCRIPTION:{_escape(item.detail)}")
         lines.append("END:VEVENT")

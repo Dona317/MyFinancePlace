@@ -101,7 +101,7 @@ about 5 s per page): the recognised words keep their positions, so the same colu
 reads the table — no language model. On the sample scan it gets 50 of 53 movements exactly right. The preview
 says the rows come from OCR and, when an AI model is configured, offers **Rileggi con l'AI**; when the OCR
 clearly missed rows (fewer movements than dated lines, e.g. a skewed photo) the app goes straight to the AI
-question below. Without the `rapidocr-onnxruntime` package, scans go to the AI question as before.
+question below. Without the `rapidocr` package (3.x; the older `rapidocr-onnxruntime` also works, but not on Python 3.13), scans go to the AI question as before.
 
 ### AI reading of scans, photos and non-standard documents (optional)
 

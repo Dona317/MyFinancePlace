@@ -29,7 +29,7 @@ hiddenimports = collect_submodules("app") + collect_submodules("apiflask") + ["p
                                              "logging.config"]
 if sys.platform.startswith("win"):
     hiddenimports += ["pystray._win32"]  # the icon next to the clock (F14)
-excludes = ["rapidocr_onnxruntime", "onnxruntime", "cv2", "torch", "tensorflow", "pytest", "IPython",
+excludes = ["rapidocr", "rapidocr_onnxruntime", "onnxruntime", "cv2", "torch", "tensorflow", "pytest", "IPython",
             "matplotlib", "tkinter"]  # the light OCR is optional: without it scans go to AI reading
 
 a = Analysis([str(ROOT / "desktop" / "launcher.py")], pathex=[str(ROOT)], datas=datas,

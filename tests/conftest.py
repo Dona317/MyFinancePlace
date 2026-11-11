@@ -35,7 +35,10 @@ def no_ocr(monkeypatch, request):
 
 @pytest.fixture()
 def ocr_on():
-    pytest.importorskip("rapidocr_onnxruntime")
+    from app.services import ocr
+
+    if not ocr.available():
+        pytest.skip("no OCR package (rapidocr) installed")
 
 
 @pytest.fixture()
