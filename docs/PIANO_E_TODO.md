@@ -3,7 +3,7 @@
 Unico punto di controllo di cosa fare dopo. Complementa (non sostituisce) [ROADMAP](../ROADMAP.md) (stato
 delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMPETITOR](ANALISI_COMPETITOR.md).
 
-**Ultimo aggiornamento**: 11 novembre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
+**Ultimo aggiornamento**: 11 novembre 2026 (sera) · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
 **MVP**: completo · **Test**: 732, copertura 96,6% · **Migrazioni**: 24
 
 | Stato | Significato |
@@ -13,6 +13,49 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
 | ✅ | fatto |
 | ⏸ | in attesa di una decisione |
 | ❌ | scartato |
+
+---
+
+## 0. Stato avanzamento lavori (SAL) — da aprire a ogni promemoria delle 13:30
+
+> Aggiornato l'11 novembre 2026, sera. Ogni giorno alle 13:30 il promemoria riapre questo file: si parte da qui
+> per il recap e si decide come proseguire. Si aggiorna a ogni giro di lavoro.
+
+### Fatto finora (in breve)
+- **MVP completo** su `test-Cloud`: transazioni, import di 8 banche + generico (CSV, Excel, PDF, OFX, CAMT, QIF,
+  scansioni e foto con OCR o AI), conti e valute, giroconti riconosciuti tra due file, dashboard a blocchi,
+  Contabilità (stato patrimoniale, conto economico, flusso di cassa), budget, obiettivi, previsioni, scadenzario con
+  Google Calendar, debiti, assicurazioni, bollette, documenti, fisco (730, limiti deducibili), lavoretti, prestiti tra
+  persone, famiglia e titolari, backup e ripristino, login, IT/EN, app desktop (Windows/macOS/Linux), CI.
+- **Portafoglio** (novembre): conti titoli e portafogli (F42), classe di attivo ≠ tipo di strumento (F70), registro
+  ordini (F46), valore nel tempo dai prezzi e grafici (F47–F49), portafoglio modello per portafoglio (F50),
+  notifiche di ribilanciamento (F51), PAC per portafoglio e conto titoli (F52), obbligazioni (F53), look-through
+  (F57), calcolo commissioni con ABP (F74), aggiornamenti letti dall'AI (F75), import dal broker con mappatura e
+  preset (F76), **ordini teorici con commissioni dalla liquidità (F77)**, **export/ripristino dei soli investimenti
+  (F78)**.
+- **11 novembre**: dati di test degli investimenti (`samples/dati_fittizi/investimenti/`: 10 ETF di 10 classi, azioni,
+  obbligazioni, fondi, due conti titoli, modello fuori banda, estratti dei due broker), eventi ricorrenti nel
+  calendario (F79), OCR su Python 3.13 con foto raddrizzate (F80), bug della stellina del portafoglio predefinito,
+  test live estesi (tutti verdi).
+
+### In lavorazione o deciso di proseguire
+- **F81 — Revisione di Entrate, Uscite e Abbonamenti → «Ricorrenti»** (deciso l'11 nov, ▶ prossima): vedi la voce F81.
+- **F41 — Carte collegate ai conti** (deciso il 2 nov): oggi solo un'anteprima nel modulo del conto.
+- **F82 — OCR anche fuori dagli estratti conto**: oggi l'OCR leggero serve solo a Importa estratto conto.
+- **F24 / F28** resti della revisione d'uso e del menu; **F47** cache giornaliera ed effetto cambio; **F49** treemap
+  ed effetto cambio; **F69** storico prezzi EOD (aspetta il `report.md` delle fonti dal tuo PC).
+- In attesa di qualcosa da te: F4 e F55 (estratti reali anonimizzati di banche e broker), F56a (fonti fiscali
+  ufficiali), F60 (elenco dei repository starred), D1 (unire la PR #8 su `main`, rimandata a novembre).
+
+### Ancora abbozzato (TBD)
+- **Badge TBD nel menu**: tutte le sezioni tranne Dashboard e Transazioni hanno il badge «TBD» = funzionano ma
+  vanno riviste una per una (Entrate, Uscite, Abbonamenti, Report, Contabilità, Obiettivi, Budget, Eventi,
+  Previsioni, Promemoria, Conti e Carte, Portafoglio, Debiti, Lavoretti, Prestiti, Assicurazioni, Bollette,
+  Documenti, Fisco, Istantanee, Importa, Esporta, Salute dei dati, Clienti, Gruppi e famiglia).
+- **Davvero solo bozza**: le **carte collegate ai conti** (campo finto nel modulo del conto, F41); le **schede
+  «Nuova scheda — TBD»** della dashboard (segnaposto per funzioni future); i **grafici del costruttore** e i report
+  salvabili (F63); la **clusterizzazione oltre due livelli**; la **separazione dei dati tra utenti** (oggi i dati sono
+  per archivio, non per utente); il **fisco del portafoglio** (F56: zainetto, quadro RW, bollo pro rata).
 
 ---
 
@@ -128,7 +171,7 @@ Sforzo: S (≤ 1 giorno) · M (2–4 giorni) · L (oltre).
 | F38 | A | S | ✅ | **Registro: ordinamento e filtri sulla tabella (2 novembre)** | Un clic sul titolo di una colonna ordina l'elenco (Data, Descrizione A→Z, Categoria, Importo dal più grande; di nuovo: al contrario; freccia sulla colonna in uso). Sui titoli Categoria e Importo un imbuto apre un piccolo filtro (una categoria; importo da – a, senza segno, nella valuta base), anche nella card «Ricerca e filtri». Le azioni su tutta la ricerca seguono anche questi filtri. **Colori** (2 nov): contanti sempre verdi, debiti sempre viola |
 | F39 | M | S | ✅ | **«Spese non annotate» voce a sé (deciso e fatto il 2 novembre)** | Le spese trovate mancanti contando i contanti sono una **voce stand alone** nei report e nel conto economico: mostrate a parte, non mescolate alle categorie (non falsano le percentuali). Nella pagina Contanti (fatto il 2 nov) la card «Spese in contanti tracciate» mostra quanto è annotato una per una e quanto è finito tra le non annotate, e un pop-up spiega l'automatismo (prelievi/versamenti, annota con il +, conta) |
 | F40 | A | M | ✅ | **Debiti totali e conto Debiti (2 novembre)** | «Debiti totali» = totale della sezione Debiti. Il **conto Debiti** mostra quanto spiegano le sue transazioni e il **residuo non spiegato** (totale − spiegato) che serve perché i conti tornino. Nello Stato patrimoniale lo stesso debito non si conta due volte: solo se il conto Debiti supera la sezione, la differenza è «Debiti vari» (e allora il totale è quello del conto) |
-| F41 | A | M | ⬜ | **▶ PROSSIMA — Carte collegate ai conti (deciso il 2 novembre)** | Oggi nel modulo del conto c'è un'anteprima TBD. Da fare: le carte (debito, credito, prepagata) addebitate su un conto, con i loro movimenti raccolti lì; da F24 |
+| F41 | A | M | ⬜ | **Carte collegate ai conti (deciso il 2 novembre)** | Oggi nel modulo del conto c'è un'anteprima TBD. Da fare: le carte (debito, credito, prepagata) addebitate su un conto, con i loro movimenti raccolti lì; da F24 |
 | F25 | M | S | ✅ | **Exe rigenerato a ogni push** (31 ottobre; deciso il 1° novembre) | **Deciso**: basta che a ogni push l'exe venga ricostruito in locale nella cartella di distribuzione, `desktop/dist/MyFinancePlace` (dove c'è già `MyFinancePlace.exe`). **Fatto**: l'hook `.githooks/pre-push` lo ricostruisce in background (3–4 minuti, il push non aspetta; registro in `desktop/build/last-push-build.log`). **Acceso** dall'utente da terminale il 2 novembre (`git config core.hooksPath .githooks`) — l'assistente non può attivare da solo un'azione automatica permanente. La CI (`desktop.yml`) continua a costruire Windows/macOS/Linux come artefatti |
 
 ### Macro-sezione Portafoglio / Investimenti (piano del 9 novembre 2026)
@@ -182,6 +225,8 @@ Dallo stesso report (fogli Grafici, Sezioni, Gestione dato, Buchi): i più impor
 | F74 | A | S | ✅ | **Calcolo commissioni** (richiesta del 10 nov) | Portafoglio → Calcolo commissioni: prezzo × quantità di ogni titolo (dalle posizioni, tutte o di un portafoglio o conto titoli) + liquidità, **ABP = average buying price** (prezzo medio di carico, precompilato): costo e plus/minus per titolo; con il **versato netto** ricava le commissioni e i costi già pagati = versato − (quantità × ABP + liquidità). In più: commissione in punti base all'anno, TER dei fondi e bollo 0,2 %, per trimestre/mese e su N anni; tutto modificabile, niente salvato |
 | F75 | A | M | ✅ | **Aggiornamenti del portafoglio letti dall'AI** (richiesta del 10 nov) | Portafoglio → Importa dal broker → «Leggi con AI»: un PDF, una foto o un documento letto come le transazioni, in due modi: **operazioni** (acquisti e vendite elencati) o **stato attuale** (le posizioni, confrontate con quelle registrate di un conto titoli o di tutti: la differenza diventa acquisti e vendite alla data dell'estratto; con «mostra tutte le posizioni» ciò che manca viene venduto). Stessa anteprima dell'import CSV |
 | F76 | A | S | ✅ | **Import dal broker: mappatura delle colonne e preset** (10 nov) | Schermata di scelta delle colonne con un esempio per colonna, preset di tipo «Broker» applicati da soli ai file con le stesse colonne, con il conto proposto |
+| F81 | A | M | ⬜ | **▶ PROSSIMA — Entrate, Uscite e Abbonamenti dentro Transazioni; Abbonamenti → «Ricorrenti»** (richiesta dell'11 nov) | Valutare di tenere nel menu solo **Transazioni**: in cima alla pagina delle transazioni tre card (Entrate, Uscite, Ricorrenti) che aprono le rispettive pagine, che vanno **sotto Transazioni**. «Abbonamenti» diventa **«Ricorrenti»**: abbonamenti e ogni altra spesa o entrata ricorrente (affitto, stipendio, rate…), insieme. Da decidere: il nome esatto, cosa resta nel menu, dove finiscono i vecchi indirizzi (reindirizzare) |
+| F82 | M | M | ⬜ | **OCR leggero anche per i documenti del broker e gli allegati** (11 nov) | Oggi l'OCR (rapidocr, senza AI) legge solo scansioni e foto in **Importa estratto conto**; «Leggi con AI» del Portafoglio e i documenti passano solo dall'AI. Da fare: provare prima l'OCR anche lì (conferme d'ordine, estratti titoli), l'AI come riserva. Nell'app desktop l'OCR è escluso per il peso (vedi DESKTOP.md): valutare un pacchetto a parte |
 | F77 | A | M | ✅ | **Ordini teorici e commissioni dalla liquidità** (richiesta dell'11 nov) | Dal ribilanciamento o dalla rata del PAC: «Salva come ordini teorici» (tabella `planned_orders`, migrazione `e5a7b9c1d3f8`). Finché non li confermi eseguiti non muovono niente: Portafoglio → Ordini teorici mostra quote, prezzo medio (ABP) e liquidità **teorici**, la liquidità **stimata al lordo delle commissioni**; le Posizioni avvisano che ci sono ordini in attesa. Alla conferma (quote e prezzi eseguiti) le commissioni si danno in tre modi: per ordine, un totale, oppure **la liquidità rimasta sul conto**: la differenza con la stima sono le commissioni (319 attesi, 300 reali → 19 €), divise sugli ordini in proporzione al controvalore. Gli ordini non spuntati restano teorici |
 | F78 | A | M | ✅ | **Export e ripristino dei soli investimenti** (richiesta dell'11 nov) | Portafoglio → Importa dal broker → «Solo gli investimenti»: un file con conti titoli, portafogli, titoli, prezzi, operazioni, modelli, PAC, regole, ordini teorici e i movimenti della liquidità dei conti titoli; il ripristino sostituisce solo questa parte (copia di tutto l'archivio prima), i conti di liquidità si riconoscono dal nome. **Stesso database** (decisione dell'11 nov): operazioni, giroconti e liquidità dei conti titoli sono transazioni come le altre; un database separato spezzerebbe giroconti, patrimonio netto, flusso di cassa e scadenze |
 | F79 | A | S | ✅ | **Calendario: eventi ricorrenti** (11 nov) | Nel file .ics e nel link «Aggiungi a Google Calendar» un PAC, un movimento ricorrente e un promemoria che si ripete sono **un solo evento con la regola di ripetizione** (RRULE), non una copia per data; giorni dopo il 28 come li conta l'app (31 → ultimo del mese). Corretto anche lo spezzamento delle righe lunghe (mancava lo spazio iniziale richiesto dallo standard) |
