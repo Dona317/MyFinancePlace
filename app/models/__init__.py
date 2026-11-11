@@ -10,6 +10,7 @@ from .event import SpendingEvent
 from .gig import Gig
 from .limit import ContributionLimit
 from .personal_loan import PersonalLoan
+from .planned_order import PlannedOrder
 from .portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate, SlotHolding, TemplateSlot
 from .reminder import Reminder
 from .securities import Portfolio, SecuritiesAccount
@@ -26,6 +27,6 @@ __all__ = [
     "ExchangeRate", "Budget", "User", "Client", "ClientGroup", "Holding", "HoldingExposure", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
     "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan", "Reminder", "UtilityReading",
-    "SecuritiesAccount", "Portfolio",
+    "SecuritiesAccount", "Portfolio", "PlannedOrder",
     "YearClose",
 ]

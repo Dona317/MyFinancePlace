@@ -143,7 +143,8 @@ class Order:
     price: Decimal
 
 
-def _holding(order: Order) -> Holding:
+def holding_for(order: Order) -> Holding:
+    """The holding an order buys: the chosen one, or a new one for the part's suggested instrument."""
     if order.holding_id:
         holding = db.session.get(Holding, order.holding_id)
         if holding is not None:
@@ -163,7 +164,7 @@ def confirm(plan: InvestmentPlan, orders: list[Order], on: date) -> int:
     for order in orders:
         if order.units <= 0 or order.price <= 0:
             continue
-        holding = _holding(order)
+        holding = holding_for(order)
         fee = fee_for(plan, money.cents(order.units * order.price))
         portfolio_ops.record(holding, portfolio_ops.Operation("buy", on, account, units=order.units,
                                                               price=order.price, fee=fee, portfolio=folio,

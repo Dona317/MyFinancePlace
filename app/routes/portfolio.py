@@ -22,6 +22,7 @@ from app.services import (
     fund_facts,
     lookthrough,
     performance,
+    planned_orders,
     portfolio_charts,
     portfolio_models,
     portfolio_ops,
@@ -193,6 +194,7 @@ def index():
         holdings=[h for h in holdings if not selected or h.asset_class == selected],
         summary=wealth.portfolio_summary(holdings),
         tree=portfolio_charts.allocation_tree(holdings),  # G50: asset class → holding, for the treemap
+        planned=planned_orders.count(),  # theoretical orders waiting to be confirmed as executed
         dividends_ytd=wealth.dividends(date(today.year, 1, 1), date(today.year + 1, 1, 1)),
         asset_classes=wealth.ASSET_CLASSES, asset_class_of=asset_classes.of,
         selected=selected,
@@ -424,4 +426,10 @@ def delete(holding_id):
 
 
 # registers the broker import, link, model portfolio, rule, PAC and portfolio/securities account routes on portfolio_bp
-from app.routes import portfolio_import, portfolio_rules, portfolio_securities, portfolio_templates  # noqa: E402,F401
+from app.routes import (  # noqa: E402,F401
+    portfolio_import,
+    portfolio_planned,
+    portfolio_rules,
+    portfolio_securities,
+    portfolio_templates,
+)

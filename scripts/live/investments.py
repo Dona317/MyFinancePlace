@@ -64,7 +64,7 @@ with sync_playwright() as p:
         pg.goto(B + "/portfolio/rebalance?mode=full")
         text = pg.inner_text("main")
         check("rebalancing: equities in the model", "Azioni" in text)
-        check("rebalancing: out of band shown", re.search(r"fuori|tolleranza|banda", text, re.I) is not None)
+        check("rebalancing: out of band shown", "1 parti fuori dalla tolleranza" in text, text[:200])
         shot("rebalance_full")
         pg.goto(B + "/portfolio/rebalance?amount=5000")
         shot("rebalance_new_money")
@@ -123,10 +123,134 @@ with sync_playwright() as p:
         pg.goto(B + "/portfolio/")
         shot("index_after_import")
 
+    def model_settings():
+        """The rebalancing's settings: the band of the model changed from its page, then the rebalancing follows it."""
+        model = sql("SELECT id FROM portfolio_templates WHERE name = 'Allocazione per classi'")
+        pg.goto(f"{B}/portfolio/models/{model}")
+        pg.fill("#band", "12")
+        with pg.expect_navigation():
+            pg.click("#model-form button[type=submit].btn-primary")
+        check("model: band saved", sql(f"SELECT band::int FROM portfolio_templates WHERE id = {model}") == "12")
+        pg.goto(B + "/portfolio/rebalance?mode=full")
+        check("model: with a band of 12 points nothing is out of band", "fuori dalla tolleranza" not in pg.content())
+        shot("rebalance_band_12")
+        pg.goto(f"{B}/portfolio/models/{model}")
+        pg.fill("#band", "5")
+        with pg.expect_navigation():
+            pg.click("#model-form button[type=submit].btn-primary")
+        check("model: band back to 5", sql(f"SELECT band::int FROM portfolio_templates WHERE id = {model}") == "5")
+
+    def two_portfolios():
+        """Two new portfolios from the page; the star moved to one and back to «Crescita» (the old bug: no star)."""
+        for name in ("Pensione", "Figli"):
+            pg.goto(B + "/portfolio/portfolios")
+            pg.fill("form[action$='/portfolios/new'] input[name=name]", name)
+            with pg.expect_navigation():
+                pg.click("form[action$='/portfolios/new'] button[type=submit]")
+        check("two portfolios created", sql("SELECT count(*) FROM portfolios WHERE name IN ('Pensione', 'Figli')") == "2")
+        for name in ("Pensione", "Crescita", "Crescita"):
+            folio = sql(f"SELECT id FROM portfolios WHERE name = '{name}'")
+            pg.goto(B + "/portfolio/portfolios")
+            with pg.expect_navigation():
+                pg.click(f"form[action$='/portfolios/{folio}/default'] button[type=submit]")
+            check(f"star on «{name}»", sql("SELECT string_agg(name, ',') FROM portfolios WHERE is_default") == name)
+        shot("portfolios")
+
+    def pac_and_calendar():
+        """A PAC for «Pensione» in the Directa account from the form; its instalment in the deadlines; the .ics and the
+        Google Calendar link make it a recurring event."""
+        pg.goto(B + "/portfolio/plans/new")
+        pg.fill("#f-name", "PAC Pensione")
+        pg.fill("#f-amount", "250")
+        pg.fill("#f-day", "20")
+        pg.select_option("#f-portfolio_id", label="Pensione")
+        pg.select_option("#f-securities_account_id", label="Conto titoli Directa")
+        with pg.expect_navigation():
+            pg.click("#plan-form button[type=submit].btn-primary")
+        check("PAC saved with its portfolio and securities account", sql(
+            "SELECT p.name || '/' || s.name FROM investment_plans i JOIN portfolios p ON p.id = i.portfolio_id "
+            "JOIN securities_accounts s ON s.id = i.securities_account_id WHERE i.name = 'PAC Pensione'")
+              == "Pensione/Conto titoli Directa")
+        check("PAC listed with where it buys", "Pensione · Conto titoli Directa" in pg.content())
+        nxt = sql("SELECT to_char(date_trunc('month', now()) + interval '1 month', 'YYYY-MM')")
+        pg.goto(f"{B}/deadlines/?month={nxt}")
+        text = pg.inner_text("main")
+        check("deadlines: both PACs next month", "PAC «PAC Pensione»" in text and "PAC «PAC mensile Fineco»" in text)
+        links = pg.eval_on_selector_all("a.deadline-gcal", "els => els.map(e => e.href)")
+        pac_links = [link for link in links if "PAC" in link]
+        check("Google Calendar link of a PAC repeats", pac_links and all("recur=RRULE" in link for link in pac_links),
+              str(pac_links[:1]))
+        shot("deadlines")
+        ics = pg.request.get(B + "/deadlines/scadenze.ics?future=1").text()
+        unfolded = ics.replace("\r\n ", "")
+        events = [e for e in unfolded.split("BEGIN:VEVENT")[1:] if "PAC" in e.split("SUMMARY:")[1].split("\r\n")[0]]
+        check("ics: one recurring event per PAC", len(events) == 2 and all("RRULE:FREQ=MONTHLY" in e for e in events),
+              f"{len(events)} events")
+        check("ics: the Pensione PAC on the 20th", any("BYMONTHDAY=20" in e and "PAC Pensione" in e for e in events))
+        check("ics: lines folded with a space", all(len(line.encode()) <= 75 for line in ics.split("\r\n")))
+        (OUT / "scadenze.ics").write_text(ics)
+
+    def theoretical_orders():
+        """The rebalancing with 5.000 € of new money saved as theoretical orders: nothing moves; confirmed with the
+        liquidity left on the account, 12,50 € less than expected, which become the commissions."""
+        before = sql("SELECT count(*) FROM transactions")
+        pg.goto(B + "/portfolio/rebalance/orders?mode=new&amount=5000")
+        dossier = sql("SELECT id FROM securities_accounts WHERE name = 'Dossier Fineco'")
+        pg.select_option("select[name=securities_account_id]", value=dossier)
+        with pg.expect_navigation():
+            pg.click("button[name=action][value=plan]")
+        text = pg.inner_text("main")
+        check("theoretical orders saved", "Ordini salvati come teorici" in pg.content() and "lorda di commissioni" in text)
+        check("theoretical orders move nothing", sql("SELECT count(*) FROM transactions") == before)
+        orders = int(sql("SELECT count(*) FROM planned_orders"))
+        check("theoretical orders listed", orders >= 2, str(orders))
+        shot("planned")
+        pg.goto(B + "/portfolio/")
+        check("positions warn about the theoretical orders", "ordini teorici non ancora confermati" in pg.content())
+        pg.goto(B + "/portfolio/planned")
+        box = pg.locator(".fee-cash input").first
+        expected = float(box.get_attribute("placeholder").replace(",", "."))
+        box.fill(f"{expected - 12.5:.2f}".replace(".", ","))
+        with pg.expect_navigation():
+            pg.click(".planned-batch button[type=submit].btn-primary")
+        check("confirmed: commissions from the liquidity", "12,50 € ricavati dalla liquidità" in pg.content(),
+              pg.url)
+        check("confirmed: trades recorded, nothing left", sql("SELECT count(*) FROM planned_orders") == "0"
+              and int(sql("SELECT count(*) FROM transactions")) > int(before))
+        check("confirmed: commissions add up to 12,50", sql(
+            "SELECT sum(amount) FROM transactions WHERE fee_for_id IS NOT NULL AND date = current_date") == "12.50")
+        shot("planned_confirmed")
+
+    def archive():
+        """The investments exported on their own, a holding deleted, the file restored from the page: everything
+        comes back, the rest of the archive untouched."""
+        before = (sql("SELECT count(*) FROM transactions"), sql("SELECT count(*) FROM holdings"),
+                  sql("SELECT string_agg(name, ',' ORDER BY name) FROM portfolios"))
+        response = pg.request.get(B + "/portfolio/archive")
+        check("investments exported", response.ok and response.headers["content-type"] == "application/zip")
+        path = OUT / "investimenti.zip"
+        path.write_bytes(response.body())
+        sql("DELETE FROM holdings WHERE isin = 'NL0010273215'")
+        pg.goto(B + "/portfolio/import")
+        pg.set_input_files("#archive-file", str(path))
+        pg.check("#archive input[name=confirm]")
+        pg.click("#archive button[type=submit]")
+        confirm(pg)
+        check("investments restored", "Investimenti ripristinati" in pg.content(), pg.url)
+        after = (sql("SELECT count(*) FROM transactions"), sql("SELECT count(*) FROM holdings"),
+                 sql("SELECT string_agg(name, ',' ORDER BY name) FROM portfolios"))
+        check("restored as they were", after == before, f"{before} → {after}")
+        shot("archive_restored")
+
     run("restore the investments backup", restore)
     run("every page of the portfolio", pages)
     run("rebalancing", rebalance)
     run("the statements of the two securities accounts", statements)
+    run("the model's settings", model_settings)
+    run("two new portfolios and the star", two_portfolios)
+    run("a PAC, its deadlines and the calendar", pac_and_calendar)
+    run("theoretical orders and commissions", theoretical_orders)
+    run("the investments exported and restored", archive)
     check("no JavaScript errors", not errors, "; ".join(errors[:3]))
     b.close()
 

@@ -14,7 +14,7 @@ from app.models.portfolio_model import PortfolioTemplate
 from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, broker, money, portfolio_charts, portfolio_ops, securities
+from app.services import accounts, broker, money, planned_orders, portfolio_charts, portfolio_ops, securities
 from app.services import portfolio_models as models
 from app.services.parsing import to_date, to_decimal
 
@@ -192,6 +192,32 @@ def _proposed_orders(plan) -> list[dict]:
     return orders
 
 
+def _save_planned(template, account, dossier, folio, mode, folio_id):
+    """The ticked orders kept as theoretical ones: they move nothing until they are confirmed as executed."""
+    drafts = []
+    for i in range(request.form.get("rows", type=int) or 0):
+        if not request.form.get(f"do-{i}"):
+            continue
+        holding = db.session.get(Holding, request.form.get(f"holding-{i}", type=int) or 0)
+        if holding is None:
+            continue
+        drafts.append(planned_orders.Draft(holding, "sell" if request.form.get(f"side-{i}") == "sell" else "buy",
+                                           to_decimal(request.form.get(f"units-{i}")),
+                                           to_decimal(request.form.get(f"price-{i}")), request.form.get(f"label-{i}", "")))
+    try:
+        planned_orders.save(drafts, "rebalance", account, dossier, folio,
+                            notes=_("Ribilanciamento «%(name)s»", name=template.name))
+    except planned_orders.PlannedError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return redirect(url_for("portfolio.rebalance_orders", mode=mode, amount=request.values.get("amount"),
+                                portfolio=folio_id))
+    db.session.commit()
+    flash(_("Ordini salvati come teorici: quote, prezzo medio e liquidità restano stime finché non li confermi "
+            "eseguiti."), "success")
+    return redirect(url_for("portfolio.planned_page"))
+
+
 @portfolio_bp.route("/rebalance/orders", methods=["GET", "POST"])
 def rebalance_orders():
     """What to do at the broker, then — once done — the confirmation with the prices actually executed: each order
@@ -209,6 +235,8 @@ def rebalance_orders():
         dossier = db.session.get(SecuritiesAccount, request.form.get("securities_account_id", type=int) or 0)
         folio = db.session.get(Portfolio, request.form.get("portfolio_id", type=int) or 0)
         on = to_date(request.form.get("on")) or date.today()
+        if request.form.get("action") == "plan":
+            return _save_planned(template, account, dossier, folio, mode, folio_id)
         done = 0
         try:
             if on > date.today():

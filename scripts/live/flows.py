@@ -7,6 +7,7 @@ reports, forecast, interface. Needs the session saved by login.py and the fake O
 import csv
 import io
 import json
+import os
 import sys
 
 from common import AUTH, BASE, OUT, SAMPLES, check, choose, confirm, launch, local_assets, run, sql, summary
@@ -26,7 +27,7 @@ def alert_text():
 def import_file(filename, keep_all=True):
     """Upload a statement; returns True when the preview opened."""
     pg.goto(BASE + "/export/import")
-    pg.set_input_files("#bank-import input[type=file]", S + filename)
+    pg.set_input_files("#bank-import input[type=file]", filename if os.path.isabs(filename) else S + filename)
     pg.click("#bank-import button[type=submit]")
     pg.wait_for_load_state()
     return pg.locator("#import-button").count() > 0
@@ -163,9 +164,21 @@ with sync_playwright() as p:
     run("3. Statements in every format", statements)
 
     # ── 4. Unreadable files: AI only after confirmation ────────────────────────
+    def damaged_photo():
+        """The phone photo with the amounts of eight rows rubbed out: the light OCR cannot read those rows, so the
+        app asks about the AI (the photo as it is is now read by the OCR, straightened)."""
+        from PIL import Image, ImageDraw
+
+        image = Image.open(S + "FOTO_estratto_conto_intesa_2026-09.jpg").convert("RGB")
+        ImageDraw.Draw(image).rectangle((690, 280, 820, 470), fill="white")
+        path = os.path.abspath(str(OUT / "FOTO_rovinata.jpg"))
+        image.save(path, format="JPEG")
+        return path
+
     def ai_reading():
         before = count()
-        import_file("FOTO_estratto_conto_intesa_2026-09.jpg")
+        photo = damaged_photo()
+        import_file(photo)
         check(
             "photo: asks before using AI",
             "leggere il file con l'intelligenza artificiale" in pg.content().lower() or "/bank/ai/" in pg.url,
@@ -190,7 +203,7 @@ with sync_playwright() as p:
         # scanned PDF, then cancel
         opened = import_file("SCANSIONE_fineco_2026-07_2026-08.pdf")
         check("scan: read by the light OCR, preview without AI", opened and "/bank/ai/" not in pg.url, pg.url)
-        import_file("FOTO_estratto_conto_intesa_2026-09.jpg")
+        import_file(photo)
         if "/bank/ai/" in pg.url:
             pg.click("button:has-text('No, annulla')")
             pg.wait_for_load_state()

@@ -42,7 +42,8 @@
           <tr>
             <td><input type="checkbox" name="do-{{ i }}" value="1" class="check" checked aria-label="{{ _('Eseguito') }}" />
               <input type="hidden" name="holding-{{ i }}" value="{{ o.holding.id }}" />
-              <input type="hidden" name="side-{{ i }}" value="{{ o.side }}" /></td>
+              <input type="hidden" name="side-{{ i }}" value="{{ o.side }}" />
+              <input type="hidden" name="label-{{ i }}" value="{{ o.label }}" /></td>
             <td><span class="badge {{ 'badge-positive' if o.side == 'buy' else 'badge-negative' }}">{{ _('Compra') if o.side == 'buy' else _('Vendi') }}</span>
               <div class="text-xs text-muted">{{ o.label }}</div></td>
             <td>{{ o.holding.name }}{% if o.holding.ticker %}<div class="text-xs text-muted">{{ o.holding.ticker }}</div>{% endif %}</td>
@@ -58,7 +59,8 @@
     </div>
     <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
       <a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount, portfolio=folio_id) }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma ordini eseguiti') }}</button>
+      <button type="submit" name="action" value="plan" class="btn btn-outline" title="{{ _('Prima di andare dal broker: gli ordini restano teorici (quote, prezzo medio e liquidità stimati, al lordo delle commissioni) finché non li confermi eseguiti, indicando le commissioni o la liquidità rimasta.') }}"><i class="bi bi-hourglass-split"></i> {{ _('Salva come ordini teorici') }}</button>
+      <button type="submit" name="action" value="done" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma ordini eseguiti') }}</button>
     </div>
     {% else %}
     <div class="card-body text-muted">{{ _('Nessun ordine: il portafoglio è già in linea con il modello, o le parti da comprare non hanno ancora un titolo.') }}</div>

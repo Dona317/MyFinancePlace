@@ -25,6 +25,7 @@ from app.services import (
     lookthrough,
     performance,
     periods,
+    planned_orders,
     portfolio_highlights,
     portfolio_models,
     portfolio_ops,
@@ -144,6 +145,19 @@ def _orders() -> list[investment_plans.Order]:
 @portfolio_bp.route("/plans/<int:plan_id>/run", methods=["GET", "POST"])
 def plan_run(plan_id):
     plan = db.get_or_404(InvestmentPlan, plan_id)
+    if request.method == "POST" and request.form.get("action") == "plan":
+        account, dossier, folio = investment_plans.place_of(plan)
+        drafts = [planned_orders.Draft(investment_plans.holding_for(o), "buy", o.units, o.price, o.label)
+                  for o in _orders() if o.units > 0 and o.price > 0]
+        try:
+            planned_orders.save(drafts, "pac", account, dossier, folio, plan=plan)
+        except planned_orders.PlannedError as exc:
+            db.session.rollback()
+            flash(str(exc), "error")
+            return redirect(url_for("portfolio.plan_run", plan_id=plan.id))
+        db.session.commit()
+        flash(_("Rata salvata come ordini teorici: diventa acquisti quando la confermi eseguita."), "success")
+        return redirect(url_for("portfolio.planned_page"))
     if request.method == "POST":
         try:
             with db.session.begin_nested():

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-11 22:13+0000\n"
+"POT-Creation-Date: 2026-11-11 22:59+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -64,6 +64,10 @@ msgstr "%% of expenses"
 #, python-format
 msgid "%% · max 35%%"
 msgstr "%% · max 35%%"
+
+#, python-format
+msgid "%(account)s: %(fees)s € ricavati dalla liquidità"
+msgstr "%(account)s: %(fees)s € worked out from the cash"
 
 #, python-format
 msgid "%(amount)s al mese"
@@ -249,6 +253,18 @@ msgstr "%(count)s operations found"
 #, python-format
 msgid "%(count)s ordini del ribilanciamento registrati."
 msgstr "%(count)s rebalancing orders recorded."
+
+#, python-format
+msgid "%(count)s ordini eseguiti registrati, commissioni %(fees)s €."
+msgstr "%(count)s executed orders recorded, commissions %(fees)s €."
+
+#, python-format
+msgid "%(count)s ordini non spuntati restano teorici."
+msgstr "%(count)s unticked orders stay theoretical."
+
+#, python-format
+msgid "%(count)s ordini teorici eliminati."
+msgstr "%(count)s theoretical orders deleted."
 
 #, python-format
 msgid "%(count)s pagamenti, ultimo il %(last)s"
@@ -944,6 +960,11 @@ msgstr "A — Operating cash flow"
 msgid "ABP"
 msgstr "ABP"
 
+msgid ""
+"ABP dopo gli acquisti, senza le commissioni: quando le indichi, entrano "
+"nel costo e il prezzo medio sale di poco."
+msgstr "ABP after the purchases, without commissions: once you enter them they go into the cost and the average price rises a little."
+
 msgid "ANTHROPIC_API_KEY"
 msgstr "ANTHROPIC_API_KEY"
 
@@ -1190,6 +1211,11 @@ msgstr ""
 
 msgid "Al giorno"
 msgstr "Per day"
+
+msgid ""
+"Al lordo delle commissioni: la liquidità vera sarà più bassa di quanto ti"
+" costa il broker."
+msgstr "Before commissions: the real cash will be lower by what the broker charges."
 
 #, python-format
 msgid "Al massimo %(count)s benchmark: togline uno prima di aggiungerne un altro."
@@ -1553,6 +1579,10 @@ msgstr "Life and accident insurance"
 
 msgid "Assistente"
 msgstr "Assistant"
+
+#, python-format
+msgid "Attesa senza commissioni: %(amount)s"
+msgstr "Expected without commissions: %(amount)s"
 
 msgid "Atteso un oggetto JSON."
 msgstr "A JSON object was expected."
@@ -2594,6 +2624,9 @@ msgstr "Broker commissions (optional)"
 msgid "Commissioni e costi pagati"
 msgstr "Commissions and costs paid"
 
+msgid "Commissioni totali (€)"
+msgstr "Total commissions (€)"
+
 msgid ""
 "Commissioni: fissa + percentuale sul controvalore, entro un minimo e un "
 "massimo. Vuote = nessuna regola."
@@ -3383,6 +3416,11 @@ msgstr "From the account"
 msgid "Dal giorno"
 msgstr "From the day"
 
+msgid ""
+"Dal ribilanciamento o dalla rata di un PAC scegli «Salva come ordini "
+"teorici»: restano qui, come stima, finché non li confermi eseguiti."
+msgstr "From the rebalancing or a PAC instalment choose «Save as theoretical orders»: they stay here, as an estimate, until you confirm them as executed."
+
 msgid "Dal risparmio"
 msgstr "From saving"
 
@@ -3391,6 +3429,9 @@ msgstr "From your history: how you categorized similar transactions"
 
 msgid "Dall'inizio"
 msgstr "Since the start"
+
+msgid "Dalla liquidità rimasta"
+msgstr "From the cash left"
 
 msgid ""
 "Dalla scheda del fondo (factsheet o KID): il nome del paese in italiano o"
@@ -3734,6 +3775,9 @@ msgstr "Question"
 msgid "Domanda o dati troppo lunghi."
 msgstr "Question or data too long."
 
+msgid "Dopo gli ordini (teorico)"
+msgstr "After the orders (theoretical)"
+
 msgid ""
 "Dopo la pensione la quota in obbligazioni sale in linea retta fino "
 "all’ultima età: una crisi nei primi anni di prelievi pesa meno. "
@@ -3748,6 +3792,9 @@ msgstr ""
 msgid "Doppio clic per rinominare"
 msgstr "Double-click to rename"
 
+msgid "Dove"
+msgstr "Where"
+
 msgid ""
 "Dove e in cosa investi davvero: i fondi contano con la loro composizione "
 "(paesi, settori, valute, società) caricata nella scheda di ogni titolo; "
@@ -3760,7 +3807,9 @@ msgstr ""
 msgid ""
 "Dove finiscono gli acquisti. I soldi escono dalla sua liquidità se non "
 "scegli un altro conto del broker; la commissione segue la sua regola."
-msgstr "Where the purchases go. The money leaves its cash account unless you choose another broker account; the commission follows its rule."
+msgstr ""
+"Where the purchases go. The money leaves its cash account unless you "
+"choose another broker account; the commission follows its rule."
 
 msgid ""
 "Dove il broker tiene i titoli. Ognuno ha un conto di liquidità, su cui si"
@@ -3856,6 +3905,9 @@ msgstr "Delete policy %(company)s"
 
 msgid "Elimina questa transazione"
 msgstr "Delete this transaction"
+
+msgid "Elimina questi ordini teorici"
+msgstr "Delete these theoretical orders"
 
 #, python-format
 msgid "Elimina regola %(keyword)s"
@@ -3978,6 +4030,9 @@ msgstr "Delete the user “%(name)s”? The data stays."
 
 msgid "Eliminare questa transazione?"
 msgstr "Delete this transaction?"
+
+msgid "Eliminare questi ordini teorici?"
+msgstr "Delete these theoretical orders?"
 
 #, python-format
 msgid "Eliminare «%(name)s»?"
@@ -4236,6 +4291,9 @@ msgstr "Export and backup"
 msgid "Esporta e importa"
 msgstr "Export and import"
 
+msgid "Esporta gli investimenti"
+msgstr "Export the investments"
+
 msgid "Esportazione Fiscale per Anno"
 msgstr "Tax Export by Year"
 
@@ -4372,6 +4430,9 @@ msgstr "Feb"
 
 msgid "File"
 msgstr "File"
+
+msgid "File degli investimenti (.zip)"
+msgstr "Investments file (.zip)"
 
 msgid ""
 "File dei movimenti (Excel, CSV, PDF, OFX/QFX, QIF, CAMT.053 XML, TXT, "
@@ -4819,6 +4880,12 @@ msgid "Ha delle sottocategorie: resta principale"
 msgstr "It has subcategories: it stays a main category"
 
 #, python-format
+msgid ""
+"Hai %(count)s ordini teorici non ancora confermati: le posizioni qui "
+"sotto non li contano."
+msgstr "You have %(count)s theoretical orders not yet confirmed: the positions below do not count them."
+
+#, python-format
 msgid "Hai %(units)s quote, prezzo medio %(price)s, ultimo prezzo %(last)s."
 msgstr "You hold %(units)s units, average price %(price)s, latest price %(last)s."
 
@@ -4843,6 +4910,9 @@ msgstr ""
 
 msgid "Ho capito"
 msgstr "Got it"
+
+msgid "Ho capito: sostituisce gli investimenti attuali"
+msgstr "I understand: it replaces the current investments"
 
 msgid "Ho capito: un backup completo"
 msgstr "I understand: a full backup"
@@ -5102,6 +5172,10 @@ msgstr "The periodic check goes every 1, 3, 6 or 12 months."
 msgid "Il database ha rifiutato il backup: %(value)s"
 msgstr "The database rejected the backup: %(value)s"
 
+#, python-format
+msgid "Il database ha rifiutato il file: %(value)s"
+msgstr "The database refused the file: %(value)s"
+
 msgid "Il denaro passa dal conto alla cassa: non è una spesa né un'entrata."
 msgstr ""
 "The money moves from the account to the cash: it is neither an expense "
@@ -5189,6 +5263,10 @@ msgstr "The file contains an invalid value (%(exc)s)."
 msgid "Il file di backup è danneggiato."
 msgstr "The backup file is damaged."
 
+#, python-format
+msgid "Il file ha un collegamento rotto (%(table)s.%(column)s)."
+msgstr "The file has a broken link (%(table)s.%(column)s)."
+
 msgid "Il file non contiene tabelle leggibili."
 msgstr "The file contains no readable tables."
 
@@ -5211,6 +5289,9 @@ msgstr "The file is neither a backup (.zip) nor a MyFinancePlace JSON export."
 
 msgid "Il file non è un backup di MyFinancePlace."
 msgstr "The file is not a MyFinancePlace backup."
+
+msgid "Il file non è un export degli investimenti di MyFinancePlace."
+msgstr "The file is not a MyFinancePlace investments export."
 
 msgid "Il file è vuoto."
 msgstr "The file is empty."
@@ -5840,6 +5921,12 @@ msgstr "Enter the amount, above zero."
 msgid "Indica la data di inizio."
 msgstr "Enter the start date."
 
+msgid "Indica la liquidità che hai ora su ogni conto degli ordini."
+msgstr "Enter the cash you now have on each account of the orders."
+
+msgid "Indica le commissioni totali (zero se non ce ne sono)."
+msgstr "Enter the total commissions (zero if there are none)."
+
 #, python-format
 msgid "Indica le quote o il prezzo per i movimenti del %(days)s."
 msgstr "Enter the units or the price for the movements of %(days)s."
@@ -6010,6 +6097,13 @@ msgstr "Net investments"
 
 msgid "Investimenti per classe"
 msgstr "Investments by class"
+
+#, python-format
+msgid ""
+"Investimenti ripristinati: %(holdings)s titoli, %(transactions)s "
+"movimenti, %(dossiers)s conti titoli, %(folios)s portafogli. L'archivio "
+"di prima è salvato in «%(safety)s»."
+msgstr "Investments restored: %(holdings)s holdings, %(transactions)s movements, %(dossiers)s securities accounts, %(folios)s portfolios. The archive as it was is saved in «%(safety)s»."
 
 msgid "Investimenti uniti"
 msgstr "Merged investments"
@@ -6718,6 +6812,10 @@ msgstr ""
 
 msgid "Liquidità da investire sui conti titoli oltre (€)"
 msgstr "Cash to invest on the securities accounts above (€)"
+
+#, python-format
+msgid "Liquidità ora su «%(account)s»"
+msgstr "Cash now on «%(account)s»"
 
 msgid "Liquidità su"
 msgstr "Cash on"
@@ -7502,6 +7600,15 @@ msgid ""
 "Nessun ordine da confermare: spunta quelli eseguiti e indica quote e "
 "prezzo."
 msgstr "No order to confirm: tick the executed ones and enter units and price."
+
+msgid "Nessun ordine da salvare: indica quote e prezzo."
+msgstr "No orders to save: enter units and price."
+
+msgid "Nessun ordine eseguito: spunta quelli fatti e indica quote e prezzo."
+msgstr "No executed orders: tick the ones done and enter units and price."
+
+msgid "Nessun ordine teorico"
+msgstr "No theoretical orders"
 
 msgid ""
 "Nessun ordine: il portafoglio è già in linea con il modello, o le parti "
@@ -8467,6 +8574,9 @@ msgstr ""
 msgid "Oppure incolla più righe «data;prezzo»"
 msgstr "Or paste several «date;price» lines"
 
+msgid "Ora"
+msgstr "Now"
+
 #, python-format
 msgid "Ora stai lavorando su «%(name)s»."
 msgstr "You are now working on “%(name)s”."
@@ -8484,11 +8594,22 @@ msgstr "Sorted by expiry"
 msgid "Ordine"
 msgstr "Order"
 
+msgid "Ordine del ribilanciamento"
+msgstr "Rebalancing order"
+
 msgid "Ordini"
 msgstr "Orders"
 
 msgid "Ordini del ribilanciamento"
 msgstr "Rebalancing orders"
+
+msgid ""
+"Ordini salvati come teorici: quote, prezzo medio e liquidità restano "
+"stime finché non li confermi eseguiti."
+msgstr "Orders saved as theoretical: units, average price and cash stay estimates until you confirm them as executed."
+
+msgid "Ordini teorici"
+msgstr "Theoretical orders"
 
 msgid "Ore"
 msgstr "Hours"
@@ -8889,6 +9010,9 @@ msgstr ""
 "For each portfolio with an active model: the weight of each part against "
 "its target; in red the parts out of band."
 
+msgid "Per ordine"
+msgstr "Per order"
+
 msgid "Per paese"
 msgstr "By country"
 
@@ -8898,10 +9022,15 @@ msgstr "By period"
 msgid "Per portatili con 8 GB di RAM"
 msgstr "For laptops with 8 GB of RAM"
 
+msgid "Per provare, spostare o mettere da parte la sezione Portafoglio."
+msgstr "To try out, move or set aside the Portfolio section."
+
 msgid ""
 "Per quale portafoglio compra il piano. Vuoto: quello del portafoglio "
 "modello, altrimenti il predefinito."
-msgstr "Which portfolio the plan buys for. Empty: the model portfolio's, otherwise the default one."
+msgstr ""
+"Which portfolio the plan buys for. Empty: the model portfolio's, "
+"otherwise the default one."
 
 msgid ""
 "Per ricordare la categoria servono una categoria e una controparte "
@@ -8909,6 +9038,11 @@ msgid ""
 msgstr ""
 "To remember the category you need a category and a counterparty (at least"
 " 3 letters)."
+
+msgid ""
+"Per ripristinare conferma che gli investimenti attuali verranno "
+"sostituiti."
+msgstr "To restore, confirm that the current investments will be replaced."
 
 msgid ""
 "Per ripristinare un backup completo conferma che i dati attuali verranno "
@@ -9435,6 +9569,9 @@ msgstr "Price deleted."
 msgid "Prezzo eseguito di %(name)s"
 msgstr "Executed price of %(name)s"
 
+msgid "Prezzo eseguito €"
+msgstr "Executed price €"
+
 #, python-format
 msgid "Prezzo in %% del nominale (obbligazioni): dividi per 100"
 msgstr "Price in %% of face value (bonds): divide by 100"
@@ -9447,6 +9584,12 @@ msgstr "Average purchase price"
 
 msgid "Prezzo medio di carico"
 msgstr "Average cost"
+
+msgid "Prezzo medio ora"
+msgstr "Average price now"
+
+msgid "Prezzo medio teorico"
+msgstr "Theoretical average price"
 
 msgid "Prezzo per quota"
 msgstr "Price per unit"
@@ -9478,6 +9621,17 @@ msgid ""
 "Prima dell'eliminazione viene salvata una copia di sicurezza "
 "dell'archivio."
 msgstr "A safety copy of the archive is saved before deleting."
+
+msgid ""
+"Prima di andare dal broker: gli acquisti restano teorici finché non li "
+"confermi eseguiti, con le commissioni o la liquidità rimasta."
+msgstr "Before going to the broker: the purchases stay theoretical until you confirm them as executed, with the commissions or the cash left."
+
+msgid ""
+"Prima di andare dal broker: gli ordini restano teorici (quote, prezzo "
+"medio e liquidità stimati, al lordo delle commissioni) finché non li "
+"confermi eseguiti, indicando le commissioni o la liquidità rimasta."
+msgstr "Before going to the broker: the orders stay theoretical (units, average price and cash estimated, before commissions) until you confirm them as executed, entering the commissions or the cash left."
 
 msgid ""
 "Prima di ogni ripristino l'app salva i dati che stavano per essere "
@@ -9790,6 +9944,13 @@ msgstr "This section is turned off"
 msgid "Questa è la versione %(version)s."
 msgstr "This is version %(version)s."
 
+msgid ""
+"Questi ordini non sono ancora stati eseguiti: quote, prezzo medio e "
+"liquidità qui sotto sono teorici. La liquidità è stimata al lordo delle "
+"commissioni (e delle tasse su una vendita in guadagno). Le posizioni vere"
+" cambiano solo quando confermi gli ordini eseguiti."
+msgstr "These orders have not been executed yet: units, average price and cash below are theoretical. Cash is estimated before commissions (and before the tax on a sale at a gain). The real positions change only when you confirm the orders as executed."
+
 msgid "Questo Mese"
 msgstr "This Month"
 
@@ -9835,6 +9996,13 @@ msgstr "Units"
 msgid "Quote di %(name)s"
 msgstr "Units of %(name)s"
 
+msgid "Quote eseguite"
+msgstr "Executed units"
+
+#, python-format
+msgid "Quote eseguite di %(name)s"
+msgstr "Executed units of %(name)s"
+
 msgid "Quote frazionarie (il broker le permette)"
 msgstr "Fractional units (the broker allows them)"
 
@@ -9842,6 +10010,12 @@ msgid ""
 "Quote in obbligazioni tra 0 e 100; la loro volatilità non può essere "
 "negativa."
 msgstr "Bond shares between 0 and 100; their volatility cannot be negative."
+
+msgid "Quote ora"
+msgstr "Units now"
+
+msgid "Quote teoriche"
+msgstr "Theoretical units"
 
 msgid "RAM"
 msgstr "RAM"
@@ -9902,6 +10076,11 @@ msgstr "Installment paid (€)"
 #, python-format
 msgid "Rata registrata: %(capital)s di capitale, %(interest)s di interessi."
 msgstr "Installment recorded: %(capital)s capital, %(interest)s interest."
+
+msgid ""
+"Rata salvata come ordini teorici: diventa acquisti quando la confermi "
+"eseguita."
+msgstr "Instalment saved as theoretical orders: it becomes purchases when you confirm it as executed."
 
 #, python-format
 msgid "Rata: %(name)s"
@@ -10417,8 +10596,16 @@ msgstr "Restore"
 msgid "Ripristina Defaults"
 msgstr "Restore Defaults"
 
+msgid "Ripristina gli investimenti"
+msgstr "Restore the investments"
+
 msgid "Ripristina predefinito"
 msgstr "Restore default"
+
+msgid ""
+"Ripristinare questo file? Gli investimenti attuali saranno sostituiti "
+"(prima viene salvata una copia di tutto l'archivio)."
+msgstr "Restore this file? The current investments will be replaced (a copy of the whole archive is saved first)."
 
 msgid ""
 "Ripristinare questo file? Se è un backup completo, TUTTI i dati attuali "
@@ -10638,6 +10825,9 @@ msgstr "Save rate"
 msgid "Salva collegamenti"
 msgstr "Save links"
 
+msgid "Salva come ordini teorici"
+msgstr "Save as theoretical orders"
+
 msgid "Salva come preset"
 msgstr "Save as preset"
 
@@ -10811,6 +11001,16 @@ msgstr "Choose at least one file to upload."
 msgid "Scegli almeno una modifica."
 msgstr "Choose at least one change."
 
+msgid ""
+"Scegli come dirle: ordine per ordine; un totale, diviso sugli ordini in "
+"proporzione al controvalore; oppure la liquidità che ti resta sul conto "
+"dopo gli ordini: la differenza con la stima è quanto hai pagato di "
+"commissioni."
+msgstr "Choose how to give them: order by order; one total, split over the orders in proportion to their amount; or the cash left on the account after the orders: the difference from the estimate is what you paid in commissions."
+
+msgid "Scegli come indicare le commissioni."
+msgstr "Choose how to enter the commissions."
+
 msgid "Scegli cosa è successo."
 msgstr "Choose what happened."
 
@@ -10839,6 +11039,9 @@ msgstr "Choose the broker's document to read."
 
 msgid "Scegli il file"
 msgstr "Choose the file"
+
+msgid "Scegli il file degli investimenti da ripristinare."
+msgstr "Choose the investments file to restore."
 
 msgid "Scegli il file del broker da importare."
 msgstr "Choose the broker file to import."
@@ -11312,6 +11515,9 @@ msgstr ""
 "Only the interest and ancillary charges, not the principal part of the "
 "installment."
 
+msgid "Solo gli investimenti: esporta e ripristina"
+msgstr "Investments only: export and restore"
+
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
 
@@ -11541,6 +11747,9 @@ msgstr "Estimate"
 msgid "Stima: quanto è arrivato negli ultimi 12 mesi."
 msgstr "Estimate: what came in over the last 12 months."
 
+msgid "Stimata dopo gli ordini"
+msgstr "Estimated after the orders"
+
 msgid ""
 "Stime per pianificare, con le regole dell'anno scelto: la dichiarazione "
 "la verifica il CAF o il commercialista."
@@ -11599,6 +11808,12 @@ msgstr "Instrument"
 
 msgid "Strumento e prezzo da internet"
 msgstr "Instrument and price from the internet"
+
+#, python-format
+msgid ""
+"Su «%(account)s» hai %(diff)s € in più di quanto atteso: controlla quote "
+"e prezzi eseguiti, o indica le commissioni a mano."
+msgstr "On «%(account)s» you have %(diff)s € more than expected: check the executed units and prices, or enter the commissions by hand."
 
 msgid "Subtotale"
 msgstr "Subtotal"
@@ -12427,6 +12642,13 @@ msgstr ""
 msgid "Un file"
 msgstr "One file"
 
+msgid ""
+"Un file con conti titoli, portafogli, titoli, prezzi, operazioni, "
+"modelli, PAC, regole e ordini teorici, e i movimenti della liquidità dei "
+"conti titoli. Il resto dell'archivio (conti correnti, budget, polizze…) "
+"non cambia. I conti di liquidità si riconoscono dal nome."
+msgstr "One file with securities accounts, portfolios, holdings, prices, operations, models, PACs, rules and theoretical orders, and the movements of the securities accounts' cash. The rest of the archive (current accounts, budgets, policies…) does not change. Cash accounts are matched by name."
+
 msgid "Un gruppo mette insieme almeno due archivi."
 msgstr "A group brings together at least two archives."
 
@@ -12472,6 +12694,9 @@ msgid ""
 msgstr ""
 "A model says how much each part of the portfolio should weigh. The active"
 " one is used for rebalancing."
+
+msgid "Un ordine non ha un conto di liquidità: indica le commissioni a mano."
+msgstr "An order has no cash account: enter the commissions by hand."
 
 msgid ""
 "Un solo ETF su tutte le borse del mondo: massima crescita attesa, ma il "
@@ -12729,6 +12954,9 @@ msgstr "Portfolio value"
 msgid "Valore e versato"
 msgstr "Value and money put in"
 
+msgid "Valore teorico"
+msgstr "Theoretical value"
+
 msgid "Valore totale del portafoglio investimenti"
 msgstr "Total value of the investment portfolio"
 
@@ -12792,6 +13020,9 @@ msgstr "Price change; the gain uses today's units."
 
 msgid "Variazione netta cassa (A+B+C)"
 msgstr "Net change in cash (A+B+C)"
+
+msgid "Vedi gli ordini teorici"
+msgstr "See the theoretical orders"
 
 msgid "Vedi i budget"
 msgstr "See the budgets"
@@ -12925,6 +13156,10 @@ msgstr "by hand"
 
 msgid "a parte"
 msgstr "apart"
+
+#, python-format
+msgid "acquisti %(buy)s, vendite %(sell)s"
+msgstr "purchases %(buy)s, sales %(sell)s"
 
 msgid "acquisti con commissioni meno vendite"
 msgstr "purchases with fees minus sales"
@@ -13583,6 +13818,9 @@ msgstr "cash on"
 
 msgid "llama3.2:3b"
 msgstr "llama3.2:3b"
+
+msgid "lorda di commissioni"
+msgstr "before commissions"
 
 msgid "lordo meno spese"
 msgstr "gross less expenses"

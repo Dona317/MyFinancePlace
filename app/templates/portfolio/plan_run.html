@@ -48,7 +48,8 @@
     </div>
     <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
       <a href="{{ url_for('portfolio.rules') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma acquisti') }}</button>
+      <button type="submit" name="action" value="plan" class="btn btn-outline" title="{{ _('Prima di andare dal broker: gli acquisti restano teorici finché non li confermi eseguiti, con le commissioni o la liquidità rimasta.') }}"><i class="bi bi-hourglass-split"></i> {{ _('Salva come ordini teorici') }}</button>
+      <button type="submit" name="action" value="done" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma acquisti') }}</button>
     </div>
     {% else %}
     <div class="card-body text-muted">{{ _('Niente da comprare: il modello non ha parti sotto il loro obiettivo.') }}</div>

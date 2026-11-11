@@ -121,6 +121,13 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   leaves that account's liquidity, the commission follows the securities account's rule; without a model of its own
   a plan follows its portfolio's active model. Fix (11 Nov 2026): starring the portfolio that was already the
   default one left no default (then a new «Portafoglio principale» appeared)
+- **Theoretical orders** (F77, migration `e5a7b9c1d3f8`, `services/planned_orders.py`): a rebalancing or a PAC
+  instalment saved before going to the broker; units, ABP and liquidity shown as theoretical (liquidity gross of
+  commissions) until confirmed; commissions per order, as a total, or found from the liquidity actually left
+- **Investments export/restore** (F78, `services/investments_archive.py`): the Portfolio section alone in one file,
+  restored over the current investments (accounts matched by name, a full backup saved first)
+- **Recurring calendar events** (F79): RRULE in the .ics and in the Google Calendar link; .ics lines folded per RFC 5545
+- **Light OCR on Python 3.13** (F80): rapidocr 3 + onnxruntime, tilted photos straightened
 - **Fictitious investments** (11 Nov 2026, `samples/dati_fittizi/genera_investimenti.py`): 10 ETFs of ten asset
   classes, shares, bonds, mutual/insurance/pension funds on two securities accounts, a model portfolio out of band,
   and the statements of both accounts (the history is recognized as already imported); checked by
