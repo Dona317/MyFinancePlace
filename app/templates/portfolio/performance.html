@@ -28,9 +28,10 @@
 <div class="card"><div class="card-body text-muted">{{ _('Servono almeno un mese di storia e i prezzi dei titoli: registra le operazioni o aggiorna i prezzi da internet.') }}</div></div>
 {% else %}
 <div class="kpi-grid" style="margin-bottom:16px;">
-  {{ kpi('graph-up-arrow', _('Rendimento (TWR)'), value=pct(report.twr), cls='kpi-primary',
-         sub=(_('%(pct)s all\'anno', pct=report.annualized|number(2) ~ ' %') if report.annualized is not none else _('da %(first)s', first=report.labels[0]))) }}
-  {{ kpi('cash-coin', _('Rendimento sui tuoi soldi (XIRR)'), value=(xirr|number(2) ~ ' %') if xirr is not none else '—', sub=_('all\'anno, conta quando hai versato')) }}
+  {# XIRR first (what your money earned, when you put it in counts), the TWR beside it (the instruments alone) #}
+  {{ kpi('cash-coin', _('Rendimento sui tuoi soldi (XIRR)'), value=(xirr|number(2) ~ ' %') if xirr is not none else '—', cls='kpi-primary', sub=_('all\'anno, conta quando hai versato')) }}
+  {{ kpi('graph-up-arrow', _('Rendimento dei titoli (TWR)'), value=pct(report.twr),
+         sub=(_('%(pct)s all\'anno · per confrontarlo con gli indici', pct=report.annualized|number(2) ~ ' %') if report.annualized is not none else _('da %(first)s', first=report.labels[0]))) }}
   {{ kpi('bar-chart-steps', _('Volatilità'), value=(report.volatility|number(2) ~ ' %') if report.volatility is not none else '—', sub=_('all\'anno')) }}
   {{ kpi('graph-down-arrow', _('Calo massimo'), value=pct(report.max_drawdown), cls='kpi-negative', sub=_('dal punto più alto')) }}
 </div>

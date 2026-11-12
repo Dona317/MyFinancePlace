@@ -69,5 +69,36 @@
     <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}</a>
   {% endcall %}
   {% endif %}
+
+  <div class="card" id="market" style="margin-top:16px;">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title"><i class="bi bi-database"></i> {{ _('Storico dei prezzi') }}</div>
+        <div class="card-header-sub">{{ _('Le chiusure di ogni giorno, in un database a parte: valgono per tutti gli archivi, restano anche ripristinando un backup e da una versione dell\'app all\'altra. Servono a valore nel tempo, rendimenti e backtest.') }}</div>
+      </div>
+      {% if online %}
+      <form method="POST" action="{{ url_for('portfolio.market_sync') }}">
+        <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-cloud-download"></i> {{ _('Scarica da Yahoo: fondi principali e i tuoi titoli') }}</button>
+      </form>
+      {% endif %}
+    </div>
+    {% if market %}
+    <div class="table-wrapper">
+      <table class="table-compact">
+        <thead><tr><th>{{ _('Simbolo') }}</th><th>{{ _('Nome') }}</th><th class="text-right">{{ _('Chiusure') }}</th><th>{{ _('Dal') }}</th><th>{{ _('Al') }}</th><th></th></tr></thead>
+        <tbody>
+          {% for m in market %}
+          <tr><td class="font-mono">{{ m.symbol }}</td><td>{{ m.name or '—' }}<div class="text-xs text-muted">{{ m.isin or '' }} {{ m.currency or '' }}</div></td>
+            <td class="text-right">{{ m.count }}</td><td class="nowrap">{{ m.first_day|it_date if m.first_day else '—' }}</td>
+            <td class="nowrap">{{ m.last_day|it_date if m.last_day else '—' }}</td>
+            <td>{% if m.error %}<span class="badge badge-negative" title="{{ m.error }}">{{ _('non letto') }}</span>{% endif %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body text-sm text-muted">{{ _('Ancora vuoto.') }} {% if not online %}{{ _('Accendi i prezzi da internet in Impostazioni per scaricarlo.') }}{% endif %}</div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

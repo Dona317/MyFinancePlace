@@ -218,3 +218,55 @@ def test_the_accounts_card_is_the_default_except_for_bank_transfers(app, client,
     assert rows == {"Bar Centrale": visa.id, "Bonifico istantaneo a Luca": None}
     page = client.get(f"/transactions/new?account={account.id}").get_data(as_text=True)
     assert 'data-default="1"' in page and "NOT_BY_CARD" in page
+
+
+def test_the_key_is_read_kept_and_used_on_another_computer(app, client, db, bank, tmp_path, monkeypatch):
+    """Esporta → «Chiave dei dati cifrati»: the key is shown only on click, downloaded, and the other computer's key
+    typed in makes its card numbers readable — the ones this key could read are encrypted again, nothing lost."""
+    import base64
+    import os
+
+    from app.services import field_crypto
+
+    monkeypatch.delenv("MFP_DATA_KEY", raising=False)
+    app.instance_path = str(tmp_path / "pc1")
+    account, _other = bank
+    with app.test_request_context():
+        mine, _w = cards.save(None, _input(account_id=account.id, number="4111 1111 1111 4821"))
+        db.session.commit()
+        code = field_crypto.fingerprint()
+    page = client.get("/export/").get_data(as_text=True)
+    assert 'id="data-key"' in page and code in page and field_crypto_key(app) not in page  # never in the HTML
+    shown = client.post("/export/key").get_json()
+    assert shown["key"] == field_crypto_key(app) and shown["fingerprint"] == code
+    saved = client.post("/export/key/download")
+    assert saved.mimetype == "text/plain" and shown["key"] in saved.get_data(as_text=True)
+    # a card saved on another computer (another key), as a restored backup brings it
+    other_key = base64.b64encode(os.urandom(32)).decode()
+    monkeypatch.setenv("MFP_DATA_KEY", other_key)
+    with app.test_request_context():
+        foreign = Card(name="Dall'altro PC", kind="debit", last4="0004", account_id=account.id,
+                       number_enc=field_crypto.encrypt("5500000000000004"))
+    monkeypatch.delenv("MFP_DATA_KEY")
+    db.session.add(foreign)
+    db.session.commit()
+    assert "1 valore cifrato non si legge con questa chiave" in client.get("/export/").get_data(as_text=True)
+    page = client.post("/export/key/restore", data={"key": "non una chiave"}, follow_redirects=True).get_data(as_text=True)
+    assert "Questa non è una chiave" in page
+    page = client.post("/export/key/restore", data={"key": other_key}, follow_redirects=True).get_data(as_text=True)
+    assert "1 valori ora leggibili, 1 cifrati di nuovo" in page
+    with app.test_request_context():
+        assert cards.full_number(db.session.get(Card, foreign.id)) == "5500 0000 0000 0004"
+        assert cards.full_number(db.session.get(Card, mine.id)) == "4111 1111 1111 4821"  # not lost
+        assert field_crypto.fingerprint() != code
+    monkeypatch.setenv("MFP_DATA_KEY", other_key)
+    page = client.post("/export/key/restore", data={"key": other_key}, follow_redirects=True).get_data(as_text=True)
+    assert "impostata dal server" in page
+    assert "impostata dal server" in client.get("/export/").get_data(as_text=True)
+
+
+def field_crypto_key(app) -> str:
+    from app.services import field_crypto
+
+    with app.test_request_context():
+        return field_crypto.key_text()

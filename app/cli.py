@@ -99,3 +99,34 @@ def mcp_serve(slug):
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
     mcp_server.serve(current_app._get_current_object(), client)
+
+
+market_cli = AppGroup("market", help="The market data store: end-of-day closes shared by every archive (D10, F69).")
+
+
+@market_cli.command("sync")
+@click.argument("symbols", nargs=-1)
+@click.option("--main", "main_funds", is_flag=True, help="The main funds and ETFs (and the benchmark indices).")
+def market_sync(symbols, main_funds):
+    """Read the daily closes from Yahoo Finance: everything the first time, then only what is new."""
+    from app.services import market_data
+
+    if not symbols and not main_funds:
+        raise click.ClickException("Name the Yahoo symbols (VWCE.MI…) or use --main.")
+    found = market_data.sync_main_funds() if main_funds else []
+    found += [market_data.sync(symbol) for symbol in symbols]
+    for item in found:
+        click.echo(f"{item.symbol:<14} {'+' + str(item.added) + ' closes' if not item.error else 'ERROR ' + item.error}")
+    if all(item.error for item in found):
+        raise click.ClickException("Nothing read: is Yahoo Finance reachable from here?")
+
+
+@market_cli.command("status")
+def market_status():
+    """What the store holds."""
+    from app.services import market_data
+
+    click.echo(f"{market_data.url()}  (schema {market_data.schema_version()})")
+    for row in market_data.overview():
+        click.echo(f"{row['symbol']:<14} {row['count']:>6} closes  {row['first_day'] or '-'} → {row['last_day'] or '-'}"
+                   f"{'  ERROR ' + row['error'] if row['error'] else ''}")

@@ -21,6 +21,7 @@ from app.services import (
     family,
     fund_facts,
     lookthrough,
+    market_data,
     performance,
     planned_orders,
     portfolio_charts,
@@ -320,7 +321,28 @@ def prices():
         flash(_("Prezzi aggiornati: %(changed)s.", changed=changed) if changed else _("Nessun prezzo cambiato."), "success")
         return redirect(url_for("portfolio.index"))
     return render_template("portfolio/prices.html", holdings=holdings, values={}, today=date.today(),
-                           online=current_settings()["prices_online"], supported=price_feed.supported)
+                           online=current_settings()["prices_online"], supported=price_feed.supported,
+                           market=market_data.overview())
+
+
+@portfolio_bp.route("/market/sync", methods=["POST"])
+def market_sync():
+    """D10, F69: the daily closes of the main funds and of the holdings with a ticker, from Yahoo, into the market
+    data store (a database of its own, shared by every archive)."""
+    if not current_settings()["prices_online"]:
+        flash(_("I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."), "warning")
+        return redirect(url_for("portfolio.prices") + "#market")
+    wanted = {symbol: (isin, name) for symbol, isin, name in market_data.MAIN_FUNDS}
+    for h in Holding.query.filter(Holding.ticker.isnot(None), Holding.asset_class.in_(price_feed.MARKET_CLASSES)):
+        wanted.setdefault(h.ticker.strip().upper(), (h.isin, h.name))
+    found = [market_data.sync(symbol, isin, name) for symbol, (isin, name) in wanted.items()]
+    good = [f for f in found if not f.error]
+    flash(_("Storico aggiornato: %(count)s titoli, %(closes)s chiusure nuove.", count=len(good),
+            closes=sum(f.added for f in good)), "success" if good else "warning")
+    if len(good) < len(found):
+        flash(_("Non letti: %(list)s", list=", ".join(f"{f.symbol} ({f.error[:60]})" for f in found if f.error)[:600]),
+              "warning")
+    return redirect(url_for("portfolio.prices") + "#market")
 
 
 @portfolio_bp.route("/prices/online", methods=["POST"])

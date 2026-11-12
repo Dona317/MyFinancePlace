@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Backtest') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Backtest') }} <span class="nav-badge nav-badge-tbd">TBD</span>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Backtest') }}</li>{% endblock %}
+
+{% block content %}
+{% include "portfolio/_nav.html" %}
+<div class="card mockup-tbd">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-clock-history"></i> {{ _('Come sarebbe andato nel passato') }} <span class="nav-badge nav-badge-tbd">TBD</span></div>
+      <div class="card-header-sub">{{ _('In arrivo: scegli un portafoglio modello (o le tue posizioni), un periodo, un versamento iniziale e un PAC, ogni quanto ribilanciare; l\'app lo simula sullo storico dei prezzi.') }}</div>
+    </div>
+  </div>
+  <div class="card-body text-sm">
+    <ul>
+      <li>{{ _('Valore nel tempo contro il versato, e contro un indice di riferimento') }}</li>
+      <li>{{ _('XIRR e TWR, volatilità, calo massimo e quanto è durato, migliori e peggiori 12 mesi') }}</li>
+      <li>{{ _('Confronto tra due modelli e tra ribilanciare o no (mensile, annuale, a bande)') }}</li>
+      <li>{{ _('Commissioni, bollo e tasse sulle vendite del ribilanciamento') }}</li>
+    </ul>
+    <p class="text-muted">{{ _('Serve lo storico dei prezzi giornaliero (database dei prezzi, F69): i risultati passati non garantiscono quelli futuri.') }}</p>
+  </div>
+</div>
+{% endblock %}

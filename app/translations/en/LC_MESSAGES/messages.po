@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-12 07:03+0000\n"
+"POT-Creation-Date: 2026-11-12 07:09+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -553,6 +553,16 @@ msgstr[0] "%(num)d transaction"
 msgstr[1] "%(num)d transactions"
 
 #, python-format
+msgid ""
+"%(num)d valore cifrato non si legge con questa chiave (viene da un altro "
+"computer): incolla qui sotto la chiave di quel computer."
+msgid_plural ""
+"%(num)d valori cifrati non si leggono con questa chiave (vengono da un "
+"altro computer): incolla qui sotto la chiave di quel computer."
+msgstr[0] "%(num)d encrypted value cannot be read with this key (it comes from another computer): paste that computer's key below."
+msgstr[1] "%(num)d encrypted values cannot be read with this key (they come from another computer): paste that computer's key below."
+
+#, python-format
 msgid "%(num)s bloccata"
 msgid_plural "%(num)s bloccate"
 msgstr[0] "%(num)s blocked"
@@ -627,8 +637,8 @@ msgid "%(pct)s %% della crescita"
 msgstr "%(pct)s %% of the growth"
 
 #, python-format
-msgid "%(pct)s all'anno"
-msgstr "%(pct)s a year"
+msgid "%(pct)s all'anno · per confrontarlo con gli indici"
+msgstr "%(pct)s a year · to compare it with the indices"
 
 #, python-format
 msgid "%(pct)s%% rispetto al periodo precedente (%(amount)s)"
@@ -998,6 +1008,9 @@ msgstr "Sign in"
 msgid "Accedi al tuo pannello finanziario personale."
 msgstr "Sign in to your personal finance dashboard."
 
+msgid "Accendi i prezzi da internet in Impostazioni per scaricarlo."
+msgstr "Turn on prices from the internet in Settings to download it."
+
 msgid "Account"
 msgstr "Account"
 
@@ -1355,6 +1368,9 @@ msgstr "No income yet: dividends, coupons and interest appear here once recorded
 
 msgid "Ancora nessuna spesa."
 msgstr "No spending yet."
+
+msgid "Ancora vuoto."
+msgstr "Still empty."
 
 msgid "Andamento"
 msgstr "Trend"
@@ -1781,6 +1797,9 @@ msgstr "BTPs and MOT bonds, ETFs, shares and certificates of Milan: the price to
 
 msgid "BTP€i"
 msgstr "BTP€i"
+
+msgid "Backtest"
+msgstr "Backtest"
 
 msgid "Backup Completo e Ripristino"
 msgstr "Full Backup and Restore"
@@ -2413,6 +2432,25 @@ msgstr ""
 msgid "Chiave API Anthropic mancante o non valida (ANTHROPIC_API_KEY)."
 msgstr "Anthropic API key missing or invalid (ANTHROPIC_API_KEY)."
 
+msgid "Chiave da usare"
+msgstr "Key to use"
+
+msgid "Chiave dei dati cifrati"
+msgstr "Key of the encrypted data"
+
+#, python-format
+msgid ""
+"Chiave dei dati cifrati di MyFinancePlace (codice %(code)s). Tienila "
+"insieme ai backup, in un posto sicuro: senza, su un altro computer i "
+"numeri delle carte non si leggono."
+msgstr "Key of the MyFinancePlace encrypted data (code %(code)s). Keep it with the backups, somewhere safe: without it, card numbers cannot be read on another computer."
+
+#, python-format
+msgid ""
+"Chiave sostituita (codice %(code)s): %(readable)s valori ora leggibili, "
+"%(again)s cifrati di nuovo con la nuova chiave."
+msgstr "Key replaced (code %(code)s): %(readable)s values now readable, %(again)s encrypted again with the new key."
+
 msgid "Chiedi"
 msgstr "Ask"
 
@@ -2437,6 +2475,9 @@ msgstr "Closing %(month)s"
 
 msgid "Chiusura del mese in corso"
 msgstr "Closing of the current month"
+
+msgid "Chiusure"
+msgstr "Closes"
 
 msgid "Ciambella"
 msgstr "Doughnut"
@@ -2530,6 +2571,9 @@ msgstr "Client “%(name)s” deleted. A safety copy is in %(path)s."
 
 msgid "Clienti"
 msgstr "Clients"
+
+msgid "Codice della chiave: serve a riconoscerla senza mostrarla"
+msgstr "Code of the key: tells it apart without showing it"
 
 #, python-format
 msgid "CoinGecko non risponde (%(exc)s)"
@@ -2650,6 +2694,9 @@ msgstr ""
 "√12. The downside deviation is √(mean of the squares of the months below "
 "the rate), shown here per year."
 
+msgid "Come sarebbe andato nel passato"
+msgstr "How it would have gone in the past"
+
 msgid "Commissione"
 msgstr "Commission"
 
@@ -2699,6 +2746,9 @@ msgstr "Commissions and costs paid"
 
 msgid "Commissioni totali (€)"
 msgstr "Total commissions (€)"
+
+msgid "Commissioni, bollo e tasse sulle vendite del ribilanciamento"
+msgstr "Commissions, stamp duty and taxes on the rebalancing sales"
 
 msgid ""
 "Commissioni: fissa + percentuale sul controvalore, entro un minimo e un "
@@ -2925,6 +2975,11 @@ msgstr "Compared with the average of the last %(n)s months"
 
 msgid "Confronto dei metodi"
 msgstr "Method comparison"
+
+msgid ""
+"Confronto tra due modelli e tra ribilanciare o no (mensile, annuale, a "
+"bande)"
+msgstr "Two models compared, and rebalancing or not (monthly, yearly, with bands)"
 
 msgid "Consigliato: il più preciso nel leggere documenti e tabelle"
 msgstr "Recommended: the most accurate at reading documents and tables"
@@ -5084,10 +5139,24 @@ msgstr ""
 "(difference %(difference)s). Some row is probably missing or wrong."
 
 msgid ""
+"I numeri delle carte del backup sono cifrati con la chiave di un altro "
+"computer: inseriscila in «Chiave dei dati cifrati» per leggerli."
+msgstr "The backup's card numbers are encrypted with another computer's key: enter it in «Key of the encrypted data» to read them."
+
+msgid ""
+"I numeri interi delle carte sono cifrati con questa chiave, che sta solo "
+"su questo computer. Tienila insieme ai backup: per leggerli su un altro "
+"computer serve la stessa chiave."
+msgstr "Full card numbers are encrypted with this key, which is only on this computer. Keep it with the backups: reading them on another computer needs the same key."
+
+msgid ""
 "I pagamenti di questo conto vanno su questa carta, tranne bonifici, "
 "giroconti, addebiti diretti (SDD) e F24. Se il conto ha una sola carta "
 "attiva è lei la predefinita."
-msgstr "This account's payments go on this card, except bank transfers, transfers between accounts, direct debits (SDD) and F24. If the account has only one active card, that one is the default."
+msgstr ""
+"This account's payments go on this card, except bank transfers, transfers"
+" between accounts, direct debits (SDD) and F24. If the account has only "
+"one active card, that one is the default."
 
 #, python-format
 msgid "I pesi superano il 100 %%."
@@ -5993,6 +6062,12 @@ msgstr ""
 msgid "In arrivo"
 msgstr "Coming up"
 
+msgid ""
+"In arrivo: scegli un portafoglio modello (o le tue posizioni), un "
+"periodo, un versamento iniziale e un PAC, ogni quanto ribilanciare; l'app"
+" lo simula sullo storico dei prezzi."
+msgstr "Coming: choose a model portfolio (or your positions), a period, an initial deposit and a PAC, how often to rebalance; the app simulates it on the price history."
+
 msgid "In attesa di avvio…"
 msgstr "Waiting to start…"
 
@@ -6039,6 +6114,9 @@ msgstr "Collected: %(amount)s."
 
 msgid "Incasso netto"
 msgstr "Net proceeds"
+
+msgid "Incolla la chiave dell'altro computer"
+msgstr "Paste the other computer's key"
 
 msgid "Indica almeno una persona e la sua quota."
 msgstr "Give at least one person and their share."
@@ -6418,6 +6496,12 @@ msgstr "The description mentions a payment or a debit."
 msgid "La chiave API Anthropic non ha accesso a questo modello (LLM_MODEL)."
 msgstr "The Anthropic API key has no access to this model (LLM_MODEL)."
 
+msgid "La chiave è impostata dal server (MFP_DATA_KEY): si cambia lì."
+msgstr "The key is set by the server (MFP_DATA_KEY): it is changed there."
+
+msgid "La chiave è impostata dal server (MFP_DATA_KEY): si legge e si cambia lì."
+msgstr "The key is set by the server (MFP_DATA_KEY): it is read and changed there."
+
 msgid ""
 "La classificazione AI non è configurata: scegli un modello in "
 "Impostazioni → Modelli AI."
@@ -6670,6 +6754,12 @@ msgstr ""
 "The descriptions will be sent to Anthropic (cloud) for classification. "
 "Continue?"
 
+msgid ""
+"Le chiusure di ogni giorno, in un database a parte: valgono per tutti gli"
+" archivi, restano anche ripristinando un backup e da una versione "
+"dell'app all'altra. Servono a valore nel tempo, rendimenti e backtest."
+msgstr "Every day's closes, in a database of their own: shared by every archive, kept when a backup is restored and from one app version to the next. They feed value over time, returns and backtests."
+
 msgid "Le commissioni e i costi dell’operazione."
 msgstr "The operation's fees and costs."
 
@@ -6893,6 +6983,9 @@ msgstr "Read"
 
 msgid "Leggi con AI"
 msgstr "Read with AI"
+
+msgid "Leggi e salva la chiave"
+msgstr "Read and save the key"
 
 msgid "Leggi un documento con l'AI"
 msgstr "Read a document with AI"
@@ -7436,6 +7529,9 @@ msgstr "Show the amounts"
 msgid "Mostra il numero"
 msgstr "Show the number"
 
+msgid "Mostra la chiave"
+msgstr "Show the key"
+
 msgid "Mostra la password"
 msgstr "Show the password"
 
@@ -7546,6 +7642,9 @@ msgstr "Hide the amounts"
 
 msgid "Nascondi il numero"
 msgstr "Hide the number"
+
+msgid "Nascondi la chiave"
+msgstr "Hide the key"
 
 msgid "Nascondi le scadenze fiscali"
 msgstr "Hide the tax deadlines"
@@ -8218,6 +8317,10 @@ msgstr "Not set"
 
 msgid "Non installato"
 msgstr "Not installed"
+
+#, python-format
+msgid "Non letti: %(list)s"
+msgstr "Not read: %(list)s"
 
 msgid "Non mensile"
 msgstr "Not monthly"
@@ -10145,6 +10248,11 @@ msgstr ""
 msgid "Quest'anno"
 msgstr "This year"
 
+msgid ""
+"Questa non è una chiave di MyFinancePlace: incolla tutto il testo della "
+"chiave salvata."
+msgstr "This is not a MyFinancePlace key: paste the whole text of the saved key."
+
 msgid "Questa sezione è disattivata"
 msgstr "This section is turned off"
 
@@ -10445,9 +10553,6 @@ msgstr "Returns month by month"
 msgid "Rendimento"
 msgstr "Return"
 
-msgid "Rendimento (TWR)"
-msgstr "Return (TWR)"
-
 msgid "Rendimento a scadenza lordo"
 msgstr "Gross yield to maturity"
 
@@ -10473,6 +10578,9 @@ msgstr "Expected return: between −20 and 30 % a year."
 
 msgid "Rendimento cumulato"
 msgstr "Cumulative return"
+
+msgid "Rendimento dei titoli (TWR)"
+msgstr "Return of the instruments (TWR)"
 
 #, python-format
 msgid "Rendimento obbligazioni (%%)"
@@ -11176,6 +11284,9 @@ msgstr "Download full backup"
 msgid "Scarica cambi BCE"
 msgstr "Download ECB rates"
 
+msgid "Scarica da Yahoo: fondi principali e i tuoi titoli"
+msgstr "Download from Yahoo: main funds and your holdings"
+
 msgid "Scarica di nuovo"
 msgstr "Download again"
 
@@ -11204,6 +11315,9 @@ msgstr ""
 "Downloads the .ics file and opens Google Calendar → Settings → Import: "
 "choose the file just downloaded and the calendar, then «Import». For a "
 "single event use the icon next to each deadline."
+
+msgid "Scarica la chiave (.txt)"
+msgstr "Download the key (.txt)"
 
 msgid "Scaricala dalla pagina della versione"
 msgstr "Download it from the release page"
@@ -11588,6 +11702,11 @@ msgstr "At least one more snapshot is needed to draw the trend."
 msgid "Serve almeno uno fra ISIN, ticker e nome."
 msgstr "At least one of ISIN, ticker and name is needed."
 
+msgid ""
+"Serve lo storico dei prezzi giornaliero (database dei prezzi, F69): i "
+"risultati passati non garantiscono quelli futuri."
+msgstr "It needs the daily price history (the price database, F69): past results do not guarantee future ones."
+
 msgid "Servizi di comunicazione"
 msgstr "Communication services"
 
@@ -11692,6 +11811,9 @@ msgstr ""
 "They are saved from the preview of a file imported with the manual "
 "mapping or of a broker's file (Portfolio → Import from broker, «Save as "
 "preset») and are applied automatically to files with the same columns."
+
+msgid "Simbolo"
+msgstr "Symbol"
 
 msgid "Simili"
 msgstr "Similar"
@@ -12020,6 +12142,13 @@ msgstr "Thinking…"
 
 msgid "Storico"
 msgstr "History"
+
+#, python-format
+msgid "Storico aggiornato: %(count)s titoli, %(closes)s chiusure nuove."
+msgstr "History updated: %(count)s instruments, %(closes)s new closes."
+
+msgid "Storico dei prezzi"
+msgstr "Price history"
 
 #, python-format
 msgid "Storico di %(ticker)s scaricato."
@@ -13070,6 +13199,17 @@ msgstr "Use"
 msgid "Usa la proposta"
 msgstr "Use the suggestion"
 
+msgid "Usa questa chiave"
+msgstr "Use this key"
+
+msgid "Usa una chiave salvata"
+msgstr "Use a saved key"
+
+msgid ""
+"Usare questa chiave? I dati che la chiave di adesso sa leggere vengono "
+"cifrati di nuovo con quella nuova: non si perde niente."
+msgstr "Use this key? The data the current key can read is encrypted again with the new one: nothing is lost."
+
 msgid "Usata"
 msgstr "Used"
 
@@ -13212,6 +13352,9 @@ msgstr "Portfolio value"
 
 msgid "Valore e versato"
 msgstr "Value and money put in"
+
+msgid "Valore nel tempo contro il versato, e contro un indice di riferimento"
+msgstr "Value over time against what was paid in, and against a benchmark"
 
 msgid "Valore teorico"
 msgstr "Theoretical value"
@@ -13393,6 +13536,11 @@ msgstr "Empty = the class's: 26%%, crypto 33%% from 2026."
 
 msgid "Vuoto: si usa il cambio del giorno."
 msgstr "Empty: the day's exchange rate is used."
+
+msgid ""
+"XIRR e TWR, volatilità, calo massimo e quanto è durato, migliori e "
+"peggiori 12 mesi"
+msgstr "XIRR and TWR, volatility, maximum drawdown and how long it lasted, best and worst 12 months"
 
 msgid "YYYY-MM-DD (ISO)"
 msgstr "YYYY-MM-DD (ISO)"
@@ -13581,6 +13729,9 @@ msgstr "click for the transactions"
 
 msgid "clic su una fetta per le transazioni"
 msgstr "click a slice for the transactions"
+
+msgid "codice"
+msgstr "code"
 
 #, python-format
 msgid "colonna «%(path)s» non trovata"
@@ -14226,6 +14377,9 @@ msgstr "not active"
 
 msgid "non deducibile"
 msgstr "not deductible"
+
+msgid "non letto"
+msgstr "not read"
 
 #, python-format
 msgid "non quotato su Stooq (borsa .%(suffix)s)"

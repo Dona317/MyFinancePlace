@@ -100,3 +100,12 @@ def investments_restore():
             transactions=added["transactions"], dossiers=added["securities_accounts"], folios=added["portfolios"],
             safety=safety), "success")
     return redirect(url_for("portfolio.index"))
+
+
+
+# ── Backtest (TBD): what is coming ─────────────────────────────────────────────
+
+@portfolio_bp.route("/backtest")
+def backtest_page():
+    """A placeholder (F88): how a model portfolio would have done in the past, from the price history."""
+    return render_template("portfolio/backtest.html", nav_active="backtest")

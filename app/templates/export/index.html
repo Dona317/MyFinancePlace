@@ -97,6 +97,53 @@
 
 </div>
 
+<!-- La chiave dei dati cifrati (numeri delle carte): da tenere con i backup ─────────── -->
+<div class="card mb-24" id="data-key">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-key"></i> {{ _('Chiave dei dati cifrati') }}</div>
+      <div class="card-header-sub">{{ _('I numeri interi delle carte sono cifrati con questa chiave, che sta solo su questo computer. Tienila insieme ai backup: per leggerli su un altro computer serve la stessa chiave.') }}</div>
+    </div>
+    <span class="badge badge-muted" title="{{ _('Codice della chiave: serve a riconoscerla senza mostrarla') }}">{{ _('codice') }} {{ key_code }}</span>
+  </div>
+  <div class="card-body">
+    {% if unreadable %}
+    <div class="alert alert-warning mb-16" style="display:block;"><i class="bi bi-exclamation-triangle"></i>
+      {{ ngettext('%(num)d valore cifrato non si legge con questa chiave (viene da un altro computer): incolla qui sotto la chiave di quel computer.', '%(num)d valori cifrati non si leggono con questa chiave (vengono da un altro computer): incolla qui sotto la chiave di quel computer.', unreadable) }}
+    </div>
+    {% endif %}
+    {% if key_from_env %}
+    <p class="text-sm text-muted">{{ _('La chiave è impostata dal server (MFP_DATA_KEY): si legge e si cambia lì.') }}</p>
+    {% else %}
+    <div class="grid-2">
+      <div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-eye"></i> {{ _('Leggi e salva la chiave') }}</div>
+        <div class="d-flex gap-8 mb-8" style="flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" id="key-show" data-url="{{ url_for('export.data_key') }}"
+                  data-show="{{ _('Mostra la chiave') }}" data-hide="{{ _('Nascondi la chiave') }}"><i class="bi bi-eye"></i> <span>{{ _('Mostra la chiave') }}</span></button>
+          <button type="button" class="btn btn-ghost btn-sm" id="key-copy" hidden><i class="bi bi-clipboard"></i> {{ _('Copia') }}</button>
+          <form method="POST" action="{{ url_for('export.data_key_download') }}" class="inline-filter">
+            <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> {{ _('Scarica la chiave (.txt)') }}</button>
+          </form>
+        </div>
+        <code id="key-text" class="font-mono text-sm" data-privacy="show" style="word-break:break-all;" hidden></code>
+      </div>
+      <div>
+        <div class="font-semibold text-sm mb-8"><i class="bi bi-upload"></i> {{ _('Usa una chiave salvata') }}</div>
+        <form method="POST" action="{{ url_for('export.data_key_restore') }}"
+              data-confirm="{{ _('Usare questa chiave? I dati che la chiave di adesso sa leggere vengono cifrati di nuovo con quella nuova: non si perde niente.') }}">
+          <div class="form-group">
+            <input type="text" name="key" class="form-control font-mono" autocomplete="off" required
+                   placeholder="{{ _('Incolla la chiave dell\'altro computer') }}" aria-label="{{ _('Chiave da usare') }}" />
+          </div>
+          <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-key"></i> {{ _('Usa questa chiave') }}</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
 <!-- Backup completo e ripristino ───────────────────────────────────── -->
 <div class="card mb-24" id="backup">
   <div class="card-header">
@@ -217,4 +264,24 @@
 
 <p class="text-sm text-muted">{{ _('Per caricare estratti conto, CSV o Excel:') }} <a href="{{ url_for('export.import_page') }}"><i class="bi bi-box-arrow-in-down"></i> {{ _('Importa') }}</a></p>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  /* the key: asked to the server only on click, shown for a minute */
+  const show = document.getElementById('key-show'), text = document.getElementById('key-text'), copy = document.getElementById('key-copy');
+  if (!show) return;
+  let timer = null;
+  const hide = () => { text.hidden = true; text.textContent = ''; copy.hidden = true; show.querySelector('span').textContent = show.dataset.show; };
+  show.addEventListener('click', async () => {
+    if (!text.hidden) { hide(); return; }
+    const data = await (await fetch(show.dataset.url, { method: 'POST' })).json();
+    text.textContent = data.key; text.hidden = false; copy.hidden = false;
+    show.querySelector('span').textContent = show.dataset.hide;
+    clearTimeout(timer); timer = setTimeout(hide, 60000);
+  });
+  copy.addEventListener('click', () => navigator.clipboard?.writeText(text.textContent));
+})();
+</script>
 {% endblock %}

@@ -23,6 +23,7 @@ from app.services import (
     bank_import,
     column_guess,
     encrypted_backup,
+    field_crypto,
     import_presets,
     statement_readers,
     transfer,
@@ -55,7 +56,41 @@ def index():
         safety_copies=backup.list_safety_copies(),
         auto=encrypted_backup.status(),
         frequencies=encrypted_backup.FREQUENCIES,
+        key_from_env=field_crypto.from_environment(), key_code=field_crypto.fingerprint(),
+        unreadable=field_crypto.unreadable(card_service.encrypted_fields()),
     )
+
+
+# ── The key of the encrypted data (card numbers…): read it to keep it, put it on another computer ───────────
+
+@export_bp.route("/key", methods=["POST"])
+def data_key():
+    """The key as text, only on click (never in a page's HTML)."""
+    return jsonify(key=field_crypto.key_text(), fingerprint=field_crypto.fingerprint())
+
+
+@export_bp.route("/key/download", methods=["POST"])
+def data_key_download():
+    text = _("Chiave dei dati cifrati di MyFinancePlace (codice %(code)s). Tienila insieme ai backup, in un posto "
+             "sicuro: senza, su un altro computer i numeri delle carte non si leggono.", code=field_crypto.fingerprint())
+    return download(f"{text}\n\n{field_crypto.key_text()}\n", "myfinanceplace-chiave.txt", "text/plain")
+
+
+@export_bp.route("/key/restore", methods=["POST"])
+def data_key_restore():
+    """Use a saved key (the other computer's): what the old key could read is encrypted again with it."""
+    if field_crypto.from_environment():
+        flash(_("La chiave è impostata dal server (MFP_DATA_KEY): si cambia lì."), "error")
+        return redirect(url_for("export.index") + "#data-key")
+    try:
+        again, readable = field_crypto.replace_key(request.form.get("key", ""), card_service.encrypted_fields())
+    except ValueError:
+        flash(_("Questa non è una chiave di MyFinancePlace: incolla tutto il testo della chiave salvata."), "error")
+        return redirect(url_for("export.index") + "#data-key")
+    db.session.commit()
+    flash(_("Chiave sostituita (codice %(code)s): %(readable)s valori ora leggibili, %(again)s cifrati di nuovo con "
+            "la nuova chiave.", code=field_crypto.fingerprint(), readable=readable, again=again), "success")
+    return redirect(url_for("export.index") + "#data-key")
 
 
 @export_bp.route("/import")
@@ -103,6 +138,9 @@ def restore():
     except backup.BackupError as exc:
         flash(str(exc), "error")
         return redirect(url_for("export.index") + "#backup")
+    if field_crypto.unreadable(card_service.encrypted_fields()):
+        flash(_("I numeri delle carte del backup sono cifrati con la chiave di un altro computer: inseriscila in "
+                "«Chiave dei dati cifrati» per leggerli."), "warning")
     flash(
         _("Backup ripristinato: %(transactions)s transazioni, %(holdings)s posizioni, %(debts)s debiti, %(policies)s polizze, %(goals)s obiettivi, %(documents)s documenti, %(snapshots)s istantanee. I dati di prima sono salvati in «%(safety)s» (vedi Copie prima dei ripristini).", transactions=restored['transactions'], holdings=restored['holdings'], debts=restored['debts'], policies=restored['insurance_policies'], goals=restored['goals'], documents=restored['documents'], snapshots=restored['snapshots'], safety=safety),
         "success",

@@ -240,3 +240,8 @@ def assign(transactions: list[Transaction]) -> int:
                 tx.card_id = card.id
                 given += 1
     return given
+
+
+def encrypted_fields() -> list[tuple[Card, str]]:
+    """Every encrypted value of the cards, for a change of key (services.field_crypto)."""
+    return [(c, "number_enc") for c in Card.query.filter(Card.number_enc.isnot(None))]
