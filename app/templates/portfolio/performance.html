@@ -127,6 +127,35 @@
   </div>
 {% if report.returns %}</div>{% endif %}
 
+{% if fx.effects %}
+{# F43, F49: what the exchange rates added or took on the holdings quoted in another currency #}
+<div class="card" style="margin-top:24px;" id="fx-effect">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-currency-exchange"></i> {{ _('Effetto cambio') }} {{ info(_('Per i titoli quotati in un\'altra valuta: quanto del rendimento in euro viene dal titolo e quanto dal cambio, dal primo prezzo registrato dopo l\'acquisto all\'ultimo. (1 + rendimento in euro) = (1 + rendimento nella sua valuta) × (1 + variazione del cambio). Gli euro sono quelli che il cambio ha aggiunto o tolto al valore di oggi.')) }}</div>
+      <div class="card-header-sub">{% for code, amount in fx.by_currency.items() %}{{ code }} {{ '+' if amount > 0 }}{{ amount|money }}{{ ' · ' if not loop.last }}{% endfor %} · {{ _('in tutto %(amount)s', amount=fx.total|money) }}</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Titolo') }}</th><th>{{ _('Valuta') }}</th><th>{{ _('Dal') }}</th>
+        <th class="text-right">{{ _('Nella sua valuta') }}</th><th class="text-right">{{ _('Cambio') }}</th>
+        <th class="text-right">{{ _('In euro') }}</th><th class="text-right">{{ _('Euro dal cambio') }}</th></tr></thead>
+      <tbody>
+        {% for e in fx.effects %}
+        <tr><td><a href="{{ url_for('portfolio.detail', holding_id=e.holding.id) }}">{{ e.holding.name }}</a></td><td>{{ e.currency }}</td>
+          <td class="nowrap">{{ e.start|it_date }}</td>
+          <td class="text-right nowrap {{ 'positive' if e.local > 0 else 'negative' if e.local < 0 }}">{{ '+' if e.local > 0 }}{{ (e.local * 100)|number(2) }} %</td>
+          <td class="text-right nowrap {{ 'positive' if e.fx > 0 else 'negative' if e.fx < 0 }}">{{ '+' if e.fx > 0 }}{{ (e.fx * 100)|number(2) }} %</td>
+          <td class="text-right nowrap">{{ '+' if e.total > 0 }}{{ (e.total * 100)|number(2) }} %</td>
+          <td class="text-right nowrap {{ 'positive' if e.fx_euro > 0 else 'negative' if e.fx_euro < 0 }}">{{ '+' if e.fx_euro > 0 }}{{ e.fx_euro|money }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 {% if contribution.rows %}
 <div class="card" style="margin-top:24px;">
   <div class="card-header" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">

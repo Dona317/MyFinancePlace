@@ -20,6 +20,7 @@ from app.services import (
     composition,
     display,
     family,
+    fx_effect,
     income_report,
     investment_plans,
     lookthrough,
@@ -204,7 +205,7 @@ def performance_page():
                            xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
                            benchmarks=performance.benchmarks(), max_benchmarks=performance.MAX_BENCHMARKS,
                            contribution=performance.contributions(holdings, period),
-                           period_choices=performance.PERIODS)
+                           period_choices=performance.PERIODS, fx=fx_effect.of_holdings(holdings))
 
 
 def _performance_post() -> None:

@@ -20,6 +20,7 @@ from app.services import (
     display,
     family,
     fund_facts,
+    fx_effect,
     lookthrough,
     market_data,
     performance,
@@ -230,6 +231,7 @@ def detail(holding_id):
                            distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
                            asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
                            chart=portfolio_charts.price_chart(holding, points),  # G40: with the operations
+                           fx=fx_effect.of_holding(holding),  # F43: what the currency did
                            look=lookthrough.summary(holding), manual_rows=lookthrough.MANUAL_ROWS,
                            look_funds=lookthrough.FUNDS,
                            contribution=performance.contribution_of(holding, portfolio_models.investments()))

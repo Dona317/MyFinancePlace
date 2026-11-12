@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-12 07:15+0000\n"
+"POT-Creation-Date: 2026-11-12 14:52+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -112,6 +112,10 @@ msgstr "%(amount)s not explained by transactions"
 #, python-format
 msgid "%(amount)s pagati quest'anno"
 msgstr "%(amount)s paid this year"
+
+#, python-format
+msgid "%(amount)s sul valore di oggi"
+msgstr "%(amount)s on today's value"
 
 #, python-format
 msgid "%(bps)s pb · %(quarter)s a trimestre · %(month)s al mese"
@@ -1366,7 +1370,9 @@ msgstr "Analyze file"
 msgid ""
 "Anche la chiave dei dati cifrati era nel backup: è in uso (codice "
 "%(code)s), i numeri delle carte si leggono."
-msgstr "The key of the encrypted data was in the backup too: it is in use (code %(code)s), card numbers can be read."
+msgstr ""
+"The key of the encrypted data was in the backup too: it is in use (code "
+"%(code)s), card numbers can be read."
 
 msgid "Ancora disponibile"
 msgstr "Still available"
@@ -2500,7 +2506,9 @@ msgstr "Doughnut"
 msgid ""
 "Cifrato con la password del backup automatico, con dentro anche la chiave"
 " dei dati cifrati: su un altro computer basta la password."
-msgstr "Encrypted with the automatic backup's password, with the key of the encrypted data inside: on another computer the password is enough."
+msgstr ""
+"Encrypted with the automatic backup's password, with the key of the "
+"encrypted data inside: on another computer the password is enough."
 
 msgid "Circuito"
 msgstr "Network"
@@ -4032,6 +4040,9 @@ msgstr "European ETFs: name and price in euro"
 msgid "ETF, azioni, fondi, obbligazioni…: con che cosa investi."
 msgstr "ETFs, shares, funds, bonds…: what you invest through."
 
+msgid "Effetto cambio"
+msgstr "Currency effect"
+
 msgid "Elenchi"
 msgstr "Lists"
 
@@ -4491,6 +4502,9 @@ msgstr "Age today"
 
 msgid "Euro"
 msgstr "Euro"
+
+msgid "Euro dal cambio"
+msgstr "Euro from the currency"
 
 msgid "Europa"
 msgstr "Europe"
@@ -5321,7 +5335,10 @@ msgid ""
 "Il backup .zip non contiene la chiave dei dati cifrati: salvala a parte "
 "(qui sopra) o usa il backup cifrato, che la porta dentro protetta dalla "
 "password."
-msgstr "The .zip backup does not hold the key of the encrypted data: save it separately (above) or use the encrypted backup, which carries it protected by the password."
+msgstr ""
+"The .zip backup does not hold the key of the encrypted data: save it "
+"separately (above) or use the encrypted backup, which carries it "
+"protected by the password."
 
 msgid "Il backup automatico non è impostato."
 msgstr "The automatic backup is not set up."
@@ -6049,7 +6066,9 @@ msgstr "Sets the period of the page, cards and charts."
 msgid ""
 "Imposta prima la password del backup automatico cifrato (qui sotto): "
 "serve a cifrare il file."
-msgstr "First set the password of the automatic encrypted backup (below): it encrypts the file."
+msgstr ""
+"First set the password of the automatic encrypted backup (below): it "
+"encrypts the file."
 
 msgid "Imposta sostitutiva"
 msgstr "Substitute tax"
@@ -6118,6 +6137,9 @@ msgstr "Down"
 
 msgid "In corso"
 msgstr "Ongoing"
+
+msgid "In euro"
+msgstr "In euro"
 
 msgid "In evidenza"
 msgstr "Highlights"
@@ -7735,6 +7757,13 @@ msgstr ""
 "On the chosen day a reminder appears: you confirm the purchases, split as"
 " the model portfolio says, at the day's prices."
 
+msgid "Nella sua valuta"
+msgstr "In its currency"
+
+#, python-format
+msgid "Nella sua valuta (%(code)s)"
+msgstr "In its currency (%(code)s)"
+
 msgid "Nelle transazioni controllate non ho trovato nulla da correggere."
 msgstr "In the checked transactions I found nothing to correct."
 
@@ -9292,6 +9321,14 @@ msgid ""
 msgstr ""
 "For derivatives: how many units one contract is worth (e.g. 100 for a "
 "stock option). Otherwise 1."
+
+msgid ""
+"Per i titoli quotati in un'altra valuta: quanto del rendimento in euro "
+"viene dal titolo e quanto dal cambio, dal primo prezzo registrato dopo "
+"l'acquisto all'ultimo. (1 + rendimento in euro) = (1 + rendimento nella "
+"sua valuta) × (1 + variazione del cambio). Gli euro sono quelli che il "
+"cambio ha aggiunto o tolto al valore di oggi."
+msgstr "For holdings quoted in another currency: how much of the return in euro comes from the instrument and how much from the exchange rate, from the first price recorded after the purchase to the latest. (1 + return in euro) = (1 + return in its currency) × (1 + change of the exchange rate). The euro are what the exchange rate added to or took from today's value."
 
 msgid "Per la rata del PAC indica da 1 a 31 giorni."
 msgstr "For the PAC instalment enter 1 to 31 days."
@@ -13861,6 +13898,10 @@ msgid "dal"
 msgstr "since"
 
 #, python-format
+msgid "dal %(day)s"
+msgstr "since %(day)s"
+
+#, python-format
 msgid "dal %(year)s: %(left)s su %(amount)s, fino al 31/12/%(until)s"
 msgstr "from %(year)s: %(left)s of %(amount)s, until 31/12/%(until)s"
 
@@ -14217,6 +14258,10 @@ msgstr "settled"
 
 msgid "in scadenza"
 msgstr "expiring"
+
+#, python-format
+msgid "in tutto %(amount)s"
+msgstr "in all %(amount)s"
 
 #, python-format
 msgid "incassato il %(day)s"
@@ -14792,6 +14837,9 @@ msgstr "securities %(invested)s + cash %(cash)s"
 
 msgid "titoli + liquidità"
 msgstr "securities + cash"
+
+msgid "titolo × cambio"
+msgstr "instrument × currency"
 
 msgid "tolleranza del modello"
 msgstr "model's tolerance"

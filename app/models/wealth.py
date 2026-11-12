@@ -108,6 +108,11 @@ class HoldingPrice(db.Model):
     # the asset wrote by itself (replaced when a new valuation is entered)
     note       = db.Column(db.Text)
     estimated  = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    # F43: the price as quoted, when not in euro (USD, CHF, GBP…), and the rate used: price = price_ccy × fx_rate.
+    # Kept so the return can be split into what the instrument did and what the exchange rate did (F49)
+    price_ccy  = db.Column(db.Numeric(38, 6))
+    currency   = db.Column(db.String(3))
+    fx_rate    = db.Column(db.Numeric(18, 8))     # euro for one unit of `currency` that day
 
 
 class HoldingExposure(db.Model):
