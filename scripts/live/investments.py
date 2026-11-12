@@ -276,6 +276,13 @@ with sync_playwright() as p:
         main = pg.inner_text("main")
         check("privacy remembered on the next page", "****" in main and re.search(r"\d{1,3}(\.\d{3})+,\d{2}", main) is None)
         shot("privacy_positions")
+        # a click on a hidden amount shows it for a few seconds, then it is hidden again
+        cell = pg.locator("main .privacy-masked").first
+        cell.click()
+        shown = cell.inner_text()
+        check("a click shows the amount", "****" not in shown and re.search(r"\d", shown) is not None, shown)
+        pg.wait_for_timeout(5600)
+        check("…and hides it again after a few seconds", "****" in cell.inner_text(), cell.inner_text())
         pg.click("#privacy-toggle")
         main = pg.inner_text("main")
         check("privacy off again: amounts back", "****" not in main and re.search(r"\d\.\d{3},\d{2}", main) is not None)

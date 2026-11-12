@@ -2181,3 +2181,5 @@ html.privacy .privacy-button .privacy-icon-on { display: inline-block; }
 html.privacy .privacy-button .privacy-icon-off { display: none; }
 html.privacy .privacy-button { color: var(--clr-primary); }
 html.privacy-pending body { visibility: hidden; }
+html.privacy .privacy-masked { cursor: pointer; }  /* a click shows the amount for a few seconds */
+html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4px; }

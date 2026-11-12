@@ -488,6 +488,8 @@ window.mfpConfirm = mfpConfirm;
 const PRIVACY_KEY = "mfp-privacy";
 const MONEY_TOKEN = /([-+−]?\s?)((?:€|\$|£|¥|CHF|USD|EUR|GBP)\s?)?(\d{1,3}(?:[.,  ']\d{3})+(?:[.,]\d+)?|\d+[.,]\d+|\d+)(\s?(?:€|\$|£|¥|CHF|USD|EUR|GBP|k€))?(?!\s?(?:%|punti|pt\b|p\.p\.))(?![\d.,])/g;
 const privacyOriginals = new WeakMap();
+const privacyRevealed = new WeakSet();   // amounts clicked open: shown for a few seconds, then hidden again
+const PRIVACY_PEEK_MS = 5000;
 let privacyObserver = null;
 
 function privacyOn() { return document.documentElement.classList.contains("privacy"); }
@@ -509,13 +511,36 @@ function privacySkip(node) {
 }
 
 function maskNode(node) {
-  if (node.nodeType !== Node.TEXT_NODE || privacySkip(node)) return;
+  if (node.nodeType !== Node.TEXT_NODE || privacySkip(node) || privacyRevealed.has(node)) return;
   const original = privacyOriginals.has(node) ? privacyOriginals.get(node) : node.nodeValue;
   const masked = maskAmounts(original);
   if (masked !== original) {
     privacyOriginals.set(node, original);
+    node.parentElement.classList.add("privacy-masked");
     if (node.nodeValue !== masked) node.nodeValue = masked;
   }
+}
+
+/* A click on hidden amounts shows them for a few seconds (the first click only shows: a link under them works on
+   the next click) */
+function peekAmounts(e) {
+  if (!privacyOn()) return;
+  const el = e.target instanceof Element ? e.target.closest(".privacy-masked") : null;
+  if (!el || el.textContent.length > 200) return;
+  const nodes = [];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (privacyOriginals.has(node) && !privacyRevealed.has(node)) nodes.push(node);
+  }
+  if (!nodes.length) return;
+  e.preventDefault();
+  e.stopPropagation();
+  nodes.forEach(node => { privacyRevealed.add(node); node.nodeValue = privacyOriginals.get(node); });
+  el.classList.add("privacy-peek");
+  setTimeout(() => {
+    nodes.forEach(node => { privacyRevealed.delete(node); if (privacyOn()) maskNode(node); });
+    el.classList.remove("privacy-peek");
+  }, PRIVACY_PEEK_MS);
 }
 
 function maskTree(root) {
@@ -526,7 +551,12 @@ function maskTree(root) {
 function unmaskTree(root) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    if (privacyOriginals.has(node)) { node.nodeValue = privacyOriginals.get(node); privacyOriginals.delete(node); }
+    if (privacyOriginals.has(node)) {
+      node.nodeValue = privacyOriginals.get(node);
+      privacyOriginals.delete(node);
+      privacyRevealed.delete(node);
+      node.parentElement?.classList.remove("privacy-masked", "privacy-peek");
+    }
   }
 }
 
@@ -577,6 +607,7 @@ function setPrivacy(on, remember) {
 function initPrivacy() {
   setPrivacy(store.get(PRIVACY_KEY) === "1", false);
   document.getElementById("privacy-toggle")?.addEventListener("click", () => setPrivacy(!privacyOn(), true));
+  document.addEventListener("click", peekAmounts, true);
 }
 
 /* After a change the page opens again where it was being read, not at the top: a form sent with POST (a save, a
