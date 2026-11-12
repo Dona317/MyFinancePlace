@@ -122,3 +122,33 @@ def test_the_prices_page(client, app, db, store, monkeypatch):
     page = client.post("/portfolio/market/sync", follow_redirects=True).get_data(as_text=True)
     assert "Storico aggiornato" in page and "ENEL.MI" in asked and "VWCE.MI" in asked
     assert "ENEL.MI" in client.get("/portfolio/prices").get_data(as_text=True)
+
+
+def test_reading_yahoo_sends_only_the_symbol_and_the_dates(store, monkeypatch):
+    import io
+    import json
+
+    seen = {}
+
+    class Answer(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    def urlopen(request, timeout):
+        seen["url"], seen["timeout"] = request.full_url, timeout
+        return Answer(json.dumps(chart([(date(2026, 11, 2), 130.0)])).encode())
+
+    monkeypatch.setattr(market_data.urllib.request, "urlopen", urlopen)
+    daily = market_data.read_yahoo("^GSPC", date(2026, 11, 1), date(2026, 11, 2))
+    assert [p[1] for p in daily.points] == [Decimal("130.0")]
+    assert seen["url"].startswith("https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?period1=")
+    assert f"period1={market_data._stamp(date(2026, 11, 1))}" in seen["url"] and "interval=1d" in seen["url"]
+    assert seen["timeout"] == market_data.TIMEOUT
+
+
+def test_the_backtest_placeholder(client, db):
+    page = client.get("/portfolio/backtest").get_data(as_text=True)
+    assert "Come sarebbe andato nel passato" in page and "TBD" in page

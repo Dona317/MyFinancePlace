@@ -2,8 +2,8 @@
 
 ## Versione attuale
 - **La versione attuale dell'app è il ramo `test-Cloud`** (PR #8, in bozza verso `main`).
-  Ultimo commit verificato: `df54fec` (10 ott 2026), con CI verde (test + app desktop Windows/macOS/Linux) e
-  test live verdi.
+  Ultima verifica: 12 nov 2026 — suite 1273 test, copertura 97,45 %, 0 funzioni non testate; test live
+  283/283 (login, flows, wealth, features, securities, investments). CI del push da controllare su GitHub.
 - `main` è indietro (lo scheletro iniziale) finché la PR #8 non viene unita: decisione D1, rimandata a
   novembre 2026. **Non unire su `main` senza una richiesta esplicita.**
 - Si lavora e si pusha solo su `test-Cloud`. I rami `Mapping-Excel` e `Dona317-patch-1` sono già contenuti
@@ -12,7 +12,8 @@
 ## Dove sono le cose
 - Piano, decisioni e TODO: `docs/PIANO_E_TODO.md`
 - App desktop (pacchetti, notifiche, avvio automatico, installatore): `docs/DESKTOP.md`
-- Dati demo: `samples/dati_fittizi/`
+- Dati demo: `samples/dati_fittizi/` (investimenti: `samples/dati_fittizi/investimenti/`, generati da `genera_investimenti.py`)
+- Stato dei lavori (SAL) e decisioni aperte: sezione 0 di `docs/PIANO_E_TODO.md` (riaperta dal promemoria delle 13:30)
 
 ## Come verificare
 - Test: `TEST_DATABASE_URL=postgresql://… python -m pytest -q --cov=app --cov-report=json:cov.json --cov-fail-under=94`,
