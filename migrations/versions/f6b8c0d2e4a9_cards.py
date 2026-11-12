@@ -31,6 +31,7 @@ def upgrade():
         sa.Column('credit_limit', sa.Numeric(14, 2), nullable=True),
         sa.Column('statement_day', sa.SmallInteger(), nullable=True),
         sa.Column('contactless', sa.Boolean(), server_default='true', nullable=False),
+        sa.Column('is_default', sa.Boolean(), server_default='false', nullable=False),
         sa.Column('notes', sa.Text(), nullable=True),
         sa.Column('active', sa.Boolean(), server_default='true', nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=True),

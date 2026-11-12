@@ -171,7 +171,7 @@
           <label class="form-label" for="f-card">{{ _('Pagato con la carta') }}</label>
           <select id="f-card" name="card_id" class="form-select">
             <option value="">{{ _('— nessuna carta —') }}</option>
-            {% for c in cards %}<option value="{{ c.id }}" data-account="{{ c.account_id or '' }}" {{ 'selected' if v.card_id == c.id|string }}>{{ c.name }}{{ ' •••• ' ~ c.last4 if c.last4 else '' }}{{ '' if c.active else ' (' ~ _('non attiva') ~ ')' }}</option>{% endfor %}
+            {% for c in cards %}<option value="{{ c.id }}" data-account="{{ c.account_id or '' }}" data-default="{{ '1' if c.is_default or (c.active and (cards|selectattr('account_id', 'equalto', c.account_id)|selectattr('active')|list|length) == 1) else '' }}" {{ 'selected' if v.card_id == c.id|string }}>{{ c.name }}{{ ' •••• ' ~ c.last4 if c.last4 else '' }}{{ '' if c.active else ' (' ~ _('non attiva') ~ ')' }}</option>{% endfor %}
           </select>
         </div>
         {% endif %}
@@ -387,6 +387,25 @@
   }
   account.addEventListener('change', filter);
   filter();
+  // a new movement: the account's default card, unless it is a bank transfer (or the card was chosen by hand)
+  if (!{{ 'true' if action == 'new' else 'false' }}) return;
+  const NOT_BY_CARD = /bonific|\bsepa\b|\bsct\b|giroconto|disposizione|addebito diretto|\bsdd\b|\brid\b|\bf24\b|\bmav\b|\brav\b|pagopa|stipendio/i;
+  const description = document.querySelector('#edit-form [name=description]');
+  const typeField = document.getElementById('f-type');
+  let chosen = !!card.value;
+  card.addEventListener('change', () => { chosen = true; });
+  function suggest() {
+    if (chosen) return;
+    const type = typeField?.value;
+    const byCard = type === 'expense' && !NOT_BY_CARD.test(description?.value || '');
+    const own = [...card.options].find(o => o.value && o.dataset.default === '1' && o.dataset.account === account.value);
+    card.value = byCard && own ? own.value : '';
+  }
+  account.addEventListener('change', suggest);
+  // the type is set by the Uscita / Entrata buttons, by a sign before the amount, or by a transfer: check after each
+  document.getElementById('edit-form')?.addEventListener('click', () => setTimeout(suggest, 0));
+  document.getElementById('edit-form')?.addEventListener('input', () => setTimeout(suggest, 0));
+  suggest();
 })();
 </script>
 <script>

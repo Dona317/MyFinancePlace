@@ -61,6 +61,9 @@
         </div>
         {% set contact = (values.get('contactless') if values else (c.contactless if card else true)) %}
         <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="contactless" value="1" class="check" {{ 'checked' if contact }} /> {{ _('Contactless') }}</label>
+        {% set default = (values.get('is_default') if values else (c.is_default if card else false)) %}
+        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="is_default" value="1" class="check" {{ 'checked' if default }} />
+          {{ _('Carta predefinita del conto') }} {{ info(_('I pagamenti di questo conto vanno su questa carta, tranne bonifici, giroconti, addebiti diretti (SDD) e F24. Se il conto ha una sola carta attiva è lei la predefinita.')) }}</label>
         {% set on = (values.get('active') if values else (c.active if card else true)) %}
         <input type="hidden" name="active" value="" />
         <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" value="1" class="check" {{ 'checked' if on }} /> {{ _('Attiva') }}</label>

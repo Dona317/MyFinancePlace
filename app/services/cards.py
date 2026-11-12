@@ -8,6 +8,10 @@ the whole number appears only when asked for, on the card's page. Never kept: th
 
 A movement gets its card from the form, or — imported from a statement — from its bank text: «CARTA *4821»,
 «carta n. ****4821», «PAGAMENTO POS ... 4821» match the active card of that account ending in 4821.
+
+The default: when the account has a linked card, its payments are made with it — the card marked as the account's
+default, or its only active card — except bank transfers (bonifici, giroconti) and what never goes through a card
+(direct debits SDD/RID, F24, MAV/RAV, salary). Incomes and transfers between accounts have no card.
 """
 from __future__ import annotations
 
@@ -31,6 +35,9 @@ NETWORKS = {"visa": "Visa", "mastercard": "Mastercard", "maestro": "Maestro", "a
             "bancomat": "Bancomat / PagoBANCOMAT", "other": _l("Altro")}
 ICONS = {"debit": "credit-card", "credit": "credit-card-2-front", "prepaid": "wallet2"}
 EXPIRY_WARNING_DAYS = 60
+# words of a payment that is not made with a card: bank transfers above all, and direct debits, tax forms, salary
+NOT_BY_CARD = re.compile(r"bonific|\bsepa\b|\bsct\b|giroconto|disposizione|\bdisp\.|addebito diretto|\bsdd\b|\brid\b|"
+                         r"\bf24\b|\bmav\b|\brav\b|pagopa|stipendio|emolument", re.I)
 # the last four digits in a bank's text, after a word that says «card» or after masking stars / x
 _IN_TEXT = re.compile(r"(?:cart[ae]|card|carta n\.?|pan)\D{0,12}?(?:[*x•]+\s*)?(\d{4})\b|[*x•]{3,}\s*(\d{4})\b", re.I)
 
@@ -52,6 +59,7 @@ class CardInput:
     statement_day: int | None
     contactless: bool
     notes: str | None
+    is_default: bool = False
     active: bool = True
     forget_number: bool = False   # remove the saved full number
 
@@ -122,8 +130,11 @@ def save(card: Card | None, data: CardInput) -> tuple[Card, bool]:
     card.credit_limit = data.credit_limit if data.kind != "debit" else None
     card.statement_day = data.statement_day if data.kind == "credit" else None
     card.contactless, card.notes, card.active = data.contactless, (data.notes or "").strip() or None, data.active
+    card.is_default = bool(data.is_default and data.active and card.account_id)
     db.session.add(card)
     db.session.flush()
+    if card.is_default:  # one default card per account
+        Card.query.filter(Card.account_id == card.account_id, Card.id != card.id).update({"is_default": False})
     return card, whole
 
 
@@ -196,15 +207,35 @@ def match(tx: Transaction, cards: list[Card] | None = None) -> Card | None:
     return chosen[0] if len(chosen) == 1 else None
 
 
+def default_of(account_id: int | None, cards: list[Card] | None = None) -> Card | None:
+    """The card an account's payments go on: the one marked as default, else its only active card."""
+    if not account_id:
+        return None
+    own = [c for c in (every() if cards is None else cards) if c.account_id == account_id and c.active]
+    marked = [c for c in own if c.is_default]
+    return marked[0] if marked else (own[0] if len(own) == 1 else None)
+
+
+def paid_by_card(tx: Transaction) -> bool:
+    """A payment that can go through a card: an expense that is not a bank transfer, a direct debit, a tax form…"""
+    text = " ".join(filter(None, (tx.bank_description, tx.description, tx.notes)))
+    return tx.type == "expense" and not NOT_BY_CARD.search(text)
+
+
+def default_for(tx: Transaction, cards: list[Card] | None = None) -> Card | None:
+    return default_of(tx.account_id, cards) if paid_by_card(tx) else None
+
+
 def assign(transactions: list[Transaction]) -> int:
-    """Give the card to movements without one, from their bank text; how many got one."""
+    """Give the card to movements without one: the one named by their bank text, else the account's default card
+    (bank transfers aside); how many got one."""
     cards = every()
     if not cards:
         return 0
     given = 0
     for tx in transactions:
         if tx.card_id is None:
-            card = match(tx, cards)
+            card = match(tx, cards) or default_for(tx, cards)
             if card is not None:
                 tx.card_id = card.id
                 given += 1

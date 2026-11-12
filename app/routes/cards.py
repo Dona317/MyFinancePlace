@@ -21,7 +21,7 @@ def _input() -> cards.CardInput:
         account_id=form.get("account_id", type=int), credit_limit=to_decimal(form.get("credit_limit")),
         statement_day=form.get("statement_day", type=int), contactless=bool(form.get("contactless")),
         notes=form.get("notes"), active="1" in form.getlist("active") if "active" in form else True,
-        forget_number=bool(form.get("forget_number")))
+        forget_number=bool(form.get("forget_number")), is_default=bool(form.get("is_default")))
 
 
 def _page(card: Card | None, values: dict, account_id: int | None = None):

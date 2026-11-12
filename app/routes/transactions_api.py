@@ -10,7 +10,7 @@ from app.models.transaction import Transaction
 from app.routes.transactions import transactions_bp
 from app.schemas.common import DeleteOut
 from app.schemas.transaction import TransactionIn, TransactionListOut, TransactionOut
-from app.services import splits
+from app.services import cards, splits
 
 # ── Routes ────────────────────────────────────────────────────────────
 
@@ -29,6 +29,7 @@ def api_create(body):
     parts = body.pop("splits", None)
     tx = Transaction(**body)
     _api_splits(tx, parts)
+    cards.assign([tx])  # F41: the account's card, unless it is a bank transfer
     db.session.add(tx)
     db.session.commit()
     return tx

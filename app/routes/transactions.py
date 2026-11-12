@@ -239,6 +239,7 @@ def quick_add():
     tx = Transaction(date=when, description=description, amount=abs(amount), currency="EUR", type=kind,
                      category=category, counterparty=counterparty, tags=[counterparty] if counterparty else [],
                      account_id=linked_id("account_id", Account))
+    card_service.assign([tx])  # F41: the account's card, unless it is a bank transfer
     db.session.add(tx)
     db.session.commit()
     undo.remember_created([tx])

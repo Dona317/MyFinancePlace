@@ -180,3 +180,41 @@ def test_field_encryption_key(app, monkeypatch, tmp_path):
         monkeypatch.setenv("MFP_DATA_KEY", base64.b64encode(b"short").decode())
         with pytest.raises(RuntimeError):
             field_crypto.encrypt("x")
+
+
+def test_the_accounts_card_is_the_default_except_for_bank_transfers(app, client, db, bank):
+    account, other = bank
+    with app.test_request_context():
+        visa, _w = cards.save(None, _input(account_id=account.id, number="4821"))
+        db.session.commit()
+        payments = [make_tx(description="Esselunga", account_id=account.id),                      # a payment: the card
+                    make_tx(description="Bonifico a Mario per l'affitto", account_id=account.id),   # a bank transfer: no
+                    make_tx(description="Affitto", bank_description="BONIFICO SEPA A FAVORE DI", account_id=account.id),
+                    make_tx(description="Enel", bank_description="ADDEBITO DIRETTO SDD ENEL", account_id=account.id),
+                    make_tx(description="F24 IMU", account_id=account.id),
+                    make_tx(description="Rimborso", type="income", account_id=account.id),          # an income: no
+                    make_tx(description="Al deposito", type="transfer", account_id=account.id,
+                            counter_account_id=other.id),                                           # a giroconto: no
+                    make_tx(description="Senza conto")]
+        assert cards.assign(payments) == 1
+        assert [t.card_id for t in payments] == [visa.id] + [None] * 7
+        # two cards on the account: the one marked as default; none marked: no guess
+        debit, _w = cards.save(None, _input(name="Bancomat", kind="debit", number="1111", account_id=account.id))
+        assert cards.default_of(account.id) is None
+        cards.save(debit, _input(name="Bancomat", kind="debit", number="1111", account_id=account.id, is_default=True))
+        cards.save(visa, _input(account_id=account.id, number="4821", is_default=True))  # only one default per account
+        db.session.commit()
+        db.session.expire_all()
+        assert cards.default_of(account.id).name == "Visa Fineco" and not db.session.get(Card, debit.id).is_default
+        late = make_tx(description="Amazon", account_id=account.id)
+        cards.assign([late])
+        assert late.card_id == visa.id
+    # quick add from the list of transactions: the default card too
+    client.post("/transactions/quick", data={"date": "2026-11-02", "description": "Bar Centrale", "amount": "-3,20",
+                                             "account_id": str(account.id)})
+    client.post("/transactions/quick", data={"date": "2026-11-02", "description": "Bonifico istantaneo a Luca",
+                                             "amount": "-50", "account_id": str(account.id)})
+    rows = {t.description: t.card_id for t in Transaction.query.filter(Transaction.date == date(2026, 11, 2))}
+    assert rows == {"Bar Centrale": visa.id, "Bonifico istantaneo a Luca": None}
+    page = client.get(f"/transactions/new?account={account.id}").get_data(as_text=True)
+    assert 'data-default="1"' in page and "NOT_BY_CARD" in page

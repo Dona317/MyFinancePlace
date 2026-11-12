@@ -24,6 +24,9 @@ class Card(db.Model):
     credit_limit  = db.Column(db.Numeric(14, 2))                 # credit and prepaid: the monthly limit / top-up cap
     statement_day = db.Column(db.SmallInteger)                   # credit: the day the month's total is charged
     contactless   = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
+    # the account's payments go on this card by default (bank transfers aside); one per account. With one active card
+    # only, that one is the default anyway
+    is_default    = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
     notes         = db.Column(db.Text)
     active        = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
