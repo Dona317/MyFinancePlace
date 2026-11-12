@@ -192,6 +192,7 @@
 .bi-lock::before { content: "\f47b"; }
 .bi-magic::before { content: "\f675"; }
 .bi-map::before { content: "\f47f"; }
+.bi-mask::before { content: "\f482"; }
 .bi-medium::before { content: "\f661"; }
 .bi-memory::before { content: "\f6e3"; }
 .bi-meta::before { content: "\f6a1"; }

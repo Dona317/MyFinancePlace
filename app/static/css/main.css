@@ -2173,3 +2173,11 @@ th.text-right .col-pop { left: auto; right: 0; }
 /* Deadlines: «Aggiungi a Google Calendar» at the end of each line, quiet until hovered */
 .deadline-gcal { margin-left: 6px; color: var(--clr-text-muted); opacity: .6; }
 .deadline-gcal:hover, .deadline-gcal:focus-visible { color: var(--clr-primary); opacity: 1; }
+
+/* Privacy (the eye next to the theme button): the open eye shows that amounts are visible, the crossed one that they
+   are hidden; while a page loads with privacy on it stays hidden until its amounts are masked (main.js) */
+.privacy-button .privacy-icon-on { display: none; }
+html.privacy .privacy-button .privacy-icon-on { display: inline-block; }
+html.privacy .privacy-button .privacy-icon-off { display: none; }
+html.privacy .privacy-button { color: var(--clr-primary); }
+html.privacy-pending body { visibility: hidden; }

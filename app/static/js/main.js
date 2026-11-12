@@ -481,6 +481,104 @@ function mfpConfirm(message, options = {}) {
 }
 window.mfpConfirm = mfpConfirm;
 
+/* Privacy (the eye next to the light/dark button): amounts become «****» everywhere — text, tables, cards, charts —
+   while percentages, dates and counts stay. Remembered in this browser; applied before the page shows (theme_boot).
+   An amount is a number with a currency sign or code next to it, a decimal part, or thousands grouped (1.234);
+   a number followed by % is a percentage and stays. Fields being edited (inputs) are not touched. */
+const PRIVACY_KEY = "mfp-privacy";
+const MONEY_TOKEN = /([-+−]?\s?)((?:€|\$|£|¥|CHF|USD|EUR|GBP)\s?)?(\d{1,3}(?:[.,  ']\d{3})+(?:[.,]\d+)?|\d+[.,]\d+|\d+)(\s?(?:€|\$|£|¥|CHF|USD|EUR|GBP|k€))?(?!\s?(?:%|punti|pt\b|p\.p\.))(?![\d.,])/g;
+const privacyOriginals = new WeakMap();
+let privacyObserver = null;
+
+function privacyOn() { return document.documentElement.classList.contains("privacy"); }
+
+function maskAmounts(text) {
+  if (!text || !/\d/.test(text)) return text;
+  return text.replace(MONEY_TOKEN, (whole, sign, before, number, after, offset, all) => {
+    const lead = (sign || "").replace(/\s/g, "");
+    const prev = (lead ? all[offset - 1] : all[offset + (sign || "").length - 1]) || "";  // what touches it
+    if (/[\w/:-]/.test(prev) && !before) return whole;  // part of a word, a date or a time
+    const money = before || after || /[.,]/.test(number);
+    return money ? `${sign || ""}${before || ""}****${after || ""}` : whole;
+  });
+}
+
+function privacySkip(node) {
+  const el = node.parentElement;
+  return !el || el.closest("script, style, textarea, input, select, option, code, pre, [data-privacy='show']");
+}
+
+function maskNode(node) {
+  if (node.nodeType !== Node.TEXT_NODE || privacySkip(node)) return;
+  const original = privacyOriginals.has(node) ? privacyOriginals.get(node) : node.nodeValue;
+  const masked = maskAmounts(original);
+  if (masked !== original) {
+    privacyOriginals.set(node, original);
+    if (node.nodeValue !== masked) node.nodeValue = masked;
+  }
+}
+
+function maskTree(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) maskNode(node);
+}
+
+function unmaskTree(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (privacyOriginals.has(node)) { node.nodeValue = privacyOriginals.get(node); privacyOriginals.delete(node); }
+  }
+}
+
+function redrawCharts() {
+  if (window.Chart && window.Chart.instances) Object.values(window.Chart.instances).forEach(c => c.update("none"));
+}
+
+function setPrivacy(on, remember) {
+  document.documentElement.classList.toggle("privacy", on);
+  const button = document.getElementById("privacy-toggle");
+  if (button) {
+    const label = on ? (TEXT.show_amounts || "Mostra gli importi") : (TEXT.hide_amounts || "Nascondi gli importi");
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  if (remember) store.set(PRIVACY_KEY, on ? "1" : "0");
+  if (on) {
+    maskTree(document.body);
+    if (!privacyObserver) {
+      privacyObserver = new MutationObserver(records => {
+        if (!privacyOn()) return;
+        for (const r of records) {
+          if (r.type === "characterData") maskNode(r.target);
+          r.addedNodes.forEach(n => (n.nodeType === Node.TEXT_NODE ? maskNode(n) : maskTree(n)));
+        }
+      });
+    }
+    privacyObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+  } else {
+    privacyObserver?.disconnect();
+    unmaskTree(document.body);
+  }
+  redrawCharts();
+  document.documentElement.classList.remove("privacy-pending");
+}
+
+/* Text drawn on a canvas (chart axes, labels, tooltips) goes through the same mask */
+(function () {
+  const proto = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!proto || proto.mfpPrivacy) return;
+  const fill = proto.fillText, stroke = proto.strokeText;
+  proto.fillText = function (text, ...rest) { return fill.call(this, privacyOn() ? maskAmounts(String(text)) : text, ...rest); };
+  proto.strokeText = function (text, ...rest) { return stroke.call(this, privacyOn() ? maskAmounts(String(text)) : text, ...rest); };
+  proto.mfpPrivacy = true;
+})();
+
+function initPrivacy() {
+  setPrivacy(store.get(PRIVACY_KEY) === "1", false);
+  document.getElementById("privacy-toggle")?.addEventListener("click", () => setPrivacy(!privacyOn(), true));
+}
+
 /* After a change the page opens again where it was being read, not at the top: a form sent with POST (a save, a
    deletion, a tick) notes the scroll position, and the page that comes back — the same address, within a minute,
    with no #anchor to go to — scrolls there. Filters and searches (GET) start from the top as usual. */
@@ -877,6 +975,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initFlash();
   initAmounts();
   initConfirm();
+  initPrivacy();
   initKeepScroll();
   initUserMenu();
   initBack();

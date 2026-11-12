@@ -258,6 +258,28 @@ with sync_playwright() as p:
         check("restored as they were", after == before, f"{before} → {after}")
         shot("archive_restored")
 
+    def privacy():
+        """The eye next to the theme button: amounts become ****, percentages stay; remembered on the next page;
+        the chart axes too; off again, everything is back."""
+        pg.goto(B + "/portfolio/rebalance?mode=full")
+        main = pg.inner_text("main")
+        check("privacy off: amounts shown", "€" in main and re.search(r"\d\.\d{3},\d{2}", main) is not None)
+        pg.click("#privacy-toggle")
+        main = pg.inner_text("main")
+        check("privacy on: no amount left", re.search(r"\d{1,3}(\.\d{3})+,\d{2}", main) is None and "****" in main,
+              re.findall(r"\d{1,3}(?:\.\d{3})+,\d{2}", main)[:3])
+        check("privacy on: percentages kept", re.search(r"\d+,\d{2}\s?%", main) is not None)
+        check("privacy on: the eye says so", pg.get_attribute("#privacy-toggle", "aria-pressed") == "true")
+        shot("privacy_rebalance")
+        pg.goto(B + "/portfolio/")
+        pg.wait_for_load_state("networkidle")
+        main = pg.inner_text("main")
+        check("privacy remembered on the next page", "****" in main and re.search(r"\d{1,3}(\.\d{3})+,\d{2}", main) is None)
+        shot("privacy_positions")
+        pg.click("#privacy-toggle")
+        main = pg.inner_text("main")
+        check("privacy off again: amounts back", "****" not in main and re.search(r"\d\.\d{3},\d{2}", main) is not None)
+
     run("restore the investments backup", restore)
     run("every page of the portfolio", pages)
     run("rebalancing", rebalance)
@@ -267,6 +289,7 @@ with sync_playwright() as p:
     run("a PAC, its deadlines and the calendar", pac_and_calendar)
     run("theoretical orders and commissions", theoretical_orders)
     run("the investments exported and restored", archive)
+    run("privacy: the eye hides the amounts", privacy)
     check("no JavaScript errors", not errors, "; ".join(errors[:3]))
     b.close()
 

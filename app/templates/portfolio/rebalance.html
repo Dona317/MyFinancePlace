@@ -84,7 +84,7 @@
           <td class="text-right nowrap">{{ line.value|money }}</td>
           <td class="text-right nowrap">{{ line.weight|number(2) }} %</td>
           <td class="text-right nowrap">{{ line.target|number(2) }} %</td>
-          <td class="text-right nowrap {{ 'text-negative' if off else '' }}">{{ '+' if line.drift > 0 else '' }}{{ line.drift|number(2) }}{% if off %} <i class="bi bi-exclamation-triangle" title="{{ _('Fuori tolleranza') }}"></i>{% endif %}</td>
+          <td class="text-right nowrap {{ 'text-negative' if off else '' }}" data-privacy="show">{{ '+' if line.drift > 0 else '' }}{{ line.drift|number(2) }}{% if off %} <i class="bi bi-exclamation-triangle" title="{{ _('Fuori tolleranza') }}"></i>{% endif %}</td>
           <td class="text-right nowrap {{ 'text-positive' if line.move > 0 else ('text-negative' if line.move < 0 else '') }}">
             {% if line.move > 0 %}{{ _('Compra') }} {{ line.move|money }}{% elif line.move < 0 %}{{ _('Vendi') }} {{ (line.move|abs)|money }}{% else %}—{% endif %}
             {% if line.units %}<div class="text-xs text-muted">{{ _('%(units)s quote', units=(line.units|abs)|number(4)) }}</div>{% endif %}</td>

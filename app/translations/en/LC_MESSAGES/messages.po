@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-12 06:45+0000\n"
+"POT-Creation-Date: 2026-11-12 07:00+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2079,6 +2079,9 @@ msgstr "Rate: must be greater than zero."
 msgid "Cancella"
 msgstr "Clear"
 
+msgid "Cancella il numero intero"
+msgstr "Delete the full number"
+
 msgid "Cancella tutte"
 msgstr "Clear all"
 
@@ -3926,7 +3929,9 @@ msgstr "Download of %(name)s started: you can follow the progress below."
 msgid ""
 "Due mesi prima compare tra i promemoria; il giorno della scadenza è nello"
 " Scadenzario."
-msgstr "Two months before it shows among the reminders; the expiry day is in the Deadlines."
+msgstr ""
+"Two months before it shows among the reminders; the expiry day is in the "
+"Deadlines."
 
 msgid "Due settimane prima"
 msgstr "Two weeks before"
@@ -5259,7 +5264,10 @@ msgid ""
 "Il conto da cui escono i soldi: il conto corrente per una carta di "
 "debito, quello che salda l'estratto per una carta di credito. Una "
 "prepagata con il suo saldo può essere un conto a sé."
-msgstr "The account the money leaves: the current account for a debit card, the one that pays the statement for a credit card. A prepaid card with its own balance can be an account of its own."
+msgstr ""
+"The account the money leaves: the current account for a debit card, the "
+"one that pays the statement for a credit card. A prepaid card with its "
+"own balance can be an account of its own."
 
 msgid "Il controllo periodico va ogni 1, 3, 6 o 12 mesi."
 msgstr "The periodic check goes every 1, 3, 6 or 12 months."
@@ -5515,6 +5523,24 @@ msgstr ""
 
 msgid "Il nome compare nel registro, nello stile di vita e nei grafici"
 msgstr "The name shows in the register, in lifestyle and in the charts"
+
+msgid ""
+"Il numero della carta ha da 12 a 19 cifre: scrivilo intero o solo le "
+"ultime 4."
+msgstr "A card number has 12 to 19 digits: write it whole or only the last 4."
+
+msgid "Il numero intero di questa carta non è salvato."
+msgstr "This card's full number is not saved."
+
+msgid ""
+"Il numero intero è salvato cifrato: lo vedi solo con «Mostra il numero» "
+"nella pagina della carta."
+msgstr "The full number is saved encrypted: you see it only with «Show the number» on the card's page."
+
+msgid ""
+"Il numero è stato cifrato con un'altra chiave (un backup di un altro "
+"computer): riscrivilo per salvarlo di nuovo."
+msgstr "The number was encrypted with another key (a backup from another computer): type it again to save it."
 
 msgid ""
 "Il nuovo nome vale per tutte le transazioni del gruppo; vuoto torna al "
@@ -6155,6 +6181,13 @@ msgstr "International (Euroclear/Clearstream)"
 msgid "Internet e telefono"
 msgstr "Internet and phone"
 
+msgid ""
+"Intero (12–19 cifre) o solo le ultime 4. Il numero intero è salvato "
+"cifrato e si vede solo con «Mostra il numero»; le ultime 4 cifre "
+"riconoscono la carta nei movimenti importati («CARTA *4821»). CVV e PIN "
+"non si salvano mai."
+msgstr "Whole (12–19 digits) or only the last 4. The full number is saved encrypted and shown only with «Show the number»; the last 4 digits recognize the card in imported movements («CARTA *4821»). CVV and PIN are never saved."
+
 msgid "Intervallo tra i metodi"
 msgstr "Range across methods"
 
@@ -6601,7 +6634,10 @@ msgid ""
 "Le carte di debito, credito o prepagate addebitate su questo conto: i "
 "movimenti pagati con una carta lo dicono, e nella pagina del conto vedi "
 "quanto ha speso ognuna nel mese."
-msgstr "The debit, credit or prepaid cards charged on this account: movements paid with a card say so, and the account's page shows what each spent this month."
+msgstr ""
+"The debit, credit or prepaid cards charged on this account: movements "
+"paid with a card say so, and the account's page shows what each spent "
+"this month."
 
 msgid ""
 "Le causali dei movimenti verranno inviate ad Anthropic (cloud) per la "
@@ -7377,6 +7413,12 @@ msgstr ""
 "Also show the running totals lines (switched on and off from the chart "
 "legend)"
 
+msgid "Mostra gli importi"
+msgstr "Show the amounts"
+
+msgid "Mostra il numero"
+msgstr "Show the number"
+
 msgid "Mostra la password"
 msgstr "Show the password"
 
@@ -7481,6 +7523,12 @@ msgstr "No."
 
 msgid "Nascondi"
 msgstr "Hide"
+
+msgid "Nascondi gli importi"
+msgstr "Hide the amounts"
+
+msgid "Nascondi il numero"
+msgstr "Hide the number"
 
 msgid "Nascondi le scadenze fiscali"
 msgstr "Hide the tax deadlines"
@@ -7781,7 +7829,9 @@ msgstr "No linked cards."
 msgid ""
 "Nessuna carta collegata: aggiungi le carte di debito, credito o prepagate"
 " addebitate su questo conto."
-msgstr "No linked cards: add the debit, credit or prepaid cards charged on this account."
+msgstr ""
+"No linked cards: add the debit, credit or prepaid cards charged on this "
+"account."
 
 msgid "Nessuna categoria prevista."
 msgstr "No category forecast."
@@ -8263,6 +8313,9 @@ msgstr "Signed number: −50.00 is an expense."
 
 msgid "Numero conto"
 msgstr "Account number"
+
+msgid "Numero della carta"
+msgstr "Card number"
 
 msgid "Numero polizza"
 msgstr "Policy number"
@@ -9153,9 +9206,9 @@ msgstr ""
 "otherwise the default one."
 
 msgid ""
-"Per riconoscerla: nome, circuito, ultime 4 cifre, scadenza e titolare. Il"
-" numero intero, il CVV e il PIN non vanno mai scritti qui."
-msgstr "To recognize it: name, network, last 4 digits, expiry and holder. Never write the full number, the CVV or the PIN here."
+"Per riconoscerla: nome, circuito, numero, scadenza e titolare. Il numero "
+"intero si salva cifrato; CVV e PIN non vanno mai scritti qui."
+msgstr "To recognize it: name, network, number, expiry and holder. The full number is saved encrypted; never write the CVV or the PIN here."
 
 msgid ""
 "Per ricordare la categoria servono una categoria e una controparte "
@@ -9185,11 +9238,6 @@ msgstr "By domicile"
 
 msgid "Per settore"
 msgstr "By sector"
-
-msgid ""
-"Per sicurezza della carta teniamo solo le ultime 4 cifre: il numero "
-"intero non è stato salvato."
-msgstr "For the safety of the card only the last 4 digits are kept: the full number was not saved."
 
 msgid "Per tipo di strumento"
 msgstr "By instrument type"
@@ -11693,12 +11741,6 @@ msgstr "Investments only: export and restore"
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
 
-msgid ""
-"Solo le ultime 4: servono a riconoscere la carta nei movimenti importati "
-"(«CARTA *4821»). Se scrivi il numero intero teniamo solo le ultime 4 "
-"cifre."
-msgstr "Only the last 4: they recognize the card in imported movements («CARTA *4821»). If you write the full number only the last 4 digits are kept."
-
 msgid "Solo ricorrenti"
 msgstr "Recurring only"
 
@@ -12719,9 +12761,6 @@ msgstr "Last count: %(day)s, %(amount)s."
 
 msgid "Ultima rata"
 msgstr "Last instalment"
-
-msgid "Ultime 4 cifre"
-msgstr "Last 4 digits"
 
 msgid "Ultime cifre IBAN / carta"
 msgstr "Last digits of IBAN / card"
@@ -14178,6 +14217,9 @@ msgstr "not expired"
 
 msgid "non sommato"
 msgstr "not added up"
+
+msgid "numero intero salvato cifrato"
+msgstr "full number saved encrypted"
 
 msgid "nuova password"
 msgstr "new password"

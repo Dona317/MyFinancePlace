@@ -1,4 +1,5 @@
-"""cards: debit, credit and prepaid cards charged on an account, and the card of a movement (F41)
+"""cards: debit, credit and prepaid cards charged on an account (the full number only encrypted), and the card of a
+movement (F41)
 
 Revision ID: f6b8c0d2e4a9
 Revises: e5a7b9c1d3f8
@@ -22,6 +23,7 @@ def upgrade():
         sa.Column('kind', sa.String(length=10), nullable=False),
         sa.Column('network', sa.String(length=12), nullable=True),
         sa.Column('last4', sa.String(length=4), nullable=True),
+        sa.Column('number_enc', sa.Text(), nullable=True),
         sa.Column('expiry_month', sa.SmallInteger(), nullable=True),
         sa.Column('expiry_year', sa.SmallInteger(), nullable=True),
         sa.Column('holder', sa.String(length=80), nullable=True),

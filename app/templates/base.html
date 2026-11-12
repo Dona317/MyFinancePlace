@@ -308,6 +308,11 @@
           <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
         </a>
         {% endif %}
+        <button type="button" id="privacy-toggle" class="sidebar-tool privacy-button" aria-pressed="false"
+                aria-label="{{ _('Nascondi gli importi') }}" title="{{ _('Nascondi gli importi') }}">
+          <i class="bi bi-eye privacy-icon-off" aria-hidden="true"></i>
+          <i class="bi bi-eye-slash privacy-icon-on" aria-hidden="true"></i>
+        </button>
         <button type="button" id="theme-toggle" class="sidebar-tool theme-button"
                 aria-label="{{ _('Passa alla modalità scura') }}" title="{{ _('Passa alla modalità scura') }}">
           <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
@@ -448,6 +453,7 @@
 <script>window.MFP_TEXT = {{ {
   "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
   "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
+  "hide_amounts": _("Nascondi gli importi"), "show_amounts": _("Mostra gli importi"),
   "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"), "no_match": _("Nessun risultato"), "select_all": _("Seleziona tutto"), "deselect_all": _("Deseleziona tutto"), "show_hide": _("Mostra o nascondi"), "show": _("Mostra"), "hide": _("Nascondi"), "to_bottom": _("Vai in fondo alla pagina"), "to_top": _("Torna su"), "to_list": _("Vai alla lista transazioni"), "resize": _("Trascina per allargare o stringere la colonna"), "saved": _("Fatto."),
   "ask_local": _("Il modello gira sul tuo computer: nulla esce."), "ask_cloud": _("Il modello è su internet (Anthropic): il riassunto dei tuoi numeri lascia il computer."),
   "ask_none": _("Nessun modello AI configurato: sceglilo nelle Impostazioni."), "ask_wait": _("Sto pensando…"),

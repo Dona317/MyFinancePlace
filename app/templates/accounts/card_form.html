@@ -12,7 +12,7 @@
     <div class="card-header">
       <div>
         <div class="card-header-title"><i class="bi bi-credit-card"></i> {{ _('Carta') }}</div>
-        <div class="card-header-sub">{{ _('Per riconoscerla: nome, circuito, ultime 4 cifre, scadenza e titolare. Il numero intero, il CVV e il PIN non vanno mai scritti qui.') }}</div>
+        <div class="card-header-sub">{{ _('Per riconoscerla: nome, circuito, numero, scadenza e titolare. Il numero intero si salva cifrato; CVV e PIN non vanno mai scritti qui.') }}</div>
       </div>
       {% if card %}{{ delete_button(url_for('accounts.card_delete', card_id=card.id), _('Eliminare la carta «%(name)s»? I suoi movimenti restano, senza carta.', name=card.name), _('Elimina %(name)s', name=card.name)) }}{% endif %}
     </div>
@@ -24,8 +24,20 @@
           {{ f.select(values, 'network', _('Circuito'), networks.items()|list, c.network, blank=_('— non indicato —')) }}
         </div>
         <div class="grid-2">
-          {{ f.text(values, 'number', _('Ultime 4 cifre'), c.last4, placeholder='4821',
-                    hint=_('Solo le ultime 4: servono a riconoscere la carta nei movimenti importati («CARTA *4821»). Se scrivi il numero intero teniamo solo le ultime 4 cifre.')) }}
+          <div class="form-group">
+            <label class="form-label" for="f-number">{{ _('Numero della carta') }} {{ info(_('Intero (12–19 cifre) o solo le ultime 4. Il numero intero è salvato cifrato e si vede solo con «Mostra il numero»; le ultime 4 cifre riconoscono la carta nei movimenti importati («CARTA *4821»). CVV e PIN non si salvano mai.'), _('Numero della carta')) }}</label>
+            <input type="text" inputmode="numeric" id="f-number" name="number" class="form-control" autocomplete="off"
+                   placeholder="4821" value="{{ values.number if 'number' in values else (c.last4 or '') }}" />
+            {% if card and card.number_enc %}
+            <div class="d-flex align-center gap-8 text-sm" style="margin-top:6px;flex-wrap:wrap;">
+              <span class="badge badge-muted"><i class="bi bi-shield-lock"></i> {{ _('numero intero salvato cifrato') }}</span>
+              <button type="button" class="btn btn-ghost btn-sm" id="show-number" data-url="{{ url_for('accounts.card_number', card_id=card.id) }}"
+                      data-hide="{{ _('Nascondi il numero') }}" data-show="{{ _('Mostra il numero') }}"><i class="bi bi-eye"></i> <span>{{ _('Mostra il numero') }}</span></button>
+              <span id="full-number" class="font-mono" data-privacy="show" hidden></span>
+              <label class="d-flex align-center gap-8"><input type="checkbox" name="forget_number" value="1" class="check" /> {{ _('Cancella il numero intero') }}</label>
+            </div>
+            {% endif %}
+          </div>
           {{ f.text(values, 'expiry', _('Scadenza (MM/AA)'), ('%02d/%02d'|format(c.expiry_month, c.expiry_year % 100)) if c.expiry_month else none, placeholder='08/28',
                     hint=_('Due mesi prima compare tra i promemoria; il giorno della scadenza è nello Scadenzario.')) }}
         </div>
@@ -69,6 +81,23 @@
   function show() { box.hidden = kind.value === 'debit'; if (day) day.hidden = kind.value !== 'credit'; }
   kind.addEventListener('change', show);
   show();
+})();
+(function () {
+  /* the whole number: asked to the server only on click, shown for 30 seconds */
+  const button = document.getElementById('show-number'), out = document.getElementById('full-number');
+  if (!button) return;
+  let timer = null;
+  const hide = () => { out.hidden = true; out.textContent = ''; button.querySelector('span').textContent = button.dataset.show; };
+  button.addEventListener('click', async () => {
+    if (!out.hidden) { hide(); return; }
+    const response = await fetch(button.dataset.url, { method: 'POST', headers: { 'X-Requested-With': 'fetch' } });
+    const data = await response.json();
+    out.textContent = data.number || data.error;
+    out.hidden = false;
+    button.querySelector('span').textContent = button.dataset.hide;
+    clearTimeout(timer);
+    timer = setTimeout(hide, 30000);
+  });
 })();
 </script>
 {% endblock %}

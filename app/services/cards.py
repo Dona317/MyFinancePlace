@@ -3,8 +3,8 @@ Payment cards (F41): debit, credit and prepaid cards charged on an account, with
 (circuit, last four digits, expiry, holder, limit, the day a credit card's month is charged) and the movements each
 one paid.
 
-Never kept: the full card number, the CVV, the PIN. A number typed whole is cut to its last four digits before it is
-stored, and the form says so.
+The full number is kept only encrypted (services.field_crypto, AES-256-GCM): the list and the pages show «•••• 4821»,
+the whole number appears only when asked for, on the card's page. Never kept: the CVV and the PIN.
 
 A movement gets its card from the form, or — imported from a statement — from its bank text: «CARTA *4821»,
 «carta n. ****4821», «PAGAMENTO POS ... 4821» match the active card of that account ending in 4821.
@@ -23,7 +23,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.card import Card
 from app.models.transaction import Transaction
-from app.services import periods
+from app.services import field_crypto, periods
 from app.services.i18n import _l
 
 KINDS = {"debit": _l("Carta di debito"), "credit": _l("Carta di credito"), "prepaid": _l("Carta prepagata")}
@@ -53,16 +53,26 @@ class CardInput:
     contactless: bool
     notes: str | None
     active: bool = True
+    forget_number: bool = False   # remove the saved full number
 
 
 def last_four(number: str | None) -> tuple[str | None, bool]:
-    """The last four digits of what was typed, and whether more than four were typed (a full number: not kept)."""
+    """The last four digits of what was typed, and whether the whole number was typed (12 to 19 digits)."""
     digits = re.sub(r"\D", "", number or "")
     if not digits:
         return None, False
     if len(digits) < 4:
         raise CardError(_("Scrivi le ultime 4 cifre della carta."))
+    if len(digits) > 4 and not 12 <= len(digits) <= 19:
+        raise CardError(_("Il numero della carta ha da 12 a 19 cifre: scrivilo intero o solo le ultime 4."))
     return digits[-4:], len(digits) > 4
+
+
+def full_number(card: Card) -> str | None:
+    """The whole number, decrypted and grouped by four; None when not saved. Raises field_crypto.Unreadable when it
+    was saved with another key (a backup restored on another computer)."""
+    digits = field_crypto.decrypt(card.number_enc)
+    return " ".join(digits[i:i + 4] for i in range(0, len(digits), 4)) if digits else None
 
 
 def parse_expiry(text: str | None) -> tuple[int | None, int | None]:
@@ -84,7 +94,7 @@ def parse_expiry(text: str | None) -> tuple[int | None, int | None]:
 
 
 def save(card: Card | None, data: CardInput) -> tuple[Card, bool]:
-    """Create or change a card; True when a full number was typed and only its last four digits were kept."""
+    """Create or change a card; True when the whole number was typed (and saved encrypted)."""
     name = " ".join((data.name or "").split())[:120]
     if not name:
         raise CardError(_("Dai un nome alla carta (es. «Visa Fineco»)."))
@@ -92,7 +102,7 @@ def save(card: Card | None, data: CardInput) -> tuple[Card, bool]:
         raise CardError(_("Tipo di carta sconosciuto."))
     if data.network and data.network not in NETWORKS:
         raise CardError(_("Circuito sconosciuto."))
-    last4, cut = last_four(data.number)
+    last4, whole = last_four(data.number)
     month, year = parse_expiry(data.expiry)
     if data.statement_day is not None and not 1 <= data.statement_day <= 31:
         raise CardError(_("Il giorno di addebito va da 1 a 31."))
@@ -101,8 +111,11 @@ def save(card: Card | None, data: CardInput) -> tuple[Card, bool]:
     account = db.session.get(Account, data.account_id) if data.account_id else None
     card = card or Card()
     card.name, card.kind, card.network = name, data.kind, data.network or None
-    if last4 or not data.number:
-        card.last4 = last4
+    if whole:
+        card.number_enc = field_crypto.encrypt(re.sub(r"\D", "", data.number))
+    elif data.forget_number or last4 != card.last4:
+        card.number_enc = None  # removed, or another card's last digits: the old number no longer belongs to it
+    card.last4 = last4
     card.expiry_month, card.expiry_year = month, year
     card.holder = (data.holder or "").strip()[:80] or None
     card.account_id = account.id if account else None
@@ -111,7 +124,7 @@ def save(card: Card | None, data: CardInput) -> tuple[Card, bool]:
     card.contactless, card.notes, card.active = data.contactless, (data.notes or "").strip() or None, data.active
     db.session.add(card)
     db.session.flush()
-    return card, cut
+    return card, whole
 
 
 def delete(card: Card) -> None:

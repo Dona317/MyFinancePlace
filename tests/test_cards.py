@@ -1,5 +1,5 @@
 """
-F41: payment cards charged on an account — what is kept (never the full number, CVV or PIN), the card of a
+F41: payment cards charged on an account — what is kept (the full number only encrypted, never CVV or PIN), the card of a
 movement from the form or from the bank text of an imported one, its spending of the month, its expiry in the
 deadlines and the reminders, the pages.
 """
@@ -36,7 +36,11 @@ def test_what_is_kept(app, db, bank):
     with app.test_request_context():
         card, cut = cards.save(None, _input(account_id=account.id, number="4111 1111 1111 4821"))
         db.session.commit()
-    assert cut and card.last4 == "4821"  # the full number is never stored
+    assert cut and card.last4 == "4821"
+    # the whole number is stored only encrypted, and read back only when asked for
+    assert card.number_enc.startswith("v1:") and "4821" not in card.number_enc and "4111" not in card.number_enc
+    with app.test_request_context():
+        assert cards.full_number(card) == "4111 1111 1111 4821"
     assert (card.expiry_month, card.expiry_year, card.statement_day, card.credit_limit) == (8, 2028, 15, Decimal(1500))
     assert cards.expiry_date(card) == date(2028, 8, 31) and cards.masked(card) == "•••• 4821"
     assert [c.name for c in account.cards] == ["Visa Fineco"]
@@ -45,7 +49,15 @@ def test_what_is_kept(app, db, bank):
                                              credit_limit=Decimal(500), statement_day=10, account_id=account.id))
     assert not cut and debit.last4 is None and (debit.credit_limit, debit.statement_day) == (None, None)
     assert (debit.expiry_month, debit.expiry_year) == (3, 2027)
-    for wrong, message in ((dict(name=" "), "nome"), (dict(kind="gold"), "Tipo"), (dict(network="diners"), "Circuito"),
+    with app.test_request_context():  # the same last digits typed again keep the number; others drop it
+        cards.save(card, _input(account_id=account.id, number="4821"))
+        assert card.number_enc and cards.full_number(card)
+        cards.save(card, _input(account_id=account.id, number="4821", forget_number=True))
+        assert card.number_enc is None and card.last4 == "4821" and cards.full_number(card) is None
+        cards.save(card, _input(account_id=account.id, number="5500 0000 0000 0004"))
+        cards.save(card, _input(account_id=account.id, number="9999"))
+        assert card.number_enc is None and card.last4 == "9999"
+    for wrong, message in ((dict(number="1234 5678"), "da 12 a 19"), (dict(name=" "), "nome"), (dict(kind="gold"), "Tipo"), (dict(network="diners"), "Circuito"),
                            (dict(number="12"), "ultime 4"), (dict(expiry="13/28"), "Scadenza"),
                            (dict(expiry="domani"), "Scadenza"), (dict(statement_day=40), "giorno"),
                            (dict(credit_limit=Decimal(-1)), "plafond")):
@@ -110,20 +122,28 @@ def test_pages(client, db, bank):
     assert "Aggiungi una carta" in page and "mockup-tbd" not in page
     assert "Salva il conto, poi aggiungi" in client.get("/accounts/new").get_data(as_text=True)
     page = client.get(f"/accounts/cards/new?account={account.id}").get_data(as_text=True)
-    assert "il CVV e il PIN non vanno mai scritti" in page and f'value="{account.id}" selected' in page
+    assert "CVV e PIN non vanno mai scritti" in page and f'value="{account.id}" selected' in page
     form = {"name": "Visa Fineco", "kind": "credit", "network": "visa", "number": "4111111111114821",
             "expiry": "08/28", "holder": "Mario Rossi", "account_id": str(account.id), "credit_limit": "1500",
             "statement_day": "15", "contactless": "1", "active": ["", "1"], "notes": ""}
     page = client.post("/accounts/cards/new", data=form, follow_redirects=True).get_data(as_text=True)
-    assert "Carta «Visa Fineco» salvata." in page and "teniamo solo le ultime 4 cifre" in page
+    assert "Carta «Visa Fineco» salvata." in page and "Il numero intero è salvato cifrato" in page
     card = Card.query.one()
-    assert card.last4 == "4821" and card.active and "4111111111114821" not in page
+    assert card.last4 == "4821" and card.active and "4111111111114821" not in page and card.number_enc
+    page = client.get(f"/accounts/cards/{card.id}/edit").get_data(as_text=True)
+    assert "Mostra il numero" in page and "4111" not in page  # never in the page's HTML
+    assert client.post(f"/accounts/cards/{card.id}/number").get_json() == {"number": "4111 1111 1111 4821"}
+    card.number_enc = "v1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"  # encrypted with another key (a backup from elsewhere)
+    db.session.commit()
+    response = client.post(f"/accounts/cards/{card.id}/number")
+    assert response.status_code == 409 and "un'altra chiave" in response.get_json()["error"]
     assert "Visa Fineco 4821" in client.get("/accounts/").get_data(as_text=True)
     page = client.post(f"/accounts/cards/{card.id}/edit", data={**form, "expiry": "99/99"}, follow_redirects=True)
     assert "Scadenza non valida" in page.get_data(as_text=True)
-    client.post(f"/accounts/cards/{card.id}/edit", data={**form, "number": "4821", "active": [""]})
+    client.post(f"/accounts/cards/{card.id}/edit", data={**form, "number": "4821", "active": [""], "forget_number": "1"})
     db.session.refresh(card)
-    assert not card.active
+    assert not card.active and card.number_enc is None
+    assert client.post(f"/accounts/cards/{card.id}/number").status_code == 404
     # the card of a movement from its form
     tx = make_tx(description="Cena", amount=60, account_id=account.id)
     db.session.add(tx)
@@ -137,3 +157,26 @@ def test_pages(client, db, bank):
     page = client.post(f"/accounts/cards/{card.id}/delete", follow_redirects=True).get_data(as_text=True)
     assert "i suoi movimenti restano, senza carta" in page
     assert Card.query.count() == 0 and db.session.get(Transaction, tx.id).card_id is None
+
+
+def test_field_encryption_key(app, monkeypatch, tmp_path):
+    import base64
+    import os
+
+    from app.services import field_crypto
+
+    app.instance_path = str(tmp_path)
+    with app.app_context():
+        sealed = field_crypto.encrypt("segreto")
+        assert sealed != field_crypto.encrypt("segreto")  # a fresh nonce each time
+        assert field_crypto.decrypt(sealed) == "segreto" and field_crypto.encrypt("") is None
+        assert field_crypto.decrypt(None) is None
+        assert oct((tmp_path / "data.key").stat().st_mode & 0o777) == "0o600"
+        with pytest.raises(field_crypto.Unreadable):
+            field_crypto.decrypt("in chiaro")
+        monkeypatch.setenv("MFP_DATA_KEY", base64.b64encode(os.urandom(32)).decode())
+        with pytest.raises(field_crypto.Unreadable):
+            field_crypto.decrypt(sealed)  # another key
+        monkeypatch.setenv("MFP_DATA_KEY", base64.b64encode(b"short").decode())
+        with pytest.raises(RuntimeError):
+            field_crypto.encrypt("x")
