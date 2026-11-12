@@ -9,6 +9,7 @@ from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
 from app.services import accounts, cash, display, family, owners, wealth
+from app.services import cards as card_service
 from app.services import currency as currency_service
 from app.services.parsing import to_decimal
 from app.services.tax_rules import REGIMES as TAX_REGIMES
@@ -113,7 +114,9 @@ def _render_detail(account: Account, recent: list[Transaction], result: dict | N
                            tracking=cash.tracking(account, date.today().year) if account.kind == "cash" else None,
                            recent=recent, kinds=accounts.KINDS, today=date.today(), result=result,
                            symbol=currency_service.symbol(account.currency), estimated=accounts.estimated(account),
-                           in_account=lambda tx: accounts.amount_in(tx, account))
+                           in_account=lambda tx: accounts.amount_in(tx, account),
+                           cards=_cards.account_cards(account), card_kinds=card_service.KINDS,
+                           card_icons=card_service.ICONS, networks=card_service.NETWORKS)
 
 
 @accounts_bp.route("/<int:account_id>/reconcile", methods=["POST"])
@@ -186,3 +189,6 @@ def delete(account_id):
         return redirect(url_for("accounts.index"))
     return delete_and_redirect(account, _("Conto «%(name)s» eliminato: le sue transazioni restano, senza conto.",
                                           name=account.name), url_for("accounts.index"))
+
+
+from app.routes import cards as _cards  # noqa: E402,F401  (the payment cards' routes, F41, on this blueprint)

@@ -47,6 +47,8 @@
           </td>
           <td>
             <a class="cell-title" href="{{ url_for('accounts.detail', account_id=a.id) }}"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}{{ ' acc-cash' if a.kind == 'cash' }}{{ ' acc-debt' if a.kind == 'debt' }}"></i> {{ a.name }}</a>{% if a.owner %} <span class="badge badge-muted">{{ owner_label(a.owner) }}</span>{% endif %}
+            {% set active_cards = a.cards|selectattr('active')|list %}
+            {% if active_cards %}<div class="text-xs account-cards">{% for c in active_cards %}<a class="badge badge-muted" href="{{ url_for('accounts.card_edit', card_id=c.id) }}" title="{{ _('Carta collegata') }}"><i class="bi bi-credit-card"></i> {{ c.name }}{{ ' ' ~ c.last4 if c.last4 }}</a> {% endfor %}</div>{% endif %}
             <div class="text-xs text-muted account-codes">
               {% if a.bank %}<span>{{ a.bank }}</span>{% endif %}
               {% if a.account_number %}<span class="font-mono">{{ _('N.') }} {{ a.account_number|masked }}

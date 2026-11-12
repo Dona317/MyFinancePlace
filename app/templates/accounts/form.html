@@ -54,10 +54,20 @@
           {{ f.text(values, 'iban_tail', _('Ultime cifre IBAN o carta'), a.iban_tail, placeholder=_('es. 4821')) }}
         </div>
         {{ f.owner(values, a.owner) }}
-        <!-- Cards linked to the account: a mockup, the feature is to be done -->
-        <div class="form-group mockup-tbd">
-          <label class="form-label" for="f-cards">{{ _('Carte collegate al conto') }} {{ info(_('In arrivo: le carte addebitate su questo conto, con i loro movimenti raccolti qui.'), _('Carte collegate al conto')) }} <span class="nav-badge nav-badge-tbd">TBD</span></label>
-          <select id="f-cards" class="form-select" disabled><option>{{ _('Carta di debito, carta di credito…') }}</option></select>
+        <!-- F41: the cards charged on this account -->
+        <div class="form-group" id="account-cards">
+          <label class="form-label">{{ _('Carte collegate al conto') }} {{ info(_('Le carte di debito, credito o prepagate addebitate su questo conto: i movimenti pagati con una carta lo dicono, e nella pagina del conto vedi quanto ha speso ognuna nel mese.'), _('Carte collegate al conto')) }}</label>
+          {% if a and a.id %}
+            {% for c in a.cards %}
+            <div class="d-flex align-center gap-8 text-sm mb-8"><i class="bi bi-credit-card"></i>
+              <a href="{{ url_for('accounts.card_edit', card_id=c.id) }}">{{ c.name }}</a>
+              <span class="text-muted">{{ '•••• ' ~ c.last4 if c.last4 else '' }}</span>
+              {% if not c.active %}<span class="badge badge-muted">{{ _('non attiva') }}</span>{% endif %}</div>
+            {% else %}<div class="text-sm text-muted mb-8">{{ _('Nessuna carta collegata.') }}</div>{% endfor %}
+            <a href="{{ url_for('accounts.card_new', account=a.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi una carta') }}</a>
+          {% else %}
+            <div class="text-sm text-muted">{{ _('Salva il conto, poi aggiungi le sue carte.') }}</div>
+          {% endif %}
         </div>
         {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
         <fieldset class="fee-rules mb-16">

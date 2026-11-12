@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-12 06:40+0000\n"
+"POT-Creation-Date: 2026-11-12 06:45+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -503,6 +503,12 @@ msgid "%(num)d gruppo di possibili duplicati da ricontrollare."
 msgid_plural "%(num)d gruppi di possibili duplicati da ricontrollare."
 msgstr[0] "%(num)d group of possible duplicates to review."
 msgstr[1] "%(num)d groups of possible duplicates to review."
+
+#, python-format
+msgid "%(num)d movimento"
+msgid_plural "%(num)d movimenti"
+msgstr[0] "%(num)d movement"
+msgstr[1] "%(num)d movements"
 
 #, python-format
 msgid "%(num)d movimento sembra già presente"
@@ -1048,6 +1054,9 @@ msgstr ""
 "Purchase or sale (A/V, Buy/Sell…). Without it, a negative quantity is a "
 "sale."
 
+msgid "Addebitata sul conto"
+msgstr "Charged on the account"
+
 msgid "Adeguare quantità e prezzi precedenti?"
 msgstr "Adjust the earlier quantities and prices?"
 
@@ -1164,6 +1173,9 @@ msgstr "Add an exchange rate"
 
 msgid "Aggiungi un utente"
 msgstr "Add a user"
+
+msgid "Aggiungi una carta"
+msgstr "Add a card"
 
 msgid "Aggiungi una fonte"
 msgstr "Add a source"
@@ -2148,20 +2160,53 @@ msgstr ""
 "Upload a file with several transactions: Excel, CSV or PDF of your bank "
 "statement."
 
+msgid "Carta"
+msgstr "Card"
+
+msgid "Carta collegata"
+msgstr "Linked card"
+
 msgid "Carta di Credito"
 msgstr "Credit Card"
 
 msgid "Carta di credito"
 msgstr "Credit card"
 
-msgid "Carta di debito, carta di credito…"
-msgstr "Debit card, credit card…"
+msgid "Carta di credito: il giorno in cui il totale del mese esce dal conto."
+msgstr "Credit card: the day the month's total leaves the account."
+
+msgid ""
+"Carta di credito: il limite di spesa del mese. Prepagata: la ricarica "
+"massima."
+msgstr "Credit card: the monthly spending limit. Prepaid: the maximum top-up."
+
+msgid "Carta di debito"
+msgstr "Debit card"
 
 msgid "Carta d’identità, patente, passaporto, tessera sanitaria…"
 msgstr "Identity card, driving licence, passport, health card…"
 
+#, python-format
+msgid "Carta in scadenza: %(name)s"
+msgstr "Card expiring: %(name)s"
+
 msgid "Carta prepagata"
 msgstr "Prepaid card"
+
+#, python-format
+msgid "Carta scaduta: %(name)s"
+msgstr "Card expired: %(name)s"
+
+#, python-format
+msgid "Carta «%(name)s» eliminata: i suoi movimenti restano, senza carta."
+msgstr "Card «%(name)s» deleted: its movements stay, without a card."
+
+#, python-format
+msgid "Carta «%(name)s» salvata."
+msgstr "Card «%(name)s» saved."
+
+msgid "Carte"
+msgstr "Cards"
 
 msgid "Carte collegate al conto"
 msgstr "Cards linked to the account"
@@ -2389,6 +2434,12 @@ msgstr "Closing of the current month"
 
 msgid "Ciambella"
 msgstr "Doughnut"
+
+msgid "Circuito"
+msgstr "Network"
+
+msgid "Circuito sconosciuto."
+msgstr "Unknown network."
 
 msgid "Classe"
 msgstr "Class"
@@ -2916,6 +2967,9 @@ msgstr "Accounting"
 msgid "Contabilità — Sotto-sezioni"
 msgstr "Accounting — Sections"
 
+msgid "Contactless"
+msgstr "Contactless"
+
 msgid "Contanti"
 msgstr "Cash"
 
@@ -3416,6 +3470,9 @@ msgstr "Give the model portfolio a name."
 msgid "Dai un nome all'evento."
 msgstr "Give the event a name."
 
+msgid "Dai un nome alla carta (es. «Visa Fineco»)."
+msgstr "Give the card a name (e.g. «Visa Fineco»)."
+
 msgid "Dal"
 msgstr "From"
 
@@ -3866,6 +3923,11 @@ msgstr "Download"
 msgid "Download di %(name)s avviato: puoi seguire l'avanzamento qui sotto."
 msgstr "Download of %(name)s started: you can follow the progress below."
 
+msgid ""
+"Due mesi prima compare tra i promemoria; il giorno della scadenza è nello"
+" Scadenzario."
+msgstr "Two months before it shows among the reminders; the expiry day is in the Deadlines."
+
 msgid "Due settimane prima"
 msgstr "Two weeks before"
 
@@ -4009,6 +4071,10 @@ msgstr "Delete the goal “%(name)s”?"
 
 msgid "Eliminare la bolletta?"
 msgstr "Delete the bill?"
+
+#, python-format
+msgid "Eliminare la carta «%(name)s»? I suoi movimenti restano, senza carta."
+msgstr "Delete the card «%(name)s»? Its movements stay, without a card."
 
 #, python-format
 msgid "Eliminare la classificazione «%(name)s»? I titoli restano."
@@ -4769,6 +4835,9 @@ msgstr "Days without spending"
 msgid "Giorno del mese"
 msgstr "Day of the month"
 
+msgid "Giorno di addebito"
+msgstr "Charge day"
+
 msgid "Giroconti con un solo conto"
 msgstr "Transfers with one account only"
 
@@ -5186,6 +5255,12 @@ msgstr "The gross fee must be positive."
 msgid "Il consumo non può essere negativo."
 msgstr "Consumption cannot be negative."
 
+msgid ""
+"Il conto da cui escono i soldi: il conto corrente per una carta di "
+"debito, quello che salda l'estratto per una carta di credito. Una "
+"prepagata con il suo saldo può essere un conto a sé."
+msgstr "The account the money leaves: the current account for a debit card, the one that pays the statement for a credit card. A prepaid card with its own balance can be an account of its own."
+
 msgid "Il controllo periodico va ogni 1, 3, 6 o 12 mesi."
 msgstr "The periodic check goes every 1, 3, 6 or 12 months."
 
@@ -5337,6 +5412,9 @@ msgstr ""
 msgid "Il giorno dell’operazione (obbligatoria)."
 msgstr "The day of the operation (required)."
 
+msgid "Il giorno di addebito va da 1 a 31."
+msgstr "The charge day goes from 1 to 31."
+
 msgid "Il giorno prima"
 msgstr "The day before"
 
@@ -5476,6 +5554,9 @@ msgstr "The most accurate on income"
 
 msgid "Il più preciso sulle uscite"
 msgstr "The most accurate on expenses"
+
+msgid "Il plafond non può essere negativo."
+msgstr "The limit cannot be negative."
 
 msgid ""
 "Il portafoglio predefinito non si elimina: metti prima la stella su un "
@@ -5872,13 +5953,6 @@ msgstr ""
 
 msgid "In arrivo"
 msgstr "Coming up"
-
-msgid ""
-"In arrivo: le carte addebitate su questo conto, con i loro movimenti "
-"raccolti qui."
-msgstr ""
-"Coming soon: the cards charged to this account, with their movements "
-"gathered here."
 
 msgid "In attesa di avvio…"
 msgstr "Waiting to start…"
@@ -6522,6 +6596,12 @@ msgstr ""
 "Bills with their period and consumption: what you pay per month and per "
 "unit, how it changes with the seasons and what you would have spent with "
 "another offer."
+
+msgid ""
+"Le carte di debito, credito o prepagate addebitate su questo conto: i "
+"movimenti pagati con una carta lo dicono, e nella pagina del conto vedi "
+"quanto ha speso ognuna nel mese."
+msgstr "The debit, credit or prepaid cards charged on this account: movements paid with a card say so, and the account's page shows what each spent this month."
 
 msgid ""
 "Le causali dei movimenti verranno inviate ad Anthropic (cloud) per la "
@@ -7695,6 +7775,14 @@ msgstr ""
 "No bills: record one below, or start from a movement in the Bills "
 "category."
 
+msgid "Nessuna carta collegata."
+msgstr "No linked cards."
+
+msgid ""
+"Nessuna carta collegata: aggiungi le carte di debito, credito o prepagate"
+" addebitate su questo conto."
+msgstr "No linked cards: add the debit, credit or prepaid cards charged on this account."
+
 msgid "Nessuna categoria prevista."
 msgstr "No category forecast."
 
@@ -8193,6 +8281,9 @@ msgstr "New Transaction"
 
 msgid "Nuova bolletta"
 msgstr "New bill"
+
+msgid "Nuova carta"
+msgstr "New card"
 
 msgid "Nuova categoria"
 msgstr "New category"
@@ -8711,6 +8802,9 @@ msgstr "Payment"
 msgid "Pagato"
 msgstr "Paid"
 
+msgid "Pagato con la carta"
+msgstr "Paid with the card"
+
 msgid "Page"
 msgstr "Page"
 
@@ -9059,6 +9153,11 @@ msgstr ""
 "otherwise the default one."
 
 msgid ""
+"Per riconoscerla: nome, circuito, ultime 4 cifre, scadenza e titolare. Il"
+" numero intero, il CVV e il PIN non vanno mai scritti qui."
+msgstr "To recognize it: name, network, last 4 digits, expiry and holder. Never write the full number, the CVV or the PIN here."
+
+msgid ""
 "Per ricordare la categoria servono una categoria e una controparte "
 "(almeno 3 lettere)."
 msgstr ""
@@ -9086,6 +9185,11 @@ msgstr "By domicile"
 
 msgid "Per settore"
 msgstr "By sector"
+
+msgid ""
+"Per sicurezza della carta teniamo solo le ultime 4 cifre: il numero "
+"intero non è stato salvato."
+msgstr "For the safety of the card only the last 4 digits are kept: the full number was not saved."
 
 msgid "Per tipo di strumento"
 msgstr "By instrument type"
@@ -9231,6 +9335,12 @@ msgstr ""
 "The darker the cell, the higher the expense (or income) compared with the"
 " other months of the same category. Click an amount to see its "
 "transactions."
+
+msgid "Plafond"
+msgstr "Limit"
+
+msgid "Plafond (€)"
+msgstr "Limit (€)"
 
 msgid "Plus/minus"
 msgstr "Gain/loss"
@@ -10861,6 +10971,9 @@ msgstr "Save budgets"
 msgid "Salva cambio"
 msgstr "Save rate"
 
+msgid "Salva carta"
+msgstr "Save card"
+
 msgid "Salva collegamenti"
 msgstr "Save links"
 
@@ -10875,6 +10988,9 @@ msgstr "Save securities account"
 
 msgid "Salva i nomi"
 msgstr "Save the names"
+
+msgid "Salva il conto, poi aggiungi le sue carte."
+msgstr "Save the account, then add its cards."
 
 msgid "Salva la fonte"
 msgstr "Save the source"
@@ -10917,6 +11033,10 @@ msgstr "Expires on"
 msgid "Scade il %(day)s"
 msgstr "Due on %(day)s"
 
+#, python-format
+msgid "Scade la carta %(name)s"
+msgstr "Card %(name)s expires"
+
 msgid "Scade oggi"
 msgstr "Expires today"
 
@@ -10931,8 +11051,14 @@ msgstr "Expires: %(what)s"
 msgid "Scadenza"
 msgstr "Expiry"
 
+msgid "Scadenza (MM/AA)"
+msgstr "Expiry (MM/YY)"
+
 msgid "Scadenza eliminata."
 msgstr "Deadline deleted."
+
+msgid "Scadenza non valida: scrivila come MM/AA."
+msgstr "Invalid expiry: write it as MM/YY."
 
 #, python-format
 msgid "Scadenza «%(title)s» salvata."
@@ -11222,6 +11348,9 @@ msgstr "Write the date of the job."
 
 msgid "Scrivi la data."
 msgstr "Write the date."
+
+msgid "Scrivi le ultime 4 cifre della carta."
+msgstr "Write the last 4 digits of the card."
 
 msgid "Scrivi per chi e che lavoro."
 msgstr "Write for whom and what job."
@@ -11564,6 +11693,12 @@ msgstr "Investments only: export and restore"
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
 
+msgid ""
+"Solo le ultime 4: servono a riconoscere la carta nei movimenti importati "
+"(«CARTA *4821»). Se scrivi il numero intero teniamo solo le ultime 4 "
+"cifre."
+msgstr "Only the last 4: they recognize the card in imported movements («CARTA *4821»). If you write the full number only the last 4 digits are kept."
+
 msgid "Solo ricorrenti"
 msgstr "Recurring only"
 
@@ -11685,6 +11820,9 @@ msgid "Speso"
 msgstr "Spent"
 
 msgid "Speso nel mese"
+msgstr "Spent this month"
+
+msgid "Speso questo mese"
 msgstr "Spent this month"
 
 msgid "Spiegati da transazioni"
@@ -12122,6 +12260,9 @@ msgstr "Type"
 msgid "Tipo di %(name)s"
 msgstr "Type of %(name)s"
 
+msgid "Tipo di carta sconosciuto."
+msgstr "Unknown card type."
+
 msgid "Tipo di grafico"
 msgstr "Chart type"
 
@@ -12151,6 +12292,9 @@ msgstr "Instrument type"
 
 msgid "Tipo e classe"
 msgstr "Type and class"
+
+msgid "Titolare"
+msgstr "Holder"
 
 msgid "Titolari"
 msgstr "Holders"
@@ -12576,6 +12720,9 @@ msgstr "Last count: %(day)s, %(amount)s."
 msgid "Ultima rata"
 msgstr "Last instalment"
 
+msgid "Ultime 4 cifre"
+msgstr "Last 4 digits"
+
 msgid "Ultime cifre IBAN / carta"
 msgstr "Last digits of IBAN / card"
 
@@ -12979,6 +13126,10 @@ msgstr "Go to Settings"
 msgid "Vai in fondo alla pagina"
 msgstr "Go to the bottom of the page"
 
+#, python-format
+msgid "Valida fino al %(day)s · %(card)s"
+msgstr "Valid until %(day)s · %(card)s"
+
 msgid "Valore"
 msgstr "Value"
 
@@ -13213,6 +13364,10 @@ msgstr "purchases %(buy)s, sales %(sell)s"
 
 msgid "acquisti con commissioni meno vendite"
 msgstr "purchases with fees minus sales"
+
+#, python-format
+msgid "addebito il %(day)s"
+msgstr "charged on the %(day)s"
 
 msgid "aggiornata"
 msgstr "up to date"
@@ -13665,6 +13820,9 @@ msgstr "e.g. Vanguard FTSE All-World"
 msgid "es. Viaggio in Giappone"
 msgstr "e.g. Trip to Japan"
 
+msgid "es. Visa Fineco, Bancomat Intesa"
+msgstr "e.g. Visa Fineco, Bancomat Intesa"
+
 msgid "es. bollo auto, revisione, abbonamento ai mezzi"
 msgstr "e.g. car tax, MOT, transit pass"
 
@@ -13796,6 +13954,9 @@ msgstr "ongoing for %(months)s"
 
 msgid "in pari"
 msgstr "settled"
+
+msgid "in scadenza"
+msgstr "expiring"
 
 #, python-format
 msgid "incassato il %(day)s"
@@ -14001,6 +14162,9 @@ msgstr "no piece table"
 
 msgid "nome:tag"
 msgstr "name:tag"
+
+msgid "non attiva"
+msgstr "not active"
 
 msgid "non deducibile"
 msgstr "not deductible"
@@ -14727,6 +14891,9 @@ msgstr "— no account —"
 
 msgid "— nessun evento —"
 msgstr "— no event —"
+
+msgid "— nessuna carta —"
+msgstr "— no card —"
 
 msgid "— nessuna —"
 msgstr "— none —"

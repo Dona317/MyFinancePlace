@@ -21,6 +21,7 @@ from app.models.reminder import Reminder
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Document, Goal, InsurancePolicy
 from app.services import (
+    cards,
     contribution_limits,
     document_expiry,
     forecast,
@@ -106,7 +107,8 @@ GOOGLE_NEW_EVENT = "https://calendar.google.com/calendar/render?"
 GOOGLE_IMPORT = "https://calendar.google.com/calendar/r/settings/export"  # Impostazioni → Importa ed esporta
 ICONS = {"recurring": "arrow-repeat", "installment": "credit-card", "policy": "shield-check", "plan": "piggy-bank",
          "goal": "trophy", "loan": "arrow-left-right", "limit": "piggy-bank", "fiscal": "percent",
-         "reminder": "calendar-check", "document": "file-earmark-text", "warranty": "shield-check"}
+         "reminder": "calendar-check", "document": "file-earmark-text", "warranty": "shield-check",
+         "card": "credit-card"}
 
 
 def fiscal_on() -> bool:
@@ -279,6 +281,17 @@ def _documents(start: date, end: date) -> list[Deadline]:
     return found
 
 
+def _cards(start: date, end: date) -> list[Deadline]:
+    """F41: an active card's last day (the end of its expiry month): time to ask for the new one."""
+    found = []
+    for card in cards.every():
+        last = cards.expiry_date(card)
+        if last and start <= last <= end:
+            found.append(Deadline(last, "card", _("Scade la carta %(name)s", name=card.name), cards.masked(card),
+                                  url=url_for("accounts.card_edit", card_id=card.id), key=f"card{card.id}-{last:%Y%m}"))
+    return found
+
+
 def _fiscal(start: date, end: date) -> list[Deadline]:
     if not fiscal_on():
         return []
@@ -307,7 +320,8 @@ def _reminders(start: date, end: date) -> list[Deadline]:
 # Each kind of deadline and the section it belongs to: none from a section switched off or blocked for the user
 # (as for the reminders); the fiscal dates and the hand-written ones belong to the page itself
 SOURCES = [(_recurring, "transactions"), (_installments, "debt"), (_policies, "insurance"), (_plans, "portfolio"),
-           (_goals, "goals"), (_loans, "loans"), (_limits, "tax"), (_documents, "documents"), (_fiscal, None),
+           (_goals, "goals"), (_loans, "loans"), (_limits, "tax"), (_documents, "documents"), (_cards, "accounts"),
+           (_fiscal, None),
            (_reminders, None)]
 
 

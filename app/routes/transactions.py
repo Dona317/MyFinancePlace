@@ -36,6 +36,7 @@ from app.services import (
     securities,
     undo,
 )
+from app.services import cards as card_service
 from app.services import categories as category_service
 from app.services import currency as currency_service
 from app.services import review as review_service
@@ -74,6 +75,8 @@ def _filtered_query(filters: dict):
     if filters["category"]:  # a main category shows its subcategories too; a split transaction, any of its parts
         names = category_service.with_children(filters["category"])
         query = query.filter(Transaction.category.in_(names) | Transaction.splits.any(TransactionSplit.category.in_(names)))
+    if (filters.get("card") or "").isdigit():
+        query = query.filter(Transaction.card_id == int(filters["card"]))
     if filters.get("account") == "none":
         query = query.filter(Transaction.account_id.is_(None), Transaction.counter_account_id.is_(None))
     elif (filters.get("account") or "").isdigit():
@@ -132,7 +135,7 @@ def _ordered(query, column: str, direction: str):
 
 
 FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", "person", "start", "end", "cluster", "min",
-               "max")
+               "max", "card")
 
 
 def _section_cards(today: date) -> dict:
@@ -288,6 +291,7 @@ def _render_form(tx: Transaction | None):
         dossiers=securities.accounts(active_only=False), folios=securities.portfolios(active_only=False),
         events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
+        cards=card_service.every(active_only=False),
     )
 
 

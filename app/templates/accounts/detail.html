@@ -24,6 +24,39 @@
   <a href="{{ url_for('transactions.index', account=account.id) }}">{{ _('Vedi le transazioni') }}</a>
 </div>
 {% endif %}
+{% if account.kind not in ('cash', 'debt') %}
+{# F41: the cards charged on this account, what each paid this month, its movements #}
+<div class="card mb-16" id="cards">
+  <div class="card-header">
+    <div class="card-header-title"><i class="bi bi-credit-card"></i> {{ _('Carte') }}</div>
+    <a href="{{ url_for('accounts.card_new', account=account.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi una carta') }}</a>
+  </div>
+  {% if cards %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Carta') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Titolare') }}</th><th>{{ _('Scadenza') }}</th>
+        <th class="text-right">{{ _('Speso questo mese') }}</th><th class="text-right">{{ _('Plafond') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for row in cards %}{% set c = row.card %}
+        <tr class="{{ 'row-off' if not c.active }}">
+          <td><i class="bi bi-{{ card_icons.get(c.kind, 'credit-card') }}"></i> <a href="{{ url_for('accounts.card_edit', card_id=c.id) }}">{{ c.name }}</a>
+            <div class="text-xs text-muted">{{ networks.get(c.network, '') }} {{ '•••• ' ~ c.last4 if c.last4 else '' }}</div></td>
+          <td>{{ card_kinds.get(c.kind, c.kind) }}{% if c.kind == 'credit' and c.statement_day %}<div class="text-xs text-muted">{{ _('addebito il %(day)s', day=c.statement_day) }}</div>{% endif %}</td>
+          <td>{{ c.holder or '—' }}</td>
+          <td class="nowrap">{% if row.expiry %}{{ '%02d/%d'|format(c.expiry_month, c.expiry_year) }}{% if row.soon %} <span class="badge badge-negative">{{ _('in scadenza') }}</span>{% endif %}{% else %}—{% endif %}</td>
+          <td class="text-right nowrap">{{ row.month|money }}</td>
+          <td class="text-right nowrap">{{ c.credit_limit|money if c.credit_limit else '—' }}</td>
+          <td class="nowrap"><a href="{{ url_for('transactions.index', card=c.id) }}" class="btn btn-ghost btn-sm">{{ ngettext('%(num)d movimento', '%(num)d movimenti', row.count) }}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-sm text-muted">{{ _('Nessuna carta collegata: aggiungi le carte di debito, credito o prepagate addebitate su questo conto.') }}</div>
+  {% endif %}
+</div>
+{% endif %}
 {% if debts %}
 {# the Debiti account: the total of the debts, what its transactions explain, the rest that must exist to balance #}
 <div class="kpi-grid mb-16">

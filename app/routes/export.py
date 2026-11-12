@@ -28,6 +28,7 @@ from app.services import (
     transfer,
     upload_store,
 )
+from app.services import cards as card_service
 from app.services.categories import known_categories
 from app.services.parsing import to_decimal
 from app.services.periods import year_bounds
@@ -533,6 +534,7 @@ def _collect_rows(data: dict, account: Account | None) -> tuple[list, int, list[
                 continue
             _assign_account(tx, base, account)
         created.append(tx)
+    card_service.assign(created)  # F41: «CARTA *4821» in the bank text → that card
     return created, linked, invalid, skipped
 
 

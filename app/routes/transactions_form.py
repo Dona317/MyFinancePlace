@@ -6,6 +6,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.account import Account
+from app.models.card import Card
 from app.models.event import SpendingEvent
 from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.transaction import Transaction
@@ -57,6 +58,8 @@ def tx_from_form(tx: Transaction) -> Transaction:
         tx.recurrence = tx.recurrence_end = None
     tx.notes = form_text("notes", _("Note"))
     tx.account_id = linked_id("account_id", Account)
+    if "card_id" in request.form:  # F41: the card that paid it (a form without the field keeps it)
+        tx.card_id = linked_id("card_id", Card)
     # a transfer between two own accounts: where the money arrives
     tx.counter_account_id = linked_id("counter_account_id", Account) if tx.type == "transfer" else None
     if tx.counter_account_id and tx.counter_account_id == tx.account_id:
@@ -175,7 +178,7 @@ def form_values(tx: Transaction | None = None) -> dict:
             "recurrence", "recurrence_end", "notes", "account_id", "counter_account_id", "holding_id", "debt_id",
             "event_id", "type", "recurrence_end_mode", "recurrence_count",
             "account_amount", "counter_amount", "units", "unit_price", "trade_side", "fee_amount", "cluster",
-            "securities_account_id", "portfolio_id")} | {
+            "securities_account_id", "portfolio_id", "card_id")} | {
             "is_recurring": "is_recurring" in form, "transfer": "transfer" in form, "splits": _split_rows(),
             "record_fee": "record_fee" in form}
     if tx is None:
@@ -197,6 +200,7 @@ def form_values(tx: Transaction | None = None) -> dict:
         "trade_side": "sell" if tx.units is not None and tx.units < 0 else "buy",
         "cluster": tx.cluster or "",
         "securities_account_id": str(tx.securities_account_id or ""), "portfolio_id": str(tx.portfolio_id or ""),
+        "card_id": str(tx.card_id or ""),
     }
 
 

@@ -1,6 +1,7 @@
 # Importing the models registers them with SQLAlchemy (tables, migrations).
 from .account import Account
 from .budget import Budget
+from .card import Card
 from .category import Category, CategoryRule
 from .client import Client, ClientGroup
 from .cluster import ClusterRule
@@ -27,6 +28,6 @@ __all__ = [
     "ExchangeRate", "Budget", "User", "Client", "ClientGroup", "Holding", "HoldingExposure", "HoldingPrice", "Debt", "InsurancePolicy", "Goal", "Document", "Snapshot",
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
     "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan", "Reminder", "UtilityReading",
-    "SecuritiesAccount", "Portfolio", "PlannedOrder",
+    "SecuritiesAccount", "Portfolio", "PlannedOrder", "Card",
     "YearClose",
 ]

@@ -165,6 +165,16 @@
             </select>
           </div>
         </div>
+        {% if cards %}
+        {# F41: the card that paid it; only the cards of the chosen account are offered #}
+        <div class="form-group" id="card-group">
+          <label class="form-label" for="f-card">{{ _('Pagato con la carta') }}</label>
+          <select id="f-card" name="card_id" class="form-select">
+            <option value="">{{ _('— nessuna carta —') }}</option>
+            {% for c in cards %}<option value="{{ c.id }}" data-account="{{ c.account_id or '' }}" {{ 'selected' if v.card_id == c.id|string }}>{{ c.name }}{{ ' •••• ' ~ c.last4 if c.last4 else '' }}{{ '' if c.active else ' (' ~ _('non attiva') ~ ')' }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
         <!-- Shown when the transaction's currency is not the account's: what the bank charged / credited -->
         <div class="grid-2">
           <div class="form-group" id="account-amount-group" hidden>
@@ -363,6 +373,22 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+/* F41: the cards of the chosen account only (and the one already chosen); no account chosen: every card */
+(function () {
+  const account = document.getElementById('f-account'), card = document.getElementById('f-card');
+  if (!account || !card) return;
+  function filter() {
+    [...card.options].forEach(o => {
+      if (!o.value) return;
+      o.hidden = !!account.value && !!o.dataset.account && o.dataset.account !== account.value && !o.selected;
+    });
+    document.getElementById('card-group').hidden = [...card.options].every(o => !o.value || o.hidden);
+  }
+  account.addEventListener('change', filter);
+  filter();
+})();
+</script>
 <script>
 // The X (and ESC): back to the page you came from, without saving
 (() => {
