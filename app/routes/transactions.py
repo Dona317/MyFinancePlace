@@ -21,6 +21,7 @@ from app.services import (
     accounts,
     ai_classification,
     ai_extraction,
+    analytics,
     bank_import,
     broker,
     category_rules,
@@ -28,7 +29,9 @@ from app.services import (
     display,
     duplicates,
     family,
+    forecast,
     merchant,
+    periods,
     portfolio_ops,
     securities,
     undo,
@@ -132,6 +135,16 @@ FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", 
                "max")
 
 
+def _section_cards(today: date) -> dict:
+    """F81: the figures of the three cards on top — this month's income and expenses, the recurring series."""
+    month = today.replace(day=1)
+    sums = analytics.totals(month, periods.add_months(month, 1))
+    templates = forecast.scheduled_templates(Transaction.query.filter(Transaction.is_recurring.is_(True)).all())
+    spent = [t for t in templates if t.type == "expense"]
+    return {"income": sums["income"], "expenses": sums["expenses"], "recurring": len(templates),
+            "recurring_monthly": sum(forecast.monthly_equivalent(t) for t in spent)}
+
+
 @transactions_bp.route("/")
 def index():
     filters = {key: request.args.get(key, "").strip() for key in FILTER_KEYS}
@@ -149,6 +162,7 @@ def index():
     ]
     return render_template(
         "transactions/index.html",
+        cards=_section_cards(date.today()),
         transactions=transactions,
         total=total, page=page, pages=pages,
         page_url=lambda n: url_for("transactions.index", **(request.args.to_dict() | {"page": n})),

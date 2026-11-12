@@ -2,6 +2,7 @@
 {% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
 {% from "partials/info.html" import info %}
+{% from "partials/kpi.html" import kpi %}
 
 {% block page_title %}{{ _('Transazioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Transazioni') }}</li>{% endblock %}
@@ -52,6 +53,23 @@
 {%- endmacro %}
 
 {% block content %}
+
+{# F81: Entrate, Uscite and Ricorrenti are pages of Transazioni: three cards open them #}
+<div class="kpi-grid section-cards mb-16">
+  {% if shown('reports') %}
+  <a class="kpi-link" href="{{ url_for('reports.income') }}" title="{{ _('Apri Entrate') }}">
+    {{ kpi('arrow-down-circle', _('Entrate'), amount=cards.income, cls='kpi-positive', sub=_('questo mese · apri il dettaglio')) }}
+  </a>
+  <a class="kpi-link" href="{{ url_for('reports.spending') }}" title="{{ _('Apri Uscite') }}">
+    {{ kpi('arrow-up-circle', _('Uscite'), amount=-cards.expenses, cls='kpi-negative', sub=_('questo mese · apri il dettaglio')) }}
+  </a>
+  {% endif %}
+  {% if shown('subscriptions') %}
+  <a class="kpi-link" href="{{ url_for('subscriptions.index') }}" title="{{ _('Apri Ricorrenti') }}">
+    {{ kpi('arrow-repeat', _('Ricorrenti'), amount=-cards.recurring_monthly, cls='kpi-warning', sub=ngettext('%(num)d serie ricorrente · uscite al mese', '%(num)d serie ricorrenti · uscite al mese', cards.recurring)) }}
+  </a>
+  {% endif %}
+</div>
 
 {% if duplicate_groups %}
 <div class="alert alert-warning mb-16" style="display:flex;align-items:center;gap:8px;">

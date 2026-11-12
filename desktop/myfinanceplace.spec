@@ -21,16 +21,17 @@ datas = [
     (str(PGSQL), "pgsql"),
     (str(ROOT / "desktop" / "assets"), "assets"),  # the icon: tray, notifications
 ]
-for package in ("apiflask", "fpdf", "flask_migrate", "pdfminer", "docx"):
-    datas += collect_data_files(package)
+for package in ("apiflask", "fpdf", "flask_migrate", "pdfminer", "docx", "rapidocr"):
+    datas += collect_data_files(package)  # rapidocr: its ONNX models and settings (the light OCR, offline)
 
 
-hiddenimports = collect_submodules("app") + collect_submodules("apiflask") + ["psycopg2", "waitress", "sqlalchemy.dialects.postgresql.psycopg2",
+hiddenimports = collect_submodules("app") + collect_submodules("apiflask") + collect_submodules("rapidocr") + ["psycopg2", "waitress", "sqlalchemy.dialects.postgresql.psycopg2",
                                              "logging.config"]
 if sys.platform.startswith("win"):
     hiddenimports += ["pystray._win32"]  # the icon next to the clock (F14)
-excludes = ["rapidocr", "rapidocr_onnxruntime", "onnxruntime", "cv2", "torch", "tensorflow", "pytest", "IPython",
-            "matplotlib", "tkinter"]  # the light OCR is optional: without it scans go to AI reading
+# the light OCR (rapidocr + onnxruntime + OpenCV headless) is included: scans and photos are read offline, the AI is
+# the second way
+excludes = ["rapidocr_onnxruntime", "torch", "tensorflow", "pytest", "IPython", "matplotlib", "tkinter"]
 
 a = Analysis([str(ROOT / "desktop" / "launcher.py")], pathex=[str(ROOT)], datas=datas,
              hiddenimports=hiddenimports, excludes=excludes, noarchive=False)

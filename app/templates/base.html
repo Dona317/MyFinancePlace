@@ -66,22 +66,24 @@
           <i class="bi bi-list-ul"></i> <span class="nav-label">{{ _('Transazioni') }}</span>
         </a>
         {% endif %}
+        {# F81: Entrate, Uscite and Ricorrenti are pages of Transazioni, nested under it #}
         {% if shown('reports') %}
         <a href="{{ url_for('reports.income') }}"
-           class="nav-item {% if request.endpoint == 'reports.income' %}active{% endif %}">
+           class="nav-item nav-sub {% if request.endpoint == 'reports.income' %}active{% endif %}">
           <i class="bi bi-arrow-down-circle"></i> <span class="nav-label" title="{{ _('Entrate') }}">{{ _('Entrate') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         <a href="{{ url_for('reports.spending') }}"
-           class="nav-item {% if request.endpoint == 'reports.spending' %}active{% endif %}">
+           class="nav-item nav-sub {% if request.endpoint == 'reports.spending' %}active{% endif %}">
           <i class="bi bi-arrow-up-circle"></i> <span class="nav-label" title="{{ _('Uscite') }}">{{ _('Uscite') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
+        {% endif %}
         {% if shown('subscriptions') %}
-        {# what comes back every month, spent or earned: under Entrate and Uscite #}
         <a href="{{ url_for('subscriptions.index') }}"
-           class="nav-item {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
-          <i class="bi bi-arrow-repeat"></i> <span class="nav-label" title="{{ _('Abbonamenti') }}">{{ _('Abbonamenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+           class="nav-item nav-sub {% if request.endpoint and request.endpoint.startswith('subscriptions.') %}active{% endif %}">
+          <i class="bi bi-arrow-repeat"></i> <span class="nav-label" title="{{ _('Ricorrenti') }}">{{ _('Ricorrenti') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         {% endif %}
+        {% if shown('reports') %}
         <a href="{{ url_for('reports.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') and request.endpoint not in ('reports.income', 'reports.spending') %}active{% endif %}">
           <i class="bi bi-bar-chart-line"></i> <span class="nav-label" title="{{ _('Report') }}">{{ _('Report') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>

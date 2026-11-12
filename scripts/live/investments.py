@@ -148,6 +148,22 @@ with sync_playwright() as p:
             with pg.expect_navigation():
                 pg.click("form[action$='/portfolios/new'] button[type=submit]")
         check("two portfolios created", sql("SELECT count(*) FROM portfolios WHERE name IN ('Pensione', 'Figli')") == "2")
+        # after a change the page opens where it was being read, not at the top
+        pg.set_viewport_size({"width": 1400, "height": 420})
+        pg.goto(B + "/portfolio/portfolios")
+        pg.locator("form[action$='/portfolios/new']").scroll_into_view_if_needed()
+        before = pg.evaluate("window.scrollY")
+        pg.fill("form[action$='/portfolios/new'] input[name=name]", "Prova scroll")
+        with pg.expect_navigation():
+            pg.click("form[action$='/portfolios/new'] button[type=submit]")
+        pg.wait_for_load_state("load")
+        after = pg.evaluate("window.scrollY")
+        check("the page stays where it was after a change", before > 100 and abs(after - before) < 150,
+              f"{before} → {after}")
+        pg.goto(B + "/portfolio/rules")
+        check("another page opens at the top", pg.evaluate("window.scrollY") == 0)
+        pg.set_viewport_size({"width": 1400, "height": 900})
+        sql("DELETE FROM portfolios WHERE name = 'Prova scroll'")
         for name in ("Pensione", "Crescita", "Crescita"):
             folio = sql(f"SELECT id FROM portfolios WHERE name = '{name}'")
             pg.goto(B + "/portfolio/portfolios")

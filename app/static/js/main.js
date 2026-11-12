@@ -481,6 +481,33 @@ function mfpConfirm(message, options = {}) {
 }
 window.mfpConfirm = mfpConfirm;
 
+/* After a change the page opens again where it was being read, not at the top: a form sent with POST (a save, a
+   deletion, a tick) notes the scroll position, and the page that comes back — the same address, within a minute,
+   with no #anchor to go to — scrolls there. Filters and searches (GET) start from the top as usual. */
+const SCROLL_KEY = "mfp-scroll";
+
+function rememberScroll(form) {
+  if ((form.getAttribute("method") || "get").toLowerCase() !== "post") return;
+  try {
+    sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ path: location.pathname, y: window.scrollY, at: Date.now() }));
+  } catch (e) { /* private window: the page simply opens at the top */ }
+}
+
+function initKeepScroll() {
+  document.addEventListener("submit", e => {
+    if (!e.defaultPrevented && e.target instanceof HTMLFormElement) rememberScroll(e.target);
+  });
+  let saved = null;
+  try {
+    saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) || "null");
+    sessionStorage.removeItem(SCROLL_KEY);
+  } catch (e) { saved = null; }
+  if (!saved || location.hash || saved.path !== location.pathname || Date.now() - saved.at > 60000) return;
+  const go = () => window.scrollTo({ top: saved.y, behavior: "instant" });
+  go();
+  window.addEventListener("load", go, { once: true });  // charts and images may make the page taller once loaded
+}
+
 /* Forms marked data-confirm ask before they are sent (deletions): the first submit is held back, the answer sends it */
 function initConfirm() {
   document.addEventListener("submit", e => {
@@ -850,6 +877,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initFlash();
   initAmounts();
   initConfirm();
+  initKeepScroll();
   initUserMenu();
   initBack();
   initCopy();

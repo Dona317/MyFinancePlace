@@ -151,7 +151,9 @@ browser invece che nella finestra), `--background` (senza finestra: icona e noti
   libera, arresto pulito. Rifiuta di partire come root.
 - `desktop/fetch_postgres.py`: scarica i binari portabili di PostgreSQL 16 (build zonky.io su Maven Central).
 - `desktop/myfinanceplace.spec`: ricetta PyInstaller (cartella, non file unico: si avvia più in fretta). L'OCR
-  leggero (rapidocr/onnxruntime) è escluso per tenere il pacchetto sotto i 300 MB: le scansioni si leggono con l'AI.
+  leggero (rapidocr + onnxruntime + OpenCV headless, circa 160 MB in più) è **incluso** (12 nov 2026): scansioni e foto
+  degli estratti conto si leggono senza AI e offline, l'AI resta la seconda strada (quando l'OCR non legge bene o
+  manca). Il controllo `--smoke` carica i modelli dell'OCR ed esce con codice 5 se non funzionano.
 
 Costruire a mano (sul sistema per cui si costruisce):
 

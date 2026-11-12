@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip
-          grep -v -E "^(rapidocr|onnxruntime|pytest|gunicorn)" requirements.txt > requirements-build.txt  # optional OCR, tests, server
+          grep -v -E "^(pytest|gunicorn)" requirements.txt > requirements-build.txt  # not the tests and the server; the OCR is in
           pip install -r requirements-build.txt -r desktop/requirements-desktop.txt
 
       - name: Portable PostgreSQL
