@@ -171,3 +171,51 @@ def test_every_archive_when_due(app, db, tmp_path):
         assert encrypted_backup.run_all_archives() == 1
         assert encrypted_backup.run_all_archives() == 0  # done for today
     assert len(list(tmp_path.glob("*.mfpbackup"))) == 1
+
+
+def test_the_key_of_the_encrypted_data_travels_inside_the_encrypted_backup(client, app, db, tmp_path, monkeypatch):
+    """F84: the encrypted backup carries the key of the card numbers; restored on «another computer» (another key),
+    the password alone makes them readable again. The plain .zip never carries it."""
+    import zipfile
+
+    from app.models.card import Card
+    from app.services import cards, field_crypto
+
+    monkeypatch.delenv("MFP_DATA_KEY", raising=False)
+    app.instance_path = str(tmp_path / "pc1")
+    assert "Scarica backup cifrato" not in client.get("/export/").get_data(as_text=True)
+    page = client.post("/export/backup/encrypted/download", follow_redirects=True).get_data(as_text=True)
+    assert "Imposta prima la password" in page
+    client.post("/export/backup/encrypted", data={"folder": str(tmp_path / "copie"), "frequency": "weekly",
+                                                  "keep": "4", "password": "password1"})
+    with app.test_request_context():
+        card, _whole = cards.save(None, cards.CardInput(
+            name="Visa", kind="credit", network="visa", number="4111 1111 1111 4821", expiry="08/28", holder=None,
+            account_id=None, credit_limit=None, statement_day=None, contactless=True, notes=None))
+        db.session.commit()
+        first_key = field_crypto.key_text()
+    plain = client.get("/export/backup").data
+    with zipfile.ZipFile(io.BytesIO(plain)) as archive:
+        assert backup.KEY_ENTRY not in archive.namelist()  # never in the plain .zip
+    assert "Scarica backup cifrato" in client.get("/export/").get_data(as_text=True)
+    sealed = client.post("/export/backup/encrypted/download")
+    assert sealed.headers["Content-Disposition"].endswith('.mfpbackup"')
+    with app.test_request_context():
+        assert backup.key_in(encrypted_backup.decrypt(sealed.data, "password1")) == first_key
+        assert backup.key_in(b"not a zip") is None
+    # «another computer»: a new data folder, so a new key
+    app.instance_path = str(tmp_path / "pc2")
+    with app.test_request_context():
+        assert field_crypto.key_text() != first_key
+    page = client.post("/export/restore", data={"file": (io.BytesIO(sealed.data), "b.mfpbackup"),
+                                                "password": "password1", "confirm": "1"},
+                       content_type="multipart/form-data", follow_redirects=True).get_data(as_text=True)
+    assert "Anche la chiave dei dati cifrati era nel backup" in page and "cifrati con la chiave di un altro computer" not in page
+    with app.test_request_context():
+        assert field_crypto.key_text() == first_key
+        assert cards.full_number(Card.query.one()) == "4111 1111 1111 4821"
+    # the plain .zip on yet another computer: the numbers stay unreadable, the app says what to do
+    app.instance_path = str(tmp_path / "pc3")
+    page = client.post("/export/restore", data={"file": (io.BytesIO(plain), "b.zip"), "confirm": "1"},
+                       content_type="multipart/form-data", follow_redirects=True).get_data(as_text=True)
+    assert "cifrati con la chiave di un altro computer" in page

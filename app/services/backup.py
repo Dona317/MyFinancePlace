@@ -57,7 +57,7 @@ from app.models import (
     UtilityReading,
     YearClose,
 )
-from app.services import currency, document_store, money, securities, settings_store, studio
+from app.services import currency, document_store, field_crypto, money, securities, settings_store, studio
 
 FORMAT = "myfinanceplace-backup"
 VERSION = 2
@@ -131,11 +131,18 @@ def export_data() -> dict:
             "tables": tables}
 
 
-def create_archive() -> bytes:
+KEY_ENTRY = "chiave-dati.txt"  # the key of the encrypted fields: only inside an encrypted backup (F84)
+
+
+def create_archive(with_key: bool = False) -> bytes:
+    """The full backup as a .zip. `with_key`: the key of the encrypted fields goes in too — only for a file that is
+    itself encrypted with the user's password (services.encrypted_backup), never for the plain .zip."""
     data = export_data()
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr(DATA_FILE, json.dumps(data, ensure_ascii=False, indent=1))
+        if with_key and not field_crypto.from_environment():
+            archive.writestr(KEY_ENTRY, field_crypto.key_text())
         for record in data["tables"]["documents"]:
             content = document_store.read(record["stored_name"])
             if content is not None:
@@ -194,6 +201,15 @@ def read_upload(raw: bytes) -> tuple[dict, dict[str, bytes]]:
     data, files = _read_zip(raw) if zipfile.is_zipfile(io.BytesIO(raw)) else (_read_json(raw), {})
     _check(data)
     return data, files
+
+
+def key_in(raw: bytes) -> str | None:
+    """The key of the encrypted fields carried by a backup (an encrypted one), or None."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            return archive.read(KEY_ENTRY).decode("ascii").strip() if KEY_ENTRY in archive.namelist() else None
+    except (zipfile.BadZipFile, UnicodeDecodeError):
+        return None
 
 
 def is_full_backup(data: dict) -> bool:

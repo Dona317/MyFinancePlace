@@ -1,6 +1,8 @@
 """
 The automatic encrypted backup (F23): the full backup (backup.create_archive) written every day, week or month to a
 folder chosen by the user — a synced OneDrive or Google Drive folder, a USB stick — keeping the last N copies.
+It carries the key of the encrypted fields too (F84: card numbers…), safe inside the encryption: restored on another
+computer with the password, everything is readable again.
 
 The password is never stored, not even as a hash that would open the files. It is turned (scrypt) into an X25519 key
 pair: only the public half is kept, so the app can encrypt on its own and only who knows the password can decrypt.
@@ -210,7 +212,7 @@ def run(now: datetime | None = None) -> Path:
         folder.mkdir(parents=True, exist_ok=True)
         target = folder / f"{_prefix()}{now:%Y-%m-%d_%H%M%S}{EXTENSION}"
         partial = target.with_suffix(".tmp")
-        partial.write_bytes(encrypt(backup.create_archive(), found))
+        partial.write_bytes(encrypt(backup.create_archive(with_key=True), found))  # with the data key (F84)
         partial.replace(target)  # never a half-written backup under the final name
         rotate(folder, _prefix(), int(found.get("keep") or 8))
     except OSError as exc:

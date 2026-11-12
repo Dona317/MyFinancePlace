@@ -115,6 +115,19 @@ def download_backup():
                     "application/zip")
 
 
+@export_bp.route("/backup/encrypted/download", methods=["POST"])
+def download_encrypted_backup():
+    """F84: the full backup encrypted now with the automatic backup's password, the key of the encrypted data inside —
+    the file to keep when the app moves to another computer."""
+    found = encrypted_backup.config()
+    if not found.get("public"):
+        flash(_("Imposta prima la password del backup automatico cifrato (qui sotto): serve a cifrare il file."), "warning")
+        return redirect(url_for("export.index") + "#auto-backup")
+    return download(encrypted_backup.encrypt(backup.create_archive(with_key=True), found),
+                    f"myfinanceplace_backup_{datetime.now():%Y-%m-%d_%H%M}{encrypted_backup.EXTENSION}",
+                    "application/octet-stream")
+
+
 @export_bp.route("/restore", methods=["POST"])
 def restore():
     upload = uploaded_file()
@@ -123,8 +136,10 @@ def restore():
         return redirect(url_for("export.index") + "#backup")
     try:
         raw = upload.read()
+        carried = None
         if encrypted_backup.is_encrypted(raw):
             raw = encrypted_backup.decrypt(raw, request.form.get("password", ""))
+            carried = backup.key_in(raw)  # F84: the key of the encrypted fields, safe inside the encryption
         data, files = backup.read_upload(raw)
         if not backup.is_full_backup(data):
             added, skipped = backup.import_transactions(data)
@@ -138,6 +153,14 @@ def restore():
     except backup.BackupError as exc:
         flash(str(exc), "error")
         return redirect(url_for("export.index") + "#backup")
+    if carried and not field_crypto.from_environment() and field_crypto.unreadable(card_service.encrypted_fields()):
+        try:
+            field_crypto.replace_key(carried, card_service.encrypted_fields())
+            db.session.commit()
+            flash(_("Anche la chiave dei dati cifrati era nel backup: è in uso (codice %(code)s), i numeri delle carte "
+                    "si leggono.", code=field_crypto.fingerprint()), "info")
+        except ValueError:
+            pass  # a damaged key entry: the warning below says what to do
     if field_crypto.unreadable(card_service.encrypted_fields()):
         flash(_("I numeri delle carte del backup sono cifrati con la chiave di un altro computer: inseriscila in "
                 "«Chiave dei dati cifrati» per leggerli."), "warning")
