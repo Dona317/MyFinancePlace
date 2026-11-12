@@ -2,7 +2,7 @@
 
 ## Versione attuale
 - **La versione attuale dell'app è il ramo `test-Cloud`** (PR #8, in bozza verso `main`).
-  Ultima verifica: 12 nov 2026 — suite 1273 test, copertura 97,45 %, 0 funzioni non testate; test live
+  Ultima verifica: 12 nov 2026 (sera) — suite 1279 test, copertura 97,49 %, 0 funzioni non testate; test live
   283/283 (login, flows, wealth, features, securities, investments). CI del push da controllare su GitHub.
 - `main` è indietro (lo scheletro iniziale) finché la PR #8 non viene unita: decisione D1, rimandata a
   novembre 2026. **Non unire su `main` senza una richiesta esplicita.**
