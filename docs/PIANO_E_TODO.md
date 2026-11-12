@@ -18,48 +18,51 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
 
 ## 0. Stato avanzamento lavori (SAL) — da aprire a ogni promemoria delle 13:30
 
-> Aggiornato l'11 novembre 2026, sera. Ogni giorno alle 13:30 il promemoria riapre questo file: si parte da qui
-> per il recap e si decide come proseguire. Si aggiorna a ogni giro di lavoro.
+> Aggiornato il 12 novembre 2026, 13:30. Ogni giorno alle 13:30 il promemoria riapre questo file: si parte da qui
+> per il recap e si decide come proseguire. Si aggiorna a ogni giro di lavoro. Ultima verifica: `test-Cloud` @
+> `49d86ee`, 1273 test, copertura 97,45 %, test live 283/283.
 
 ### Fatto finora (in breve)
 - **MVP completo** su `test-Cloud`: transazioni, import di 8 banche + generico (CSV, Excel, PDF, OFX, CAMT, QIF,
   scansioni e foto con OCR o AI), conti e valute, giroconti riconosciuti tra due file, dashboard a blocchi,
-  Contabilità (stato patrimoniale, conto economico, flusso di cassa), budget, obiettivi, previsioni, scadenzario con
-  Google Calendar, debiti, assicurazioni, bollette, documenti, fisco (730, limiti deducibili), lavoretti, prestiti tra
-  persone, famiglia e titolari, backup e ripristino, login, IT/EN, app desktop (Windows/macOS/Linux), CI.
-- **Portafoglio** (novembre): conti titoli e portafogli (F42), classe di attivo ≠ tipo di strumento (F70), registro
-  ordini (F46), valore nel tempo dai prezzi e grafici (F47–F49), portafoglio modello per portafoglio (F50),
-  notifiche di ribilanciamento (F51), PAC per portafoglio e conto titoli (F52), obbligazioni (F53), look-through
-  (F57), calcolo commissioni con ABP (F74), aggiornamenti letti dall'AI (F75), import dal broker con mappatura e
-  preset (F76), **ordini teorici con commissioni dalla liquidità (F77)**, **export/ripristino dei soli investimenti
-  (F78)**.
-- **11 novembre**: dati di test degli investimenti (`samples/dati_fittizi/investimenti/`: 10 ETF di 10 classi, azioni,
-  obbligazioni, fondi, due conti titoli, modello fuori banda, estratti dei due broker), eventi ricorrenti nel
-  calendario (F79), OCR su Python 3.13 con foto raddrizzate (F80), bug della stellina del portafoglio predefinito,
-  test live estesi (tutti verdi).
+  Contabilità, budget, obiettivi, previsioni, scadenzario con Google Calendar, debiti, assicurazioni, bollette,
+  documenti, fisco (730, limiti deducibili), lavoretti, prestiti tra persone, famiglia e titolari, backup e
+  ripristino, login, IT/EN, app desktop (Windows/macOS/Linux), CI.
+- **Portafoglio** (novembre): conti titoli e portafogli (F42), classe di attivo (F70), registro ordini (F46), valore
+  nel tempo e grafici (F47–F49 in parte), modello per portafoglio (F50), notifiche di ribilanciamento (F51), PAC per
+  portafoglio e conto titoli (F52), obbligazioni (F53), look-through (F57), calcolo commissioni (F74), lettura AI
+  (F75), import dal broker con preset (F76), ordini teorici con commissioni dalla liquidità (F77), export/ripristino
+  dei soli investimenti (F78).
+- **11 novembre**: dati di test degli investimenti (`samples/dati_fittizi/investimenti/`), eventi ricorrenti nel
+  calendario (F79), OCR su Python 3.13 con foto raddrizzate (F80), bug della stellina del portafoglio predefinito.
+- **12 novembre**: Entrate, Uscite e Ricorrenti sotto Transazioni con tre card (F81); la pagina resta dove stavi dopo
+  una modifica (F83); OCR incluso nell'app desktop (F82 in parte); **carte collegate ai conti** con numero intero
+  cifrato, carta predefinita del conto tranne i bonifici, scadenza nei promemoria (F41); **modalità privacy**
+  (l'occhio: importi a «****», clic per vederli 5 secondi, F86); chiave dei dati cifrati leggibile da Esporta e
+  dentro i backup cifrati (F84, parte chiave); **database dei prezzi a parte** con lettura da Yahoo (D10, F69
+  passo 2); XIRR prima del TWR; pagina Backtest segnaposto (F88); F24 e F28 chiusi.
 
 ### In lavorazione o deciso di proseguire
-- **F81 fatto (12 nov)**: Entrate, Uscite e Ricorrenti sotto Transazioni con tre card; **F83**: la pagina resta dove stavi guardando dopo una modifica.
-- **F41 fatto (12 nov)**: carte collegate ai conti.
-- **F84 — Database cifrato** (richiesta del 12 nov): serve la decisione D15 su dove tenere la chiave; intanto la chiave dei numeri delle carte si legge e si reinserisce da Esporta.
-- **F90 — ricerca di fonti open source per il database dei prezzi** (richiesta del 12 nov).
-- **12 nov**: F24 e F28 chiusi; D10 deciso (Yahoo, storico in un database a parte, F69 passo 2 avviato, F89 da lanciare sul tuo PC); XIRR prima del TWR; nuovi F87 (archivio per utente), F88 (Backtest, segnaposto TBD).
-- **F85 — IPS (Investment Policy Statement)** in Pianificazione (richiesta del 12 nov): da progettare; riusa modelli, regole e PAC.
-- **F82 — OCR dappertutto**: incluso nell'app desktop (12 nov); resta da usarlo anche per i documenti del broker e gli allegati.
-- **F24 / F28** resti della revisione d'uso e del menu; **F47** cache giornaliera ed effetto cambio; **F49** treemap
-  ed effetto cambio; **F69** storico prezzi EOD (aspetta il `report.md` delle fonti dal tuo PC).
-- In attesa di qualcosa da te: F4 e F55 (estratti reali anonimizzati di banche e broker), F56a (fonti fiscali
-  ufficiali), F60 (elenco dei repository starred), D1 (unire la PR #8 su `main`, rimandata a novembre).
+- **▶ Prossima proposta: F43** — prezzi nella valuta d'origine (apre l'effetto cambio, F49) e uso dello storico del
+  database dei prezzi nel valore nel tempo (F47).
+- **F89 / F69** — scaricare le chiusure dei fondi principali da Yahoo: **da lanciare sul tuo PC** (Portafoglio →
+  Prezzi → «Scarica da Yahoo», o `flask --app run market sync --main`), la sandbox non raggiunge Yahoo.
+- **F84** — cifrare gli altri dati sensibili (IBAN, numeri di conto, documenti, note), dopo D15.
+- **F82** — OCR anche per i documenti del broker e gli allegati.
+- **F85** IPS, **F87** un archivio per utente, **F90** ricerca di fonti di prezzi open source, **F63** report
+  salvabili (dopo D14).
+- **Scelte aperte (servono a te)**: D15 dove sta la chiave (proposta: portachiavi del sistema); F84 ordine dei campi
+  da cifrare; D14 libreria grafici (proposta: Chart.js + plugin); D1 unire su `main`; D2 `Mapping-Excel`; F81 voci
+  nel menu o solo card; titoli nuovi dall'import nella parte della loro classe; F85 questionario e un IPS per
+  famiglia; F87 cosa fare dell'archivio attuale; promemoria ogni giorno o solo nei giorni lavorativi.
+- **In attesa di materiale da te**: F4 e F55 (estratti reali anonimizzati), F56a (fonti fiscali ufficiali), F60
+  (repository starred), il `report.md` di `scripts/check_price_sources.py`.
 
 ### Ancora abbozzato (TBD)
-- **Badge TBD nel menu**: tutte le sezioni tranne Dashboard e Transazioni hanno il badge «TBD» = funzionano ma
-  vanno riviste una per una (Entrate, Uscite, Abbonamenti, Report, Contabilità, Obiettivi, Budget, Eventi,
-  Previsioni, Promemoria, Conti e Carte, Portafoglio, Debiti, Lavoretti, Prestiti, Assicurazioni, Bollette,
-  Documenti, Fisco, Istantanee, Importa, Esporta, Salute dei dati, Clienti, Gruppi e famiglia).
-- **Davvero solo bozza**: le **schede
-  «Nuova scheda — TBD»** della dashboard (segnaposto per funzioni future); i **grafici del costruttore** e i report
-  salvabili (F63); la **clusterizzazione oltre due livelli**; la **separazione dei dati tra utenti** (oggi i dati sono
-  per archivio, non per utente); il **fisco del portafoglio** (F56: zainetto, quadro RW, bollo pro rata).
+- **Badge TBD nel menu**: tutte le sezioni tranne Dashboard e Transazioni = funzionano ma vanno riviste una per una.
+- **Solo segnaposto**: le schede «Nuova scheda — TBD» della dashboard; la pagina **Backtest** (F88); i grafici del
+  costruttore e i report salvabili (F63); la separazione dei dati tra utenti (F87); il fisco del portafoglio (F56:
+  zainetto, quadro RW, bollo pro rata); l'IPS (F85).
 
 ---
 
