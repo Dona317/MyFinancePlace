@@ -18,9 +18,9 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
 
 ## 0. Stato avanzamento lavori (SAL) — da aprire a ogni promemoria delle 13:30
 
-> Aggiornato il 12 novembre 2026, 13:30. Ogni giorno alle 13:30 il promemoria riapre questo file: si parte da qui
+> Aggiornato il 13 novembre 2026, 13:30. Ogni giorno alle 13:30 il promemoria riapre questo file: si parte da qui
 > per il recap e si decide come proseguire. Si aggiorna a ogni giro di lavoro. Ultima verifica: `test-Cloud` @
-> `49d86ee`, 1273 test, copertura 97,45 %, test live 283/283.
+> `2f39175`, 1279 test, copertura 97,49 %, test live tutti verdi.
 
 ### Fatto finora (in breve)
 - **MVP completo** su `test-Cloud`: transazioni, import di 8 banche + generico (CSV, Excel, PDF, OFX, CAMT, QIF,
@@ -41,6 +41,9 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
   (l'occhio: importi a «****», clic per vederli 5 secondi, F86); chiave dei dati cifrati leggibile da Esporta e
   dentro i backup cifrati (F84, parte chiave); **database dei prezzi a parte** con lettura da Yahoo (D10, F69
   passo 2); XIRR prima del TWR; pagina Backtest segnaposto (F88); F24 e F28 chiusi.
+- **12 novembre, sera**: **prezzi nella valuta d'origine** con il cambio del giorno (F43) e **effetto cambio** nella
+  pagina del titolo e in Rendimenti (F49); in piano F91 (abbozzare i segnaposto) e **F92, priorità speciale**: il
+  database delle serie storiche di ETF, azioni e indici, da costruire o trovare.
 
 ### In lavorazione o deciso di proseguire
 - **★ F92 — PRIORITÀ SPECIALE: database delle serie storiche di ETF, azioni e indici (costruirlo o trovarlo)** (richiesta del 12 nov); riunisce F69, F89, F90.
