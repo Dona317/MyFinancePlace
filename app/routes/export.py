@@ -214,7 +214,7 @@ def export_csv():
     transactions = transfer.query_transactions(start, end, scope)
     # BOM so Excel detects UTF-8 correctly
     content = "\ufeff" + transfer.to_csv(transactions)
-    suffix = "" if scope == "all" else f"_{scope}"
+    suffix = {"all": "", "no_investments": "_conti_contante", "investments": "_investimenti"}[scope]
     return download(content, f"transazioni_{period}{suffix}_{date.today().isoformat()}.csv", "text/csv; charset=utf-8")
 
 

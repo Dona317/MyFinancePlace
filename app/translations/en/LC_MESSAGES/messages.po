@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-14 15:37+0000\n"
+"POT-Creation-Date: 2026-11-14 17:38+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -11780,9 +11780,6 @@ msgstr "Uncategorized"
 msgid "Senza dati"
 msgstr "No data"
 
-msgid "Senza investimenti (solo conti correnti, carte, spese)"
-msgstr "Without investments (current accounts, cards, spending only)"
-
 msgid "Senza scadenza"
 msgstr "No expiry"
 
@@ -11983,9 +11980,6 @@ msgstr ""
 
 msgid "Solo gli investimenti: esporta e ripristina"
 msgstr "Investments only: export and restore"
-
-msgid "Solo investimenti (operazioni, dividendi, liquidità dei conti titoli)"
-msgstr "Investments only (trades, dividends, securities account liquidity)"
 
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
@@ -12794,9 +12788,15 @@ msgstr "Transaction «%(description)s» deleted."
 msgid "Transazioni"
 msgstr "Transactions"
 
+msgid "Transazioni conti e contante"
+msgstr "Account and cash transactions"
+
 #, python-format
 msgid "Transazioni di «%(category)s» nel periodo"
 msgstr "Transactions of «%(category)s» in the period"
+
+msgid "Transazioni investimenti"
+msgstr "Investment transactions"
 
 msgid ""
 "Trascina blocchi e schede per spostarli; cambia larghezza e altezza o "
@@ -12888,6 +12888,9 @@ msgstr "The whole family"
 
 msgid "Tutte"
 msgstr "All"
+
+msgid "Tutte (conti, contante e investimenti)"
+msgstr "All (accounts, cash and investments)"
 
 msgid "Tutte le Istantanee"
 msgstr "All Snapshots"

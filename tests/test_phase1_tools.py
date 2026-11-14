@@ -39,12 +39,12 @@ def test_the_export_with_or_without_the_investments(app, client, db, tmp_path):
                            delimiter=";"))
     assert len(rows) - 1 == len(ours)
     response = client.get("/export/csv?scope=investments&period=all")
-    assert "_investments_" in response.headers["Content-Disposition"]
+    assert "_investimenti_" in response.headers["Content-Disposition"]
     data = client.get("/export/json?scope=investments").get_json()
     assert len(data["transactions"]) == len(theirs)
     assert len(client.get("/export/json?scope=nonsense").get_json()["transactions"]) == len(every)
     page = client.get("/export/").get_data(as_text=True)
-    assert 'name="scope"' in page and "Senza investimenti" in page
+    assert 'name="scope"' in page and "Transazioni conti e contante" in page and "Transazioni investimenti" in page
 
 
 def test_the_template_is_read_by_the_import(app, client, db):
