@@ -22,7 +22,7 @@
   {% if look.total %}{{ _('Il %(pct)s %% del valore ha la composizione dei fondi.', pct=look.covered_pct|number(1)) }}{% endif %}</p>
 <div class="grid-2">
   {% for key, title, note in (
-       ('country', _('Per paese'), _('Primi 10 paesi, poi «Altri». I titoli senza composizione contano con l\'area geografica della loro scheda (o il paese dell\'ISIN per azioni e obbligazioni); «Non coperto» è il valore di cui non si sa nulla.')),
+       ('country', _('Per paese'), _('Primi 10 paesi, poi «Altri». I titoli senza composizione contano con l\'area geografica della loro scheda (o il paese dell\'ISIN per azioni e obbligazioni); «Senza dati» è il valore di cui non si sa nulla.')),
        ('sector', _('Per settore'), _('Primi 10 settori, poi «Altri». Senza composizione vale il settore della scheda del titolo, o la sua classe di attivo per obbligazioni, liquidità, oro e simili.')),
        ('currency', _('Per valuta'), _('La valuta dei titoli contenuti nei fondi; per azioni e obbligazioni senza composizione, la valuta in cui sono quotate. Un ETF con il cambio coperto resta esposto alla valuta dei titoli qui, non nel rischio di cambio.'))) %}
   <div class="card">

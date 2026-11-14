@@ -317,6 +317,76 @@ def positions(holdings: list[Holding] | None = None, portfolio_id: int | None = 
     return sorted(out, key=lambda p: (p.holding.name.lower(), p.securities_account_id or 0, p.portfolio_id or 0))
 
 
+@dataclass
+class Grouped:
+    """One holding with its positions (one per securities account and portfolio), for a table that shows one row per
+    holding and opens it into its positions. Reads like a holding: quantity, average price, value and gain are the
+    sum of its positions (the whole holding when no position is given)."""
+    holding: Holding
+    parts: list
+    whole: bool = False   # the row is the whole holding (every place): its own figures, the parts only to open
+
+    def __getattr__(self, name):
+        if name.startswith("_") or name in ("holding", "parts", "whole"):
+            raise AttributeError(name)
+        return getattr(self.holding, name)
+
+    @property
+    def split(self) -> bool:
+        """Held in more than one place: worth opening."""
+        return len(self.parts) > 1
+
+    @property
+    def quantity(self) -> Decimal:
+        if self.whole or not self.parts:
+            return Decimal(self.holding.quantity or 0)
+        return sum((p.quantity for p in self.parts), Decimal(0))
+
+    @property
+    def avg_price(self) -> Decimal:
+        if self.whole or not self.parts:
+            return self.holding.avg_price
+        cost = sum((p.cost_basis for p in self.parts), Decimal(0))
+        return money.price(cost / self.quantity) if self.quantity > 0 else Decimal(0)
+
+    @property
+    def value(self) -> float:
+        return self.holding.value if self.whole or not self.parts else sum(p.value for p in self.parts)
+
+    @property
+    def cost(self) -> float:
+        return self.holding.cost if self.whole or not self.parts else sum(p.cost for p in self.parts)
+
+    @property
+    def gain(self) -> float:
+        return self.value - self.cost
+
+    @property
+    def gain_pct(self) -> float:
+        return self.gain / self.cost * 100 if self.cost else 0.0
+
+
+def grouped(rows: list, all_positions: list[Position] | None = None) -> list[Grouped]:
+    """The rows of a table (holdings, or the positions of a portfolio or securities account) one per holding, each
+    with its positions: those among `rows` when they are positions, else every position of the holding."""
+    by_holding: dict[int, list] = defaultdict(list)
+    order: list[Holding] = []
+    for row in rows:
+        holding = row.holding if isinstance(row, Position) else row
+        if holding.id not in by_holding:
+            order.append(holding)
+        if isinstance(row, Position):
+            by_holding[holding.id].append(row)
+        else:
+            by_holding.setdefault(holding.id, [])
+    if all_positions is not None:
+        for position in all_positions:
+            if position.holding.id in by_holding and not any(isinstance(r, Position) for r in rows):
+                by_holding[position.holding.id].append(position)
+    whole = not any(isinstance(r, Position) for r in rows)
+    return [Grouped(h, by_holding[h.id], whole) for h in order]
+
+
 def main_place(holding: Holding) -> SecuritiesAccount | None:
     """Where a new purchase of a holding goes when nothing is chosen: the securities account that already holds most
     of it, or the only active one."""

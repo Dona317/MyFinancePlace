@@ -21,6 +21,7 @@
 .bi-arrow-left::before { content: "\f12f"; }
 .bi-arrow-left-right::before { content: "\f12b"; }
 .bi-arrow-repeat::before { content: "\f130"; }
+.bi-arrow-return-right::before { content: "\f132"; }
 .bi-arrow-right::before { content: "\f138"; }
 .bi-arrow-up-circle::before { content: "\f13a"; }
 .bi-arrow-up-right::before { content: "\f144"; }

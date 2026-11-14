@@ -189,13 +189,18 @@ def index():
         db.session.commit()
     if folio_id or dossier_id:
         holdings = securities.positions(holdings, portfolio_id=folio_id, securities_account_id=dossier_id)
+    # one row per holding, opened into its positions (securities account × portfolio) when it sits in more than one
+    rows = securities.grouped(holdings, None if (folio_id or dossier_id) else securities.positions(
+        [h for h in holdings if wealth.ASSET_CLASSES.get(h.asset_class, ("", False))[1]]))
     today = date.today()
     snapshots = Snapshot.query.order_by(Snapshot.taken_on, Snapshot.id).all()
     return render_template(
         "portfolio/index.html",
-        holdings=[h for h in holdings if not selected or h.asset_class == selected],
+        holdings=[h for h in rows if not selected or h.asset_class == selected],
         summary=wealth.portfolio_summary(holdings),
-        tree=portfolio_charts.allocation_tree(holdings),  # G50: asset class → holding, for the treemap
+        tree=portfolio_charts.allocation_tree(rows),  # G50: asset class → holding, for the treemap
+        place_names={**{("d", d.id): d.name for d in securities.accounts(active_only=False)},
+                     **{("p", f.id): f.name for f in securities.portfolios(active_only=False)}},
         planned=planned_orders.count(),  # theoretical orders waiting to be confirmed as executed
         dividends_ytd=wealth.dividends(date(today.year, 1, 1), date(today.year + 1, 1, 1)),
         asset_classes=wealth.ASSET_CLASSES, asset_class_of=asset_classes.of,

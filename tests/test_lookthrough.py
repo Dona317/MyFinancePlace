@@ -123,12 +123,12 @@ def test_portfolio_exposure(app, db, holdings):
     assert result["total"] == 2000 and result["covered_pct"] == 75.0
     rows = lambda kind: {r["name"]: r["value"] for r in result[kind]}  # noqa: E731
     assert rows("country") == {"Stati Uniti": 1100, "Svizzera": 150, "Paesi Bassi": 100, "Giappone": 100,
-                               "Nord America": 250, "Non coperto": 300}  # 50 € of cash + the fund
+                               "Nord America": 250, "Senza dati": 300}  # 50 € of cash + the fund
     assert result["country"][0] == {"name": "Stati Uniti", "value": 1100, "pct": 55.0, "uncovered": False}
     assert result["country"][-1]["uncovered"]
     assert rows("sector") == {"Tecnologia": 1300, "Beni di consumo di base": 150, "Servizi di comunicazione": 150,
-                              "Beni di consumo discrezionali": 100, "Liquidità": 50, "Non coperto": 250}
-    assert rows("currency") == {"USD": 1350, "EUR": 150, "CHF": 150, "JPY": 100, "Non coperto": 250}
+                              "Beni di consumo discrezionali": 100, "Liquidità": 50, "Senza dati": 250}
+    assert rows("currency") == {"USD": 1350, "EUR": 150, "CHF": 150, "JPY": 100, "Senza dati": 250}
     top = result["companies"][0]
     assert (lookthrough.company_key(top["name"]), top["value"], top["pct"]) == ("apple", 900, 45.0)
     assert sorted(top["via"]) == [("Apple", 100.0), ("Xtrackers S&P 500", 50.0), ("iShares World", 40.0)]
@@ -145,7 +145,7 @@ def test_top_ten_and_others(app, db, holdings):
                          date(2026, 11, 1), "a mano")
         result = lookthrough.portfolio([world])
     names = [r["name"] for r in result["country"]]
-    assert len(names) == 12 and names[10] == "Altri" and names[11] == "Non coperto"
+    assert len(names) == 12 and names[10] == "Altri" and names[11] == "Senza dati"
     assert result["country"][10]["value"] == 160 and result["country"][11]["value"] == 40  # 2 × 8 %; 4 % left
 
 
@@ -193,7 +193,7 @@ def test_pages(client, db, holdings):
     assert "Scegli il file" in page
 
     page = client.get("/portfolio/composition").get_data(as_text=True)
-    for text in ("Per paese", "Per settore", "Per valuta", "Stati Uniti", "Non coperto", "Prime 20 società",
+    for text in ("Per paese", "Per settore", "Per valuta", "Stati Uniti", "Senza dati", "Prime 20 società",
                  "Sovrapposizione tra fondi", "makeBarChart", "makeDoughnutChart"):
         assert text in page
     assert "Il 75 % del valore" in page

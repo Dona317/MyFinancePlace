@@ -163,10 +163,14 @@
       </thead>
       <tbody>
         {% for h in holdings %}
-        <tr>
+        <tr{% if h.split %} class="has-parts"{% endif %}>
           <td>
-            <div class="cell-title"><a href="{{ url_for('portfolio.detail', holding_id=h.id) }}">{{ h.name }}</a></div>
+            <div class="cell-title">
+              {% if h.split %}<button type="button" class="parts-toggle" aria-expanded="false" aria-controls="parts-{{ h.id }}"
+                      title="{{ _('Mostra dove sono: conti titoli e portafogli') }}" aria-label="{{ _('Mostra le posizioni di %(name)s', name=h.name) }}"><i class="bi bi-chevron-right"></i></button>{% endif %}
+              <a href="{{ url_for('portfolio.detail', holding_id=h.id) }}">{{ h.name }}</a></div>
             {% if h.ticker %}<div class="text-xs text-muted">{{ h.ticker }}</div>{% endif %}
+            {% if h.split %}<div class="text-xs text-muted">{{ ngettext('in %(num)d posizione', 'in %(num)d posizioni', h.parts|length) }}</div>{% endif %}
           </td>
           <td><span class="badge badge-primary">{{ h.asset_class|tr }}</span>
             <div class="text-xs text-muted">{{ asset_class_of(h)|tr }}</div></td>
@@ -191,6 +195,24 @@
             </div>
           </td>
         </tr>
+        {% if h.split %}
+        {# its positions: one per securities account and portfolio, hidden until the row is opened #}
+        {% for part in h.parts %}
+        <tr class="position-part" data-parts="parts-{{ h.id }}" hidden>
+          <td class="position-part-name"><i class="bi bi-arrow-return-right"></i>
+            {{ place_names.get(('d', part.securities_account_id), _('nessun conto titoli')) }}
+            <div class="text-xs text-muted">{{ place_names.get(('p', part.portfolio_id), '—') }}</div></td>
+          <td></td>
+          <td class="amount text-right">{{ part.quantity|number(8) }}</td>
+          <td class="amount text-right">{{ part.avg_price|money }}</td>
+          <td></td>
+          <td class="amount text-right">{{ part.value|money }}</td>
+          <td class="amount text-right {{ 'positive' if part.gain >= 0 else 'negative' }}">{{ '+' if part.gain > 0 }}{{ part.gain|money }}</td>
+          <td class="text-right text-xs">{{ '+' if part.gain_pct > 0 }}{{ part.gain_pct|number(1) }}%</td>
+          <td></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
         {% endfor %}
       </tbody>
       {% if not selected or folio_id or dossier_id %}
@@ -222,6 +244,16 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+/* a holding held in several places opens into its positions (securities account × portfolio) */
+document.querySelectorAll('.parts-toggle').forEach(button => {
+  button.addEventListener('click', () => {
+    const open = button.getAttribute('aria-expanded') !== 'true';
+    button.setAttribute('aria-expanded', String(open));
+    document.querySelectorAll(`[data-parts="${button.getAttribute('aria-controls')}"]`).forEach(row => { row.hidden = !open; });
+  });
+});
+</script>
 <script>
 {% if summary.classes %}
 makeDoughnutChart('assetClassChart',

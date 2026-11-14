@@ -207,3 +207,30 @@ def test_starring_the_portfolio_that_already_has_the_star_keeps_it(app, db):
         db.session.expire_all()
         assert [p.name for p in Portfolio.query.filter_by(is_default=True)] == ["Reddito"]
     assert Portfolio.query.count() == 2
+
+
+def test_one_row_per_holding_opened_into_its_positions(app, client, db, setup):
+    """The positions table: the same holding in two securities accounts (or portfolios) is one row, with the sum, that
+    opens into one row per place — in the «Tutti» view and in the view of one portfolio."""
+    directa, degiro, etf = setup
+    with app.test_request_context():
+        securities.default_portfolio()  # the opening position stays in «Portafoglio principale»
+        income = securities.save_portfolio(None, "Reddito")
+        on_directa, on_degiro = securities.for_settlement(directa), securities.for_settlement(degiro)
+        for place, units in ((on_directa, 5), (on_degiro, 3)):
+            portfolio_ops.record(etf, Operation("buy", date(2025, 3, 1), place.settlement_account, units=Decimal(units),
+                                                price=Decimal(110), securities_account=place, portfolio=income))
+        db.session.commit()
+        rows = securities.grouped(securities.positions(portfolio_id=income.id))
+        assert len(rows) == 1 and rows[0].split and rows[0].quantity == 8 and len(rows[0].parts) == 2
+        assert rows[0].avg_price == Decimal(110) and round(rows[0].value, 2) == round(8 * etf.price, 2)
+        whole = securities.grouped([etf], securities.positions([etf]))
+        assert whole[0].whole and whole[0].quantity == etf.quantity == 18 and len(whole[0].parts) == 3
+        assert whole[0].avg_price == etf.avg_price and whole[0].value == etf.value
+        alone = securities.grouped([Holding(name="Casa", asset_class="Immobile", quantity=1, avg_price=100)], [])
+        assert not alone[0].split and alone[0].quantity == 1 and alone[0].gain == 0
+    page = client.get(f"/portfolio/?portfolio={income.id}").get_data(as_text=True)
+    assert page.count('class="parts-toggle"') == 1 and page.count('class="position-part"') == 2
+    assert "in 2 posizioni" in page and "Titoli Directa" in page and "Titoli Degiro" in page
+    page = client.get("/portfolio/").get_data(as_text=True)
+    assert "in 3 posizioni" in page
