@@ -209,16 +209,19 @@ def download_safety_copy(name):
 @export_bp.route("/csv")
 def export_csv():
     period = request.args.get("period", "all")
+    scope = request.args.get("scope") if request.args.get("scope") in transfer.SCOPES else "all"
     start, end = transfer.period_bounds(period)
-    transactions = transfer.query_transactions(start, end)
+    transactions = transfer.query_transactions(start, end, scope)
     # BOM so Excel detects UTF-8 correctly
     content = "\ufeff" + transfer.to_csv(transactions)
-    return download(content, f"transazioni_{period}_{date.today().isoformat()}.csv", "text/csv; charset=utf-8")
+    suffix = "" if scope == "all" else f"_{scope}"
+    return download(content, f"transazioni_{period}{suffix}_{date.today().isoformat()}.csv", "text/csv; charset=utf-8")
 
 
 @export_bp.route("/json")
 def export_json():
-    transactions = transfer.query_transactions()
+    scope = request.args.get("scope") if request.args.get("scope") in transfer.SCOPES else "all"
+    transactions = transfer.query_transactions(scope=scope)
     payload = {
         "exported_at": datetime.now().isoformat(timespec="seconds"),
         "version": 1,

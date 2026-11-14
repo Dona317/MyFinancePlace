@@ -22,6 +22,10 @@
         <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> {{ _('Analizza file') }}</button>
       </form>
       <p class="text-xs text-muted" style="margin-top:12px;">
+        <strong>{{ _('Modello da compilare') }}:</strong>
+        <a href="{{ url_for('portfolio.broker_template', kind='xlsx') }}"><i class="bi bi-file-earmark-excel"></i> Excel</a> ·
+        <a href="{{ url_for('portfolio.broker_template', kind='csv') }}"><i class="bi bi-filetype-csv"></i> CSV</a>
+        — {{ _('una riga per operazione: A = acquisto, V = vendita; per un\'obbligazione la quantità è il nominale e il prezzo in %% (101,20). Sostituisci le tre righe d\'esempio.') }}<br />
         <strong>Degiro:</strong> {{ _('Attività → Transazioni → Esporta (CSV).') }}
         {{ _('Altri broker: un CSV o Excel con le colonne data, ISIN o ticker, nome, quantità e prezzo (facoltative: commissioni, tipo acquisto/vendita, controvalore).') }}
         {{ _('Lo stesso file importato due volte non crea doppioni.') }}

@@ -233,3 +233,36 @@ def guess_class(name: str) -> str:
     if re.search(r"\b(btp|bot|cct|ctz|bond|obbligaz|treasury|bund)\b", text):
         return "Obbligazione"
     return "Azione"
+
+
+# ── A template to fill in by hand ──────────────────────────────────────────────
+
+TEMPLATE_HEADERS = ["Data operazione", "Segno", "Titolo", "ISIN", "Ticker", "Quantità", "Prezzo", "Commissioni"]
+TEMPLATE_ROWS = [  # one purchase of an ETF, a bond quoted in % of the nominal, a sale of shares
+    ["15/01/2026", "A", "Vanguard FTSE All-World UCITS ETF Acc", "IE00BK5BQT80", "VWCE.MI", "10", "120,50", "2,95"],
+    ["03/02/2026", "A", "BTP 4,40% Mg33", "IT0005518128", "", "5000", "101,20", "5,00"],
+    ["20/03/2026", "V", "Enel S.p.A.", "IT0003128367", "ENEL.MI", "100", "7,15", "2,95"],
+]
+
+
+def template(kind: str = "csv") -> bytes:
+    """The file to fill in with one's own trades: the columns the import reads by itself (A = acquisto, V = vendita;
+    a bond's price in % of the nominal, its quantity the nominal), three example rows to replace."""
+    if kind == "xlsx":
+        import io
+
+        from openpyxl import Workbook
+
+        book = Workbook()
+        sheet = book.active
+        sheet.title = "Operazioni"
+        sheet.append(TEMPLATE_HEADERS)
+        for row in TEMPLATE_ROWS:
+            sheet.append(row)
+        for column, width in zip("ABCDEFGH", (16, 8, 42, 16, 12, 10, 10, 12)):
+            sheet.column_dimensions[column].width = width
+        buffer = io.BytesIO()
+        book.save(buffer)
+        return buffer.getvalue()
+    lines = [";".join(TEMPLATE_HEADERS)] + [";".join(row) for row in TEMPLATE_ROWS]
+    return ("\ufeff" + "\n".join(lines) + "\n").encode("utf-8")

@@ -8,7 +8,7 @@ import zlib
 from datetime import date
 from decimal import Decimal
 
-from flask import current_app, flash, redirect, render_template, request, url_for
+from flask import abort, current_app, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from itsdangerous import BadSignature, URLSafeSerializer
 from sqlalchemy import or_
@@ -18,9 +18,19 @@ from app.models.account import Account
 from app.models.securities import SecuritiesAccount
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.routes.helpers import form_ids, uploaded_file
+from app.routes.helpers import download, form_ids, uploaded_file
 from app.routes.portfolio import portfolio_bp
-from app.services import accounts, ai_extraction, broker_import, import_presets, portfolio_ops, portfolio_reading, securities, transfer
+from app.services import (
+    accounts,
+    ai_extraction,
+    broker_import,
+    import_presets,
+    portfolio_models,
+    portfolio_ops,
+    portfolio_reading,
+    securities,
+    transfer,
+)
 from app.services.parsing import to_date, to_decimal
 
 LINK_LIMIT = 200
@@ -56,6 +66,16 @@ def broker_upload():
         flash(_("Scegli il file del broker da importare."), "error")
         return redirect(url_for("portfolio.broker_upload"))
     return _analyse(upload.filename, upload.read())
+
+
+@portfolio_bp.route("/import/template.<kind>")
+def broker_template(kind):
+    """The file to fill in with one's own trades (Fase 1): CSV or Excel, with three example rows."""
+    if kind not in ("csv", "xlsx"):
+        abort(404)
+    mimetype = "text/csv; charset=utf-8" if kind == "csv" else \
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return download(broker_import.template(kind), f"modello_operazioni_investimenti.{kind}", mimetype)
 
 
 @portfolio_bp.route("/import/columns", methods=["POST"])
@@ -190,6 +210,11 @@ def _holding_for(row: dict, choice: str, created: dict) -> Holding:
                                opening_quantity=0, opening_price=0, purchase_date=date.fromisoformat(row["on"]))
         db.session.add(created[key])
         db.session.flush()
+        # a new instrument joins the model's part of its asset class, instead of «outside the model»
+        joined = portfolio_models.place_new(created[key])
+        if joined:
+            flash(_("«%(name)s» messo nel portafoglio modello: %(parts)s.", name=created[key].name,
+                    parts=", ".join(joined)), "info")
     return created[key]
 
 

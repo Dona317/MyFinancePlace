@@ -78,6 +78,12 @@ def _transaction_ids(holding_ids: list[int]) -> list[int]:
     return sorted(ids)
 
 
+def transaction_ids() -> set[int]:
+    """The transactions of the investments (as the export of the section takes them): trades, dividends, coupons,
+    commissions and taxes of a holding, everything in a securities account, the movements of their liquidity."""
+    return set(_transaction_ids(_holding_ids()))
+
+
 def _rows(model, where=None) -> list[dict]:
     table = model.__table__
     query = select(table).order_by(*table.primary_key.columns)

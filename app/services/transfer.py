@@ -33,12 +33,22 @@ def period_bounds(period: str, today: date | None = None) -> tuple[date | None, 
     return None, None
 
 
-def query_transactions(start: date | None = None, end: date | None = None):
+SCOPES = ("all", "no_investments", "investments")
+
+
+def query_transactions(start: date | None = None, end: date | None = None, scope: str = "all"):
+    """The transactions of a period; `scope`: all, without the investments' ones (trades, dividends, the securities
+    accounts' liquidity…), or only those."""
     query = Transaction.query.options(selectinload(Transaction.splits))
     if start:
         query = query.filter(Transaction.date >= start)
     if end:
         query = query.filter(Transaction.date < end)
+    if scope in ("no_investments", "investments"):
+        from app.services import investments_archive
+
+        ids = investments_archive.transaction_ids() or {0}
+        query = query.filter(Transaction.id.in_(ids) if scope == "investments" else Transaction.id.notin_(ids))
     return query.order_by(Transaction.date, Transaction.id).all()
 
 

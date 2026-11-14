@@ -164,6 +164,35 @@ def assign(template: PortfolioTemplate, holdings: list[Holding]) -> tuple[dict[i
     return placed, outside
 
 
+def place_new(holding: Holding) -> list[str]:
+    """A holding just created (an import from the broker): in every active model it would fall outside of, it joins
+    the part that already holds most of the holdings of its asset class (azionario, obbligazionario…). The names of
+    the parts it joined, «model: part»."""
+    from app.services import asset_classes
+
+    from app.services import securities
+
+    cls = asset_classes.of(holding)
+    joined = []
+    held_in = {p.portfolio_id for p in securities.positions([holding], include_closed=True)}
+    default_id = securities.default_portfolio().id
+    for template in actives():
+        # a portfolio's model: only when the holding is in that portfolio (or will be: new trades go to the default)
+        if template.portfolio_id and template.portfolio_id not in held_in and template.portfolio_id != default_id:
+            continue
+        placed, outside = assign(template, investments())
+        if not any(h.id == holding.id for h in outside):
+            continue
+        counts = {i: sum(1 for h in placed[i] if asset_classes.of(h) == cls) for i in placed}
+        best = max(counts, key=lambda i: counts[i], default=None)
+        if best is None or counts[best] == 0:
+            continue  # no part holds anything of its class: it stays outside, to be placed by hand
+        slot = template.slots[best]
+        slot.links.append(SlotHolding(holding_id=holding.id))
+        joined.append(f"{template.name}: {slot.label}")
+    return joined
+
+
 def investments() -> list[Holding]:
     return Holding.query.filter(Holding.asset_class.in_(investment_classes())).order_by(Holding.name).all()
 
