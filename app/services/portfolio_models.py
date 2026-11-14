@@ -168,9 +168,7 @@ def place_new(holding: Holding) -> list[str]:
     """A holding just created (an import from the broker): in every active model it would fall outside of, it joins
     the part that already holds most of the holdings of its asset class (azionario, obbligazionario…). The names of
     the parts it joined, «model: part»."""
-    from app.services import asset_classes
-
-    from app.services import securities
+    from app.services import asset_classes, securities
 
     cls = asset_classes.of(holding)
     joined = []

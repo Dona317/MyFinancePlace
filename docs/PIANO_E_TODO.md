@@ -46,10 +46,10 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
   database delle serie storiche di ETF, azioni e indici, da costruire o trovare.
 
 ### In lavorazione o deciso di proseguire
-- **Piano confermato il 14 nov (fasi)**. **Fase 1 — in corso**: posizioni unite per titolo e apribili per conto
+- **Piano confermato il 14 nov (fasi)**. **Fase 1 — fatta (14 nov)**: posizioni unite per titolo e apribili per conto
   titoli; grafici del Portafoglio sistemati (la mappa dell'allocazione si sovrapponeva); export delle transazioni
   «tutte / senza investimenti / solo investimenti»; modello di import degli investimenti da scaricare; titoli nuovi
-  importati nella parte del modello della loro classe; promemoria solo nei giorni lavorativi; controllo CI.
+  importati nella parte del modello della loro classe; promemoria solo nei giorni lavorativi; controllo CI (Tests verde; Desktop: job macOS annullato una volta per tempo, run successivo verde).
   **Fase 2** dati dei prezzi (★ F92: scaricamento da Yahoo sul tuo PC, nota costruire/trovare, collegare i titoli allo
   storico, valori giornalieri F47). **Fase 3** segnaposto (F91: dashboard, Backtest, report salvabili, fisco del
   portafoglio). **Fase 4** sicurezza (D15, cifratura di IBAN/conti/documenti, disco cifrato). **Fase 5** IPS,

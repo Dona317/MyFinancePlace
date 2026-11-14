@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-14 15:16+0000\n"
+"POT-Creation-Date: 2026-11-14 15:37+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -3602,7 +3602,10 @@ msgid ""
 "Dalla scheda del fondo (factsheet o KID): il nome del paese in italiano o"
 " in inglese e il peso in percentuale. Sostituisce i paesi e i settori di "
 "prima; il resto conta come «Senza dati»."
-msgstr "From the fund's factsheet or KID: the country's name in Italian or English and its weight in percent. It replaces the countries and sectors before; the rest counts as «No data»."
+msgstr ""
+"From the fund's factsheet or KID: the country's name in Italian or "
+"English and its weight in percent. It replaces the countries and sectors "
+"before; the rest counts as «No data»."
 
 msgid ""
 "Dalle categorie di entrata alle categorie di uscita; la differenza è il "
@@ -7433,6 +7436,9 @@ msgstr "Model %(name)s removed."
 msgid "Modello Anthropic non trovato: %(model)s (LLM_MODEL)."
 msgstr "Anthropic model not found: %(model)s (LLM_MODEL)."
 
+msgid "Modello da compilare"
+msgstr "Template to fill in"
+
 msgid ""
 "Modello locale: il documento non lascia il tuo computer. Senza scheda "
 "video può servire circa un minuto per pagina."
@@ -10056,7 +10062,10 @@ msgid ""
 "Primi 10 paesi, poi «Altri». I titoli senza composizione contano con "
 "l'area geografica della loro scheda (o il paese dell'ISIN per azioni e "
 "obbligazioni); «Senza dati» è il valore di cui non si sa nulla."
-msgstr "Top 10 countries, then «Others». Holdings without a composition count with the area on their page (or the ISIN's country for shares and bonds); «No data» is the value nothing is known about."
+msgstr ""
+"Top 10 countries, then «Others». Holdings without a composition count "
+"with the area on their page (or the ISIN's country for shares and bonds);"
+" «No data» is the value nothing is known about."
 
 msgid ""
 "Primi 10 settori, poi «Altri». Senza composizione vale il settore della "
@@ -10188,6 +10197,9 @@ msgstr "Quadro E — year %(year)s"
 #, python-format
 msgid "Quadro RT (sezione II, 26%%) — riepilogo"
 msgstr "Quadro RT (section II, 26%%) — summary"
+
+msgid "Quali"
+msgstr "Which"
 
 msgid ""
 "Quali siti usare per cercare gli ISIN e leggere i prezzi di obbligazioni,"
@@ -11768,6 +11780,9 @@ msgstr "Uncategorized"
 msgid "Senza dati"
 msgstr "No data"
 
+msgid "Senza investimenti (solo conti correnti, carte, spese)"
+msgstr "Without investments (current accounts, cards, spending only)"
+
 msgid "Senza scadenza"
 msgstr "No expiry"
 
@@ -11968,6 +11983,9 @@ msgstr ""
 
 msgid "Solo gli investimenti: esporta e ripristina"
 msgstr "Investments only: export and restore"
+
+msgid "Solo investimenti (operazioni, dividendi, liquidità dei conti titoli)"
+msgstr "Investments only (trades, dividends, securities account liquidity)"
 
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
@@ -14901,6 +14919,15 @@ msgstr "last 300"
 msgid "ultimo accesso"
 msgstr "last sign-in"
 
+#, python-format
+msgid ""
+"una riga per operazione: A = acquisto, V = vendita; per un'obbligazione "
+"la quantità è il nominale e il prezzo in %% (101,20). Sostituisci le tre "
+"righe d'esempio."
+msgstr ""
+"one row per trade: A = buy, V = sell; for a bond the quantity is the face"
+" value and the price is in %% (101.20). Replace the three sample rows."
+
 msgid "usa un modello locale"
 msgstr "use a local model"
 
@@ -15017,6 +15044,10 @@ msgstr ""
 #, python-format
 msgid "«%(name)s» ha delle sottocategorie: non può diventarlo a sua volta."
 msgstr "“%(name)s” has subcategories: it cannot become one itself."
+
+#, python-format
+msgid "«%(name)s» messo nel portafoglio modello: %(parts)s."
+msgstr "“%(name)s” added to the model portfolio: %(parts)s."
 
 #, python-format
 msgid ""
