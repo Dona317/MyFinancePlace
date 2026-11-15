@@ -2452,3 +2452,21 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
   background-size: 200% 100%; animation: ai-progress-run 1.4s linear infinite; }
 @keyframes ai-progress-run { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .ai-progress-bar > span { animation: none; transition: none; } }
+
+/* F105: the flows between the accounts — a graph the user can move */
+.flows-card .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.flows-stage { padding: 4px 8px 12px; }
+.flows-stage svg { display: block; width: 100%; touch-action: none; user-select: none; }
+.flows-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 4px; }
+.flows-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.flows-key { display: inline-block; width: 18px; height: 4px; border-radius: 2px; }
+.flows-key-income { background: var(--clr-positive); }
+.flows-key-expense { background: var(--clr-negative); }
+.flows-key-transfer { background: var(--chart-3); }
+.flows-edge { cursor: pointer; }
+.flows-edge:hover path:not([stroke="transparent"]), .flows-edge:focus-visible path:not([stroke="transparent"]) { opacity: 1; filter: brightness(1.2); }
+.flows-edge-label { font-size: 11px; font-weight: 600; paint-order: stroke; stroke: var(--clr-bg-card); stroke-width: 3px; pointer-events: none; }
+.flows-node { cursor: grab; }
+.flows-node.is-link:hover circle, .flows-node:focus-visible circle { stroke: var(--clr-primary); }
+.flows-node-name { font-size: 12px; font-weight: 700; paint-order: stroke; stroke: var(--clr-bg-card); stroke-width: 3px; pointer-events: none; }
+.flows-node-sum { font-size: 11px; fill: var(--clr-text-muted); paint-order: stroke; stroke: var(--clr-bg-card); stroke-width: 3px; pointer-events: none; }

@@ -12,7 +12,7 @@ SETTING = "register.views.{user}"
 MAX_VIEWS = 20
 MAX_NAME = 40
 # what a view keeps: the register's filters without the dates (the period is shared), and the order
-KEYS = ("q", "type", "category", "recurring", "account", "tag", "person", "cluster", "min", "max", "card", "sort", "dir")
+KEYS = ("q", "type", "category", "recurring", "account", "to", "tag", "person", "cluster", "min", "max", "card", "sort", "dir")
 
 
 def _key() -> str:

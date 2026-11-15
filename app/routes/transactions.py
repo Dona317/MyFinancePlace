@@ -18,6 +18,7 @@ from app.models.wealth import Debt, Document, Holding
 from app.routes.helpers import back_to, form_date, form_decimal, form_ids, form_text, safe_next
 from app.routes.transactions_form import after_trade, form_values, linked_id, tx_from_form, type_from
 from app.services import (
+    account_flows,
     accounts,
     ai_classification,
     ai_extraction,
@@ -84,6 +85,10 @@ def _filtered_query(filters: dict):
     elif (filters.get("account") or "").isdigit():
         account_id = int(filters["account"])
         query = query.filter((Transaction.account_id == account_id) | (Transaction.counter_account_id == account_id))
+    if filters.get("to") == "none":  # F105: the transfers to no account of the user's (an arrow of the flows)
+        query = query.filter(Transaction.counter_account_id.is_(None))
+    elif (filters.get("to") or "").isdigit():  # the transfers arriving on an account
+        query = query.filter(Transaction.counter_account_id == int(filters["to"]))
     if filters.get("person"):  # F20: the movements of the accounts a person owns (or co-owns)
         ids = family.account_ids_of(filters["person"])
         query = query.filter(Transaction.account_id.in_(ids) | Transaction.counter_account_id.in_(ids))
@@ -137,7 +142,7 @@ def _ordered(query, column: str, direction: str):
 
 
 FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", "person", "start", "end", "cluster", "min",
-               "max", "card")
+               "max", "card", "to")
 
 
 def _section_cards(today: date) -> dict:
@@ -244,6 +249,21 @@ def save_prefs():
 def delete_view():
     register_views.delete(request.form.get("view_name", ""))
     return back_to("transactions.index")
+
+
+@transactions_bp.route("/flows")
+def flows_page():
+    """F105: the flows between the accounts in the shared period — a graph; a node or an arrow opens its movements."""
+    period = shared_period.current()
+    start, end = period.bounds()
+    data = account_flows.flows(start, end)
+    for item in data["nodes"] + data["edges"]:
+        item["url"] = url_for("transactions.index", **item.pop("filter"), **period.args()) if item.get("filter") is not None else None
+    for node in data["nodes"]:
+        if node["kind"] == account_flows.OUTSIDE:
+            node["url"] = None  # the world outside has no movements of its own to list
+    return render_template("transactions/flows.html", data=data, period=period,
+                           period_keep={k: v for k, v in request.args.items() if k not in shared_period.ADDRESS_KEYS})
 
 
 @transactions_bp.route("/add")

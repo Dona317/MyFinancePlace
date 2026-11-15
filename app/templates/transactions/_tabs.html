@@ -8,5 +8,6 @@
                         ('spending', url_for('reports.spending'), _('Uscite'), 'arrow-up-circle')] %}
 {% endif %}
 {% if shown('subscriptions') %}{% set items = items + [('recurring', url_for('subscriptions.index'), _('Ricorrenti'), 'arrow-repeat')] %}{% endif %}
+{% set items = items + [('flows', url_for('transactions.flows_page'), _('Flussi'), 'diagram-3')] %}
 <div class="section-tabs mb-16">{{ tab_bar(items, active, _('Transazioni')) }}</div>
 {%- endmacro %}

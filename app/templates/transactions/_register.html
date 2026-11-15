@@ -175,6 +175,13 @@
               {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if filters.account == a.id|string }}>{{ a.name }}</option>{% endfor %}
               <option value="none" {{ 'selected' if filters.account == 'none' }}>{{ _('— Senza conto —') }}</option>
             </select></label>
+          {# F105: the transfers arriving on an account (an arrow of the Flussi graph) #}
+          <label class="tx-field"><span>{{ _('Verso il conto') }}</span>
+            <select name="to" class="form-select" onchange="this.form.submit()">
+              <option value="">{{ _('Tutti') }}</option>
+              {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if filters.to == a.id|string }}>{{ a.name }}</option>{% endfor %}
+              <option value="none" {{ 'selected' if filters.to == 'none' }}>{{ _('— Fuori dai tuoi conti —') }}</option>
+            </select></label>
           {% endif %}
           {% set people = owner_choices() %}
           {% if people %}

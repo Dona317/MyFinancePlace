@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 15:49+0100\n"
+"POT-Creation-Date: 2026-11-15 16:20+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -3137,9 +3137,6 @@ msgstr "Savings and deposit accounts"
 msgid "Conti e Carte"
 msgstr "Accounts and Cards"
 
-msgid "Conti e carte"
-msgstr "Accounts and cards"
-
 msgid "Conti e investimenti"
 msgstr "Accounts and investments"
 
@@ -4536,6 +4533,9 @@ msgstr "Invalid regular expression."
 msgid "Estate"
 msgstr "Summer"
 
+msgid "Esterno"
+msgstr "Outside"
+
 msgid "Estratto conto"
 msgstr "Bank statement"
 
@@ -4799,8 +4799,14 @@ msgstr ""
 "you record a purchase or a sale, the commission is computed and proposed. "
 "Empty = you enter it."
 
+msgid "Flussi"
+msgstr "Flows"
+
 msgid "Flussi operativi, di investimento e di finanziamento"
 msgstr "Operating, investing and financing flows"
+
+msgid "Flussi tra i conti"
+msgstr "Flows between the accounts"
 
 msgid "Flusso Finanziario Netto"
 msgstr "Net Financing Flow"
@@ -5012,6 +5018,9 @@ msgstr "Day of the month"
 msgid "Giorno di addebito"
 msgstr "Charge day"
 
+msgid "Giroconti"
+msgstr "Transfers"
+
 msgid "Giroconti con un solo conto"
 msgstr "Transfers with one account only"
 
@@ -5108,6 +5117,9 @@ msgstr "Spending by Category Chart"
 
 msgid "Grafico per categoria"
 msgstr "Chart by category"
+
+msgid "Grafo dei flussi tra i conti"
+msgstr "Graph of the flows between the accounts"
 
 msgid "Gruppi di spesa"
 msgstr "Spending groups"
@@ -8015,6 +8027,9 @@ msgstr "No movements to record."
 msgid "Nessun movimento in questo anno."
 msgstr "No movements in this year."
 
+msgid "Nessun movimento in questo periodo: cambia il periodo in alto."
+msgstr "No movements in this period: change the period on top."
+
 msgid ""
 "Nessun movimento su questo conto. Assegnalo alle transazioni o scegli il "
 "conto quando importi un estratto."
@@ -8896,6 +8911,19 @@ msgstr "Every month (€)"
 
 msgid "Ogni mese previsto è la somma di due parti:"
 msgstr "Each forecast month is the sum of two parts:"
+
+msgid ""
+"Ogni pallino è un conto (più grande quanto più denaro ci passa); «Esterno» è"
+" il mondo fuori dai tuoi conti. Le frecce sono i giroconti tra conti, le "
+"entrate (da Esterno) e le uscite (verso Esterno): più spesse e più lunghe "
+"quanto più grande è l’importo. Trascina i pallini per spostarli; un clic su "
+"un pallino o su una freccia apre i suoi movimenti."
+msgstr ""
+"Each node is an account (bigger the more money goes through it); «Esterno» "
+"is the world outside your accounts. The arrows are the transfers between "
+"accounts, the incomes (from Esterno) and the expenses (to Esterno): thicker "
+"and longer the bigger the amount. Drag the nodes to move them; a click on a "
+"node or an arrow opens its movements."
 
 msgid "Ogni parte deve avere un obiettivo tra 0 e 100 %."
 msgstr "Each part must have a target between 0 and 100 %."
@@ -10998,6 +11026,12 @@ msgstr "Recurring per month"
 msgid "Ricorrenti programmate + variabili stimate"
 msgstr "Scheduled recurring + estimated variable"
 
+msgid "Ridisponi"
+msgstr "Rearrange"
+
+msgid "Ridisponi i pallini"
+msgstr "Rearrange the nodes"
+
 msgid "Riduci il menu"
 msgstr "Shrink the menu"
 
@@ -11923,6 +11957,9 @@ msgstr "Uncategorized"
 
 msgid "Senza conti, tutte le transazioni che inserisci finiscono in Contanti."
 msgstr "Without accounts, every transaction you enter goes to Cash."
+
+msgid "Senza conto"
+msgstr "No account"
 
 msgid "Senza dati"
 msgstr "No data"
@@ -14008,6 +14045,9 @@ msgstr "claude-haiku-4-5"
 msgid "clic per le transazioni"
 msgstr "click for the transactions"
 
+msgid "clic per vedere i movimenti"
+msgstr "click to see the movements"
+
 msgid "clic su una fetta per le transazioni"
 msgstr "click a slice for the transactions"
 
@@ -15447,6 +15487,9 @@ msgstr "— Upload a file first —"
 
 msgid "— Fuori dai miei conti —"
 msgstr "— Outside my accounts —"
+
+msgid "— Fuori dai tuoi conti —"
+msgstr "— Outside your accounts —"
 
 msgid "— Nessuna —"
 msgstr "— None —"
