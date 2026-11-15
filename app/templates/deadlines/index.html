@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import choice_box %}
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/actions.html" import icon_link, delete_button %}
@@ -7,6 +8,9 @@
 {% block breadcrumb %}<li>{{ _('Promemoria') }}</li>{% endblock %}
 
 {% block topbar_actions %}
+  {% if with_deadlines %}{# F101: the horizon of the next deadlines, in the one period box #}
+  {{ choice_box('horizon', [(30, _('Prossimi 30 giorni')), (60, _('Prossimi 60 giorni')), (90, _('Prossimi 3 mesi')), (180, _('Prossimi 6 mesi')), (365, _('Prossimo anno'))], horizon) }}
+  {% endif %}
   {{ blocks.edit_controls(_('Modifica dei promemoria'), _('Sposta, allarga o nascondi i blocchi della pagina')) }}
   {% if items %}
   <form method="POST" action="{{ url_for('notifications.dismiss') }}" id="layout-manage">
@@ -65,7 +69,7 @@
 <div class="kpi-grid mb-16">
   {{ kpi('calendar-event', _('Scadenze nel mese'), value=grid['items']|length) }}
   {{ kpi('arrow-up-circle', _('Da pagare nel mese'), value=grid.to_pay|money, cls='kpi-negative' if grid.to_pay else 'kpi-neutral') }}
-  {{ kpi('calendar-check', _('Nei prossimi 60 giorni'), value=upcoming_60|length) }}
+  {{ kpi('calendar-check', _('Nei prossimi %(days)s giorni', days=horizon), value=upcoming_60|length) }}
 </div>
 {% endif %}
 

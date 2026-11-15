@@ -11,7 +11,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.reminder import Reminder
 from app.routes.helpers import download, export_name, flash_errors
-from app.services import deadlines, notifications, page_layout, periods, sections
+from app.services import deadlines, notifications, page_layout, periods, sections, settings_store
 from app.services.i18n import _l
 from app.services.parsing import to_date, to_decimal
 
@@ -31,6 +31,9 @@ BLOCK_TITLES = {"reminders": _l("Promemoria"), "calendar": _l("Calendario del me
                 "mine": _l("Le tue scadenze"), "fiscal": _l("Scadenze fiscali")}
 LAYOUT_SETTING = "deadlines.layout"
 NEXT_DAYS, NEXT_ROWS = 366, 100  # the next deadlines: a year ahead, the first hundred
+# F101: the horizon of the page — how far ahead the next deadlines look (kept as a preference)
+HORIZONS = (30, 60, 90, 180, 365)
+HORIZON_SETTING = "deadlines.horizon"
 
 
 def render_page():
@@ -43,9 +46,15 @@ def render_page():
     if context["with_deadlines"]:
         grid = deadlines.month_grid(_month())
         upcoming = deadlines.upcoming(today, days=NEXT_DAYS)
+        horizon = request.args.get("horizon", type=int)
+        if horizon in HORIZONS:
+            settings_store.set(HORIZON_SETTING, str(horizon))
+        saved = settings_store.get(HORIZON_SETTING, "60")
+        horizon = int(saved) if saved.isdigit() and int(saved) in HORIZONS else 60
+        within = [d for d in upcoming if d.day <= today + timedelta(days=horizon)]
         context.update(grid=grid, month_title=format_date(grid["month"], "LLLL yyyy").capitalize(),
-                       upcoming=upcoming, upcoming_60=[d for d in upcoming if d.day <= today + timedelta(days=60)],
-                       next_items=upcoming[:NEXT_ROWS], reminders=Reminder.query.order_by(Reminder.due).all(),
+                       upcoming=upcoming, upcoming_60=within, horizon=horizon, horizons=HORIZONS,
+                       next_items=within[:NEXT_ROWS], reminders=Reminder.query.order_by(Reminder.due).all(),
                        repeats=deadlines.REPEATS, notices=deadlines.NOTICES, edit=db.session.get(Reminder, request.args.get("edit", type=int) or 0),
                        fiscal=deadlines.fiscal_on(), google_import=deadlines.GOOGLE_IMPORT)
     return render_template("deadlines/index.html", **context)

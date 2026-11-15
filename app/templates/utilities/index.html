@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import choice_box %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
@@ -24,6 +25,11 @@
 <div class="form-group"><label class="form-label" for="{{ prefix }}-notes">{{ _('Nota') }}</label>
   <input type="text" id="{{ prefix }}-notes" name="notes" class="form-control" maxlength="300" value="{{ values.notes or '' }}" /></div>
 {%- endmacro %}
+
+{% block topbar_actions %}
+{# F101: the last 12 months or a whole year, in the one period box #}
+{{ choice_box('period', period_options, period, keep=request.args.to_dict()) }}
+{% endblock %}
 
 {% block content %}
 {% set u = utilities[utility] %}{% set unit = u.unit %}

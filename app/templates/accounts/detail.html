@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import choice_box %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
@@ -7,6 +8,8 @@
 {% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ account.name }}</li>{% endblock %}
 
 {% block topbar_actions %}
+  {# F101: the range of the balance chart, in the one period box #}
+  {{ choice_box('months', [(3, _('Ultimi %(count)s mesi', count=3)), (6, _('Ultimi %(count)s mesi', count=6)), (12, _('Ultimi %(count)s mesi', count=12)), (24, _('Ultimi %(count)s mesi', count=24)), (36, _('Ultimi %(count)s mesi', count=36)), (60, _('Ultimi %(count)s mesi', count=60))], history_months) }}
   <a href="{{ url_for('transactions.index', account=account.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-list-ul"></i> {{ _('Transazioni') }}</a>
   <a href="{{ url_for('accounts.edit', account_id=account.id) }}" class="btn btn-ghost btn-sm" data-popup-size="wide"
      data-popup="{{ url_for('accounts.edit', account_id=account.id, embed=1, next=url_for('transactions.embed_done', reload=1)) }}" title="{{ _('Modifica') }}"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>

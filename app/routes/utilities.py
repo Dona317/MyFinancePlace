@@ -35,10 +35,16 @@ def index():
     read.update(consumption=to_decimal(request.args.get("consumption")), amount=to_decimal(request.args.get("amount")))
     documents = (Document.query.filter((Document.mimetype == "application/pdf") | Document.mimetype.like("image/%"))
                  .order_by(Document.uploaded_at.desc()).limit(50).all())
+    # F101: the last 12 months, or a whole year with readings (its twelve months up to 31 December)
+    years = sorted({r.period_end.year for r in utilities.readings(utility) if r.period_end.year < date.today().year}, reverse=True)
+    chosen = request.args.get("period", "last12")
+    ref = date(int(chosen), 12, 31) if chosen.isdigit() and int(chosen) in years else None
+    chosen = chosen if ref else "last12"
     return render_template("utilities/index.html", utility=utility, utilities=utilities.UTILITIES,
-                           summaries=[utilities.summary(key) for key in utilities.UTILITIES],
-                           summary=utilities.summary(utility), readings=list(reversed(utilities.readings(utility))),
-                           seasons=utilities.seasons(utility), chart=utilities.chart(utility),
+                           summaries=[utilities.summary(key, ref) for key in utilities.UTILITIES],
+                           summary=utilities.summary(utility, ref), readings=list(reversed(utilities.readings(utility))),
+                           seasons=utilities.seasons(utility, ref), chart=utilities.chart(utility),
+                           period=chosen, period_options=[("last12", _("Ultimi 12 mesi"))] + [(str(y), _("Anno %(year)s", year=y)) for y in years],
                            candidates=utilities.candidates(), offer=offer, offer_values=offer_values, edit=edit,
                            read=read if read["end"] else None, documents=documents, ai_on=ai_extraction.provider() is not None,
                            helpers=utilities, today=date.today())

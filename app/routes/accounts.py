@@ -115,12 +115,21 @@ def detail(account_id):
     return _render_detail(account, recent, None)
 
 
+HISTORY_MONTHS = (3, 6, 12, 24, 36, 60)
+
+
+def _history_months() -> int:
+    """F101: the range of the balance chart of an account, in the one period box (the last 12 months by default)."""
+    value = request.args.get("months", 12, type=int)
+    return value if value in HISTORY_MONTHS else 12
+
+
 def _render_detail(account: Account, recent: list[Transaction], result: dict | None):
     balance = accounts.balance(account)
     # the balance after each movement listed (not after a reconciliation, which lists only the ones going out)
     running = accounts.running_balances(account, recent, balance) if result is None else None
     return render_template("accounts/detail.html", account=account, balance=balance, running=running,
-                           history=accounts.balance_history(account),
+                           history=accounts.balance_history(account, _history_months()), history_months=_history_months(),
                            debts=wealth.debt_picture() if account.fixed == "debt" else None,
                            currencies=accounts.by_currency(account) if account.kind == "cash" else {},
                            tracking=cash.tracking(account, date.today().year) if account.kind == "cash" else None,
