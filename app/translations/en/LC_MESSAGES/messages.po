@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 11:55+0100\n"
+"POT-Creation-Date: 2026-11-15 12:07+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1578,9 +1578,6 @@ msgstr "Open the forecast"
 
 msgid "Apri lo Stato Patrimoniale"
 msgstr "Open the Balance Sheet"
-
-msgid "Apri un archivio"
-msgstr "Open an archive"
 
 msgid "Aprili in MyFinancePlace → Notifiche."
 msgstr "Open them in MyFinancePlace → Notifications."

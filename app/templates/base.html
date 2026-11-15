@@ -65,7 +65,7 @@
       </button>
       <div class="archive-menu" id="archive-menu" hidden>
         {% if allowed('clients') %}
-        <div class="archive-menu-title">{{ _('Apri un archivio') }}</div>
+        <div class="archive-menu-title">{{ _('Seleziona') }}</div>
         {% for client in archive_choices() %}
         <form method="POST" action="{{ url_for('clients.open_client', client_id=client.id) }}">
           <button type="submit" class="archive-item{{ ' is-current' if client.id == working_on.id }}"{{ ' disabled' if client.id == working_on.id }}>
