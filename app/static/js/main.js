@@ -705,21 +705,38 @@ function initPopups() {
   }
   let overlay = null;
   const close = () => { overlay?.remove(); overlay = null; document.documentElement.classList.remove("no-scroll"); };
-  document.addEventListener("click", e => {
-    const link = e.target.closest("a[data-popup]");
-    if (!link || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
-    e.preventDefault();
+  const open = (src, wide, title) => {
     overlay = document.createElement("div");
     overlay.className = "modal-overlay open popup-overlay";
     const box = document.createElement("div");
-    box.className = "modal popup-box" + (link.dataset.popupSize === "wide" ? " popup-wide" : "");
-    const frame = Object.assign(document.createElement("iframe"), { src: link.dataset.popup, title: link.title || "" });
+    box.className = "modal popup-box" + (wide ? " popup-wide" : "");
+    const frame = Object.assign(document.createElement("iframe"), { src, title: title || "" });
     frame.className = "popup-frame";
     box.appendChild(frame);
     overlay.appendChild(box);
     overlay.addEventListener("click", ev => { if (ev.target === overlay) close(); });
     document.body.appendChild(overlay);
     document.documentElement.classList.add("no-scroll");
+  };
+  // F103: the edit of a transaction always opens in the window, from any page (Ctrl+click: a tab, as before);
+  // saving closes it and the page under it shows the change
+  const EDIT = /^\/transactions\/\d+\/edit$/;
+  document.addEventListener("click", e => {
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+    const link = e.target.closest("a[data-popup]");
+    if (link) {
+      e.preventDefault();
+      open(link.dataset.popup, link.dataset.popupSize === "wide", link.title);
+      return;
+    }
+    const edit = e.target.closest("a[href]");
+    if (!edit || edit.target === "_blank") return;
+    const url = new URL(edit.href, window.location.href);
+    if (url.origin !== window.location.origin || !EDIT.test(url.pathname)) return;
+    e.preventDefault();
+    url.searchParams.set("embed", "1");
+    url.searchParams.set("next", "/transactions/embed-done?reload=1");
+    open(url.pathname + url.search, false, edit.title);
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && overlay) close(); });
   window.addEventListener("message", e => {
