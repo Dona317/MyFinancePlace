@@ -38,8 +38,14 @@ def balance_sheet():
     on = min(on, choices[0])  # no balance sheet of the future
     if on not in choices:
         choices.append(on)
+    compare = _compare()  # F101: the same day a year before, next to the totals
+    try:
+        year_before = on.replace(year=on.year - 1)
+    except ValueError:  # 29 February
+        year_before = on.replace(year=on.year - 1, day=28)
     return render_template(
-        "accounting/balance_sheet.html",
+        "accounting/balance_sheet.html", compare=compare, label_year=year_before.year,
+        previous=wealth.balance_sheet(year_before) if compare else None,
         sheet=wealth.balance_sheet(on),
         financed=wealth.financed_assets(on),
         people=family.by_person(on) if owners.holders() else [],
@@ -68,9 +74,7 @@ def income_statement():
     year = year_arg(date.today().year)
     report = analytics.income_statement(year)
     # F101: «Confronta con l'anno prima» — each line next to the year before and the change (the choice is kept)
-    if request.args.get("compare") in ("0", "1"):
-        settings_store.set(COMPARE_SETTING, request.args["compare"])
-    compare = settings_store.get(COMPARE_SETTING, "0") == "1"
+    compare = _compare()
     previous = analytics.income_statement(year - 1) if compare else None
     before = ({line["category"]: line["amount"] for line in previous["income_lines"] + previous["expense_lines"]}
               if previous else {})
@@ -81,12 +85,21 @@ def income_statement():
 COMPARE_SETTING = "accounting.compare"
 
 
+def _compare() -> bool:
+    """F101: «Confronta con l'anno prima», one switch for the statements: ?compare=1/0 changes it, then it is kept."""
+    if request.args.get("compare") in ("0", "1"):
+        settings_store.set(COMPARE_SETTING, request.args["compare"])
+    return settings_store.get(COMPARE_SETTING, "0") == "1"
+
+
 @accounting_bp.route("/cash-flow")
 def cash_flow():
     years = analytics.available_years()
     year = year_arg(date.today().year)
     report = analytics.cash_flow(year)
-    return render_template("accounting/cash_flow.html", report=report, years=years, year=year)
+    compare = _compare()  # F101: the year before next to each figure
+    return render_template("accounting/cash_flow.html", report=report, years=years, year=year, compare=compare,
+                           previous=analytics.cash_flow(year - 1) if compare else None)
 
 
 @accounting_bp.route("/growth")

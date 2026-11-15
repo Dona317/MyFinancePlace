@@ -11,6 +11,7 @@
   {%- set date_options = [] -%}
   {%- for d in choices %}{{ date_options.append((d.isoformat(), _('Oggi') if d == today else _('Al %(date)s', date=d|it_date))) or '' }}{% endfor %}
   {{ choice_box('date', date_options, sheet.date.isoformat(), hint=_('Lo stato patrimoniale a una fine mese, o a oggi.')) }}
+  {% include "accounting/_compare.html" %}
 {% endblock %}
 
 {% macro lines(items) %}
@@ -29,9 +30,9 @@
 {% block statement %}
 
 <div class="kpi-grid mb-24">
-  {{ kpi('wallet2', _('Totale Attività'), value=sheet.total_assets|money, cls='kpi-positive', value_class='text-positive') }}
-  {{ kpi('exclamation-circle', _('Totale Passività'), value=sheet.total_liabilities|money, cls='kpi-negative', value_class='text-negative') }}
-  {{ kpi('bank', _('Patrimonio Netto'), value=sheet.net_worth|money, cls='kpi-primary', sub=(_('al %(date)s', date=sheet.date|it_date))) }}
+  {{ kpi('wallet2', _('Totale Attività'), value=sheet.total_assets|money, cls='kpi-positive', value_class='text-positive', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.total_assets|money) if previous else none)) }}
+  {{ kpi('exclamation-circle', _('Totale Passività'), value=sheet.total_liabilities|money, cls='kpi-negative', value_class='text-negative', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.total_liabilities|money) if previous else none)) }}
+  {{ kpi('bank', _('Patrimonio Netto'), value=sheet.net_worth|money, cls='kpi-primary', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.net_worth|money) if previous else _('al %(date)s', date=sheet.date|it_date))) }}
 </div>
 
 <div class="row-2">

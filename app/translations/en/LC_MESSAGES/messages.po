@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:43+0100\n"
+"POT-Creation-Date: 2026-11-15 14:45+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14353,6 +14353,10 @@ msgstr "you owe %(amount)s"
 #, python-format
 msgid "i soldi bastano fino a %(age)s anni in %(pct)s simulazioni su 100"
 msgstr "the money lasts until %(age)s in %(pct)s simulations out of 100"
+
+#, python-format
+msgid "il %(date)s: %(value)s"
+msgstr "on %(date)s: %(value)s"
 
 #, python-format
 msgid "il %(day)s"

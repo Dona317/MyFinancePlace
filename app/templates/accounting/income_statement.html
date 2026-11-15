@@ -11,10 +11,7 @@
 
 {% block topbar_actions %}
   {% include "partials/year_select.html" %}
-  {# F101: the year before, next to each line #}
-  <a href="{{ url_for('accounting.income_statement', year=year, compare='0' if compare else '1') }}" class="btn btn-sm {{ 'btn-primary' if compare else 'btn-ghost' }}"
-     aria-pressed="{{ 'true' if compare else 'false' }}" title="{{ _('Mostra accanto a ogni voce il %(year)s e la variazione', year=year - 1) }}">
-    <i class="bi bi-arrow-left-right"></i> {{ _('Confronta con il %(year)s', year=year - 1) }}</a>
+  {% set label_year = year - 1 %}{% include "accounting/_compare.html" %}
   <a href="{{ url_for('export.export_pdf', year=year) }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-file-earmark-pdf"></i> PDF
   </a>

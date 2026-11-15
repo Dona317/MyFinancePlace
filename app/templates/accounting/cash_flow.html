@@ -1,6 +1,11 @@
 {% extends "accounting/base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
+{% macro change(now, then) -%}
+{%- if then -%}{% set pct = (now - then) / (then|abs) * 100 %}<span class="{{ 'text-positive' if pct > 0 else 'text-negative' if pct < 0 else 'text-muted' }}">{{ '+' if pct > 0 }}{{ pct|number(1) }}%</span>{%- else -%}<span class="text-muted">—</span>{%- endif -%}
+{%- endmacro %}
+{% macro was(field) -%}{% if previous %}{{ _('nel %(year)s: %(value)s', year=year - 1, value=previous[field]|money) }}{% endif %}{%- endmacro %}
+{% set cols = 4 if previous else 2 %}
 
 {% block title %}{{ _('Flusso di Cassa') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Panoramica Finanziaria') }}{% endblock %}
@@ -8,6 +13,7 @@
 
 {% block topbar_actions %}
   {% include "partials/year_select.html" %}
+  {% set label_year = year - 1 %}{% include "accounting/_compare.html" %}
   <a href="{{ url_for('export.export_pdf', year=year) }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-file-earmark-pdf"></i> PDF
   </a>
@@ -17,10 +23,10 @@
 
 <!-- KPIs ─────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  {{ kpi('cash-stack', _('CF Operativo'), value=report.operating|money, cls='kpi-positive', value_class=('text-negative' if report.operating < 0 else 'text-positive'), sub=(_('Entrate − Uscite'))) }}
-  {{ kpi('graph-up', _('CF Investimenti'), value=report.investing|money, sub=(_('Investimenti netti'))) }}
-  {{ kpi('bank2', _('CF Finanziario'), value=report.financing|money, cls='kpi-warning', sub=(_('Prestiti e rimborsi'))) }}
-  {{ kpi('wallet2', _('Variazione Netta Cassa'), value=report.net_change|money, cls='kpi-primary', sub=(_('Apertura → Chiusura'))) }}
+  {{ kpi('cash-stack', _('CF Operativo'), value=report.operating|money, cls='kpi-positive', value_class=('text-negative' if report.operating < 0 else 'text-positive'), sub=(was('operating') if previous else _('Entrate − Uscite'))) }}
+  {{ kpi('graph-up', _('CF Investimenti'), value=report.investing|money, sub=(was('investing') if previous else _('Investimenti netti'))) }}
+  {{ kpi('bank2', _('CF Finanziario'), value=report.financing|money, cls='kpi-warning', sub=(was('financing') if previous else _('Prestiti e rimborsi'))) }}
+  {{ kpi('wallet2', _('Variazione Netta Cassa'), value=report.net_change|money, cls='kpi-primary', sub=(was('net_change') if previous else _('Apertura → Chiusura'))) }}
 </div>
 {# the operating flow comes from the income and the expenses of the year: their pages, on the same year #}
 {% if shown('reports') %}
@@ -38,47 +44,47 @@
     <div class="table-wrapper">
       <table>
         <thead>
-          <tr><th>{{ _('Voce') }}</th><th class="text-right">{{ _('Importo') }}</th></tr>
+          <tr><th>{{ _('Voce') }}</th><th class="text-right">{{ _('Importo') }}</th>{% if previous %}<th class="text-right">{{ year - 1 }}</th><th class="text-right">{{ _('Var.') }}</th>{% endif %}</tr>
         </thead>
         <tbody>
           <tr style="background:var(--clr-positive-bg);">
-            <td colspan="2" style="font-weight:700;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+            <td colspan="{{ cols }}" style="font-weight:700;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
               {{ _('A — Attività Operative') }}
             </td>
           </tr>
-          <tr><td>{{ _('Entrate − uscite (esclusi i movimenti collegati a investimenti o debiti)') }}</td><td class="amount text-right">{{ report.operating|money }}</td></tr>
+          <tr><td>{{ _('Entrate − uscite (esclusi i movimenti collegati a investimenti o debiti)') }}</td><td class="amount text-right">{{ report.operating|money }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.operating|money }}</td><td class="text-right">{{ change(report.operating, previous.operating) }}</td>{% endif %}</tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>{{ _('Flusso Operativo Netto') }}</td><td class="amount {{ 'negative' if report.operating < 0 else 'positive' }} text-right">{{ report.operating|money }}</td>
+            <td>{{ _('Flusso Operativo Netto') }}</td><td class="amount {{ 'negative' if report.operating < 0 else 'positive' }} text-right">{{ report.operating|money }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.operating|money }}</td><td class="text-right">{{ change(report.operating, previous.operating) }}</td>{% endif %}
           </tr>
 
-          <tr style="height:8px;"><td colspan="2"></td></tr>
+          <tr style="height:8px;"><td colspan="{{ cols }}"></td></tr>
 
           <tr style="background:var(--clr-neutral-bg);">
-            <td colspan="2" style="font-weight:700;color:var(--clr-neutral);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+            <td colspan="{{ cols }}" style="font-weight:700;color:var(--clr-neutral);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
               {{ _('B — Attività di Investimento') }}
             </td>
           </tr>
-          <tr><td>{{ _('Acquisti (−) e vendite (+) di investimenti') }}</td><td class="amount text-right">{{ report.investing|money }}</td></tr>
+          <tr><td>{{ _('Acquisti (−) e vendite (+) di investimenti') }}</td><td class="amount text-right">{{ report.investing|money }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.investing|money }}</td><td class="text-right">{{ change(report.investing, previous.investing) }}</td>{% endif %}</tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>{{ _('Flusso di Investimento Netto') }}</td><td class="amount text-right">{{ report.investing|money }}</td>
+            <td>{{ _('Flusso di Investimento Netto') }}</td><td class="amount text-right">{{ report.investing|money }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.investing|money }}</td><td class="text-right">{{ change(report.investing, previous.investing) }}</td>{% endif %}
           </tr>
 
-          <tr style="height:8px;"><td colspan="2"></td></tr>
+          <tr style="height:8px;"><td colspan="{{ cols }}"></td></tr>
 
           <tr style="background:var(--clr-warning-bg);">
-            <td colspan="2" style="font-weight:700;color:var(--clr-warning);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+            <td colspan="{{ cols }}" style="font-weight:700;color:var(--clr-warning);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
               {{ _('C — Attività Finanziarie') }}
             </td>
           </tr>
-          <tr><td>{{ _('Prestiti ricevuti (+) e rate rimborsate (−)') }}</td><td class="amount text-right">{{ report.financing|money }}</td></tr>
+          <tr><td>{{ _('Prestiti ricevuti (+) e rate rimborsate (−)') }}</td><td class="amount text-right">{{ report.financing|money }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.financing|money }}</td><td class="text-right">{{ change(report.financing, previous.financing) }}</td>{% endif %}</tr>
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>{{ _('Flusso Finanziario Netto') }}</td><td class="amount text-right">{{ report.financing|money }}</td>
+            <td>{{ _('Flusso Finanziario Netto') }}</td><td class="amount text-right">{{ report.financing|money }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.financing|money }}</td><td class="text-right">{{ change(report.financing, previous.financing) }}</td>{% endif %}
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <td>{{ _('VARIAZIONE NETTA CASSA (A+B+C)') }}</td>
-            <td class="amount" style="text-align:right;font-size:var(--font-size-lg);">{{ report.net_change|money }}</td>
+            <td class="amount" style="text-align:right;font-size:var(--font-size-lg);">{{ report.net_change|money }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.net_change|money }}</td><td class="text-right">{{ change(report.net_change, previous.net_change) }}</td>{% endif %}
           </tr>
         </tfoot>
       </table>
