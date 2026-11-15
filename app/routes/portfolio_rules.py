@@ -33,6 +33,7 @@ from app.services import (
     portfolio_rules,
     price_feed,
     securities,
+    settings_store,
     taxonomies,
 )
 from app.services.parsing import to_date, to_decimal
@@ -200,11 +201,16 @@ def performance_page():
     person = request.args.get("person", "")
     period = request.args.get("period", "all")
     holdings = family.holdings_of(person, portfolio_models.investments())
-    days = request.args.get("days") if request.args.get("days") in performance.DAILY_RANGES else "365"
+    # F101: the portfolio keeps a period of its own — the market ranges, the one chosen kept
+    days = request.args.get("days")
+    if days in performance.DAILY_RANGES:
+        settings_store.set(performance.RANGE_SETTING, days)
+    days = settings_store.get(performance.RANGE_SETTING, "365")
+    days = days if days in performance.DAILY_RANGES else "365"
     return render_template("portfolio/performance.html", report=performance.report(holdings), person=person,
-                           daily=performance.daily_values(holdings, performance.DAILY_RANGES[days]), days=days,
-                           daily_ranges=[("90", _("3 mesi")), ("365", _("1 anno")), ("1095", _("3 anni")),
-                                         ("1825", _("5 anni"))],
+                           daily=performance.daily_values(holdings, performance.range_days(days)), days=days,
+                           daily_ranges=[("30", _("1M")), ("90", _("3M")), ("ytd", _("Da inizio anno")), ("365", _("1A")),
+                                         ("1095", _("3A")), ("1825", _("5A")), ("max", _("Max"))],
                            month_names=[str(_(m)) for m in periods.MONTH_LABELS],
                            xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
                            benchmarks=performance.benchmarks(), max_benchmarks=performance.MAX_BENCHMARKS,

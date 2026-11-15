@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:29+0100\n"
+"POT-Creation-Date: 2026-11-15 14:30+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -825,9 +825,6 @@ msgstr ".zip"
 msgid "0,2 %% dei titoli"
 msgstr "0.2 %% of the securities"
 
-msgid "1 anno"
-msgstr "1 year"
-
 msgid "1 movimento era già stato importato e verrà ignorato."
 msgstr "1 movement had already been imported and will be skipped."
 
@@ -870,6 +867,12 @@ msgstr "12 months"
 msgid "12 mesi migliori"
 msgstr "Best 12 months"
 
+msgid "1A"
+msgstr "1Y"
+
+msgid "1M"
+msgstr "1M"
+
 msgid "26 (12,5 per i titoli di Stato)"
 msgstr "26 (12.5 for government bonds)"
 
@@ -877,23 +880,23 @@ msgstr "26 (12.5 for government bonds)"
 msgid "26%%, titoli di Stato 12,5%%, cripto 33%% dal 2026"
 msgstr "26%%, government bonds 12.5%%, crypto 33%% from 2026"
 
-msgid "3 anni"
-msgstr "3 years"
-
 msgid "3 giorni prima"
 msgstr "3 days before"
-
-msgid "3 mesi"
-msgstr "3 months"
 
 msgid "30/70 conservativo"
 msgstr "30/70 conservative"
 
+msgid "3A"
+msgstr "3Y"
+
+msgid "3M"
+msgstr "3M"
+
 msgid "3–6 mesi di spese"
 msgstr "3–6 months of spending"
 
-msgid "5 anni"
-msgstr "5 years"
+msgid "5A"
+msgstr "5Y"
 
 msgid "6 mesi delle tue spese medie"
 msgstr "6 months of your average spending"
@@ -7279,6 +7282,9 @@ msgstr "Maximum (€)"
 
 msgid "Materie prime"
 msgstr "Commodities"
+
+msgid "Max"
+msgstr "Max"
 
 msgid "Media"
 msgstr "Average"

@@ -535,7 +535,18 @@ def value_series(holdings: list[Holding], today: date | None = None) -> dict:
 
 # ── Day by day (F47, Fase 2) ───────────────────────────────────────────────────
 
-DAILY_RANGES = {"90": 90, "365": 365, "1095": 1095, "1825": 1825}
+DAILY_RANGES = {"30": 30, "90": 90, "ytd": None, "365": 365, "1095": 1095, "1825": 1825, "max": None}
+RANGE_SETTING = "portfolio.daily_range"
+
+
+def range_days(key: str, today: date | None = None) -> int:
+    """F101: the market ranges of the portfolio — 1M, 3M, from the start of the year, 1A, 3A, 5A, all of it."""
+    today = today or date.today()
+    if key == "ytd":
+        return max((today - date(today.year, 1, 1)).days, 1)
+    if key == "max":
+        return 365 * 100
+    return DAILY_RANGES.get(key) or 365
 
 
 def _price_lines(holdings: list[Holding]) -> dict[int, tuple[list[date], list[float]]]:
