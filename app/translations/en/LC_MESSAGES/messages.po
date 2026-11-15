@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 11:24+0100\n"
+"POT-Creation-Date: 2026-11-15 11:39+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1579,6 +1579,9 @@ msgstr "Open the forecast"
 msgid "Apri lo Stato Patrimoniale"
 msgstr "Open the Balance Sheet"
 
+msgid "Apri un archivio"
+msgstr "Open an archive"
+
 msgid "Aprili in MyFinancePlace → Notifiche."
 msgstr "Open them in MyFinancePlace → Notifications."
 
@@ -1597,6 +1600,10 @@ msgstr "Archive"
 msgid "Archivio Documenti"
 msgstr "Document Archive"
 
+#, python-format
+msgid "Archivio aperto: «%(name)s». Clicca per cambiarlo"
+msgstr "Open archive: «%(name)s». Click to change it"
+
 msgid "Archivio di partenza"
 msgstr "Start archive"
 
@@ -1607,6 +1614,9 @@ msgstr "Start archive of %(name)s"
 #, python-format
 msgid "Archivio di partenza di «%(name)s» aggiornato."
 msgstr "Start archive of “%(name)s” updated."
+
+msgid "Archivio di un altro"
+msgstr "Someone else's archive"
 
 msgid "Archivio principale"
 msgstr "Main archive"
@@ -3019,8 +3029,8 @@ msgid "Consolidato"
 msgstr "Consolidated"
 
 #, python-format
-msgid "Consolidato del gruppo «%(name)s»"
-msgstr "Consolidated view of the group “%(name)s”"
+msgid "Consolidato «%(name)s»"
+msgstr "Consolidated «%(name)s»"
 
 #, python-format
 msgid "Consolidato: %(name)s"
@@ -4922,6 +4932,9 @@ msgstr "Actively managed"
 
 msgid "Gestisci"
 msgstr "Manage"
+
+msgid "Gestisci gli archivi"
+msgstr "Manage the archives"
 
 msgid "Gio"
 msgstr "Thu"
@@ -12073,8 +12086,8 @@ msgid "Stagione"
 msgstr "Season"
 
 #, python-format
-msgid "Stai lavorando su «%(name)s»: clicca per cambiare cliente"
-msgstr "You are working on “%(name)s”: click to switch client"
+msgid "Stai guardando l’archivio «%(name)s», non il tuo"
+msgstr "You are looking at the archive «%(name)s», not yours"
 
 msgid "Stampa dal browser"
 msgstr "Print from the browser"
@@ -14848,6 +14861,9 @@ msgstr "transactions"
 
 msgid "tu"
 msgstr "you"
+
+msgid "tuo"
+msgstr "yours"
 
 msgid "tutte"
 msgstr "all"

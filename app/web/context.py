@@ -47,6 +47,22 @@ def register_context(app: Flask) -> None:
             db.session.rollback()
             return 0
 
+    def archive_choices():
+        """F98: the archives the selector at the top of the menu can open (the archived ones aside)."""
+        try:
+            return [client for client in studio.clients() if not client.archived]
+        except Exception:  # noqa: BLE001 - never breaks a page
+            db.session.rollback()
+            return []
+
+    def is_own_archive(client) -> bool:
+        """F98: the open archive is the signed-in user's own — theirs, or the primary one for a user without one."""
+        from flask_login import current_user
+        if client is None or not current_user.is_authenticated:
+            return True
+        own = getattr(current_user, "default_client_id", None)
+        return client.id == own if own else client.database is None
+
     def no_accounts() -> bool:
         """F97: no account of the user's yet — only the fixed Contanti and Debiti — so what is entered lands in cash."""
         from app.models.account import Account
@@ -62,5 +78,5 @@ def register_context(app: Flask) -> None:
     @app.context_processor
     def inject_settings():
         return {"settings": current_settings(), "palette_vars": lambda: palettes.css_vars(current_settings()), "notification_count": notification_count, "display": display.prefs(),
-                "current_language": current_language, "working_client": working_client, "no_accounts": no_accounts, "client_groups": client_groups, "ui_font": current_font,
+                "current_language": current_language, "working_client": working_client, "no_accounts": no_accounts, "archive_choices": archive_choices, "is_own_archive": is_own_archive, "client_groups": client_groups, "ui_font": current_font,
                 "shown": sections.in_menu, "allowed": sections.allowed, "shown_any": lambda *keys: any(sections.in_menu(k) for k in keys)}

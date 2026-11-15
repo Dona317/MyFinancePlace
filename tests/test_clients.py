@@ -52,7 +52,7 @@ def test_new_client_gets_a_migrated_database_of_its_own(office, client):
     engine.dispose()
     assert head == "f4a6c8e0b2d5" and categories > 10  # current schema (merge head), default categories
     page = client.get("/dashboard").get_data(as_text=True)
-    assert 'id="client-chip"' in page and "Mario Rossi" in page  # the open client is always in sight
+    assert 'id="archive-switch-btn"' in page and "Mario Rossi" in page  # the open client is always in sight
     assert client.get("/clients/").status_code == 200
 
 
@@ -162,7 +162,7 @@ def test_session_points_to_a_deleted_client(office, client):
 
 
 def test_single_archive_shows_no_chip(office, client):
-    assert 'id="client-chip"' not in client.get("/dashboard").get_data(as_text=True)
+    assert 'id="archive-switch-btn"' not in client.get("/dashboard").get_data(as_text=True)
 
 
 def test_cli(office):

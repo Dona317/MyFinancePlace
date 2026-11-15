@@ -60,7 +60,7 @@ def edit(client_id):
 def backup(client_id):
     client = _client(client_id)
     archive = studio.backup(client)
-    return download(archive, export_name(f"myfinanceplace_{client.slug}", "zip"), "application/zip")
+    return download(archive, export_name("backup", "zip", archive=client.name), "application/zip")
 
 
 @clients_bp.route("/<int:client_id>/delete", methods=["POST"])

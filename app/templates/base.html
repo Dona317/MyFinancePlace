@@ -7,7 +7,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}{{ self.page_title()|striptags|trim }} — MyFinancePlace{% endblock %}</title>
+  {% set title_archive = working_client() %}
+  <title>{% if title_archive %}{{ title_archive.name }} · {% endif %}{% block title %}{{ self.page_title()|striptags|trim }} — MyFinancePlace{% endblock %}</title>
 
   <!-- Fonts: served by the app, chosen in Settings → Visualizzazione -->
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fonts/fonts.css') }}" />
@@ -47,6 +48,68 @@
         <i class="bi bi-layout-sidebar"></i>
       </button>
     </div>
+
+    {# F98: the archive open — where you are (the account, at the bottom, is who you are); a click changes it #}
+    {% set working_on = working_client() %}
+    {% if working_on %}
+    {% set mine = is_own_archive(working_on) %}
+    <div class="archive-switch{{ ' is-foreign' if not mine }}" style="--archive-color: {{ working_on.color }}">
+      <button type="button" class="archive-switch-btn" id="archive-switch-btn" aria-expanded="false" aria-controls="archive-menu"
+              title="{{ _('Archivio aperto: «%(name)s». Clicca per cambiarlo', name=working_on.name) }}">
+        <i class="bi bi-archive archive-switch-icon" aria-hidden="true"></i>
+        <span class="archive-switch-text nav-label">
+          <span class="archive-switch-label">{{ _('Archivio') if mine else _('Archivio di un altro') }}</span>
+          <strong class="archive-switch-name">{{ working_on.name }}</strong>
+        </span>
+        <i class="bi bi-chevron-down nav-label archive-switch-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="archive-menu" id="archive-menu" hidden>
+        {% if allowed('clients') %}
+        <div class="archive-menu-title">{{ _('Apri un archivio') }}</div>
+        {% for client in archive_choices() %}
+        <form method="POST" action="{{ url_for('clients.open_client', client_id=client.id) }}">
+          <button type="submit" class="archive-item{{ ' is-current' if client.id == working_on.id }}"{{ ' disabled' if client.id == working_on.id }}>
+            <i class="bi bi-archive" style="color:{{ client.color }}" aria-hidden="true"></i>
+            <span class="archive-item-name">{{ client.name }}</span>
+            {% if is_own_archive(client) %}<span class="archive-item-tag">{{ _('tuo') }}</span>{% endif %}
+            {% if client.id == working_on.id %}<i class="bi bi-check2" aria-hidden="true"></i>{% endif %}
+          </button>
+        </form>
+        {% endfor %}
+        {% endif %}
+        {% if allowed('groups') %}{% for group in client_groups(working_on) %}
+        <a href="{{ url_for('groups.consolidated', group_id=group.id) }}" class="archive-item">
+          <i class="bi bi-house-heart" style="color:{{ group.color }}" aria-hidden="true"></i>
+          <span class="archive-item-name">{{ _('Consolidato «%(name)s»', name=group.name) }}</span>
+        </a>
+        {% endfor %}{% endif %}
+        {% if allowed('clients') %}
+        <a href="{{ url_for('clients.index') }}" class="archive-item archive-manage"><i class="bi bi-gear" aria-hidden="true"></i>
+          <span class="archive-item-name">{{ _('Gestisci gli archivi') }}</span></a>
+        {% endif %}
+      </div>
+    </div>
+    {% if not mine %}<div class="foreign-archive-stripe" style="--archive-color: {{ working_on.color }}" title="{{ _('Stai guardando l’archivio «%(name)s», non il tuo', name=working_on.name) }}"></div>{% endif %}
+    <script>
+    (() => {
+      const button = document.getElementById('archive-switch-btn');
+      const menu = document.getElementById('archive-menu');
+      const set = open => {
+        if (open) {  // fixed under the button: the side menu clips what overflows it (and is 68px wide when reduced)
+          const box = button.getBoundingClientRect();
+          menu.style.top = `${box.bottom + 6}px`;
+          menu.style.left = `${box.left}px`;
+          menu.style.width = `${Math.max(box.width, 240)}px`;
+        }
+        menu.hidden = !open;
+        button.setAttribute('aria-expanded', String(open));
+      };
+      button.addEventListener('click', event => { event.stopPropagation(); set(menu.hidden); });
+      document.addEventListener('click', event => { if (!menu.hidden && !menu.contains(event.target)) set(false); });
+      document.addEventListener('keydown', event => { if (event.key === 'Escape') set(false); });
+    })();
+    </script>
+    {% endif %}
 
     <nav class="sidebar-nav">
 
@@ -344,22 +407,6 @@
       <div class="topbar-actions">
         {% block topbar_actions %}{% endblock %}
 
-        <!-- The client being worked on (F11): always in sight when there is more than one archive -->
-        {% set working_on = working_client() %}
-        {% if working_on %}
-        <a {% if allowed('clients') %}href="{{ url_for('clients.index') }}" {% endif %}class="client-chip" id="client-chip"
-           title="{{ _('Stai lavorando su «%(name)s»: clicca per cambiare cliente', name=working_on.name) }}">
-          <span class="client-badge" style="background:{{ working_on.color }}">{{ working_on.initials }}</span>
-          <span class="client-name">{{ working_on.name }}</span>
-        </a>
-        {% if allowed('groups') %}{% for group in client_groups(working_on) %}
-        <a href="{{ url_for('groups.consolidated', group_id=group.id) }}" class="client-chip group-chip"
-           title="{{ _('Consolidato del gruppo «%(name)s»', name=group.name) }}" aria-label="{{ _('Consolidato del gruppo «%(name)s»', name=group.name) }}">
-          <i class="bi bi-house-heart" style="color:{{ group.color }}" aria-hidden="true"></i>
-          <span class="client-name">{{ group.name }}</span>
-        </a>
-        {% endfor %}{% endif %}
-        {% endif %}
 
         <span class="text-xs text-muted">
           {{ moment().format('D MMM YYYY') if moment is defined else '' }}

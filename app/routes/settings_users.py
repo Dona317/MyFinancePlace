@@ -83,7 +83,7 @@ def users_export():
         for user in sorted(chosen, key=lambda u: u.username.lower()):
             client = db.session.get(Client, user.default_client_id) if user.default_client_id else studio.primary()
             bundle.writestr(f"{studio.slugify_file(user.username)}.zip", studio.backup(client))
-    return download(buffer.getvalue(), export_name("archivi-utenti", "zip"), "application/zip")
+    return download(buffer.getvalue(), export_name("archivi-utenti", "zip", archive=None), "application/zip")
 
 
 @settings_bp.route("/users/<int:user_id>/password", methods=["POST"])

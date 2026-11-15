@@ -2343,3 +2343,37 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .no-accounts-close { border: 0; background: none; color: #1f1600; cursor: pointer; padding: 2px; font-size: 14px; opacity: .8; }
 .no-accounts-close:hover, .no-accounts-close:focus-visible { opacity: 1; }
 @media (max-width: 640px) { .no-accounts-toast { bottom: 88px; } }  /* above the round + */
+
+/* ── F98: the archive open, at the top of the side menu — where you are (the account, at the bottom, is who you are) ── */
+.archive-switch { position: relative; margin: 4px 10px 10px; }
+.archive-switch-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; cursor: pointer; text-align: left;
+  border: 1px solid var(--clr-border); border-left: 3px solid var(--archive-color); border-radius: var(--border-radius);
+  background: var(--clr-bg-card); color: var(--clr-text-primary); font: inherit; }
+.archive-switch-btn:hover, .archive-switch-btn[aria-expanded="true"] { border-color: var(--clr-primary); border-left-color: var(--archive-color); }
+.archive-switch-icon { font-size: 18px; color: var(--archive-color); flex-shrink: 0; }
+.archive-switch-text { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.25; }
+.archive-switch-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--clr-text-muted); }
+.archive-switch-name { font-size: var(--font-size-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.archive-switch-chevron { font-size: 12px; color: var(--clr-text-muted); flex-shrink: 0; }
+/* someone else's archive: the selector turns dark yellow and a stripe of the archive's colour runs on top of the window */
+.archive-switch.is-foreign .archive-switch-btn { background: color-mix(in srgb, #b8860b 18%, var(--clr-bg-card)); border-color: #b8860b;
+  border-left-color: var(--archive-color); }
+.archive-switch.is-foreign .archive-switch-label { color: #d4a017; }
+.foreign-archive-stripe { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: var(--archive-color); z-index: 2000; }
+.archive-menu { position: fixed; z-index: 1100; max-height: 60vh; overflow: auto;  /* placed under the button when opened */
+  padding: 6px; border: 1px solid var(--clr-border); border-radius: var(--border-radius); background: var(--clr-bg-card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
+.archive-menu[hidden] { display: none; }
+.archive-menu form { margin: 0; }
+.archive-menu-title { padding: 6px 8px 4px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--clr-text-muted); }
+.archive-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 8px; border: 0; border-radius: var(--border-radius-sm);
+  background: none; color: var(--clr-text-primary); font: inherit; font-size: var(--font-size-sm); text-align: left; text-decoration: none; cursor: pointer; }
+.archive-item:hover:not(:disabled) { background: var(--clr-bg-input); color: var(--clr-text-primary); text-decoration: none; }
+.archive-item:disabled { cursor: default; font-weight: 600; }
+.archive-item-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.archive-item-tag { padding: 0 6px; border: 1px solid var(--clr-border); border-radius: 999px; font-size: 10px; color: var(--clr-text-muted); }
+.archive-manage { margin-top: 4px; padding-top: 9px; border-top: 1px solid var(--clr-border-light); border-radius: 0; color: var(--clr-text-secondary); }
+@media (min-width: 993px) {  /* the reduced menu: the archive's icon only, in its colour */
+  html.sidebar-mini .archive-switch-btn { justify-content: center; padding: 8px 0; }
+  html.sidebar-mini .archive-switch-text, html.sidebar-mini .archive-switch-chevron { display: none; }
+}

@@ -62,6 +62,15 @@ def current() -> Client | None:
     return g.get("client")
 
 
+def open_name() -> str | None:
+    """F98: the name of the open archive, for the files exported from it; None with a single archive."""
+    try:
+        return (current() or primary()).name if is_studio() else None
+    except Exception:  # noqa: BLE001 - outside a request or before the migrations: no name
+        db.session.rollback()
+        return None
+
+
 def is_studio() -> bool:
     """More than one archive: the interface shows which client is open."""
     try:

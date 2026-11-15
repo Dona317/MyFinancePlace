@@ -41,9 +41,19 @@ def uploaded_file():
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
-def export_name(base: str, ext: str) -> str:
-    """The file name of every export: the day it was made, then the export's name — 20261115_transazioni.csv."""
-    return f"{date.today():%Y%m%d}_{base}.{ext}"
+_OPEN = object()
+
+
+def export_name(base: str, ext: str, archive=_OPEN) -> str:
+    """The file name of every export: the day it was made, the archive it comes from when there are several (F98),
+    then the export's name — 20261115_transazioni.csv, 20261115_bruno_transazioni.csv. `archive` names another
+    archive than the open one (a client's backup), or None for none (a file of several archives)."""
+    from app.services import studio
+
+    if archive is _OPEN:
+        archive = studio.open_name()
+    middle = f"{studio.slugify_file(archive).lower()}_" if archive else ""
+    return f"{date.today():%Y%m%d}_{middle}{base}.{ext}"
 
 
 def xlsx_bytes(text: str) -> bytes:

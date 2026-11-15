@@ -25,6 +25,11 @@ class _ReportPDF(FPDF):
         super().__init__(format="A4")
         self.core_fonts_encoding = "windows-1252"   # €, curly quotes and dashes with the built-in fonts
         self.report_title = title
+        # F98: with several archives, the one the data comes from, on every page (the built-in fonts take cp1252 only)
+        from app.services import studio
+
+        archive = studio.open_name()
+        self.archive_name = archive.encode("cp1252", "replace").decode("cp1252") if archive else None
         self.set_margins(15, 15, 15)
         self.set_auto_page_break(True, margin=18)
         self.set_title(title)
@@ -35,7 +40,8 @@ class _ReportPDF(FPDF):
         self.set_y(-12)
         self.set_font("Helvetica", size=8)
         self.set_text_color(*MUTED)
-        self.cell(0, 5, f"{self.report_title} · pagina {self.page_no()}/{{nb}}", align="C")
+        archive = f"Archivio {self.archive_name} · " if self.archive_name else ""
+        self.cell(0, 5, f"{archive}{self.report_title} · pagina {self.page_no()}/{{nb}}", align="C")
 
 
 def _heading(pdf: FPDF, text: str):
