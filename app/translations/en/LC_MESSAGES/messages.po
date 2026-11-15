@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:50+0100\n"
+"POT-Creation-Date: 2026-11-15 15:27+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -677,6 +677,10 @@ msgid ""
 msgstr ""
 "%(runs)s simulations with random returns: the middle line is the median "
 "case, the others the worst 10%% and the best 10%%."
+
+#, python-format
+msgid "%(seconds)s s"
+msgstr "%(seconds)s s"
 
 #, python-format
 msgid "%(share)s%% delle entrate degli ultimi 12 mesi viene da fonti stabili"
@@ -2572,9 +2576,8 @@ msgstr "AI Classification"
 msgid "Classificazione AI non riuscita: %(exc)s"
 msgstr "AI classification failed: %(exc)s"
 
-#, python-format
-msgid "Classificazione di %(count)s movimenti in corso…"
-msgstr "Classifying %(count)s movements…"
+msgid "Classificazione con AI"
+msgstr "AI classification"
 
 msgid "Classificazione in corso…"
 msgstr "Classifying…"
@@ -6403,6 +6406,15 @@ msgstr ""
 "and shown only with «Show the number»; the last 4 digits recognize the card "
 "in imported movements («CARTA *4821»). CVV and PIN are never saved."
 
+msgid "Interrompi"
+msgstr "Stop"
+
+msgid "Interrotta. "
+msgstr "Stopped. "
+
+msgid "Interruzione dopo il gruppo in corso…"
+msgstr "Stopping after the batch under way…"
+
 msgid "Intervallo tra i metodi"
 msgstr "Range across methods"
 
@@ -7696,6 +7708,10 @@ msgstr "Show all"
 
 msgid "Movimenti"
 msgstr "Movements"
+
+#, python-format
+msgid "Movimenti classificati: %(done)s di %(total)s"
+msgstr "Movements classified: %(done)s of %(total)s"
 
 msgid "Movimenti con stesso importo, data vicina e descrizione simile."
 msgstr "Movements with the same amount, close dates and a similar description."

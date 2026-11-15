@@ -2442,3 +2442,13 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
   padding: 12px; border: 1px solid var(--clr-border); border-radius: var(--border-radius); background: var(--clr-bg-card); box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
 .tx-table.hide-category [data-col="category"], .tx-table.hide-category .category-cell,
 .tx-table.hide-tags [data-col="tags"], .tx-table.hide-tags .tag-cell { display: none; }
+
+/* F102: the AI classification under way — a bar that fills as the batches come back */
+.ai-progress { max-width: 440px; }
+.ai-progress .modal-title .bi { color: var(--clr-primary); margin-right: 4px; }
+.ai-progress-bar { height: 10px; border-radius: 999px; background: var(--clr-bg-input); overflow: hidden; }
+.ai-progress-bar > span { display: block; height: 100%; width: 0; background: var(--clr-primary); border-radius: inherit; transition: width .3s ease; }
+.ai-progress-bar > span:not([style*="100%"]) { background-image: linear-gradient(90deg, var(--clr-primary), color-mix(in srgb, var(--clr-primary) 60%, #fff), var(--clr-primary));
+  background-size: 200% 100%; animation: ai-progress-run 1.4s linear infinite; }
+@keyframes ai-progress-run { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .ai-progress-bar > span { animation: none; transition: none; } }

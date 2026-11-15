@@ -307,6 +307,24 @@
       </table>
     </div>
     <div id="ai-classify-status" class="alert" style="display:none;margin:0 20px 12px;"></div>
+    {# F102: the AI classification under way — stays open until it ends, with its progress #}
+    <div class="modal-overlay" id="ai-progress" aria-hidden="true">
+      <div class="modal ai-progress" role="dialog" aria-modal="true" aria-labelledby="ai-progress-title" aria-live="polite">
+        <div class="modal-header">
+          <h3 class="modal-title" id="ai-progress-title"><i class="bi bi-stars"></i> {{ _('Classificazione con AI') }}</h3>
+        </div>
+        <div class="modal-body">
+          <p class="text-sm mb-8" id="ai-progress-text"></p>
+          <div class="ai-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="ai-progress-fill"></span></div>
+          <p class="text-xs text-muted mt-8 mb-0" id="ai-progress-meta"></p>
+          <p class="text-sm mt-8 mb-0 text-negative" id="ai-progress-error" hidden></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost btn-sm" id="ai-progress-stop"><i class="bi bi-stop-circle"></i> {{ _('Interrompi') }}</button>
+          <button type="button" class="btn btn-primary btn-sm" id="ai-progress-close" hidden>{{ _('Chiudi') }}</button>
+        </div>
+      </div>
+    </div>
     <div class="card-body" style="border-top:1px solid var(--clr-border);padding-top:12px;padding-bottom:12px;">
       <button type="button" class="btn btn-outline btn-sm" id="add-row"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi riga') }}</button>
       <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-left:8px;">{{ _('per un movimento mancante o letto male') }}</span>
@@ -517,7 +535,46 @@ function showStatus(kind, text) {
   classifyStatus.className = `alert alert-${kind}`;
   classifyStatus.style.display = 'block';
   classifyStatus.textContent = text;
+  classifyStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+// F102: the window of the classification under way — open, a step at a time, the seconds gone, an error, closed
+const aiProgress = (() => {
+  const $ = (id) => document.getElementById(id);
+  let total = 0, done = 0, model = '';
+  const draw = (seconds) => {
+    const pct = total ? Math.round(done / total * 100) : 0;
+    $('ai-progress-fill').style.width = `${pct}%`;
+    $('ai-progress-fill').parentElement.setAttribute('aria-valuenow', String(pct));
+    $('ai-progress-text').textContent = fmt({{ _('Movimenti classificati: %(done)s di %(total)s', done='%(done)s', total='%(total)s')|tojson }}, {done, total});
+    if (seconds !== undefined) {
+      $('ai-progress-meta').textContent = fmt({{ _('%(seconds)s s', seconds='%(seconds)s')|tojson }}, {seconds}) + (model ? ' · ' + model : '');
+    }
+  };
+  return {
+    open(count, onStop) {
+      total = count; done = 0; model = '';
+      $('ai-progress-error').hidden = true;
+      $('ai-progress-close').hidden = true;
+      $('ai-progress-stop').hidden = false;
+      $('ai-progress-stop').disabled = false;
+      $('ai-progress-stop').onclick = () => { onStop(); $('ai-progress-stop').disabled = true; $('ai-progress-text').textContent = {{ _('Interruzione dopo il gruppo in corso…')|tojson }}; };
+      $('ai-progress-close').onclick = () => this.close();
+      draw(0);
+      openModal('ai-progress');
+      return this;
+    },
+    step(count, name) { done = count; model = name || model; draw(); },
+    tick(seconds) { draw(seconds); },
+    fail(message) {
+      $('ai-progress-error').textContent = message;
+      $('ai-progress-error').hidden = false;
+      $('ai-progress-stop').hidden = true;
+      $('ai-progress-close').hidden = false;
+    },
+    close() { closeModal('ai-progress'); },
+  };
+})();
 
 classifyButton?.addEventListener('click', async () => {
   if (classifyButton.dataset.cloud === 'true' &&
@@ -534,54 +591,73 @@ classifyButton?.addEventListener('click', async () => {
   }).filter(r => r.text.trim());
   if (!rows.length) return;
 
+  // F102: the rows go to the model in small batches, so the window shows real progress and the suggestions land in
+  // the table as they arrive; «Interrompi» stops after the batch under way and keeps what came
+  const BATCH = 15;
+  const totals = { applied: 0, unsure: 0, kept: 0, model: '' };
+  let stopped = false;
+  const started = Date.now();
+  const progress = aiProgress.open(rows.length, () => { stopped = true; });
+  const timer = setInterval(() => progress.tick(Math.round((Date.now() - started) / 1000)), 1000);
   classifyButton.disabled = true;
-  showStatus('info', fmt({{ _('Classificazione di %(count)s movimenti in corso…', count='%(count)s')|tojson }}, {count: rows.length}));
   try {
-    const response = await fetch("{{ url_for('export.bank_classify') }}", {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rows }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || {{ _('Classificazione non riuscita.')|tojson }});
-    let applied = 0, unsure = 0, kept = 0;
-    for (const [index, s] of Object.entries(data.suggestions)) {
-      const row = table.querySelector(`.preview-row[data-index="${index}"]`);
-      if (!row) continue;
-      const category = row.querySelector('.row-category'), counterparty = row.querySelector('.row-counterparty');
-      if (s.counterparty && !counterparty.value) {
-        counterparty.value = s.counterparty;
-        counterparty.classList.add('ai-suggested');
-      }
-      // A first classification never makes things worse: a specific category is not replaced by
-      // the fallback ("Altro", or "Imprevisti o altro" with the broad categories), and an unsure suggestion only
-      // fills rows that have no real category yet
-      const current = category.value.trim();
-      const fallbacks = ['Altro', {{ fallback_category()|tojson }}];
-      const hasCategory = current && !fallbacks.includes(current);
-      if (hasCategory && current !== s.category && (fallbacks.includes(s.category) || s.confidence === 'bassa')) {
-        kept++;
-        continue;
-      }
-      category.value = s.category;
-      category.dataset.aiValue = s.category;  // remembered: accepted unchanged → tagged "da confermare (AI)"
-      category.dataset.aiTag = s.tag || '';    // the detail of a broad category, saved with it when kept
-      category.classList.add(s.confidence === 'bassa' ? 'ai-low' : 'ai-suggested');
-      category.title = s.from_history ? {{ _("Dal tuo storico: come hai categorizzato transazioni simili")|tojson }}
-        : s.confidence === 'bassa' ? {{ _("Suggerito dall'AI (poco sicuro)")|tojson }} : fmt({{ _("Suggerito dall'AI (confidenza %(level)s)", level='%(level)s')|tojson }}, {level: s.confidence});
-      if (s.tag) category.title += ' · ' + fmt({{ _('tag «%(tag)s»', tag='%(tag)s')|tojson }}, {tag: s.tag});
-      applied++;
-      if (s.confidence === 'bassa') unsure++;
+    for (let done = 0; done < rows.length && !stopped; done += BATCH) {
+      const batch = rows.slice(done, done + BATCH);
+      const response = await fetch("{{ url_for('export.bank_classify') }}", {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rows: batch }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || {{ _('Classificazione non riuscita.')|tojson }});
+      totals.model = data.model;
+      applySuggestions(data, totals);
+      progress.step(Math.min(done + BATCH, rows.length), data.model);
     }
-    showStatus(unsure ? 'warning' : 'success',
-      fmt({{ _('%(count)s movimenti classificati con %(model)s: i suggerimenti sono evidenziati', count='%(count)s', model='%(model)s')|tojson }}, {count: applied, model: data.model}) +
-      (unsure ? fmt({{ _(', %(count)s poco sicuri in arancione', count='%(count)s')|tojson }}, {count: unsure}) : '') +
-      (kept ? fmt({{ _('; per %(count)s è rimasta la categoria già assegnata (il modello non era sicuro)', count='%(count)s')|tojson }}, {count: kept}) : '') +
+    progress.close();
+    showStatus(totals.unsure ? 'warning' : 'success',
+      (stopped ? {{ _('Interrotta. ')|tojson }} : '') +
+      fmt({{ _('%(count)s movimenti classificati con %(model)s: i suggerimenti sono evidenziati', count='%(count)s', model='%(model)s')|tojson }}, {count: totals.applied, model: totals.model}) +
+      (totals.unsure ? fmt({{ _(', %(count)s poco sicuri in arancione', count='%(count)s')|tojson }}, {count: totals.unsure}) : '') +
+      (totals.kept ? fmt({{ _('; per %(count)s è rimasta la categoria già assegnata (il modello non era sicuro)', count='%(count)s')|tojson }}, {count: totals.kept}) : '') +
       {{ _('. Controllali prima di salvare.')|tojson }});
   } catch (error) {
+    progress.fail(error.message);
     showStatus('error', error.message);
   } finally {
+    clearInterval(timer);
     classifyButton.disabled = false;
   }
 });
+
+function applySuggestions(data, totals) {
+  for (const [index, s] of Object.entries(data.suggestions)) {
+    const row = table.querySelector(`.preview-row[data-index="${index}"]`);
+    if (!row) continue;
+    const category = row.querySelector('.row-category'), counterparty = row.querySelector('.row-counterparty');
+    if (s.counterparty && !counterparty.value) {
+      counterparty.value = s.counterparty;
+      counterparty.classList.add('ai-suggested');
+    }
+    // A first classification never makes things worse: a specific category is not replaced by
+    // the fallback ("Altro", or "Imprevisti o altro" with the broad categories), and an unsure suggestion only
+    // fills rows that have no real category yet
+    const current = category.value.trim();
+    const fallbacks = ['Altro', {{ fallback_category()|tojson }}];
+    const hasCategory = current && !fallbacks.includes(current);
+    if (hasCategory && current !== s.category && (fallbacks.includes(s.category) || s.confidence === 'bassa')) {
+      totals.kept++;
+      continue;
+    }
+    category.value = s.category;
+    category.dataset.aiValue = s.category;  // remembered: accepted unchanged → tagged "da confermare (AI)"
+    category.dataset.aiTag = s.tag || '';    // the detail of a broad category, saved with it when kept
+    category.classList.add(s.confidence === 'bassa' ? 'ai-low' : 'ai-suggested');
+    category.title = s.from_history ? {{ _("Dal tuo storico: come hai categorizzato transazioni simili")|tojson }}
+      : s.confidence === 'bassa' ? {{ _("Suggerito dall'AI (poco sicuro)")|tojson }} : fmt({{ _("Suggerito dall'AI (confidenza %(level)s)", level='%(level)s')|tojson }}, {level: s.confidence});
+    if (s.tag) category.title += ' · ' + fmt({{ _('tag «%(tag)s»', tag='%(tag)s')|tojson }}, {tag: s.tag});
+    totals.applied++;
+    if (s.confidence === 'bassa') totals.unsure++;
+  }
+}
 
 // A category edited by hand is no longer "AI-suggested"
 table.addEventListener('input', (e) => {
