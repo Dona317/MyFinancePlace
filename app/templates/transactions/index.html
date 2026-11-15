@@ -30,9 +30,6 @@
     </form>
   </details>
   {# a new transaction or a file: the round + at the bottom left (key «n») #}
-  <a href="{{ url_for('accounts.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Conti e carte') }}">
-    <i class="bi bi-bank"></i> {{ _('Conti e carte') }}
-  </a>
   <a href="{{ url_for('transactions.duplicates_page') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-intersect"></i> {{ _('Cerca duplicati') }}
   </a>
