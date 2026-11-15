@@ -127,6 +127,16 @@ def index(tab: str | None = None):
         year = filters["start"].year
         context.update(trend_report=analytics.lifestyle_report(year), year=year,
                        groups=analytics_clusters.cluster_breakdown(*analytics.year_bounds(year)))
+    if tab in ("income", "spending"):
+        # F99: the tab of Transazioni — its list is the register, held to this type and to the page's period
+        from app.routes.transactions import register_context
+
+        register = register_context(
+            locked={"type": "income" if tab == "income" else "expense", "start": filters["start"].isoformat(),
+                    "end": filters["last_day"].isoformat()},
+            title=_("Transazioni di entrata") if tab == "income" else _("Transazioni di uscita"))
+        context.update(register_html=render_template("transactions/_register.html", **register),
+                       register_js=render_template("transactions/_register_js.html", **register))
     account_list = accounts.active()
     return render_template(
         "reports/index.html", **context, section=tab, tabs=reports.TABS, periods=reports.PERIODS, sorts=reports.SORTS,

@@ -32,6 +32,10 @@ from app.services import request_cache
 SESSION_KEY = "client_id"
 DATABASE = re.compile(r"^[a-z0-9_]{1,63}$")
 COLORS = ("#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c", "#0891b2", "#ca8a04", "#db2777")
+# F98: the icons an archive can wear (all in the app's icon set), to tell it at a glance — even in the reduced menu
+ICONS = ("archive", "house", "house-heart", "people", "person", "briefcase", "bank", "piggy-bank", "wallet2", "cash-coin",
+         "credit-card", "cart", "shop", "gift", "airplane", "car-front", "globe", "tree", "sun", "umbrella", "book",
+         "mortarboard", "tools", "palette", "star")
 PRIMARY_SLUG = "principale"
 
 
@@ -62,9 +66,23 @@ def current() -> Client | None:
     return g.get("client")
 
 
+def sees_archives() -> bool:
+    """F98: whether the archives are shown at all — to an administrator, who moves between them, or when nobody signs
+    in (the one using the app is its administrator); a user is bound to their own archive and is not shown it."""
+    from flask import current_app
+    from flask_login import current_user
+
+    if current_app.config.get("LOGIN_DISABLED"):
+        return True
+    return bool(current_user.is_authenticated and getattr(current_user, "is_admin", False))
+
+
 def open_name() -> str | None:
-    """F98: the name of the open archive, for the files exported from it; None with a single archive."""
+    """F98: the name of the open archive, for the files exported from it — for an administrator only (a user is bound
+    to their own archive); None with a single archive."""
     try:
+        if not sees_archives():
+            return None
         return (current() or primary()).name if is_studio() else None
     except Exception:  # noqa: BLE001 - outside a request or before the migrations: no name
         db.session.rollback()
@@ -237,6 +255,13 @@ def update(client: Client, name: str, color: str | None, notes: str | None, arch
     if color in COLORS:
         client.color = color
     db.session.commit()
+
+
+def set_icon(client: Client, icon: str | None) -> None:
+    """F98: the archive's icon, one of ICONS (anything else leaves it as it is)."""
+    if icon in ICONS:
+        client.icon = icon
+        db.session.commit()
 
 
 def backup(client: Client) -> bytes:

@@ -15,8 +15,15 @@ KINDS = ("expense", "income")
 @subscriptions_bp.route("/")
 def index():
     kind = request.args.get("kind") if request.args.get("kind") in KINDS else "expense"
+    # F99: the tab of Transazioni — its list is the register, held to the recurring movements of this kind
+    from app.routes.transactions import register_context
+
+    register = register_context(locked={"recurring": "1", "type": kind},
+                                title=_("Transazioni ricorrenti in uscita") if kind == "expense" else _("Transazioni ricorrenti in entrata"))
     return render_template("subscriptions/index.html", data=subscriptions.overview(kind, date.today()),
-                           kind=kind, frequencies=forecast.FREQUENCIES)
+                           kind=kind, frequencies=forecast.FREQUENCIES,
+                           register_html=render_template("transactions/_register.html", **register),
+                           register_js=render_template("transactions/_register_js.html", **register))
 
 
 def _back(tx: Transaction):

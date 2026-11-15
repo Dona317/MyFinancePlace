@@ -17,7 +17,7 @@ def _client(client_id: int) -> Client:
 @clients_bp.route("/")
 def index():
     return render_template("clients/index.html", clients=studio.clients(), open_client=studio.current() or studio.primary(),
-                           colors=studio.COLORS)
+                           colors=studio.COLORS, icons=studio.ICONS)
 
 
 @clients_bp.route("/new", methods=["POST"])
@@ -54,6 +54,13 @@ def edit(client_id):
                       "archived" in request.form)
         flash(_("Cliente «%(name)s» aggiornato.", name=client.name), "success")
     return redirect(url_for("clients.index"))
+
+
+@clients_bp.route("/<int:client_id>/icon", methods=["POST"])
+def set_icon(client_id):
+    """F98: the icon of an archive, chosen in the window of icons."""
+    studio.set_icon(_client(client_id), request.form.get("icon"))
+    return redirect(url_for("clients.index") + f"#client-{client_id}")
 
 
 @clients_bp.route("/<int:client_id>/backup")

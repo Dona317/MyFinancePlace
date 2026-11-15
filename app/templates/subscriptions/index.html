@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "transactions/_tabs.html" import transactions_tabs with context %}
 {% from "partials/tabs.html" import tab_bar %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
@@ -9,6 +10,7 @@
 {% macro signed(tx, value) %}{{ (-value if tx.type == 'expense' else value)|money }}{% endmacro %}
 
 {% block content %}
+{{ transactions_tabs('recurring') }}
 <div class="report-bar mb-16">
   {{ tab_bar([('expense', url_for('subscriptions.index'), _('Abbonamenti e spese fisse')),
                ('income', url_for('subscriptions.index', kind='income'), _('Entrate ricorrenti'))], kind, _('Uscite o entrate ricorrenti')) }}
@@ -112,4 +114,9 @@
   </div>
 </details>
 {% endif %}
+<div class="mt-16">{{ register_html|safe }}</div>
+{% endblock %}
+
+{% block scripts %}
+{{ register_js|safe }}
 {% endblock %}

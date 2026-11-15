@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "transactions/_tabs.html" import transactions_tabs with context %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/tabs.html" import tab_bar %}
 {% from "partials/empty.html" import empty_state %}
@@ -14,6 +15,7 @@
 
 {% block content %}
 
+{% if section in ('income', 'spending') %}{{ transactions_tabs(section) }}{% endif %}
 <!-- Tabs, period and filters ─────────────────────────────────────────────── -->
 <div class="report-bar mb-16">
   {% set tab_items = namespace(list=[]) %}
@@ -165,7 +167,8 @@
 {% endif %}
 
 <!-- Transactions and summary ─────────────────────────────────────────────── -->
-<div class="report-bottom">
+<div class="report-bottom{{ ' report-bottom-single' if register_html }}">
+  {% if not register_html %}{# Entrate and Uscite (F99): the register, under the summary, takes this list's place #}
   <div class="card">
     <div class="card-header">
       <div>
@@ -205,6 +208,7 @@
     {{ empty_state(text=_('Nessuna transazione con questi filtri.'), compact=True) }}
     {% endif %}
   </div>
+  {% endif %}
 
   <div class="card report-summary">
     <div class="card-header"><div class="card-header-title">{{ _('Riepilogo') }}</div></div>
@@ -239,9 +243,11 @@
   </div>
 </div>
 
+{% if register_html %}<div class="mt-16">{{ register_html|safe }}</div>{% endif %}
 {% endblock %}
 
 {% block scripts %}
+{{ register_js|safe if register_js }}
 <script>
 {% if f.tab != 'cashflow' and items %}
 const items = {{ items|rejectattr('apart')|list|tojson }};  // the unrecorded cash apart (F39)

@@ -29,6 +29,11 @@ def register_context(app: Flask) -> None:
             db.session.rollback()
             return None
 
+    def shown_archive():
+        """F98: the archive open, shown only to an administrator — the one who moves between archives; a user is
+        bound to their own and sees no archive at all."""
+        return working_client() if studio.sees_archives() else None
+
     def client_groups(client):
         """The groups of the open archive, next to its badge (F21)."""
         try:
@@ -78,5 +83,5 @@ def register_context(app: Flask) -> None:
     @app.context_processor
     def inject_settings():
         return {"settings": current_settings(), "palette_vars": lambda: palettes.css_vars(current_settings()), "notification_count": notification_count, "display": display.prefs(),
-                "current_language": current_language, "working_client": working_client, "no_accounts": no_accounts, "archive_choices": archive_choices, "is_own_archive": is_own_archive, "client_groups": client_groups, "ui_font": current_font,
+                "current_language": current_language, "working_client": working_client, "no_accounts": no_accounts, "archive_choices": archive_choices, "shown_archive": shown_archive, "is_own_archive": is_own_archive, "client_groups": client_groups, "ui_font": current_font,
                 "shown": sections.in_menu, "allowed": sections.allowed, "shown_any": lambda *keys: any(sections.in_menu(k) for k in keys)}

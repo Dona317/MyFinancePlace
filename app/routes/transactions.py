@@ -148,9 +148,12 @@ def _section_cards(today: date) -> dict:
             "recurring_monthly": sum(forecast.monthly_equivalent(t) for t in spent)}
 
 
-@transactions_bp.route("/")
-def index():
-    filters = {key: request.args.get(key, "").strip() for key in FILTER_KEYS}
+def register_context(locked: dict | None = None, title: str | None = None) -> dict:
+    """F99: the register — search, filters, bulk edit and the list — for the page being drawn: the Transazioni tab,
+    or Entrate, Uscite and Ricorrenti with a filter of their own that cannot be changed (`locked`, e.g. type=income).
+    Its links and forms stay on the page that shows it, keeping that page's own parameters (the period, …)."""
+    locked = {key: str(value) for key, value in (locked or {}).items() if value not in (None, "")}
+    filters = {key: request.args.get(key, "").strip() for key in FILTER_KEYS} | locked
     query = _filtered_query(filters)
     total = query.count()
     pages = max(1, -(-total // PAGE_SIZE))
@@ -163,19 +166,27 @@ def index():
         db.session.query(Transaction.category).filter(Transaction.category.isnot(None))
         .distinct().order_by(Transaction.category).all()
     ]
-    return render_template(
-        "transactions/index.html",
-        cards=_section_cards(date.today()),
+    here, view_args = request.endpoint, dict(request.view_args or {})
+    args = {k: v for k, v in request.args.to_dict().items() if k not in locked}
+    # the page's own parameters (not the register's): kept by the search form and by «Azzera»
+    keep = {k: v for k, v in args.items() if k not in FILTER_KEYS and k not in ("page", "sort", "dir")}
+
+    def at(**query) -> str:
+        return url_for(here, **view_args, **query)
+
+    return dict(
         transactions=transactions,
         total=total, page=page, pages=pages,
-        page_url=lambda n: url_for("transactions.index", **(request.args.to_dict() | {"page": n})),
+        page_url=lambda n: at(**(args | {"page": n})),
         sort=sort, direction=direction,
-        without_url=lambda *keys: url_for("transactions.index", **{k: v for k, v in request.args.to_dict().items()
-                                                                   if k not in (*keys, "page")}),
+        without_url=lambda *keys: at(**{k: v for k, v in args.items() if k not in (*keys, "page")}),
         # a click on a title: that column, the other way round when it is already the one; back to the first page
-        sort_url=lambda column: url_for("transactions.index", **(
-            {k: v for k, v in request.args.to_dict().items() if k not in ("page", "sort", "dir")}
+        sort_url=lambda column: at(**(
+            {k: v for k, v in args.items() if k not in ("page", "sort", "dir")}
             | {"sort": column, "dir": ("asc" if direction == "desc" else "desc") if column == sort else SORTS[column][1]})),
+        register_url=at(**keep), register_with=lambda **more: at(**keep, **more), register_keep=keep,
+        register_action=at(),  # a GET form drops its action's query: the page's own parameters go as hidden fields
+        register_title=title or _("Elenco Transazioni"), locked=locked,
         filters=filters,
         categories=categories,
         all_categories=known_categories(),
@@ -188,6 +199,11 @@ def index():
         undo=undo.available(), today=date.today(), cluster_choices=clusters.choices(), tag_pool=all_tags(),
         **ai_classification.template_context(),
     )
+
+
+@transactions_bp.route("/")
+def index():
+    return render_template("transactions/index.html", cards=_section_cards(date.today()), **register_context())
 
 
 @transactions_bp.route("/add")

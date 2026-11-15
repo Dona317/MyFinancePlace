@@ -7,7 +7,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  {% set title_archive = working_client() %}
+  {% set title_archive = shown_archive() %}
   <title>{% if title_archive %}{{ title_archive.name }} · {% endif %}{% block title %}{{ self.page_title()|striptags|trim }} — MyFinancePlace{% endblock %}</title>
 
   <!-- Fonts: served by the app, chosen in Settings → Visualizzazione -->
@@ -50,13 +50,13 @@
     </div>
 
     {# F98: the archive open — where you are (the account, at the bottom, is who you are); a click changes it #}
-    {% set working_on = working_client() %}
+    {% set working_on = shown_archive() %}
     {% if working_on %}
     {% set mine = is_own_archive(working_on) %}
     <div class="archive-switch{{ ' is-foreign' if not mine }}" style="--archive-color: {{ working_on.color }}">
       <button type="button" class="archive-switch-btn" id="archive-switch-btn" aria-expanded="false" aria-controls="archive-menu"
               title="{{ _('Archivio aperto: «%(name)s». Clicca per cambiarlo', name=working_on.name) }}">
-        <i class="bi bi-archive archive-switch-icon" aria-hidden="true"></i>
+        <i class="bi bi-{{ working_on.icon or 'archive' }} archive-switch-icon" aria-hidden="true"></i>
         <span class="archive-switch-text nav-label">
           <span class="archive-switch-label">{{ _('Archivio') if mine else _('Archivio di un altro') }}</span>
           <strong class="archive-switch-name">{{ working_on.name }}</strong>
@@ -69,7 +69,7 @@
         {% for client in archive_choices() %}
         <form method="POST" action="{{ url_for('clients.open_client', client_id=client.id) }}">
           <button type="submit" class="archive-item{{ ' is-current' if client.id == working_on.id }}"{{ ' disabled' if client.id == working_on.id }}>
-            <i class="bi bi-archive" style="color:{{ client.color }}" aria-hidden="true"></i>
+            <i class="bi bi-{{ client.icon or 'archive' }}" style="color:{{ client.color }}" aria-hidden="true"></i>
             <span class="archive-item-name">{{ client.name }}</span>
             {% if is_own_archive(client) %}<span class="archive-item-tag">{{ _('tuo') }}</span>{% endif %}
             {% if client.id == working_on.id %}<i class="bi bi-check2" aria-hidden="true"></i>{% endif %}
@@ -129,7 +129,7 @@
         <div class="nav-section-items" id="nav-panoramica"><div>
         {% if shown('transactions') %}
         <a href="{{ url_for('transactions.index') }}"
-           class="nav-item {% if 'transactions' in request.endpoint %}active{% endif %}">
+           class="nav-item {% if 'transactions' in request.endpoint or request.endpoint in ('reports.income', 'reports.spending') or request.endpoint.startswith('subscriptions.') %}active{% endif %}">
           <i class="bi bi-list-ul"></i> <span class="nav-label">{{ _('Transazioni') }}</span>
         </a>
         {% endif %}

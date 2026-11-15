@@ -1,0 +1,232 @@
+{# F99: the register's script, with _register.html (in the page's scripts block: after main.js) #}
+<script>
+/* ── The small filters of the titles (Categoria, Importo): a funnel opens its box under the title; a click elsewhere closes it ── */
+document.querySelectorAll('.col-filter').forEach(box => {
+  const button = box.querySelector('.col-filter-btn'), pop = box.querySelector('.col-pop');
+  button.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = pop.hidden;
+    document.querySelectorAll('.col-pop').forEach(p => { p.hidden = true; });
+    pop.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+    if (open) pop.querySelector('select, input:not([type=hidden])')?.focus();
+  });
+  pop.addEventListener('click', e => e.stopPropagation());
+});
+document.addEventListener('click', () => document.querySelectorAll('.col-pop').forEach(p => { p.hidden = true; }));
+
+/* ── The toolbar's two panels (Filtri, Modifica massiva): a pill opens and closes each; the page remembers it. The
+   filters stay open while one is on; ticking a row never opens the Modifica massiva (the table would move under the
+   mouse): its pill lights up and counts ── */
+[['filters-toggle', 'search-box'], ['bulk-toggle', 'bulk-box']].forEach(([buttonId, panelId]) => {
+  const button = document.getElementById(buttonId), panel = document.getElementById(panelId);
+  if (!button || !panel) return;
+  const show = (on) => { panel.classList.toggle('is-open', on); button.setAttribute('aria-expanded', String(on)); };
+  if (!panel.dataset.forced) {
+    const saved = store.get(panel.dataset.remember);
+    if (saved !== null) show(saved === '1');
+  }
+  requestAnimationFrame(() => panel.classList.add('tx-panel-ready'));  // no animation for the state on load
+  button.addEventListener('click', () => {
+    const on = !panel.classList.contains('is-open');
+    show(on);
+    store.set(panel.dataset.remember, on ? '1' : '0');
+  });
+});
+// the amount: written, then Enter (the form's own) or leaving the field after changing it
+document.querySelectorAll('#search-box .tx-amount').forEach(input => input.addEventListener('change', () => input.form.requestSubmit()));
+
+/* ── The selection: the ticked rows, or (the box on the header of the table) the whole search, every page ── */
+const searchTotal = {{ total|tojson }};
+const searchFilters = {{ filters|tojson }};
+const ticked = () => [...document.querySelectorAll('.bulk-select:checked')];
+const wholeSearch = () => !!document.getElementById('select-all')?.checked
+  && ticked().length === document.querySelectorAll('.bulk-select').length;
+const selectedCount = () => (wholeSearch() ? searchTotal : ticked().length);
+// what an action form sends: the ids of the ticked rows, or scope=search with the filters of the search
+const fillSelection = (target) => {
+  target.querySelectorAll('input[data-selection]').forEach(el => el.remove());
+  const add = (name, value) => target.appendChild(Object.assign(document.createElement('input'),
+    { type: 'hidden', name, value: value ?? '' })).setAttribute('data-selection', '');
+  if (wholeSearch()) {
+    add('scope', 'search');
+    Object.entries(searchFilters).forEach(([key, value]) => add(key, value));
+  } else {
+    ticked().forEach(box => add('ids', box.value));
+  }
+};
+{
+const form = document.getElementById('bulk-edit-form');
+// «selected/found» (0/489)
+const describe = () => {
+  if (!form) return;
+  document.getElementById('bulk-scope').value = wholeSearch() ? 'search' : 'selection';
+  document.getElementById('bulk-summary').textContent = `${selectedCount()}/${searchTotal}`;  // selected / found
+  document.getElementById('bulk-toggle')?.classList.toggle('is-on', selectedCount() > 0);
+};
+document.addEventListener('change', e => { if (e.target.matches('.bulk-select, #select-all')) setTimeout(describe); });
+describe();
+form?.addEventListener('submit', () => {
+  form.querySelectorAll('input[name=ids]').forEach(el => el.remove());
+  ticked().forEach(box => form.appendChild(Object.assign(document.createElement('input'), { type: 'hidden', name: 'ids', value: box.value })));
+});
+}
+
+/* ── A click on a row opens a short form under it: change it here, without leaving the list ── */
+{
+const template = document.getElementById('quick-template');
+const close = () => { document.querySelectorAll('.quick-row').forEach(r => r.remove()); document.querySelectorAll('.tx-row.editing').forEach(r => r.classList.remove('editing')); };
+document.querySelectorAll('.tx-row').forEach(row => row.addEventListener('click', e => {
+  if (e.target.closest('a, button, input, select, label, form')) return;
+  const open = row.classList.contains('editing');
+  close();
+  if (open || !template) return;
+  row.classList.add('editing');
+  const quick = template.content.firstElementChild.cloneNode(true);
+  row.after(quick);
+  const form = quick.querySelector('form');
+  const d = row.dataset;
+  form.elements.date.value = d.date;
+  form.elements.description.value = d.description;
+  form.elements.amount.value = d.value;
+  form.elements.tags.value = d.tags;
+  if (form.elements.account_id) form.elements.account_id.value = d.account;
+  const category = form.elements.category;
+  if (d.split) { category.disabled = true; category.title = {{ _('Transazione suddivisa: le categorie si cambiano nella modifica completa')|tojson }}; }
+  else {
+    if (d.category && ![...category.options].some(o => o.value === d.category)) category.add(new Option(d.category, d.category));
+    category.value = d.category;
+  }
+  const typeField = form.elements.type, options = [...form.querySelectorAll('.type-option')];
+  const paint = () => options.forEach(o => o.setAttribute('aria-checked', String(o.dataset.type === typeField.value)));
+  if (d.type === 'transfer') { options.forEach(o => { o.hidden = true; }); form.querySelector('.quick-transfer').hidden = false; }
+  typeField.value = d.type === 'income' ? 'income' : 'expense';
+  options.forEach(o => o.addEventListener('click', () => { typeField.value = o.dataset.type; paint(); }));
+  form.elements.amount.addEventListener('input', () => {
+    const v = form.elements.amount.value.trim();
+    if (v.startsWith('-')) typeField.value = 'expense'; else if (v.startsWith('+')) typeField.value = 'income';
+    paint();
+  });
+  paint();
+  form.querySelector('.quick-full').href = {{ url_for('transactions.edit', tx_id=0)|tojson }}.replace('/0/', '/' + d.id + '/') + '?next=' + encodeURIComponent(location.pathname + location.search);
+  form.querySelector('.quick-cancel').addEventListener('click', close);
+  form.addEventListener('keydown', ev => { if (ev.key === 'Escape') close(); });
+  form.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const res = await fetch({{ url_for('transactions.quick_update', tx_id=0)|tojson }}.replace('/0/', '/' + d.id + '/'), { method: 'POST', body: new FormData(form) });
+    if (res.ok) { location.reload(); return; }
+    const data = await res.json().catch(() => ({}));
+    form.querySelector('.quick-error').textContent = data.error || {{ _('Non salvata: controlla i campi.')|tojson }};
+  });
+  form.elements.description.focus();
+}));
+}
+
+/* ── Search history: the searches made with a filter, kept in this browser (newest first, at most 100) ── */
+{
+const KEY = 'mfp-search-history', MAX = 100;
+const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } };
+const write = (list) => { try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX))); } catch (e) { /* private window */ } };
+const params = new URLSearchParams(window.location.search);
+params.delete('page');
+const query = params.toString() ? '?' + params.toString() : '';
+const label = [...params].filter(([, v]) => v).map(([k, v]) => k + ': ' + v).join(' · ');
+if (label) write([{ qs: query, label }, ...read().filter(item => item.qs !== query)]);
+const render = () => {
+  const typed = (document.getElementById('register-q').value || '').toLocaleLowerCase().trim();
+  const all = read();
+  const list = all.map((item, i) => ({ ...item, i })).filter(item => !typed || item.label.toLocaleLowerCase().includes(typed));
+  document.getElementById('search-history-list').replaceChildren(...list.map(item => {
+    const i = item.i;
+    const li = document.createElement('li');
+    const link = Object.assign(document.createElement('a'), { href: {{ register_action|tojson }} + item.qs, textContent: item.label, title: item.label });
+    const remove = Object.assign(document.createElement('button'), { type: 'button', className: 'btn btn-ghost btn-icon btn-sm', title: {{ _('Togli dalla cronologia')|tojson }} });
+    remove.innerHTML = '<i class="bi bi-x-lg"></i>';
+    remove.addEventListener('click', e => { e.stopPropagation(); const rest = read(); rest.splice(i, 1); write(rest); render(); });
+    li.append(link, remove);
+    return li;
+  }));
+  document.getElementById('search-history-empty').hidden = all.length > 0;
+  document.getElementById('search-history-clear').hidden = !all.length;
+  return list.length;
+};
+document.getElementById('search-history-clear')?.addEventListener('click', () => { write([]); render(); });
+// the clock opens and closes the menu; a click elsewhere closes it
+const historyButton = document.getElementById('search-history-btn'), historyPop = document.getElementById('search-history-pop');
+const openHistory = (on) => { historyPop.hidden = !on; historyButton.setAttribute('aria-expanded', String(on)); };
+const searchBox = document.getElementById('register-q');
+historyButton?.addEventListener('click', () => { render(); openHistory(historyPop.hidden); });
+// clicking in the box shows the last searches; typing narrows them
+['focus', 'click'].forEach(type => searchBox?.addEventListener(type, () => { render(); openHistory(true); }));
+searchBox?.addEventListener('input', () => { render(); openHistory(true); });
+searchBox?.addEventListener('keydown', e => { if (e.key === 'Escape') openHistory(false); });
+document.addEventListener('click', e => { if (!e.target.closest('#search-history') && e.target.isConnected) openHistory(false); });
+render();
+}
+
+// Keyboard (F13): «n» opens a new transaction, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Y (or Shift+Z) redoes — not while typing
+document.addEventListener('keydown', (event) => {
+  const typing = event.target.closest('input, textarea, select, [contenteditable]');
+  if (typing) return;
+  const mod = event.ctrlKey || event.metaKey;
+  if (!mod && !event.altKey && event.key === 'n') {
+    event.preventDefault();
+    document.getElementById('add-bubble')?.click();  // the round +: a single transaction or a file
+  } else if (mod && event.key.toLowerCase() === 'z' && !event.shiftKey) {
+    document.getElementById('undo-button')?.click();
+  } else if (mod && (event.key.toLowerCase() === 'y' || (event.key.toLowerCase() === 'z' && event.shiftKey))) {
+    document.getElementById('redo-button')?.click();
+  }
+});
+const bulkBoxes = document.querySelectorAll('.bulk-select');
+const bulkButton = document.getElementById('bulk-delete');
+// Elimina, Assegna, Conferma and «Metti nell'evento» send the selection: the ticked rows or the whole search.
+// The delete form's own checkboxes (form="bulk-form") are dropped for the whole search: the filters say it all.
+['bulk-form', 'assign-form', 'confirm-form', 'event-form'].map(id => document.getElementById(id)).filter(Boolean).forEach(form => {
+  form.addEventListener('submit', () => {
+    fillSelection(form);
+    bulkBoxes.forEach(box => { box.disabled = form.id === 'bulk-form' && wholeSearch(); });
+  });
+});
+const classifyButton = document.getElementById('ai-classify');
+const refreshBulk = () => {
+  const count = selectedCount();
+  const deleteIcon = document.getElementById('bulk-delete-icon');
+  if (deleteIcon) deleteIcon.disabled = count === 0;
+  if (bulkButton) {
+    bulkButton.disabled = count === 0;
+    document.getElementById('bulk-count').textContent = count;
+    // the question before deleting says how many go, and that it is the whole search
+    document.getElementById('bulk-form').dataset.confirm = wholeSearch()
+      ? fmt({{ _('Eliminare definitivamente tutte le %(count)s transazioni della ricerca (tutte le pagine)?', count='%(count)s')|tojson }}, { count })
+      : {{ _('Eliminare definitivamente le transazioni selezionate?')|tojson }};
+  }
+  ['bulk-assign', 'bulk-confirm', 'bulk-event'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = count === 0; });
+  if (classifyButton) {
+    const unclassified = Number(classifyButton.dataset.unclassified);
+    document.getElementById('ai-classify-label').textContent = count
+      ? fmt({{ _('Classifica con AI (%(count)s selezionate)', count='%(count)s')|tojson }}, {count: count})
+      : (unclassified ? fmt({{ _('Classifica con AI (%(count)s senza categoria)', count='%(count)s')|tojson }}, {count: unclassified}) : {{ _('Classifica con AI')|tojson }});
+    classifyButton.disabled = !count && !unclassified;
+  }
+};
+
+// AI classification: the selection (ticked rows or the whole search), or (none selected) those without a category
+classifyButton?.addEventListener('click', async () => {
+  if (classifyButton.dataset.cloud === 'true' &&
+      !(await mfpConfirm({{ _('Le causali verranno inviate ad Anthropic (cloud) per la classificazione. Continuare?')|tojson }}))) return;
+  const form = document.getElementById('classify-form');
+  fillSelection(form);
+  classifyButton.disabled = true;
+  document.getElementById('ai-classify-label').textContent = {{ _('Classificazione in corso…')|tojson }};
+  form.submit();
+});
+bulkBoxes.forEach(b => b.addEventListener('change', refreshBulk));
+refreshBulk();
+document.getElementById('select-all')?.addEventListener('change', (e) => {
+  bulkBoxes.forEach(b => { b.checked = e.target.checked; });
+  refreshBulk();
+});
+bulkBoxes.forEach(b => b.addEventListener('change', () => setTimeout(refreshBulk)));
+bulkBoxes.forEach(b => b.addEventListener('change', () => { if (!b.checked) document.getElementById('select-all').checked = false; }));
+</script>

@@ -1249,8 +1249,9 @@ td.amount { white-space: nowrap; }
 /* ── Report page ────────────────────────────────────────────────────────────── */
 .report-bar { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap;
               border-bottom: 1px solid var(--clr-border); }
-.report-tabs { display: flex; gap: 4px; flex-wrap: wrap; }  /* many tabs (Fisco) wrap on a phone */
-.report-tab { padding: 10px 14px; font-weight: 600; font-size: var(--font-size-sm); color: var(--clr-text-muted);
+.report-tabs { display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }  /* many tabs (Fisco): they scroll sideways */
+.report-tabs::-webkit-scrollbar { display: none; }
+.report-tab { padding: 10px 14px; font-weight: 600; font-size: var(--font-size-sm); color: var(--clr-text-muted); white-space: nowrap; flex-shrink: 0;
               border-bottom: 2px solid transparent; margin-bottom: -1px; text-decoration: none; }
 .report-tab:hover { color: var(--clr-text-primary); text-decoration: none; }
 .report-tab.active { color: var(--clr-primary); border-bottom-color: var(--clr-primary); }
@@ -1289,6 +1290,7 @@ td.amount { white-space: nowrap; }
                background: var(--clr-primary-light); font-size: var(--font-size-sm); }
 .report-chip a { color: inherit; padding: 2px 6px; }
 .report-bottom { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 16px; align-items: start; }
+.report-bottom-single { grid-template-columns: minmax(0, 1fr); }  /* F99: only the summary — the register comes under it */
 .report-sort .form-select { width: auto; }
 .report-day { display: flex; justify-content: space-between; padding: 8px 20px; background: var(--clr-bg-table-alt);
               border-top: 1px solid var(--clr-border-light); border-bottom: 1px solid var(--clr-border-light);
@@ -1656,10 +1658,15 @@ html.embedded .card { border: none; box-shadow: none; }
 .cluster-categories { padding: 0 0 12px; }
 
 /* ── Accounting overview: the statements as tabs that open and close ── */
-.statement-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-.statement-tab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--clr-border);
-  background: var(--clr-bg-card); color: var(--clr-text-secondary); font: inherit; font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; }
-.statement-tab[aria-selected="true"] { border-color: var(--clr-primary); color: var(--clr-primary); background: var(--clr-primary-light); }
+/* the tabs inside a page (Panoramica Finanziaria, Categorie): the same underlined tabs as everywhere (decided 15 Nov) */
+.statement-tabs { display: flex; flex-wrap: nowrap; gap: 4px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--clr-border); }
+.statement-tabs::-webkit-scrollbar { display: none; }
+.statement-tab { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; margin-bottom: -1px; flex-shrink: 0; white-space: nowrap;
+  border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--clr-text-muted);
+  font: inherit; font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; text-decoration: none; }
+.statement-tab:hover { color: var(--clr-text-primary); text-decoration: none; }
+.statement-tab[aria-selected="true"] { color: var(--clr-primary); border-bottom-color: var(--clr-primary); background: none; }
 .statement-panel[hidden] { display: none; }
 .statement-frame { display: block; width: 100%; min-height: 320px; border: 0; }
 
@@ -2377,3 +2384,18 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
   html.sidebar-mini .archive-switch-btn { justify-content: center; padding: 8px 0; }
   html.sidebar-mini .archive-switch-text, html.sidebar-mini .archive-switch-chevron { display: none; }
 }
+
+/* F98: an archive's icon — a round button in its colour on the archives page, and the window of icons */
+.client-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0;
+  border: 0; border-radius: 50%; background: var(--archive-color); color: #fff; font-size: 17px; cursor: pointer; }
+.client-icon-btn:hover, .client-icon-btn:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--archive-color) 35%, transparent); }
+.icon-chooser { max-width: 420px; }
+.icon-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.icon-choice { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; border: 1px solid var(--clr-border);
+  border-radius: var(--border-radius); background: var(--clr-bg-card); color: var(--clr-text-primary); font-size: 20px; cursor: pointer; }
+.icon-choice:hover { border-color: var(--clr-primary); color: var(--clr-primary); }
+.icon-choice.is-current { border-color: var(--clr-primary); background: var(--clr-primary-light); color: var(--clr-primary); }
+
+/* F99: the tabs of a section (Transazioni, Panoramica Finanziaria): the underlined tabs on their own line */
+.section-tabs { border-bottom: 1px solid var(--clr-border); }
+.report-tab > .bi { margin-right: 4px; }

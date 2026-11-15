@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 11:39+0100\n"
+"POT-Creation-Date: 2026-11-15 11:55+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2098,6 +2098,13 @@ msgstr "Change columns"
 
 msgid "Cambia i campi"
 msgstr "Change the fields"
+
+msgid "Cambia icona"
+msgstr "Change icon"
+
+#, python-format
+msgid "Cambia l’icona di «%(name)s»"
+msgstr "Change the icon of «%(name)s»"
 
 msgid "Cambia modello"
 msgstr "Change model"
@@ -11478,6 +11485,9 @@ msgstr "Choose a name that is not empty and not used by another preset."
 msgid "Scegli una password: senza, i backup non si potranno aprire."
 msgstr "Choose a password: without it the backups could not be opened."
 
+msgid "Scegli un’icona"
+msgstr "Choose an icon"
+
 msgid "Sceglilo nelle Impostazioni."
 msgstr "Choose it in Settings."
 
@@ -12736,12 +12746,24 @@ msgstr "Transactions"
 msgid "Transazioni conti e contante"
 msgstr "Account and cash transactions"
 
+msgid "Transazioni di entrata"
+msgstr "Income transactions"
+
+msgid "Transazioni di uscita"
+msgstr "Expense transactions"
+
 #, python-format
 msgid "Transazioni di «%(category)s» nel periodo"
 msgstr "Transactions of «%(category)s» in the period"
 
 msgid "Transazioni investimenti"
 msgstr "Investment transactions"
+
+msgid "Transazioni ricorrenti in entrata"
+msgstr "Recurring income transactions"
+
+msgid "Transazioni ricorrenti in uscita"
+msgstr "Recurring expense transactions"
 
 msgid ""
 "Trascina blocchi e schede per spostarli; cambia larghezza e altezza o "

@@ -16,6 +16,7 @@ class Client(db.Model):
     slug       = db.Column(db.String(40), nullable=False, unique=True)  # [a-z0-9_]: folder and database name
     database   = db.Column(db.String(63))  # None: the studio database itself (the primary client)
     color      = db.Column(db.String(7), nullable=False, default="#2563eb")
+    icon       = db.Column(db.String(30), nullable=False, default="archive", server_default="archive")  # F98: see studio.ICONS
     notes      = db.Column(db.Text)
     archived   = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)

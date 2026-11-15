@@ -12,7 +12,10 @@
   <div class="card client-card{{ ' client-open' if client.id == open_client.id }}{{ ' client-archived' if client.archived }}" id="client-{{ client.id }}">
     <div class="card-body">
       <div class="d-flex align-center gap-8 mb-8">
-        <span class="client-badge" style="background:{{ client.color }}">{{ client.initials }}</span>
+        {# F98: the archive's icon — a click opens the window of icons #}
+        <button type="button" class="client-icon-btn" style="--archive-color: {{ client.color }}" data-icon-for="{{ client.id }}"
+                data-icon-action="{{ url_for('clients.set_icon', client_id=client.id) }}" data-icon-current="{{ client.icon }}"
+                title="{{ _('Cambia icona') }}" aria-label="{{ _('Cambia l’icona di «%(name)s»', name=client.name) }}"><i class="bi bi-{{ client.icon or 'archive' }}"></i></button>
         <div>
           <div class="fw-600">{{ client.name }}</div>
           <div class="text-xs text-muted">
@@ -97,4 +100,27 @@
     </form>
   </div>
 </div>
+
+{# F98: the window of icons — one form, its action set by the archive whose icon was clicked #}
+<div class="modal-overlay" id="icon-chooser" onclick="if (event.target === this) closeModal('icon-chooser')">
+  <div class="modal icon-chooser" role="dialog" aria-modal="true" aria-labelledby="icon-chooser-title">
+    <div class="modal-header">
+      <h3 class="modal-title" id="icon-chooser-title">{{ _('Scegli un’icona') }}</h3>
+      <button type="button" class="modal-close" onclick="closeModal('icon-chooser')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form method="POST" class="modal-body icon-grid" id="icon-form">
+      {% for icon in icons %}
+      <button type="submit" name="icon" value="{{ icon }}" class="icon-choice" title="{{ icon }}" aria-label="{{ icon }}"><i class="bi bi-{{ icon }}"></i></button>
+      {% endfor %}
+    </form>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.client-icon-btn').forEach(button => button.addEventListener('click', () => {
+  const form = document.getElementById('icon-form');
+  form.action = button.dataset.iconAction;
+  form.querySelectorAll('.icon-choice').forEach(choice => choice.classList.toggle('is-current', choice.value === button.dataset.iconCurrent));
+  openModal('icon-chooser');
+}));
+</script>
 {% endblock %}
