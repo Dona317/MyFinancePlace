@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:45+0100\n"
+"POT-Creation-Date: 2026-11-15 14:46+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -5756,6 +5756,9 @@ msgstr "Wealth over the years"
 msgid "Il percorso completo, sul computer dove gira l’app."
 msgstr "The full path, on the computer where the app runs."
 
+msgid "Il periodo della stessa durata appena prima"
+msgstr "The period of the same length just before"
+
 msgid "Il periodo finisce prima di cominciare."
 msgstr "The period ends before it starts."
 
@@ -7664,6 +7667,13 @@ msgstr "Show the preview"
 
 msgid "Mostra o nascondi"
 msgstr "Show or hide"
+
+msgid ""
+"Mostra sotto Entrate, Uscite e Tasso di risparmio il periodo della stessa "
+"durata appena prima"
+msgstr ""
+"Show under Income, Expenses and Savings rate the period of the same length "
+"just before"
 
 msgid "Mostra tutta la descrizione"
 msgstr "Show the whole description"

@@ -16,7 +16,9 @@ from app.services import (
     performance,
     portfolio_overview,
     price_feed,
+    reports,
     sankey,
+    settings_store,
     shared_period,
     valuations,
     wealth,
@@ -33,6 +35,7 @@ dashboard_bp = APIBlueprint(
 
 TREND_LINES = 6  # categories drawn one by one in the monthly lines; the rest are added up in «Altre»
 PIE_PARTS = ("year", "H1", "H2", "Q1", "Q2", "Q3", "Q4")  # the doughnuts: the whole year, a half or a quarter
+COMPARE_SETTING = "dashboard.compare"
 RECENT_ROWS = 25  # the last ones of the «Transazioni» card; the card scrolls when its row is shorter
 IMPACT_ROWS = 60  # biggest movements of the window sent to the page, filtered there by category
 # Typical unexpected expenses («cigni neri»): what each would take from the savings
@@ -194,6 +197,13 @@ def dashboard():
         return _translated(analytics.category_trend(pie_start, trend_end, TREND_LINES, kind, other=True))
 
     period_totals = analytics.totals(pie_start, pie_end)
+    # F101: «Confronta con il periodo prima» — the period of the same length just before, under the cards (kept)
+    if request.args.get("compare") in ("0", "1"):
+        settings_store.set(COMPARE_SETTING, request.args["compare"])
+    compare = settings_store.get(COMPARE_SETTING, "0") == "1"
+    before_start, before_end = reports.previous_range(pie_start, pie_end)
+    before_totals = analytics.totals(before_start, before_end) if compare else None
+    before_label = f"{before_start:%m/%Y} – {before_end - timedelta(days=1):%m/%Y}"
     # the cards of the period: income, expenses and savings over it; net worth, investments and debt at its end
     # (today for the period under way)
     as_of = min(pie_end - timedelta(days=1), today)
@@ -217,6 +227,7 @@ def dashboard():
         savings_flow=_savings_flow(cash_flow),
         year=year, year_to=year_to, years=years, part=part, as_of=as_of, pie_parts=PIE_PARTS, pie_start=pie_start, pie_last=pie_end - timedelta(days=1),
         period=period, period_choices=shared_period.part_choices(period),
+        compare=compare, before_totals=before_totals, before_label=before_label,
         expense_breakdown=analytics.category_breakdown(pie_start, pie_end, "expense"),
         income_breakdown=analytics.category_breakdown(pie_start, pie_end, "income"),
         expense_trend=trend_of("expense"),

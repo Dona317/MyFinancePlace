@@ -23,6 +23,9 @@
           aria-pressed="{{ 'true' if loop.index == presets.active else 'false' }}" title="{{ _('Doppio clic per rinominare') }}">{{ item.name }}</button>
   {% endfor %}
   {{ info(_('I preset della dashboard servono a salvare una configurazione dei grafici e delle schede. Doppio clic per rinominarlo.')) }}
+  {# F101: the period of the same length just before, under the cards of the period #}
+  <a href="{{ url_for('dashboard.dashboard', compare='0' if compare else '1') }}" class="preset-btn{{ ' is-active' if compare }}" aria-pressed="{{ 'true' if compare else 'false' }}"
+     title="{{ _('Mostra sotto Entrate, Uscite e Tasso di risparmio il periodo della stessa durata appena prima') }}"><i class="bi bi-arrow-left-right"></i> {{ _('Confronta') }}</a>
   <button type="button" class="btn btn-primary btn-sm preset-save" id="preset-save"{{ ' hidden' if not preset_changed }}
           title="{{ _('Salva sul preset in uso la disposizione e il periodo di adesso') }}"><i class="bi bi-save"></i> <span class="preset-save-word">{{ _('Salva preset') }}</span></button>
 </div>
@@ -46,12 +49,13 @@
 {% endblock %}
 
 {# A top card whose money adds up over a time window of its own: the window is chosen in the card and kept #}
-{% macro window_card(card, icon, title, cls, href, value=none, amount=none, forecast=none, forecast_value='') -%}
+{% macro window_card(card, icon, title, cls, href, value=none, amount=none, forecast=none, forecast_value='', before=none) -%}
 <div class="kpi-card kpi-click {{ cls }}" data-href="{{ href }}" title="{{ _('Apri il dettaglio') }}">
   <div class="kpi-icon"><i class="bi bi-{{ icon }}"></i></div>
   <div class="kpi-label">{{ title }}</div>
   <div class="kpi-value"{% if amount is not none %} data-amount="{{ amount }}"{% endif %}>{{ value if value is not none else '—' }}</div>
   <div class="kpi-sub"><i class="bi bi-calendar3"></i> {{ period_label }}</div>
+  {% if before %}<div class="kpi-sub kpi-before" title="{{ _('Il periodo della stessa durata appena prima') }}"><i class="bi bi-arrow-left-right"></i> {{ before_label }}: {{ before }}</div>{% endif %}
   {% if forecast %}
   <a class="kpi-forecast" href="{{ url_for('forecast.index') }}" title="{{ _('Apri le previsioni') }}">
     <i class="bi bi-graph-up-arrow"></i> {{ forecast.label }}: <strong>{{ forecast_value }}</strong>
@@ -97,14 +101,14 @@
   {% set c = cards.income %}
   {{ window_card('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive',
                  url_for('reports.income', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
-                 amount=c.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else '')) }}
+                 amount=c.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else ''), before=(before_totals.income|money if before_totals else none)) }}
 {% endcall %}
 {% elif k.id == 'expenses' and settings.dashboard_expenses %}
 {% call kpi_slot(k) %}
   {% set c = cards.expenses %}
   {{ window_card('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative',
                  url_for('reports.spending', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
-                 amount=c.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else '')) }}
+                 amount=c.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else ''), before=(before_totals.expenses|money if before_totals else none)) }}
 {% endcall %}
 {% elif k.id == 'savings_rate' and settings.dashboard_savings_rate %}
 {% call kpi_slot(k) %}
@@ -112,7 +116,7 @@
   {{ window_card('savings_rate', 'piggy-bank', _('Tasso di Risparmio'), 'kpi-neutral',
                  url_for('accounting.cash_flow', year=pie_last.year),
                  value=("%.1f"|format(c.totals.savings_rate) ~ '%'), forecast=fc,
-                 forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else '')) }}
+                 forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else ''), before=(("%.1f"|format(before_totals.savings_rate) ~ '%') if before_totals else none)) }}
 {% endcall %}
 {% elif k.id == 'investments' and settings.dashboard_investments and allowed('portfolio') %}
 {% call kpi_slot(k) %}
