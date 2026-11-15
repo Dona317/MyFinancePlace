@@ -1,7 +1,7 @@
 """
 Generate FAKE bank statements for trying out the bank import (Esporta → Importa Estratto Conto Bancario).
 
-    python samples/bank_statements/generate.py
+    python docs/Transaction samples/bank_statements/generate.py
 
 All names, IBANs and amounts are invented. The output is deterministic (fixed random seed),
 so re-running the script produces the same movements.

@@ -13,7 +13,7 @@ from app.services import bank_import, statement_readers, transfer
 from tests.form_helper import form_data
 from tests.statements import fineco_xlsx, xlsx
 
-SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parent.parent / "docs" / "Transaction samples" / "bank_statements"
 sys.path.insert(0, str(SAMPLES))
 import generate as sample_generator  # noqa: E402
 

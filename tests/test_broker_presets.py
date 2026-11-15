@@ -14,7 +14,7 @@ from app.models.wealth import Holding
 from app.services import broker_import, import_presets
 from tests.form_helper import form_data
 
-SAMPLES = Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi" / "broker"
+SAMPLES = Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "dati_fittizi" / "broker"
 GENERIC = (SAMPLES / "generico_operazioni.csv").read_bytes()
 DEGIRO = (SAMPLES / "degiro_transazioni.csv").read_bytes()
 # a broker with titles nothing recognises

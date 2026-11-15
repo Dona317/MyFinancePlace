@@ -9,7 +9,7 @@ from app.models.transaction import Transaction
 from app.services import import_presets, settings_store
 from tests.form_helper import form_data
 
-SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parent.parent / "docs" / "Transaction samples" / "bank_statements"
 UNICREDIT = "unicredit_2026-08_2026-09.csv"
 HEADERS = ["Data Registrazione", "Data valuta", "Descrizione", "Importo (EUR)"]
 

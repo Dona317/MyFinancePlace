@@ -14,7 +14,7 @@ import pytest
 
 from app.services import ai_extraction, ai_jobs, upload_store
 
-SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parent.parent / "docs" / "Transaction samples" / "bank_statements"
 PHOTO = "FOTO_estratto_conto_intesa_2026-09.jpg"
 MOVEMENTS = [
     {"date": "2026-09-02", "description": "Esselunga Milano", "details": "Pagamento POS", "amount": -45.30},

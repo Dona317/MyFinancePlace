@@ -190,4 +190,4 @@ scripts/live/out*/
 cov.json
 
 # Answers saved by scripts/check_price_sources.py (F69): kept on the PC, curated before any test uses them
-samples/price_sources/
+docs/Transaction samples/price_sources/

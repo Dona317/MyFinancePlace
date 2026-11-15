@@ -47,8 +47,8 @@ To reset the imported data, delete the transactions (`python seed.py` wipes and 
 
 ```bash
 pip install xlwt fpdf2    # only needed for the binary .xls and the PDF samples
-python samples/bank_statements/generate.py
-python samples/bank_statements/generate.py revolut_2026-09.csv n26_2026-08.csv   # only these files
+python docs/Transaction samples/bank_statements/generate.py
+python docs/Transaction samples/bank_statements/generate.py revolut_2026-09.csv n26_2026-08.csv   # only these files
 ```
 
 The generator uses a fixed random seed, so the movements are the same each time.

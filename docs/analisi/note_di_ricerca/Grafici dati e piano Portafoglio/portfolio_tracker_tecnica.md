@@ -145,7 +145,7 @@ La strategia vincente è quella di PP: **molti estrattori piccoli, uno per broke
 
 ### Inferences
 - MyFinancePlace ha già un import Excel per i movimenti bancari (`Mapping-Excel`): conviene estenderlo con template per broker sul modello Wealthfolio (colonne, valori→tipo, simboli→ISIN), più `idempotency_key` = hash di (broker, data, ISIN, quantità, importo, id ordine) per evitare doppioni nei reimport.
-- Ordine di priorità sensato per l'Italia: Fineco xlsx, Directa (CSV/PDF), Degiro CSV, Trade Republic CSV, IBKR Flex XML, Scalable, Revolut. Il PDF ha senso solo con `pdfplumber`/`pypdf` e regex in stile PP, testate su testi anonimizzati in `samples/`.
+- Ordine di priorità sensato per l'Italia: Fineco xlsx, Directa (CSV/PDF), Degiro CSV, Trade Republic CSV, IBKR Flex XML, Scalable, Revolut. Il PDF ha senso solo con `pdfplumber`/`pypdf` e regex in stile PP, testate su testi anonimizzati in `docs/Transaction samples/`.
 - La licenza di PP è EPL-1.0: le regex si possono studiare, ma copiare codice va valutato. Non ho verificato la compatibilità con la licenza di MyFinancePlace.
 
 ### Gaps

@@ -1,5 +1,5 @@
 """
-The complete fictitious dataset (samples/dati_fittizi/genera_completo.py): three years on four linked accounts.
+The complete fictitious dataset (docs/Transaction samples/dati_fittizi/genera_completo.py): three years on four linked accounts.
 Built into the test database, it must add up — balances, transfers, investments — and fill every page; its
 statements of the last weeks must import through the usual preview.
 """
@@ -32,7 +32,7 @@ from app.services import (
 )
 from tests.conftest import make_tx
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "dati_fittizi"))
 import genera_completo as demo  # noqa: E402
 
 TODAY = date(2026, 10, 7)

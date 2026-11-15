@@ -7,7 +7,7 @@ from app.models.transaction import Transaction
 from app.services import bank_import, merchant
 from tests.conftest import make_tx
 
-SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parent.parent / "docs" / "Transaction samples" / "bank_statements"
 SKIP = ("SCANSIONE", "FOTO")  # read by OCR/AI, tested elsewhere
 
 

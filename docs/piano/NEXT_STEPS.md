@@ -83,7 +83,7 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   and 2 (XML), QIF (day/month order from the file, `L` category kept when it is one of ours, `L[Account]` = transfer),
   CAMT.053/052 (booked entries only, debtor/creditor as counterparty, opening/closing balance check; DOCTYPE/ENTITY
   refused); same preview, categories, merchants and duplicates as the other statements
-- **Complete demo dataset** (`samples/dati_fittizi/genera_completo.py`, `tests/test_demo_dataset.py`): three years
+- **Complete demo dataset** (`docs/Transaction samples/dati_fittizi/genera_completo.py`, `tests/test_demo_dataset.py`): three years
   on four accounts linked by transfers (current, credit card paid off monthly, savings, broker), with a portfolio
   built from linked trades (ETF plan, bond coupons, shares bought and half sold, crypto, pension contributions),
   six policies (one expiring soon, one ended) with their premiums, three debts (one repaid), PDF documents and
@@ -128,7 +128,7 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   restored over the current investments (accounts matched by name, a full backup saved first)
 - **Recurring calendar events** (F79): RRULE in the .ics and in the Google Calendar link; .ics lines folded per RFC 5545
 - **Light OCR on Python 3.13** (F80): rapidocr 3 + onnxruntime, tilted photos straightened
-- **Fictitious investments** (11 Nov 2026, `samples/dati_fittizi/genera_investimenti.py`): 10 ETFs of ten asset
+- **Fictitious investments** (11 Nov 2026, `docs/Transaction samples/dati_fittizi/genera_investimenti.py`): 10 ETFs of ten asset
   classes, shares, bonds, mutual/insurance/pension funds on two securities accounts, a model portfolio out of band,
   and the statements of both accounts (the history is recognized as already imported); checked by
   `tests/test_investments_dataset.py` and by the live run `scripts/live/investments.py`
@@ -141,7 +141,7 @@ project). Below only the technical notes that belong to an open item there.
 ### Notes for F4 — bank import with real statements
 
 - Check the new layouts (UniCredit, BPER, BancoPosta, ING, Revolut, N26) against real anonymized exports: they
-  follow the published column names, but the samples in `samples/bank_statements` are generated. Banca Sella,
+  follow the published column names, but the samples in `docs/Transaction samples/bank_statements` are generated. Banca Sella,
   Mediolanum and BCC are read by the generic layout until a real export shows distinctive columns
 - Files imported as "generic" before a bank got its own layout (e.g. a Revolut CSV) get a different fingerprint
   when imported again, so they are shown as *possible* duplicates (similar amount/date) rather than skipped

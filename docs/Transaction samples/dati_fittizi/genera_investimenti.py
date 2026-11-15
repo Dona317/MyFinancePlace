@@ -3,7 +3,7 @@ Fictitious investments to try the Portfolio section: ETFs of ten different asset
 insurance and pension funds, on two securities accounts, with almost three years of trades, a model portfolio out of
 balance (to try the rebalancing) and the broker statements of both accounts to import.
 
-    DATABASE_URL=postgresql://.../an_EMPTY_scratch_database python samples/dati_fittizi/genera_investimenti.py
+    DATABASE_URL=postgresql://.../an_EMPTY_scratch_database python docs/Transaction samples/dati_fittizi/genera_investimenti.py
 
 What it builds (every operation through services.portfolio_ops, so quantities, average prices, positions per
 securities account and per portfolio agree with the app's own computations):

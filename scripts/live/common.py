@@ -7,7 +7,7 @@ import traceback
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SAMPLES = ROOT / "samples" / "bank_statements"
+SAMPLES = ROOT / "docs" / "Transaction samples" / "bank_statements"
 BASE = os.environ.get("LIVE_URL", "http://localhost:5000")
 DB = os.environ.get("LIVE_DATABASE_URL", "postgresql://sa:Pa55w0rd@localhost:5432/mfp_live")
 OUT = Path(os.environ.get("LIVE_OUT", Path(__file__).resolve().parent / "out"))  # session, files, screenshots

@@ -39,5 +39,5 @@ le decisioni prese e quelle aperte.
 
 ## Fuori da questa cartella
 - [README.md](../README.md) e [CLAUDE.md](../CLAUDE.md) nella radice: presentazione del progetto e memoria per l'assistente.
-- I README accanto al codice che descrivono: `samples/dati_fittizi/` (dati demo), `samples/bank_statements/`
+- I README accanto al codice che descrivono: `docs/Transaction samples/dati_fittizi/` (dati demo), `docs/Transaction samples/bank_statements/`
   (estratti di prova), `scripts/live/` (test nel browser), `migrations/`.

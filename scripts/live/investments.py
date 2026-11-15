@@ -1,5 +1,5 @@
 """
-Live: the fictitious investments (samples/dati_fittizi/investimenti). The backup is restored from the Export page;
+Live: the fictitious investments (docs/Transaction samples/dati_fittizi/investimenti). The backup is restored from the Export page;
 then every page of the Portfolio section must open without errors, the rebalancing must show the equities above
 their band and propose orders, and the statements of the two securities accounts must import only this month's
 trades — the history already in the backup is recognized («Già importato») and importing it twice adds nothing.
@@ -13,7 +13,7 @@ from common import AUTH, OUT, ROOT, check, confirm, launch, local_assets, run, s
 from common import BASE as B
 from playwright.sync_api import sync_playwright
 
-DATA = ROOT / "samples" / "dati_fittizi" / "investimenti"
+DATA = ROOT / "docs" / "Transaction samples" / "dati_fittizi" / "investimenti"
 STATEMENTS = DATA / "conti_titoli"
 SHOTS = OUT / "shots"
 SHOTS.mkdir(parents=True, exist_ok=True)

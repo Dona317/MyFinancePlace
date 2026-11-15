@@ -4,7 +4,7 @@ every movement between the two accounts is in both files for the same amount (ou
 Like real banks, it is sometimes called «giroconto», sometimes a plain bonifico to oneself, and it arrives the same
 day, a few working days later or, now and then, up to two weeks later.
 
-    python samples/dati_fittizi/genera_due_banche.py      # writes samples/dati_fittizi/due_banche/
+    python docs/Transaction samples/dati_fittizi/genera_due_banche.py      # writes docs/Transaction samples/dati_fittizi/due_banche/
 
 - UniCredit (CSV): the everyday account of a couple. Both salaries, rent then mortgage, bills, groceries, fuel, restaurants,
   Christmas presents, random purchases, the broken washing machine, the wedding gifts, the 730 refunds.

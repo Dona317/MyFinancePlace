@@ -11,7 +11,7 @@ from app.services import bank_import, categories
 from app.services import structured_statements as structured
 from tests.form_helper import form_data
 
-SAMPLES = Path(__file__).resolve().parents[1] / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "bank_statements"
 
 OFX_SGML = b"""OFXHEADER:100
 DATA:OFXSGML

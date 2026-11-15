@@ -13,7 +13,7 @@ instance
 .pytest_cache
 .ruff_cache
 tests
-samples
+docs/Transaction samples
 docs
 *.md
 !README.md

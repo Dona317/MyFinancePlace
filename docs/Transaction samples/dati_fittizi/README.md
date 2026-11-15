@@ -40,13 +40,13 @@ Le date finiscono il giorno in cui i file sono stati generati. Per averli aggior
 
 ```bash
 createdb mfp_demo_gen
-DATABASE_URL=postgresql://utente:password@localhost:5432/mfp_demo_gen python samples/dati_fittizi/genera.py
+DATABASE_URL=postgresql://utente:password@localhost:5432/mfp_demo_gen python docs/Transaction samples/dati_fittizi/genera.py
 # i due estratti conto con i giroconti (nessun database: scrive solo i file in due_banche/)
-python samples/dati_fittizi/genera_due_banche.py
+python docs/Transaction samples/dati_fittizi/genera_due_banche.py
 # gli investimenti (un altro database vuoto)
 createdb mfp_demo_inv
-DATABASE_URL=postgresql://utente:password@localhost:5432/mfp_demo_inv python samples/dati_fittizi/genera_investimenti.py
+DATABASE_URL=postgresql://utente:password@localhost:5432/mfp_demo_inv python docs/Transaction samples/dati_fittizi/genera_investimenti.py
 # il set completo a 3 anni (un altro database vuoto)
 createdb mfp_demo_3anni
-DATABASE_URL=postgresql://utente:password@localhost:5432/mfp_demo_3anni python samples/dati_fittizi/genera_completo.py
+DATABASE_URL=postgresql://utente:password@localhost:5432/mfp_demo_3anni python docs/Transaction samples/dati_fittizi/genera_completo.py
 ```

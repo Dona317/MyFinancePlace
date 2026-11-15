@@ -6,7 +6,7 @@ The development sandbox cannot reach these sites, so this script is run on the u
     python scripts/check_price_sources.py
     python scripts/check_price_sources.py --etf IE00B4L5Y983 --bond IT0005083057 --fund IE00B03HCZ61
 
-Only the standard library is used. Each answer is saved under samples/price_sources/<date>/ (to write offline tests
+Only the standard library is used. Each answer is saved under docs/Transaction samples/price_sources/<date>/ (to write offline tests
 from real pages) and a summary is written to report.md in the same folder. Nothing but ISINs and tickers is sent,
 with at most one request a second per site. The script always says who it is (the app's own user agent) and never
 tries to get past an anti-bot wall, a login or a token: a source behind one is reported as blocked, and that is the
@@ -126,7 +126,7 @@ def main() -> int:
                         "XDWD.DE", help="ticker Yahoo da scaricare di fila (5 anni, giornaliero)")
     args = parser.parse_args()
 
-    folder = ROOT / "samples" / "price_sources" / date.today().isoformat()
+    folder = ROOT / "docs" / "Transaction samples" / "price_sources" / date.today().isoformat()
     folder.mkdir(parents=True, exist_ok=True)
     client = Client(folder)
     year_ago = (date.today() - timedelta(days=365)).isoformat()

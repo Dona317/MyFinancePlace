@@ -16,7 +16,7 @@ from app.models.transaction import Transaction
 from app.services import accounts
 from tests.form_helper import form_data
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "dati_fittizi"))
 import genera_due_banche as two  # noqa: E402
 
 HEADER = "Data Registrazione;Data valuta;Descrizione;Causale;Importo (EUR)\n"

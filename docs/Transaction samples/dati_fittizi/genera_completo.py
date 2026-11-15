@@ -1,7 +1,7 @@
 """
 The complete fictitious dataset: three years of one household on FOUR linked accounts, to try every page of the app.
 
-    DATABASE_URL=postgresql://.../an_EMPTY_scratch_database python samples/dati_fittizi/genera_completo.py
+    DATABASE_URL=postgresql://.../an_EMPTY_scratch_database python docs/Transaction samples/dati_fittizi/genera_completo.py
 
 Accounts and how they are linked (every link is a «giroconto», a transfer between own accounts):
 - Conto corrente Fineco: salary, mortgage, bills, groceries; pays the credit card every month, puts money aside on

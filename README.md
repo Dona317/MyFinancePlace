@@ -174,7 +174,7 @@ description) are flagged "Possibile duplicato" and deselected until you check th
   and from the duplicates page.
 
 Fake statements to try it with, in every supported format, are in
-[`samples/bank_statements/`](samples/bank_statements/README.md).
+[`docs/Transaction samples/bank_statements/`](docs/Transaction samples/bank_statements/README.md).
 
 After pulling this change run `flask --app run db upgrade` to add the `import_ref` column.
 

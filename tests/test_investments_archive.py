@@ -27,7 +27,7 @@ from app.models import (
 from app.services import accounts, investments_archive, securities
 from app.services.investments_archive import ArchiveError
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "dati_fittizi"))
 import genera_investimenti as demo  # noqa: E402
 
 TODAY = date(2026, 11, 11)

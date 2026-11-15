@@ -1,5 +1,5 @@
 """
-The two-bank fictitious statements (samples/dati_fittizi/genera_due_banche.py): January 2022 – September 2026, and
+The two-bank fictitious statements (docs/Transaction samples/dati_fittizi/genera_due_banche.py): January 2022 – September 2026, and
 every movement between the two accounts in both files for the same amount, up to 15 days apart. The committed files
 must be the generator's output and must be read by the bank import as UniCredit and Fineco.
 """
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from app.services import bank_import
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "dati_fittizi"))
 import genera_due_banche as two  # noqa: E402
 
 MOVES = two.build()

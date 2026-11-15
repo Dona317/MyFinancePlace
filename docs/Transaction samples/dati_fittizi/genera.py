@@ -2,7 +2,7 @@
 Generate the fictitious data of this folder: a full backup (.zip) to restore from the app and a CSV of
 transactions to import. Everything is invented (people, amounts, policy numbers).
 
-    DATABASE_URL=postgresql://.../an_EMPTY_scratch_database python samples/dati_fittizi/genera.py
+    DATABASE_URL=postgresql://.../an_EMPTY_scratch_database python docs/Transaction samples/dati_fittizi/genera.py
 
 It needs an empty scratch database (it creates the tables and fills them); your real database is never touched.
 The files are already in the folder: you only need this script to regenerate them.

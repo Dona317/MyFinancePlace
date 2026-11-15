@@ -16,7 +16,7 @@ from app.models.wealth import Holding
 from app.services import broker_import, investments_archive, portfolio_models, transfer
 from tests.conftest import make_tx
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "dati_fittizi"))
 import genera_investimenti as demo  # noqa: E402
 
 TODAY = date(2026, 11, 11)

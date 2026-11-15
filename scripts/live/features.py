@@ -13,7 +13,7 @@ from common import AUTH, OUT, SHOTS, check, choose, confirm, launch, local_asset
 from common import BASE as B
 from playwright.sync_api import sync_playwright
 
-SAMPLES = Path(__file__).resolve().parents[2] / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parents[2] / "docs" / "Transaction samples" / "bank_statements"
 
 with sync_playwright() as p:
     br = launch(p)

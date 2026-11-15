@@ -18,7 +18,7 @@ from app.services.bank_import.model import StatementRow
 from app.services.bank_import.rows import _investment
 from tests.form_helper import form_data
 
-SAMPLES = Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi" / "broker"
+SAMPLES = Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "dati_fittizi" / "broker"
 DEGIRO = (SAMPLES / "degiro_transazioni.csv").read_bytes()
 GENERIC = (SAMPLES / "generico_operazioni.csv").read_bytes()
 

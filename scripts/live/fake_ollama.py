@@ -11,7 +11,7 @@ from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "samples" / "bank_statements"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "docs" / "Transaction samples" / "bank_statements"))
 import generate as g  # noqa: E402  (the sample generator: the photo shows these movements)
 
 INSTALLED = {"qwen2.5vl:7b": 6.0e9, "qwen3:1.7b": 1.4e9, "llama3.2:1b": 1.3e9}

@@ -7,7 +7,7 @@ import pytest
 
 from app.services import ai_extraction, column_guess, transfer
 
-SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parent.parent / "docs" / "Transaction samples" / "bank_statements"
 
 
 def _mapped(guess):

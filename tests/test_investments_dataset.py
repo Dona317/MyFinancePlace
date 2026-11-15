@@ -1,5 +1,5 @@
 """
-The fictitious investments (samples/dati_fittizi/genera_investimenti.py): ten ETFs of different asset classes,
+The fictitious investments (docs/Transaction samples/dati_fittizi/genera_investimenti.py): ten ETFs of different asset classes,
 shares, bonds and funds on two securities accounts, with a model portfolio out of balance and the statements of
 both accounts. Built into the test database, it must add up — positions, liquidity never below zero, the model —
 and its statements must import only this month's trades.
@@ -20,7 +20,7 @@ from app.models.transaction import Transaction
 from app.models.wealth import Holding
 from app.services import accounts, backup, broker_import, portfolio_models, securities
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "samples" / "dati_fittizi"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "docs" / "Transaction samples" / "dati_fittizi"))
 import genera_investimenti as demo  # noqa: E402
 
 TODAY = date(2026, 11, 11)

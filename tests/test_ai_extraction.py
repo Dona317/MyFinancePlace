@@ -20,7 +20,7 @@ from app.models.transaction import Transaction
 from app.services import ai_extraction, bank_import
 from tests.form_helper import form_data
 
-SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parent.parent / "docs" / "Transaction samples" / "bank_statements"
 SCAN = "SCANSIONE_fineco_2026-07_2026-08.pdf"
 PHOTO = "FOTO_estratto_conto_intesa_2026-09.jpg"
 

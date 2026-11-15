@@ -19,7 +19,7 @@ What the first complete version must do, and where each item stands. Details and
 | Report | Spese, entrate, cash flow per periodo e conto, dettaglio per categoria, CSV |
 | Import | Estratti conto di 8 banche + formato generico (Excel, CSV, PDF, Word, ODF, RTF), anteprima modificabile; scansioni e foto lette da un **OCR leggero** con l'AI come riserva |
 | Patrimonio | Conti e carte, più valute, portafoglio, debiti, assicurazioni, documenti, obiettivi, snapshot, stato patrimoniale |
-| Dati | Backup completo (.zip) e ripristino; dati di esempio in `samples/dati_fittizi` |
+| Dati | Backup completo (.zip) e ripristino; dati di esempio in `docs/Transaction samples/dati_fittizi` |
 | Interfaccia | Italiano / inglese, tema chiaro / scuro, menu laterale comprimibile, uso da telefono |
 | **Login** | Primo utente = amministratore creato al primo avvio; poi utenti aggiunti solo da un amministratore; dati condivisi da tutti; cambio password; comandi `flask users` per recuperare l'accesso |
 | **Saldi in valuta** | Ogni conto somma nella propria valuta: per i movimenti in un'altra valuta vale l'importo addebitato dalla banca (campo nel modulo, anche per il conto d'arrivo dei giroconti) oppure, finché manca, il cambio del giorno, con un avviso nel dettaglio del conto; totali dei conti e saldi iniziali convertiti nella valuta base |
@@ -36,7 +36,7 @@ Niente: tutti i punti dell'MVP sono fatti.
   MILANO" → *Esselunga*, "Bonifico a IMMOBILIARE CASA BELLA SRL per AFFITTO" → *Immobiliare Casa Bella*,
   "Addebito SDD - ENEL ENERGIA SPA bolletta luce" → *Enel Energia*. Diventa la controparte e il primo tag, già
   nell'anteprima dell'import; per le transazioni già salvate c'è **Compila controparti** in Transazioni.
-- **Verificato su tutti i file di `samples/bank_statements`** (8 banche + formati generici): l'esercente c'è in
+- **Verificato su tutti i file di `docs/Transaction samples/bank_statements`** (8 banche + formati generici): l'esercente c'è in
   tutti i movimenti che ne nominano uno; restano senza solo commissioni e prelievi.
 - Quando arriveranno estratti **reali anonimizzati**, da ricontrollare: i layout (seguono i nomi di colonna
   pubblicati dalle banche) e le causali con formati che i campioni non hanno.

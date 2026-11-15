@@ -226,9 +226,9 @@ def test_unsupported_file_is_reported(client, db):
         assert ".docx" in session["_flashes"][0][1]
 
 
-# ── Sample statements shipped in samples/bank_statements ──────────────────────
+# ── Sample statements shipped in docs/Transaction samples/bank_statements ──────────────────────
 
-SAMPLES = Path(__file__).resolve().parent.parent / "samples" / "bank_statements"
+SAMPLES = Path(__file__).resolve().parent.parent / "docs" / "Transaction samples" / "bank_statements"
 
 
 @pytest.mark.parametrize("filename, bank", [
