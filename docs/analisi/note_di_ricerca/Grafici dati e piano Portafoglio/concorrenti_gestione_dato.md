@@ -54,7 +54,7 @@ Fra le app open source, quelle più complete sul dato importato sono Sure ed ezB
 - Issue più votate: #10662 OIDC (37), #5396 SimpleFIN nel Data Importer (28), #5532 prezzi degli asset e cambi (20), #10753 Enable Banking nel Data Importer (16), #4917 template di transazioni (14, aperta) — ricerca GitHub (V)
 
 **Wealthfolio (Tauri/Rust, local-first, portafoglio + spese)**
-- Dati salvati localmente, con crittografia opzionale del database e backup protetti da password. "Wealthfolio Connect" a pagamento offre sync fra dispositivi **E2EE**, backup cloud cifrati e sync dei broker — [README](https://github.com/wealthfolio/wealthfolio/blob/main/README.md); [ROADMAP.md](https://github.com/wealthfolio/wealthfolio/blob/main/ROADMAP.md) (V)
+- Dati salvati localmente, con crittografia opzionale del database e backup protetti da password. "Wealthfolio Connect" a pagamento offre sync fra dispositivi **E2EE**, backup cloud cifrati e sync dei broker — [README](https://github.com/wealthfolio/wealthfolio/blob/main/README.md); [docs/piano/ROADMAP.md](https://github.com/wealthfolio/wealthfolio/blob/main/ROADMAP.md) (V)
 - Import CSV avanzato con mappatura dei campi; assistente AI con modello locale o chiave propria anche per importare CSV; **server MCP** (crate `wealthfolio-mcp`); profili separati; regole di categorizzazione per le spese — [README](https://github.com/wealthfolio/wealthfolio/blob/main/README.md); [crates](https://github.com/wealthfolio/wealthfolio/tree/main/crates) (V)
 - Issue: #418 convertitori per i CSV dei broker più diffusi (14, aperta), #42 profili di import CSV (9, chiusa), #1211 saldo progressivo del conto (9, chiusa) — ricerca GitHub (V)
 

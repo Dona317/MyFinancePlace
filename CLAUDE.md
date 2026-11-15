@@ -10,10 +10,11 @@
   in `test-Cloud`: vanno cancellati a mano su GitHub.
 
 ## Dove sono le cose
-- Piano, decisioni e TODO: `docs/PIANO_E_TODO.md`
-- App desktop (pacchetti, notifiche, avvio automatico, installatore): `docs/DESKTOP.md`
+- Indice di tutta la documentazione (piano, strategia e business, analisi, tecnica): `docs/README.md`
+- Piano, decisioni e TODO: `docs/piano/PIANO_E_TODO.md`
+- App desktop (pacchetti, notifiche, avvio automatico, installatore): `docs/tecnica/DESKTOP.md`
 - Dati demo: `samples/dati_fittizi/` (investimenti: `samples/dati_fittizi/investimenti/`, generati da `genera_investimenti.py`)
-- Stato dei lavori (SAL) e decisioni aperte: sezione 0 di `docs/PIANO_E_TODO.md` (riaperta dal promemoria delle 13:30)
+- Stato dei lavori (SAL) e decisioni aperte: sezione 0 di `docs/piano/PIANO_E_TODO.md` (riaperta dal promemoria delle 13:30)
 
 ## Come verificare
 - Test: `TEST_DATABASE_URL=postgresql://… python -m pytest -q --cov=app --cov-report=json:cov.json --cov-fail-under=94`,

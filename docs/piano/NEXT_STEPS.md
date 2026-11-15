@@ -31,7 +31,7 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   date (ECB download) and totals in a chosen base currency; **monthly budgets** with warnings; **reminders**
   (bell in the top bar); **editable categories** and **categorization rules** written or learned from
   corrections; cash flow from **explicit links** to investments and debts; display preferences applied
-- **CI** (GitHub Actions), **Docker** image and compose, **production config** (see `docs/DEPLOY.md`)
+- **CI** (GitHub Actions), **Docker** image and compose, **production config** (see `docs/tecnica/DEPLOY.md`)
 - **Interface in Italian or English** (Settings → Visualizzazione → Lingua): Flask-Babel, Italian as the source,
   `app/translations/en` complete; words stored as data (policy types, asset classes…) stay Italian in the database
   and are translated when shown. After changing texts: `python scripts/translations.py update`, translate the new
@@ -45,7 +45,7 @@ Current status and roadmap. Update this file as items are completed. The MVP che
   administrators add users (Impostazioni → Account e utenti); the data is shared; pages redirect to the login,
   the API answers 401; `flask users create|reset-password|list`; users are not part of backups
 - **Docker**: the `db` volume now holds the data (`PGDARE` typo fixed) and the image is pinned to `postgres:16`;
-  moving an older installation is described in `docs/DEPLOY.md`
+  moving an older installation is described in `docs/tecnica/DEPLOY.md`
 - **Balances in the account's currency**: a transaction in another currency counts with what the bank charged
   (`account_amount`, `counter_amount` for the arriving side of a transfer) or, until entered, with the day's rate;
   opening balances and account totals are converted to the base currency; every app function is run by a test

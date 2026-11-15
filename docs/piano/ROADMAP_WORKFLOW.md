@@ -11,7 +11,7 @@ Everything is merged into `test-Cloud` (PR #8) after the full test suite passes 
 
 | Track | Who | Branch | Test DB | Port | Owns |
 |---|---|---|---|---|---|
-| **A — Infrastructure** | background agent | `track/infra` | `mfp_test_infra` | 5001 | `.github/`, `Dockerfile`, `docker-compose.yml`, `wsgi.py`, `gunicorn.conf.py`, `config.py` (production part), logging, `docs/DEPLOY.md` |
+| **A — Infrastructure** | background agent | `track/infra` | `mfp_test_infra` | 5001 | `.github/`, `Dockerfile`, `docker-compose.yml`, `wsgi.py`, `gunicorn.conf.py`, `config.py` (production part), logging, `docs/tecnica/DEPLOY.md` |
 | **B — Import & export formats** | background agent | `track/formats` | `mfp_test_formats` | 5002 | new bank layouts in `app/services/bank_import.py` (layout table only), `statement_readers.py`, CSV/Excel manual mapping, real PDF report, legacy `.doc`, their samples and tests |
 | **C — Core data model** | main session | `test-Cloud` | `mfp_test` | 5000 | everything with a migration or shared UI: categories, rules, accounts, currencies, budgets, notifications, the 🔵 bugs, background AI jobs, then i18n |
 
@@ -57,7 +57,7 @@ Each step = model + migration + service + routes/templates + tests, then a commi
 - A new migration applies on a fresh database and `flask db check` reports no pending changes (track C).
 - The page works in light and dark mode, desktop and phone (no horizontal overflow, no JS errors).
 - No new size limits; forms keep what was typed on error; Italian numbers accepted.
-- `README.md` / `docs/NEXT_STEPS.md` updated.
+- `README.md` / `docs/piano/NEXT_STEPS.md` updated.
 
 ## Status
 

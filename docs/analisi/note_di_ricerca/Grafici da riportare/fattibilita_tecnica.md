@@ -18,7 +18,7 @@ Un solo file vendorizzato (`chart.umd.min.js` v4.4.3, 205.363 byte), tre fabbric
 - Accessibilità: dei 39 `<canvas>` nei template solo 2 hanno `aria-label`/`role` (grep su `app/templates`) — file del repo.
 
 ### Inferences
-- Con 636 KB di statici, anche +400 KB di plugin sono un aumento visibile in percentuale ma irrilevante rispetto al peso dell'exe (che contiene PostgreSQL portabile e i modelli ONNX dell'OCR — `docs/DESKTOP.md:152`, `requirements.txt` rapidocr-onnxruntime).
+- Con 636 KB di statici, anche +400 KB di plugin sono un aumento visibile in percentuale ma irrilevante rispetto al peso dell'exe (che contiene PostgreSQL portabile e i modelli ONNX dell'OCR — `docs/tecnica/DESKTOP.md:152`, `requirements.txt` rapidocr-onnxruntime).
 
 ### Gaps
 - Non ho misurato la dimensione totale dell'exe/zip desktop (servirebbe una build); il confronto è quindi solo relativo agli statici.
@@ -96,7 +96,7 @@ Quasi tutto si fa con Chart.js: **nativi** waterfall (barre fluttuanti), fan cha
 | Export CSV | Dati già in pagina (labels/datasets) → Blob CSV lato client, o rotta server (l'app ha già CSV, `export.py`) | non provato | Basso |
 | Venn (sovrapposizione ETF) | chartjs-chart-venn 4.3.7 (39 KB) | non provato | Medio; la sovrapposizione ETF richiede dati di look-through che l'app non ha (inventario §4) |
 
-- Fonti: prove locali; codice del repo citato in tabella; inventario `research_notes/Grafici dati e piano Portafoglio/myfinanceplace_inventario.md` §2 e §4 (prezzi salvati solo come chiusura in euro, nessun TER/look-through).
+- Fonti: prove locali; codice del repo citato in tabella; inventario `docs/analisi/note_di_ricerca/Grafici dati e piano Portafoglio/myfinanceplace_inventario.md` §2 e §4 (prezzi salvati solo come chiusura in euro, nessun TER/look-through).
 
 ### Inferences
 - Le «vittorie a costo zero» (nessun file nuovo) sono waterfall, fan chart, area impilata, bubble, gauge, marcatori di operazioni: si possono fare subito estendendo `charts.js`.
