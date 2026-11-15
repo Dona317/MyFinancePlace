@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.client import ClientGroup
 from app.models.transaction import Transaction
-from app.routes.helpers import csv_text, download, year_arg
+from app.routes.helpers import csv_text, download, export_file, export_name, year_arg
 from app.services import (
     accounts,
     analytics,
@@ -140,8 +140,8 @@ def csv():
     """The transactions listed on the page, with the same filters."""
     filters = _filters()
     rows = sorted(_rows(filters)[2], key=lambda tx: (tx.date, tx.id))
-    name = f"report_{filters['tab']}_{filters['start']:%Y-%m-%d}_{filters['last_day']:%Y-%m-%d}.csv"
-    return download("\ufeff" + transfer.to_csv(rows), name, "text/csv")
+    return export_file("\ufeff" + transfer.to_csv(rows),
+                       f"report_{filters['tab']}_{filters['start']:%Y-%m-%d}_{filters['last_day']:%Y-%m-%d}")
 
 
 @reports_bp.route("/report.pdf")
@@ -166,7 +166,7 @@ def report_pdf():
         kpis = [(_("Entrate"), money(income)), (_("Uscite"), money(expenses)),
                 (_("Netto"), money(income - expenses))]
     data = pdf_report.build_filtered(f"Report — {tab}", subtitle, kpis, items, rows)
-    name = f"report_{filters['tab']}_{filters['start']:%Y-%m-%d}_{filters['last_day']:%Y-%m-%d}.pdf"
+    name = export_name(f"report_{filters['tab']}_{filters['start']:%Y-%m-%d}_{filters['last_day']:%Y-%m-%d}", "pdf")
     return download(data, name, "application/pdf")
 
 
@@ -215,7 +215,7 @@ def summary_csv():
     rows.append([_("Tasso di risparmio"), _("Tasso di risparmio"),
                      *("" if v is None else number(v, 1) for v in table["savings"]["months"]),
                      "" if table["savings"]["total"] is None else number(table["savings"]["total"], 1)])
-    return download(csv_text(rows), f"riepilogo_{year}.csv", "text/csv")
+    return export_file(csv_text(rows), f"riepilogo_{year}")
 
 
 @reports_bp.route("/rhythm")
@@ -242,7 +242,7 @@ def year_review():
 @reports_bp.route("/year.pdf")
 def year_review_pdf():
     year = _summary_year()
-    return download(annual_review.build_pdf(annual_review.review(year)), f"bilancio_{year}.pdf", "application/pdf")
+    return download(annual_review.build_pdf(annual_review.review(year)), export_name(f"bilancio_{year}", "pdf"), "application/pdf")
 
 
 @reports_bp.route("/year/group/<int:group_id>.pdf")
@@ -251,4 +251,4 @@ def year_review_group_pdf(group_id):
     group = db.get_or_404(ClientGroup, group_id)
     year = _summary_year()
     slug = re.sub(r"[^a-z0-9]+", "_", group.name.lower()).strip("_") or "gruppo"
-    return download(annual_review.build_group_pdf(group, year), f"bilancio_{year}_{slug}.pdf", "application/pdf")
+    return download(annual_review.build_group_pdf(group, year), export_name(f"bilancio_{year}_{slug}", "pdf"), "application/pdf")

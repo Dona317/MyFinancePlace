@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from flask import Response, flash, redirect, request, url_for
 from flask_babel import gettext as _
+from openpyxl import Workbook
 
 from app.extensions import db
 from app.services.parsing import MAX_AMOUNT, to_date, to_decimal
@@ -35,6 +36,32 @@ def uploaded_file():
     """The file posted as `file`, or None when none was chosen."""
     upload = request.files.get("file")
     return upload if upload and upload.filename else None
+
+
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+def export_name(base: str, ext: str) -> str:
+    """The file name of every export: the day it was made, then the export's name — 20261115_transazioni.csv."""
+    return f"{date.today():%Y%m%d}_{base}.{ext}"
+
+
+def xlsx_bytes(text: str) -> bytes:
+    """The cells of a CSV text (';' between them) as an Excel sheet, the same cells the CSV has."""
+    book = Workbook()
+    sheet = book.active
+    for row in csv.reader(io.StringIO(text.lstrip("﻿")), delimiter=";"):
+        sheet.append(row)
+    buffer = io.BytesIO()
+    book.save(buffer)
+    return buffer.getvalue()
+
+
+def export_file(text: str, base: str) -> Response:
+    """A CSV export as CSV, or as Excel with the same cells when the button asks for ?format=xlsx."""
+    if request.args.get("format") == "xlsx":
+        return download(xlsx_bytes(text), export_name(base, "xlsx"), XLSX_MIME)
+    return download(text, export_name(base, "csv"), "text/csv; charset=utf-8")
 
 
 def download(content, filename: str, mimetype: str) -> Response:

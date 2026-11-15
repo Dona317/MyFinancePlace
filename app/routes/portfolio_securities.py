@@ -5,13 +5,13 @@ archive), a securities account's form and its own page, with its positions and i
 """
 from decimal import Decimal
 
-from flask import Response, flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
-from app.routes.helpers import form_decimal, form_text
+from app.routes.helpers import export_file, form_decimal, form_text
 from app.routes.portfolio import portfolio_bp
 from app.services import accounts, fee_calculator, order_register, portfolio_ops, portfolio_overview, securities, wealth
 from app.services.parsing import to_date
@@ -163,9 +163,8 @@ def orders_page():
     found = order_register.register(filters)
     names = {"portfolios": {p.id: p.name for p in securities.portfolios(active_only=False)},
              "dossiers": {d.id: d.name for d in securities.accounts(active_only=False)}}
-    if args.get("format") == "csv":
-        return Response(order_register.to_csv(found, names), mimetype="text/csv",
-                        headers={"Content-Disposition": "attachment; filename=ordini.csv"})
+    if args.get("format") in ("csv", "xlsx"):
+        return export_file(order_register.to_csv(found, names), "ordini")
     return render_template("portfolio/orders.html", register=found, filters=filters, names=names,
                            kinds=portfolio_ops.KINDS, nav_active="orders",
                            holdings=Holding.query.order_by(Holding.name).all())

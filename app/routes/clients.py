@@ -4,7 +4,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.client import Client
-from app.routes.helpers import download, flash_errors
+from app.routes.helpers import download, export_name, flash_errors
 from app.services import studio
 
 clients_bp = Blueprint("clients", __name__, url_prefix="/clients")
@@ -60,8 +60,7 @@ def edit(client_id):
 def backup(client_id):
     client = _client(client_id)
     archive = studio.backup(client)
-    name = f"myfinanceplace_{client.slug}.zip"
-    return download(archive, name, "application/zip")
+    return download(archive, export_name(f"myfinanceplace_{client.slug}", "zip"), "application/zip")
 
 
 @clients_bp.route("/<int:client_id>/delete", methods=["POST"])

@@ -18,7 +18,7 @@ from app.models.account import Account
 from app.models.securities import SecuritiesAccount
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.routes.helpers import download, form_ids, uploaded_file
+from app.routes.helpers import download, export_name, form_ids, uploaded_file
 from app.routes.portfolio import portfolio_bp
 from app.services import (
     accounts,
@@ -75,7 +75,7 @@ def broker_template(kind):
         abort(404)
     mimetype = "text/csv; charset=utf-8" if kind == "csv" else \
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    return download(broker_import.template(kind), f"modello_operazioni_investimenti.{kind}", mimetype)
+    return download(broker_import.template(kind), export_name("modello_operazioni_investimenti", kind), mimetype)
 
 
 @portfolio_bp.route("/import/columns", methods=["POST"])

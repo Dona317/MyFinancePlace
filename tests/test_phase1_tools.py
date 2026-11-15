@@ -39,7 +39,7 @@ def test_the_export_with_or_without_the_investments(app, client, db, tmp_path):
                            delimiter=";"))
     assert len(rows) - 1 == len(ours)
     response = client.get("/export/csv?scope=investments&period=all")
-    assert "_investimenti_" in response.headers["Content-Disposition"]
+    assert "_investimenti.csv" in response.headers["Content-Disposition"]
     data = client.get("/export/json?scope=investments").get_json()
     assert len(data["transactions"]) == len(theirs)
     assert len(client.get("/export/json?scope=nonsense").get_json()["transactions"]) == len(every)

@@ -11,7 +11,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.planned_order import PlannedOrder
-from app.routes.helpers import download, uploaded_file
+from app.routes.helpers import download, export_name, uploaded_file
 from app.routes.portfolio import portfolio_bp
 from app.services import backup, investments_archive, planned_orders
 from app.services.parsing import to_date, to_decimal
@@ -75,7 +75,7 @@ def planned_discard(batch):
 @portfolio_bp.route("/archive")
 def investments_export():
     """Download the Portfolio section (services.investments_archive)."""
-    return download(investments_archive.create_archive(), f"investimenti_{date.today():%Y-%m-%d}.zip", "application/zip")
+    return download(investments_archive.create_archive(), export_name("investimenti", "zip"), "application/zip")
 
 
 @portfolio_bp.route("/archive/restore", methods=["POST"])

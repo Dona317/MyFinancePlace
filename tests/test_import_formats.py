@@ -332,7 +332,7 @@ def test_pdf_report_download(client, sample_data):
     assert response.status_code == 200
     assert response.mimetype == "application/pdf"
     assert response.data.startswith(b"%PDF")
-    assert 'filename="report_finanziario_2026.pdf"' in response.headers["Content-Disposition"]
+    assert f'filename="{date.today():%Y%m%d}_report_finanziario_2026.pdf"' in response.headers["Content-Disposition"]
     with pdfplumber.open(io.BytesIO(response.data)) as pdf:
         text = "\n".join(page.extract_text() for page in pdf.pages)
     for expected in ("Report Finanziario 2026", "Conto Economico", "Andamento Mensile", "Rendiconto Finanziario",

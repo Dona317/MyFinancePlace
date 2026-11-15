@@ -10,7 +10,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.reminder import Reminder
-from app.routes.helpers import download, flash_errors
+from app.routes.helpers import download, export_name, flash_errors
 from app.services import deadlines, notifications, page_layout, periods, sections
 from app.services.i18n import _l
 from app.services.parsing import to_date, to_decimal
@@ -132,7 +132,7 @@ def calendar_file():
     every deadline from today on (five years of the recurring ones), nothing past."""
     today = date.today()
     if request.args.get("future"):
-        return download(deadlines.ics(today, today.replace(year=today.year + FUTURE_YEARS)), "scadenze-future.ics",
+        return download(deadlines.ics(today, today.replace(year=today.year + FUTURE_YEARS)), export_name("scadenze-future", "ics"),
                         "text/calendar; charset=utf-8")
-    return download(deadlines.ics(today - timedelta(days=31), today + timedelta(days=366)), "scadenze.ics",
+    return download(deadlines.ics(today - timedelta(days=31), today + timedelta(days=366)), export_name("scadenze", "ics"),
                     "text/calendar; charset=utf-8")

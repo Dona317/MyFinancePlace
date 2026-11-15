@@ -9,7 +9,7 @@ from app.extensions import db
 from app.models.limit import ContributionLimit
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.routes.helpers import csv_text, download, flash_errors, year_arg
+from app.routes.helpers import csv_text, export_file, flash_errors, year_arg
 from app.services import (
     accounts,
     capital_gains,
@@ -80,7 +80,7 @@ def deductions_csv():
     rows += [[line.item.form_line, _(line.item.label), tx.date.isoformat(), tx.description, tx.category or "",
               display.number(amount), tx.account.name if tx.account else ""]
              for line in data["lines"] for tx, amount in line.entries]
-    return download(csv_text(rows), f"730_{year}.csv", "text/csv; charset=utf-8")
+    return export_file(csv_text(rows), f"730_{year}")
 
 
 @tax_bp.route("/investments")

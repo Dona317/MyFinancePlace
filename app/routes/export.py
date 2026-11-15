@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.account import Account
-from app.routes.helpers import download, form_ids, uploaded_file, year_arg
+from app.routes.helpers import download, export_file, export_name, form_ids, uploaded_file, year_arg
 from app.services import (
     accounts,
     ai_classification,
@@ -73,7 +73,7 @@ def data_key():
 def data_key_download():
     text = _("Chiave dei dati cifrati di MyFinancePlace (codice %(code)s). Tienila insieme ai backup, in un posto "
              "sicuro: senza, su un altro computer i numeri delle carte non si leggono.", code=field_crypto.fingerprint())
-    return download(f"{text}\n\n{field_crypto.key_text()}\n", "myfinanceplace-chiave.txt", "text/plain")
+    return download(f"{text}\n\n{field_crypto.key_text()}\n", export_name("myfinanceplace-chiave", "txt"), "text/plain")
 
 
 @export_bp.route("/key/restore", methods=["POST"])
@@ -111,7 +111,7 @@ def import_page():
 @export_bp.route("/backup")
 def download_backup():
     """Everything in one .zip: all the tables and the files of the document archive."""
-    return download(backup.create_archive(), f"myfinanceplace_backup_{datetime.now():%Y-%m-%d_%H%M}.zip",
+    return download(backup.create_archive(), export_name("myfinanceplace_backup", "zip"),
                     "application/zip")
 
 
@@ -124,7 +124,7 @@ def download_encrypted_backup():
         flash(_("Imposta prima la password del backup automatico cifrato (qui sotto): serve a cifrare il file."), "warning")
         return redirect(url_for("export.index") + "#auto-backup")
     return download(encrypted_backup.encrypt(backup.create_archive(with_key=True), found),
-                    f"myfinanceplace_backup_{datetime.now():%Y-%m-%d_%H%M}{encrypted_backup.EXTENSION}",
+                    export_name("myfinanceplace_backup", encrypted_backup.EXTENSION.lstrip(".")),
                     "application/octet-stream")
 
 
@@ -215,7 +215,7 @@ def export_csv():
     # BOM so Excel detects UTF-8 correctly
     content = "\ufeff" + transfer.to_csv(transactions)
     suffix = {"all": "", "no_investments": "_conti_contante", "investments": "_investimenti"}[scope]
-    return download(content, f"transazioni_{period}{suffix}_{date.today().isoformat()}.csv", "text/csv; charset=utf-8")
+    return export_file(content, f"transazioni_{period}{suffix}")
 
 
 @export_bp.route("/json")
@@ -228,7 +228,7 @@ def export_json():
         "transactions": [transfer.tx_to_dict(tx) for tx in transactions],
     }
     content = json.dumps(payload, ensure_ascii=False, indent=2)
-    return download(content, f"myfinanceplace_backup_{date.today().isoformat()}.json", "application/json")
+    return download(content, export_name("myfinanceplace_backup", "json"), "application/json")
 
 
 @export_bp.route("/pdf")
@@ -251,7 +251,7 @@ def export_pdf_download():
 
     year = year_arg(date.today().year)
     content = pdf_report.build_report(year, analytics.income_statement(year), analytics.cash_flow(year))
-    return download(content, f"report_finanziario_{year}.pdf", "application/pdf")
+    return download(content, export_name(f"report_finanziario_{year}", "pdf"), "application/pdf")
 
 
 @export_bp.route("/tax/<int:year>")
@@ -261,7 +261,7 @@ def export_tax(year):
         if transfer.is_tax_relevant(tx)
     ]
     content = "\ufeff" + transfer.to_csv(transactions)
-    return download(content, f"fiscale_{year}.csv", "text/csv; charset=utf-8")
+    return export_file(content, f"fiscale_{year}")
 
 
 @export_bp.route("/import/columns", methods=["POST"])

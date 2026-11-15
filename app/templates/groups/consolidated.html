@@ -8,6 +8,7 @@
 
 {% block topbar_actions %}
 <a class="btn btn-ghost btn-sm" href="{{ url_for('groups.export_csv', group_id=group.id) }}"><i class="bi bi-filetype-csv"></i> {{ _('CSV') }}</a>
+<a class="btn btn-ghost btn-sm" href="{{ url_for('groups.export_csv', group_id=group.id, format='xlsx') }}"><i class="bi bi-file-earmark-excel"></i> Excel</a>
 {% endblock %}
 
 {% block content %}

@@ -10,6 +10,7 @@
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.orders_page', format='csv', **request.args) }}" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> CSV</a>
+  <a href="{{ url_for('portfolio.orders_page', format='xlsx', **request.args) }}" class="btn btn-ghost btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a>
 {% endblock %}
 
 {% block content %}

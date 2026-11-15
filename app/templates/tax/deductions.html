@@ -22,6 +22,7 @@
       <div class="card-header-sub">{{ _('Le spese delle categorie collegate a ogni voce, con franchigia e massimale') }}</div>
     </div>
     <a class="btn btn-ghost btn-sm" href="{{ url_for('tax.deductions_csv', year=year) }}"><i class="bi bi-filetype-csv"></i> CSV</a>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('tax.deductions_csv', year=year, format='xlsx') }}"><i class="bi bi-file-earmark-excel"></i> Excel</a>
   </div>
   <div class="table-wrapper">
     <table class="table-compact" id="tax-730">

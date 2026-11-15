@@ -42,6 +42,7 @@
   <div class="report-controls">
     {% include "partials/year_select.html" %}
     <a href="{{ url_for('reports.summary_csv', year=year) }}" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> {{ _('CSV') }}</a>
+    <a href="{{ url_for('reports.summary_csv', year=year, format='xlsx') }}" class="btn btn-ghost btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a>
   </div>
 </div>
 

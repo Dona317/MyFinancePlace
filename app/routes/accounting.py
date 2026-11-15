@@ -7,7 +7,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.year_close import YearClose
-from app.routes.helpers import form_decimal, year_arg
+from app.routes.helpers import export_name, form_decimal, year_arg
 from app.services import analytics, family, net_worth_growth, owners, settings_store, wealth, year_close
 from app.services.parsing import to_date
 from app.services.ui_settings import current_settings
@@ -112,4 +112,4 @@ def close_file(close_id: int):
     body = json.dumps({"year": row.year, "version": row.version, "closed_at": row.closed_at.isoformat(), **row.data},
                       ensure_ascii=False, indent=2)
     return Response(body, mimetype="application/json",
-                    headers={"Content-Disposition": f'attachment; filename="bilanci-{row.year}-v{row.version}.json"'})
+                    headers={"Content-Disposition": f'attachment; filename="{export_name(f"bilanci-{row.year}-v{row.version}", "json")}"'})

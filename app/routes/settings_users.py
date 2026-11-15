@@ -2,7 +2,6 @@
 archive of their own (F24, decided on 2 Nov 2026); an administrator can export the archives of the users chosen."""
 import io
 import zipfile
-from datetime import date
 
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
@@ -11,7 +10,7 @@ from flask_login import current_user
 from app.extensions import db
 from app.models.client import Client
 from app.models.user import MIN_PASSWORD, User
-from app.routes.helpers import download, flash_errors
+from app.routes.helpers import download, export_name, flash_errors
 from app.routes.settings import settings_bp
 from app.services import groups, sections, studio, users
 
@@ -84,7 +83,7 @@ def users_export():
         for user in sorted(chosen, key=lambda u: u.username.lower()):
             client = db.session.get(Client, user.default_client_id) if user.default_client_id else studio.primary()
             bundle.writestr(f"{studio.slugify_file(user.username)}.zip", studio.backup(client))
-    return download(buffer.getvalue(), f"archivi-utenti-{date.today():%Y%m%d}.zip", "application/zip")
+    return download(buffer.getvalue(), export_name("archivi-utenti", "zip"), "application/zip")
 
 
 @settings_bp.route("/users/<int:user_id>/password", methods=["POST"])

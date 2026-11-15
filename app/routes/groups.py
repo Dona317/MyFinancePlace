@@ -1,13 +1,12 @@
 """Gruppi (F21): families or groups of archives, and their consolidated view (read only)."""
 import re
-from datetime import date
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.client import Client, ClientGroup
-from app.routes.helpers import csv_text, download, flash_errors
+from app.routes.helpers import csv_text, export_file, flash_errors
 from app.services import consolidation, groups, studio
 
 groups_bp = Blueprint("groups", __name__, url_prefix="/groups")
@@ -59,8 +58,7 @@ def consolidated(group_id):
 def export_csv(group_id):
     data = consolidation.consolidate(_group(group_id))
     slug = re.sub(r"[^a-z0-9]+", "_", data["group"].name.lower()).strip("_") or "gruppo"
-    name = f"consolidato_{slug}_{date.today():%Y%m%d}.csv"
-    return download(csv_text(consolidation.csv_rows(data)), name, "text/csv; charset=utf-8")
+    return export_file(csv_text(consolidation.csv_rows(data)), f"consolidato_{slug}")
 
 
 @groups_bp.route("/<int:group_id>/open/<int:client_id>", methods=["POST"])

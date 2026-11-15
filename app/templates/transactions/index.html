@@ -66,7 +66,7 @@
   {% endif %}
   {% if shown('subscriptions') %}
   <a class="kpi-link" href="{{ url_for('subscriptions.index') }}" title="{{ _('Apri Ricorrenti') }}">
-    {{ kpi('arrow-repeat', _('Ricorrenti'), amount=-cards.recurring_monthly, cls='kpi-warning', sub=ngettext('%(num)d serie ricorrente · uscite al mese', '%(num)d serie ricorrenti · uscite al mese', cards.recurring)) }}
+    {{ kpi('arrow-repeat', _('Ricorrenti'), amount=-cards.recurring_monthly, cls='kpi-warning', sub=ngettext('%(num)d serie ricorrente', '%(num)d serie ricorrenti', cards.recurring)) }}
   </a>
   {% endif %}
 </div>
@@ -141,6 +141,9 @@
       {% endif %}
       <a href="{{ url_for('export.export_csv') }}" class="btn btn-ghost btn-sm">
         <i class="bi bi-filetype-csv"></i> CSV
+      </a>
+      <a href="{{ url_for('export.export_csv', format='xlsx') }}" class="btn btn-ghost btn-sm">
+        <i class="bi bi-file-earmark-excel"></i> Excel
       </a>
       {% if transactions %}
       {# the same delete as in the Modifica massiva, as an icon: the selected rows (or the whole search) #}
