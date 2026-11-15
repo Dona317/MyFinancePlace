@@ -23,11 +23,13 @@ from app.services import (
     bank_import,
     column_guess,
     encrypted_backup,
+    field_crypto,
     import_presets,
     statement_readers,
     transfer,
     upload_store,
 )
+from app.services import cards as card_service
 from app.services.categories import known_categories
 from app.services.parsing import to_decimal
 from app.services.periods import year_bounds
@@ -54,7 +56,41 @@ def index():
         safety_copies=backup.list_safety_copies(),
         auto=encrypted_backup.status(),
         frequencies=encrypted_backup.FREQUENCIES,
+        key_from_env=field_crypto.from_environment(), key_code=field_crypto.fingerprint(),
+        unreadable=field_crypto.unreadable(card_service.encrypted_fields()),
     )
+
+
+# ── The key of the encrypted data (card numbers…): read it to keep it, put it on another computer ───────────
+
+@export_bp.route("/key", methods=["POST"])
+def data_key():
+    """The key as text, only on click (never in a page's HTML)."""
+    return jsonify(key=field_crypto.key_text(), fingerprint=field_crypto.fingerprint())
+
+
+@export_bp.route("/key/download", methods=["POST"])
+def data_key_download():
+    text = _("Chiave dei dati cifrati di MyFinancePlace (codice %(code)s). Tienila insieme ai backup, in un posto "
+             "sicuro: senza, su un altro computer i numeri delle carte non si leggono.", code=field_crypto.fingerprint())
+    return download(f"{text}\n\n{field_crypto.key_text()}\n", "myfinanceplace-chiave.txt", "text/plain")
+
+
+@export_bp.route("/key/restore", methods=["POST"])
+def data_key_restore():
+    """Use a saved key (the other computer's): what the old key could read is encrypted again with it."""
+    if field_crypto.from_environment():
+        flash(_("La chiave è impostata dal server (MFP_DATA_KEY): si cambia lì."), "error")
+        return redirect(url_for("export.index") + "#data-key")
+    try:
+        again, readable = field_crypto.replace_key(request.form.get("key", ""), card_service.encrypted_fields())
+    except ValueError:
+        flash(_("Questa non è una chiave di MyFinancePlace: incolla tutto il testo della chiave salvata."), "error")
+        return redirect(url_for("export.index") + "#data-key")
+    db.session.commit()
+    flash(_("Chiave sostituita (codice %(code)s): %(readable)s valori ora leggibili, %(again)s cifrati di nuovo con "
+            "la nuova chiave.", code=field_crypto.fingerprint(), readable=readable, again=again), "success")
+    return redirect(url_for("export.index") + "#data-key")
 
 
 @export_bp.route("/import")
@@ -79,6 +115,19 @@ def download_backup():
                     "application/zip")
 
 
+@export_bp.route("/backup/encrypted/download", methods=["POST"])
+def download_encrypted_backup():
+    """F84: the full backup encrypted now with the automatic backup's password, the key of the encrypted data inside —
+    the file to keep when the app moves to another computer."""
+    found = encrypted_backup.config()
+    if not found.get("public"):
+        flash(_("Imposta prima la password del backup automatico cifrato (qui sotto): serve a cifrare il file."), "warning")
+        return redirect(url_for("export.index") + "#auto-backup")
+    return download(encrypted_backup.encrypt(backup.create_archive(with_key=True), found),
+                    f"myfinanceplace_backup_{datetime.now():%Y-%m-%d_%H%M}{encrypted_backup.EXTENSION}",
+                    "application/octet-stream")
+
+
 @export_bp.route("/restore", methods=["POST"])
 def restore():
     upload = uploaded_file()
@@ -87,8 +136,10 @@ def restore():
         return redirect(url_for("export.index") + "#backup")
     try:
         raw = upload.read()
+        carried = None
         if encrypted_backup.is_encrypted(raw):
             raw = encrypted_backup.decrypt(raw, request.form.get("password", ""))
+            carried = backup.key_in(raw)  # F84: the key of the encrypted fields, safe inside the encryption
         data, files = backup.read_upload(raw)
         if not backup.is_full_backup(data):
             added, skipped = backup.import_transactions(data)
@@ -102,6 +153,17 @@ def restore():
     except backup.BackupError as exc:
         flash(str(exc), "error")
         return redirect(url_for("export.index") + "#backup")
+    if carried and not field_crypto.from_environment() and field_crypto.unreadable(card_service.encrypted_fields()):
+        try:
+            field_crypto.replace_key(carried, card_service.encrypted_fields())
+            db.session.commit()
+            flash(_("Anche la chiave dei dati cifrati era nel backup: è in uso (codice %(code)s), i numeri delle carte "
+                    "si leggono.", code=field_crypto.fingerprint()), "info")
+        except ValueError:
+            pass  # a damaged key entry: the warning below says what to do
+    if field_crypto.unreadable(card_service.encrypted_fields()):
+        flash(_("I numeri delle carte del backup sono cifrati con la chiave di un altro computer: inseriscila in "
+                "«Chiave dei dati cifrati» per leggerli."), "warning")
     flash(
         _("Backup ripristinato: %(transactions)s transazioni, %(holdings)s posizioni, %(debts)s debiti, %(policies)s polizze, %(goals)s obiettivi, %(documents)s documenti, %(snapshots)s istantanee. I dati di prima sono salvati in «%(safety)s» (vedi Copie prima dei ripristini).", transactions=restored['transactions'], holdings=restored['holdings'], debts=restored['debts'], policies=restored['insurance_policies'], goals=restored['goals'], documents=restored['documents'], snapshots=restored['snapshots'], safety=safety),
         "success",
@@ -147,16 +209,19 @@ def download_safety_copy(name):
 @export_bp.route("/csv")
 def export_csv():
     period = request.args.get("period", "all")
+    scope = request.args.get("scope") if request.args.get("scope") in transfer.SCOPES else "all"
     start, end = transfer.period_bounds(period)
-    transactions = transfer.query_transactions(start, end)
+    transactions = transfer.query_transactions(start, end, scope)
     # BOM so Excel detects UTF-8 correctly
     content = "\ufeff" + transfer.to_csv(transactions)
-    return download(content, f"transazioni_{period}_{date.today().isoformat()}.csv", "text/csv; charset=utf-8")
+    suffix = {"all": "", "no_investments": "_conti_contante", "investments": "_investimenti"}[scope]
+    return download(content, f"transazioni_{period}{suffix}_{date.today().isoformat()}.csv", "text/csv; charset=utf-8")
 
 
 @export_bp.route("/json")
 def export_json():
-    transactions = transfer.query_transactions()
+    scope = request.args.get("scope") if request.args.get("scope") in transfer.SCOPES else "all"
+    transactions = transfer.query_transactions(scope=scope)
     payload = {
         "exported_at": datetime.now().isoformat(timespec="seconds"),
         "version": 1,
@@ -533,6 +598,7 @@ def _collect_rows(data: dict, account: Account | None) -> tuple[list, int, list[
                 continue
             _assign_account(tx, base, account)
         created.append(tx)
+    card_service.assign(created)  # F41: «CARTA *4821» in the bank text → that card
     return created, linked, invalid, skipped
 
 

@@ -25,7 +25,7 @@ trap 'kill $SERVER $OLLAMA 2>/dev/null' EXIT INT TERM
 for _ in 1 2 3 4 5 6 7 8 9 10; do curl -s -o /dev/null "http://127.0.0.1:$PORT/auth/setup" && break; sleep 1; done
 
 STATUS=0
-for script in login flows wealth features securities; do
+for script in login flows wealth features securities investments; do
   python "$LIVE/$script.py" >"$LIVE_OUT/$script.log" 2>&1 || STATUS=1
   grep -E "checks passed|^FAILED" "$LIVE_OUT/$script.log"
 done

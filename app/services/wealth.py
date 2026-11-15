@@ -288,14 +288,21 @@ def value_on(holding: Holding, on: date | None, prices: dict[int, float] | None 
     return holding.units * price if price is not None else holding.value
 
 
-def record_price(holding: Holding, price, on: date | None = None) -> None:
-    """Add (or correct) the price of a day; the newest one is also the holding's current price."""
+def record_price(holding: Holding, price, on: date | None = None, native=None, currency: str | None = None) -> None:
+    """Add (or correct) the price of a day; the newest one is also the holding's current price. `native` and
+    `currency` (F43): the price as quoted, when not in euro; the rate used is kept with it."""
     on = on or date.today()
     point = HoldingPrice.query.filter_by(holding_id=holding.id, on=on).first()
     if point is None:
-        db.session.add(HoldingPrice(holding_id=holding.id, on=on, price=price))
+        point = HoldingPrice(holding_id=holding.id, on=on, price=price)
+        db.session.add(point)
     else:
         point.price = price
+    if native is not None and currency and currency != "EUR" and Decimal(str(native)) > 0:
+        point.price_ccy, point.currency = native, currency[:3]
+        point.fx_rate = (Decimal(str(price)) / Decimal(str(native))).quantize(Decimal("0.00000001"))
+    else:  # a price in euro (typed, a trade's): the day's euro price is this one, with no quote in another currency
+        point.price_ccy = point.currency = point.fx_rate = None
     if holding.price_date is None or on >= holding.price_date:
         holding.current_price, holding.price_date = price, on
 

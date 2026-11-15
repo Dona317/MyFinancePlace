@@ -134,7 +134,9 @@ def test_ics_file(app, db):
     uid = next(line for line in unfolded.split("\r\n") if line.startswith("UID:reminder"))
     with app.test_request_context():
         assert uid in deadlines.ics(date(2026, 11, 1), date(2026, 11, 30)).replace("\r\n ", "")  # stable
-    assert deadlines._fold("é" * 80)[1].startswith("é") and all(len(p.encode()) <= 75 for p in deadlines._fold("é" * 80))
+    folded = deadlines._fold("é" * 80)
+    assert folded[1].startswith(" é") and all(len(p.encode()) <= 75 for p in folded)
+    assert "".join(part[1:] if i else part for i, part in enumerate(folded)) == "é" * 80
 
 
 def test_pages(client, db):
@@ -269,6 +271,40 @@ def test_every_future_deadline_in_one_file(client, db):
     future = client.get("/deadlines/scadenze.ics?future=1")
     assert future.mimetype == "text/calendar" and "scadenze-future.ics" in future.headers["Content-Disposition"]
     text = future.get_data(as_text=True)
-    assert text.count("SUMMARY:Bollo auto") == 5 and "Vecchio" not in text  # five years, nothing past
+    # a yearly reminder is one event that repeats (Google Calendar shows every year), nothing past
+    assert text.count("SUMMARY:Bollo auto") == 1 and "RRULE:FREQ=YEARLY" in text and "Vecchio" not in text
     assert "Vecchio" in client.get("/deadlines/scadenze.ics").get_data(as_text=True)  # the usual file keeps last month
     assert "Importa tutte le scadenze future" in client.get("/deadlines/").get_data(as_text=True)
+
+
+def test_repeating_deadlines_are_one_recurring_event(app, db):
+    """A PAC, a recurring movement and a repeating reminder go into the .ics as one event each with its rule
+    (Google Calendar then shows the whole series), not as a copy of every date in the window."""
+    db.session.add_all([
+        InvestmentPlan(name="PAC ETF", amount=Decimal(300), frequency="monthly", day=12, start=date(2026, 1, 1)),
+        InvestmentPlan(name="PAC fine mese", amount=Decimal(100), frequency="quarterly", day=31, start=date(2026, 2, 1),
+                       end=date(2027, 12, 31)),
+        make_tx(date=date(2026, 10, 5), description="Affitto", amount=700, is_recurring=True, recurrence="monthly",
+                recurrence_end=date(2027, 6, 30)),
+    ])
+    db.session.commit()
+    _reminder(db, title="Bollo auto", due=date(2026, 11, 30), repeat="yearly")
+    with app.test_request_context():
+        text = deadlines.ics(date(2026, 11, 1), date(2027, 10, 31)).replace("\r\n ", "")
+        plan = next(d for d in deadlines.between(date(2026, 11, 1), date(2026, 11, 30)) if d.kind == "plan")
+    events = text.split("BEGIN:VEVENT")[1:]
+    by_title = {e.split("SUMMARY:")[1].split("\r\n")[0]: e for e in events}
+    assert sum("PAC «PAC ETF»" in t for t in by_title) == 1 and sum("Affitto" in t for t in by_title) == 1
+    pac = next(e for t, e in by_title.items() if "PAC ETF" in t)
+    assert "DTSTART;VALUE=DATE:20261112" in pac and "RRULE:FREQ=MONTHLY;BYMONTHDAY=12\r\n" in pac
+    end_of_month = next(e for t, e in by_title.items() if "fine mese" in t)
+    assert "RRULE:FREQ=MONTHLY;INTERVAL=3;BYMONTHDAY=28,29,30,31;BYSETPOS=-1;UNTIL=20271231" in end_of_month
+    assert "DTSTART;VALUE=DATE:20261130" in end_of_month  # Nov has 30 days: the rule's last day
+    rent = next(e for t, e in by_title.items() if "Affitto" in t)
+    assert "RRULE:FREQ=MONTHLY;BYMONTHDAY=5;UNTIL=20270630" in rent and "UID:recurring-tx" in rent
+    car = next(e for t, e in by_title.items() if "Bollo" in t)
+    assert "RRULE:FREQ=YEARLY;BYMONTH=11;BYMONTHDAY=30" in car
+    # the Google Calendar link of a PAC also repeats
+    assert "recur=RRULE%3AFREQ%3DMONTHLY%3BBYMONTHDAY%3D12" in plan.google_url
+    assert deadlines.rrule("yearly", date(2027, 2, 28), day=29) == "FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=28,29;BYSETPOS=-1"
+    assert deadlines.rrule("weekly", date(2026, 11, 2)) == "FREQ=WEEKLY"

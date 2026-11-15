@@ -20,8 +20,11 @@ from app.services import (
     display,
     family,
     fund_facts,
+    fx_effect,
     lookthrough,
+    market_data,
     performance,
+    planned_orders,
     portfolio_charts,
     portfolio_models,
     portfolio_ops,
@@ -186,13 +189,19 @@ def index():
         db.session.commit()
     if folio_id or dossier_id:
         holdings = securities.positions(holdings, portfolio_id=folio_id, securities_account_id=dossier_id)
+    # one row per holding, opened into its positions (securities account × portfolio) when it sits in more than one
+    rows = securities.grouped(holdings, None if (folio_id or dossier_id) else securities.positions(
+        [h for h in holdings if wealth.ASSET_CLASSES.get(h.asset_class, ("", False))[1]]))
     today = date.today()
     snapshots = Snapshot.query.order_by(Snapshot.taken_on, Snapshot.id).all()
     return render_template(
         "portfolio/index.html",
-        holdings=[h for h in holdings if not selected or h.asset_class == selected],
+        holdings=[h for h in rows if not selected or h.asset_class == selected],
         summary=wealth.portfolio_summary(holdings),
-        tree=portfolio_charts.allocation_tree(holdings),  # G50: asset class → holding, for the treemap
+        tree=portfolio_charts.allocation_tree(rows),  # G50: asset class → holding, for the treemap
+        place_names={**{("d", d.id): d.name for d in securities.accounts(active_only=False)},
+                     **{("p", f.id): f.name for f in securities.portfolios(active_only=False)}},
+        planned=planned_orders.count(),  # theoretical orders waiting to be confirmed as executed
         dividends_ytd=wealth.dividends(date(today.year, 1, 1), date(today.year + 1, 1, 1)),
         asset_classes=wealth.ASSET_CLASSES, asset_class_of=asset_classes.of,
         selected=selected,
@@ -227,6 +236,7 @@ def detail(holding_id):
                            distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
                            asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
                            chart=portfolio_charts.price_chart(holding, points),  # G40: with the operations
+                           fx=fx_effect.of_holding(holding),  # F43: what the currency did
                            look=lookthrough.summary(holding), manual_rows=lookthrough.MANUAL_ROWS,
                            look_funds=lookthrough.FUNDS,
                            contribution=performance.contribution_of(holding, portfolio_models.investments()))
@@ -318,7 +328,28 @@ def prices():
         flash(_("Prezzi aggiornati: %(changed)s.", changed=changed) if changed else _("Nessun prezzo cambiato."), "success")
         return redirect(url_for("portfolio.index"))
     return render_template("portfolio/prices.html", holdings=holdings, values={}, today=date.today(),
-                           online=current_settings()["prices_online"], supported=price_feed.supported)
+                           online=current_settings()["prices_online"], supported=price_feed.supported,
+                           market=market_data.overview())
+
+
+@portfolio_bp.route("/market/sync", methods=["POST"])
+def market_sync():
+    """D10, F69: the daily closes of the main funds and of the holdings with a ticker, from Yahoo, into the market
+    data store (a database of its own, shared by every archive)."""
+    if not current_settings()["prices_online"]:
+        flash(_("I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."), "warning")
+        return redirect(url_for("portfolio.prices") + "#market")
+    wanted = {symbol: (isin, name) for symbol, isin, name in market_data.MAIN_FUNDS}
+    for h in Holding.query.filter(Holding.ticker.isnot(None), Holding.asset_class.in_(price_feed.MARKET_CLASSES)):
+        wanted.setdefault(h.ticker.strip().upper(), (h.isin, h.name))
+    found = [market_data.sync(symbol, isin, name) for symbol, (isin, name) in wanted.items()]
+    good = [f for f in found if not f.error]
+    flash(_("Storico aggiornato: %(count)s titoli, %(closes)s chiusure nuove.", count=len(good),
+            closes=sum(f.added for f in good)), "success" if good else "warning")
+    if len(good) < len(found):
+        flash(_("Non letti: %(list)s", list=", ".join(f"{f.symbol} ({f.error[:60]})" for f in found if f.error)[:600]),
+              "warning")
+    return redirect(url_for("portfolio.prices") + "#market")
 
 
 @portfolio_bp.route("/prices/online", methods=["POST"])
@@ -424,4 +455,10 @@ def delete(holding_id):
 
 
 # registers the broker import, link, model portfolio, rule, PAC and portfolio/securities account routes on portfolio_bp
-from app.routes import portfolio_import, portfolio_rules, portfolio_securities, portfolio_templates  # noqa: E402,F401
+from app.routes import (  # noqa: E402,F401
+    portfolio_import,
+    portfolio_planned,
+    portfolio_rules,
+    portfolio_securities,
+    portfolio_templates,
+)

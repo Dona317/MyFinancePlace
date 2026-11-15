@@ -57,29 +57,21 @@
           {{ f.text(values, 'iban_tail', _('Ultime cifre IBAN o carta'), a.iban_tail, placeholder=_('es. 4821')) }}
         </div>
         {{ f.owner(values, a.owner) }}
-        {# F41: the cards charged on this account — several are fine; a row without a name is not saved #}
-        <fieldset class="fee-rules mb-16 account-cards">
-          <legend class="form-label">{{ _('Carte collegate al conto') }}</legend>
-          <p class="form-hint">{{ _('Debito, credito o prepagata: quante vuoi. Le ultime cifre servono a riconoscerla.') }}</p>
-          {% for c in (a.cards if is_edit else []) %}
-          <div class="card-row">
-            <input type="hidden" name="card_id" value="{{ c.id }}" />
-            <input type="text" name="card_name" class="form-control" value="{{ c.name }}" aria-label="{{ _('Nome della carta') }}" maxlength="80" />
-            <select name="card_kind" class="form-select" aria-label="{{ _('Tipo di carta') }}">{% for key, label in card_kinds.items() %}<option value="{{ key }}" {{ 'selected' if c.kind == key }}>{{ label }}</option>{% endfor %}</select>
-            <input type="text" inputmode="numeric" name="card_last4" class="form-control" value="{{ c.last4 or '' }}" placeholder="1234" maxlength="4" aria-label="{{ _('Ultime 4 cifre') }}" />
-            <label class="text-xs card-remove"><input type="checkbox" class="check" name="card_remove" value="{{ c.id }}" /> {{ _('togli') }}</label>
-          </div>
-          {% endfor %}
-          {% for i in range(2) %}
-          <div class="card-row">
-            <input type="hidden" name="card_id" value="" />
-            <input type="text" name="card_name" class="form-control" placeholder="{{ _('es. Bancomat, Visa') }}" aria-label="{{ _('Nome della carta') }}" maxlength="80" />
-            <select name="card_kind" class="form-select" aria-label="{{ _('Tipo di carta') }}">{% for key, label in card_kinds.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select>
-            <input type="text" inputmode="numeric" name="card_last4" class="form-control" placeholder="1234" maxlength="4" aria-label="{{ _('Ultime 4 cifre') }}" />
-            <span></span>
-          </div>
-          {% endfor %}
-        </fieldset>
+        <!-- F41: the cards charged on this account -->
+        <div class="form-group" id="account-cards">
+          <label class="form-label">{{ _('Carte collegate al conto') }} {{ info(_('Le carte di debito, credito o prepagate addebitate su questo conto: i movimenti pagati con una carta lo dicono, e nella pagina del conto vedi quanto ha speso ognuna nel mese.'), _('Carte collegate al conto')) }}</label>
+          {% if a and a.id %}
+            {% for c in a.cards %}
+            <div class="d-flex align-center gap-8 text-sm mb-8"><i class="bi bi-credit-card"></i>
+              <a href="{{ url_for('accounts.card_edit', card_id=c.id) }}">{{ c.name }}</a>
+              <span class="text-muted">{{ '•••• ' ~ c.last4 if c.last4 else '' }}</span>
+              {% if not c.active %}<span class="badge badge-muted">{{ _('non attiva') }}</span>{% endif %}</div>
+            {% else %}<div class="text-sm text-muted mb-8">{{ _('Nessuna carta collegata.') }}</div>{% endfor %}
+            <a href="{{ url_for('accounts.card_new', account=a.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi una carta') }}</a>
+          {% else %}
+            <div class="text-sm text-muted">{{ _('Salva il conto, poi aggiungi le sue carte.') }}</div>
+          {% endif %}
+        </div>
         {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
         <fieldset class="fee-rules mb-16">
           <legend class="form-label">{{ _('Commissioni del broker (facoltative)') }} {{ info(_('Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una vendita su questo conto, la commissione viene calcolata e proposta. Vuoto = la inserisci tu.'), _('Commissioni del broker (facoltative)')) }}</legend>

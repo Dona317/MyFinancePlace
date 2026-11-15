@@ -73,7 +73,8 @@ class Result:
     on: date | None = None
     error: str | None = None
     source: str | None = None
-    history: list = field(default_factory=list)  # (day, price in euro) of the past year, when read
+    history: list = field(default_factory=list)  # (day, price in euro, (price, currency) or None) of the past year
+    native: tuple | None = None   # F43: (price, currency) as quoted, when not in euro
 
 
 def _fetch(url: str) -> str:
@@ -204,6 +205,13 @@ def _to_euro(value: Decimal, code: str, on: date) -> Decimal:
     return money.price(value)
 
 
+def _native(value: Decimal, code: str) -> tuple[Decimal, str] | None:
+    """F43: the price as quoted (pence turned into pounds), or None when it is in euro already."""
+    if code == "GBP_PENCE":
+        return money.price(value / 100), "GBP"
+    return None if code == currency.BASE else (money.price(value), code[:3])
+
+
 def _currency_code(raw: str | None) -> str:
     raw = raw or "EUR"
     return "GBP_PENCE" if raw in ("GBp", "GBX", "GBx") else raw.upper()
@@ -218,7 +226,7 @@ def _day(stamp) -> date:
     return datetime.fromtimestamp(stamp or datetime.now().timestamp(), tz=timezone.utc).date()
 
 
-def _yahoo(holding: Holding, with_history: bool = False) -> tuple[Decimal, date, list]:
+def _yahoo(holding: Holding, with_history: bool = False) -> tuple[Decimal, date, list, tuple | None]:
     ticker = holding.ticker.strip().upper()
     span = ("1y", "1wk") if with_history else ("5d", "1d")
     data = _get_json(YAHOO.format(ticker=urllib.parse.quote(ticker), range=span[0], interval=span[1]))
@@ -232,6 +240,7 @@ def _yahoo(holding: Holding, with_history: bool = False) -> tuple[Decimal, date,
         raise ValueError(_("nessun prezzo per «%(ticker)s»", ticker=holding.ticker))
     on = _day(meta.get("regularMarketTime"))
     value = _to_euro(Decimal(str(price)), code, on)
+    native = _native(Decimal(str(price)), code)
     _remember_currency(holding, code)
     history = []
     if with_history:
@@ -242,10 +251,10 @@ def _yahoo(holding: Holding, with_history: bool = False) -> tuple[Decimal, date,
             if close is None or day >= on:
                 continue
             try:
-                history.append((day, _to_euro(Decimal(str(close)), code, day)))
+                history.append((day, _to_euro(Decimal(str(close)), code, day), _native(Decimal(str(close)), code)))
             except MissingRate:
                 continue  # no rate that far back: those weeks stay without a price
-    return value, on, history
+    return value, on, history, native
 
 
 def benchmark_history(ticker: str) -> dict[str, float]:
@@ -281,7 +290,7 @@ def _stooq_symbol(ticker: str) -> tuple[str, str]:
     return f"{base.lower()}.{market}", code
 
 
-def _stooq(holding: Holding) -> tuple[Decimal, date, list]:
+def _stooq(holding: Holding) -> tuple[Decimal, date, list, tuple | None]:
     symbol, code = _stooq_symbol(holding.ticker)
     rows = list(csv.DictReader(io.StringIO(_get_text(STOOQ.format(symbol=urllib.parse.quote(symbol))))))
     row = rows[0] if rows else {}
@@ -292,7 +301,7 @@ def _stooq(holding: Holding) -> tuple[Decimal, date, list]:
     if code == "GBX":
         code = "GBP_PENCE"
     _remember_currency(holding, code)
-    return _to_euro(price, code, on), on, []
+    return _to_euro(price, code, on), on, [], _native(price, code)
 
 
 def _coingecko(holdings: list[Holding]) -> dict[int, tuple[Decimal, date] | str]:
@@ -322,7 +331,7 @@ def _price_order(holding: Holding) -> list[str]:
     return [s for s in by_class.get(holding.asset_class, ["yahoo", "stooq"]) if s == "stooq" or s in on]
 
 
-def _from_site(holding: Holding, site: str) -> tuple[Decimal, date, list]:
+def _from_site(holding: Holding, site: str) -> tuple[Decimal, date, list, tuple | None]:
     if site.startswith(custom.PREFIX):
         source = custom.get(site.removeprefix(custom.PREFIX))
         if source is None:
@@ -334,7 +343,7 @@ def _from_site(holding: Holding, site: str) -> tuple[Decimal, date, list]:
         quote = sources.QUOTES[site](holding.isin)
     code = _currency_code(quote.currency)
     _remember_currency(holding, code)
-    return _to_euro(quote.price, code, quote.on), quote.on, []
+    return _to_euro(quote.price, code, quote.on), quote.on, [], _native(quote.price, code)
 
 
 def _market(holding: Holding) -> Result:
@@ -345,18 +354,18 @@ def _market(holding: Holding) -> Result:
     for source in order:
         try:
             if source.startswith(custom.PREFIX):
-                price, on, history = _from_site(holding, source)
+                price, on, history, native = _from_site(holding, source)
             elif source in sources.QUOTES:
                 if not holding.isin and len(order) > 1:
                     continue  # it needs the ISIN: the next source may do without
-                price, on, history = _from_site(holding, source)
+                price, on, history, native = _from_site(holding, source)
             else:
                 _resolve_ticker(holding)
                 if source == "stooq":
-                    price, on, history = _stooq(holding)
+                    price, on, history, native = _stooq(holding)
                 else:
-                    price, on, history = _yahoo(holding, with_history=_wants_history(holding))
-            return Result(holding, price, on, source=source, history=history)
+                    price, on, history, native = _yahoo(holding, with_history=_wants_history(holding))
+            return Result(holding, price, on, source=source, history=history, native=native)
         except MissingRate as exc:
             return Result(holding, error=str(exc))
         except (OSError, ValueError, KeyError, TypeError) as exc:
@@ -382,11 +391,12 @@ def update_all(holdings: list[Holding]) -> list[Result]:
     results += [_market(h) for h in holdings if supported(h) and source_of(h) not in ("coingecko", None)]
     today = date.today()
     for result in results:
-        for day, price in result.history:
+        for day, price, *native in result.history:
+            quoted = native[0] if native else None
             if price > 0:
-                wealth.record_price(result.holding, price, day)
+                wealth.record_price(result.holding, price, day, *(quoted or (None, None)))
         if result.price is not None and result.price > 0:
-            wealth.record_price(result.holding, result.price, min(result.on, today))
+            wealth.record_price(result.holding, result.price, min(result.on, today), *(result.native or (None, None)))
     return results
 
 

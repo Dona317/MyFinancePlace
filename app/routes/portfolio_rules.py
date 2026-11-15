@@ -10,6 +10,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.portfolio_model import InvestmentPlan, PortfolioRule, PortfolioTemplate
+from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding
 from app.routes.helpers import uploaded_file, year_arg
 from app.routes.portfolio import portfolio_bp
@@ -19,16 +20,19 @@ from app.services import (
     composition,
     display,
     family,
+    fx_effect,
     income_report,
     investment_plans,
     lookthrough,
     performance,
     periods,
+    planned_orders,
     portfolio_highlights,
     portfolio_models,
     portfolio_ops,
     portfolio_rules,
     price_feed,
+    securities,
     taxonomies,
 )
 from app.services.parsing import to_date, to_decimal
@@ -79,6 +83,7 @@ def rule_delete(rule_id):
 def _plan_page(plan: InvestmentPlan | None, values):
     return render_template("portfolio/plan_form.html", plan=plan, values=values, accounts=accounts.active(),
                            templates=PortfolioTemplate.query.order_by(PortfolioTemplate.name).all(),
+                           folios=securities.portfolios(), dossiers=securities.accounts(),
                            frequencies=investment_plans.FREQUENCIES, today=date.today())
 
 
@@ -99,6 +104,9 @@ def _plan_form(plan: InvestmentPlan | None):
     plan.start, plan.end, plan.fractional = start, end, bool(form.get("fractional"))
     plan.account_id = account_id if account_id and db.session.get(Account, account_id) else None
     plan.template_id = template_id if template_id and db.session.get(PortfolioTemplate, template_id) else None
+    folio_id, dossier_id = form.get("portfolio_id", type=int), form.get("securities_account_id", type=int)
+    plan.portfolio_id = folio_id if folio_id and db.session.get(Portfolio, folio_id) else None
+    plan.securities_account_id = dossier_id if dossier_id and db.session.get(SecuritiesAccount, dossier_id) else None
     db.session.add(plan)
     db.session.commit()
     flash(_("Piano d'accumulo salvato."), "success")
@@ -138,6 +146,19 @@ def _orders() -> list[investment_plans.Order]:
 @portfolio_bp.route("/plans/<int:plan_id>/run", methods=["GET", "POST"])
 def plan_run(plan_id):
     plan = db.get_or_404(InvestmentPlan, plan_id)
+    if request.method == "POST" and request.form.get("action") == "plan":
+        account, dossier, folio = investment_plans.place_of(plan)
+        drafts = [planned_orders.Draft(investment_plans.holding_for(o), "buy", o.units, o.price, o.label)
+                  for o in _orders() if o.units > 0 and o.price > 0]
+        try:
+            planned_orders.save(drafts, "pac", account, dossier, folio, plan=plan)
+        except planned_orders.PlannedError as exc:
+            db.session.rollback()
+            flash(str(exc), "error")
+            return redirect(url_for("portfolio.plan_run", plan_id=plan.id))
+        db.session.commit()
+        flash(_("Rata salvata come ordini teorici: diventa acquisti quando la confermi eseguita."), "success")
+        return redirect(url_for("portfolio.planned_page"))
     if request.method == "POST":
         try:
             with db.session.begin_nested():
@@ -154,6 +175,7 @@ def plan_run(plan_id):
         flash(str(exc), "error")
         return redirect(url_for("portfolio.models_index"))
     return render_template("portfolio/plan_run.html", plan=plan, purchases=purchases, today=date.today(),
+                           place=investment_plans.place_of(plan), model=investment_plans.template_of(plan),
                            is_due=investment_plans.is_due(plan, date.today()))
 
 
@@ -183,7 +205,7 @@ def performance_page():
                            xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
                            benchmarks=performance.benchmarks(), max_benchmarks=performance.MAX_BENCHMARKS,
                            contribution=performance.contributions(holdings, period),
-                           period_choices=performance.PERIODS)
+                           period_choices=performance.PERIODS, fx=fx_effect.of_holdings(holdings))
 
 
 def _performance_post() -> None:

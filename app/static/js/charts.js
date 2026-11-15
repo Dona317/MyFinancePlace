@@ -51,6 +51,8 @@ function themeColor(color, fallback) {
 readTheme();
 Chart.defaults.font.family   = getComputedStyle(document.documentElement).getPropertyValue("--font-body").trim();
 Chart.defaults.font.size     = 12;
+// numbers on the axes in the interface's language: 160.000 in Italian, not 160,000
+Chart.defaults.locale = document.documentElement.dataset.locale || "it-IT";
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.padding = 16;
 Chart.defaults.plugins.tooltip.backgroundColor = "#1A2540";
@@ -239,8 +241,9 @@ function buildLineChart(ctx, labels, datasets, opts = {}) {
         backgroundColor: hexAlpha(themeColor(ds.color, paletteOf(opts)[i % 8]), ds.fillAlpha ?? 0.08),
         tension: ds.tension ?? 0.4,                      // 0 for a balance or a cumulative sum (steps, not curves)
         fill: ds.fill !== undefined ? ds.fill : true,   // also "-1": fill down to the previous dataset (a band)
-        pointRadius: ds.pointRadius ?? 4,
+        pointRadius: ds.pointRadius ?? (labels.length > 24 ? 0 : 4),  // a long series: the line only, dots on hover
         pointHoverRadius: 6,
+        pointHitRadius: 8,
         borderWidth: ds.borderWidth ?? 2,
         borderDash: ds.dash || [],                       // e.g. [6, 4] for forecast values
         hidden: ds.hidden || false,
@@ -528,13 +531,15 @@ function buildTreemapChart(ctx, tree) {
         backgroundColor: c => c.type === "data" ? hexAlpha(colorOf(classOf(c.raw)), c.raw.l === 0 ? 1 : 0.7) : "transparent",
         captions: { display: true, color: "#FFFFFF", font: { weight: "600" }, padding: 4,
                     formatter: c => `${c.raw.g} · ${share(c.raw.v)}` },
-        labels: { display: true, overflow: "hidden", color: "#FFFFFF", font: { size: 11 },
+        // the name shrinks to fit a small rectangle (down to a few pixels: then only the share is readable)
+        labels: { display: true, overflow: "fit", color: "#FFFFFF", font: { size: 11 },
                   formatter: c => [c.raw.g, share(c.raw.v)] },
       }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,  // a resize during the animation (window, sidebar) left the rectangles out of place
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: {

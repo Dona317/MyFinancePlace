@@ -1,18 +1,34 @@
 """
-The cards of an account (F41): a debit, credit or prepaid card charged on it — one account can have several. The
-card is told by its name and last digits; its movements are the account's.
+Payment cards (F41): debit, credit and prepaid cards, each charged on an account: name, circuit, last four digits,
+expiry, holder, limit; the full number only encrypted (services.field_crypto), never the CVV or the PIN.
+Movements can say which card paid them (Transaction.card_id).
 """
+from datetime import datetime
+
 from app.extensions import db
 
 
 class Card(db.Model):
     __tablename__ = "cards"
 
-    id         = db.Column(db.Integer, primary_key=True)
-    account_id = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True)
-    name       = db.Column(db.Text, nullable=False)                     # «Visa Fineco», «Bancomat»
-    kind       = db.Column(db.String(10), nullable=False, default="debit")  # see services.accounts.CARD_KINDS
-    last4      = db.Column(db.String(4))                                 # the last digits, to recognise it
-    position   = db.Column(db.Integer, nullable=False, default=0)
+    id            = db.Column(db.Integer, primary_key=True)
+    name          = db.Column(db.Text, nullable=False)           # «Visa Fineco», «Bancomat Intesa»
+    kind          = db.Column(db.String(10), nullable=False, default="debit")  # debit | credit | prepaid
+    network       = db.Column(db.String(12))                     # visa | mastercard | maestro | amex | bancomat | other
+    last4         = db.Column(db.String(4))                      # the last four digits, to recognize it
+    number_enc    = db.Column(db.Text)                           # the full number, encrypted (AES-256-GCM); may be empty
+    expiry_month  = db.Column(db.SmallInteger)
+    expiry_year   = db.Column(db.SmallInteger)
+    holder        = db.Column(db.String(80))                     # whose name is on it (F20 holders)
+    account_id    = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)  # charged on
+    credit_limit  = db.Column(db.Numeric(14, 2))                 # credit and prepaid: the monthly limit / top-up cap
+    statement_day = db.Column(db.SmallInteger)                   # credit: the day the month's total is charged
+    contactless   = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
+    # the account's payments go on this card by default (bank transfers aside); one per account. With one active card
+    # only, that one is the default anyway
+    is_default    = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    notes         = db.Column(db.Text)
+    active        = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
 
-    account = db.relationship("Account", backref=db.backref("cards", order_by="Card.position", cascade="all, delete-orphan"))
+    account = db.relationship("Account", backref=db.backref("cards", lazy="select", order_by="Card.name"))

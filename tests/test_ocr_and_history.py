@@ -24,17 +24,41 @@ def test_scan_is_read_by_ocr_without_ai(ocr_on, client, db):
     assert "Movimenti letti con OCR dalla scansione" in html and "Rileggi con l" not in html
 
 
+def _damaged_photo() -> bytes:
+    """The phone photo with the amounts of eight rows rubbed out: those rows cannot be read."""
+    from PIL import ImageDraw
+
+    image = Image.open(SAMPLES / PHOTO).convert("RGB")
+    ImageDraw.Draw(image).rectangle((690, 280, 820, 470), fill="white")
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG")
+    return buffer.getvalue()
+
+
+def _upload_bytes(client, name, raw):
+    return client.post("/export/bank", data={"file": (io.BytesIO(raw), name), "bank": "auto"}, content_type="multipart/form-data")
+
+
+def test_a_tilted_photo_is_straightened(ocr_on, db):
+    """The sample photo is turned by about a degree: without straightening, each amount landed on the next row."""
+    preview = bank_import.analyze_statement(PHOTO, (SAMPLES / PHOTO).read_bytes())
+    rows = [(r.date.isoformat(), r.amount) for r in preview.rows]
+    assert not preview.ocr_doubtful and len(rows) == 21
+    assert rows[0] == ("2026-09-01", Decimal("-720.00")) and rows[-1] == ("2026-09-22", Decimal("-44.41"))
+    assert ("2026-09-13", Decimal("574.89")) in rows  # the only income, with its own row
+
+
 def test_ocr_offers_the_ai_as_backup(ocr_on, client, ollama):  # noqa: F811
     html = _upload(client, SCAN).get_data(as_text=True)
     assert "Movimenti letti con OCR" in html and "Rileggi con l" in html and ollama.calls == []
-    # a photo the OCR reads badly (rows merged): straight to the AI question, saying why
-    response = _upload(client, PHOTO)
+    # a photo the OCR reads badly (rows lost): straight to the AI question, saying why
+    response = _upload_bytes(client, PHOTO, _damaged_photo())
     assert response.status_code == 302 and "/export/bank/ai/" in response.location
     assert "sembra averne persi o uniti alcuni" in client.get(response.location).get_data(as_text=True)
 
 
 def test_doubtful_ocr_without_ai_still_shows_the_rows(ocr_on, client, db):
-    html = _upload(client, PHOTO).get_data(as_text=True)
+    html = _upload_bytes(client, PHOTO, _damaged_photo()).get_data(as_text=True)
     assert "Alcune righe potrebbero mancare" in html
 
 

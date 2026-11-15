@@ -58,6 +58,14 @@
   (_('Indice'), holding.index_name), (_('Lancio'), holding.launch_date|it_date if holding.launch_date else none),
   (_('Cambio'), _('coperto') if holding.currency_hedged else none), ('ISIN', holding.isin),
   (_('Classe di attivo'), asset_class|tr)] %}
+{% if fx %}
+{# F43: this holding's return split between the instrument and the exchange rate #}
+<div class="kpi-grid mb-16" id="fx-effect">
+  {{ kpi('graph-up', _('Nella sua valuta (%(code)s)', code=fx.currency), value=('+' if fx.local > 0 else '') ~ (fx.local * 100)|number(2) ~ ' %', sub=_('dal %(day)s', day=fx.start|it_date)) }}
+  {{ kpi('currency-exchange', _('Effetto cambio'), value=('+' if fx.fx > 0 else '') ~ (fx.fx * 100)|number(2) ~ ' %', cls=('kpi-positive' if fx.fx > 0 else 'kpi-negative' if fx.fx < 0 else 'kpi-neutral'), sub=_('%(amount)s sul valore di oggi', amount=fx.fx_euro|money)) }}
+  {{ kpi('cash-coin', _('In euro'), value=('+' if fx.total > 0 else '') ~ (fx.total * 100)|number(2) ~ ' %', sub=_('titolo × cambio')) }}
+</div>
+{% endif %}
 <div class="card mb-24">
   <div class="card-header"><div class="card-header-title">{{ _('Caratteristiche') }}</div>
     <a href="{{ url_for('portfolio.edit', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a></div>

@@ -10,7 +10,7 @@ fractions), aggregates the rows by country (ISO code, from the names Babel knows
 
 The portfolio's exposure is Σ value of the holding × weight. A holding without look-through data counts with what
 its form says (region, sector, quote currency, asset class; a share is its own company); what is left is
-«Non coperto». The overlap of two funds is the sum, over the companies both hold, of the smaller weight.
+«Senza dati». The overlap of two funds is the sum, over the companies both hold, of the smaller weight.
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ TOP_CHART = 10       # countries and sectors on the charts, then «Altri»
 TOP_TABLE = 20       # companies in the portfolio's table
 MANUAL_ROWS = 10     # countries and sectors typed by hand
 MANUAL = N_("a mano")
-UNCOVERED = N_("Non coperto")
+UNCOVERED = N_("Senza dati")
 OTHERS = N_("Altri")
 FUNDS = {"ETF", "Fondo comune", "Fondo assicurativo", "Fondo Pensione"}  # their quote currency says nothing
 
@@ -527,7 +527,7 @@ def _fallback(h: Holding, kind: str) -> str | None:
 
 
 def _ranked(sums: dict[str, float], total: float, top: int | None, label) -> list[dict]:
-    """Largest first, `top` named then «Altri», «Non coperto» last: [{name, value, pct}]."""
+    """Largest first, `top` named then «Altri», «Senza dati» last: [{name, value, pct}]."""
     uncovered = sums.pop(UNCOVERED, 0.0)
     merged: dict[str, float] = defaultdict(float)
     for name, value in sums.items():

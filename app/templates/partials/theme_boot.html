@@ -2,3 +2,6 @@
 <script>(function(){var t=null;try{t=localStorage.getItem('mfp-theme');}catch(e){}
   if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
   document.documentElement.setAttribute('data-theme',t);}());</script>
+{# Privacy (the eye): amounts hidden from the first paint; main.js masks them and shows the page (at most 1.5 s) #}
+<script>(function(){try{if(localStorage.getItem('mfp-privacy')==='1'){var h=document.documentElement;
+  h.classList.add('privacy','privacy-pending');setTimeout(function(){h.classList.remove('privacy-pending');},1500);}}catch(e){}}());</script>

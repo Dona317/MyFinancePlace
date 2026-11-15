@@ -293,6 +293,18 @@ def _wait_for_signal(stop: threading.Event) -> None:
         pass
 
 
+def _ocr_works() -> bool:
+    """The light OCR is in the package and its models load (scans and photos are read without AI; the AI is the
+    second way)."""
+    from app.services import ocr
+
+    try:
+        return ocr.available() and ocr._ocr() is not None
+    except Exception:  # a missing model or engine: reported by the smoke test
+        log.exception("light OCR not working")
+        return False
+
+
 def main(argv=None) -> int:
     args = _arguments(argv)
     root = paths.data_dir(args.data_dir)
@@ -338,7 +350,10 @@ def main(argv=None) -> int:
 
         if args.smoke:
             body = _health(url, 10)
+            body["ocr"] = _ocr_works()
             print(json.dumps(body), flush=True)
+            if not body["ocr"]:
+                return 5
             return 0 if body.get("ok") else 4
         threading.Thread(target=_reminders_loop, args=(app, root, stop), name="reminders", daemon=True).start()
         if args.headless:

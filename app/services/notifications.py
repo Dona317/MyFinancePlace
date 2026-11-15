@@ -13,6 +13,7 @@ from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
 from app.services import (
     budgets,
+    cards,
     contribution_limits,
     data_health,
     deadlines,
@@ -214,6 +215,22 @@ def _documents(today: date) -> list[Notification]:
     return items
 
 
+def _cards(today: date) -> list[Notification]:
+    """F41: an active card that stops working within 60 days (or already has): ask the bank for the new one."""
+    items = []
+    for card in cards.every():
+        last = cards.expiry_date(card)
+        if last is None or not cards.expires_soon(card, today):
+            continue
+        title = (_("Carta scaduta: %(name)s", name=card.name) if last < today
+                 else _("Carta in scadenza: %(name)s", name=card.name))
+        items.append(Notification(f"card-{card.id}-{last:%Y%m}", "warning" if last <= today + timedelta(days=30) else "info",
+                                  "credit-card", title, _("Valida fino al %(day)s · %(card)s", day=display.day(last),
+                                                          card=cards.masked(card)), last,
+                                  url_for("accounts.card_edit", card_id=card.id)))
+    return items
+
+
 def _backup(today: date) -> list[Notification]:
     """The automatic backup failed, or has not run for two periods."""
     state = encrypted_backup.status()
@@ -242,7 +259,7 @@ def _update(today: date) -> list[Notification]:
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
            (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"),
-           (_deadlines, "deadlines"), (_documents, "documents"), (_year_closes, "accounting"),
+           (_deadlines, "deadlines"), (_documents, "documents"), (_cards, "accounts"), (_year_closes, "accounting"),
            (_backup, "export"), (_update, "notifications"))
 
 

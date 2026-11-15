@@ -22,6 +22,10 @@
         <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> {{ _('Analizza file') }}</button>
       </form>
       <p class="text-xs text-muted" style="margin-top:12px;">
+        <strong>{{ _('Modello da compilare') }}:</strong>
+        <a href="{{ url_for('portfolio.broker_template', kind='xlsx') }}"><i class="bi bi-file-earmark-excel"></i> Excel</a> ·
+        <a href="{{ url_for('portfolio.broker_template', kind='csv') }}"><i class="bi bi-filetype-csv"></i> CSV</a>
+        — {{ _('una riga per operazione: A = acquisto, V = vendita; per un\'obbligazione la quantità è il nominale e il prezzo in %% (101,20). Sostituisci le tre righe d\'esempio.') }}<br />
         <strong>Degiro:</strong> {{ _('Attività → Transazioni → Esporta (CSV).') }}
         {{ _('Altri broker: un CSV o Excel con le colonne data, ISIN o ticker, nome, quantità e prezzo (facoltative: commissioni, tipo acquisto/vendita, controvalore).') }}
         {{ _('Lo stesso file importato due volte non crea doppioni.') }}
@@ -69,6 +73,30 @@
       {% else %}
       <p class="text-muted">{{ _('La lettura con AI non è configurata: scegli un modello in Impostazioni → Modelli AI.') }}</p>
       {% endif %}
+    </div>
+  </div>
+
+  <div class="card" id="archive" style="margin-top:16px;">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title"><i class="bi bi-box-seam"></i> {{ _('Solo gli investimenti: esporta e ripristina') }} {{ info(_('Un file con conti titoli, portafogli, titoli, prezzi, operazioni, modelli, PAC, regole e ordini teorici, e i movimenti della liquidità dei conti titoli. Il resto dell\'archivio (conti correnti, budget, polizze…) non cambia. I conti di liquidità si riconoscono dal nome.')) }}</div>
+        <div class="card-header-sub">{{ _('Per provare, spostare o mettere da parte la sezione Portafoglio.') }}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <a href="{{ url_for('portfolio.investments_export') }}" class="btn btn-primary mb-16"><i class="bi bi-download"></i> {{ _('Esporta gli investimenti') }}</a>
+      <form method="POST" action="{{ url_for('portfolio.investments_restore') }}" enctype="multipart/form-data"
+            data-confirm="{{ _('Ripristinare questo file? Gli investimenti attuali saranno sostituiti (prima viene salvata una copia di tutto l\'archivio).') }}">
+        <div class="form-group">
+          <label class="form-label" for="archive-file">{{ _('File degli investimenti (.zip)') }}</label>
+          <input type="file" name="file" id="archive-file" class="form-control" accept=".zip,.json" required />
+        </div>
+        <label class="d-flex align-center gap-8 text-sm mb-16">
+          <input type="checkbox" name="confirm" value="1" />
+          <span>{{ _('Ho capito: sostituisce gli investimenti attuali') }}</span>
+        </label>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina gli investimenti') }}</button>
+      </form>
     </div>
   </div>
 </div>

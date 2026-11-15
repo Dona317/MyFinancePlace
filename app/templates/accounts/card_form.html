@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% import "partials/fields.html" as f %}
+{% from "partials/info.html" import info %}
+{% from "partials/actions.html" import delete_button %}
+{% set c = card or {} %}
+{% block page_title %}{{ card.name if card else _('Nuova carta') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ card.name if card else _('Nuova carta') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title"><i class="bi bi-credit-card"></i> {{ _('Carta') }}</div>
+        <div class="card-header-sub">{{ _('Per riconoscerla: nome, circuito, numero, scadenza e titolare. Il numero intero si salva cifrato; CVV e PIN non vanno mai scritti qui.') }}</div>
+      </div>
+      {% if card %}{{ delete_button(url_for('accounts.card_delete', card_id=card.id), _('Eliminare la carta «%(name)s»? I suoi movimenti restano, senza carta.', name=card.name), _('Elimina %(name)s', name=card.name)) }}{% endif %}
+    </div>
+    <div class="card-body">
+      <form method="POST" id="card-form">
+        {{ f.text(values, 'name', _('Nome'), c.name, required=true, placeholder=_('es. Visa Fineco, Bancomat Intesa')) }}
+        <div class="grid-2">
+          {{ f.select(values, 'kind', _('Tipo'), kinds.items()|list, c.kind or 'debit') }}
+          {{ f.select(values, 'network', _('Circuito'), networks.items()|list, c.network, blank=_('— non indicato —')) }}
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="f-number">{{ _('Numero della carta') }} {{ info(_('Intero (12–19 cifre) o solo le ultime 4. Il numero intero è salvato cifrato e si vede solo con «Mostra il numero»; le ultime 4 cifre riconoscono la carta nei movimenti importati («CARTA *4821»). CVV e PIN non si salvano mai.'), _('Numero della carta')) }}</label>
+            <input type="text" inputmode="numeric" id="f-number" name="number" class="form-control" autocomplete="off"
+                   placeholder="4821" value="{{ values.number if 'number' in values else (c.last4 or '') }}" />
+            {% if card and card.number_enc %}
+            <div class="d-flex align-center gap-8 text-sm" style="margin-top:6px;flex-wrap:wrap;">
+              <span class="badge badge-muted"><i class="bi bi-shield-lock"></i> {{ _('numero intero salvato cifrato') }}</span>
+              <button type="button" class="btn btn-ghost btn-sm" id="show-number" data-url="{{ url_for('accounts.card_number', card_id=card.id) }}"
+                      data-hide="{{ _('Nascondi il numero') }}" data-show="{{ _('Mostra il numero') }}"><i class="bi bi-eye"></i> <span>{{ _('Mostra il numero') }}</span></button>
+              <span id="full-number" class="font-mono" data-privacy="show" hidden></span>
+              <label class="d-flex align-center gap-8"><input type="checkbox" name="forget_number" value="1" class="check" /> {{ _('Cancella il numero intero') }}</label>
+            </div>
+            {% endif %}
+          </div>
+          {{ f.text(values, 'expiry', _('Scadenza (MM/AA)'), ('%02d/%02d'|format(c.expiry_month, c.expiry_year % 100)) if c.expiry_month else none, placeholder='08/28',
+                    hint=_('Due mesi prima compare tra i promemoria; il giorno della scadenza è nello Scadenzario.')) }}
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="f-account_id">{{ _('Addebitata sul conto') }} {{ info(_('Il conto da cui escono i soldi: il conto corrente per una carta di debito, quello che salda l\'estratto per una carta di credito. Una prepagata con il suo saldo può essere un conto a sé.')) }}</label>
+            {% set chosen = values.account_id if 'account_id' in values else account_id %}
+            <select id="f-account_id" name="account_id" class="form-select">
+              <option value="">{{ _('— nessun conto —') }}</option>
+              {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id|string == chosen|string }}>{{ a.name }}</option>{% endfor %}
+            </select>
+          </div>
+          {% if holders %}{{ f.select(values, 'holder', _('Titolare'), holders, c.holder, blank=_('— non indicato —')) }}
+          {% else %}{{ f.text(values, 'holder', _('Titolare'), c.holder, placeholder=_('es. Mario Rossi')) }}{% endif %}
+        </div>
+        <div class="grid-2" id="credit-fields">
+          {{ f.number(values, 'credit_limit', _('Plafond (€)'), c.credit_limit, placeholder='1500',
+                      hint=_('Carta di credito: il limite di spesa del mese. Prepagata: la ricarica massima.')) }}
+          {{ f.number(values, 'statement_day', _('Giorno di addebito'), c.statement_day, placeholder='15',
+                      hint=_('Carta di credito: il giorno in cui il totale del mese esce dal conto.')) }}
+        </div>
+        {% set contact = (values.get('contactless') if values else (c.contactless if card else true)) %}
+        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="contactless" value="1" class="check" {{ 'checked' if contact }} /> {{ _('Contactless') }}</label>
+        {% set default = (values.get('is_default') if values else (c.is_default if card else false)) %}
+        <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="is_default" value="1" class="check" {{ 'checked' if default }} />
+          {{ _('Carta predefinita del conto') }} {{ info(_('I pagamenti di questo conto vanno su questa carta, tranne bonifici, giroconti, addebiti diretti (SDD) e F24. Se il conto ha una sola carta attiva è lei la predefinita.')) }}</label>
+        {% set on = (values.get('active') if values else (c.active if card else true)) %}
+        <input type="hidden" name="active" value="" />
+        <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" value="1" class="check" {{ 'checked' if on }} /> {{ _('Attiva') }}</label>
+        {{ f.textarea(values, 'notes', _('Note'), c.notes) }}
+        {{ f.actions(url_for('accounts.detail', account_id=account_id) if account_id else url_for('accounts.index'), _('Salva carta')) }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const kind = document.getElementById('f-kind');
+  const box = document.getElementById('credit-fields');
+  const day = document.getElementById('f-statement_day')?.closest('.form-group');
+  function show() { box.hidden = kind.value === 'debit'; if (day) day.hidden = kind.value !== 'credit'; }
+  kind.addEventListener('change', show);
+  show();
+})();
+(function () {
+  /* the whole number: asked to the server only on click, shown for 30 seconds */
+  const button = document.getElementById('show-number'), out = document.getElementById('full-number');
+  if (!button) return;
+  let timer = null;
+  const hide = () => { out.hidden = true; out.textContent = ''; button.querySelector('span').textContent = button.dataset.show; };
+  button.addEventListener('click', async () => {
+    if (!out.hidden) { hide(); return; }
+    const response = await fetch(button.dataset.url, { method: 'POST', headers: { 'X-Requested-With': 'fetch' } });
+    const data = await response.json();
+    out.textContent = data.number || data.error;
+    out.hidden = false;
+    button.querySelector('span').textContent = button.dataset.hide;
+    clearTimeout(timer);
+    timer = setTimeout(hide, 30000);
+  });
+})();
+</script>
+{% endblock %}

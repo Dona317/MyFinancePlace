@@ -48,6 +48,8 @@ class Transaction(db.Model):
     securities_account_id = db.Column(db.Integer, db.ForeignKey("securities_accounts.id", ondelete="SET NULL"),
                                       index=True)
     portfolio_id = db.Column(db.Integer, db.ForeignKey("portfolios.id", ondelete="SET NULL"), index=True)
+    # F41: the card that paid it (a debit, credit or prepaid card charged on the account)
+    card_id = db.Column(db.Integer, db.ForeignKey("cards.id", ondelete="SET NULL"), index=True)
     # The spending event it belongs to (F20: a trip, a wedding…)
     event_id   = db.Column(db.Integer, db.ForeignKey("spending_events.id", ondelete="SET NULL"), index=True)
 

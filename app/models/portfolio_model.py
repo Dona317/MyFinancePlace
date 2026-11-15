@@ -86,6 +86,11 @@ class InvestmentPlan(db.Model):
     start       = db.Column(db.Date, nullable=False)
     end         = db.Column(db.Date)
     last_done   = db.Column(db.String(7))                    # "2026-10": the last period confirmed
+    # F52: what it buys for and where; empty = the model's portfolio (or the default one), the account's dossier
+    portfolio_id = db.Column(db.Integer, db.ForeignKey("portfolios.id", ondelete="SET NULL"))
+    securities_account_id = db.Column(db.Integer, db.ForeignKey("securities_accounts.id", ondelete="SET NULL"))
 
     account = db.relationship("Account")
     template = db.relationship("PortfolioTemplate")
+    portfolio = db.relationship("Portfolio")
+    securities_account = db.relationship("SecuritiesAccount")

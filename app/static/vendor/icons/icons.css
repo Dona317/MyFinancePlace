@@ -21,6 +21,7 @@
 .bi-arrow-left::before { content: "\f12f"; }
 .bi-arrow-left-right::before { content: "\f12b"; }
 .bi-arrow-repeat::before { content: "\f130"; }
+.bi-arrow-return-right::before { content: "\f132"; }
 .bi-arrow-right::before { content: "\f138"; }
 .bi-arrow-up-circle::before { content: "\f13a"; }
 .bi-arrow-up-right::before { content: "\f144"; }
@@ -50,6 +51,7 @@
 .bi-box-arrow-right::before { content: "\f1c3"; }
 .bi-box-arrow-up::before { content: "\f1c6"; }
 .bi-box-arrow-up-right::before { content: "\f1c5"; }
+.bi-box-seam::before { content: "\f1c7"; }
 .bi-boxes::before { content: "\f685"; }
 .bi-briefcase::before { content: "\f1cc"; }
 .bi-bucket::before { content: "\f1da"; }
@@ -191,6 +193,7 @@
 .bi-lock::before { content: "\f47b"; }
 .bi-magic::before { content: "\f675"; }
 .bi-map::before { content: "\f47f"; }
+.bi-mask::before { content: "\f482"; }
 .bi-medium::before { content: "\f661"; }
 .bi-memory::before { content: "\f6e3"; }
 .bi-meta::before { content: "\f6a1"; }

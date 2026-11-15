@@ -1,0 +1,4 @@
+Data Operazione,Data Valuta,Tipo Operazione,Ticker,Isin,Descrizione,Quantità,Importo euro,Importo Divisa,Divisa,Commissioni
+04-11-2026,06-11-2026,Acquisto,,IT0005634800,BTP Più Fb33,5000,-5017.50,,EUR,9.53
+06-11-2026,08-11-2026,Acquisto,ENEL,IT0003128367,Enel S.p.A.,300,-2319.00,,EUR,4.41
+09-11-2026,11-11-2026,Vendita,MSFT,US5949181045,Microsoft Corporation,3,1269.57,1460.01,USD,2.41

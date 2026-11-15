@@ -91,7 +91,8 @@
         {% for p in plans %}
         <tr>
           <td><a href="{{ url_for('portfolio.plan_edit', plan_id=p.id) }}">{{ p.name }}</a>
-            {% if p.id in due %}<span class="badge badge-negative">{{ _('Da confermare') }}</span>{% endif %}</td>
+            {% if p.id in due %}<span class="badge badge-negative">{{ _('Da confermare') }}</span>{% endif %}
+            {% if p.portfolio or p.securities_account %}<div class="text-xs text-muted">{{ [p.portfolio.name if p.portfolio else '', p.securities_account.name if p.securities_account else '']|select|join(' · ') }}</div>{% endif %}</td>
           <td class="text-right nowrap">{{ p.amount|money }}</td>
           <td>{{ _(frequencies[p.frequency]) }}, {{ _('giorno %(day)s', day=p.day) }}</td>
           <td>{{ p.last_done or '—' }}</td>

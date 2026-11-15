@@ -21,6 +21,7 @@ from app.services import (
     accounts,
     ai_classification,
     ai_extraction,
+    analytics,
     bank_import,
     broker,
     category_rules,
@@ -28,11 +29,14 @@ from app.services import (
     display,
     duplicates,
     family,
+    forecast,
     merchant,
+    periods,
     portfolio_ops,
     securities,
     undo,
 )
+from app.services import cards as card_service
 from app.services import categories as category_service
 from app.services import currency as currency_service
 from app.services import review as review_service
@@ -71,6 +75,8 @@ def _filtered_query(filters: dict):
     if filters["category"]:  # a main category shows its subcategories too; a split transaction, any of its parts
         names = category_service.with_children(filters["category"])
         query = query.filter(Transaction.category.in_(names) | Transaction.splits.any(TransactionSplit.category.in_(names)))
+    if (filters.get("card") or "").isdigit():
+        query = query.filter(Transaction.card_id == int(filters["card"]))
     if filters.get("account") == "none":
         query = query.filter(Transaction.account_id.is_(None), Transaction.counter_account_id.is_(None))
     elif (filters.get("account") or "").isdigit():
@@ -129,7 +135,17 @@ def _ordered(query, column: str, direction: str):
 
 
 FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", "person", "start", "end", "cluster", "min",
-               "max")
+               "max", "card")
+
+
+def _section_cards(today: date) -> dict:
+    """F81: the figures of the three cards on top — this month's income and expenses, the recurring series."""
+    month = today.replace(day=1)
+    sums = analytics.totals(month, periods.add_months(month, 1))
+    templates = forecast.scheduled_templates(Transaction.query.filter(Transaction.is_recurring.is_(True)).all())
+    spent = [t for t in templates if t.type == "expense"]
+    return {"income": sums["income"], "expenses": sums["expenses"], "recurring": len(templates),
+            "recurring_monthly": sum(forecast.monthly_equivalent(t) for t in spent)}
 
 
 @transactions_bp.route("/")
@@ -149,6 +165,7 @@ def index():
     ]
     return render_template(
         "transactions/index.html",
+        cards=_section_cards(date.today()),
         transactions=transactions,
         total=total, page=page, pages=pages,
         page_url=lambda n: url_for("transactions.index", **(request.args.to_dict() | {"page": n})),
@@ -222,6 +239,7 @@ def quick_add():
     tx = Transaction(date=when, description=description, amount=abs(amount), currency="EUR", type=kind,
                      category=category, counterparty=counterparty, tags=[counterparty] if counterparty else [],
                      account_id=linked_id("account_id", Account))
+    card_service.assign([tx])  # F41: the account's card, unless it is a bank transfer
     db.session.add(tx)
     db.session.commit()
     undo.remember_created([tx])
@@ -274,6 +292,7 @@ def _render_form(tx: Transaction | None):
         dossiers=securities.accounts(active_only=False), folios=securities.portfolios(active_only=False),
         events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
+        cards=card_service.every(active_only=False),
     )
 
 

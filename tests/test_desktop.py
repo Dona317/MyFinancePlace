@@ -80,3 +80,13 @@ def test_launcher_helpers(tmp_path):
 def test_missing_postgres_stops_early(monkeypatch, tmp_path):
     monkeypatch.setattr(main.paths, "postgres_bin", lambda: None)
     assert main.main(["--data-dir", str(tmp_path)]) == 2
+
+
+def test_the_smoke_test_checks_the_light_ocr(monkeypatch):
+    """The packaged app must carry the OCR and its models (scans read without AI): the smoke test loads them."""
+    from app.services import ocr
+
+    assert main._ocr_works() is ocr.available()
+    monkeypatch.setattr(ocr, "available", lambda: True)
+    monkeypatch.setattr(ocr, "_ocr", lambda: (_ for _ in ()).throw(RuntimeError("model missing")))
+    assert main._ocr_works() is False

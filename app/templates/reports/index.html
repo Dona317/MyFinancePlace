@@ -10,7 +10,7 @@
 {% set page_name = {'income': _('Entrate'), 'spending': _('Uscite')}.get(section, _('Report')) %}
 
 {% block page_title %}{{ page_name }}{% endblock %}
-{% block breadcrumb %}<li>{{ page_name }}</li>{% endblock %}
+{% block breadcrumb %}{% if section in ('income', 'spending') %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li>{% endif %}<li>{{ page_name }}</li>{% endblock %}
 
 {% block content %}
 

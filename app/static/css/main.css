@@ -159,6 +159,11 @@ a:hover { color: var(--clr-primary-hover); }
 }
 .nav-item.active i { color: var(--clr-primary); }
 
+/* F81: pages of a page (Entrate, Uscite, Ricorrenti under Transazioni): indented, a little smaller */
+.nav-item.nav-sub { margin-left: 32px; padding-top: 6px; padding-bottom: 6px; font-size: var(--font-size-xs, 12px); }
+.nav-item.nav-sub i { font-size: 14px; }
+html.sidebar-mini .nav-item.nav-sub { margin-left: 12px; }  /* the mini sidebar: icons only, no indent */
+
 .nav-item i {
   font-size: 16px;
   width: 20px;
@@ -429,6 +434,12 @@ a:hover { color: var(--clr-primary-hover); }
 .kpi-warning  { --kpi-accent: var(--clr-warning);  --kpi-accent-bg: var(--clr-warning-bg); }
 .kpi-purple   { --kpi-accent: var(--chart-5);      --kpi-accent-bg: var(--clr-purple-bg); }  /* the debts */
 .kpi-blue     { --kpi-accent: var(--chart-3);      --kpi-accent-bg: color-mix(in srgb, var(--chart-3) 14%, transparent); }  /* the investments */
+
+/* A key figure that opens its page (the cards on top of Transazioni) */
+.kpi-link { display: block; color: inherit; text-decoration: none; border-radius: var(--border-radius); }
+.kpi-link:hover { text-decoration: none; }
+.kpi-link:hover .kpi-card, .kpi-link:focus-visible .kpi-card { border-color: var(--clr-primary); box-shadow: var(--shadow-card-hover, var(--shadow-card)); }
+.kpi-link .kpi-sub { color: var(--clr-text-muted); }
 
 .kpi-card {
   background: var(--clr-bg-card);
@@ -1826,6 +1837,13 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .legend-side .chart-legend-list, .legend-side .category-legend { flex: 1 1 0; min-height: 0; width: 100%; display: flex; flex-direction: column;
   flex-wrap: wrap; align-content: flex-start; overflow-x: auto; overflow-y: hidden; margin: 0; gap: 4px 14px; }
 .legend-side .category-legend li { width: max-content; max-width: 220px; }  /* each column as wide as its entries */
+/* a pie's own legend: names wrap, so two columns fit beside the pie in a half-width card instead of the second
+   being cut off */
+.legend-side .chart-legend-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start;
+  flex-wrap: nowrap; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }
+.legend-side .chart-legend-list li { min-width: 0; }
+.legend-side .chart-legend-item { white-space: normal; text-align: left; align-items: flex-start; }
+.legend-side .chart-legend-item .chart-legend-dot { margin-top: 4px; }
 .legend-side .category-legend-name { overflow: visible; }
 /* above a line or bar chart: one row, the button at its end */
 .legend-top .chart-legend { display: flex; align-items: center; gap: 8px; }
@@ -2281,3 +2299,28 @@ details.card:not([open]) > summary.card-header { border-bottom: 0; }  /* a close
 /* Deadlines: «Aggiungi a Google Calendar» at the end of each line, quiet until hovered */
 .deadline-gcal { margin-left: 6px; color: var(--clr-text-muted); opacity: .6; }
 .deadline-gcal:hover, .deadline-gcal:focus-visible { color: var(--clr-primary); opacity: 1; }
+
+/* Privacy (the eye next to the theme button): the open eye shows that amounts are visible, the crossed one that they
+   are hidden; while a page loads with privacy on it stays hidden until its amounts are masked (main.js) */
+.privacy-button .privacy-icon-on { display: none; }
+html.privacy .privacy-button .privacy-icon-on { display: inline-block; }
+html.privacy .privacy-button .privacy-icon-off { display: none; }
+html.privacy .privacy-button { color: var(--clr-primary); }
+html.privacy-pending body { visibility: hidden; }
+html.privacy .privacy-masked { cursor: pointer; }  /* a click shows the amount for a few seconds */
+html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4px; }
+
+/* On a phone a pie's legend goes under the pie (beside it, two columns had no room) */
+@media (max-width: 600px) {
+  .chart-with-legend.legend-side { flex-direction: column; height: auto !important; }
+  .legend-side .chart-canvas { height: 200px; width: 100%; max-width: none; aspect-ratio: auto; }
+  .legend-side .chart-legend { flex: 0 0 auto; width: 100%; }
+  .legend-side .chart-legend-list, .legend-side .category-legend { flex: 0 0 auto; max-height: 260px; }
+}
+
+/* Positions: a holding held in several places opens into its positions */
+.parts-toggle { border: none; background: none; padding: 0 4px 0 0; color: var(--clr-text-muted); cursor: pointer; vertical-align: middle; }
+.parts-toggle i { display: inline-block; transition: transform var(--transition); }
+.parts-toggle[aria-expanded="true"] i { transform: rotate(90deg); }
+.position-part td { background: var(--clr-bg-input); font-size: var(--font-size-sm); }
+.position-part-name { padding-left: 28px !important; color: var(--clr-text-secondary); }
