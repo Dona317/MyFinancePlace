@@ -60,6 +60,18 @@ def register_context(app: Flask) -> None:
             db.session.rollback()
             return []
 
+    def archive_owner(client) -> str | None:
+        """F98: whose archive this is — the user whose own archive it is — for the selector's label; None: nobody's."""
+        if client is None:
+            return None
+        try:
+            from app.models.user import User
+            user = User.query.filter_by(default_client_id=client.id).order_by(User.id).first()
+            return user.username if user else None
+        except Exception:  # noqa: BLE001 - a label must not break a page
+            db.session.rollback()
+            return None
+
     def is_own_archive(client) -> bool:
         """F98: the open archive is the signed-in user's own — theirs, or the primary one for a user without one."""
         from flask_login import current_user
@@ -90,5 +102,5 @@ def register_context(app: Flask) -> None:
     @app.context_processor
     def inject_settings():
         return {"settings": current_settings(), "palette_vars": lambda: palettes.css_vars(current_settings()), "notification_count": notification_count, "display": display.prefs(),
-                "current_language": current_language, "working_client": working_client, "no_accounts": no_accounts, "period_view": period_view, "archive_choices": archive_choices, "shown_archive": shown_archive, "is_own_archive": is_own_archive, "client_groups": client_groups, "ui_font": current_font,
+                "current_language": current_language, "working_client": working_client, "no_accounts": no_accounts, "period_view": period_view, "archive_choices": archive_choices, "shown_archive": shown_archive, "is_own_archive": is_own_archive, "archive_owner": archive_owner, "client_groups": client_groups, "ui_font": current_font,
                 "shown": sections.in_menu, "allowed": sections.allowed, "shown_any": lambda *keys: any(sections.in_menu(k) for k in keys)}

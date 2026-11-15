@@ -58,7 +58,8 @@
               title="{{ _('Archivio aperto: «%(name)s». Clicca per cambiarlo', name=working_on.name) }}">
         <i class="bi bi-{{ working_on.icon or 'archive' }} archive-switch-icon" aria-hidden="true"></i>
         <span class="archive-switch-text nav-label">
-          <span class="archive-switch-label">{{ _('Archivio') if mine else _('Archivio di un altro') }}</span>
+          {% set owner = none if mine else archive_owner(working_on) %}
+          <span class="archive-switch-label">{{ _('Archivio') if mine else (_('Archivio di: %(name)s', name=owner) if owner else _('Archivio esterno')) }}</span>
           <strong class="archive-switch-name">{{ working_on.name }}</strong>
         </span>
         <i class="bi bi-chevron-down nav-label archive-switch-chevron" aria-hidden="true"></i>

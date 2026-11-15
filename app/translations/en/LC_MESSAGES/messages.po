@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 16:20+0100\n"
+"POT-Creation-Date: 2026-11-15 16:21+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1627,8 +1627,12 @@ msgstr "Start archive of %(name)s"
 msgid "Archivio di partenza di «%(name)s» aggiornato."
 msgstr "Start archive of “%(name)s” updated."
 
-msgid "Archivio di un altro"
-msgstr "Someone else's archive"
+#, python-format
+msgid "Archivio di: %(name)s"
+msgstr "Archive of: %(name)s"
+
+msgid "Archivio esterno"
+msgstr "Outside archive"
 
 msgid "Archivio principale"
 msgstr "Main archive"
