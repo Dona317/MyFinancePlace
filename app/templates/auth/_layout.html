@@ -43,5 +43,9 @@ document.querySelectorAll('.password-toggle').forEach(btn => btn.addEventListene
   btn.querySelector('i').className = hidden ? 'bi bi-eye-slash' : 'bi bi-eye';
 }));
 </script>
+<script>
+// F97: every sign-in starts again with the no-accounts notice open, even if its X closed it before
+try { sessionStorage.removeItem('mfp-no-accounts-closed'); } catch (e) { /* storage blocked: nothing to reset */ }
+</script>
 </body>
 </html>
