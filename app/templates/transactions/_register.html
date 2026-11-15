@@ -118,6 +118,30 @@
               aria-expanded="{{ 'true' if active_filters else 'false' }}">
         <i class="bi bi-funnel"></i> {{ _('Filtri') }}{% if active_filters %} · {{ active_filters }}{% endif %} <i class="bi bi-chevron-down tx-pill-chevron"></i>
       </button>
+      {# F101: saved views — a search (text, filters, order) under a name; the period is the shared one #}
+      {% set current_view = views|selectattr('query', 'equalto', view_query)|map(attribute='name')|first if view_query else none %}
+      <details class="tx-views">
+        <summary class="tx-pill{{ ' is-on' if current_view }}" title="{{ _('Ricerche salvate con un nome') }}">
+          <i class="bi bi-collection"></i> {{ current_view or _('Viste') }}{% if views and not current_view %} · {{ views|length }}{% endif %} <i class="bi bi-chevron-down tx-pill-chevron"></i>
+        </summary>
+        <div class="tx-views-pop">
+          {% for view in views %}
+          <div class="tx-view-row{{ ' is-current' if view.name == current_view }}">
+            <a href="{{ view_url(view.query) }}" class="tx-view-link"><i class="bi bi-{{ 'check2' if view.name == current_view else 'collection' }}"></i> {{ view.name }}</a>
+            <button type="submit" form="view-delete-{{ loop.index }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Elimina la vista') }}"
+                    aria-label="{{ _('Elimina la vista «%(name)s»', name=view.name) }}"><i class="bi bi-x-lg"></i></button>
+          </div>
+          {% else %}
+          <p class="text-xs text-muted mb-8">{{ _('Nessuna vista: fai una ricerca o scegli dei filtri, poi salvala qui sotto.') }}</p>
+          {% endfor %}
+          <div class="tx-view-save">
+            <input type="text" name="view_name" form="view-save-form" class="form-control form-control-sm" maxlength="40"
+                   placeholder="{{ _('Nome della vista') }}" aria-label="{{ _('Nome della vista') }}"{{ ' disabled' if not view_query }} />
+            <button type="submit" form="view-save-form" class="btn btn-primary btn-sm"{{ ' disabled' if not view_query }}
+                    title="{{ _('Salva la ricerca di adesso') if view_query else _('Fai prima una ricerca o scegli un filtro') }}"><i class="bi bi-save"></i> {{ _('Salva') }}</button>
+          </div>
+        </div>
+      </details>
       {% if transactions %}
       <button type="button" class="tx-pill" id="bulk-toggle" aria-controls="bulk-box" aria-expanded="false" title="{{ _('Selezionate / trovate') }}">
         <i class="bi bi-pencil"></i> {{ _('Modifica massiva') }} · <span id="bulk-summary"></span> <i class="bi bi-chevron-down tx-pill-chevron"></i>
@@ -392,6 +416,15 @@
   </template>
   <datalist id="quick-tags">{% for tag in tag_pool %}<option value="{{ tag }}">{% endfor %}</datalist>
 
+  <form method="POST" action="{{ url_for('transactions.save_view') }}" id="view-save-form">
+    <input type="hidden" name="next" value="{{ request.full_path }}" />
+    {% for key, value in view_query.items() %}<input type="hidden" name="{{ key }}" value="{{ value }}" />{% endfor %}
+  </form>
+  {% for view in views %}
+  <form method="POST" action="{{ url_for('transactions.delete_view') }}" id="view-delete-{{ loop.index }}">
+    <input type="hidden" name="next" value="{{ request.full_path }}" /><input type="hidden" name="view_name" value="{{ view.name }}" />
+  </form>
+  {% endfor %}
   <form method="POST" action="{{ url_for('transactions.delete_selected') }}" id="bulk-form"
         data-confirm="{{ _('Eliminare definitivamente le transazioni selezionate?') }}">
     <input type="hidden" name="next" value="{{ request.full_path }}" />

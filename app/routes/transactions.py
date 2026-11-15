@@ -33,6 +33,7 @@ from app.services import (
     merchant,
     periods,
     portfolio_ops,
+    register_views,
     securities,
     shared_period,
     undo,
@@ -188,6 +189,8 @@ def register_context(locked: dict | None = None, title: str | None = None) -> di
         register_url=at(**keep), register_with=lambda **more: at(**keep, **more), register_keep=keep,
         register_action=at(),  # a GET form drops its action's query: the page's own parameters go as hidden fields
         register_title=title or _("Elenco Transazioni"), locked=locked,
+        views=register_views.load(), view_query=register_views.query_of(request.args),
+        view_url=lambda query: at(**keep, **query),
         filters=filters,
         categories=categories,
         all_categories=known_categories(),
@@ -211,6 +214,25 @@ def index():
     return render_template("transactions/index.html", cards=_section_cards(date.today()),
                            period_keep={k: v for k, v in request.args.items() if k not in shared_period.ADDRESS_KEYS},
                            **register)
+
+
+@transactions_bp.route("/views", methods=["POST"])
+def save_view():
+    """F101: the register's search (text, filters, order) saved under a name, to open it again with one click."""
+    name = request.form.get("view_name", "")
+    try:
+        view = register_views.save(name, register_views.query_of(request.form))
+    except ValueError:
+        flash(_("Scrivi un nome e fai prima una ricerca o scegli un filtro: è quello che la vista ricorda."), "warning")
+    else:
+        flash(_("Vista «%(name)s» salvata.", name=view["name"]), "success")
+    return back_to("transactions.index")
+
+
+@transactions_bp.route("/views/delete", methods=["POST"])
+def delete_view():
+    register_views.delete(request.form.get("view_name", ""))
+    return back_to("transactions.index")
 
 
 @transactions_bp.route("/add")

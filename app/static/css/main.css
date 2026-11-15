@@ -2417,3 +2417,19 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 
 /* F101: the period is shared by the analysis pages — the link icon next to it says so */
 .period-shared { color: var(--clr-primary); font-size: 14px; cursor: help; }
+
+/* F101: the register's saved views — a pill like Filtri, a small window under it */
+.tx-views { position: relative; flex-shrink: 0; }
+.tx-views > summary { list-style: none; }
+.tx-views > summary::-webkit-details-marker { display: none; }
+.tx-views[open] .tx-pill-chevron { transform: rotate(180deg); }
+.tx-views-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; width: 280px; padding: 10px;
+  border: 1px solid var(--clr-border); border-radius: var(--border-radius); background: var(--clr-bg-card); box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
+.tx-view-row { display: flex; align-items: center; gap: 4px; border-radius: var(--border-radius-sm); }
+.tx-view-row:hover, .tx-view-row.is-current { background: var(--clr-bg-input); }
+.tx-view-link { flex: 1; min-width: 0; padding: 6px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--clr-text-primary); font-size: var(--font-size-sm); text-decoration: none; }
+.tx-view-link:hover { text-decoration: none; color: var(--clr-primary); }
+.tx-view-row.is-current .tx-view-link { font-weight: 600; color: var(--clr-primary); }
+.tx-view-save { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--clr-border-light); }
+.tx-view-save .form-control { flex: 1; min-width: 0; height: 28px; }

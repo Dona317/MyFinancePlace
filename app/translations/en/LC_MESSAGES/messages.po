@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:24+0100\n"
+"POT-Creation-Date: 2026-11-15 14:25+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4081,6 +4081,13 @@ msgstr "Delete the classification"
 msgid "Elimina la regola"
 msgstr "Delete the rule"
 
+msgid "Elimina la vista"
+msgstr "Delete the view"
+
+#, python-format
+msgid "Elimina la vista «%(name)s»"
+msgstr "Delete the view «%(name)s»"
+
 #, python-format
 msgid "Elimina polizza %(company)s"
 msgstr "Delete policy %(company)s"
@@ -4574,6 +4581,9 @@ msgid ""
 msgstr ""
 "Optional: a bank transfer to this IBAN from another of your accounts is "
 "imported as a transfer between accounts."
+
+msgid "Fai prima una ricerca o scegli un filtro"
+msgstr "Search or choose a filter first"
 
 msgid "Fai una domanda"
 msgstr "Ask a question"
@@ -8242,6 +8252,9 @@ msgstr "No sales this year."
 msgid "Nessuna vendita registrata"
 msgstr "No sales recorded"
 
+msgid "Nessuna vista: fai una ricerca o scegli dei filtri, poi salvala qui sotto."
+msgstr "No views: search or choose some filters, then save it below."
+
 msgid "Nessuna voce"
 msgstr "No items"
 
@@ -8339,6 +8352,9 @@ msgstr "Category name"
 
 msgid "Nome della fonte: fino a 40 lettere, cifre, spazi, punti o trattini."
 msgstr "Source name: up to 40 letters, digits, spaces, dots or dashes."
+
+msgid "Nome della vista"
+msgstr "View name"
 
 #, python-format
 msgid "Nome di %(name)s"
@@ -10783,6 +10799,9 @@ msgstr "Search failed."
 msgid "Ricerca non riuscita: %(error)s"
 msgstr "Search failed: %(error)s"
 
+msgid "Ricerche salvate con un nome"
+msgstr "Searches saved under a name"
+
 msgid "Ricevuta"
 msgstr "Receipt"
 
@@ -11243,6 +11262,9 @@ msgstr "Save the account, then add its cards."
 msgid "Salva la fonte"
 msgstr "Save the source"
 
+msgid "Salva la ricerca di adesso"
+msgstr "Save the current search"
+
 msgid "Salva modello"
 msgstr "Save model"
 
@@ -11642,6 +11664,13 @@ msgstr ""
 
 msgid "Scrivi solo quelli cambiati: gli altri restano come sono."
 msgstr "Only enter the ones that changed: the others stay as they are."
+
+msgid ""
+"Scrivi un nome e fai prima una ricerca o scegli un filtro: è quello che la "
+"vista ricorda."
+msgstr ""
+"Write a name, and search or choose a filter first: that is what the view "
+"remembers."
 
 msgid "Scrivi una domanda."
 msgstr "Write a question."
@@ -13606,6 +13635,13 @@ msgstr "Travel"
 
 msgid "Viola e rosa"
 msgstr "Purples and pinks"
+
+#, python-format
+msgid "Vista «%(name)s» salvata."
+msgstr "View «%(name)s» saved."
+
+msgid "Viste"
+msgstr "Views"
 
 msgid "Visualizzazione"
 msgstr "Display"
