@@ -9,7 +9,8 @@
 
 {% block topbar_actions %}
   <a href="{{ url_for('lifestyle.budget', month=prev.strftime('%Y-%m')) }}" class="btn btn-ghost btn-sm" aria-label="{{ _('Mese precedente') }}"><i class="bi bi-chevron-left"></i></a>
-  <span class="font-semibold text-sm" style="min-width:120px;text-align:center;">{{ month_name|capitalize }}</span>
+  <span class="font-semibold text-sm" style="min-width:120px;text-align:center;">{{ month_name|capitalize }}
+    <i class="bi bi-link-45deg period-shared" title="{{ _('Periodo condiviso: cambiando mese qui cambia anche in Dashboard, Entrate, Uscite, Transazioni e Report') }}"></i></span>
   <a href="{{ url_for('lifestyle.budget', month=next.strftime('%Y-%m')) }}" class="btn btn-ghost btn-sm" aria-label="{{ _('Mese successivo') }}"><i class="bi bi-chevron-right"></i></a>
 {% endblock %}
 

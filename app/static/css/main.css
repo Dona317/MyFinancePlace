@@ -2414,3 +2414,6 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .reminders-peek { max-width: 520px; }
 .reminders-peek .modal-title .bi { color: var(--clr-primary); margin-right: 4px; }
 .reminders-peek-list { max-height: 55vh; overflow: auto; margin: 0; }
+
+/* F101: the period is shared by the analysis pages — the link icon next to it says so */
+.period-shared { color: var(--clr-primary); font-size: 14px; cursor: help; }

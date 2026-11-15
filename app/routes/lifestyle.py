@@ -10,7 +10,7 @@ from app.models.account import Account
 from app.models.budget import Budget
 from app.models.wealth import Goal
 from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form
-from app.services import accounts, analytics, budgets, categories, display, planning
+from app.services import accounts, analytics, budgets, categories, display, planning, shared_period
 from app.services.periods import add_months
 
 lifestyle_bp = APIBlueprint(
@@ -40,7 +40,8 @@ def _month_arg() -> date:
 
 @lifestyle_bp.route("/budget")
 def budget():
-    month = _month_arg()
+    # F101: the month of the shared period; the arrows (month=…) make that month the shared period
+    month = shared_period.month_of(shared_period.from_register(request.args))
     status = budgets.status(month)
     lines = {line["category"]: line for line in status}
     spent = budgets.spent_by_category(month)

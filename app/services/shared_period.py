@@ -189,6 +189,19 @@ def from_register(args, today: date | None = None) -> Period:
     return current(today, args)
 
 
+def month_of(period: Period, today: date | None = None) -> date:
+    """The month a monthly page (Budget) shows for the shared period: the month itself, else the current month when
+    the period holds it, else the period's last month."""
+    today = today or date.today()
+    if period.part in MONTHS:
+        return date(period.year, int(period.part[1:]), 1)
+    start, end = period.bounds(today)
+    if start <= today < end:
+        return today.replace(day=1)
+    year, month = shift_month(end.year, end.month, -1)
+    return date(year, month, 1)
+
+
 def years(with_data: list[int], today: date | None = None) -> list[int]:
     """The years offered: from the next one down to three before the first with data (as on the dashboard)."""
     year = (today or date.today()).year
