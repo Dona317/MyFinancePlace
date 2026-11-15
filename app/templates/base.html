@@ -406,6 +406,30 @@
 </div>
 {% endif %}
 
+{# F97: no account of the user's yet — a dark yellow notice at the bottom, closed with the X for this session #}
+{% if allowed('accounts') and not embedded and current_user.is_authenticated and no_accounts() %}
+<div class="no-accounts-toast" id="no-accounts-toast" role="status" hidden>
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <div class="no-accounts-text"><strong>{{ _('Non hai ancora nessun conto.') }}</strong>
+    {{ _('Senza conti, tutte le transazioni che inserisci finiscono in Contanti.') }}
+    <a href="{{ url_for('accounts.new') }}" data-popup-size="wide"
+       data-popup="{{ url_for('accounts.new', embed=1, next=url_for('transactions.embed_done', reload=1)) }}">{{ _('Aggiungi un conto') }}</a></div>
+  <button type="button" class="no-accounts-close" aria-label="{{ _('Chiudi') }}" title="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+</div>
+<script>
+(() => {
+  const box = document.getElementById('no-accounts-toast');
+  const KEY = 'mfp-no-accounts-closed';
+  let closed = false;
+  try { closed = sessionStorage.getItem(KEY) === '1'; } catch (e) { /* storage blocked: show it */ }
+  if (!closed) box.hidden = false;
+  box.querySelector('.no-accounts-close').addEventListener('click', () => {
+    box.hidden = true;
+    try { sessionStorage.setItem(KEY, '1'); } catch (e) { /* nothing to remember */ }
+  });
+})();
+</script>
+{% endif %}
 {% if shown('assistant') and not embedded %}
 <!-- Chiedi ai tuoi dati: a round button at the bottom right opens a narrow panel on the right with the chat -->
 <button type="button" class="ask-bubble" id="ask-bubble" aria-controls="ask-panel" aria-expanded="false"

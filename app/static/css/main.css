@@ -2330,3 +2330,16 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 
 /* F96: the account form's securities account — its fields open with the tick */
 .account-dossier:not(:has(input[name="has_dossier"]:checked)) .dossier-fields { display: none; }
+
+/* F97: no account yet — a dark yellow notice at the bottom, above the page, closed with its X */
+.no-accounts-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1200;
+  display: flex; align-items: flex-start; gap: 12px; width: min(560px, calc(100vw - 32px)); padding: 12px 14px 12px 16px;
+  background: #b8860b; color: #1f1600; border-radius: var(--border-radius); box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+  font-size: var(--font-size-sm); line-height: 1.45; }
+.no-accounts-toast[hidden] { display: none; }
+.no-accounts-toast > .bi { font-size: 18px; margin-top: 1px; }
+.no-accounts-text { flex: 1; min-width: 0; }
+.no-accounts-text a { color: #1f1600; font-weight: 700; text-decoration: underline; }
+.no-accounts-close { border: 0; background: none; color: #1f1600; cursor: pointer; padding: 2px; font-size: 14px; opacity: .8; }
+.no-accounts-close:hover, .no-accounts-close:focus-visible { opacity: 1; }
+@media (max-width: 640px) { .no-accounts-toast { bottom: 88px; } }  /* above the round + */
