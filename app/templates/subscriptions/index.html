@@ -9,6 +9,16 @@
 
 {% macro signed(tx, value) %}{{ (-value if tx.type == 'expense' else value)|money }}{% endmacro %}
 
+{% block topbar_actions %}
+{# F101: the horizon of the page — how far ahead «what is coming» looks; the choice is kept #}
+<div class="dash-presets" role="group" aria-label="{{ _('Orizzonte') }}">
+  {% for d in horizons %}
+  <a href="{{ url_for('subscriptions.index', kind=kind, horizon=d) }}" class="preset-btn{{ ' is-active' if d == horizon }}" aria-pressed="{{ 'true' if d == horizon else 'false' }}">
+    {{ _('30 giorni') if d == 30 else ngettext('%(num)d mese', '%(num)d mesi', d // 30) if d < 365 else _('12 mesi') }}</a>
+  {% endfor %}
+</div>
+{% endblock %}
+
 {% block content %}
 {{ transactions_tabs('recurring') }}
 <div class="report-bar mb-16">

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:31+0100\n"
+"POT-Creation-Date: 2026-11-15 14:32+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -503,6 +503,12 @@ msgstr[0] "%(num)d group of possible duplicates to review."
 msgstr[1] "%(num)d groups of possible duplicates to review."
 
 #, python-format
+msgid "%(num)d mese"
+msgid_plural "%(num)d mesi"
+msgstr[0] "%(num)d month"
+msgstr[1] "%(num)d months"
+
+#, python-format
 msgid "%(num)d movimento"
 msgid_plural "%(num)d movimenti"
 msgstr[0] "%(num)d movement"
@@ -882,6 +888,9 @@ msgstr "26%%, government bonds 12.5%%, crypto 33%% from 2026"
 
 msgid "3 giorni prima"
 msgstr "3 days before"
+
+msgid "30 giorni"
+msgstr "30 days"
 
 msgid "30/70 conservativo"
 msgstr "30/70 conservative"

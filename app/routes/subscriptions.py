@@ -5,7 +5,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.services import forecast, subscriptions
+from app.services import forecast, settings_store, subscriptions
 
 subscriptions_bp = Blueprint("subscriptions", __name__, url_prefix="/subscriptions")
 
@@ -20,8 +20,13 @@ def index():
 
     register = register_context(locked={"recurring": "1", "type": kind},
                                 title=_("Transazioni ricorrenti in uscita") if kind == "expense" else _("Transazioni ricorrenti in entrata"))
-    return render_template("subscriptions/index.html", data=subscriptions.overview(kind, date.today()),
-                           kind=kind, frequencies=forecast.FREQUENCIES,
+    days = request.args.get("horizon", type=int)
+    if days in subscriptions.HORIZONS:
+        settings_store.set(subscriptions.HORIZON_SETTING, str(days))
+    saved = settings_store.get(subscriptions.HORIZON_SETTING, str(subscriptions.UPCOMING_DAYS))
+    days = int(saved) if saved.isdigit() and int(saved) in subscriptions.HORIZONS else subscriptions.UPCOMING_DAYS
+    return render_template("subscriptions/index.html", data=subscriptions.overview(kind, date.today(), days),
+                           kind=kind, frequencies=forecast.FREQUENCIES, horizon=days, horizons=subscriptions.HORIZONS,
                            register_html=render_template("transactions/_register.html", **register),
                            register_js=render_template("transactions/_register_js.html", **register))
 

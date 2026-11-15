@@ -13,6 +13,9 @@ from app.models.transaction import Transaction
 from app.services import forecast
 
 UPCOMING_DAYS = 30
+# F101: the horizon of the page — how far ahead «what is coming» looks (kept as a preference)
+HORIZONS = (30, 90, 180, 365)
+HORIZON_SETTING = "subscriptions.horizon"
 CHANGE_MIN = 0.01
 
 
@@ -67,7 +70,7 @@ def _next_charge(template, today: date) -> date | None:
     return dates[0] if dates else None
 
 
-def overview(kind: str = "expense", today: date | None = None) -> dict:
+def overview(kind: str = "expense", today: date | None = None, days: int = UPCOMING_DAYS) -> dict:
     """The series of one kind ("expense": subscriptions and bills, "income": salary, rents…), active ones first."""
     today = today or date.today()
     transactions = Transaction.query.filter(Transaction.type.in_(("income", "expense"))).all()
@@ -93,14 +96,14 @@ def overview(kind: str = "expense", today: date | None = None) -> dict:
 
     active.sort(key=lambda s: (-s.monthly, s.template.description.lower()))
     ended.sort(key=lambda s: s.template.date, reverse=True)
-    horizon = today + timedelta(days=UPCOMING_DAYS)
+    horizon = today + timedelta(days=days)
     upcoming = sum(s.amount * len(forecast.occurrences(s.template, today, horizon)) if s.confirmed
                    else (s.amount if s.next_date and today <= s.next_date < horizon else 0.0)
                    for s in active)
     monthly = sum(s.monthly for s in active)
     return {"kind": kind, "series": active, "ended": ended, "monthly": monthly, "yearly": monthly * 12,
             "count": len(active), "to_confirm": sum(not s.confirmed for s in active), "upcoming": upcoming,
-            "upcoming_days": UPCOMING_DAYS, "increases": sum(1 for s in active if (s.change or 0) > 0)}
+            "upcoming_days": days, "increases": sum(1 for s in active if (s.change or 0) > 0)}
 
 
 def stop(template: Transaction) -> None:
