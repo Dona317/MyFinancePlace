@@ -76,15 +76,6 @@
 </div>
 {% endif %}
 
-{% set paired = preview.rows|selectattr('pairs_with')|rejectattr('duplicate')|list %}
-{% if paired %}
-<div class="alert alert-info mb-16" style="display:block;">
-  <i class="bi bi-arrow-left-right"></i>
-  <strong>{{ ngettext("%(num)d movimento tra i tuoi conti è già stato importato dall'altro conto", "%(num)d movimenti tra i tuoi conti sono già stati importati dall'altro conto", paired|length) }}</strong>
-  {{ _("(giroconti o bonifici con lo stesso importo, verso opposto, fino a 15 giorni di distanza): importandoli si collegano a quel movimento, che diventa un giroconto con il conto di partenza e quello di arrivo, senza contarli due volte. Togli la spunta «collega» se sono movimenti diversi.") }}
-</div>
-{% endif %}
-
 {% set similar = preview.rows|selectattr('similar_to')|rejectattr('duplicate')|list %}
 {% if similar %}
 <div class="alert alert-warning mb-16" style="display:block;">
@@ -158,6 +149,15 @@
 
   {% set transfers = preview.rows|selectattr('pairs_with')|list + preview.rows|rejectattr('pairs_with')|selectattr('own_account_id')|list %}
   {% if transfers %}
+  {# right above the card of the probable giroconti: the movements already imported from the other account #}
+  {% set paired = preview.rows|selectattr('pairs_with')|rejectattr('duplicate')|list %}
+  {% if paired %}
+  <div class="alert alert-info mb-16" style="display:block;">
+    <i class="bi bi-arrow-left-right"></i>
+    <strong>{{ ngettext("%(num)d movimento tra i tuoi conti è già stato importato dall'altro conto", "%(num)d movimenti tra i tuoi conti sono già stati importati dall'altro conto", paired|length) }}</strong>
+    {{ _("(giroconti o bonifici con lo stesso importo, verso opposto, fino a 15 giorni di distanza): importandoli si collegano a quel movimento, che diventa un giroconto con il conto di partenza e quello di arrivo, senza contarli due volte. Togli la spunta «collega» se sono movimenti diversi.") }}
+  </div>
+  {% endif %}
   <!-- Probable giroconti: applied as such unless unticked in their row below -->
   <div class="card mb-16 transfers-summary">
     <div class="card-header">
