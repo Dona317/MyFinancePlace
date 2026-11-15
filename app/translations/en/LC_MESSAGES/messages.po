@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-14 17:38+0000\n"
+"POT-Creation-Date: 2026-11-15 08:34+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -297,6 +297,10 @@ msgstr "%(count)s rows skipped (deposits, dividends or unreadable rows)"
 #, python-format
 msgid "%(count)s suggerimenti"
 msgstr "%(count)s suggestions"
+
+#, python-format
+msgid "%(count)s titoli con lo storico giornaliero"
+msgstr "%(count)s holdings with the daily history"
 
 #, python-format
 msgid "%(count)s transazioni"
@@ -837,6 +841,9 @@ msgstr ".zip"
 msgid "0,2 %% dei titoli"
 msgstr "0.2 %% of the securities"
 
+msgid "1 anno"
+msgstr "1 year"
+
 msgid "1 movimento era già stato importato e verrà ignorato."
 msgstr "1 movement had already been imported and will be skipped."
 
@@ -887,14 +894,23 @@ msgstr "26 (12.5 for government bonds)"
 msgid "26%%, titoli di Stato 12,5%%, cripto 33%% dal 2026"
 msgstr "26%%, government bonds 12.5%%, crypto 33%% from 2026"
 
+msgid "3 anni"
+msgstr "3 years"
+
 msgid "3 giorni prima"
 msgstr "3 days before"
+
+msgid "3 mesi"
+msgstr "3 months"
 
 msgid "30/70 conservativo"
 msgstr "30/70 conservative"
 
 msgid "3–6 mesi di spese"
 msgstr "3–6 months of spending"
+
+msgid "5 anni"
+msgstr "5 years"
 
 msgid "6 mesi delle tue spese medie"
 msgstr "6 months of your average spending"
@@ -1376,6 +1392,9 @@ msgstr ""
 
 msgid "Ancora disponibile"
 msgstr "Still available"
+
+msgid "Ancora nessun giorno da mostrare."
+msgstr "No days to show yet."
 
 msgid ""
 "Ancora nessuna rendita: dividendi, cedole e interessi compaiono qui "
@@ -2185,6 +2204,9 @@ msgstr ""
 "Upload the funds' composition, or set region and sector, on the holding's"
 " page."
 
+msgid "Carica lo storico"
+msgstr "Load the history"
+
 msgid "Carica prima la bolletta in Documenti."
 msgstr "Upload the bill to Documents first."
 
@@ -2620,6 +2642,9 @@ msgstr "Link to the transfer: %(tx)s"
 msgid "Collega i movimenti scelti"
 msgstr "Link the selected movements"
 
+msgid "Collega i titoli"
+msgstr "Link the holdings"
+
 msgid ""
 "Collega la loro categoria a una voce qui sotto, oppure cambia la "
 "categoria della spesa."
@@ -2654,6 +2679,14 @@ msgstr "Type column (income/expense/transfer)"
 
 msgid "Colonne"
 msgstr "Columns"
+
+msgid ""
+"Colonne Data e Chiusura (Date e Close, come il CSV di Yahoo, justETF o "
+"investing.com; anche Adj Close). Un giorno già presente viene sostituito."
+msgstr ""
+"Date and Close columns (Data and Chiusura too), like the CSV of Yahoo, "
+"justETF or investing.com; Adj Close as well. A day already there is "
+"replaced."
 
 msgid "Colonne del file del broker"
 msgstr "Columns of the broker's file"
@@ -4613,6 +4646,9 @@ msgstr "Feb"
 msgid "File"
 msgstr "File"
 
+msgid "File CSV delle chiusure"
+msgstr "CSV file of the closes"
+
 msgid "File degli investimenti (.zip)"
 msgstr "Investments file (.zip)"
 
@@ -4631,6 +4667,10 @@ msgstr "Backup file"
 
 msgid "File non leggibile."
 msgstr "File cannot be read."
+
+#, python-format
+msgid "File non letto: %(error)s"
+msgstr "File not read: %(error)s"
 
 msgid "Filtra"
 msgstr "Filter"
@@ -5249,6 +5289,9 @@ msgstr "The tags used by transactions, most used first"
 
 msgid "I tuoi modelli"
 msgstr "Your models"
+
+msgid "I tuoi titoli e lo storico"
+msgstr "Your holdings and the history"
 
 msgid "IBAN"
 msgstr "IBAN"
@@ -5872,6 +5915,18 @@ msgstr ""
 "The value of the investments at the end of each month, at the prices "
 "recorded by that day, and how much you put in (purchases with fees minus "
 "sales): the gap between the two lines is the gain."
+
+msgid ""
+"Il valore dei titoli ogni giorno lavorativo, con le quote che avevi quel "
+"giorno e il prezzo di quel giorno: la chiusura dello Storico dei prezzi "
+"(Prezzi → Storico dei prezzi) per ETF, azioni e fondi in euro collegati, "
+"altrimenti l'ultimo prezzo registrato fino a quel giorno. La linea "
+"tratteggiata è quanto avevi versato."
+msgstr ""
+"The value of the holdings on every working day, with the units you held "
+"that day and that day's price: the close from the price history (Prices →"
+" Price history) for linked ETFs, shares and funds in euro, otherwise the "
+"latest price recorded by then. The dashed line is what you had put in."
 
 msgid "Il valore nel tempo viene dalle istantanee: creane una ogni mese da"
 msgstr "The value over time comes from the snapshots: take one every month from"
@@ -8012,6 +8067,9 @@ msgstr "No tags yet: add them to transactions."
 
 msgid "Nessun tetto: aggiungi qui sotto il fondo pensione o un PIR."
 msgstr "No limits: add the pension fund or a PIR below."
+
+msgid "Nessun titolo collegato allo storico: si usano i prezzi registrati."
+msgstr "No holding linked to the history: the recorded prices are used."
 
 msgid ""
 "Nessuna bolletta: registrane una qui sotto, o parti da un movimento della"
@@ -11621,6 +11679,9 @@ msgstr ""
 "Enter the balance the bank shows at a date: the app tells you whether it "
 "matches"
 
+msgid "Scrivi il simbolo (es. VWCE.MI) e scegli il file delle chiusure."
+msgstr "Enter the symbol (e.g. VWCE.MI) and choose the file of the closes."
+
 msgid "Scrivi la data del lavoro."
 msgstr "Write the date of the job."
 
@@ -12251,6 +12312,10 @@ msgstr "History updated: %(count)s instruments, %(closes)s new closes."
 
 msgid "Storico dei prezzi"
 msgstr "Price history"
+
+#, python-format
+msgid "Storico di %(symbol)s: %(count)s chiusure dal %(first)s al %(last)s."
+msgstr "History of %(symbol)s: %(count)s closes from %(first)s to %(last)s."
 
 #, python-format
 msgid "Storico di %(ticker)s scaricato."
@@ -13214,6 +13279,15 @@ msgstr ""
 "latest price."
 
 msgid ""
+"Un titolo usa le chiusure dello storico (valore nel tempo, rendimenti) se"
+" il suo ticker è il simbolo Yahoo (es. VWCE.MI) o se il suo ISIN è nello "
+"storico."
+msgstr ""
+"A holding uses the closes of the history (value over time, returns) if "
+"its ticker is the Yahoo symbol (e.g. VWCE.MI) or its ISIN is in the "
+"history."
+
+msgid ""
 "Un viaggio, un matrimonio, dei lavori in casa: raccogli i movimenti di "
 "categorie diverse per vederne il costo totale e confrontarlo con un "
 "budget."
@@ -13465,6 +13539,9 @@ msgstr "Portfolio value"
 
 msgid "Valore e versato"
 msgstr "Value and money put in"
+
+msgid "Valore giorno per giorno"
+msgstr "Value day by day"
 
 msgid "Valore nel tempo contro il versato, e contro un indice di riferimento"
 msgstr "Value over time against what was paid in, and against a benchmark"
@@ -13941,11 +14018,17 @@ msgstr "from the amortization plan"
 msgid "dal punto più alto"
 msgstr "from the highest point"
 
+msgid "dal ticker"
+msgstr "by ticker"
+
 msgid "dal tuo estratto conto"
 msgstr "from your bank statement"
 
 msgid "dal tuo storico"
 msgstr "from your history"
+
+msgid "dall'ISIN"
+msgstr "by ISIN"
 
 msgid "dallo stato attuale"
 msgstr "from the current state"
@@ -14420,6 +14503,9 @@ msgstr "months with the cash"
 msgid "mesi con liquidità e investimenti"
 msgstr "months with cash and investments"
 
+msgid "metti il simbolo Yahoo come ticker"
+msgstr "set the Yahoo symbol as ticker"
+
 #, python-format
 msgid "moltiplicatore %(value)s"
 msgstr "multiplier %(value)s"
@@ -14504,8 +14590,14 @@ msgstr "name:tag"
 msgid "non attiva"
 msgstr "not active"
 
+msgid "non collegato"
+msgstr "not linked"
+
 msgid "non deducibile"
 msgstr "not deductible"
+
+msgid "non in euro: resta il prezzo registrato (cambio da collegare)"
+msgstr "not in euro: the recorded price stays (exchange rate to be linked)"
 
 msgid "non letto"
 msgstr "not read"
@@ -14590,6 +14682,10 @@ msgstr "price of %(day)s"
 
 msgid "prezzo di acquisto"
 msgstr "purchase price"
+
+#, python-format
+msgid "prezzo in %% del nominale: resta il prezzo registrato"
+msgstr "price in %% of face value: the recorded price stays"
 
 #, python-format
 msgid "prezzo in %(code)s: manca il cambio (Impostazioni → Valute)"

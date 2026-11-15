@@ -121,6 +121,25 @@ def market_sync(symbols, main_funds):
         raise click.ClickException("Nothing read: is Yahoo Finance reachable from here?")
 
 
+@market_cli.command("import")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.argument("symbol")
+@click.option("--isin", default=None)
+@click.option("--currency", default="EUR", show_default=True)
+def market_import(path, symbol, isin, currency):
+    """Load the daily closes of SYMBOL from a CSV file (Date and Close columns)."""
+    from pathlib import Path
+
+    from app.services import market_data
+
+    try:
+        daily = market_data.read_csv(Path(path).read_bytes(), currency.upper())
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from None
+    added = market_data.store(symbol.strip().upper(), daily, isin, source="file")
+    click.echo(f"{symbol.upper():<14} +{added} closes  {daily.points[0][0]} → {daily.points[-1][0]}")
+
+
 @market_cli.command("status")
 def market_status():
     """What the store holds."""

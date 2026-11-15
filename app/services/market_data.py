@@ -16,14 +16,24 @@ Tables:
 - meta: the schema version.
 
 Reading: Yahoo Finance's public chart endpoint, daily, from a start date (the first time: from 2000 or the first
-trading day) and then from the last close stored minus a week (late corrections). Only the symbol is sent.
+trading day) and then from the last close stored minus a week (late corrections). Only the symbol is sent. Or a
+CSV file of closes (Yahoo's own download, justETF, investing.com, a spreadsheet): date and close columns.
+
+Use (Fase 2): a holding is linked to the store by its ticker (the Yahoo symbol, VWCE.MI) or, failing that, by its
+ISIN; the past prices of the archive (`wealth.prices_on`) take the stored close of the day when it is newer than
+the last price recorded by hand — only for instruments quoted in euro (ETF, shares, funds), since the closes are
+kept in the instrument's currency.
 """
 from __future__ import annotations
 
+import bisect
+import csv
+import io
 import json
 import os
 import urllib.parse
 import urllib.request
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
@@ -210,7 +220,7 @@ def _instrument(conn, symbol: str, isin: str | None = None, name: str | None = N
     return dict(row)
 
 
-def store(symbol: str, daily: Daily, isin: str | None = None, name: str | None = None) -> int:
+def store(symbol: str, daily: Daily, isin: str | None = None, name: str | None = None, source: str = "yahoo") -> int:
     """Save the closes read (a day already there is overwritten: the source may correct it); how many."""
     with engine().begin() as conn:
         row = _instrument(conn, symbol, isin, name or daily.name)
@@ -218,7 +228,7 @@ def store(symbol: str, daily: Daily, isin: str | None = None, name: str | None =
         if days:
             conn.execute(closes.delete().where(closes.c.instrument_id == row["id"], closes.c.day.in_(days)))
             conn.execute(insert(closes), [{"instrument_id": row["id"], "day": d, "close": c, "adj_close": a,
-                                           "source": "yahoo"} for d, c, a in daily.points])
+                                           "source": source} for d, c, a in daily.points])
         first, last = conn.execute(select(func.min(closes.c.day), func.max(closes.c.day))
                                    .where(closes.c.instrument_id == row["id"])).one()
         conn.execute(update(instruments).where(instruments.c.id == row["id"]).values(
@@ -291,3 +301,137 @@ def overview() -> list[dict]:
              .group_by(instruments.c.id).order_by(instruments.c.symbol))
     with engine().connect() as conn:
         return [dict(row) for row in conn.execute(query).mappings()]
+
+
+# ── Closes from a file ─────────────────────────────────────────────────────────
+
+DATE_HEADERS = ("date", "data", "day", "giorno")
+CLOSE_HEADERS = ("close", "chiusura", "price", "prezzo", "ultimo", "last", "nav")
+ADJ_HEADERS = ("adj close", "adj_close", "adjusted close", "chiusura rettificata")
+
+
+def read_csv(raw: bytes, currency: str | None = None) -> Daily:
+    """A CSV of daily closes → the same as a Yahoo answer. The columns are found by their header (Date/Data,
+    Close/Chiusura/Price/Ultimo/NAV, optionally Adj Close); separator `,` `;` or tab; dates as 2026-11-02,
+    02/11/2026 or 02.11.2026; numbers with either decimal mark. Rows without a valid date or close are skipped."""
+    from app.services.parsing import to_date, to_decimal
+
+    text = raw.decode("utf-8-sig", errors="replace")
+    try:
+        dialect = csv.Sniffer().sniff(text[:4096], delimiters=",;\t")
+    except csv.Error:
+        dialect = csv.excel
+    rows = list(csv.reader(io.StringIO(text), dialect))
+    if not rows:
+        raise ValueError("empty file")
+    header = [cell.strip().lower() for cell in rows[0]]
+
+    def column(names: Iterable[str]) -> int | None:
+        return next((i for i, cell in enumerate(header) if cell in names), None)
+
+    day_at, close_at, adj_at = column(DATE_HEADERS), column(CLOSE_HEADERS), column(ADJ_HEADERS)
+    if day_at is None or close_at is None:
+        raise ValueError("the file needs a date column and a close column (Date, Close)")
+    points = {}
+    for row in rows[1:]:
+        if len(row) <= max(day_at, close_at):
+            continue
+        day, close = to_date(row[day_at]), to_decimal(row[close_at])
+        if day is None or close is None or close <= 0:
+            continue
+        adj = to_decimal(row[adj_at]) if adj_at is not None and len(row) > adj_at else None
+        points[day] = (day, close, adj)
+    if not points:
+        raise ValueError("no row with a date and a close")
+    return Daily(currency, None, None, [points[d] for d in sorted(points)])
+
+
+# ── Use by the archive ─────────────────────────────────────────────────────────
+
+LINKED_CLASSES = ("ETF", "Azione", "Fondo comune")   # quoted per unit, like the closes (bonds are in % of face value)
+
+
+def available() -> bool:
+    """Whether there is a store to read, without making one (a configured URL, or the SQLite file)."""
+    if os.environ.get(ENV) or current_app.config.get(ENV):
+        return True
+    return (Path(current_app.instance_path) / FILE).exists()
+
+
+def _catalog() -> tuple[dict[str, dict], dict[str, str]]:
+    """The instruments with closes: {symbol: row} and {isin: symbol}, once per request."""
+    from app.services import request_cache
+
+    store_cache = request_cache.cache()
+    if "market_catalog" not in store_cache:
+        by_symbol = {row["symbol"]: row for row in overview() if row["count"]}
+        by_isin = {}
+        for symbol, row in sorted(by_symbol.items()):
+            if row["isin"]:
+                by_isin.setdefault(row["isin"].upper(), symbol)
+        store_cache["market_catalog"] = (by_symbol, by_isin)
+    return store_cache["market_catalog"]
+
+
+def link(holding) -> tuple[str | None, str]:
+    """The symbol whose closes price a holding, and why (or why not): "ticker", "isin", or a reason it is not
+    linked — "class" (not priced per unit), "currency" (not quoted in euro), "missing" (no history stored)."""
+    if holding.asset_class not in LINKED_CLASSES:
+        return None, "class"
+    by_symbol, by_isin = _catalog() if available() else ({}, {})
+    ticker = (holding.ticker or "").strip().upper()
+    if ticker in by_symbol:
+        symbol, how = ticker, "ticker"
+    elif (holding.isin or "").strip().upper() in by_isin:
+        symbol, how = by_isin[holding.isin.strip().upper()], "isin"
+    else:
+        return None, "missing"
+    if (holding.currency or "EUR").upper() != "EUR" or (by_symbol[symbol]["currency"] or "EUR").upper() != "EUR":
+        return None, "currency"
+    return symbol, how
+
+
+def _series(symbol: str) -> tuple[list[date], list[float]]:
+    from app.services import request_cache
+
+    store_cache = request_cache.cache().setdefault("market_series", {})
+    if symbol not in store_cache:
+        points = history(symbol)
+        store_cache[symbol] = ([d for d, _c in points], [float(c) for _d, c in points])
+    return store_cache[symbol]
+
+
+def close_before(symbol: str, day: date) -> tuple[date, float] | None:
+    """The last stored close on or before a day, from the request's copy of the series."""
+    days, values = _series(symbol)
+    at = bisect.bisect_right(days, day)
+    return (days[at - 1], values[at - 1]) if at else None
+
+
+def linked_holdings() -> dict[int, str]:
+    """{holding id: symbol} of every holding the store prices, once per request."""
+    from app.models.wealth import Holding
+    from app.services import request_cache
+
+    store_cache = request_cache.cache()
+    if "market_links" not in store_cache:
+        found = {}
+        if available():
+            candidates = Holding.query.filter(Holding.asset_class.in_(LINKED_CLASSES),
+                                              (Holding.ticker.isnot(None)) | (Holding.isin.isnot(None)))
+            for holding in candidates:
+                symbol, _how = link(holding)
+                if symbol:
+                    found[holding.id] = symbol
+        store_cache["market_links"] = found
+    return store_cache["market_links"]
+
+
+def overlay(recorded: dict[int, tuple[date, float]], on: date) -> dict[int, float]:
+    """The archive's latest recorded prices on a date, each replaced by the stored close when that is newer."""
+    prices = {hid: price for hid, (_day, price) in recorded.items()}
+    for hid, symbol in linked_holdings().items():
+        close = close_before(symbol, on)
+        if close and (hid not in recorded or close[0] >= recorded[hid][0]):
+            prices[hid] = close[1]
+    return prices

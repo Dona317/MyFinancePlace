@@ -10,7 +10,15 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.securities import Portfolio, SecuritiesAccount
 from app.models.wealth import Holding, HoldingPrice, Snapshot
-from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, save_form
+from app.routes.helpers import (
+    delete_and_redirect,
+    form_choice,
+    form_date,
+    form_decimal,
+    form_text,
+    save_form,
+    uploaded_file,
+)
 from app.services import (
     accounts,
     asset_classes,
@@ -329,7 +337,9 @@ def prices():
         return redirect(url_for("portfolio.index"))
     return render_template("portfolio/prices.html", holdings=holdings, values={}, today=date.today(),
                            online=current_settings()["prices_online"], supported=price_feed.supported,
-                           market=market_data.overview())
+                           market=market_data.overview() if market_data.available() else [],
+                           links=[(h, *market_data.link(h)) for h in holdings
+                                  if h.asset_class in price_feed.MARKET_CLASSES])
 
 
 @portfolio_bp.route("/market/sync", methods=["POST"])
@@ -349,6 +359,27 @@ def market_sync():
     if len(good) < len(found):
         flash(_("Non letti: %(list)s", list=", ".join(f"{f.symbol} ({f.error[:60]})" for f in found if f.error)[:600]),
               "warning")
+    return redirect(url_for("portfolio.prices") + "#market")
+
+
+@portfolio_bp.route("/market/import", methods=["POST"])
+def market_import():
+    """Fase 2: the daily closes of one instrument from a CSV file (Yahoo's download, justETF, a spreadsheet), for
+    when the app cannot reach the internet or the source is not Yahoo."""
+    symbol = (request.form.get("symbol") or "").strip().upper()
+    upload = uploaded_file()
+    if not symbol or upload is None:
+        flash(_("Scrivi il simbolo (es. VWCE.MI) e scegli il file delle chiusure."), "error")
+        return redirect(url_for("portfolio.prices") + "#market")
+    try:
+        daily = market_data.read_csv(upload.read(), (request.form.get("currency") or "EUR").strip().upper()[:8])
+    except ValueError as exc:
+        flash(_("File non letto: %(error)s", error=exc), "error")
+        return redirect(url_for("portfolio.prices") + "#market")
+    isin = (request.form.get("isin") or "").strip().upper() or None
+    added = market_data.store(symbol, daily, isin, (request.form.get("name") or "").strip() or None, source="file")
+    flash(_("Storico di %(symbol)s: %(count)s chiusure dal %(first)s al %(last)s.", symbol=symbol, count=added,
+            first=daily.points[0][0].strftime("%d/%m/%Y"), last=daily.points[-1][0].strftime("%d/%m/%Y")), "success")
     return redirect(url_for("portfolio.prices") + "#market")
 
 

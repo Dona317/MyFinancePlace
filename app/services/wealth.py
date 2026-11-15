@@ -16,7 +16,7 @@ from app.models.account import Account
 from app.models.personal_loan import PersonalLoan
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
-from app.services import accounts, asset_classes, currency, fund_facts, settings_store
+from app.services import accounts, asset_classes, currency, fund_facts, market_data, settings_store
 from app.services.i18n import N_
 from app.services.periods import add_months, last_complete_months
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total
@@ -272,12 +272,13 @@ def holdings_on(on: date | None = None) -> list[Holding]:
 # ── Price history (F5) ─────────────────────────────────────────────────────────
 
 def prices_on(on: date) -> dict[int, float]:
-    """{holding id: its latest recorded price on or before `on`} — one query for every holding."""
+    """{holding id: its latest recorded price on or before `on`} — one query for every holding; the close stored
+    in the market data store when it is newer (Fase 2: the daily history of ETF, shares and funds in euro)."""
     latest = (db.session.query(HoldingPrice.holding_id, func.max(HoldingPrice.on).label("on"))
               .filter(HoldingPrice.on <= on).group_by(HoldingPrice.holding_id).subquery())
-    rows = (db.session.query(HoldingPrice.holding_id, HoldingPrice.price)
+    rows = (db.session.query(HoldingPrice.holding_id, HoldingPrice.on, HoldingPrice.price)
             .join(latest, (HoldingPrice.holding_id == latest.c.holding_id) & (HoldingPrice.on == latest.c.on)))
-    return {holding_id: float(price) for holding_id, price in rows}
+    return market_data.overlay({holding_id: (day, float(price)) for holding_id, day, price in rows}, on)
 
 
 def value_on(holding: Holding, on: date | None, prices: dict[int, float] | None = None) -> float:

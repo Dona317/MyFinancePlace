@@ -14,8 +14,11 @@ from app.models.transaction import Transaction
 
 
 @pytest.fixture()
-def app():
+def app(tmp_path):
     app = create_app("testing")
+    # a data folder of its own: the market data store (market.sqlite) and the data key of the developer's
+    # instance folder stay out of the tests
+    app.instance_path = str(tmp_path)
     with app.app_context():
         _db.drop_all()
         _db.create_all()

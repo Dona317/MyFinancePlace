@@ -200,7 +200,11 @@ def performance_page():
     person = request.args.get("person", "")
     period = request.args.get("period", "all")
     holdings = family.holdings_of(person, portfolio_models.investments())
+    days = request.args.get("days") if request.args.get("days") in performance.DAILY_RANGES else "365"
     return render_template("portfolio/performance.html", report=performance.report(holdings), person=person,
+                           daily=performance.daily_values(holdings, performance.DAILY_RANGES[days]), days=days,
+                           daily_ranges=[("90", _("3 mesi")), ("365", _("1 anno")), ("1095", _("3 anni")),
+                                         ("1825", _("5 anni"))],
                            month_names=[str(_(m)) for m in periods.MONTH_LABELS],
                            xirr=portfolio_ops.performance(holdings)["xirr"] if holdings else None,
                            benchmarks=performance.benchmarks(), max_benchmarks=performance.MAX_BENCHMARKS,
