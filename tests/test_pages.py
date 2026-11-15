@@ -154,7 +154,7 @@ def test_spese_e_tendenze_is_part_of_uscite(client, db):
     assert "Andamento Mensile per Categoria" in html and "Natura delle spese" in html and "Spese per gruppo e categoria" in html
     assert "Natura delle spese" not in client.get("/reports/income").get_data(as_text=True)
     menu = client.get("/dashboard").get_data(as_text=True)
-    assert 'href="/lifestyle/"' not in menu and menu.index('href="/reports/spending"') < menu.index('href="/subscriptions/"')
+    assert 'href="/lifestyle/"' not in menu and 'class="nav-item nav-sub' not in menu  # Entrate, Uscite, Ricorrenti live in the cards
 
 
 def test_entrate_and_uscite_show_the_forecast_after_the_cards(client, db, monkeypatch):
