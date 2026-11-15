@@ -55,7 +55,7 @@
 {% block content %}
 
 {# F81: Entrate, Uscite and Ricorrenti are pages of Transazioni: three cards open them #}
-<div class="kpi-grid section-cards mb-16">
+<div class="kpi-grid kpi-strip section-cards mb-16">
   {% if shown('reports') %}
   <a class="kpi-link" href="{{ url_for('reports.income') }}" title="{{ _('Apri Entrate') }}">
     {{ kpi('arrow-down-circle', _('Entrate'), amount=cards.income, cls='kpi-positive', sub=_('questo mese · apri il dettaglio')) }}
