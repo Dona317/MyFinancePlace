@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "partials/blocks.html" as blocks with context %}
 {% from "partials/period_box.html" import period_box %}
 {% from "transactions/_tabs.html" import transactions_tabs with context %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
@@ -17,6 +18,7 @@
 {% block topbar_actions %}
 {% set pv = period_view() %}
 {{ period_box(pv.period, pv.years, pv.choices, keep=period_keep) }}
+{% if layout %}<div class="topbar-right-actions">{{ blocks.edit_controls(_('Modifica di %(page)s', page=page_name), _('Sposta, allarga o nascondi i blocchi della pagina'), url_for('settings.categories_page'), _('Categorie escluse dalle analisi, gruppi e tag nelle Impostazioni')) }}</div>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -47,7 +49,8 @@
   </form>
 </div>
 
-{% if f.tab != 'cashflow' %}
+{# F101: the parts of the page; on Entrate and Uscite they are blocks the user arranges (Modifica) #}
+{% set chunk_net %}{% if f.tab != 'cashflow' %}
 <!-- The net of the period: income − expenses = saved; the cash flow tells where it went -->
 <div class="report-net card mb-16">
   <div class="card-body report-net-body">
@@ -59,8 +62,8 @@
     <a class="btn btn-ghost btn-sm report-net-link" href="{{ url_for('accounting.cash_flow', year=f.start.year) }}">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
   </div>
 </div>
-
-{% if outlook %}
+{% endif %}{% endset %}
+{% set chunk_outlook %}{% if f.tab != 'cashflow' and outlook %}
 {# the forecast right after the cards on top: the same for Entrate and Uscite, the method of the Previsioni page #}
 <div class="card mb-16 report-outlook">
   <div class="card-header">
@@ -80,8 +83,8 @@
     {% endfor %}
   </div>
 </div>
-{% endif %}
-{% endif %}
+{% endif %}{% endset %}
+{% set chunk_charts %}
 {% if f.tab != 'cashflow' %}
 
 <!-- By category ─────────────────────────────────────────────────────────── -->
@@ -150,13 +153,15 @@
   </div>
 </div>
 {% endif %}
-
+{% endset %}
+{% set chunk_trends %}
 {% if trend_report %}
 {# «Spese e tendenze», part of Uscite: the year of the period #}
 {% set report = trend_report %}
 {% include "lifestyle/_sections.html" %}
 {% endif %}
-
+{% endset %}
+{% set chunk_summary %}
 <!-- Transactions and summary ─────────────────────────────────────────────── -->
 <div class="report-bottom{{ ' report-bottom-single' if register_html }}">
   {% if not register_html %}{# Entrate and Uscite (F99): the register, under the summary, takes this list's place #}
@@ -233,11 +238,28 @@
     </div>
   </div>
 </div>
-
-{% if register_html %}<div class="mt-16">{{ register_html|safe }}</div>{% endif %}
+{% endset %}
+{% set chunks = {'net': chunk_net, 'outlook': chunk_outlook, 'charts': chunk_charts, 'trends': chunk_trends,
+                 'summary': chunk_summary, 'register': register_html|safe if register_html else ''} %}
+{% if layout %}
+<div class="fc-grid dash-grid" id="blocks-grid">
+{% for w in layout if chunks.get(w.id)|trim %}
+{% call blocks.block(w, block_titles[w.id]) %}{{ chunks[w.id] }}{% endcall %}
+{% endfor %}
+</div>
+{% else %}
+{{ chunk_net }}{{ chunk_outlook }}{{ chunk_charts }}{{ chunk_trends }}{{ chunk_summary }}
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
+{% if layout %}{{ blocks.script() }}
+<script>
+initBlockEditor({
+  saveUrl: {{ url_for('reports.save_layout', section=section)|tojson }},
+  grids: [{ el: document.getElementById('blocks-grid'), key: 'widgets', spans: 3, heights: true }],
+});
+</script>{% endif %}
 {{ register_js|safe if register_js }}
 <script>
 {% if f.tab != 'cashflow' and items %}

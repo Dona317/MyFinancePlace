@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:25+0100\n"
+"POT-Creation-Date: 2026-11-15 14:27+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2363,6 +2363,9 @@ msgstr "Categories linked to the items"
 
 msgid "Categorie del 730 salvate."
 msgstr "730 categories saved."
+
+msgid "Categorie escluse dalle analisi, gruppi e tag nelle Impostazioni"
+msgstr "Categories left out of the analyses, groups and tags in Settings"
 
 #, python-format
 msgid "Categorie mese per mese — %(year)s"
@@ -7512,6 +7515,10 @@ msgstr "Editing the reminders"
 msgid "Modifica della dashboard"
 msgstr "Editing the dashboard"
 
+#, python-format
+msgid "Modifica di %(page)s"
+msgstr "Edit %(page)s"
+
 msgid "Modifica e collega"
 msgstr "Edit and link"
 
@@ -9306,6 +9313,9 @@ msgstr "To upload statements, CSV or Excel:"
 
 msgid "Per categoria"
 msgstr "By category"
+
+msgid "Per categoria e andamento"
+msgstr "By category and trend"
 
 msgid "Per chi"
 msgstr "For whom"
@@ -12078,6 +12088,9 @@ msgstr "Job expenses (€)"
 
 msgid "Spese e Tendenze"
 msgstr "Spending and Trends"
+
+msgid "Spese e tendenze"
+msgstr "Spending and trends"
 
 msgid "Spese funebri"
 msgstr "Funeral expenses"

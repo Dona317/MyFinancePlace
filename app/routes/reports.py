@@ -1,7 +1,7 @@
 import re
 from datetime import date, timedelta
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, jsonify, render_template, request
 from flask_babel import gettext as _
 
 from app.extensions import db
@@ -18,6 +18,7 @@ from app.services import (
     forecast,
     groups,
     i18n,
+    page_layout,
     pdf_report,
     periods,
     reports,
@@ -71,6 +72,36 @@ def _outlook(kind: str) -> dict | None:
         return None
     rows = [{"label": r["label"], "value": r[kind]} for r in fc.months[:OUTLOOK_MONTHS + 1]]
     return {"rows": rows, "total": round(sum(r["value"] for r in rows[1:]), 2), "method": str(forecast.METHODS[prefs["method"]][0])}
+
+
+# F101: the blocks of Entrate and Uscite, with their default width in thirds («Spese e tendenze» only on Uscite)
+SECTION_BLOCKS = {"net": 3, "outlook": 3, "charts": 3, "trends": 3, "summary": 3, "register": 3}
+
+
+def _blocks(section: str) -> dict[str, int]:
+    return {k: v for k, v in SECTION_BLOCKS.items() if k != "trends" or section == "spending"}
+
+
+def _layout_setting(section: str) -> str:
+    return f"reports.{section}.layout"
+
+
+def _block_titles() -> dict[str, str]:
+    return {"net": _("Netto del periodo"), "outlook": _("Previsione"), "charts": _("Per categoria e andamento"),
+            "trends": _("Spese e tendenze"), "summary": _("Riepilogo"), "register": _("Transazioni")}
+
+
+@reports_bp.route("/<any(income, spending):section>/layout", methods=["POST"])
+def save_layout(section: str):
+    """The blocks of Entrate or Uscite: {"widgets": [{id, span, height, visible}]} or {"reset": true}."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(error=_("Atteso un oggetto JSON.")), 400
+    if data.get("reset"):
+        return jsonify(layout=page_layout.reset(_layout_setting(section), _blocks(section)))
+    if not isinstance(data.get("widgets"), list):
+        return jsonify(error=_("Manca l'elenco dei blocchi.")), 400
+    return jsonify(layout=page_layout.save(_layout_setting(section), _blocks(section), data["widgets"]))
 
 
 @reports_bp.route("/income")
@@ -129,6 +160,8 @@ def index(tab: str | None = None):
             title=_("Transazioni di entrata") if tab == "income" else _("Transazioni di uscita"))
         context.update(register_html=render_template("transactions/_register.html", **register),
                        register_js=render_template("transactions/_register_js.html", **register))
+    if tab in ("income", "spending"):  # F101: the parts of Entrate and Uscite are blocks the user arranges
+        context.update(layout=page_layout.load(_layout_setting(tab), _blocks(tab)), block_titles=_block_titles())
     account_list = accounts.active()
     return render_template(
         "reports/index.html", **context, section=tab, tabs=reports.TABS, periods=reports.PERIODS, sorts=reports.SORTS,
