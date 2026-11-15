@@ -2409,3 +2409,8 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .icon-pick-item .icon-choice { font-size: 18px; }
 .icon-pick-item input:checked + .icon-choice { border-color: var(--clr-primary); background: var(--clr-primary-light); color: var(--clr-primary); }
 .icon-pick-item input:focus-visible + .icon-choice { outline: 2px solid var(--clr-primary); outline-offset: 2px; }
+
+/* F100: the bell's window — the latest reminders, the way to the whole page */
+.reminders-peek { max-width: 520px; }
+.reminders-peek .modal-title .bi { color: var(--clr-primary); margin-right: 4px; }
+.reminders-peek-list { max-height: 55vh; overflow: auto; margin: 0; }

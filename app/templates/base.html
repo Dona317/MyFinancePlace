@@ -352,7 +352,7 @@
         </div>
         {% if shown('notifications') %}
         {% set reminder_count = notification_count() %}
-        <a href="{{ url_for('notifications.index') }}" class="sidebar-tool topbar-bell"
+        <a href="{{ url_for('notifications.index') }}" class="sidebar-tool topbar-bell" id="bell-link"
            title="{{ _('Promemoria') }}" aria-label="{{ _('Promemoria') }}{{ ' (%d)'|format(reminder_count) if reminder_count }}"
            {% if request.endpoint and request.endpoint.startswith('notifications.') %}aria-current="page"{% endif %}>
           <i class="bi bi-bell"></i>{% if reminder_count %}<span class="bell-count">{{ reminder_count if reminder_count < 100 else '99+' }}</span>{% endif %}
@@ -473,6 +473,38 @@
   box.querySelector('.no-accounts-close').addEventListener('click', () => {
     box.hidden = true;
     try { sessionStorage.setItem(KEY, '1'); } catch (e) { /* nothing to remember */ }
+  });
+})();
+</script>
+{% endif %}
+{# F100: the bell opens the latest reminders in a window, like the + button; «Vai a promemoria» opens the page #}
+{% if shown('notifications') and not embedded %}
+<div class="modal-overlay" id="reminders-peek" onclick="if (event.target === this) closeModal('reminders-peek')">
+  <div class="modal reminders-peek" role="dialog" aria-modal="true" aria-labelledby="reminders-peek-title">
+    <div class="modal-header">
+      <h3 class="modal-title" id="reminders-peek-title"><i class="bi bi-bell"></i> {{ _('Promemoria') }}</h3>
+      <button type="button" class="modal-close" onclick="closeModal('reminders-peek')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body" id="reminders-peek-body"><p class="text-sm text-muted mb-0">{{ _('Caricamento…') }}</p></div>
+    <div class="modal-footer">
+      <a href="{{ url_for('notifications.index') }}" class="btn btn-primary btn-sm"><i class="bi bi-arrow-right"></i> {{ _('Vai a promemoria') }}</a>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  const bell = document.getElementById('bell-link');
+  if (!bell) return;
+  const body = document.getElementById('reminders-peek-body');
+  const url = {{ url_for('notifications.peek')|tojson }};
+  bell.addEventListener('click', event => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey) return;  // a new tab: the page, as before
+    event.preventDefault();
+    openModal('reminders-peek');
+    fetch(`${url}?back=${encodeURIComponent(location.pathname + location.search)}`, { credentials: 'same-origin' })
+      .then(response => { if (!response.ok) throw new Error(response.status); return response.text(); })
+      .then(html => { body.innerHTML = html; })
+      .catch(() => { window.location.href = bell.href; });  // the window cannot load: the page instead
   });
 })();
 </script>

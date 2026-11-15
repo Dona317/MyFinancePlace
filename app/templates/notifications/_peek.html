@@ -1,0 +1,22 @@
+{# F100: the latest reminders, in the bell's window (fetched when it opens); the whole list is on Promemoria #}
+{% from "partials/empty.html" import empty_state %}
+{% if items %}
+<ul class="notification-list reminders-peek-list">
+  {% for n in items %}
+  <li class="notification notification-{{ n.level }}">
+    <i class="bi bi-{{ n.icon }}"></i>
+    <a href="{{ n.url }}" class="notification-body">
+      <span class="cell-title">{{ n.title }}</span>
+      <span class="text-sm text-muted">{{ n.detail }}</span>
+    </a>
+    <form method="POST" action="{{ url_for('notifications.dismiss') }}">
+      <input type="hidden" name="key" value="{{ n.key }}" /><input type="hidden" name="next" value="{{ back }}" />
+      <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Segna come visto') }}" aria-label="{{ _('Segna come visto: %(title)s', title=n.title) }}"><i class="bi bi-x-lg"></i></button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% if more %}<p class="text-xs text-muted mt-8 mb-0">{{ ngettext('e un altro promemoria', 'e altri %(num)d promemoria', more) }}</p>{% endif %}
+{% else %}
+{{ empty_state(text=_('Nessun promemoria: tutto in ordine.'), icon='bi-bell', compact=True) }}
+{% endif %}

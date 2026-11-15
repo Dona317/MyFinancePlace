@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 12:09+0100\n"
+"POT-Creation-Date: 2026-11-15 12:10+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2215,6 +2215,9 @@ msgid ""
 msgstr ""
 "Upload a file with several transactions: Excel, CSV or PDF of your bank "
 "statement."
+
+msgid "Caricamento…"
+msgstr "Loading…"
 
 msgid "Carta"
 msgstr "Card"
@@ -7978,6 +7981,9 @@ msgstr "No problem that changes the numbers."
 msgid "Nessun promemoria"
 msgstr "No reminders"
 
+msgid "Nessun promemoria: tutto in ordine."
+msgstr "No reminders: all is well."
+
 msgid "Nessun risultato"
 msgstr "No results"
 
@@ -13382,6 +13388,9 @@ msgstr "Holiday"
 msgid "Vai"
 msgstr "Go"
 
+msgid "Vai a promemoria"
+msgstr "Go to reminders"
+
 msgid "Vai alla lista transazioni"
 msgstr "Go to the transactions"
 
@@ -13974,6 +13983,12 @@ msgstr "and %(count)s more"
 #, python-format
 msgid "e costo per %(unit)s"
 msgstr "and cost per %(unit)s"
+
+#, python-format
+msgid "e un altro promemoria"
+msgid_plural "e altri %(num)d promemoria"
+msgstr[0] "and one more reminder"
+msgstr[1] "and %(num)d more reminders"
 
 msgid "entrate"
 msgstr "income"

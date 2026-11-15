@@ -1,5 +1,5 @@
 from apiflask import APIBlueprint
-from flask import request
+from flask import render_template, request
 
 from app.routes.helpers import back_to
 from app.services import notifications
@@ -17,6 +17,18 @@ def index():
     """The reminders, with the deadlines under them (one page: Promemoria)."""
     from app.routes.deadlines import render_page
     return render_page()
+
+
+PEEK = 6  # reminders in the bell's window
+
+
+@notifications_bp.route("/peek")
+def peek():
+    """F100: the latest reminders, most urgent first, for the bell's window (a fragment, fetched when it opens)."""
+    items = notifications.collect()
+    back = request.args.get("back", "")
+    return render_template("notifications/_peek.html", items=items[:PEEK], more=max(0, len(items) - PEEK),
+                           back=back if back.startswith("/") and not back.startswith("//") else "")
 
 
 @notifications_bp.route("/dismiss", methods=["POST"])
