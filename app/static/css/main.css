@@ -1255,7 +1255,7 @@ td.amount { white-space: nowrap; }
               border-bottom: 2px solid transparent; margin-bottom: -1px; text-decoration: none; }
 .report-tab:hover { color: var(--clr-text-primary); text-decoration: none; }
 .report-tab.active { color: var(--clr-primary); border-bottom-color: var(--clr-primary); }
-.report-controls { display: flex; gap: 8px; align-items: center; padding-bottom: 8px; position: relative; }
+.report-controls { display: flex; gap: 8px; align-items: center; padding-bottom: 8px; position: relative; margin-left: auto; }
 .report-controls > .form-select { width: auto; min-width: 170px; }
 .report-filters { position: relative; }
 .report-filters > summary { list-style: none; cursor: pointer; }
@@ -2130,9 +2130,8 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 
 /* the period box in the middle of the top bar, the presets halfway between it and the buttons on the right: an
    empty space on the left as wide as the presets' one */
-.dash-center { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-.dash-center::before { content: ""; flex: 1; }
-.dash-presets { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1; }
+.dash-center { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dash-presets { display: flex; align-items: center; gap: 4px; }
 .preset-btn { padding: 4px 10px; border: 1px solid var(--clr-border); border-radius: 999px; background: var(--clr-bg-card);
   color: var(--clr-text-secondary); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; white-space: nowrap; max-width: 140px;
   overflow: hidden; text-overflow: ellipsis; }
@@ -2477,3 +2476,16 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
   background: var(--clr-bg-card); color: var(--clr-text-primary); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; }
 .flows-chip > i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 .flows-chip.is-off { opacity: .45; text-decoration: line-through; }
+
+/* ── The top bar of every page: one order, anchored right (decided 16 Nov) ──────────────────────────────────────
+   Periodo → Preset / Viste / Scenari / Orizzonte → Confronta → the other actions (PDF, CSV, Nuovo…) → Modifica → Gestisci.
+   The pages put their controls in any order: the order is given here, so every page (and every new one) follows it. */
+.topbar-actions { justify-content: flex-end; flex: 1; min-width: 0; }
+.topbar-actions > * { order: 40; }
+.topbar-actions > .dash-period-box, .topbar-actions > .dash-center { order: 10; }
+.topbar-actions > .dash-presets { order: 20; }
+.topbar-actions > .compare-switch { order: 30; }
+.topbar-actions > #layout-edit, .topbar-actions > #layout-title, .topbar-actions > .layout-hidden-menu,
+.topbar-actions > #layout-reset, .topbar-actions > #layout-done, .topbar-actions > .topbar-right-actions { order: 80; }
+.topbar-actions > #layout-manage, .topbar-actions > .tx-manage { order: 90; }
+.topbar-actions > .topbar-menu-btn { order: 95; }

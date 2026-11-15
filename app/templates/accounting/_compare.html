@@ -1,5 +1,5 @@
 {# F101: «Confronta con l'anno prima» — one switch for the statements of Panoramica Finanziaria (kept), each statement
    with the year before next to its figures. `label_year`: the year compared with. #}
-<a href="{{ url_for(request.endpoint, **dict(request.args.to_dict(), compare='0' if compare else '1')) }}" class="btn btn-sm {{ 'btn-primary' if compare else 'btn-ghost' }}"
+<a href="{{ url_for(request.endpoint, **dict(request.args.to_dict(), compare='0' if compare else '1')) }}" class="btn btn-sm compare-switch {{ 'btn-primary' if compare else 'btn-ghost' }}"
    aria-pressed="{{ 'true' if compare else 'false' }}" title="{{ _('Mostra accanto a ogni voce il %(year)s e la variazione', year=label_year) }}">
   <i class="bi bi-arrow-left-right"></i> {{ _('Confronta con il %(year)s', year=label_year) }}</a>
