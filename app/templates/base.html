@@ -400,16 +400,7 @@
       <button type="button" class="modal-close" onclick="closeModal('add-chooser')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="modal-body add-choices">
-      <a class="add-choice" href="{{ url_for('transactions.new') }}"
-         data-popup="{{ url_for('transactions.new', embed=1, next=url_for('transactions.embed_done'), **{'from': 'add'}) }}" title="{{ _('Transazione singola') }}">
-        <span class="add-choice-head"><i class="bi bi-plus-circle"></i> <strong>{{ _('Transazione singola') }}</strong></span>
-        <span>{{ _('Inserisci una singola entrata o uscita.') }}</span>
-      </a>
-      <a class="add-choice" href="{{ url_for('export.import_page') }}"
-         data-popup="{{ url_for('export.import_page', embed=1, only='bank') }}" title="{{ _('Carica un file') }}">
-        <span class="add-choice-head"><i class="bi bi-file-earmark-arrow-up"></i> <strong>{{ _('Carica un file') }}</strong></span>
-        <span>{{ _('Carica un file con più transazioni: Excel, CSV o PDF del tuo estratto conto bancario.') }}</span>
-      </a>
+      {% include "partials/add_choices.html" %}
     </div>
   </div>
 </div>

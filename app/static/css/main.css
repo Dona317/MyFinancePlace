@@ -2046,6 +2046,8 @@ body:has(.ask-bubble) .to-bottom { right: 27px; bottom: 68px; width: 30px; heigh
 .add-choice-head > i { font-size: 24px; color: var(--clr-primary); }
 .add-choice-head > strong { color: var(--clr-text-primary); }
 .add-choice > span:not(.add-choice-head) { font-size: var(--font-size-xs); color: var(--clr-text-muted); }
+/* the same two choices in the empty register: centred, as wide as the pop-up, text on the left */
+.add-choices-inline { width: min(640px, 100%); margin: 4px auto 0; text-align: left; }
 /* the title in the middle, no line under it */
 .add-chooser .modal-header { justify-content: center; position: relative; border-bottom: none; padding-bottom: 4px; }
 .add-chooser .modal-header .modal-close { position: absolute; right: 14px; top: 12px; }
