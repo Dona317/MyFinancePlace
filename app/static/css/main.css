@@ -1917,7 +1917,7 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .topbar-menu-btn { display: none; }
 .topbar-tools { display: contents; }
 @media (max-width: 1200px) {
-  .topbar-actions:has(.dash-period-box) { position: relative; flex: 0 0 auto; }
+  .topbar-actions:has(.dash-period-box) { position: relative; flex: 1 1 auto; min-width: 0; justify-content: flex-end; }
   .topbar-menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0;
     border: 1px solid var(--clr-border); border-radius: var(--border-radius); background: var(--clr-bg-card); color: var(--clr-text-primary); cursor: pointer; }
   .topbar-menu-btn[aria-expanded="true"] { border-color: var(--clr-primary); color: var(--clr-primary); }
