@@ -170,28 +170,29 @@
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-check2-square"></i> {{ _("Riconcilia con l'estratto conto") }}</div>
-      <div class="card-header-sub">{{ _("Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna") }}</div>
+      <div class="card-header-title"><i class="bi bi-check2-square"></i> {{ _('Riconcilia con il saldo del conto') }}
+        {{ info(_('La differenza tra il saldo che leggi e quello dell’app diventa un movimento «Riconciliazione» in quella data: il conto torna, ma non conta come spesa né come entrata nelle analisi. Se poi trovi il movimento mancante, elimina la riconciliazione.'), _('Riconcilia con il saldo del conto')) }}</div>
+      <div class="card-header-sub">{{ _('Scrivi il saldo che leggi ora sul conto (o sull’estratto a una data): la differenza la sistema l’app') }}</div>
     </div>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('accounts.reconcile', account_id=account.id) }}" class="grid-3" style="align-items:end;">
-      <div class="form-group"><label class="form-label" for="rc-on">{{ _("Data dell'estratto") }}</label>
+      <div class="form-group"><label class="form-label" for="rc-on">{{ _('Data') }}</label>
         <input type="date" id="rc-on" name="on" class="form-control" value="{{ (result.on if result else today).isoformat() }}" required /></div>
-      <div class="form-group"><label class="form-label" for="rc-bal">{{ _("Saldo dell'estratto") }} ({{ symbol }})</label>
+      <div class="form-group"><label class="form-label" for="rc-bal">{{ _('Saldo letto sul conto') }} ({{ symbol }})</label>
         <input type="text" inputmode="decimal" id="rc-bal" name="statement_balance" class="form-control" autocomplete="off"
                value="{{ result.statement_balance|plain if result else '' }}" placeholder="{{ _('es. 2.345,67') }}" required /></div>
-      <div class="form-group"><button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> {{ _('Verifica') }}</button></div>
+      <div class="form-group"><button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> {{ _('Riconcilia') }}</button></div>
     </form>
     {% if result %}
       {% if result.difference == 0 %}
       <div class="alert alert-success mt-8"><i class="bi bi-check-circle"></i> {{ _("Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto.", date=result.on|it_date, amount=result.app_balance|money(symbol)) }}</div>
       {% else %}
-      <div class="alert alert-warning mt-8">
-        <i class="bi bi-exclamation-triangle"></i>
-        {{ _("Al %(date)s l'app segna <strong>%(app)s</strong>, l'estratto <strong>%(statement)s</strong>: differenza <strong>%(difference)s</strong>", date=result.on|it_date, app=result.app_balance|money(symbol), statement=result.statement_balance|money(symbol), difference=result.difference|money(symbol)) }}
-        ({{ _("mancano entrate o ci sono uscite in più nell'app") if result.difference > 0 else _("mancano uscite o ci sono entrate in più nell'app") }}).
-        {{ _('Controlla i movimenti qui sotto, quelli senza conto e il saldo iniziale.') }}
+      <div class="alert alert-info mt-8">
+        <i class="bi bi-check2-circle"></i>
+        {{ _("Al %(date)s l'app segnava %(app)s, il conto %(statement)s: registrata una «Riconciliazione» di %(amount)s (%(kind)s) e ora il conto torna. Non conta come spesa né come entrata.", date=result.on|it_date, app=result.app_balance|money(symbol), statement=result.statement_balance|money(symbol), amount=result.difference|abs|money(symbol), kind=_('in uscita') if result.difference < 0 else _('in entrata')) }}
+        {% if result.adjustment %}<a href="{{ url_for('transactions.edit', tx_id=result.adjustment.id, next=url_for('accounts.detail', account_id=account.id)) }}">{{ _('Vedi il movimento') }}</a>{% endif %}
+        {% if result.later %}<div class="text-xs text-muted mt-8">{{ ngettext('Dopo quella data c’è %(num)d movimento: il saldo di oggi lo comprende.', 'Dopo quella data ci sono %(num)d movimenti: il saldo di oggi li comprende.', result.later) }}</div>{% endif %}
       </div>
       {% endif %}
     {% endif %}

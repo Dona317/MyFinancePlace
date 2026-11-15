@@ -224,16 +224,42 @@ def unassigned_count() -> int:
     return Transaction.query.filter(Transaction.account_id.is_(None), Transaction.counter_account_id.is_(None)).count()
 
 
+# F104: the difference the user's reading of the account leaves, as a movement of its own — in the balances (the
+# account comes back to what the bank says) but left out of the analyses: neither a spending nor an income
+RECONCILIATION = "Riconciliazione"
+
+
+def reconciliation_category() -> str:
+    """«Riconciliazione», left out of the analyses, made the first time it is needed."""
+    from app.models.category import Category
+    from app.services import categories
+
+    if Category.query.filter_by(name=RECONCILIATION).first() is None:
+        db.session.add(Category(name=RECONCILIATION, kind="both", excluded=True, position=len(categories.all_categories()),
+                                hint="differenza con il saldo letto sul conto: non è una spesa né un'entrata"))
+        db.session.flush()
+        categories.forget()
+    return RECONCILIATION
+
+
 def reconcile(account: Account, on: date, statement_balance: Decimal) -> dict:
-    """Compare the statement's balance with the app's on the same day; remember it when they match."""
+    """The balance the user reads on the account on a day: the difference with the app's becomes a «Riconciliazione»
+    movement on that day (an expense when the app had more, an income when it had less), left out of the analyses,
+    and the account is reconciled there."""
     app_balance = balance(account, on)
     difference = round(float(statement_balance) - app_balance, 2)
-    if difference == 0:
-        account.reconciled_on, account.reconciled_balance = on, statement_balance
-        db.session.commit()
+    adjustment = None
+    if difference:
+        adjustment = Transaction(date=on, amount=abs(Decimal(str(difference))), currency=account.currency,
+                                 account_id=account.id, type="income" if difference > 0 else "expense",
+                                 category=reconciliation_category(), tags=[],
+                                 description=f"Riconciliazione: saldo letto sul conto {Decimal(str(statement_balance)):.2f}")
+        db.session.add(adjustment)
+    account.reconciled_on, account.reconciled_balance = on, statement_balance
+    db.session.commit()
     later = (Transaction.query.filter(Transaction.account_id == account.id, Transaction.date > on).count())
     return {"app_balance": app_balance, "statement_balance": float(statement_balance),
-            "difference": difference, "on": on, "later": later}
+            "difference": difference, "on": on, "later": later, "adjustment": adjustment}
 
 
 def assign(transaction_ids: set[int], account_id: int | None) -> int:

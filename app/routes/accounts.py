@@ -153,7 +153,10 @@ def reconcile(account_id):
         return redirect(url_for("accounts.detail", account_id=account.id))
     result = accounts.reconcile(account, on, statement)
     if result["difference"] == 0:
-        flash(_("Conto riconciliato al %(on)s: il saldo coincide con l'estratto.", on=display.day(on)), "success")
+        flash(_("Conto riconciliato al %(on)s: il saldo coincide con quello del conto.", on=display.day(on)), "success")
+    else:  # F104: the difference recorded on its own, out of the analyses
+        flash(_("Conto riconciliato al %(on)s: registrata una «Riconciliazione» di %(amount)s.", on=display.day(on),
+                amount=display.money(abs(result["difference"]))), "success")
     recent = (Transaction.query.filter(Transaction.account_id == account.id, Transaction.date <= on)
               .order_by(Transaction.date.desc(), Transaction.id.desc()).limit(50).all())
     return _render_detail(account, recent, result)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 15:27+0100\n"
+"POT-Creation-Date: 2026-11-15 15:49+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1245,11 +1245,13 @@ msgstr "On %(date)s"
 
 #, python-format
 msgid ""
-"Al %(date)s l'app segna <strong>%(app)s</strong>, l'estratto "
-"<strong>%(statement)s</strong>: differenza <strong>%(difference)s</strong>"
+"Al %(date)s l'app segnava %(app)s, il conto %(statement)s: registrata una "
+"«Riconciliazione» di %(amount)s (%(kind)s) e ora il conto torna. Non conta "
+"come spesa né come entrata."
 msgstr ""
-"On %(date)s the app shows <strong>%(app)s</strong>, the statement "
-"<strong>%(statement)s</strong>: difference <strong>%(difference)s</strong>"
+"On %(date)s the app showed %(app)s, the account %(statement)s: a "
+"«Reconciliation» of %(amount)s (%(kind)s) was recorded and the account now "
+"adds up. It counts neither as an expense nor as an income."
 
 msgid ""
 "Al 1° gennaio stato patrimoniale, conto economico e flusso di cassa "
@@ -3218,8 +3220,12 @@ msgid "Conto preferito: proposto quando importi un estratto conto"
 msgstr "Favourite account: proposed when you import a statement"
 
 #, python-format
-msgid "Conto riconciliato al %(on)s: il saldo coincide con l'estratto."
-msgstr "Account reconciled on %(on)s: the balance matches the statement."
+msgid "Conto riconciliato al %(on)s: il saldo coincide con quello del conto."
+msgstr "Account reconciled on %(on)s: the balance matches the account's."
+
+#, python-format
+msgid "Conto riconciliato al %(on)s: registrata una «Riconciliazione» di %(amount)s."
+msgstr "Account reconciled on %(on)s: a «Reconciliation» of %(amount)s was recorded."
 
 msgid "Conto titoli"
 msgstr "Securities account"
@@ -3279,9 +3285,6 @@ msgstr "Check dates, amounts and descriptions before confirming."
 
 msgid "Controlla e correggi i movimenti"
 msgstr "Check and correct the movements"
-
-msgid "Controlla i movimenti qui sotto, quelli senza conto e il saldo iniziale."
-msgstr "Check the movements below, those without an account and the opening balance."
 
 msgid "Controlla ora →"
 msgstr "Check now →"
@@ -3982,6 +3985,12 @@ msgstr ""
 "age: a crash in the first years of withdrawals weighs less. Return and "
 "volatility above become those of the equity part. Both shares at 0: no "
 "shift."
+
+#, python-format
+msgid "Dopo quella data c’è %(num)d movimento: il saldo di oggi lo comprende."
+msgid_plural "Dopo quella data ci sono %(num)d movimenti: il saldo di oggi li comprende."
+msgstr[0] "After that date there is %(num)d movement: today's balance includes it."
+msgstr[1] "After that date there are %(num)d movements: today's balance includes them."
 
 msgid "Doppio clic per rinominare"
 msgstr "Double-click to rename"
@@ -6665,6 +6674,17 @@ msgstr "The date of the prices cannot be in the future."
 
 msgid "La data non può essere nel futuro."
 msgstr "The date cannot be in the future."
+
+msgid ""
+"La differenza tra il saldo che leggi e quello dell’app diventa un movimento "
+"«Riconciliazione» in quella data: il conto torna, ma non conta come spesa né"
+" come entrata nelle analisi. Se poi trovi il movimento mancante, elimina la "
+"riconciliazione."
+msgstr ""
+"The difference between the balance you read and the app's becomes a "
+"«Reconciliation» movement on that date: the account adds up, but it counts "
+"neither as an expense nor as an income in the analyses. If you then find the"
+" missing movement, delete the reconciliation."
 
 msgid "La fine viene prima dell'inizio."
 msgstr "The end comes before the start."
@@ -10922,8 +10942,8 @@ msgstr "Reconcile"
 msgid "Riconcilia %(name)s"
 msgstr "Reconcile %(name)s"
 
-msgid "Riconcilia con l'estratto conto"
-msgstr "Reconcile with the bank statement"
+msgid "Riconcilia con il saldo del conto"
+msgstr "Reconcile with the account balance"
 
 msgid "Riconciliato"
 msgstr "Reconciled"
@@ -11287,6 +11307,9 @@ msgstr "Opening balance of the accounts"
 
 msgid "Saldo iniziale dei conti aggiornato."
 msgstr "Opening balance of the accounts updated."
+
+msgid "Saldo letto sul conto"
+msgstr "Balance read on the account"
 
 #, python-format
 msgid "Saldo mai confrontato con l'estratto conto, o non da più di %(days)s giorni."
@@ -11727,10 +11750,12 @@ msgstr "Write the period of the bill (from, to)."
 msgid "Scrivi il prezzo per unità (e la quota fissa al mese) dell'altra offerta."
 msgstr "Write the price per unit (and the monthly fixed fee) of the other offer."
 
-msgid "Scrivi il saldo che la banca riporta a una data: l'app ti dice se torna"
+msgid ""
+"Scrivi il saldo che leggi ora sul conto (o sull’estratto a una data): la "
+"differenza la sistema l’app"
 msgstr ""
-"Enter the balance the bank shows at a date: the app tells you whether it "
-"matches"
+"Write the balance you read on the account now (or on the statement at a "
+"date): the app settles the difference"
 
 msgid "Scrivi il simbolo (es. VWCE.MI) e scegli il file delle chiusure."
 msgstr "Enter the symbol (e.g. VWCE.MI) and choose the file of the closes."
@@ -13673,6 +13698,9 @@ msgstr "See the theoretical orders"
 msgid "Vedi i budget"
 msgstr "See the budgets"
 
+msgid "Vedi il movimento"
+msgstr "See the movement"
+
 msgid "Vedi le posizioni"
 msgstr "See the positions"
 
@@ -13705,9 +13733,6 @@ msgstr "Greens"
 
 msgid "Verdi e blu"
 msgstr "Greens and blues"
-
-msgid "Verifica"
-msgstr "Check"
 
 msgid "Versa"
 msgstr "Deposit"
@@ -14445,6 +14470,9 @@ msgstr "in progress"
 msgid "in corso da %(months)s"
 msgstr "ongoing for %(months)s"
 
+msgid "in entrata"
+msgstr "in"
+
 msgid "in pari"
 msgstr "settled"
 
@@ -14454,6 +14482,9 @@ msgstr "expiring"
 #, python-format
 msgid "in tutto %(amount)s"
 msgstr "in all %(amount)s"
+
+msgid "in uscita"
+msgstr "out"
 
 #, python-format
 msgid "incassato il %(day)s"
@@ -14538,12 +14569,6 @@ msgstr "never"
 
 msgid "mai aggiornato"
 msgstr "never updated"
-
-msgid "mancano entrate o ci sono uscite in più nell'app"
-msgstr "income is missing or there are extra expenses in the app"
-
-msgid "mancano uscite o ci sono entrate in più nell'app"
-msgstr "expenses are missing or there is extra income in the app"
 
 msgid "massimali cumulati"
 msgstr "combined coverage limits"

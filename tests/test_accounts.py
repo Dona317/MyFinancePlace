@@ -6,7 +6,7 @@ import pytest
 
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.services import accounts, wealth
+from app.services import accounts, categories, wealth
 from tests.conftest import make_tx
 from tests.form_helper import assert_divs_balanced
 
@@ -48,7 +48,12 @@ def test_reconciliation(client, db, two_accounts):
     assert "Tutto torna" in html
     assert db.session.get(Account, fineco.id).reconciled_on == date(2026, 6, 4)
     html = client.post(f"/accounts/{fineco.id}/reconcile", data={"on": "2026-06-30", "statement_balance": "2250"}).get_data(as_text=True)
-    assert "differenza" in html and "€ 50,00" in html
+    # F104: the difference becomes a «Riconciliazione» movement, in the balance but left out of the analyses
+    assert "Riconciliazione" in html and "€ 50,00" in html
+    adjustment = Transaction.query.filter_by(category=accounts.RECONCILIATION).one()
+    assert adjustment.type == "expense" and adjustment.amount == 50 and adjustment.date == date(2026, 6, 30)
+    assert accounts.balance(db.session.get(Account, fineco.id), date(2026, 6, 30)) == 2250
+    assert accounts.RECONCILIATION in categories.excluded_names()
 
 
 def test_pages(client, two_accounts):
