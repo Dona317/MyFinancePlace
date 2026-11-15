@@ -120,6 +120,16 @@ document.querySelectorAll('.client-card[data-edit]').forEach(card => {
           {% endfor %}
         </div>
       </div>
+      {# F98: the icon of the new archive, the same set as the window of icons #}
+      <div class="form-group">
+        <span class="form-label">{{ _('Icona') }}</span>
+        <div class="icon-grid icon-pick">
+          {% for icon in icons %}
+          <label class="icon-pick-item" title="{{ icon }}"><input type="radio" name="icon" value="{{ icon }}" {{ 'checked' if loop.first }} />
+            <span class="icon-choice"><i class="bi bi-{{ icon }}"></i></span></label>
+          {% endfor %}
+        </div>
+      </div>
       <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea il cliente e aprilo') }}</button>
     </form>
   </div>

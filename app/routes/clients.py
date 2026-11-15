@@ -27,6 +27,7 @@ def create():
     except studio.StudioError as exc:
         flash(str(exc), "error")
         return redirect(url_for("clients.index"))
+    studio.set_icon(client, request.form.get("icon"))  # F98: the icon chosen with it
     studio.choose(client)
     flash(_("Cliente «%(name)s» creato con un archivio tutto suo: ora stai lavorando sui suoi dati.", name=client.name), "success")
     return redirect(url_for("dashboard.dashboard"))
