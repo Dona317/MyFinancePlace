@@ -34,9 +34,9 @@ class Section:
 
 SECTIONS = [
     Section("reports", _l("Report"), "bar-chart-line", _l("Panoramica"), ("reports.",)),
-    Section("accounting", _l("Contabilità"), "clipboard-data", _l("Contabilità"), ("accounting.",)),
-    Section("forecast", _l("Previsioni"), "graph-up-arrow", _l("Contabilità"), ("forecast.",)),
-    Section("subscriptions", _l("Ricorrenti"), "arrow-repeat", _l("Contabilità"), ("subscriptions.",)),
+    Section("accounting", _l("Panoramica Finanziaria"), "clipboard-data", _l("Panoramica Finanziaria"), ("accounting.",)),
+    Section("forecast", _l("Previsioni"), "graph-up-arrow", _l("Panoramica Finanziaria"), ("forecast.",)),
+    Section("subscriptions", _l("Ricorrenti"), "arrow-repeat", _l("Panoramica Finanziaria"), ("subscriptions.",)),
     Section("lifestyle", _l("Spese e Tendenze"), "pie-chart", _l("Stile di Vita"), ("lifestyle.index",)),
     Section("budget", _l("Budget"), "clipboard-check", _l("Stile di Vita"), ("lifestyle.budget",)),
     Section("goals", _l("Obiettivi"), "trophy", _l("Stile di Vita"), ("lifestyle.goal",), "lifestyle_goals"),

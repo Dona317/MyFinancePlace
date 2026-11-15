@@ -89,12 +89,12 @@
       {% if shown('accounting') %}
       <div class="nav-section" data-section="contabilita">
         <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-contabilita">
-          <span class="nav-label">{{ _('Contabilità') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+          <span class="nav-label">{{ _('Panoramica Finanziaria') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
         </button>
         <div class="nav-section-items" id="nav-contabilita"><div>
         <a href="{{ url_for('accounting.index') }}"
            class="nav-item {% if request.endpoint and request.endpoint.startswith('accounting.') %}active{% endif %}">
-          <i class="bi bi-journal-text"></i> <span class="nav-label" title="{{ _('Contabilità') }}">{{ _('Contabilità') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
+          <i class="bi bi-journal-text"></i> <span class="nav-label" title="{{ _('Panoramica Finanziaria') }}">{{ _('Panoramica Finanziaria') }}</span> <span class="nav-badge nav-badge-tbd">TBD</span>
         </a>
         </div></div>
       </div>

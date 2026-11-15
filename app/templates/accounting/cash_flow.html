@@ -3,8 +3,8 @@
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Flusso di Cassa') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Contabilità') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Contabilità') }}</a></li><li>{{ _('Flusso di Cassa') }}</li>{% endblock %}
+{% block page_title %}{{ _('Panoramica Finanziaria') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Flusso di Cassa') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% include "partials/year_select.html" %}
