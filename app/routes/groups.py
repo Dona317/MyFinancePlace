@@ -58,7 +58,7 @@ def consolidated(group_id):
 def export_csv(group_id):
     data = consolidation.consolidate(_group(group_id))
     slug = re.sub(r"[^a-z0-9]+", "_", data["group"].name.lower()).strip("_") or "gruppo"
-    return export_file(csv_text(consolidation.csv_rows(data)), f"consolidato_{slug}")
+    return export_file(csv_text(consolidation.csv_rows(data)), f"consolidato_{slug}", archive=None)
 
 
 @groups_bp.route("/<int:group_id>/open/<int:client_id>", methods=["POST"])

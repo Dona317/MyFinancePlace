@@ -250,9 +250,11 @@ def test_documents_upload_open_link_and_delete(client, db, sample_data, instance
 
     opened = client.get(f"/documents/{pdf.id}/file")
     assert opened.data == b"%PDF-1.4 a" and opened.headers["Content-Disposition"].startswith("inline")
+    opened.close()  # the file is sent from disk: closed, as the server does after sending (Windows keeps it locked)
     html_file = client.get(f"/documents/{html_doc.id}/file")  # never shown as a page: downloaded
     assert html_file.headers["Content-Disposition"].startswith("attachment")
     assert html_file.headers["X-Content-Type-Options"] == "nosniff"
+    html_file.close()
 
     tx = make_tx(description="Idraulico", amount=90)
     db.session.add(tx)

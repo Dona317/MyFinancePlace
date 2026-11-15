@@ -19,12 +19,13 @@ def test_three_cards_open_the_pages(client, db):
     ])
     db.session.commit()
     page = client.get("/transactions/").get_data(as_text=True)
-    cards = page[page.index('class="kpi-grid section-cards'):page.index('class="kpi-grid section-cards') + 3000]
+    cards = page[page.index('section-cards'):page.index('section-cards') + 3000]
     for href in ('href="/reports/income"', 'href="/reports/spending"', 'href="/subscriptions/"'):
         assert href in cards
     assert 'data-amount="2000.0"' in cards and 'data-amount="-282.0"' in cards  # 150 + 12 + 120 of this month
     assert 'data-amount="-22.0"' in cards and "2 serie ricorrenti" in cards  # 12 a month + 120 a year / 12
-    assert 'class="nav-item nav-sub' in page and 'title="Ricorrenti">Ricorrenti<' in page and 'nav-label" title="Abbonamenti"' not in page
+    tabs = page[page.index('class="section-tabs'):][:1500]  # the tabs of Transazioni, not entries of the side menu
+    assert 'href="/subscriptions/"' in tabs and 'Ricorrenti' in tabs and 'class="nav-item nav-sub' not in page
 
 
 def test_the_pages_sit_under_transazioni(client, db):
@@ -32,4 +33,5 @@ def test_the_pages_sit_under_transazioni(client, db):
         page = client.get(url).get_data(as_text=True)
         crumbs = page[page.index('class="breadcrumb'):][:600]
         assert 'href="/transactions/"' in crumbs and title in crumbs, url
-        assert 'nav-item nav-sub active' in page, url
+        tabs = page[page.index('class="section-tabs'):][:1500]
+        assert 'class="report-tab active" aria-current="page"' in tabs and title in tabs, url

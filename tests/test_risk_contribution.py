@@ -214,7 +214,7 @@ def test_pages(client, db, book, monkeypatch):
     for text in ("Indice di Sharpe", "Indice di Sortino", "Distanza dal massimo", "Durata del calo più lungo",
                  "Contributo dei titoli", "contributionChart", "A.MI", "C.MI", "Venduto"):
         assert text in page
-    assert page.count("dash: [6, 4]") == 3
+    assert page.count("dash: [6, 4]") == 4  # the 3 benchmarks and «Versato» of the daily chart
     page = client.post("/portfolio/performance", data={"remove": "B.MI"}, follow_redirects=True).text
     assert "Benchmark tolto." in page and "B.MI" not in page
     page = client.post("/portfolio/performance", data={"risk_free": "3,5"}, follow_redirects=True).text

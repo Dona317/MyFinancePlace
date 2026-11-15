@@ -457,11 +457,11 @@
 {# F97: no account of the user's yet — a dark yellow notice at the bottom, closed with the X for this session #}
 {% if allowed('accounts') and not embedded and current_user.is_authenticated and no_accounts() %}
 <div class="no-accounts-toast" id="no-accounts-toast" role="status" hidden>
-  <i class="bi bi-exclamation-triangle-fill"></i>
+  <i class="bi bi-exclamation-triangle"></i>
   <div class="no-accounts-text"><strong>{{ _('Non hai ancora nessun conto.') }}</strong>
     {{ _('Senza conti, tutte le transazioni che inserisci finiscono in Contanti.') }}
-    <a href="{{ url_for('accounts.new') }}" data-popup-size="wide"
-       data-popup="{{ url_for('accounts.new', embed=1, next=url_for('transactions.embed_done', reload=1)) }}">{{ _('Aggiungi un conto') }}</a></div>
+    <a href="{{ url_for('accounts.new') }}"{% if allowed('transactions') %} data-popup-size="wide"
+       data-popup="{{ url_for('accounts.new', embed=1, next=url_for('transactions.embed_done', reload=1)) }}"{% endif %}>{{ _('Aggiungi un conto') }}</a></div>
   <button type="button" class="no-accounts-close" aria-label="{{ _('Chiudi') }}" title="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
 </div>
 <script>

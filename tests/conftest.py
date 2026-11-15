@@ -20,6 +20,7 @@ def app(tmp_path):
     # instance folder stay out of the tests
     app.instance_path = str(tmp_path)
     with app.app_context():
+        _drop_leftover_archives()
         _db.drop_all()
         _db.create_all()
         yield app
@@ -27,6 +28,25 @@ def app(tmp_path):
         _drop_client_databases()
         _db.session.remove()
         _db.drop_all()
+
+
+def _drop_leftover_archives() -> None:
+    """The archive databases a run stopped half-way left behind (<test database>_c_<slug>): a new client of the same
+    name would trip on them. Only the test database's own archives, never anything else on the server."""
+    import re
+
+    from sqlalchemy import text
+
+    from app.services import studio
+    base = re.sub(r"[^a-z0-9_]", "_", (_db.engine.url.database or "mfp").lower())[:20]
+    if "test" not in base:  # a safety net: never on a database that is not the tests' own
+        return
+    with _db.engine.connect() as connection:
+        names = [row[0] for row in connection.execute(
+            text("SELECT datname FROM pg_database WHERE datname LIKE :pattern"), {"pattern": rf"{base}\_c\_%"})]
+    for name in names:
+        if studio.DATABASE.match(name):
+            studio._admin(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
 
 
 def _drop_client_databases() -> None:

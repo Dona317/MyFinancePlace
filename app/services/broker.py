@@ -23,7 +23,9 @@ def rule_of(account):
     """F96: where the commission rule of trades paid from an account lives — its securities account, the one place
     it is set; the account itself only for a rule entered before, when it has no securities account with a rule.
     A securities account passed in is its own rule."""
-    if not isinstance(account, Account):
+    from flask import has_app_context
+
+    if not isinstance(account, Account) or account.id is None or not has_app_context():
         return account
     from app.services import securities  # here: securities imports this module's neighbours
 

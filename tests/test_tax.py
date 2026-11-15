@@ -270,13 +270,17 @@ def test_holding_duties_and_page(app, client, db):
 # ── Forms and module switch ────────────────────────────────────────────────────
 
 def test_account_and_holding_tax_fields(client, db):
+    from app.services import securities
+
     client.post("/accounts/new", data={"name": "Directa", "kind": "other", "currency": "EUR", "opening_balance": "0",
-                                       "tax_regime": "dichiarativo", "abroad": "on"})
+                                       "has_dossier": "on", "tax_regime": "dichiarativo", "abroad": "on"})
     account = Account.query.filter_by(name="Directa").one()
-    assert account.tax_regime == "dichiarativo" and account.abroad
+    dossier = securities.dossier_of(account)  # F96: the regime on the securities account, «estero» on both
+    assert dossier.tax_regime == "dichiarativo" and dossier.abroad and account.abroad
     client.post(f"/accounts/{account.id}/edit", data={"name": "Directa", "kind": "other", "currency": "EUR",
-                                                      "opening_balance": "0", "active": "on"})
-    assert account.tax_regime == "amministrato" and not account.abroad
+                                                      "opening_balance": "0", "active": "on", "has_dossier": "on"})
+    db.session.refresh(dossier)
+    assert dossier.tax_regime == "amministrato" and not account.abroad
     r = client.post("/portfolio/new", data={"name": "BTP", "asset_class": "Obbligazione", "quantity": "1",
                                             "avg_price": "100", "tax_rate": "150"})
     assert "tra 0 e 100" in r.get_data(as_text=True)

@@ -276,9 +276,12 @@ def save_layout():
 def use_preset(number: int):
     """A preset becomes the one in use: its blocks, cards and period on the page."""
     try:
-        dashboard_prefs.use_preset(number)
+        preset = dashboard_prefs.use_preset(number)
     except ValueError as exc:
         return jsonify(error=str(exc)), 400
+    # F101: its period becomes the shared one (a preset without one: the current year, whole)
+    kept = dashboard_prefs.preset_period(preset)
+    shared_period.save(shared_period.clean(kept["year"], kept["year_to"], kept["part"]) or shared_period.default())
     return jsonify(url=url_for("dashboard.dashboard"))
 
 

@@ -2,8 +2,9 @@
 
 ## Versione attuale
 - **La versione attuale dell'app è il ramo `test-Cloud`** (PR #8, in bozza verso `main`).
-  Ultima verifica: 14 nov 2026 — suite 1283 test, copertura 97,50 %, 0 funzioni non testate; test live
-  273/273 (login, flows, wealth, features, securities, investments). CI del push da controllare su GitHub.
+  Ultima verifica: 15 nov 2026 — suite 1303 test (1302 ok; fallisce solo `test_a_tilted_photo_is_straightened`,
+  che dipende dal motore OCR locale), copertura ~96,7 %, 0 funzioni non testate. Test live non rifatti dopo
+  il 14 nov (273/273 allora). CI del push da controllare su GitHub.
 - `main` è indietro (lo scheletro iniziale) finché la PR #8 non viene unita: decisione D1, rimandata a
   novembre 2026. **Non unire su `main` senza una richiesta esplicita.**
 - Si lavora e si pusha solo su `test-Cloud`. I rami `Mapping-Excel` e `Dona317-patch-1` sono già contenuti

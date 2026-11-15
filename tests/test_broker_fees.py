@@ -98,13 +98,18 @@ def test_invalid_units_are_refused_and_editing_does_not_repeat_the_effects(clien
 
 
 def test_account_form_saves_the_rules(client, db):
+    from app.services import broker, securities
+
     client.post("/accounts/new", data={"name": "Fineco Trading", "kind": "other", "currency": "EUR", "active": "on",
-                                       "fee_fixed": "2,95", "fee_percent": "0,19", "fee_min": "2,95", "fee_max": "19"})
+                                       "has_dossier": "on", "fee_fixed": "2,95", "fee_percent": "0,19", "fee_min": "2,95",
+                                       "fee_max": "19"})
     account = Account.query.one()
-    assert account.has_fee_rule and account.fee_percent == Decimal("0.1900")
+    dossier = securities.dossier_of(account)  # F96: the rule lives on the securities account linked to it
+    assert dossier.has_fee_rule and dossier.fee_percent == Decimal("0.1900") and broker.rule_of(account) is dossier
     html = client.post(f"/accounts/{account.id}/edit", data={"name": "Fineco Trading", "kind": "other", "currency": "EUR",
-                                                             "fee_min": "20", "fee_max": "19"}).get_data(as_text=True)
+                                                             "has_dossier": "on", "fee_min": "20", "fee_max": "19"}
+                       ).get_data(as_text=True)
     assert "il minimo non può superare il massimo" in html
-    assert "Commissioni del broker" in client.get("/accounts/new").get_data(as_text=True)
+    assert "Commissioni (facoltative)" in client.get("/accounts/new").get_data(as_text=True)  # in the «Conto titoli» box
     form = client.get("/transactions/new").get_data(as_text=True)
     assert f'"{account.id}": {{"fixed": 2.95' in form or f'"{account.id}":{{"fixed":2.95' in form

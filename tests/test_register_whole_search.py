@@ -81,7 +81,8 @@ def test_search_filters_and_bulk_edit_live_inside_the_table_card(client, db):
         assert piece in card, piece
     form = card[card.index('id="filter-form"'):card.index('</form>', card.index('name="recurring"'))]
     assert 'name="q"' in form and 'name="min"' in form and 'name="category"' in form  # one form: search and filters
-    assert "<details" not in html.split('<div class="card tx-card">')[0]  # no separate cards above the table
+    above = html.split('<div class="card tx-card">')[0].split('class="section-tabs')[-1]
+    assert '<div class="card' not in above  # no separate card between the tabs and the table
 
 
 def test_the_table_is_sorted_by_a_click_on_its_titles(client, db):

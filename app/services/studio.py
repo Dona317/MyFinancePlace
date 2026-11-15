@@ -80,6 +80,10 @@ def sees_archives() -> bool:
 def open_name() -> str | None:
     """F98: the name of the open archive, for the files exported from it — for an administrator only (a user is bound
     to their own archive); None with a single archive."""
+    from flask import has_request_context
+
+    if not has_request_context():
+        return None
     try:
         if not sees_archives():
             return None

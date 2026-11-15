@@ -43,6 +43,12 @@ def _filters(tab: str | None = None) -> dict:
     # F101: the shared period (the address can carry one: it becomes the shared one; old period=… links still work)
     period = shared_period.current()
     start, end = period.bounds()
+    custom = (args.get("start", ""), args.get("end", ""))
+    if args.get("period") == "custom" and all(len(day) == 10 for day in custom):  # exact dates from a link
+        try:
+            start, end = date.fromisoformat(custom[0]), date.fromisoformat(custom[1]) + timedelta(days=1)
+        except ValueError:
+            pass
     account = args.get("account", "").strip()
     return {
         "tab": tab, "period": period, "start": start, "end": end, "last_day": end - timedelta(days=1),
@@ -289,4 +295,4 @@ def year_review_group_pdf(group_id):
     group = db.get_or_404(ClientGroup, group_id)
     year = _summary_year()
     slug = re.sub(r"[^a-z0-9]+", "_", group.name.lower()).strip("_") or "gruppo"
-    return download(annual_review.build_group_pdf(group, year), export_name(f"bilancio_{year}_{slug}", "pdf"), "application/pdf")
+    return download(annual_review.build_group_pdf(group, year), export_name(f"bilancio_{year}_{slug}", "pdf", archive=None), "application/pdf")

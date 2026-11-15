@@ -67,11 +67,12 @@ def xlsx_bytes(text: str) -> bytes:
     return buffer.getvalue()
 
 
-def export_file(text: str, base: str) -> Response:
-    """A CSV export as CSV, or as Excel with the same cells when the button asks for ?format=xlsx."""
+def export_file(text: str, base: str, archive=_OPEN) -> Response:
+    """A CSV export as CSV, or as Excel with the same cells when the button asks for ?format=xlsx; `archive` as in
+    export_name (None for a file of several archives, such as a group's)."""
     if request.args.get("format") == "xlsx":
-        return download(xlsx_bytes(text), export_name(base, "xlsx"), XLSX_MIME)
-    return download(text, export_name(base, "csv"), "text/csv; charset=utf-8")
+        return download(xlsx_bytes(text), export_name(base, "xlsx", archive), XLSX_MIME)
+    return download(text, export_name(base, "csv", archive), "text/csv; charset=utf-8")
 
 
 def download(content, filename: str, mimetype: str) -> Response:

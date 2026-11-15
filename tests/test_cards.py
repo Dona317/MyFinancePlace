@@ -3,6 +3,7 @@ F41: payment cards charged on an account — what is kept (the full number only 
 movement from the form or from the bank text of an imported one, its spending of the month, its expiry in the
 deadlines and the reminders, the pages.
 """
+import os
 from datetime import date
 from decimal import Decimal
 
@@ -161,7 +162,6 @@ def test_pages(client, db, bank):
 
 def test_field_encryption_key(app, monkeypatch, tmp_path):
     import base64
-    import os
 
     from app.services import field_crypto
 
@@ -171,7 +171,8 @@ def test_field_encryption_key(app, monkeypatch, tmp_path):
         assert sealed != field_crypto.encrypt("segreto")  # a fresh nonce each time
         assert field_crypto.decrypt(sealed) == "segreto" and field_crypto.encrypt("") is None
         assert field_crypto.decrypt(None) is None
-        assert oct((tmp_path / "data.key").stat().st_mode & 0o777) == "0o600"
+        if os.name != "nt":  # POSIX permissions: Windows has none to set
+            assert oct((tmp_path / "data.key").stat().st_mode & 0o777) == "0o600"
         with pytest.raises(field_crypto.Unreadable):
             field_crypto.decrypt("in chiaro")
         monkeypatch.setenv("MFP_DATA_KEY", base64.b64encode(os.urandom(32)).decode())
@@ -224,7 +225,6 @@ def test_the_key_is_read_kept_and_used_on_another_computer(app, client, db, bank
     """Esporta → «Chiave dei dati cifrati»: the key is shown only on click, downloaded, and the other computer's key
     typed in makes its card numbers readable — the ones this key could read are encrypted again, nothing lost."""
     import base64
-    import os
 
     from app.services import field_crypto
 

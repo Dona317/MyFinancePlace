@@ -115,7 +115,7 @@ def test_pages_and_csv(office, family, client):
     assert "non sommato" in page and "Zio Sam" in page
     response = client.get(f"/groups/{group_id}/csv")
     text = response.get_data(as_text=True)
-    assert response.mimetype == "text/csv" and "consolidato_famiglia_rossi_" in response.headers["Content-Disposition"]
+    assert response.mimetype == "text/csv" and "_consolidato_famiglia_rossi.csv" in response.headers["Content-Disposition"]
     assert text.splitlines()[-1].startswith("Famiglia Rossi;EUR;") and "Zio Sam;USD;" in text
     # the menu entry and the group next to the open archive's badge
     dashboard = client.get("/dashboard").get_data(as_text=True)
@@ -173,9 +173,14 @@ def test_each_user_starts_on_their_own_archive(office, family, login_on, client)
     client.post("/auth/logout")
 
     sign_in(client, "giulia", "password-2")
-    assert 'title="Stai lavorando su «Giulia Rossi»' in client.get("/dashboard").get_data(as_text=True)
-    # everybody sees every group
-    assert "Consolidato: Famiglia Rossi" in client.get(f"/groups/{family['group']}").get_data(as_text=True)
+    from app.services import studio
+
+    page = client.get("/dashboard").get_data(as_text=True)
+    with client.session_transaction() as session:  # she works on her archive…
+        assert session.get(studio.SESSION_KEY) == family["giulia"]
+    assert 'id="archive-switch-btn"' not in page  # …and, not an administrator, is shown no archive at all (F98)
+    # F24: a user is bound to their own archive — a group puts several together, so only an administrator opens it
+    assert client.get(f"/groups/{family['group']}").status_code == 403
     assert client.post(f"/settings/users/{giulia_user.id}/start", data={"client_id": family["marco"]}).status_code == 403
 
 

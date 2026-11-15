@@ -116,7 +116,7 @@ def test_bad_files(app, db, data):
 
 def test_pages(client, app, db, data):
     response = client.get("/portfolio/archive")
-    assert response.mimetype == "application/zip" and "investimenti_" in response.headers["Content-Disposition"]
+    assert response.mimetype == "application/zip" and "_investimenti.zip" in response.headers["Content-Disposition"]
     with zipfile.ZipFile(io.BytesIO(response.data)) as archive:
         assert investments_archive.DATA_FILE in archive.namelist()
     assert "Esporta gli investimenti" in client.get("/portfolio/import").get_data(as_text=True)

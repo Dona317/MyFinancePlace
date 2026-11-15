@@ -217,7 +217,11 @@ def index():
     # F101: the register follows the shared period (the box on top), in place of the dates of its filters
     period = shared_period.from_register(request.args)  # a link with a month or dates opens that period
     start, end = period.bounds()
-    register = register_context(locked={"start": start.isoformat(), "end": (end - timedelta(days=1)).isoformat()})
+    first, last = start.isoformat(), (end - timedelta(days=1)).isoformat()
+    given = (request.args.get("start", ""), request.args.get("end", ""))
+    if all(len(day) == 10 for day in given) and not request.args.get("part"):  # dates in the address: exactly those
+        first, last = given
+    register = register_context(locked={"start": first, "end": last})
     return render_template("transactions/index.html", cards=_section_cards(date.today()),
                            period_keep={k: v for k, v in request.args.items() if k not in shared_period.ADDRESS_KEYS},
                            **register)
