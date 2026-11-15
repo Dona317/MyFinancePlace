@@ -105,11 +105,17 @@ def cash_flow():
 @accounting_bp.route("/growth")
 def growth():
     """Where the net worth growth comes from: saving, markets, debt repaid, new assets."""
-    months = request.args.get("months", 12, type=int)
-    months = months if months in (6, 12, 24, 36) else 12
-    rows = net_worth_growth.months(months)
-    return render_template("accounting/growth.html", rows=rows, velocity=net_worth_growth.velocity(rows), months=months,
-                           labels=[r.end.strftime("%m/%y") for r in rows])
+    # F101: the last 6–36 months, or a whole year (its twelve months up to 31 December)
+    years = [y for y in analytics.available_years() if y < date.today().year] or []
+    choice = request.args.get("months", "12")
+    if choice.startswith("y") and choice[1:].isdigit() and int(choice[1:]) in years:
+        rows = net_worth_growth.months(12, date(int(choice[1:]), 12, 31))
+    else:
+        choice = choice if choice in ("6", "12", "24", "36") else "12"
+        rows = net_worth_growth.months(int(choice))
+    options = [(str(n), _("Ultimi %(count)s mesi", count=n)) for n in (6, 12, 24, 36)] +               [(f"y{y}", _("Anno %(year)s", year=y)) for y in sorted(years, reverse=True)]
+    return render_template("accounting/growth.html", rows=rows, velocity=net_worth_growth.velocity(rows), months=choice,
+                           options=options, labels=[r.end.strftime("%m/%y") for r in rows])
 
 
 @accounting_bp.route("/closes")

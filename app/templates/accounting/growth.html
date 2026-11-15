@@ -6,7 +6,7 @@
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Crescita del patrimonio') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-{{ choice_box('months', [(6, _('Ultimi %(count)s mesi', count=6)), (12, _('Ultimi %(count)s mesi', count=12)), (24, _('Ultimi %(count)s mesi', count=24)), (36, _('Ultimi %(count)s mesi', count=36))], months) }}
+{{ choice_box('months', options, months) }}
 {% endblock %}
 
 {% block statement %}
