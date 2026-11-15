@@ -1,6 +1,6 @@
 # Portfolio tracker dal punto di vista del prodotto (funzioni, schermate, grafici, metriche, UX), novembre 2026
 
-Raccolta del 9 novembre 2026. Complementa, senza ripeterle, le note in `research_notes/Panorama competitivo finanza personale/github_wealth_investimenti.md` (metriche dei repo, prezzi OSS, issue aperte più votate).
+Raccolta del 9 novembre 2026. Complementa, senza ripeterle, le note in `docs/analisi/note_di_ricerca/Panorama competitivo finanza personale/github_wealth_investimenti.md` (metriche dei repo, prezzi OSS, issue aperte più votate).
 
 **Metodo e limiti:**
 - Per Ghostfolio, Wealthfolio, Portfolio Performance (PP) e Sure ho letto il codice sorgente: clone `--depth 1` del 2026-11-09 (ultimo commit PP: 7 nov 2026). Etichette di interfaccia, route delle pagine, enum dei tipi di attività e di asset e testi di spiegazione delle metriche vengono da lì. Sono fonti primarie.

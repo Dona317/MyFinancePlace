@@ -1,4 +1,4 @@
-# MyFinancePlace — production image (gunicorn + wsgi.py). See docs/DEPLOY.md.
+# MyFinancePlace — production image (gunicorn + wsgi.py). See docs/tecnica/DEPLOY.md.
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

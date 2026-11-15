@@ -64,6 +64,20 @@
   <div class="card-body"><div style="height:300px;"><canvas id="perfChart"></canvas></div></div>
 </div>
 
+{# F47, Fase 2: the value on every weekday, from the daily closes of the price history where there are some #}
+<div class="card" style="margin-bottom:24px;" id="daily">
+  <div class="card-header" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <div class="card-header-title">{{ _('Valore giorno per giorno') }} {{ info(_('Il valore dei titoli ogni giorno lavorativo, con le quote che avevi quel giorno e il prezzo di quel giorno: la chiusura dello Storico dei prezzi (Prezzi → Storico dei prezzi) per ETF, azioni e fondi in euro collegati, altrimenti l\'ultimo prezzo registrato fino a quel giorno. La linea tratteggiata è quanto avevi versato.')) }}</div>
+      <div class="card-header-sub">{% if daily.linked %}{{ _('%(count)s titoli con lo storico giornaliero', count=daily.linked) }}{% else %}{{ _('Nessun titolo collegato allo storico: si usano i prezzi registrati.') }} <a href="{{ url_for('portfolio.prices') }}#links">{{ _('Collega i titoli') }}</a>{% endif %}</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      {% for key, label in daily_ranges %}<a class="btn btn-sm {{ 'btn-primary' if key == days else 'btn-outline' }}" href="{{ url_for('portfolio.performance_page', person=person, period=request.args.get('period', ''), days=key) }}#daily">{{ label }}</a>{% endfor %}
+    </div>
+  </div>
+  <div class="card-body">{% if daily.value|length >= 2 %}<div style="height:280px;"><canvas id="dailyChart"></canvas></div>{% else %}<span class="text-sm text-muted">{{ _('Ancora nessun giorno da mostrare.') }}</span>{% endif %}</div>
+</div>
+
 <div class="grid-2">
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Per periodo') }}</div></div>
@@ -230,6 +244,12 @@
 {% block scripts %}
 {% if report.returns %}
 <script>
+{% if daily.value|length >= 2 %}
+makeLineChart('dailyChart', {{ daily.labels|tojson }}, [
+  { label: {{ _('Valore')|tojson }}, data: {{ daily.value|tojson }}, tension: 0 },
+  { label: {{ _('Versato')|tojson }}, data: {{ daily.invested|tojson }}, dash: [6, 4], fill: false, tension: 0 },
+]);
+{% endif %}
 makeLineChart('perfChart', {{ report.labels|tojson }}, [
   { label: {{ _('Portafoglio (TWR)')|tojson }}, data: {{ report.cumulative|tojson }} },
   {% for b in report.benchmarks if b.twr is not none %}{ label: {{ b.ticker|tojson }}, data: {{ b.series|tojson }}, dash: [6, 4], fill: false, pointRadius: 2 },

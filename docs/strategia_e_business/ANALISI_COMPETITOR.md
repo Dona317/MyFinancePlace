@@ -1,9 +1,9 @@
 # Analisi competitor vs MVP
 
-> 1° ottobre 2026. Estende i due file in `docs/Strategy and Business/` (`Analisi Strategica.xlsx`,
+> 1° ottobre 2026. Estende i due file in `docs/strategia_e_business/` (`Analisi Strategica.xlsx`,
 > `Market_Mapping_Personal_Finance.xlsx`) scendendo al livello delle **funzionalità**, sezione per sezione
 > dell'MVP. I dati completi sono in
-> [`Analisi Funzionalita vs MVP.xlsx`](Strategy%20and%20Business/Analisi%20Funzionalita%20vs%20MVP.xlsx).
+> [`Analisi Funzionalita vs MVP.xlsx`](Analisi%20Funzionalita%20vs%20MVP.xlsx).
 > Lo stato di MyFinancePlace è verificato sul codice di `origin/test-Cloud` (b30343e), non sulle intenzioni.
 >
 > **Aggiornamento 8 ottobre 2026.** Da allora sono state fatte quasi tutte le funzioni mancanti di §4 e §5: transazioni
@@ -11,7 +11,7 @@
 > OFX/QIF/CAMT (F6), riporto del budget e accantonamento (F7), spese fisse/non mensili/variabili (F8), Abbonamenti
 > (F9), mesi di autonomia (F10a), stabilità delle entrate (F10b), Sankey. Decisioni: partita doppia **scartata**
 > (ROADMAP → Scartato), forma dell'app **eseguibile desktop**. Lo stato aggiornato di tutto è in
-> [PIANO_E_TODO.md](PIANO_E_TODO.md); sotto, ✅ segna ciò che è stato fatto.
+> [PIANO_E_TODO.md](../piano/PIANO_E_TODO.md); sotto, ✅ segna ciò che è stato fatto.
 
 ## 1. In sintesi
 

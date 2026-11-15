@@ -1,7 +1,7 @@
 """
 F14: the desktop app starts with the computer (in the background) and shows the reminders as system notifications,
 also the unread ones of the days it was closed. The parts that run anywhere; the window, the tray icon and the
-Windows toast itself are checked by hand on Windows (docs/DESKTOP.md).
+Windows toast itself are checked by hand on Windows (docs/tecnica/DESKTOP.md).
 """
 import json
 import sys

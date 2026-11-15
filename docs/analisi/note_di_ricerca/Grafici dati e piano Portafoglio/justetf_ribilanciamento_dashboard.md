@@ -156,7 +156,7 @@ giornaliero**.
   5. **Movimento di mercato**: variazione del valore del portafoglio o di un indice oltre il ±X% in N giorni.
      Riprende gli avvisi justETF su valore e quotazione.
   6. Dedup e quiete: non ripetere lo stesso avviso finché la condizione persiste, con snooze.
-  Canali: notifiche desktop già presenti (vedi `docs/DESKTOP.md`) + riepilogo in-app.
+  Canali: notifiche desktop già presenti (vedi `docs/tecnica/DESKTOP.md`) + riepilogo in-app.
 
 ### Gaps
 - Implementazioni di Wealthfolio, Ghostfolio e Parqet non verificate (fonti irraggiungibili o mancanti). Gli altri

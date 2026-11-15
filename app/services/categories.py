@@ -84,7 +84,7 @@ SUBCATEGORY_DEFAULTS = {
 }
 SEEDED_V3_SETTING = "categories.seeded_v3"
 
-# The owner's own list (ROADMAP.md, "Categorie di base"): added once, skipping any already there under the same
+# The owner's own list (docs/piano/ROADMAP.md, "Categorie di base"): added once, skipping any already there under the same
 # or almost the same name (Ristorante ~ Ristoranti, Trasporti ~ Trasporto). (name, kind, hint, discretionary)
 PERSONAL_DEFAULTS = [
     ("Lavoro ISolutions", "income", "stipendio e compensi da ISolutions", False),

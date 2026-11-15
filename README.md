@@ -178,7 +178,7 @@ Fake statements to try it with, in every supported format, are in
 
 After pulling this change run `flask --app run db upgrade` to add the `import_ref` column.
 
-See [`docs/MVP.md`](docs/MVP.md) for the MVP checklist and [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md) for the roadmap.
+See [`docs/piano/MVP.md`](docs/piano/MVP.md) for the MVP checklist and [`docs/piano/NEXT_STEPS.md`](docs/piano/NEXT_STEPS.md) for the roadmap.
 
 ## Size limits
 
@@ -217,7 +217,7 @@ docker compose up -d
 On the first visit the app asks to create the first user (an administrator); more users are added in
 *Impostazioni → Account e utenti* and everyone sees the same data.
 HTTPS with Caddy or nginx, production settings, backups (`pg_dump` and Esporta → Backup Completo) and updates
-are described in [docs/DEPLOY.md](docs/DEPLOY.md).
+are described in [docs/tecnica/DEPLOY.md](docs/tecnica/DEPLOY.md).
 
 ## Implementation Status
 
@@ -335,4 +335,4 @@ Proprietary — all rights reserved. See [LICENSE](LICENSE).
 
 ## Desktop app
 
-A desktop build (window + its own PostgreSQL) for Windows, macOS and Linux: see [docs/DESKTOP.md](docs/DESKTOP.md).
+A desktop build (window + its own PostgreSQL) for Windows, macOS and Linux: see [docs/tecnica/DESKTOP.md](docs/tecnica/DESKTOP.md).

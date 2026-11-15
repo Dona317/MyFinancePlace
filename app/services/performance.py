@@ -14,6 +14,7 @@ Values at past dates use the units held then (today's minus the trades since) an
 """
 from __future__ import annotations
 
+import bisect
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -23,8 +24,8 @@ from sqlalchemy import func
 
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.models.wealth import Holding
-from app.services import broker, periods, settings_store, wealth
+from app.models.wealth import Holding, HoldingPrice
+from app.services import broker, market_data, periods, settings_store, wealth
 from app.services.i18n import _l
 from app.services.net_worth_growth import units_after
 from app.services.totals import VALUE
@@ -530,3 +531,99 @@ def value_series(holdings: list[Holding], today: date | None = None) -> dict:
     return {"labels": [d.strftime("%m/%y") for d in ends],
             "value": [round(_value(holdings, d), 2) for d in ends],
             "invested": [round(_invested(holdings, d), 2) for d in ends]}
+
+
+# ── Day by day (F47, Fase 2) ───────────────────────────────────────────────────
+
+DAILY_RANGES = {"90": 90, "365": 365, "1095": 1095, "1825": 1825}
+
+
+def _price_lines(holdings: list[Holding]) -> dict[int, tuple[list[date], list[float]]]:
+    """Every price a holding had: the ones recorded in the archive, with the stored closes of the market data
+    store over them (a day of both: the close)."""
+    ids = [h.id for h in holdings]
+    points: dict[int, dict[date, float]] = defaultdict(dict)
+    for hid, day, price in db.session.query(HoldingPrice.holding_id, HoldingPrice.on, HoldingPrice.price).filter(
+            HoldingPrice.holding_id.in_(ids or [0])):
+        points[hid][day] = float(price)
+    for hid, symbol in market_data.linked_holdings().items():
+        if hid in ids:
+            days, values = market_data._series(symbol)
+            points[hid].update(zip(days, values))
+    return {hid: (sorted(p), [p[d] for d in sorted(p)]) for hid, p in points.items()}
+
+
+def _invested_steps(holdings: list[Holding]) -> tuple[float, list[tuple[date, float]]]:
+    """What `_invested` adds up, as events: the money in from the start (no date) and (day, amount) after."""
+    ids = [h.id for h in holdings]
+    start, steps = 0.0, []
+    for h in holdings:
+        quantity = h.opening_quantity if h.opening_quantity is not None else h.quantity
+        price = h.opening_price if h.opening_price is not None else h.avg_price
+        amount = float(quantity or 0) * float(price or 0) * float(h.multiplier or 1)
+        opened = h.opening_date or h.purchase_date
+        if opened is None:
+            start += amount
+        else:
+            steps.append((opened, amount))
+    trades = db.session.query(Transaction.id, Transaction.date, func.sign(Transaction.units) * VALUE).filter(
+        Transaction.holding_id.in_(ids or [0]), Transaction.units.isnot(None)).all()
+    day_of = {tid: day for tid, day, _v in trades}
+    steps += [(day, float(v or 0)) for _t, day, v in trades]
+    if day_of:
+        steps += [(day_of[fee_for], float(v or 0)) for fee_for, v in db.session.query(Transaction.fee_for_id, VALUE)
+                  .filter(Transaction.fee_for_id.in_(list(day_of)))]
+    return start, sorted(steps)
+
+
+def daily_values(holdings: list[Holding], days: int = 365, today: date | None = None) -> dict:
+    """The value of the holdings on every weekday of the last `days` (and today), at the price of that day — the
+    stored close, else the latest price recorded by then — with the units held then, and the money put in by then.
+    `linked` is how many holdings take their prices from the daily history."""
+    today = today or date.today()
+    first = _first_date(holdings)
+    empty = {"labels": [], "value": [], "invested": [], "linked": 0}
+    if first is None or first >= today:
+        return empty
+    start = max(first, today - timedelta(days=days))
+    ids = {h.id for h in holdings}
+    trades = sorted(db.session.query(Transaction.date, Transaction.holding_id, Transaction.units).filter(
+        Transaction.holding_id.in_(ids or {0}), Transaction.units.isnot(None), Transaction.date > start).all())
+    later: dict[int, float] = defaultdict(float)   # units bought − sold after the day being valued
+    for _day, hid, units in trades:
+        later[hid] += float(units or 0)
+    lines = _price_lines(holdings)
+    base, steps = _invested_steps(holdings)
+    put_in, step_at = base, 0
+    labels, values, invested = [], [], []
+    trade_at, day = 0, start
+    while day <= today:
+        while trade_at < len(trades) and trades[trade_at][0] <= day:   # a trade on this day is held from today on
+            later[trades[trade_at][1]] -= float(trades[trade_at][2] or 0)
+            trade_at += 1
+        while step_at < len(steps) and steps[step_at][0] <= day:
+            put_in += steps[step_at][1]
+            step_at += 1
+        if day.weekday() < 5 or day == today:
+            total = 0.0
+            for h in holdings:
+                if h.purchase_date is not None and h.purchase_date > day:
+                    continue
+                units = (float(h.quantity or 0) - later.get(h.id, 0.0)) * float(
+                    h.multiplier if h.multiplier is not None else 1)
+                if not units:
+                    continue
+                price = h.price
+                if day < today and h.id in lines:
+                    dates, prices = lines[h.id]
+                    at = bisect.bisect_right(dates, day)
+                    if at:
+                        price = prices[at - 1]
+                total += units * price
+            labels.append(day.strftime("%d/%m/%y"))
+            values.append(round(total, 2))
+            invested.append(round(put_in, 2))
+        day += timedelta(days=1)
+    linked = market_data.linked_holdings()
+    return {"labels": labels, "value": values, "invested": invested,
+            "linked": sum(1 for h in holdings if h.id in linked)}

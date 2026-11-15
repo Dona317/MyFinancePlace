@@ -1,5 +1,5 @@
 """
-The data of the portfolio's charts (G40, G41, G50 of reports/Grafici da riportare.md), built here so the templates only
+The data of the portfolio's charts (G40, G41, G50 of docs/analisi/Grafici da riportare.md), built here so the templates only
 hand it to the chart helpers of static/js/charts.js:
 
 - the price of a holding with its purchases, sales, dividends and coupons as markers and its average purchase price;

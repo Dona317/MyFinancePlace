@@ -1,4 +1,4 @@
-"""Gunicorn settings, all overridable from the environment (see .env.example and docs/DEPLOY.md).
+"""Gunicorn settings, all overridable from the environment (see .env.example and docs/tecnica/DEPLOY.md).
 
     gunicorn -c gunicorn.conf.py wsgi:app
 """
