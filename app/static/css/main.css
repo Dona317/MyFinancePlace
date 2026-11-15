@@ -2433,3 +2433,12 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .tx-view-row.is-current .tx-view-link { font-weight: 600; color: var(--clr-primary); }
 .tx-view-save { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--clr-border-light); }
 .tx-view-save .form-control { flex: 1; min-width: 0; height: 28px; }
+
+/* F101: «Gestisci» of the register — a small window under its button; the columns switched off */
+.tx-manage { position: relative; }
+.tx-manage > summary { list-style: none; }
+.tx-manage > summary::-webkit-details-marker { display: none; }
+.tx-manage-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: 260px; display: flex; flex-direction: column; gap: 6px;
+  padding: 12px; border: 1px solid var(--clr-border); border-radius: var(--border-radius); background: var(--clr-bg-card); box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
+.tx-table.hide-category [data-col="category"], .tx-table.hide-category .category-cell,
+.tx-table.hide-tags [data-col="tags"], .tx-table.hide-tags .tag-cell { display: none; }

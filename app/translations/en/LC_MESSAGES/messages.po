@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:46+0100\n"
+"POT-Creation-Date: 2026-11-15 14:47+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2180,6 +2180,9 @@ msgstr "Fund characteristics"
 
 msgid "Caratteristiche dell'obbligazione"
 msgstr "Bond characteristics"
+
+msgid "Card di Entrate, Uscite e Ricorrenti in alto"
+msgstr "Income, Expenses and Recurring cards on top"
 
 msgid "Carica"
 msgstr "Upload"
@@ -10978,6 +10981,12 @@ msgstr "Lines not read: %(lines)s"
 #, python-format
 msgid "Righe non salvate perché incomplete o non valide: %(value)s."
 msgstr "Rows not saved because incomplete or invalid: %(value)s."
+
+msgid "Righe per pagina"
+msgstr "Rows per page"
+
+msgid "Righe per pagina, colonne e card del registro"
+msgstr "Rows per page, columns and cards of the register"
 
 msgid "Rigo"
 msgstr "Line"

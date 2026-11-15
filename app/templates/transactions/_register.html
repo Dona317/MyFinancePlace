@@ -300,7 +300,7 @@
   <div class="table-wrapper">
     {# the columns are widened or narrowed by dragging the edge of their title, like a spreadsheet; long texts stay on
        one line and scroll sideways in their cell #}
-    <table class="tx-table" id="tx-table">
+    <table class="tx-table{% for col in register_prefs.hide %} hide-{{ col }}{% endfor %}" id="tx-table">
       <thead>
         <tr>
           <th style="width:36px;"><input class="check" type="checkbox" id="select-all" title="{{ ngettext('Seleziona tutta la ricerca (%(num)d transazione)', 'Seleziona tutta la ricerca (%(num)d transazioni, tutte le pagine)', total) }}" /></th>

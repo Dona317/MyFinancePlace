@@ -158,11 +158,12 @@ def register_context(locked: dict | None = None, title: str | None = None) -> di
     filters = {key: request.args.get(key, "").strip() for key in FILTER_KEYS} | locked
     query = _filtered_query(filters)
     total = query.count()
-    pages = max(1, -(-total // PAGE_SIZE))
+    page_size = register_views.prefs()["page_size"]  # F101: «Gestisci»
+    pages = max(1, -(-total // page_size))
     page = min(max(request.args.get("page", 1, type=int), 1), pages)
     sort, direction = _sort()
     transactions = (_ordered(query.options(selectinload(Transaction.splits)), sort, direction)
-                    .offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all())
+                    .offset((page - 1) * page_size).limit(page_size).all())
     categories = [
         row[0] for row in
         db.session.query(Transaction.category).filter(Transaction.category.isnot(None))
@@ -190,6 +191,7 @@ def register_context(locked: dict | None = None, title: str | None = None) -> di
         register_action=at(),  # a GET form drops its action's query: the page's own parameters go as hidden fields
         register_title=title or _("Elenco Transazioni"), locked=locked,
         views=register_views.load(), view_query=register_views.query_of(request.args),
+        register_prefs=register_views.prefs(),
         view_url=lambda query: at(**keep, **query),
         filters=filters,
         categories=categories,
@@ -226,6 +228,15 @@ def save_view():
         flash(_("Scrivi un nome e fai prima una ricerca o scegli un filtro: è quello che la vista ricorda."), "warning")
     else:
         flash(_("Vista «%(name)s» salvata.", name=view["name"]), "success")
+    return back_to("transactions.index")
+
+
+@transactions_bp.route("/prefs", methods=["POST"])
+def save_prefs():
+    """F101: «Gestisci» of Transazioni — rows per page, the columns shown, the cards on top."""
+    shown = request.form.getlist("show_col")
+    register_views.save_prefs(request.form.get("page_size"), [c for c in register_views.HIDEABLE if c not in shown],
+                              "cards" in request.form)
     return back_to("transactions.index")
 
 

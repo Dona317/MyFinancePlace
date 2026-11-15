@@ -55,3 +55,30 @@ def save(name: str, query: dict) -> dict:
 
 def delete(name: str) -> None:
     settings_store.set_json(_key(), [v for v in load() if v["name"] != name])
+
+
+# ── The register's own settings (F101, «Gestisci» of Transazioni): rows per page, columns shown, the cards on top ──
+
+PREFS_SETTING = "register.prefs.{user}"
+PAGE_SIZES = (25, 50, 100, 200)
+HIDEABLE = ("category", "tags")
+
+
+def prefs() -> dict:
+    """The signed-in user's choices: {"page_size", "hide": [columns], "cards": bool}."""
+    stored = settings_store.get_json(_key().replace("register.views.", "register.prefs."), {}, expect=dict) or {}
+    size = stored.get("page_size")
+    return {"page_size": size if size in PAGE_SIZES else 100,
+            "hide": [c for c in stored.get("hide", []) if c in HIDEABLE],
+            "cards": stored.get("cards", True) is not False}
+
+
+def save_prefs(page_size, hide, cards) -> dict:
+    try:
+        page_size = int(page_size)
+    except (TypeError, ValueError):
+        page_size = 100
+    value = {"page_size": page_size if page_size in PAGE_SIZES else 100,
+             "hide": [c for c in hide if c in HIDEABLE], "cards": bool(cards)}
+    settings_store.set_json(_key().replace("register.views.", "register.prefs."), value)
+    return value
