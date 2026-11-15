@@ -7,7 +7,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.routes.helpers import back_to
-from app.services import analytics, forecast, planning
+from app.services import analytics, forecast, forecast_prefs, planning
 from app.services.parsing import to_decimal
 
 forecast_bp = APIBlueprint(
@@ -23,10 +23,12 @@ def index():
     # Values in the address (e.g. a shared link) win over the saved preferences, without replacing them
     prefs = forecast.preferences(request.args.get("method"), request.args.get("window"), request.args.get("horizon"),
                                  request.args.get("recurring"))
-    result = forecast.load(**prefs, today=date.today())
+    # F101: the scenario (the page's presets), asked for in the address and then kept
+    scenario = forecast_prefs.scenario(request.args.get("scenario"))
+    result = forecast.apply_scenario(forecast.load(**prefs, today=date.today()), scenario)
     stability = analytics.income_stability(date.today())
     return render_template(
-        "forecast/index.html",
+        "forecast/index.html", scenario=scenario, scenarios=forecast_prefs.SCENARIOS,
         fc=result, prefs=prefs, methods=forecast.METHODS, frequencies=forecast.FREQUENCIES,
         recurring_amounts=forecast.RECURRING_AMOUNTS, layout=forecast.layout(), widgets=forecast.WIDGETS,
         window_range=forecast.WINDOW_RANGE, horizon_range=forecast.HORIZON_RANGE, stability=stability,

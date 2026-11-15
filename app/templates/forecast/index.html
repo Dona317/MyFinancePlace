@@ -7,6 +7,13 @@
 {% block page_title %}{{ _('Previsioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Previsioni') }}</li>{% endblock %}
 {% block topbar_actions %}
+{# F101: the scenarios are the presets of this page — a click reads the forecast another way, the choice is kept #}
+<div class="dash-presets forecast-scenarios" role="group" aria-label="{{ _('Scenari della previsione') }}">
+  {% for key, (label, hint) in scenarios.items() %}
+  <a href="{{ url_for('forecast.index', scenario=key) }}" class="preset-btn{{ ' is-active' if scenario == key }}" title="{{ hint }}"
+     aria-pressed="{{ 'true' if scenario == key else 'false' }}">{{ label }}</a>
+  {% endfor %}
+</div>
 {% if shown('accounting') %}<a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm" title="{{ _('Il flusso di cassa da cui partono le previsioni') }}"><i class="bi bi-arrow-left-right"></i> {{ _('Flusso di cassa') }} <i class="bi bi-arrow-right"></i></a>{% endif %}
 <a href="{{ url_for('forecast.retirement') }}" class="btn btn-ghost btn-sm"><i class="bi bi-hourglass-split"></i> {{ _('Pensione e FIRE') }}</a>
 {% endblock %}

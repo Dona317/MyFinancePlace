@@ -483,6 +483,24 @@ def build(transactions, method: str, window: int, horizon: int, today: date, rec
     return fc
 
 
+def apply_scenario(fc: Forecast, scenario: str) -> Forecast:
+    """F101: a prudent or optimistic reading of the forecast — each month's income and expenses taken at the edge of
+    what the six methods foresee (the band), the net and the running balance computed again; «base» leaves it."""
+    if scenario not in ("prudent", "optimistic"):
+        return fc
+    low_income, high_expenses = scenario == "prudent", scenario == "prudent"
+    shift = 0.0
+    for row in fc.months:
+        if "income_low" not in row:
+            continue
+        income = row["income_low"] if low_income else row["income_high"]
+        expenses = row["expenses_high"] if high_expenses else row["expenses_low"]
+        net = round(income - expenses, 2)
+        shift += net - row["net"]
+        row.update(income=round(income, 2), expenses=round(expenses, 2), net=net, balance=round(row["balance"] + shift, 2))
+    return fc
+
+
 def load(method: str, window: int, horizon: int, recurring: str = DEFAULT_RECURRING, today: date | None = None) -> Forecast:
     today = today or date.today()
     transactions = (Transaction.query.filter(Transaction.type.in_(["income", "expense"]))

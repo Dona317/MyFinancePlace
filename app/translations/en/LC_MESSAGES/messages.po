@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:27+0100\n"
+"POT-Creation-Date: 2026-11-15 14:29+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4287,6 +4287,16 @@ msgstr "Income %(year)s"
 msgid "Entrate 12 mesi"
 msgstr "Income, 12 months"
 
+msgid "Entrate al massimo e uscite al minimo tra quelli previsti dai sei metodi."
+msgstr ""
+"Income at the highest and expenses at the lowest of what the six methods "
+"foresee."
+
+msgid "Entrate al minimo e uscite al massimo tra quelli previsti dai sei metodi."
+msgstr ""
+"Income at the lowest and expenses at the highest of what the six methods "
+"foresee."
+
 msgid "Entrate cumulate"
 msgstr "Cumulative income"
 
@@ -5605,6 +5615,9 @@ msgstr "The job is back to be collected."
 
 msgid "Il lavoro è già incassato."
 msgstr "The job is already collected."
+
+msgid "Il metodo scelto, così com'è."
+msgstr "The chosen method, as it is."
 
 msgid "Il mio menu"
 msgstr "My menu"
@@ -9023,6 +9036,9 @@ msgstr "Gold and precious metals"
 msgid "Ott"
 msgstr "Oct"
 
+msgid "Ottimista"
+msgstr "Optimistic"
+
 msgid "Ottimo: nessuna spesa persa."
 msgstr "Great: no spending lost."
 
@@ -10207,6 +10223,9 @@ msgstr "Provider"
 
 msgid "Provider non valido."
 msgstr "Invalid provider."
+
+msgid "Prudente"
+msgstr "Prudent"
 
 msgid "Prudente: soprattutto obbligazioni, una parte di azioni."
 msgstr "Cautious: mostly bonds, some equities."
@@ -11558,6 +11577,9 @@ msgstr "Choose one"
 
 msgid "Scelte e svago"
 msgstr "Choices and leisure"
+
+msgid "Scenari della previsione"
+msgstr "Forecast scenarios"
 
 msgid "Scheda con il valore netto totale (attività − passività)"
 msgstr "Card with the total net worth (assets − liabilities)"

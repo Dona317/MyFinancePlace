@@ -59,6 +59,25 @@ def save_preferences(method=None, window=None, horizon=None, recurring=None) -> 
     return prefs
 
 
+# ── Scenarios (F101): the presets of the page — the method chosen, or the edges of what all the methods foresee ──
+
+SCENARIOS = {
+    "prudent":    (_l("Prudente"), _l("Entrate al minimo e uscite al massimo tra quelli previsti dai sei metodi.")),
+    "base":       (_l("Base"), _l("Il metodo scelto, così com'è.")),
+    "optimistic": (_l("Ottimista"), _l("Entrate al massimo e uscite al minimo tra quelli previsti dai sei metodi.")),
+}
+DEFAULT_SCENARIO = "base"
+
+
+def scenario(value=None) -> str:
+    """The scenario asked for (and then kept), else the saved one."""
+    if value in SCENARIOS:
+        settings_store.set("forecast.scenario", value)
+        return value
+    saved = settings_store.get("forecast.scenario", DEFAULT_SCENARIO)
+    return saved if saved in SCENARIOS else DEFAULT_SCENARIO
+
+
 # ── Page layout: which panels, in which order, half or whole row ──────────────
 
 WIDGETS = {  # id: (title, default span: 1 = half row, 2 = whole row)
