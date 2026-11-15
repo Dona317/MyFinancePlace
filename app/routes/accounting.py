@@ -67,7 +67,18 @@ def income_statement():
     years = analytics.available_years()
     year = year_arg(date.today().year)
     report = analytics.income_statement(year)
-    return render_template("accounting/income_statement.html", report=report, years=years, year=year)
+    # F101: «Confronta con l'anno prima» — each line next to the year before and the change (the choice is kept)
+    if request.args.get("compare") in ("0", "1"):
+        settings_store.set(COMPARE_SETTING, request.args["compare"])
+    compare = settings_store.get(COMPARE_SETTING, "0") == "1"
+    previous = analytics.income_statement(year - 1) if compare else None
+    before = ({line["category"]: line["amount"] for line in previous["income_lines"] + previous["expense_lines"]}
+              if previous else {})
+    return render_template("accounting/income_statement.html", report=report, years=years, year=year,
+                           compare=compare, previous=previous, before=before)
+
+
+COMPARE_SETTING = "accounting.compare"
 
 
 @accounting_bp.route("/cash-flow")

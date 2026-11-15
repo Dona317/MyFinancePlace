@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:30+0100\n"
+"POT-Creation-Date: 2026-11-15 14:31+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -3015,6 +3015,10 @@ msgstr "Compare"
 
 msgid "Confronta Istantanee"
 msgstr "Compare Snapshots"
+
+#, python-format
+msgid "Confronta con il %(year)s"
+msgstr "Compare with %(year)s"
 
 msgid "Confronta con oggi"
 msgstr "Compare with today"
@@ -7609,6 +7613,10 @@ msgstr "Money market and cash"
 
 msgid "Mostra"
 msgstr "Show"
+
+#, python-format
+msgid "Mostra accanto a ogni voce il %(year)s e la variazione"
+msgstr "Show %(year)s and the change next to each line"
 
 msgid ""
 "Mostra anche le linee dei totali progressivi (si accendono e spengono dalla "
@@ -13578,6 +13586,9 @@ msgstr "Currencies without exchange rates"
 msgid "Valute usate dalle tue transazioni"
 msgstr "Currencies used by your transactions"
 
+msgid "Var."
+msgstr "Chg."
+
 msgid "Variabile"
 msgstr "Variable"
 
@@ -14526,6 +14537,10 @@ msgstr "movement"
 #, python-format
 msgid "nel %(year)s: %(amount)s"
 msgstr "in %(year)s: %(amount)s"
+
+#, python-format
+msgid "nel %(year)s: %(value)s"
+msgstr "in %(year)s: %(value)s"
 
 msgid "nel conto titoli collegato"
 msgstr "in the linked securities account"

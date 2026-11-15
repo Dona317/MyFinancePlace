@@ -1,12 +1,20 @@
 {% extends "accounting/base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
+{% macro change(now, then) -%}
+{%- if then -%}{% set pct = (now - then) / (then|abs) * 100 %}<span class="{{ 'text-positive' if pct > 0 else 'text-negative' if pct < 0 else 'text-muted' }}">{{ '+' if pct > 0 }}{{ pct|number(1) }}%</span>{%- else -%}<span class="text-muted">—</span>{%- endif -%}
+{%- endmacro %}
+{% set cols = 5 if previous else 3 %}
 
 {% block page_title %}{{ _('Panoramica Finanziaria') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Conto Economico') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% include "partials/year_select.html" %}
+  {# F101: the year before, next to each line #}
+  <a href="{{ url_for('accounting.income_statement', year=year, compare='0' if compare else '1') }}" class="btn btn-sm {{ 'btn-primary' if compare else 'btn-ghost' }}"
+     aria-pressed="{{ 'true' if compare else 'false' }}" title="{{ _('Mostra accanto a ogni voce il %(year)s e la variazione', year=year - 1) }}">
+    <i class="bi bi-arrow-left-right"></i> {{ _('Confronta con il %(year)s', year=year - 1) }}</a>
   <a href="{{ url_for('export.export_pdf', year=year) }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-file-earmark-pdf"></i> PDF
   </a>
@@ -16,9 +24,9 @@
 
 <!-- Summary KPIs ──────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  {{ kpi('arrow-down-circle', _('Totale Entrate'), value=report.summary.income|money, cls='kpi-positive', value_class='text-positive') }}
-  {{ kpi('arrow-up-circle', _('Totale Uscite'), value=report.summary.expenses|money, cls='kpi-negative', value_class='text-negative') }}
-  {{ kpi('piggy-bank', _('Risparmio Netto'), value=report.summary.net|money, cls='kpi-primary', value_class=('text-negative' if report.summary.net < 0 else '')) }}
+  {{ kpi('arrow-down-circle', _('Totale Entrate'), value=report.summary.income|money, cls='kpi-positive', value_class='text-positive', sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.income|money) if previous else none)) }}
+  {{ kpi('arrow-up-circle', _('Totale Uscite'), value=report.summary.expenses|money, cls='kpi-negative', value_class='text-negative', sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.expenses|money) if previous else none)) }}
+  {{ kpi('piggy-bank', _('Risparmio Netto'), value=report.summary.net|money, cls='kpi-primary', value_class=('text-negative' if report.summary.net < 0 else ''), sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.net|money) if previous else none)) }}
   {{ kpi('percent', _('Tasso di Risparmio'), value="%.1f"|format(report.summary.savings_rate) ~ '%') }}
 </div>
 
@@ -34,11 +42,12 @@
             <th>{{ _('Voce') }}</th>
             <th class="text-right">{{ _('Importo') }}</th>
             <th class="text-right">{{ _('%% sulle entrate') }}</th>
+            {% if previous %}<th class="text-right">{{ year - 1 }}</th><th class="text-right">{{ _('Var.') }}</th>{% endif %}
           </tr>
         </thead>
         <tbody>
           <tr style="background:var(--clr-positive-bg);">
-            <td colspan="3" style="font-weight:700;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+            <td colspan="{{ cols }}" style="font-weight:700;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
               {{ _('Ricavi') }}
             </td>
           </tr>
@@ -47,18 +56,19 @@
             <td>{{ line.category }}</td>
             <td class="amount text-right">{{ line.amount|money }}</td>
             <td style="text-align:right;color:var(--clr-text-muted);">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
+            {% if previous %}<td class="amount text-right text-muted">{{ before[line.category]|money if line.category in before else '—' }}</td><td class="text-right">{{ change(line.amount, before.get(line.category)) }}</td>{% endif %}
           </tr>
           {% else %}
-          <tr><td class="text-muted" colspan="3">{{ _('Nessuna entrata registrata') }}</td></tr>
+          <tr><td class="text-muted" colspan="{{ cols }}">{{ _('Nessuna entrata registrata') }}</td></tr>
           {% endfor %}
           <tr style="font-weight:700;background:var(--clr-bg-input);">
-            <td>{{ _('Totale Entrate') }}</td><td class="amount positive text-right">{{ report.summary.income|money }}</td><td class="text-right">{{ '100%' if report.summary.income else '—' }}</td>
+            <td>{{ _('Totale Entrate') }}</td><td class="amount positive text-right">{{ report.summary.income|money }}</td><td class="text-right">{{ '100%' if report.summary.income else '—' }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.summary.income|money }}</td><td class="text-right">{{ change(report.summary.income, previous.summary.income) }}</td>{% endif %}
           </tr>
 
-          <tr style="height:8px;"><td colspan="3"></td></tr>
+          <tr style="height:8px;"><td colspan="{{ cols }}"></td></tr>
 
           <tr style="background:var(--clr-negative-bg);">
-            <td colspan="3" style="font-weight:700;color:var(--clr-negative-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+            <td colspan="{{ cols }}" style="font-weight:700;color:var(--clr-negative-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
               {{ _('Spese') }}
             </td>
           </tr>
@@ -67,13 +77,15 @@
             <td>{{ line.category }}{% if line.apart %} <span class="badge badge-muted" title="{{ _('Contanti spesi senza sapere per cosa: una voce a sé, non una categoria') }}">{{ _('a parte') }}</span>{% endif %}</td>
             <td class="amount text-right">{{ line.amount|money }}</td>
             <td style="text-align:right;color:var(--clr-text-muted);">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
+            {% if previous %}<td class="amount text-right text-muted">{{ before[line.category]|money if line.category in before else '—' }}</td><td class="text-right">{{ change(line.amount, before.get(line.category)) }}</td>{% endif %}
           </tr>
           {% else %}
-          <tr><td class="text-muted" colspan="3">{{ _('Nessuna spesa registrata') }}</td></tr>
+          <tr><td class="text-muted" colspan="{{ cols }}">{{ _('Nessuna spesa registrata') }}</td></tr>
           {% endfor %}
           <tr style="font-weight:700;background:var(--clr-bg-input);">
             <td>{{ _('Totale Uscite') }}</td><td class="amount negative text-right">{{ report.summary.expenses|money }}</td>
             <td class="text-right">{{ "%.1f%%"|format(100 - report.summary.savings_rate) if report.summary.income else '—' }}</td>
+            {% if previous %}<td class="amount text-right text-muted">{{ previous.summary.expenses|money }}</td><td class="text-right">{{ change(report.summary.expenses, previous.summary.expenses) }}</td>{% endif %}
           </tr>
         </tbody>
         <tfoot>
@@ -81,6 +93,7 @@
             <td>{{ _('Risparmio Netto') }}</td>
             <td class="amount" style="text-align:right;font-size:var(--font-size-lg);">{{ report.summary.net|money }}</td>
             <td class="text-right">{{ "%.1f%%"|format(report.summary.savings_rate) if report.summary.income else '—' }}</td>
+            {% if previous %}<td class="amount text-right text-muted">{{ previous.summary.net|money }}</td><td class="text-right">{{ change(report.summary.net, previous.summary.net) }}</td>{% endif %}
           </tr>
         </tfoot>
       </table>
