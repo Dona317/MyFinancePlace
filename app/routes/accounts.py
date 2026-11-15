@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, safe_next, save_form
-from app.services import accounts, cash, display, family, owners, wealth
+from app.services import accounts, cash, display, family, owners, securities, wealth
 from app.services import cards as card_service
 from app.services import currency as currency_service
 from app.services.parsing import to_decimal
@@ -22,6 +22,8 @@ accounts_bp = APIBlueprint(
 )
 
 CURRENCIES = list(currency_service.CURRENCIES)
+# F96: the kinds of account a securities account can settle on (not a card, the cash or the debts)
+DOSSIER_KINDS = ("current", "savings", "other")
 
 
 def _foreign_from_form(account: Account) -> dict | None:
@@ -52,27 +54,36 @@ def _account_from_form(account: Account) -> Account:
     account.notes = form_text("notes", _("Note"))
     account.owner = family.from_form()
     account.active = "active" in request.form
-    account.fee_fixed = form_decimal("fee_fixed", _("Commissione fissa"))
-    account.fee_percent = form_decimal("fee_percent", _("Commissione percentuale"))
-    account.fee_min = form_decimal("fee_min", _("Commissione minima"))
-    account.fee_max = form_decimal("fee_max", _("Commissione massima"))
-    account.tax_regime = form_choice("tax_regime", _("Regime fiscale"), TAX_REGIMES) if request.form.get("tax_regime") \
-        else "amministrato"
-    account.abroad = "abroad" in request.form
+    account.abroad = "abroad" in request.form  # the account's own: IVAFE instead of the stamp duty
     if account.kind == "cash":
         account.opening_foreign = _foreign_from_form(account)
     if account.fixed:
         account.active = True  # a fixed account is never closed: it can stay at zero
-    if account.fee_min is not None and account.fee_max is not None and account.fee_min > account.fee_max:
-        raise ValueError(_("Commissioni: il minimo non può superare il massimo."))
     duplicate = Account.query.filter(Account.name == account.name, Account.id != account.id).first()
     if duplicate:
         raise ValueError(_("Esiste già un conto chiamato «%(name)s».", name=account.name))
+    # F96: «Ha anche un conto titoli» — the securities account linked to this one, with its regime and commissions
+    wanted = "has_dossier" in request.form and account.kind in DOSSIER_KINDS
+    dossier = {}
+    if wanted:
+        dossier = {"name": form_text("dossier_name", _("Nome del conto titoli")),
+                   "tax_regime": form_choice("tax_regime", _("Regime delle plusvalenze"), TAX_REGIMES)
+                   if request.form.get("tax_regime") else "amministrato",
+                   "fee_fixed": form_decimal("fee_fixed", _("Commissione fissa")),
+                   "fee_percent": form_decimal("fee_percent", _("Commissione percentuale")),
+                   "fee_min": form_decimal("fee_min", _("Commissione minima")),
+                   "fee_max": form_decimal("fee_max", _("Commissione massima"))}
+        if dossier["fee_min"] is not None and dossier["fee_max"] is not None and dossier["fee_min"] > dossier["fee_max"]:
+            raise ValueError(_("Commissioni: il minimo non può superare il massimo."))
+    db.session.add(account)
+    db.session.flush()  # a new account needs its id before its securities account
+    securities.link_dossier(account, wanted, dossier)
     return account
 
 
 def _render_form(account, values):
     return render_template("accounts/form.html", tax_regimes=TAX_REGIMES, account=account, kinds=accounts.KINDS, currencies=CURRENCIES,
+                           dossier=securities.dossier_of(account), dossier_kinds=DOSSIER_KINDS,
                            values=values, foreign=accounts.foreign_openings(account) if account else {}, card_kinds=card_service.KINDS, card_icons=card_service.ICONS, networks=card_service.NETWORKS)
 
 
@@ -91,6 +102,7 @@ def index():
         total=sum(r["balance_base"] for r in rows if r["account"].active and r["account"].kind != "debt")
         + (cash["balance_base"] if cash else 0),
         unassigned=accounts.unassigned_count(),
+        dossiers_of={aid: [(d, securities.value(d)) for d in ds] for aid, ds in securities.dossiers_by_account().items()},
     )
 
 
@@ -115,6 +127,8 @@ def _render_detail(account: Account, recent: list[Transaction], result: dict | N
                            recent=recent, kinds=accounts.KINDS, today=date.today(), result=result,
                            symbol=currency_service.symbol(account.currency), estimated=accounts.estimated(account),
                            in_account=lambda tx: accounts.amount_in(tx, account),
+                           dossiers=[(d, securities.value(d)) for d in securities.dossiers_by_account().get(account.id, [])],
+                           regimes=TAX_REGIMES,
                            cards=_cards.account_cards(account), card_kinds=card_service.KINDS,
                            card_icons=card_service.ICONS, networks=card_service.NETWORKS)
 
@@ -187,6 +201,14 @@ def delete(account_id):
     if account.fixed:
         flash(_("«%(name)s» c'è sempre: può restare a zero, ma non si elimina.", name=account.name), "warning")
         return redirect(url_for("accounts.index"))
+    dossier = securities.dossier_of(account)
+    if dossier is not None and securities.in_use(dossier):
+        # F96: the securities of its securities account would lose their liquidity — closing it keeps both
+        flash(_("«%(name)s» ha un conto titoli con operazioni («%(dossier)s»): non si elimina. Toglile la spunta "
+                "«Conto attivo» per chiuderlo.", name=account.name, dossier=dossier.name), "warning")
+        return redirect(url_for("accounts.detail", account_id=account.id))
+    if dossier is not None:
+        db.session.delete(dossier)  # an unused securities account goes with its account
     return delete_and_redirect(account, _("Conto «%(name)s» eliminato: le sue transazioni restano, senza conto.",
                                           name=account.name), url_for("accounts.index"))
 

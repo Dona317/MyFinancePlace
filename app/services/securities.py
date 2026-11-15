@@ -132,6 +132,59 @@ def save_account(dossier: SecuritiesAccount | None, data: dict) -> SecuritiesAcc
     return dossier
 
 
+def dossier_of(account: Account | None) -> SecuritiesAccount | None:
+    """F96: the securities account whose money moves on this account (the active one first), or None."""
+    if account is None or account.id is None:
+        return None
+    return (SecuritiesAccount.query.filter_by(settlement_account_id=account.id)
+            .order_by(SecuritiesAccount.active.desc(), SecuritiesAccount.id).first())
+
+
+def dossiers_by_account() -> dict[int, list[SecuritiesAccount]]:
+    """The active securities accounts of each settlement account, for the lists of accounts."""
+    out: dict[int, list[SecuritiesAccount]] = {}
+    for dossier in SecuritiesAccount.query.filter_by(active=True).order_by(SecuritiesAccount.name):
+        if dossier.settlement_account_id is not None:
+            out.setdefault(dossier.settlement_account_id, []).append(dossier)
+    return out
+
+
+def value(dossier: SecuritiesAccount) -> float:
+    """What the securities of a securities account are worth today (its liquidity is the settlement account's)."""
+    return sum(p.value for p in positions(securities_account_id=dossier.id))
+
+
+def in_use(dossier: SecuritiesAccount) -> bool:
+    """A securities account with operations, or holding an opening position, cannot simply go."""
+    return bool(operations_count(securities_account=dossier)
+                or Holding.query.filter_by(opening_account_id=dossier.id).count())
+
+
+def link_dossier(account: Account, wanted: bool, data: dict) -> SecuritiesAccount | None:
+    """F96: the account form's «Ha anche un conto titoli». Ticked, the account gets its securities account (made or
+    changed), with the regime and the commissions written there — the one place they are set — and the money stays
+    on the account: the securities account has no liquidity of its own. Unticked, an unused securities account goes;
+    one with operations stays, with a message, since its securities have to sit somewhere."""
+    dossier = dossier_of(account)
+    if not wanted:
+        if dossier is None:
+            return None
+        if in_use(dossier):
+            raise ValueError(_("«%(name)s» ha già delle operazioni: il conto titoli resta collegato. Spostale prima su "
+                               "un altro conto titoli, oppure archivialo da Portafoglio.", name=dossier.name))
+        db.session.delete(dossier)
+        return None
+    name = (data.get("name") or "").strip() or (dossier.name if dossier else _unique_name(f"{account.name} – Titoli"))
+    dossier = save_account(dossier, {
+        "name": name, "broker": account.bank or account.name, "settlement_account_id": account.id,
+        "tax_regime": data.get("tax_regime"), "abroad": account.abroad,
+        "fee_fixed": data.get("fee_fixed"), "fee_percent": data.get("fee_percent"),
+        "fee_min": data.get("fee_min"), "fee_max": data.get("fee_max"),
+        "notes": dossier.notes if dossier else None, "active": True})
+    dossier.owner = account.owner
+    return dossier
+
+
 def cash(dossier: SecuritiesAccount, on=None) -> float:
     """The liquidity of a securities account: the balance of its settlement account."""
     from app.services import accounts

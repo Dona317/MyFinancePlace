@@ -98,7 +98,11 @@ def _fees() -> dict[int, Decimal]:
 
 
 def _container(account: Account | None, containers: dict[str, Container]) -> Container:
-    regime = account.tax_regime if account is not None else "amministrato"
+    # F96: the regime is set on the securities account linked to this one; the account's own only from before
+    from app.services import securities
+
+    dossier = securities.dossier_of(account)
+    regime = (dossier.tax_regime if dossier is not None else account.tax_regime) if account is not None else "amministrato"
     if regime == DICHIARATIVO:
         key, label = DICHIARATIVO, "Dichiarazione (quadro RT)"
     else:

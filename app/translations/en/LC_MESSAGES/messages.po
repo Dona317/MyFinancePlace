@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 10:42+0100\n"
+"POT-Creation-Date: 2026-11-15 11:17+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1564,6 +1564,9 @@ msgstr ""
 "Open the loan's account: the balance will come from the installments paid, "
 "not from the plan."
 
+msgid "Apri il conto titoli"
+msgstr "Open the securities account"
+
 msgid "Apri il dettaglio"
 msgstr "Open the detail"
 
@@ -2772,8 +2775,8 @@ msgstr "Fee €"
 msgid "Commissioni"
 msgstr "Fees"
 
-msgid "Commissioni del broker (facoltative)"
-msgstr "Broker commissions (optional)"
+msgid "Commissioni (facoltative)"
+msgstr "Commissions (optional)"
 
 msgid "Commissioni e costi pagati"
 msgstr "Commissions and costs paid"
@@ -3187,6 +3190,9 @@ msgstr "Securities account"
 
 msgid "Conto titoli attivo (togli la spunta se l'hai chiuso)"
 msgstr "Securities account active (untick it if you closed it)"
+
+msgid "Conto titoli collegato"
+msgstr "Linked securities account"
 
 #, python-format
 msgid "Conto titoli «%(name)s»"
@@ -4722,6 +4728,15 @@ msgstr ""
 msgid "Fisso (€)"
 msgstr "Fixed (€)"
 
+msgid ""
+"Fisso + percentuale dell’importo, tra un minimo e un massimo. Quando "
+"registri un acquisto o una vendita, la commissione viene calcolata e "
+"proposta. Vuoto = la inserisci tu."
+msgstr ""
+"Fixed + a percentage of the amount, between a minimum and a maximum. When "
+"you record a purchase or a sale, the commission is computed and proposed. "
+"Empty = you enter it."
+
 msgid "Flussi operativi, di investimento e di finanziamento"
 msgstr "Operating, investing and financing flows"
 
@@ -5055,6 +5070,9 @@ msgstr "Gain"
 msgid "Guadagno non realizzato"
 msgstr "Unrealized gain"
 
+msgid "Ha anche un conto titoli"
+msgstr "Also has a securities account"
+
 msgid "Ha delle sottocategorie: resta principale"
 msgstr "It has subcategories: it stays a main category"
 
@@ -5237,6 +5255,15 @@ msgstr ""
 
 msgid "I tag usati dalle transazioni, dal più usato"
 msgstr "The tags used by transactions, most used first"
+
+msgid ""
+"I titoli stanno nel conto titoli, i soldi su questo conto: gli acquisti "
+"escono da qui, le vendite e le cedole entrano qui. Nel Portafoglio il conto "
+"titoli si vede da solo."
+msgstr ""
+"The securities sit in the securities account, the money on this account: "
+"purchases go out from here, sales and coupons come in here. In Portfolio the"
+" securities account is shown on its own."
 
 msgid "I tuoi modelli"
 msgstr "Your models"
@@ -7068,6 +7095,9 @@ msgstr ""
 "Liquid money (%(liquid)s) divided by the average spending of the last %(n)s "
 "complete months"
 
+msgid "Liquidità + titoli"
+msgstr "Cash + securities"
+
 msgid "Liquidità da investire sui conti titoli oltre (€)"
 msgstr "Cash to invest on the securities accounts above (€)"
 
@@ -8247,6 +8277,9 @@ msgstr "Name *"
 msgid "Nome del cliente"
 msgstr "Client name"
 
+msgid "Nome del conto titoli"
+msgstr "Securities account name"
+
 msgid "Nome del database non valido."
 msgstr "Invalid database name."
 
@@ -9401,15 +9434,6 @@ msgstr "By holding"
 #, python-format
 msgid "Per tornare sugli obiettivi comprando e basta servono almeno %(amount)s."
 msgstr "To get back to the targets by buying only you need at least %(amount)s."
-
-msgid ""
-"Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un "
-"massimo. Quando registri un acquisto o una vendita su questo conto, la "
-"commissione viene calcolata e proposta. Vuoto = la inserisci tu."
-msgstr ""
-"For a brokerage account: fixed + percent of the amount, between a minimum "
-"and a maximum. When you record a purchase or a sale on this account, the "
-"commission is computed and proposed. Empty = you enter it."
 
 msgid ""
 "Per un fondo o una polizza che nessun sito trova: un indirizzo e dove "
@@ -12023,6 +12047,16 @@ msgstr "Move, widen or hide the dashboard blocks"
 msgid "Sposta, allarga o nascondi i blocchi della pagina"
 msgstr "Move, widen or hide the blocks of the page"
 
+msgid ""
+"Spunta se su questo conto hai anche un conto titoli (Fineco, Directa, la "
+"banca…). Nasce un conto titoli collegato: i titoli stanno lì, i soldi "
+"restano su questo conto. Nel Portafoglio li vedi da soli, qui insieme."
+msgstr ""
+"Tick it if this account also has a securities account (Fineco, Directa, your"
+" bank…). A linked securities account is created: the securities sit there, "
+"the money stays on this account. In Portfolio you see them on their own, "
+"here together."
+
 msgid "Stabile"
 msgstr "Stable"
 
@@ -13339,6 +13373,12 @@ msgstr ""
 msgid "Valore con la quantità attuale"
 msgstr "Value at the current quantity"
 
+msgid "Valore dei titoli"
+msgstr "Securities value"
+
+msgid "Valore dei titoli nel conto titoli collegato"
+msgstr "Value of the securities in the linked securities account"
+
 msgid "Valore del portafoglio"
 msgstr "Portfolio value"
 
@@ -13908,6 +13948,10 @@ msgid "equivalente mensile"
 msgstr "monthly equivalent"
 
 #, python-format
+msgid "es. %(name)s – Titoli"
+msgstr "e.g. %(name)s – Securities"
+
+#, python-format
 msgid "es. %(ticker)s"
 msgstr "e.g. %(ticker)s"
 
@@ -14328,6 +14372,9 @@ msgstr "movement"
 #, python-format
 msgid "nel %(year)s: %(amount)s"
 msgstr "in %(year)s: %(amount)s"
+
+msgid "nel conto titoli collegato"
+msgstr "in the linked securities account"
 
 #, python-format
 msgid "nel conto titoli «%(name)s»"
@@ -14769,6 +14816,9 @@ msgid ""
 ".DE)"
 msgstr "ticker «%(ticker)s» not found (add .MI for Borsa Italiana, .DE for Xetra)"
 
+msgid "titoli"
+msgstr "securities"
+
 #, python-format
 msgid "titoli %(invested)s + liquidità %(cash)s"
 msgstr "securities %(invested)s + cash %(cash)s"
@@ -14813,6 +14863,9 @@ msgstr "all-inclusive: energy, transport, taxes, fixed fees"
 
 msgid "tutto nella tolleranza"
 msgstr "all within the tolerance"
+
+msgid "tutto quello che hai qui"
+msgstr "everything you have here"
 
 msgid "uguale al prezzo di acquisto"
 msgstr "same as the purchase price"
@@ -14954,8 +15007,24 @@ msgid "«%(name)s» ha delle sottocategorie: non può diventarlo a sua volta."
 msgstr "“%(name)s” has subcategories: it cannot become one itself."
 
 #, python-format
+msgid ""
+"«%(name)s» ha già delle operazioni: il conto titoli resta collegato. "
+"Spostale prima su un altro conto titoli, oppure archivialo da Portafoglio."
+msgstr ""
+"«%(name)s» already has operations: the securities account stays linked. Move"
+" them to another securities account first, or archive it from Portfolio."
+
+#, python-format
 msgid "«%(name)s» ha ora il suo archivio, «%(archive)s»."
 msgstr "«%(name)s» now has their archive, «%(archive)s»."
+
+#, python-format
+msgid ""
+"«%(name)s» ha un conto titoli con operazioni («%(dossier)s»): non si "
+"elimina. Toglile la spunta «Conto attivo» per chiuderlo."
+msgstr ""
+"«%(name)s» has a securities account with operations («%(dossier)s»): it "
+"cannot be deleted. Untick «Conto attivo» to close it."
 
 #, python-format
 msgid "«%(name)s» messo nel portafoglio modello: %(parts)s."

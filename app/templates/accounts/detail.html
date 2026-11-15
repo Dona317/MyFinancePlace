@@ -19,6 +19,34 @@
   {{ kpi('check2-circle', _('Riconciliato'), value=(account.reconciled_on|it_date if account.reconciled_on else _('Mai')), cls=('kpi-positive' if account.reconciled_on else 'kpi-warning'), sub=(_('saldo %(amount)s', amount=account.reconciled_balance|money(symbol)) if account.reconciled_on else _("confronta con l'estratto qui sotto"))) }}
 </div>
 
+{% if dossiers %}
+{# F96: the securities account(s) on this account — the money is this account's, the securities sit there #}
+{% set securities_value = dossiers|sum(attribute=1) %}
+<div class="kpi-grid mb-16">
+  {{ kpi('briefcase', _('Titoli'), value=securities_value|money(symbol), cls='kpi-blue', sub=_('nel conto titoli collegato')) }}
+  {{ kpi('wallet2', _('Liquidità + titoli'), value=(balance + securities_value)|money(symbol), sub=_('tutto quello che hai qui')) }}
+</div>
+<div class="card mb-16" id="dossiers">
+  <div class="card-header"><div class="card-header-title"><i class="bi bi-briefcase"></i> {{ _('Conto titoli collegato') }}
+    {{ info(_('I titoli stanno nel conto titoli, i soldi su questo conto: gli acquisti escono da qui, le vendite e le cedole entrano qui. Nel Portafoglio il conto titoli si vede da solo.'), _('Conto titoli collegato')) }}</div></div>
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Conto titoli') }}</th><th>{{ _('Regime') }}</th><th class="text-right">{{ _('Valore dei titoli') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for d, worth in dossiers %}
+        <tr>
+          <td><i class="bi bi-briefcase"></i> <a href="{{ url_for('portfolio.dossier_page', dossier_id=d.id) }}">{{ d.name }}</a></td>
+          <td>{{ regimes.get(d.tax_regime, d.tax_regime) }}</td>
+          <td class="text-right nowrap">{{ worth|money(symbol) }}</td>
+          <td class="text-right"><a href="{{ url_for('portfolio.dossier_page', dossier_id=d.id) }}" class="btn btn-ghost btn-sm">{{ _('Apri') }}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 {% if estimated %}
 <div class="alert alert-info mb-16"><i class="bi bi-currency-exchange"></i>
   {{ ngettext("%(num)s movimento in un'altra valuta è contato al cambio del giorno: inserisci l'importo addebitato dalla banca per un saldo esatto.", "%(num)s movimenti in un'altra valuta sono contati al cambio del giorno: inserisci l'importo addebitato dalla banca per un saldo esatto.", estimated) }}

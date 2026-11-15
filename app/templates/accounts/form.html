@@ -74,19 +74,30 @@
         </div>
         {{ f.textarea(values, 'notes', _('Note'), a.notes) }}
         <fieldset class="fee-rules mb-16">
-          <legend class="form-label">{{ _('Commissioni del broker (facoltative)') }} {{ info(_('Per un conto titoli: fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una vendita su questo conto, la commissione viene calcolata e proposta. Vuoto = la inserisci tu.'), _('Commissioni del broker (facoltative)')) }}</legend>
-          <div class="grid-4">
-            {{ f.number(values, 'fee_fixed', _('Fisso (€)'), a.fee_fixed, placeholder='0,00') }}
-            {{ f.number(values, 'fee_percent', _('Percentuale (%%)'), a.fee_percent, placeholder='0,19') }}
-            {{ f.number(values, 'fee_min', _('Minimo (€)'), a.fee_min, placeholder='2,95') }}
-            {{ f.number(values, 'fee_max', _('Massimo (€)'), a.fee_max, placeholder='19,00') }}
-          </div>
-        </fieldset>
-        <fieldset class="fee-rules mb-16">
           <legend class="form-label">{{ _('Fisco') }}</legend>
-          {{ f.select(values, 'tax_regime', _('Regime delle plusvalenze'), tax_regimes.items(), a.tax_regime or 'amministrato') }}
           {% set is_abroad = ('abroad' in values) if values else a.abroad %}
           <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="abroad" class="check" {{ 'checked' if is_abroad }} /> {{ _("Conto all'estero (IVAFE al posto dell'imposta di bollo)") }}</label>
+        </fieldset>
+        {# F96: the securities account linked to this one — its liquidity is this account's; regime and commissions live there #}
+        {% set d = dossier or {} %}
+        {% set has_dossier = ('has_dossier' in values) if values else dossier is not none %}
+        <fieldset class="fee-rules mb-16 account-dossier">
+          <legend class="form-label">{{ _('Conto titoli') }} {{ info(_('Spunta se su questo conto hai anche un conto titoli (Fineco, Directa, la banca…). Nasce un conto titoli collegato: i titoli stanno lì, i soldi restano su questo conto. Nel Portafoglio li vedi da soli, qui insieme.'), _('Conto titoli')) }}</legend>
+          <label class="d-flex align-center gap-8 text-sm mb-8"><input type="checkbox" name="has_dossier" class="check" {{ 'checked' if has_dossier }} /> {{ _('Ha anche un conto titoli') }}</label>
+          <div class="dossier-fields">
+            {% if dossier %}<p class="text-xs text-muted mb-8"><a href="{{ url_for('portfolio.dossier_page', dossier_id=dossier.id) }}"><i class="bi bi-briefcase"></i> {{ _('Apri il conto titoli') }}</a></p>{% endif %}
+            <div class="grid-2">
+              {{ f.text(values, 'dossier_name', _('Nome del conto titoli'), d.name, placeholder=_('es. %(name)s – Titoli', name=a.name or 'Fineco')) }}
+              {{ f.select(values, 'tax_regime', _('Regime delle plusvalenze'), tax_regimes.items(), d.tax_regime or a.tax_regime or 'amministrato') }}
+            </div>
+            <div class="form-label mt-8">{{ _('Commissioni (facoltative)') }} {{ info(_('Fisso + percentuale dell’importo, tra un minimo e un massimo. Quando registri un acquisto o una vendita, la commissione viene calcolata e proposta. Vuoto = la inserisci tu.'), _('Commissioni (facoltative)')) }}</div>
+            <div class="grid-4">
+              {{ f.number(values, 'fee_fixed', _('Fisso (€)'), d.fee_fixed if dossier else a.fee_fixed, placeholder='0,00') }}
+              {{ f.number(values, 'fee_percent', _('Percentuale (%%)'), d.fee_percent if dossier else a.fee_percent, placeholder='0,19') }}
+              {{ f.number(values, 'fee_min', _('Minimo (€)'), d.fee_min if dossier else a.fee_min, placeholder='2,95') }}
+              {{ f.number(values, 'fee_max', _('Massimo (€)'), d.fee_max if dossier else a.fee_max, placeholder='19,00') }}
+            </div>
+          </div>
         </fieldset>
         {% set is_active = ('active' in values) if values else (a.active if is_edit else true) %}
         <label class="d-flex align-center gap-8 text-sm mb-16"><input type="checkbox" name="active" class="check" {{ 'checked' if is_active }} /> {{ _("Conto attivo (togli la spunta se l'hai chiuso)") }}</label>

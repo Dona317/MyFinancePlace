@@ -2144,6 +2144,7 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 
 /* the colour pattern: cash green, debts purple (investments blue), wherever their icon shows */
 .acc-cash { color: var(--clr-positive); }
+.acc-invest { color: var(--chart-3); }  /* investments blue (F96: the linked securities account) */
 .acc-debt { color: var(--chart-5); }
 
 /* the register's titles: a click sorts (an arrow on the column in use); Categoria and Importo have a funnel */
@@ -2324,3 +2325,6 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .parts-toggle[aria-expanded="true"] i { transform: rotate(90deg); }
 .position-part td { background: var(--clr-bg-input); font-size: var(--font-size-sm); }
 .position-part-name { padding-left: 28px !important; color: var(--clr-text-secondary); }
+
+/* F96: the account form's securities account — its fields open with the tick */
+.account-dossier:not(:has(input[name="has_dossier"]:checked)) .dossier-fields { display: none; }
