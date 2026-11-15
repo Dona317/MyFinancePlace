@@ -1,4 +1,5 @@
 {% extends "accounting/base.html" %}
+{% from "partials/period_box.html" import choice_box %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/kpi.html" import kpi %}
 
@@ -7,14 +8,9 @@
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Stato Patrimoniale') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <form method="GET" class="inline-filter">
-    <select name="date" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Data dello stato patrimoniale') }}">
-      {% for d in choices %}
-      <option value="{{ d.isoformat() }}" {{ 'selected' if d == sheet.date }}>{{ _('Oggi') if d == today else _('Al %(date)s', date=d|it_date) }}</option>
-      {% endfor %}
-    </select>
-    <noscript><button class="btn btn-ghost btn-sm">{{ _('Vai') }}</button></noscript>
-  </form>
+  {%- set date_options = [] -%}
+  {%- for d in choices %}{{ date_options.append((d.isoformat(), _('Oggi') if d == today else _('Al %(date)s', date=d|it_date))) or '' }}{% endfor %}
+  {{ choice_box('date', date_options, sheet.date.isoformat(), hint=_('Lo stato patrimoniale a una fine mese, o a oggi.')) }}
 {% endblock %}
 
 {% macro lines(items) %}

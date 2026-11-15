@@ -33,3 +33,25 @@
   </select>
 </form>
 {%- endmacro %}
+
+{# The same box with a single choice — a page whose period is only a year (Panoramica Finanziaria, Fisco, Lavoretti,
+   Rendite) or a range of its own: one format of period selector in the whole app (decided 15 Nov). `options` are
+   (value, label); `shared`: the year is the shared period's (Riepilogo, Ritmo, Bilancio dell'anno). #}
+{% macro choice_box(name, options, current, keep={}, shared=false, hint=none, prefix='period') -%}
+<form method="GET" class="dash-period-box" id="{{ prefix }}-form">
+  {% for key, value in keep.items() if key != name %}<input type="hidden" name="{{ key }}" value="{{ value }}" />{% endfor %}
+  <span class="dash-period-title"><i class="bi bi-calendar3"></i> <b class="dash-period-word">{{ _('Periodo') }}</b>
+    {% if shared %}<i class="bi bi-link-45deg period-shared" title="{{ _('Periodo condiviso: vale anche per Dashboard, Entrate, Uscite, Transazioni, Report e Budget') }}" aria-label="{{ _('Periodo condiviso') }}"></i>{% endif %}
+    {% if hint %}{{ info(hint) }}{% endif %}</span>
+  <label class="sr-only" for="{{ prefix }}-{{ name }}">{{ _('Periodo') }}</label>
+  <select id="{{ prefix }}-{{ name }}" name="{{ name }}" class="form-select form-select-sm" data-no-search onchange="this.form.submit()">
+    {% for value, label in options %}<option value="{{ value }}" {{ 'selected' if value|string == current|string }}>{{ label }}</option>{% endfor %}
+  </select>
+</form>
+{%- endmacro %}
+
+{% macro year_box(year, years, keep={}, shared=false, hint=none) -%}
+{%- set options = [] -%}
+{%- for y in (years + [year])|unique|sort(reverse=True) %}{{ options.append((y, y)) or '' }}{% endfor -%}
+{{ choice_box('year', options, year, keep=keep, shared=shared, hint=hint) }}
+{%- endmacro %}

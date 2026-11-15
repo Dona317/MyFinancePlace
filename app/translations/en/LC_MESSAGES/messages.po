@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 14:32+0100\n"
+"POT-Creation-Date: 2026-11-15 14:43+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -3682,9 +3682,6 @@ msgstr "Statement date"
 msgid "Data dello stato"
 msgstr "Date of the state"
 
-msgid "Data dello stato patrimoniale"
-msgstr "Balance sheet date"
-
 msgid "Data di acquisto"
 msgstr "Purchase date"
 
@@ -7194,6 +7191,9 @@ msgid ""
 msgstr ""
 "Simple exponential smoothing: Sₜ = α·xₜ + (1 − α)·Sₜ₋₁, with α = 2 / (N + "
 "1). The weights of past months decay geometrically."
+
+msgid "Lo stato patrimoniale a una fine mese, o a oggi."
+msgstr "The balance sheet at a month end, or today."
 
 msgid "Lo stesso file importato due volte non crea doppioni."
 msgstr "Importing the same file twice creates no duplicates."
@@ -13492,9 +13492,6 @@ msgstr "NET CHANGE IN CASH (A+B+C)"
 
 msgid "Vacanza"
 msgstr "Holiday"
-
-msgid "Vai"
-msgstr "Go"
 
 msgid "Vai a promemoria"
 msgstr "Go to reminders"

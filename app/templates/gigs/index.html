@@ -1,15 +1,12 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import choice_box, year_box %}
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/empty.html" import empty_state %}
 {% block page_title %}{{ _('Lavoretti') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Lavoretti') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-<form method="GET" class="inline-filter">
-  <select name="year" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Anno') }}">
-    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
-  </select>
-</form>
+{{ year_box(year, years) }}
 {% endblock %}
 
 {% macro gig_fields(prefix, g=none) -%}

@@ -1,15 +1,12 @@
 {% extends "accounting/base.html" %}
+{% from "partials/period_box.html" import choice_box, year_box %}
 {% from "partials/kpi.html" import kpi %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block page_title %}{{ _('Panoramica Finanziaria') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Crescita del patrimonio') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-<form method="GET" class="inline-filter">
-  <select name="months" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Periodo') }}">
-    {% for n in (6, 12, 24, 36) %}<option value="{{ n }}" {{ 'selected' if n == months }}>{{ _('Ultimi %(count)s mesi', count=n) }}</option>{% endfor %}
-  </select>
-</form>
+{{ choice_box('months', [(6, _('Ultimi %(count)s mesi', count=6)), (12, _('Ultimi %(count)s mesi', count=12)), (24, _('Ultimi %(count)s mesi', count=24)), (36, _('Ultimi %(count)s mesi', count=36))], months) }}
 {% endblock %}
 
 {% block statement %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import choice_box, year_box %}
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
@@ -6,11 +7,7 @@
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Rendite') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-<form method="GET" class="inline-filter">
-  <select name="year" class="form-select" onchange="this.form.submit()" aria-label="{{ _('Anno') }}">
-    {% for y in report.years %}<option value="{{ y }}" {{ 'selected' if y == report.year }}>{{ y }}</option>{% endfor %}
-  </select>
-</form>
+{{ year_box(report.year, report.years) }}
 {% endblock %}
 
 {% block content %}
