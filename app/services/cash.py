@@ -88,7 +88,7 @@ def count(account: Account, counted: Decimal, on: date | None = None) -> Transac
         tx = Transaction(date=on, amount=abs(difference), currency=account.currency, account_id=account.id,
                          type="expense" if spent else "income", category=UNRECORDED if spent else FOUND,
                          description=_("Conta dei contanti: spese non annotate") if spent
-                         else _("Conta dei contanti: contanti in più"), tags=[])
+                         else _("Conta dei contanti: contanti in più"), tags=[accounts.RECONCILIATION_TAG])
         db.session.add(tx)
     account.reconciled_on, account.reconciled_balance = on, counted
     return tx

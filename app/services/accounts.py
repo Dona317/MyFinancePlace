@@ -227,6 +227,7 @@ def unassigned_count() -> int:
 # F104: the difference the user's reading of the account leaves, as a movement of its own — in the balances (the
 # account comes back to what the bank says) but left out of the analyses: neither a spending nor an income
 RECONCILIATION = "Riconciliazione"
+RECONCILIATION_TAG = "riconciliazione"  # on every reconciliation movement (accounts and cash counts): one search finds them
 
 
 def reconciliation_category() -> str:
@@ -252,7 +253,7 @@ def reconcile(account: Account, on: date, statement_balance: Decimal) -> dict:
     if difference:
         adjustment = Transaction(date=on, amount=abs(Decimal(str(difference))), currency=account.currency,
                                  account_id=account.id, type="income" if difference > 0 else "expense",
-                                 category=reconciliation_category(), tags=[],
+                                 category=reconciliation_category(), tags=[RECONCILIATION_TAG],
                                  description=f"Riconciliazione: saldo letto sul conto {Decimal(str(statement_balance)):.2f}")
         db.session.add(adjustment)
     account.reconciled_on, account.reconciled_balance = on, statement_balance

@@ -52,6 +52,7 @@ def test_reconciliation(client, db, two_accounts):
     assert "Riconciliazione" in html and "€ 50,00" in html
     adjustment = Transaction.query.filter_by(category=accounts.RECONCILIATION).one()
     assert adjustment.type == "expense" and adjustment.amount == 50 and adjustment.date == date(2026, 6, 30)
+    assert adjustment.tags == [accounts.RECONCILIATION_TAG]  # one search finds every reconciliation
     assert accounts.balance(db.session.get(Account, fineco.id), date(2026, 6, 30)) == 2250
     assert accounts.RECONCILIATION in categories.excluded_names()
 
