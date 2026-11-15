@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import period_box %}
 {% from "transactions/_tabs.html" import transactions_tabs with context %}
 {% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
@@ -9,6 +10,9 @@
 {% block breadcrumb %}<li>{{ _('Transazioni') }}</li>{% endblock %}
 
 {% block topbar_actions %}
+  {# F101: the shared period — the register shows the movements of it #}
+  {% set pv = period_view() %}
+  {{ period_box(pv.period, pv.years, pv.choices, keep=period_keep) }}
   {# a new transaction or a file: the round + at the bottom left (key «n») #}
   <a href="{{ url_for('accounts.index') }}" class="btn btn-ghost btn-sm" title="{{ _('Conti e carte') }}">
     <i class="bi bi-bank"></i> {{ _('Conti e carte') }}

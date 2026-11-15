@@ -6,7 +6,6 @@ from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding
-from app.routes.helpers import year_arg
 from app.services import (
     analytics,
     budgets,
@@ -18,11 +17,11 @@ from app.services import (
     portfolio_overview,
     price_feed,
     sankey,
-    settings_store,
+    shared_period,
     valuations,
     wealth,
 )
-from app.services.periods import month_index, month_label, month_labels, month_start, shift_month
+from app.services.periods import month_index, month_label, month_labels, month_start
 from app.services.ui_settings import autonomy_target, current_settings
 
 dashboard_bp = APIBlueprint(
@@ -34,7 +33,6 @@ dashboard_bp = APIBlueprint(
 
 TREND_LINES = 6  # categories drawn one by one in the monthly lines; the rest are added up in «Altre»
 PIE_PARTS = ("year", "H1", "H2", "Q1", "Q2", "Q3", "Q4")  # the doughnuts: the whole year, a half or a quarter
-PIE_PART_SETTING = "dashboard.pie_part"
 RECENT_ROWS = 25  # the last ones of the «Transazioni» card; the card scrolls when its row is shorter
 IMPACT_ROWS = 60  # biggest movements of the window sent to the page, filtered there by category
 # Typical unexpected expenses («cigni neri»): what each would take from the savings
@@ -44,17 +42,6 @@ SHOCKS = (("car", 4000), ("appliance", 700), ("house", 8000), ("health", 2500))
 def _translated(trend: dict) -> dict:
     """Series names like «Altre» / «Senza categoria» in the interface language (user categories stay as they are)."""
     return {**trend, "datasets": [{**ds, "key": ds["label"], "label": i18n.tr(ds["label"])} for ds in trend["datasets"]]}
-
-
-def _part_bounds(year: int, part: str) -> tuple[date, date]:
-    if part.startswith("Q"):
-        first = (int(part[1]) - 1) * 3 + 1
-        return date(year, first, 1), date(*shift_month(year, first, 3), 1)
-    if part.startswith("H"):
-        first = 1 if part == "H1" else 7
-        return date(year, first, 1), date(*shift_month(year, first, 6), 1)
-    return analytics.year_bounds(year)
-
 
 
 def _forecast_figures(today: date) -> dict | None:
@@ -189,27 +176,15 @@ def dashboard():
     shown = {w["id"] for w in layout if w["visible"]}
     kpis = analytics.dashboard_kpis(today)
     last_12 = analytics.last_12_months(today)  # the financial health is about the last 12 months, whatever the period
-    # One period for the whole page, cards and charts: a year (the current one by default), a half or a quarter.
+    # One period for the whole page, cards and charts — the shared one (F101): chosen here or on Entrate, Uscite,
+    # Transazioni, Report, Budget. A preset applied puts its period in the address, so it becomes the shared one.
     # Any year can be chosen, from three before the first with data to the next one.
-    with_data = analytics.available_years()
-    years = list(range(max(with_data + [today.year]) + 1, min(with_data + [today.year]) - 4, -1))
-    # the preset in use: without a period in the address, the page shows the one saved on it
+    years = shared_period.years(analytics.available_years(), today)
     presets = dashboard_prefs.presets()
     preset = presets["items"][presets["active"] - 1]
-    saved_period = dashboard_prefs.preset_period(preset, today)
-    from_preset = "year" not in request.args
-    year = saved_period["year"] if from_preset and saved_period["year"] in years else year_arg(today.year, choices=years)
-    # «al» another year: the years from one to the other (the order does not matter); the same one: that year
-    year_to = saved_period["year_to"] if from_preset else request.args.get("year_to", type=int)
-    year_to = year_to if year_to in years else year
-    year, year_to = min(year, year_to), max(year, year_to)
-    # a half or a quarter of a single year (remembered); several years are taken whole
-    part = saved_period["part"] if from_preset else request.args.get("part")
-    if part in PIE_PARTS:
-        settings_store.set(PIE_PART_SETTING, part)
-    part = settings_store.get(PIE_PART_SETTING, "year")
-    part = part if part in PIE_PARTS and year == year_to else "year"
-    pie_start, pie_end = _part_bounds(year, part) if year == year_to else (date(year, 1, 1), date(year_to + 1, 1, 1))
+    period = shared_period.current(today)
+    pie_start, pie_end = period.bounds(today)
+    year, year_to, part = pie_start.year, (pie_end - timedelta(days=1)).year, period.part
     # every chart of the page follows the same period: the year chosen, a half or a quarter of it
     chart_months = _chart_months(pie_start, pie_end, today)
     cash_flow = _flow(chart_months)
@@ -241,13 +216,14 @@ def dashboard():
         cash_flow=cash_flow,
         savings_flow=_savings_flow(cash_flow),
         year=year, year_to=year_to, years=years, part=part, as_of=as_of, pie_parts=PIE_PARTS, pie_start=pie_start, pie_last=pie_end - timedelta(days=1),
+        period=period, period_choices=shared_period.part_choices(period),
         expense_breakdown=analytics.category_breakdown(pie_start, pie_end, "expense"),
         income_breakdown=analytics.category_breakdown(pie_start, pie_end, "income"),
         expense_trend=trend_of("expense"),
         income_trend=trend_of("income"),
         period_totals=period_totals,
         part_labels={p: part_label(year, p) for p in PIE_PARTS},
-        period_label=part_label(year, part) if year == year_to else f"{year}–{year_to}",
+        period_label=period.label(),
         savings=analytics.savings_rates_by_year(today),
         sankey=sankey.flow(pie_start, pie_end) if "sankey" in shown else None,
         year_start=pie_start, year_last=pie_end - timedelta(days=1),
@@ -262,7 +238,7 @@ def dashboard():
         widgets=dashboard_prefs.WIDGETS,
         kpi_layout=dashboard_prefs.kpi_layout(), kpi_titles=dashboard_prefs.KPI_CARDS,
         presets=presets,
-        preset_changed=dashboard_prefs.preset_changed(preset, {"year": year, "year_to": year_to, "part": part}, today),
+        preset_changed=dashboard_prefs.preset_changed(preset, period.as_dict(), today),
     )
 
 

@@ -68,6 +68,13 @@ def register_context(app: Flask) -> None:
         own = getattr(current_user, "default_client_id", None)
         return client.id == own if own else client.database is None
 
+    def period_view() -> dict:
+        """F101: the shared period for the page bar — the period, the years offered and the parts of the year."""
+        from app.services import analytics, shared_period
+        period = shared_period.current()
+        return {"period": period, "years": shared_period.years(analytics.available_years()),
+                "choices": shared_period.part_choices(period)}
+
     def no_accounts() -> bool:
         """F97: no account of the user's yet — only the fixed Contanti and Debiti — so what is entered lands in cash."""
         from app.models.account import Account
@@ -83,5 +90,5 @@ def register_context(app: Flask) -> None:
     @app.context_processor
     def inject_settings():
         return {"settings": current_settings(), "palette_vars": lambda: palettes.css_vars(current_settings()), "notification_count": notification_count, "display": display.prefs(),
-                "current_language": current_language, "working_client": working_client, "no_accounts": no_accounts, "archive_choices": archive_choices, "shown_archive": shown_archive, "is_own_archive": is_own_archive, "client_groups": client_groups, "ui_font": current_font,
+                "current_language": current_language, "working_client": working_client, "no_accounts": no_accounts, "period_view": period_view, "archive_choices": archive_choices, "shown_archive": shown_archive, "is_own_archive": is_own_archive, "client_groups": client_groups, "ui_font": current_font,
                 "shown": sections.in_menu, "allowed": sections.allowed, "shown_any": lambda *keys: any(sections.in_menu(k) for k in keys)}

@@ -1,7 +1,7 @@
 """The transaction pages: list, form, quick add, undo, bulk actions, duplicates and AI classification.
 The form is read in transactions_form, the REST API is in transactions_api."""
 import json
-from datetime import date
+from datetime import date, timedelta
 
 from apiflask import APIBlueprint
 from flask import flash, get_flashed_messages, redirect, render_template, request, url_for
@@ -34,6 +34,7 @@ from app.services import (
     periods,
     portfolio_ops,
     securities,
+    shared_period,
     undo,
 )
 from app.services import cards as card_service
@@ -203,7 +204,13 @@ def register_context(locked: dict | None = None, title: str | None = None) -> di
 
 @transactions_bp.route("/")
 def index():
-    return render_template("transactions/index.html", cards=_section_cards(date.today()), **register_context())
+    # F101: the register follows the shared period (the box on top), in place of the dates of its filters
+    period = shared_period.from_register(request.args)  # a link with a month or dates opens that period
+    start, end = period.bounds()
+    register = register_context(locked={"start": start.isoformat(), "end": (end - timedelta(days=1)).isoformat()})
+    return render_template("transactions/index.html", cards=_section_cards(date.today()),
+                           period_keep={k: v for k, v in request.args.items() if k not in shared_period.ADDRESS_KEYS},
+                           **register)
 
 
 @transactions_bp.route("/add")

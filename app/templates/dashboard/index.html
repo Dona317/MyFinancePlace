@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import period_box %}
 {% from "partials/info.html" import info %}
 {% import "partials/blocks.html" as blocks with context %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
@@ -13,31 +14,8 @@
         title="{{ _('Periodo, preset e modifica') }}" aria-label="{{ _('Periodo, preset e modifica') }}"><i class="bi bi-list"></i></button>
 <div class="topbar-tools" id="topbar-tools">
 <div class="dash-center">
-{# The period of the whole page: from one year to another (the same: that year), a half or a quarter of a single one #}
-<form method="GET" class="dash-period-box" id="dash-period">
-  <span class="dash-period-title"><i class="bi bi-calendar3"></i> <b class="dash-period-word">{{ _('Periodo') }}</b>
-    {{ info(_('Imposta il periodo della pagina, schede e grafici.')) }}</span>
-  <label class="sr-only" for="dash-year">{{ _('Dal') }}</label>
-  <select id="dash-year" name="year" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Dal') }}">
-    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
-  </select>
-  <span class="text-muted">–</span>
-  <label class="sr-only" for="dash-year-to">{{ _('Al') }}</label>
-  <select id="dash-year-to" name="year_to" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Al') }}">
-    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year_to }}>{{ y }}</option>{% endfor %}
-  </select>
-  <label class="sr-only" for="dash-part">{{ _('Parte dell’anno') }}</label>
-  <select id="dash-part" name="part" class="form-select form-select-sm" data-no-search onchange="this.form.submit()"{{ ' disabled' if year != year_to }}
-          title="{{ _('Semestre o trimestre: per un anno solo') }}">
-    <option value="year" {{ 'selected' if part == 'year' }}>{{ _('Tutto l’anno') if year == year_to else _('Anni interi') }}</option>
-    <optgroup label="{{ _('Semestri') }}">
-      {% for p in ('H1', 'H2') %}<option value="{{ p }}" {{ 'selected' if part == p }}>{{ part_labels[p] }}</option>{% endfor %}
-    </optgroup>
-    <optgroup label="{{ _('Trimestri') }}">
-      {% for p in ('Q1', 'Q2', 'Q3', 'Q4') %}<option value="{{ p }}" {{ 'selected' if part == p }}>{{ part_labels[p] }}</option>{% endfor %}
-    </optgroup>
-  </select>
-</form>
+{# The period of the whole page — the shared one (F101): the same box as Entrate, Uscite, Transazioni, Report, Budget #}
+{{ period_box(period, years, period_choices, prefix='dash') }}
 {# Three presets: each keeps the blocks, the cards and the period; the one in use is saved again only on request #}
 <div class="dash-presets" id="dash-presets" role="group" aria-label="{{ _('Preset della dashboard') }}">
   {% for item in presets["items"] %}

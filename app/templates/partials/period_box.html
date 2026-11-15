@@ -1,0 +1,35 @@
+{# F101: the period box of the page bar — the same on every page that shares the period (Dashboard, Entrate, Uscite,
+   Transazioni, Report, Budget): from one year to another, a half, a quarter or a month of a single one, or the last
+   twelve months. Changing it changes it everywhere (the link icon says so). `keep`: the page's own parameters,
+   kept by the form; `prefix`: the ids of the controls (the dashboard's script reads dash-year, dash-year-to,
+   dash-part). #}
+{% from "partials/info.html" import info %}
+{% macro period_box(period, years, choices, keep={}, prefix='period', shared=true) -%}
+{% set rolling = period.part == 'last12' %}
+<form method="GET" class="dash-period-box" id="{{ prefix }}-form">
+  {% for key, value in keep.items() %}<input type="hidden" name="{{ key }}" value="{{ value }}" />{% endfor %}
+  <span class="dash-period-title"><i class="bi bi-calendar3"></i> <b class="dash-period-word">{{ _('Periodo') }}</b>
+    {% if shared %}<i class="bi bi-link-45deg period-shared" title="{{ _('Periodo condiviso: vale anche per Dashboard, Entrate, Uscite, Transazioni, Report e Budget') }}" aria-label="{{ _('Periodo condiviso') }}"></i>{% endif %}
+    {{ info(_('Imposta il periodo della pagina, schede e grafici. È lo stesso in tutte le pagine di analisi.') if shared else _('Imposta il periodo della pagina, schede e grafici.')) }}</span>
+  <label class="sr-only" for="{{ prefix }}-year">{{ _('Dal') }}</label>
+  <select id="{{ prefix }}-year" name="year" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Dal') }}"{{ ' disabled' if rolling }}>
+    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == period.year }}>{{ y }}</option>{% endfor %}
+  </select>
+  <span class="text-muted">–</span>
+  <label class="sr-only" for="{{ prefix }}-year-to">{{ _('Al') }}</label>
+  <select id="{{ prefix }}-year-to" name="year_to" class="form-select form-select-sm" data-no-search onchange="this.form.submit()" title="{{ _('Al') }}"{{ ' disabled' if rolling }}>
+    {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == period.year_to }}>{{ y }}</option>{% endfor %}
+  </select>
+  <label class="sr-only" for="{{ prefix }}-part">{{ _('Parte dell’anno') }}</label>
+  <select id="{{ prefix }}-part" name="part" class="form-select form-select-sm" data-no-search onchange="this.form.submit()"
+          {{ ' disabled' if period.year != period.year_to and not rolling }} title="{{ _('Semestre, trimestre o mese: per un anno solo') }}">
+    <option value="year" {{ 'selected' if period.part == 'year' }}>{{ _('Tutto l’anno') if period.year == period.year_to else _('Anni interi') }}</option>
+    <option value="last12" {{ 'selected' if rolling }}>{{ _('Ultimi 12 mesi') }}</option>
+    {% for group, options in choices %}
+    <optgroup label="{{ group }}">
+      {% for key, label in options %}<option value="{{ key }}" {{ 'selected' if period.part == key }}>{{ label }}</option>{% endfor %}
+    </optgroup>
+    {% endfor %}
+  </select>
+</form>
+{%- endmacro %}

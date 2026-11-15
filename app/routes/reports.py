@@ -21,6 +21,7 @@ from app.services import (
     pdf_report,
     periods,
     reports,
+    shared_period,
     spending_rhythm,
     studio,
     transfer,
@@ -34,22 +35,13 @@ reports_bp = Blueprint("reports", __name__, url_prefix="/reports")
 LEGEND_SHOWN = 12  # categories listed next to the chart before «Mostra tutte»
 
 
-def _day(name: str) -> date | None:
-    try:
-        return date.fromisoformat(request.args.get(name, ""))
-    except ValueError:
-        return None
-
-
 def _filters(tab: str | None = None) -> dict:
     """The choices in the query string, checked, with the period they give; `tab` fixed by the page (Entrate, Uscite)."""
     args = request.args
     tab = tab or (args.get("tab") if args.get("tab") in reports.TABS else "spending")
-    period = args.get("period") if args.get("period") in reports.PERIODS else reports.DEFAULT_PERIOD
-    custom_start, custom_end = _day("start"), _day("end")
-    if period == "custom" and not (custom_start and custom_end):
-        period = reports.DEFAULT_PERIOD
-    start, end = reports.period_range(period, custom_start, custom_end)
+    # F101: the shared period (the address can carry one: it becomes the shared one; old period=… links still work)
+    period = shared_period.current()
+    start, end = period.bounds()
     account = args.get("account", "").strip()
     return {
         "tab": tab, "period": period, "start": start, "end": end, "last_day": end - timedelta(days=1),
@@ -142,6 +134,7 @@ def index(tab: str | None = None):
         "reports/index.html", **context, section=tab, tabs=reports.TABS, periods=reports.PERIODS, sorts=reports.SORTS,
         accounts=account_list, account_names={a.id: a.name for a in account_list},
         uncategorized=UNCATEGORIZED, query_args=request.args.to_dict(),
+        period_keep={k: v for k, v in request.args.items() if k not in shared_period.ADDRESS_KEYS},
     )
 
 
@@ -188,8 +181,10 @@ def accounts_name(account: str) -> str:
 
 
 def _summary_year() -> int:
+    """Riepilogo and Ritmo are by year: the year of the shared period (F101; a year in the address becomes it)."""
     years = analytics.available_years()
-    return year_arg(max(years), choices=years)
+    year = shared_period.current().year_to
+    return year if year in years else year_arg(max(years), choices=years)
 
 
 @reports_bp.route("/summary")

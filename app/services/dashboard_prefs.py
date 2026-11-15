@@ -160,7 +160,8 @@ def settings_order() -> list[str]:
 PRESETS_SETTING = "dashboard.presets"
 PRESET_COUNT = 3
 MAX_PRESET_NAME = 30
-PERIOD_PARTS = ("year", "H1", "H2", "Q1", "Q2", "Q3", "Q4")
+# F101: a preset keeps the shared period, whatever its kind (a half, a quarter, a month, the last 12 months)
+PERIOD_PARTS = ("year", "H1", "H2", "Q1", "Q2", "Q3", "Q4", *(f"M{m:02d}" for m in range(1, 13)), "last12")
 
 
 def _clean_period(period) -> dict | None:
@@ -175,6 +176,8 @@ def _clean_period(period) -> dict | None:
         return None
     year, year_to = min(year, year_to), max(year, year_to)
     part = period.get("part")
+    if part == "last12":
+        return {"year": year, "year_to": year, "part": part}
     return {"year": year, "year_to": year_to, "part": part if part in PERIOD_PARTS and year == year_to else "year"}
 
 

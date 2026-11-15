@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import period_box %}
 {% from "transactions/_tabs.html" import transactions_tabs with context %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/tabs.html" import tab_bar %}
@@ -12,6 +13,11 @@
 
 {% block page_title %}{{ page_name }}{% endblock %}
 {% block breadcrumb %}{% if section in ('income', 'spending') %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li>{% endif %}<li>{{ page_name }}</li>{% endblock %}
+
+{% block topbar_actions %}
+{% set pv = period_view() %}
+{{ period_box(pv.period, pv.years, pv.choices, keep=period_keep) }}
+{% endblock %}
 
 {% block content %}
 
@@ -27,12 +33,8 @@
     {% if not section %}<input type="hidden" name="tab" value="{{ f.tab }}">{% endif %}
     {% if f.category %}<input type="hidden" name="category" value="{{ f.category }}">{% endif %}
     <input type="hidden" name="sort" value="{{ f.sort }}">
-    <label class="sr-only" for="r-period">{{ _('Periodo') }}</label>
-    <select id="r-period" name="period" class="form-select" onchange="this.form.requestSubmit()">
-      {% for key, label in periods.items() %}<option value="{{ key }}" {{ 'selected' if f.period == key }}>{{ label }}</option>{% endfor %}
-    </select>
     <details class="report-filters">
-      <summary class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> {{ _('Filtri') }}{% if f.account or f.period == 'custom' %} · {{ (1 if f.account else 0) + (1 if f.period == 'custom' else 0) }}{% endif %}</summary>
+      <summary class="btn btn-ghost btn-sm"><i class="bi bi-funnel"></i> {{ _('Filtri') }}{% if f.account %} · 1{% endif %}</summary>
       <div class="report-filters-panel">
         <label class="form-label" for="r-account">{{ _('Conto') }}</label>
         <select id="r-account" name="account" class="form-select" onchange="this.form.requestSubmit()">
@@ -40,17 +42,6 @@
           {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if f.account == a.id|string }}>{{ a.name }}</option>{% endfor %}
           <option value="none" {{ 'selected' if f.account == 'none' }}>{{ _('— Senza conto —') }}</option>
         </select>
-        <div class="report-custom">
-          <div>
-            <label class="form-label" for="r-start">{{ _('Dal') }}</label>
-            <input id="r-start" type="date" name="start" class="form-control" value="{{ f.start.isoformat() }}">
-          </div>
-          <div>
-            <label class="form-label" for="r-end">{{ _('Al') }}</label>
-            <input id="r-end" type="date" name="end" class="form-control" value="{{ f.last_day.isoformat() }}">
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary btn-sm" onclick="this.form.period.value='custom'">{{ _('Applica le date') }}</button>
       </div>
     </details>
   </form>
