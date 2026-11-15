@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 16:21+0100\n"
+"POT-Creation-Date: 2026-11-15 16:24+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -7742,6 +7742,9 @@ msgstr "Show all categories (%(count)s)"
 msgid "Mostra tutti"
 msgstr "Show all"
 
+msgid "Mostra:"
+msgstr "Show:"
+
 msgid "Movimenti"
 msgstr "Movements"
 
@@ -9205,6 +9208,9 @@ msgstr "Page"
 
 msgid "Pagine"
 msgstr "Pages"
+
+msgid "Pallini mostrati"
+msgstr "Nodes shown"
 
 msgid "Pannelli nascosti:"
 msgstr "Hidden panels:"
@@ -13318,6 +13324,13 @@ msgstr ""
 " then import the other account's statement, the two movements are linked "
 "without duplicates."
 
+msgid ""
+"Un clic su un nome nasconde o mostra il suo pallino; un doppio clic su un "
+"pallino lo isola con i conti collegati."
+msgstr ""
+"A click on a name hides or shows its node; a double click on a node isolates"
+" it with the accounts linked to it."
+
 msgid "Un file"
 msgstr "One file"
 
@@ -14051,6 +14064,9 @@ msgstr "click for the transactions"
 
 msgid "clic per vedere i movimenti"
 msgstr "click to see the movements"
+
+msgid "clic per vedere i movimenti, doppio clic per isolarlo"
+msgstr "click to see the movements, double click to isolate it"
 
 msgid "clic su una fetta per le transazioni"
 msgstr "click a slice for the transactions"

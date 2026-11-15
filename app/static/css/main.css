@@ -2470,3 +2470,10 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .flows-node.is-link:hover circle, .flows-node:focus-visible circle { stroke: var(--clr-primary); }
 .flows-node-name { font-size: 12px; font-weight: 700; paint-order: stroke; stroke: var(--clr-bg-card); stroke-width: 3px; pointer-events: none; }
 .flows-node-sum { font-size: 11px; fill: var(--clr-text-muted); paint-order: stroke; stroke: var(--clr-bg-card); stroke-width: 3px; pointer-events: none; }
+
+/* F105: the chips of the Flussi graph — a node shown or hidden */
+.flows-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 20px 8px; }
+.flows-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--clr-border); border-radius: 999px;
+  background: var(--clr-bg-card); color: var(--clr-text-primary); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; }
+.flows-chip > i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.flows-chip.is-off { opacity: .45; text-decoration: line-through; }

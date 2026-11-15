@@ -16,7 +16,7 @@
 {{ transactions_tabs('flows') }}
 
 {# F105: the money of the period between the accounts — a node per account, «Esterno» for the world outside; the
-   bigger the amount, the thicker and longer the arrow; a node or an arrow opens its movements in the register #}
+   bigger the amount, the (a little) thicker and longer the arrow; a node or an arrow opens its movements #}
 <div class="card flows-card">
   <div class="card-header">
     <div>
@@ -31,6 +31,11 @@
     <button type="button" class="btn btn-ghost btn-sm" id="flows-reset" title="{{ _('Ridisponi i pallini') }}"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ridisponi') }}</button>
   </div>
   {% if data.edges %}
+  {# each node can be hidden (a click on its chip) or isolated with the accounts it exchanges money with (a double click on it) #}
+  <div class="flows-chips" id="flows-chips" role="group" aria-label="{{ _('Pallini mostrati') }}">
+    <span class="text-xs text-muted">{{ _('Mostra:') }} {{ info(_('Un clic su un nome nasconde o mostra il suo pallino; un doppio clic su un pallino lo isola con i conti collegati.')) }}</span>
+    <button type="button" class="btn btn-ghost btn-sm" id="flows-all" hidden><i class="bi bi-eye"></i> {{ _('Mostra tutti') }}</button>
+  </div>
   <div class="flows-stage" id="flows-stage">
     <svg id="flows-svg" role="img" aria-label="{{ _('Grafo dei flussi tra i conti') }}"></svg>
   </div>
@@ -47,7 +52,8 @@
   const data = {{ data|tojson }};
   const words = {
     income: {{ _('Entrate')|tojson }}, expense: {{ _('Uscite')|tojson }}, transfer: {{ _('Giroconti')|tojson }},
-    movements: {{ _('movimenti')|tojson }}, open: {{ _('clic per vedere i movimenti')|tojson }},
+    movements: {{ _('movimenti')|tojson }}, open: {{ _('clic per vedere i movimenti, doppio clic per isolarlo')|tojson }},
+    openEdge: {{ _('clic per vedere i movimenti')|tojson }},
   };
   const svg = document.getElementById('flows-svg');
   const stage = document.getElementById('flows-stage');
@@ -69,15 +75,31 @@
     return node;
   };
 
-  // sizes: the node by the money through it, the arrow by its amount (square root: big amounts do not crush the rest)
+  // sizes: the node by the money through it; the arrow only a little thicker with its amount, and longer (square root)
   const maxNode = Math.max(...data.nodes.map(n => n.value), 1);
   const maxEdge = Math.max(...data.edges.map(e => e.value), 1);
-  const nodes = data.nodes.map((n, i) => ({ ...n, r: 16 + 22 * Math.sqrt(n.value / maxNode), x: 0, y: 0, vx: 0, vy: 0, fixed: false }));
+  const nodes = data.nodes.map(n => ({ ...n, r: 16 + 22 * Math.sqrt(n.value / maxNode), x: 0, y: 0, vx: 0, vy: 0, fixed: false }));
   const byId = new Map(nodes.map(n => [n.id, n]));
   const edges = data.edges.map(e => ({ ...e, s: byId.get(e.source), t: byId.get(e.target),
-    w: 1.5 + 9 * Math.sqrt(e.value / maxEdge), rest: 130 + 170 * Math.sqrt(e.value / maxEdge) }));
+    w: 1.5 + 3 * Math.sqrt(e.value / maxEdge), rest: 130 + 170 * Math.sqrt(e.value / maxEdge) }));
+  // lanes: the arrows between the same two nodes (both ways, or of different kinds) each on a curve of its own
+  const pairs = new Map();
+  for (const e of edges) {
+    const key = [e.source, e.target].sort().join('|');
+    pairs.set(key, [...(pairs.get(key) || []), e]);
+  }
+  for (const list of pairs.values()) {
+    list.forEach((e, i) => { e.canon = e.source < e.target; e.lane = (i % 2 === 0 ? 1 : -1) * (Math.floor(i / 2) + 1); });
+  }
 
-  let width = 800, height = 540;
+  // hidden nodes (kept in this browser): a node hidden takes its arrows with it
+  const KEY = 'mfp-flows-hidden';
+  let hidden = new Set();
+  try { hidden = new Set(JSON.parse(localStorage.getItem(KEY) || '[]').filter(id => byId.has(id))); } catch (err) { hidden = new Set(); }
+  const shown = (n) => !hidden.has(n.id);
+  const live = () => edges.filter(e => shown(e.s) && shown(e.t));
+
+  let width = 800, height = 540, alpha = 1;
   const fit = () => {
     width = Math.max(stage.clientWidth, 320);
     height = Math.max(420, Math.min(720, 260 + nodes.length * 45));
@@ -86,25 +108,25 @@
   };
   const place = () => {  // on a circle, «Esterno» in the middle
     nodes.forEach((n, i) => {
+      n.vx = 0; n.vy = 0; n.fixed = false;
       if (n.id === 'outside') { n.x = width / 2; n.y = height / 2; return; }
       const a = (i / nodes.length) * Math.PI * 2;
       n.x = width / 2 + Math.cos(a) * width * 0.32; n.y = height / 2 + Math.sin(a) * height * 0.32;
-      n.vx = n.vy = 0; n.fixed = false;
     });
   };
 
-  // the drawing: arrow heads per kind, then edges, then nodes on top
+  // the drawing: arrow heads per kind (of a fixed size), then the arrows, then the nodes on top
   const defs = el('defs');
   for (const kind of ['income', 'expense', 'transfer']) {
-    const marker = el('marker', { id: `flows-head-${kind}`, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '4',
-                                  markerHeight: '4', orient: 'auto-start-reverse' }, defs);
+    const marker = el('marker', { id: `flows-head-${kind}`, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '11',
+                                  markerHeight: '11', markerUnits: 'userSpaceOnUse', orient: 'auto-start-reverse' }, defs);
     el('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: COLORS[kind] }, marker);
   }
   const edgeLayer = el('g'), nodeLayer = el('g');
   const go = (url) => { if (url) window.location.href = url; };
   for (const e of edges) {
     e.g = el('g', { class: 'flows-edge', tabindex: '0', role: 'link' }, edgeLayer);
-    el('title', {}, e.g).textContent = `${words[e.kind]}: ${money(e.value)} · ${e.count} ${words.movements} — ${words.open}`;
+    el('title', {}, e.g).textContent = `${words[e.kind]}: ${money(e.value)} · ${e.count} ${words.movements} — ${words.openEdge}`;
     e.hit = el('path', { fill: 'none', stroke: 'transparent', 'stroke-width': Math.max(14, e.w + 8) }, e.g);
     e.path = el('path', { fill: 'none', stroke: COLORS[e.kind], 'stroke-width': e.w, 'stroke-linecap': 'round',
                           'marker-end': `url(#flows-head-${e.kind})`, opacity: '0.85' }, e.g);
@@ -114,10 +136,10 @@
     e.g.addEventListener('keydown', ev => { if (ev.key === 'Enter') go(e.url); });
   }
   for (const n of nodes) {
-    const fill = n.kind === 'outside' ? COLORS.outside : n.kind === 'cash' ? COLORS.cash : n.kind === 'debt' ? COLORS.debt : COLORS.node;
-    n.g = el('g', { class: `flows-node${n.url ? ' is-link' : ''}`, tabindex: n.url ? '0' : '-1' }, nodeLayer);
-    el('title', {}, n.g).textContent = `${n.label}: ${money(n.value)}` + (n.url ? ` — ${words.open}` : '');
-    n.circle = el('circle', { r: n.r, fill, 'fill-opacity': n.kind === 'outside' ? '0.35' : '0.9', stroke: COLORS.card, 'stroke-width': '3' }, n.g);
+    n.fill = n.kind === 'outside' ? COLORS.outside : n.kind === 'cash' ? COLORS.cash : n.kind === 'debt' ? COLORS.debt : COLORS.node;
+    n.g = el('g', { class: `flows-node${n.url ? ' is-link' : ''}`, tabindex: '0' }, nodeLayer);
+    el('title', {}, n.g).textContent = `${n.label}: ${money(n.value)} — ${words.open}`;
+    n.circle = el('circle', { r: n.r, fill: n.fill, 'fill-opacity': n.kind === 'outside' ? '0.35' : '0.9', stroke: COLORS.card, 'stroke-width': '3' }, n.g);
     n.name = el('text', { class: 'flows-node-name', 'text-anchor': 'middle', fill: COLORS.text }, n.g);
     n.name.textContent = n.label;
     n.sum = el('text', { class: 'flows-node-sum', 'text-anchor': 'middle' }, n.g);
@@ -126,24 +148,24 @@
   }
 
   // the forces: nodes push each other away, arrows pull to their length, everything stays in the frame
-  let alpha = 1;
   const step = () => {
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i], b = nodes[j];
-        let dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy || 1;
-        const push = 9000 / d2, d = Math.sqrt(d2);
+    const visible = nodes.filter(shown);
+    for (let i = 0; i < visible.length; i++) {
+      for (let j = i + 1; j < visible.length; j++) {
+        const a = visible[i], b = visible[j];
+        let dx = b.x - a.x, dy = b.y - a.y;
+        const d2 = dx * dx + dy * dy || 1, d = Math.sqrt(d2), push = 9000 / d2;
         dx /= d; dy /= d;
         a.vx -= dx * push; a.vy -= dy * push; b.vx += dx * push; b.vy += dy * push;
       }
     }
-    for (const e of edges) {
+    for (const e of live()) {
       if (e.s === e.t) continue;
       const dx = e.t.x - e.s.x, dy = e.t.y - e.s.y, d = Math.hypot(dx, dy) || 1;
       const pull = (d - e.rest - e.s.r - e.t.r) * 0.02;
       e.s.vx += dx / d * pull; e.s.vy += dy / d * pull; e.t.vx -= dx / d * pull; e.t.vy -= dy / d * pull;
     }
-    for (const n of nodes) {
+    for (const n of visible) {
       n.vx += (width / 2 - n.x) * 0.004; n.vy += (height / 2 - n.y) * 0.004;
       if (!n.fixed) { n.x += n.vx * alpha; n.y += n.vy * alpha; }
       n.vx *= 0.6; n.vy *= 0.6;
@@ -153,17 +175,18 @@
     alpha = Math.max(alpha * 0.985, 0.02);
   };
   const draw = () => {
-    for (const e of edges) {
-      const { s, t } = e;
-      const dx = t.x - s.x, dy = t.y - s.y, d = Math.hypot(dx, dy) || 1;
-      // a slight curve on its own side: the two directions between the same nodes never overlap
-      const bend = Math.min(60, d * 0.18), mx = (s.x + t.x) / 2 - dy / d * bend, my = (s.y + t.y) / 2 + dx / d * bend;
-      const ex = t.x - (t.x - mx) / Math.hypot(t.x - mx, t.y - my) * (t.r + 4);
-      const ey = t.y - (t.y - my) / Math.hypot(t.x - mx, t.y - my) * (t.r + 4);
-      const sx = s.x + (mx - s.x) / Math.hypot(mx - s.x, my - s.y) * s.r;
-      const sy = s.y + (my - s.y) / Math.hypot(mx - s.x, my - s.y) * s.r;
-      const d_ = `M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`;
-      e.path.setAttribute('d', d_); e.hit.setAttribute('d', d_);
+    for (const e of live()) {
+      const s = e.s, t = e.t;
+      // the bend is measured on the pair's own direction, so the lanes of the two ways fall on opposite sides
+      const a = e.canon ? s : t, b = e.canon ? t : s;
+      const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
+      const bend = e.lane * Math.min(46, d * 0.16);
+      const mx = (s.x + t.x) / 2 - dy / d * bend, my = (s.y + t.y) / 2 + dx / d * bend;
+      const toT = Math.hypot(t.x - mx, t.y - my) || 1, toS = Math.hypot(mx - s.x, my - s.y) || 1;
+      const ex = t.x - (t.x - mx) / toT * (t.r + 4), ey = t.y - (t.y - my) / toT * (t.r + 4);
+      const sx = s.x + (mx - s.x) / toS * s.r, sy = s.y + (my - s.y) / toS * s.r;
+      const path = `M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`;
+      e.path.setAttribute('d', path); e.hit.setAttribute('d', path);
       e.label.setAttribute('x', (sx + 2 * mx + ex) / 4); e.label.setAttribute('y', (sy + 2 * my + ey) / 4 - 4);
     }
     for (const n of nodes) {
@@ -173,8 +196,41 @@
   };
   const run = () => { for (let k = 0; k < 3; k++) step(); draw(); if (alpha > 0.03) requestAnimationFrame(run); };
 
-  // dragging a node (a click without moving opens its movements)
-  let dragged = null, moved = false;
+  // the chips: one per node, a click hides or shows it; «Mostra tutti» brings every node back
+  const chips = document.getElementById('flows-chips');
+  const allButton = document.getElementById('flows-all');
+  const apply = () => {
+    try { localStorage.setItem(KEY, JSON.stringify([...hidden])); } catch (err) { /* not kept */ }
+    for (const n of nodes) {
+      n.g.style.display = shown(n) ? '' : 'none';
+      n.chip.setAttribute('aria-pressed', String(shown(n)));
+      n.chip.classList.toggle('is-off', !shown(n));
+    }
+    for (const e of edges) e.g.style.display = shown(e.s) && shown(e.t) ? '' : 'none';
+    allButton.hidden = hidden.size === 0;
+    alpha = Math.max(alpha, 0.5);
+    requestAnimationFrame(run);
+  };
+  for (const n of nodes) {
+    n.chip = document.createElement('button');
+    n.chip.type = 'button';
+    n.chip.className = 'flows-chip';
+    const dot = document.createElement('i');
+    dot.style.background = n.fill;
+    n.chip.append(dot, n.label);
+    n.chip.addEventListener('click', () => { if (hidden.has(n.id)) hidden.delete(n.id); else hidden.add(n.id); apply(); });
+    chips.insertBefore(n.chip, allButton);
+  }
+  const isolate = (n) => {  // the node and the ones it exchanges money with
+    const keep = new Set([n.id]);
+    for (const e of edges) { if (e.source === n.id) keep.add(e.target); if (e.target === n.id) keep.add(e.source); }
+    hidden = new Set(nodes.filter(m => !keep.has(m.id)).map(m => m.id));
+    apply();
+  };
+  allButton.addEventListener('click', () => { hidden.clear(); apply(); });
+
+  // a node: dragged, or a click opens its movements (after a moment: a double click isolates it instead)
+  let dragged = null, moved = false, pending = null;
   const point = (ev) => { const box = svg.getBoundingClientRect(); return { x: (ev.clientX - box.left) * width / box.width, y: (ev.clientY - box.top) * height / box.height }; };
   for (const n of nodes) {
     n.g.addEventListener('pointerdown', ev => { dragged = n; moved = false; n.fixed = true; n.g.setPointerCapture(ev.pointerId); });
@@ -185,11 +241,15 @@
       n.x = p.x; n.y = p.y; alpha = Math.max(alpha, 0.3);
       draw(); requestAnimationFrame(run);
     });
-    n.g.addEventListener('pointerup', () => { if (dragged === n && !moved) go(n.url); dragged = null; });
+    n.g.addEventListener('pointerup', () => {
+      if (dragged === n && !moved && n.url) { clearTimeout(pending); pending = setTimeout(() => go(n.url), 280); }
+      dragged = null;
+    });
+    n.g.addEventListener('dblclick', () => { clearTimeout(pending); isolate(n); });
   }
   document.getElementById('flows-reset').addEventListener('click', () => { place(); alpha = 1; run(); });
   window.addEventListener('resize', () => { fit(); alpha = Math.max(alpha, 0.3); run(); });
-  fit(); place(); run();
+  fit(); place(); apply();
 })();
 </script>
 {% endif %}
