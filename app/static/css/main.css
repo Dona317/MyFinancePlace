@@ -2399,3 +2399,7 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 /* F99: the tabs of a section (Transazioni, Panoramica Finanziaria): the underlined tabs on their own line */
 .section-tabs { border-bottom: 1px solid var(--clr-border); }
 .report-tab > .bi { margin-right: 4px; }
+
+/* F98: an archive opens its window with a click on its card */
+.client-card[data-edit] { cursor: pointer; transition: border-color .15s ease; }
+.client-card[data-edit]:hover, .client-card[data-edit]:focus-visible { border-color: var(--clr-primary); outline: none; }

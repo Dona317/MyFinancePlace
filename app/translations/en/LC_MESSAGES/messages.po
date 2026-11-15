@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-15 12:07+0100\n"
+"POT-Creation-Date: 2026-11-15 12:08+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2591,6 +2591,9 @@ msgstr "Classifications saved."
 
 msgid "Clic per modificarla qui"
 msgstr "Click to edit it here"
+
+msgid "Clic per modificarlo"
+msgstr "Click to edit it"
 
 msgid "Clicca per partire da un modello: potrai cambiare nome e importo"
 msgstr "Click to start from a template: you can change name and amount"

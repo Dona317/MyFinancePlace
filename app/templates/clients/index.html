@@ -9,7 +9,9 @@
 
 <div class="client-grid mb-24">
   {% for client in clients %}
-  <div class="card client-card{{ ' client-open' if client.id == open_client.id }}{{ ' client-archived' if client.archived }}" id="client-{{ client.id }}">
+  <div class="card client-card{{ ' client-open' if client.id == open_client.id }}{{ ' client-archived' if client.archived }}" id="client-{{ client.id }}"
+       data-edit="edit-client-{{ client.id }}" tabindex="0" role="button" title="{{ _('Clic per modificarlo') }}"
+       aria-label="{{ _('Modifica «%(name)s»', name=client.name) }}">
     <div class="card-body">
       <div class="d-flex align-center gap-8 mb-8">
         {# F98: the archive's icon — a click opens the window of icons #}
@@ -34,9 +36,21 @@
         {% endif %}
         <a class="btn btn-ghost btn-sm" href="{{ url_for('clients.backup', client_id=client.id) }}"><i class="bi bi-download"></i> {{ _('Esporta archivio') }}</a>
       </div>
-      <details class="mt-8">
-        <summary class="text-sm">{{ _('Modifica') }}</summary>
-        <form method="POST" action="{{ url_for('clients.edit', client_id=client.id) }}" class="mt-8">
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# F98: a click on an archive opens its window: name, colour, notes, archived, delete #}
+{% for client in clients %}
+<div class="modal-overlay" id="edit-client-{{ client.id }}" onclick="if (event.target === this) closeModal('edit-client-{{ client.id }}')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-client-title-{{ client.id }}">
+    <div class="modal-header">
+      <h3 class="modal-title" id="edit-client-title-{{ client.id }}">{{ _('Modifica «%(name)s»', name=client.name) }}</h3>
+      <button type="button" class="modal-close" onclick="closeModal('edit-client-{{ client.id }}')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body">
+        <form method="POST" action="{{ url_for('clients.edit', client_id=client.id) }}" class="mb-0">
           <div class="form-group">
             <label class="form-label" for="name-{{ client.id }}">{{ _('Nome') }}</label>
             <input type="text" id="name-{{ client.id }}" name="name" class="form-control" value="{{ client.name }}" required maxlength="120" />
@@ -68,11 +82,21 @@
           <p class="text-xs text-muted mt-8">{{ _("Prima dell'eliminazione viene salvata una copia di sicurezza dell'archivio.") }}</p>
         </form>
         {% endif %}
-      </details>
     </div>
   </div>
-  {% endfor %}
 </div>
+{% endfor %}
+<script>
+// a click on an archive (not on its buttons) opens its window; Enter or Space too, from the keyboard
+document.querySelectorAll('.client-card[data-edit]').forEach(card => {
+  const open = () => openModal(card.dataset.edit);
+  card.addEventListener('click', event => { if (!event.target.closest('button, a, form, input, label')) open(); });
+  card.addEventListener('keydown', event => {
+    if ((event.key === 'Enter' || event.key === ' ') && event.target === card) { event.preventDefault(); open(); }
+  });
+});
+</script>
+
 
 <div class="card">
   <div class="card-header"><div class="card-header-title"><i class="bi bi-person-plus"></i> {{ _('Nuovo cliente') }}</div></div>
