@@ -191,3 +191,8 @@ cov.json
 
 # Answers saved by scripts/check_price_sources.py (F69): kept on the PC, curated before any test uses them
 docs/Transaction samples/price_sources/
+
+# Real statements and exports of real data: they stay on the PC, never in the repository
+docs/Transaction samples/Statements Reali/
+docs/Transaction samples/transazioni_all_*.csv
+docs/Transaction samples/Estratto conto*.pdf
