@@ -3,12 +3,16 @@ Reminders collected from the rest of the app: insurance expiries, recurring tran
 installments coming up, budgets at 80% or over, savings goals running late. Nothing is stored except
 the reminders the user dismissed (by key: a key includes the date, so next month's reminder shows again).
 """
+import time
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
 from flask import current_app, url_for
+from flask_babel import get_locale
 from flask_babel import gettext as _
+from flask_login import current_user
 
+from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Goal, InsurancePolicy
 from app.services import (
@@ -263,6 +267,40 @@ SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installment
            (_backup, "export"), (_update, "notifications"))
 
 
+# these two read files of the app (the backup's state, the version found by the desktop app), not the database: asked
+# at every page, they cost nothing
+LIVE_SOURCES = tuple(pair for pair in SOURCES if pair[0] in (_backup, _update))
+KEEP_SECONDS = 60   # config NOTIFICATIONS_KEEP_SECONDS; 0: never kept
+_kept: dict[tuple, tuple[tuple, float, list]] = {}   # who and when → (the databases' versions, until, reminders)
+
+
+def _shown(section: str) -> bool:
+    return not sections.switched_off(section) and not sections.blocked(section)
+
+
+def _from_database(today: date) -> list[Notification]:
+    """The reminders worked out from the archive (some thirty queries, and a pass over every transaction for the
+    closed years): the bell asks for them on every page, so they are kept for this archive, user, language and day
+    until this process writes to the archive or to the studio database (request_cache.version) — and a minute at
+    most, for what another process wrote."""
+    seconds = current_app.config.get("NOTIFICATIONS_KEEP_SECONDS", KEEP_SECONDS)
+    archive, studio = db.session.get_bind().url.database, db.engine.url.database
+    user = getattr(current_user, "id", None) if getattr(current_user, "is_authenticated", False) else None
+    key = (archive, studio, user, str(get_locale()), today)
+    versions = (request_cache.version(archive), request_cache.version(studio))
+    kept = _kept.get(key)
+    if seconds and kept and kept[0] == versions and kept[1] > time.monotonic():
+        return list(kept[2])
+    items = [item for source, section in SOURCES if (source, section) not in LIVE_SOURCES and _shown(section)
+             for item in source(today)]
+    if seconds:
+        if len(_kept) > 200:  # days, users and archives gone by
+            _kept.clear()
+        # the versions as they are now: working the reminders out may itself have written (a category made)
+        _kept[key] = ((request_cache.version(archive), request_cache.version(studio)), time.monotonic() + seconds, items)
+    return list(items)
+
+
 def dismissed() -> list[str]:
     return settings_store.get_json(DISMISSED_SETTING, [], expect=list)
 
@@ -273,8 +311,7 @@ def collect(today: date | None = None, include_dismissed: bool = False) -> list[
     store, cache_key = request_cache.cache(), f"notifications-{today}"
     if not include_dismissed and cache_key in store:
         return store[cache_key]
-    items = [item for source, section in SOURCES if not sections.switched_off(section) and not sections.blocked(section)
-             for item in source(today)]
+    items = _from_database(today) + [item for source, section in LIVE_SOURCES if _shown(section) for item in source(today)]
     if not include_dismissed:
         hidden = set(dismissed())
         items = [item for item in items if item.key not in hidden]

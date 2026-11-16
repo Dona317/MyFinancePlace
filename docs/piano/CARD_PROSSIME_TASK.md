@@ -1,56 +1,18 @@
 # Card delle prossime task (F106) — 16 novembre 2026
 
-Una Card per ognuna delle 41 task di «Piano delle prossime task» in [PIANO_E_TODO.md](PIANO_E_TODO.md), nello
+Una Card per ognuna delle task ancora aperte tra le 41 di «Piano delle prossime task» in [PIANO_E_TODO.md](PIANO_E_TODO.md), nello
 stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare così com'è.
 
 - **Priorità**: Alta, Media, Bassa. **Sforzo**: S fino a mezza giornata, M un giro di lavoro, L più giri.
 - **Origine**: la voce del piano (Fn, Dn), la card dei brainstorm del 15 nov (Card 1–21, P, D, O, B) o la misura di
   velocità del 15 nov da cui nasce.
+- **Card finite e tolte da questo file**: T01 file personali fuori dal repository e dalla storia, T02 promemoria tenuti tra le pagine, T03 serie storiche e patrimonio mese per mese, T04 Uscite e Bollette, T05 utente di prova, T07 elenco «sezione finita» (16 nov 2026). I risultati sono nel piano.
 - Le pagine non sono state riviste a schermo una per una: nelle Card di revisione la revisione a schermo è il primo
   passo.
 
 ---
 
 ## Giro 0 — Fondamenta
-
-**Card T01 — File personali fuori dal repository**
-- **Area:** Affidabilità · **Giro:** 0 · **Priorità:** Alta · **Sforzo:** S
-- **Descrizione:** L'estratto conto Hype (PDF), il CSV delle transazioni e due note di ricerca sono nel repository e su GitHub dal commit `1ee18c3` del 15 novembre. Vanno tolti dai prossimi commit (restano sul PC) e messi in `.gitignore`, insieme alla cartella «Statements Reali». Toglierli anche dalla storia richiede di riscriverla e un push forzato.
-- **Da decidere:** se riscrivere la storia del repository oppure lasciarla com'è e proteggere solo il futuro.
-- **Dipende da:** la tua decisione.
-- **Origine:** Card 3.
-- **Fatto quando:** `git status` non mostra più i file personali, un nuovo estratto conto messo nella cartella non compare tra i file da salvare, e la decisione sulla storia è scritta nel piano.
-
-**Card T02 — Promemoria tenuti tra una pagina e l'altra**
-- **Area:** Velocità · **Giro:** 0 · **Priorità:** Alta · **Sforzo:** M
-- **Descrizione:** La campanella ricalcola tutti i promemoria a ogni pagina: circa 27 delle 35 query fisse e 60–80 ms, anche su una pagina vuota. Dentro c'è il controllo delle chiusure d'anno, che calcola un'impronta di tutte le transazioni per ogni anno chiuso e cresce con l'archivio. I promemoria restano in memoria per archivio e utente e vengono scartati a ogni scrittura sul database o dopo 60 secondi.
-- **Rischio:** con più processi (versione cloud) un promemoria può comparire con al massimo 60 secondi di ritardo.
-- **Dipende da:** niente.
-- **Origine:** analisi di velocità, proposta 2.
-- **Fatto quando:** una pagina qualsiasi scende da 35 a meno di 10 query, e un promemoria nuovo compare alla pagina successiva dopo una modifica.
-
-**Card T03 — Serie storiche degli investimenti e patrimonio mese per mese**
-- **Area:** Velocità · **Giro:** 0 · **Priorità:** Alta · **Sforzo:** M
-- **Descrizione:** Per ogni fine mese partono da 5 a 9 query (prezzi, quote, flussi, investito) e gli stessi mesi vengono calcolati due volte. Lo stesso succede per il patrimonio: lo stato patrimoniale è ricalcolato 13 volte dalla Dashboard, rileggendo ogni volta conti, titoli e debiti. Prezzi e operazioni vanno letti una volta per richiesta e i mesi calcolati in memoria.
-- **Misure di partenza:** Dashboard 904 query e 1,46 s; Portafoglio → Panoramica 438; Rendimento 254; Crescita del patrimonio 210.
-- **Rischio:** medio, sono calcoli finanziari: i risultati devono restare identici.
-- **Dipende da:** i test esistenti di rendimento e patrimonio.
-- **Origine:** analisi di velocità, proposte 1 e 5.
-- **Fatto quando:** la Dashboard scende sotto le 200 query, le pagine del Portafoglio sotto le 100, e i test di rendimento e patrimonio passano senza modifiche ai valori attesi.
-
-**Card T04 — Uscite e Bollette senza cicli di query**
-- **Area:** Velocità · **Giro:** 0 · **Priorità:** Media · **Sforzo:** S
-- **Descrizione:** In Uscite l'elenco delle categorie viene riletto per ogni spesa (204 delle 276 query, 0,46 s su 0,50). In Bollette parte una query per ogni bolletta per trovare la precedente (43) e le letture sono rilette 17 volte. In entrambi i casi basta leggere una volta e cercare in memoria.
-- **Dipende da:** niente.
-- **Origine:** analisi di velocità, proposte 3 e 6.
-- **Fatto quando:** Uscite scende sotto le 80 query e Bollette sotto le 50.
-
-**Card T05 — Utente di prova per le verifiche a schermo**
-- **Area:** Affidabilità · **Giro:** 0 · **Priorità:** Alta · **Sforzo:** S
-- **Descrizione:** Ogni verifica nel browser si ferma al login, perché la password è tua e non va scritta da altri. Serve un utente di prova locale con i dati di esempio, su un database separato da quello reale, per aprire e fotografare le pagine dopo ogni modifica.
-- **Dipende da:** niente.
-- **Origine:** Card 2.
-- **Fatto quando:** le pagine si aprono e si fotografano senza chiederti la password, e il database reale non contiene l'utente di prova.
 
 **Card T06 — Suite completa, test live e CI dopo il giro 0**
 - **Area:** Affidabilità · **Giro:** 0 · **Priorità:** Alta · **Sforzo:** S
@@ -62,14 +24,6 @@ stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare cos
 ---
 
 ## Giro 1 — Schemi comuni
-
-**Card T07 — «Sezione finita»: l'elenco di controllo per togliere il badge TBD**
-- **Area:** Tutte le sezioni · **Giro:** 1 · **Priorità:** Alta · **Sforzo:** S
-- **Descrizione:** Quasi tutte le sezioni hanno il badge TBD («funziona ma va rivista») senza un criterio per toglierlo. Serve un elenco unico, da applicare a ogni sezione. Proposta delle voci: periodo condiviso dove la pagina dipende da un periodo; barra in alto nell'ordine deciso; schede sottolineate; export CSV ed Excel sulle tabelle; modifica nel pop-up; colori (contanti verde, debiti viola, investimenti blu); iconcine i solo dove serve; pagina leggibile su finestra stretta; nessun testo segnaposto.
-- **Da decidere:** quali voci entrano nell'elenco e quali sono obbligatorie.
-- **Dipende da:** la tua decisione.
-- **Origine:** «Badge TBD nel menu» del piano.
-- **Fatto quando:** l'elenco è scritto nel piano e ogni Card di revisione (T19, T34–T36) lo usa come criterio.
 
 **Card T08 — Export CSV ed Excel dove manca, con numeri veri**
 - **Area:** Esportazioni · **Giro:** 1 · **Priorità:** Media · **Sforzo:** M
@@ -124,13 +78,12 @@ stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare cos
 - **Origine:** F66, Card 14.
 - **Fatto quando:** «Duplica» crea una transazione già compilata, e dal menu «Viste» sono disponibili rinomina, ordine e vista predefinita.
 
-**Card T15 — Transazioni: card in cima, segno delle ricorrenti, finestra AI nel registro**
+**Card T15 — Transazioni: via le tre card in cima, finestra AI nel registro**
 - **Area:** Transazioni · **Giro:** 2 · **Priorità:** Media · **Sforzo:** S
-- **Descrizione:** Le tre card in cima (Entrate, Uscite, Ricorrenti) ripetono le schede con lo stesso nome. La card Ricorrenti mostra sempre il segno meno, anche per le entrate. «Classifica con AI» dal registro non ha la finestra con barra, conteggio e «Interrompi» che c'è nell'import.
-- **Da decidere:** togliere le tre card o trasformarle in un riepilogo diverso (per esempio il netto del periodo).
-- **Dipende da:** la tua decisione sulle card.
+- **Descrizione:** Le tre card in cima (Entrate, Uscite, Ricorrenti) ripetono le schede con lo stesso nome: **deciso il 16 nov, si tolgono** (con la loro voce in «Gestisci»), e la pagina parte dalle schede e dal registro. «Classifica con AI» dal registro non ha la finestra con barra, conteggio e «Interrompi» che c'è nell'import: va aggiunta.
+- **Dipende da:** niente.
 - **Origine:** Card 12, 13 e 19.
-- **Fatto quando:** la pagina rispetta la decisione sulle card, le entrate ricorrenti sono positive, e classificare dal registro mostra l'avanzamento fino alla fine.
+- **Fatto quando:** Transazioni non ha più le tre card, e classificare dal registro mostra l'avanzamento fino alla fine.
 
 **Card T16 — Annulla un import intero e registro delle modifiche (F62)**
 - **Area:** Importa · **Giro:** 2 · **Priorità:** Media · **Sforzo:** M

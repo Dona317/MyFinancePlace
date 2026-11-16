@@ -19,13 +19,14 @@ import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from decimal import Decimal
 
 from sqlalchemy import func
 
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.wealth import Holding, HoldingPrice
-from app.services import broker, market_data, periods, settings_store, wealth
+from app.services import broker, holding_moves, market_data, periods, settings_store, wealth
 from app.services.i18n import _l
 from app.services.net_worth_growth import units_after
 from app.services.totals import VALUE
@@ -94,14 +95,13 @@ def _flows(ids: set[int], start: date, end: date) -> tuple[float, float, float]:
     Dietz), and the income received (dividends, coupons), in (start, end]."""
     if not ids:
         return 0.0, 0.0, 0.0
-    period = (Transaction.holding_id.in_(ids), Transaction.date > start, Transaction.date <= end)
-    rows = db.session.query(Transaction.date, func.sign(Transaction.units) * VALUE).filter(
-        Transaction.units.isnot(None), *period).all()
+    period = [m for m in holding_moves.moves() if m.holding_id in ids and start < m.date <= end]
+    rows = [(m.date, float(m.signed)) for m in period if m.units is not None]
     days = (end - start).days or 1
-    put = sum(float(v or 0) for _d, v in rows)
-    weighted = sum(float(v or 0) * (end - d).days / days for d, v in rows)
-    income = db.session.query(func.sum(VALUE)).filter(Transaction.type == "income", *period).scalar()
-    return put, weighted, float(income or 0)
+    put = sum(v for _d, v in rows)
+    weighted = sum(v * (end - d).days / days for d, v in rows)
+    income = sum((m.value for m in period if m.type == "income" and m.value is not None), Decimal(0))
+    return put, weighted, float(income)
 
 
 def _entered(holdings: list[Holding], start: date, end: date, traded: set[int]) -> float:
@@ -120,16 +120,14 @@ def _ends(first: date, today: date) -> list[date]:
 
 
 def _first_date(holdings: list[Holding]) -> date | None:
-    ids = [h.id for h in holdings]
-    first_trade = db.session.query(func.min(Transaction.date)).filter(
-        Transaction.holding_id.in_(ids or [0]), Transaction.units.isnot(None)).scalar()
+    ids = {h.id for h in holdings}
+    first_trade = min((trade.date for trade in holding_moves.trades() if trade.holding_id in ids), default=None)
     dates = [d for d in [first_trade, *(h.purchase_date for h in holdings), *(h.opening_date for h in holdings)] if d]
     return min(dates) if dates else None
 
 
 def _traded(ids: set[int]) -> set[int]:
-    return {hid for (hid,) in db.session.query(Transaction.holding_id).filter(
-        Transaction.holding_id.in_(ids or {0}), Transaction.units.isnot(None)).distinct()}
+    return {trade.holding_id for trade in holding_moves.trades() if trade.holding_id in ids}
 
 
 def monthly_returns(holdings: list[Holding], today: date | None = None) -> tuple[list[date], list[float]]:
@@ -504,7 +502,7 @@ def contribution_of(holding: Holding, holdings: list[Holding], period: str = "al
 def _invested(holdings: list[Holding], on: date) -> float:
     """Money put into the holdings up to a date: their opening positions at cost, purchases (commissions in) minus
     what the sales brought back. Holdings without trades count at cost from their purchase date."""
-    ids = [h.id for h in holdings]
+    ids = {h.id for h in holdings}
     total = 0.0
     for h in holdings:
         opened = h.opening_date or h.purchase_date
@@ -512,12 +510,11 @@ def _invested(holdings: list[Holding], on: date) -> float:
             quantity = h.opening_quantity if h.opening_quantity is not None else h.quantity
             price = h.opening_price if h.opening_price is not None else h.avg_price
             total += float(quantity or 0) * float(price or 0) * float(h.multiplier or 1)
-    trades = db.session.query(func.sum(func.sign(Transaction.units) * VALUE)).filter(
-        Transaction.holding_id.in_(ids or [0]), Transaction.units.isnot(None), Transaction.date <= on).scalar()
-    trade_ids = db.session.query(Transaction.id).filter(Transaction.holding_id.in_(ids or [0]),
-                                                        Transaction.units.isnot(None), Transaction.date <= on)
-    fees = db.session.query(func.sum(VALUE)).filter(Transaction.fee_for_id.in_(trade_ids)).scalar()
-    return total + float(trades or 0) + float(fees or 0)
+    by_then = [trade for trade in holding_moves.trades() if trade.holding_id in ids and trade.date <= on]
+    paid = holding_moves.fees()
+    trades = sum((trade.signed for trade in by_then), Decimal(0))
+    fees = sum((paid[trade.id] for trade in by_then if trade.id in paid), Decimal(0))
+    return total + float(trades) + float(fees)
 
 
 def value_series(holdings: list[Holding], today: date | None = None) -> dict:

@@ -75,12 +75,22 @@ def forget_cache() -> None:
     request_cache.cache().pop("cluster_rules", None)
 
 
+def _discretionary() -> dict[str, bool]:
+    """{category: is it discretionary}, read once per request: the rule is asked for every expense of a period."""
+    store = request_cache.data()
+    if "category_discretionary" not in store:
+        found: dict[str, bool] = {}
+        for category in all_categories():
+            found.setdefault(category.name, bool(category.discretionary))  # the first of a name, as before
+        store["category_discretionary"] = found
+    return store["category_discretionary"]
+
+
 def _from_category(category: str | None) -> str:
     """The deterministic rule: discretionary categories are lifestyle, savings ones saving, the rest necessary."""
     if not category:
         return NECESSARY
-    found = next((c for c in all_categories() if c.name == category), None)
-    if found and found.discretionary:
+    if _discretionary().get(category):
         return LIFESTYLE
     name = _clean(category)
     if any(word in name for word in SAVING_WORDS):

@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.session import Session as FlaskSession
 from sqlalchemy import event, inspect
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.util import find_tables
 
@@ -36,6 +37,32 @@ db = SQLAlchemy(session_options={"class_": ClientSession})
 migrate = Migrate()
 babel = Babel()
 login_manager = LoginManager()
+
+
+@event.listens_for(Engine, "before_cursor_execute")
+def _forget_what_was_read(conn, cursor, statement, parameters, context, executemany):  # noqa: ARG001
+    """Whatever is not a SELECT may change the data: what the request read before is forgotten
+    (services.request_cache.data) and the database's version moves (request_cache.version)."""
+    if statement.lstrip()[:6].upper() != "SELECT":
+        from app.services import request_cache
+
+        conn.info["mfp_wrote"] = True
+        request_cache.wrote(conn.engine.url.database)
+
+
+@event.listens_for(Engine, "commit")
+def _written_for_good(conn):
+    conn.info.pop("mfp_wrote", None)
+
+
+@event.listens_for(Engine, "rollback")
+def _forget_after_rollback(conn):
+    """What was written and then undone may have been read in between: forgotten again. A transaction that only
+    read (every page ends with one) changes nothing."""
+    if conn.info.pop("mfp_wrote", None):
+        from app.services import request_cache
+
+        request_cache.wrote(conn.engine.url.database)
 
 
 @event.listens_for(Session, "before_flush")

@@ -21,7 +21,7 @@ from sqlalchemy import case, func
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.services import currency
+from app.services import currency, request_cache
 from app.services.i18n import _l
 from app.services.periods import add_months, month_index, month_start
 
@@ -58,8 +58,16 @@ def fixed(role: str) -> Account | None:
     return Account.query.filter_by(fixed=role).first()
 
 
+def debt_accounts() -> list[Account]:
+    """The Debiti accounts, read once per request."""
+    store = request_cache.data()
+    if "debt_accounts" not in store:
+        store["debt_accounts"] = Account.query.filter_by(kind="debt").all()
+    return store["debt_accounts"]
+
+
 def debt_ids() -> list[int]:
-    return [a.id for a in Account.query.filter_by(kind="debt")]
+    return [a.id for a in debt_accounts()]
 
 
 def foreign_openings(account: Account) -> dict[str, Decimal]:
@@ -170,7 +178,7 @@ def owed(on: date | None = None) -> float:
     """What the Debiti accounts owe (in the base currency): their balance below zero."""
     target, day = currency.base(), on or date.today()
     return round(sum(max(0.0, -float(currency.to_base(balance(a, on), a.currency, day, target=target)))
-                     for a in Account.query.filter_by(kind="debt")), 2)
+                     for a in debt_accounts()), 2)
 
 
 def change(tx: Transaction, account: Account) -> Decimal:
@@ -274,7 +282,15 @@ def assign(transaction_ids: set[int], account_id: int | None) -> int:
 
 
 def opening_total() -> float:
-    """The accounts' opening balances in the base currency (each converted on its account's first day)."""
+    """The accounts' opening balances in the base currency (each converted on its account's first day); worked
+    out once per request: it is the same whatever the date of the balance asked for."""
+    store = request_cache.data()
+    if "opening_total" not in store:
+        store["opening_total"] = _opening_total()
+    return store["opening_total"]
+
+
+def _opening_total() -> float:
     first = dict(db.session.query(Transaction.account_id, func.min(Transaction.date)).group_by(Transaction.account_id).all())
     target = currency.base()
     total = 0.0

@@ -196,3 +196,6 @@ docs/Transaction samples/price_sources/
 docs/Transaction samples/Statements Reali/
 docs/Transaction samples/transazioni_all_*.csv
 docs/Transaction samples/Estratto conto*.pdf
+
+# Data folder of the demo server (scripts/demo_server.py)
+instance_demo/

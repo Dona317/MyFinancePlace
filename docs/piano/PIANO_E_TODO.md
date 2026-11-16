@@ -318,17 +318,30 @@ passo della Card di ogni sezione. Sforzo: S fino a mezza giornata, M un giro di 
 | Salute dei dati | Una pagina di controlli | Conti non riconciliati (T12), controlli per sezione |
 | Clienti / Gruppi | Archivi separati, gruppi, selettore con icona (F98) | Un archivio per utente (F87), ricerca nel selettore (T39) |
 
+**Elenco «sezione finita» (T07, deciso il 16 novembre 2026).** Il badge TBD di una sezione si toglie quando tutte
+le sue pagine rispettano queste voci, **tutte obbligatorie**:
+
+1. **Barra, schede, colori** — barra in alto ancorata a destra nell'ordine deciso (Periodo → preset, viste, scenari o
+   orizzonte → Confronta → altre azioni → Modifica → Gestisci); schede sottolineate, l'unico tipo di schede; contanti
+   verde, debiti viola, investimenti blu.
+2. **Periodo condiviso** — dove la pagina dipende da un periodo usa il riquadro «Periodo» unico, e nessun altro selettore.
+3. **Export CSV ed Excel** — ogni tabella ha i due pulsanti; file `YYYYMMDD_archivio_nome`.
+4. **Modifica nel pop-up** — Nuovo e Modifica si aprono in una finestra, come per le transazioni.
+
+In più, da controllare a schermo senza essere un blocco: iconcine i solo dove serve, pagina leggibile su finestra
+stretta, nessun testo segnaposto.
+
 **Le task, in ordine.** Pri: A alta, M media, B bassa.
 
 | # | Giro | Task | Cosa comprende | Pri | Sforzo | Dipende da · Origine |
 |---|---|---|---|---|---|---|
-| T01 | 0 Fondamenta | **File personali fuori dal repository** | Estratto conto, CSV e note di ricerca sono su GitHub dal commit `1ee18c3`: toglierli dai prossimi commit e metterli in `.gitignore`; decidere se riscrivere la storia (push forzato) | A | S | decisione tua · Card 3 |
-| T02 | 0 | **Promemoria tenuti tra una pagina e l'altra** | Oggi ~27 query e 60–80 ms su ogni pagina; in memoria per archivio e utente, scartati a ogni scrittura o dopo 60 s | A | M | — · velocità 2 |
-| T03 | 0 | **Serie storiche degli investimenti e patrimonio mese per mese** | Prezzi e operazioni letti una volta: Dashboard da 904 a ~150 query, Portafoglio e Crescita da centinaia a decine | A | M | test di rendimento e patrimonio · velocità 1 e 5 |
-| T04 | 0 | **Uscite e Bollette senza cicli di query** | Categorie lette una volta in Uscite (204 query in meno), bollette precedenti cercate in memoria | M | S | — · velocità 3 e 6 |
-| T05 | 0 | **Utente di prova per le verifiche a schermo** | Un utente locale nei dati di esempio, mai nel database reale, per aprire e fotografare le pagine dopo ogni modifica | A | S | — · Card 2 |
+| T01 | 0 Fondamenta | **File personali fuori dal repository** | ✅ 16 nov — estratto conto e CSV tolti dal tracciamento (restano sul PC), `.gitignore` aggiornato, **storia riscritta** (il commit `1ee18c3` è diventato `ef45506`, senza i due file) e push forzato su `test-Cloud`. **Resta a te**: il repository è pubblico e GitHub conserva ancora il vecchio commit raggiungibile dal suo indirizzo diretto finché non lo cancella l'assistenza (richiesta dal sito di GitHub); i dati sono stati visibili circa un giorno | A | S | decisione tua · Card 3 |
+| T02 | 0 | **Promemoria tenuti tra una pagina e l'altra** | ✅ 16 nov — una pagina qualsiasi da 35 a 3 query (8 ms). Oggi ~27 query e 60–80 ms su ogni pagina; in memoria per archivio e utente, scartati a ogni scrittura o dopo 60 s | A | M | — · velocità 2 |
+| T03 | 0 | **Serie storiche degli investimenti e patrimonio mese per mese** | ✅ 16 nov — Dashboard da 904 a 151 query (1,46 s → 0,35 s), Panoramica del Portafoglio da 438 a 62, Rendimento da 254 a 27, Crescita da 210 a 51. Prezzi e operazioni letti una volta: Dashboard da 904 a ~150 query, Portafoglio e Crescita da centinaia a decine | A | M | test di rendimento e patrimonio · velocità 1 e 5 |
+| T04 | 0 | **Uscite e Bollette senza cicli di query** | ✅ 16 nov — Uscite da 276 a 43 query, Bollette da 99 a 8. Categorie lette una volta in Uscite (204 query in meno), bollette precedenti cercate in memoria | M | S | — · velocità 3 e 6 |
+| T05 | 0 | **Utente di prova per le verifiche a schermo** | ✅ 16 nov — `python scripts/demo_server.py` (porta 5055, database `…_demo`, utente «demo»). Un utente locale nei dati di esempio, mai nel database reale, per aprire e fotografare le pagine dopo ogni modifica | A | S | — · Card 2 |
 | T06 | 0 | **Suite completa, test live e CI dopo il giro 0** | Suite intera, `scripts/live/run.sh`, controllo della CI su GitHub, numeri in CLAUDE.md | A | S | T02–T05 |
-| T07 | 1 Schemi comuni | **«Sezione finita»: l'elenco di controllo per togliere il badge TBD** | Un elenco unico da applicare a ogni sezione: periodo condiviso dove ha senso, barra nell'ordine deciso, schede sottolineate, export CSV ed Excel, modifica nel pop-up, colori (contanti verde, debiti viola, investimenti blu), iconcine i, finestra stretta | A | S | decisione tua sulle voci |
+| T07 | 1 Schemi comuni | **«Sezione finita»: l'elenco di controllo per togliere il badge TBD** | ✅ 16 nov — deciso: le quattro voci sono tutte obbligatorie (vedi sopra «Elenco sezione finita»). Un elenco unico da applicare a ogni sezione: periodo condiviso dove ha senso, barra nell'ordine deciso, schede sottolineate, export CSV ed Excel, modifica nel pop-up, colori (contanti verde, debiti viola, investimenti blu), iconcine i, finestra stretta | A | S | decisione tua sulle voci |
 | T08 | 1 | **Export CSV ed Excel dove manca, con numeri veri** | Oggi l'export c'è in Transazioni, Report, Portafoglio, Fisco, Clienti: aggiungerlo alle tabelle di Budget, Obiettivi, Debiti, Assicurazioni, Bollette, Lavoretti, Prestiti, Documenti, Istantanee, Eventi; nell'Excel importi e date come numeri e date | M | M | T07 · Card 15 |
 | T09 | 1 | **Periodo: orizzonte delle Previsioni nel riquadro, avviso al cambio** | Previsioni senza selettori fuori dal riquadro «Periodo»; un breve avviso quando un link cambia il periodo condiviso | M | S | — · Card 9, 11 |
 | T10 | 1 | **Menu a hamburger su tutte le pagine** | Sotto i 1200 px i comandi della barra si raccolgono nel menu, nello stesso ordine, come nella dashboard | M | M | — · Card 10 |
@@ -336,7 +349,7 @@ passo della Card di ogni sezione. Sforzo: S fino a mezza giornata, M un giro di 
 | T12 | 2 | **Riconciliazione: candidati e controllo in Salute dei dati** | Prima di registrare la differenza, le cause probabili (stesso importo su un altro conto, spesa senza conto, import non finito); i conti fermi da più di N giorni tra i controlli | M | M | T11 · Card 6, 7 |
 | T13 | 2 | **Regole di categoria, seconda tornata (F94)** | Condizioni su importo, segno, conto o carta; azioni su tag, controparte pulita e nota; priorità tra le regole | A | M | — · F94 |
 | T14 | 2 | **Transazioni: modelli, «duplica», viste da gestire** | Modelli di transazione e duplica (F66); viste salvate da rinominare, riordinare, una predefinita | M | M | — · F66, Card 14 |
-| T15 | 2 | **Transazioni: card in cima, segno delle ricorrenti, finestra AI nel registro** | Decidere se togliere o cambiare le tre card; entrate ricorrenti positive; «Classifica con AI» dal registro con barra e «Interrompi» | M | S | decisione tua sulle card · Card 12, 13, 19 |
+| T15 | 2 | **Transazioni: card in cima, segno delle ricorrenti, finestra AI nel registro** | **Deciso il 16 nov: le tre card si tolgono.** Decidere se togliere o cambiare le tre card; entrate ricorrenti positive; «Classifica con AI» dal registro con barra e «Interrompi» | M | S | decisione tua sulle card · Card 12, 13, 19 |
 | T16 | 2 | **Annulla un import intero e registro delle modifiche (F62)** | Ogni import con il suo numero e «Annulla questo import»; chi ha cambiato cosa | M | M | — · F62 |
 | T17 | 2 | **Flussi: conti piccoli in «Altri», netto e confronto, immagine PNG** | Con tanti conti il grafo resta leggibile; netto sotto ogni pallino e frecce del periodo prima; «Scarica immagine» | B | M | — · Card 16–18, F67 |
 | T18 | 2 | **Report salvabili (F63)** | Salvare tipo di grafico, raggruppamento, periodo e filtri; il report salvato diventa una scheda della dashboard (al posto di «Nuova scheda — TBD») | M | L | D14 · F63, F91 |
@@ -364,7 +377,7 @@ passo della Card di ogni sezione. Sforzo: S fino a mezza giornata, M un giro di 
 | T40 | 6 | **Prova con estratti reali e parser dei broker (F4, F55)** | Otto banche e i broker italiani su file veri anonimizzati | A | L | **file tuoi** · F4, F55 |
 | T41 | 6 | **Unire su `main` (D1) e pulizia dei rami** | PR #8 fuori dalla bozza, rami `Mapping-Excel` e `Dona317-patch-1` cancellati | A | S | richiesta esplicita tua · D1, D2 |
 
-**In attesa di te**: T01 (storia del repository), T07 (voci dell'elenco), T15 (card di Transazioni), T26 (primo scaricamento
+**In attesa di te**: T26 (primo scaricamento
 sul tuo PC), T31 e T40 (materiale), T37 (D15), T38, T41; D14 (libreria dei grafici) blocca T18 e T30.
 
 ---

@@ -2,6 +2,7 @@
 Net worth: cash from the transactions, investments and other assets, debts and their amortization plans.
 Feeds the Balance Sheet, the dashboard KPIs, Portfolio, Debt and the Snapshots.
 """
+import bisect
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -16,7 +17,7 @@ from app.models.account import Account
 from app.models.personal_loan import PersonalLoan
 from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding, HoldingPrice, Snapshot
-from app.services import accounts, asset_classes, currency, fund_facts, market_data, settings_store
+from app.services import accounts, asset_classes, currency, fund_facts, market_data, request_cache, settings_store
 from app.services.i18n import N_
 from app.services.periods import add_months, last_complete_months
 from app.services.totals import LINE_CATEGORY, LINE_VALUE, lines_query, value_total
@@ -250,7 +251,7 @@ def debts_projection(debts: list[Debt], today: date | None = None, years: int = 
 
 def monthly_installments(today: date | None = None) -> float:
     """Sum of the installments of the debts still being repaid."""
-    summaries = [debt_summary(d, today) for d in Debt.query.all()]
+    summaries = [debt_summary(d, today) for d in debts()]
     return _money(sum(s["installment"] or 0 for s in summaries if s["balance"] > 0))
 
 
@@ -263,10 +264,18 @@ def monthly_average_income(today: date | None = None, months: int = 12) -> float
 
 def holdings_on(on: date | None = None) -> list[Holding]:
     """Holdings owned on a date (bought on or before it; no purchase date = always owned)."""
-    query = Holding.query
-    if on is not None:
-        query = query.filter((Holding.purchase_date.is_(None)) | (Holding.purchase_date <= on))
-    return query.order_by(Holding.asset_class, Holding.name).all()
+    store = request_cache.data()
+    if "holdings" not in store:
+        store["holdings"] = Holding.query.order_by(Holding.asset_class, Holding.name).all()
+    return [h for h in store["holdings"] if on is None or h.purchase_date is None or h.purchase_date <= on]
+
+
+def debts(by_name: bool = False) -> list[Debt]:
+    """The debts of the Debiti section, read once per request (a series asks for them at every month-end)."""
+    store, key = request_cache.data(), "debts_by_name" if by_name else "debts"
+    if key not in store:
+        store[key] = (Debt.query.order_by(Debt.name) if by_name else Debt.query).all()
+    return list(store[key])
 
 
 # ── Price history (F5) ─────────────────────────────────────────────────────────
@@ -274,11 +283,37 @@ def holdings_on(on: date | None = None) -> list[Holding]:
 def prices_on(on: date) -> dict[int, float]:
     """{holding id: its latest recorded price on or before `on`} — one query for every holding; the close stored
     in the market data store when it is newer (Fase 2: the daily history of ETF, shares and funds in euro)."""
-    latest = (db.session.query(HoldingPrice.holding_id, func.max(HoldingPrice.on).label("on"))
-              .filter(HoldingPrice.on <= on).group_by(HoldingPrice.holding_id).subquery())
-    rows = (db.session.query(HoldingPrice.holding_id, HoldingPrice.on, HoldingPrice.price)
-            .join(latest, (HoldingPrice.holding_id == latest.c.holding_id) & (HoldingPrice.on == latest.c.on)))
-    return market_data.overlay({holding_id: (day, float(price)) for holding_id, day, price in rows}, on)
+    store = request_cache.data()
+    asked = store.setdefault("prices_on", {})
+    if on not in asked:
+        asked[on] = market_data.overlay(_recorded_prices(on, store, first=not asked), on)
+    return asked[on]
+
+
+def _recorded_prices(on: date, store: dict, first: bool) -> dict[int, tuple[date, float]]:
+    """{holding id: (day, price)} of the latest price recorded on or before `on`. The first date a request asks for
+    costs one query; a page that asks for a second one is drawing a series (a value per month-end), so the whole
+    history is read once and every further date is answered from memory."""
+    if first:
+        latest = (db.session.query(HoldingPrice.holding_id, func.max(HoldingPrice.on).label("on"))
+                  .filter(HoldingPrice.on <= on).group_by(HoldingPrice.holding_id).subquery())
+        rows = (db.session.query(HoldingPrice.holding_id, HoldingPrice.on, HoldingPrice.price)
+                .join(latest, (HoldingPrice.holding_id == latest.c.holding_id) & (HoldingPrice.on == latest.c.on)))
+        return {holding_id: (day, float(price)) for holding_id, day, price in rows}
+    history = store.get("price_history")
+    if history is None:
+        history = store["price_history"] = {}
+        for holding_id, day, price in (db.session.query(HoldingPrice.holding_id, HoldingPrice.on, HoldingPrice.price)
+                                       .order_by(HoldingPrice.holding_id, HoldingPrice.on)):
+            days, prices = history.setdefault(holding_id, ([], []))
+            days.append(day)
+            prices.append(float(price))
+    found = {}
+    for holding_id, (days, prices) in history.items():
+        at = bisect.bisect_right(days, on)
+        if at:
+            found[holding_id] = (days[at - 1], prices[at - 1])
+    return found
 
 
 def value_on(holding: Holding, on: date | None, prices: dict[int, float] | None = None) -> float:
@@ -404,7 +439,7 @@ def debt_picture(on: date | None = None) -> dict:
     only as transactions) the difference is a debt of its own, «Debiti vari», and it is part of the total too: the
     same debt is never counted twice."""
     today = on or date.today()
-    section = round(sum(max(0.0, debt_summary(d, today)["balance"]) for d in Debt.query.all()), 2)
+    section = round(sum(max(0.0, debt_summary(d, today)["balance"]) for d in debts()), 2)
     explained = accounts.owed(on)
     return {"section": section, "explained": explained, "residual": round(max(0.0, section - explained), 2),
             "extra": round(max(0.0, explained - section), 2), "total": round(max(section, explained), 2)}
@@ -433,7 +468,7 @@ def balance_sheet(on: date | None = None) -> dict:
 
     liabilities = defaultdict(float)
     debt_rows = []
-    for debt in Debt.query.order_by(Debt.name).all():
+    for debt in debts(by_name=True):
         summary = debt_summary(debt, on)
         if summary["balance"] <= 0:
             continue

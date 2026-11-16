@@ -11,16 +11,14 @@ Where the net worth growth comes from (F20), month by month:
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 
-from sqlalchemy import func
-
-from app.extensions import db
 from app.models.transaction import Transaction
-from app.models.wealth import Debt, Holding
-from app.services import wealth
-from app.services.totals import VALUE, value_total
+from app.services import holding_moves, wealth
+from app.services.totals import value_total
 
 
 @dataclass
@@ -40,10 +38,11 @@ class Month:
 
 def units_after(on: date) -> dict[int, float]:
     """Units bought minus sold after `on`, by holding: what is held today less these is what was held then."""
-    rows = db.session.query(Transaction.holding_id, func.sum(Transaction.units)).filter(
-        Transaction.holding_id.isnot(None), Transaction.units.isnot(None), Transaction.date > on).group_by(
-        Transaction.holding_id)
-    return {hid: float(units or 0) for hid, units in rows}
+    totals: dict[int, Decimal] = defaultdict(Decimal)
+    for trade in holding_moves.trades():
+        if trade.date > on:
+            totals[trade.holding_id] += trade.units
+    return {hid: float(units) for hid, units in totals.items()}
 
 
 def _holdings_value(on: date) -> float:
@@ -59,23 +58,19 @@ def _holdings_value(on: date) -> float:
 
 
 def _owed(on: date) -> float:
-    return sum(wealth.debt_summary(d, on)["balance"] for d in Debt.query.all())
+    return sum(wealth.debt_summary(d, on)["balance"] for d in wealth.debts())
 
 
 def _net_buys(start: date, end: date) -> float:
     """Money put into holdings in (start, end]: purchases minus sales."""
-    signed = func.sum(func.sign(Transaction.units) * VALUE)
-    total = db.session.query(signed).filter(Transaction.holding_id.isnot(None), Transaction.units.isnot(None),
-                                            Transaction.date > start, Transaction.date <= end).scalar()
-    return float(total or 0)
+    return float(sum((trade.signed for trade in holding_moves.trades() if start < trade.date <= end), Decimal(0)))
 
 
 def _new_assets(start: date, end: date) -> float:
-    traded = {hid for (hid,) in db.session.query(Transaction.holding_id).filter(
-        Transaction.holding_id.isnot(None), Transaction.units.isnot(None)).distinct()}
+    traded = {trade.holding_id for trade in holding_moves.trades()}
     prices = wealth.prices_on(end) if end < date.today() else {}
-    return sum(wealth.value_on(h, end, prices) for h in Holding.query.filter(
-        Holding.purchase_date > start, Holding.purchase_date <= end) if h.id not in traded)
+    return sum(wealth.value_on(h, end, prices) for h in wealth.holdings_on()
+               if h.purchase_date is not None and start < h.purchase_date <= end and h.id not in traded)
 
 
 def months(count: int = 12, today: date | None = None) -> list[Month]:

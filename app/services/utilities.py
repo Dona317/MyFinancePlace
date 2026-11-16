@@ -9,6 +9,7 @@ PDF or photo in Documents can be read by the configured AI model, the result sho
 from __future__ import annotations
 
 import base64
+import bisect
 import json
 from collections import defaultdict
 from dataclasses import dataclass
@@ -20,7 +21,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.utility import UtilityReading
-from app.services import ai_extraction, document_store, money, periods
+from app.services import ai_extraction, document_store, money, periods, request_cache
 from app.services.i18n import N_
 from app.services.statement_readers import is_image, is_pdf
 
@@ -75,10 +76,10 @@ def save(reading: UtilityReading | None, *, utility: str, start: date | None, en
 
 
 def readings(utility: str | None = None) -> list[UtilityReading]:
-    query = UtilityReading.query
-    if utility:
-        query = query.filter_by(utility=utility)
-    return query.order_by(UtilityReading.period_end, UtilityReading.id).all()
+    store = request_cache.data()
+    if "utility_readings" not in store:  # one page asks for them a dozen times (summary, months, seasons, chart)
+        store["utility_readings"] = UtilityReading.query.order_by(UtilityReading.period_end, UtilityReading.id).all()
+    return [r for r in store["utility_readings"] if not utility or r.utility == utility]
 
 
 def days(reading: UtilityReading) -> int:
@@ -116,9 +117,9 @@ def candidates(since_days: int = 730) -> list[tuple[Transaction, str, date]]:
 
 def proposed_start(utility: str, end: date) -> date:
     """The day after the previous bill, or two months before."""
-    previous = (UtilityReading.query.filter(UtilityReading.utility == utility, UtilityReading.period_end < end)
-                .order_by(UtilityReading.period_end.desc()).first())
-    return previous.period_end + timedelta(days=1) if previous else periods.add_months(end, -DEFAULT_PERIOD_MONTHS)
+    ends = [r.period_end for r in readings(utility)]  # oldest first
+    at = bisect.bisect_left(ends, end)  # how many bills ended before `end`
+    return ends[at - 1] + timedelta(days=1) if at else periods.add_months(end, -DEFAULT_PERIOD_MONTHS)
 
 
 # ── Over time ──────────────────────────────────────────────────────────────────
