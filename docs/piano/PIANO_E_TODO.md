@@ -46,6 +46,7 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
   database delle serie storiche di ETF, azioni e indici, da costruire o trovare.
 
 ### In lavorazione o deciso di proseguire
+- **▶ Prossimo passo (deciso il 15 nov, sera): F106 — analisi e pianificazione delle prossime task**, per completare le sezioni e le funzionalità rimanenti: una sezione alla volta, poi **una Card per ogni task** (vedi F106 nel backlog del Portafoglio). **16 nov: elenco fatto** — 41 task in 7 giri (T01–T41, «Piano delle prossime task»); prossimo passo le Card, a partire dal giro 0.
 - **Piano confermato il 14 nov (fasi)**. **Fase 1 — fatta (14 nov)**: posizioni unite per titolo e apribili per conto
   titoli; grafici del Portafoglio sistemati (la mappa dell'allocazione si sovrapponeva); export delle transazioni
   «tutte / senza investimenti / solo investimenti»; modello di import degli investimenti da scaricare; titoli nuovi
@@ -226,6 +227,7 @@ valore nel tempo solo dalle Istantanee. Ordine: fasi 0 e 1 prima di tutto il res
 | F103 | A | S | ✅ | **Modifica di una transazione nel pop-up (16 novembre)** | Ogni link alla modifica di una transazione, da qualsiasi pagina, apre il pop-up (come «Nuova transazione»); salvando si chiude e la pagina sotto si aggiorna; Ctrl+clic apre ancora una scheda |
 | F104 | A | M | ✅ | **Riconciliazione automatica dei conti (16 novembre)** | Nella pagina del conto si scrive il saldo letto sul conto (o sull'estratto) a una data: la differenza diventa da sola un movimento «Riconciliazione» in quella data (uscita se l'app segnava di più, entrata se di meno), in una categoria esclusa dalle analisi creata al primo uso: il saldo torna, ma non conta come spesa né entrata. Il conto risulta riconciliato a quella data; il movimento si vede e si elimina dal link del messaggio |
 | F105 | A | M | ✅ | **Flussi tra i conti (16 novembre)** | Nuova scheda «Flussi» in Transazioni, sul periodo condiviso: un grafo con un pallino per conto (grande quanto il denaro che ci passa), «Esterno» per il mondo fuori dai conti e «Senza conto»; frecce per giroconti, entrate (da Esterno) e uscite (verso Esterno), più spesse e lunghe quanto più grande l'importo; disposizione a forze, pallini trascinabili, «Ridisponi». Un clic su pallino o freccia apre il registro filtrato (nuovo filtro «Verso il conto») |
+| F106 | A | M | 🔄 | **Analisi e pianificazione delle prossime task (15 novembre)** | Per completare le sezioni e le funzionalità rimanenti. Si passa **una sezione alla volta** (tutte quelle con il badge TBD nel menu: Report, Panoramica Finanziaria, Obiettivi, Budget, Eventi e le altre) e poi le funzioni ancora aperte di questo backlog (le voci ⬜: F4, F45, F54, F56, F62, F63, F66–F68, F84, F85, F87, F88, F90–F94): per ognuna **cosa c'è, cosa manca, cosa va rivisto**, con priorità, sforzo e dipendenze. Il risultato è un elenco ordinato di task; **poi una Card per ogni task**, da discutere e approvare prima del codice. Nell'elenco entrano anche le cinque ottimizzazioni rimaste dall'analisi di velocità del 15 nov (serie storiche degli investimenti, promemoria ricalcolati a ogni pagina, categorie rilette in Uscite, patrimonio mese per mese, Bollette) e le idee dei brainstorm del 15 nov (promemoria di riconciliazione, finestra AI nel registro, orizzonte delle Previsioni nel riquadro del periodo, menu a hamburger su tutte le pagine). **Fatto quando**: l'elenco delle task è in questo file, ordinato, e ogni task ha la sua Card. **16 nov**: l'elenco c'è (41 task, T01–T41, in «Piano delle prossime task» alla fine di questo capitolo); restano le Card. |
 | F43 | M | M | ✅ | **Fase 0 — Prezzi nella valuta d'origine** (fatto il 12 nov) | `holding_prices.price_ccy`, `currency`, `fx_rate` (migrazione `a7c9e1f3b5d8`): ogni prezzo letto da internet in un'altra valuta (Yahoo, Stooq, justETF, Borsa Italiana, Morningstar, fonti personali; pence → sterline) tiene il prezzo come quotato e il cambio usato accanto a quello in euro; un prezzo scritto in euro (a mano, di un'operazione) cancella la quotazione di quel giorno. Base dell'**effetto cambio** (F49, fatto) |
 | F44 | A | M | ✅ | **Fase 0 — Costo medio per conto titoli** (D9) | Oggi il costo medio è per titolo su tutti i conti: con lo stesso ETF su due broker la stima diverge da quella delle banche. PMC per (titolo, conto titoli); lotti e cessioni (`lots`, `lot_disposals`, come Wealthfolio) solo se si vuole anche il FIFO · **Fatto (9 nov)**: `capital_gains.realized` tiene il costo medio per (titolo, conto titoli); la posizione iniziale sta nel suo conto titoli o, se non indicato, nel primo in cui il titolo si muove. FIFO non fatto (D9: solo come confronto, quando servirà) |
 | F45 | A | M | ⬜ | **Fase 1 — Registro ordini con prezzi, commissioni e tasse** | Tabella `trade_details` uno a uno con la transazione: data e ora, data valuta, mercato (MIC), lato, tipo ordine, id ordine del broker, quantità, prezzo, valuta, cambio, lordo, commissione (proposta dalle regole del conto, F17), altre spese, **Tobin tax** (azioni italiane: 0,2% nel 2026, proposta 0,4% — aliquota proposta solo dopo F56a), tasse estere, ritenuta, totale regolato con controllo di quadratura, **allegato del fissato bollato** (Documento), origine, impronta anti-doppioni. Il bollo resta un movimento periodico del conto |
@@ -285,6 +287,85 @@ Dallo stesso report (fogli Grafici, Sezioni, Gestione dato, Buchi): i più impor
 | F70 | A | M | ✅ | **Classe di attivo ≠ tipo di strumento** (richiesta del 9 nov) | Oggi `asset_class` mescola le due cose (ETF, Azione, Fondo…). Diventa il **tipo di strumento** (ETF, Azione, Fondo, Obbligazione, Criptovaluta…) e si aggiunge la **classe di attivo**: Azionario, Obbligazionario, Monetario e liquidità, Oro e metalli preziosi, Materie prime, Immobiliare, Criptovalute, Bilanciato, Altro. Migrazione con una stima (Azione → Azionario, Obbligazione → Obbligazionario, ETF e fondi dal nome: «bond», «aggregate», «treasury» → Obbligazionario, «gold», «oro» → Oro, altrimenti Azionario), modificabile; nelle Posizioni due grafici: per classe di attivo e per tipo di strumento · **Fatto (9 nov)**: campo `allocation_class` (vuoto = stimato, `services/asset_classes.py`), «Tipo di strumento» e «Classe di attivo» nel modulo, due ciambelle nelle Posizioni, tipo e classe nella tabella |
 
 Esclusi per scelta: collegamento automatico alle banche, budget "a buste", partita doppia.
+
+### Piano delle prossime task (F106, 16 novembre 2026)
+
+L'elenco ordinato delle task per completare le sezioni e le funzionalità rimanenti: **una Card per ogni riga**, da
+discutere e approvare prima del codice. Come è stato fatto: menu e badge TBD letti da `base.html`; per ogni sezione
+rotte, pagine e uso degli schemi comuni (periodo, schede, blocchi, export, pop-up) contati sul codice; voci aperte di
+questo backlog; card dei brainstorm del 15 nov (Card 1–21, P1–P8, D1–D6, O1–O6, B1–B6); misure di velocità del 15 nov.
+**Limite**: le pagine non sono state riviste a schermo una per una (serve il login): la revisione a schermo è il primo
+passo della Card di ogni sezione. Sforzo: S fino a mezza giornata, M un giro di lavoro, L più giri.
+
+**Stato delle sezioni oggi** (tutte funzionano; il badge TBD dice «da rivedere»):
+
+| Sezione | Cosa c'è | Cosa manca o va rivisto |
+|---|---|---|
+| Dashboard, Transazioni | Riviste (senza badge): periodo condiviso, barra in ordine, schede, viste, Flussi, pop-up | Rifiniture (T14–T17); la scheda «Nuova scheda — TBD» della dashboard |
+| Conti e Carte | Conti, carte (F41), conto titoli collegato (F96), riconciliazione con tag (F104) | Promemoria, storico e candidati della riconciliazione (T11–T12) |
+| Report | Riepilogo, Ritmo, Anno in sintesi, PDF, CSV; blocchi da ordinare | Report salvabili (F63), stessi schemi della dashboard (T18) |
+| Panoramica Finanziaria | Stato patrimoniale, conto economico, flussi di cassa, crescita, chiusure d'anno, «Confronta» | Lenta sul mese per mese (T03), confronto del patrimonio (T19) |
+| Budget | Budget mensili per categoria, riporto, accantonamenti | Nessun periodo condiviso né export; B1–B6 (T20–T21) |
+| Obiettivi | Obiettivi con versamenti a mano | Avanzamento automatico, ripartizione, fondo d'emergenza (T22–T23) |
+| Eventi | Elenco, dettaglio, movimenti assegnati | Budget dell'evento (con B3), export, schemi comuni (T36) |
+| Previsioni | Previsione, pensione/FIRE, blocchi | Orizzonte fuori dal riquadro del periodo (T09) |
+| Promemoria / Scadenzario | Scadenze, calendario, campanella con finestra (F100) | Calcolati a ogni pagina (T02); tappe degli obiettivi, avvisi di prezzo |
+| Portafoglio | 55 rotte: posizioni, ordini, rendimenti, modelli, ribilanciamento, PAC, regole, look-through, import dai broker | Fase 2 prezzi (T26), registro ordini F45, Backtest segnaposto, P1–P8, grafici F68 |
+| Debiti | Debiti con piano di ammortamento, conti di debito, pagamenti | Nessuno strumento di decisione: D1–D6 (T24–T25) |
+| Fisco | 730 e detrazioni, plusvalenze, bollo e IVAFE, lavoretti, tetti deducibili | F56a prima di ogni calcolo nuovo; zainetto, RW, «se vendo oggi» (T31–T33) |
+| Lavoretti, Prestiti tra persone, Assicurazioni, Bollette, Documenti, Istantanee | Elenco e modulo ciascuna; Bollette con consumi e grafico | Schemi comuni (periodo, export, pop-up), poche funzioni proprie (T34–T36) |
+| Importa / Esporta | 28 rotte: estratti di 8 banche, OFX/QIF/CAMT, mappatura, backup cifrati, export con nome per data | Prova con estratti reali (F4), annulla un import (F62), Excel con numeri veri (T08) |
+| Salute dei dati | Una pagina di controlli | Conti non riconciliati (T12), controlli per sezione |
+| Clienti / Gruppi | Archivi separati, gruppi, selettore con icona (F98) | Un archivio per utente (F87), ricerca nel selettore (T39) |
+
+**Le task, in ordine.** Pri: A alta, M media, B bassa.
+
+| # | Giro | Task | Cosa comprende | Pri | Sforzo | Dipende da · Origine |
+|---|---|---|---|---|---|---|
+| T01 | 0 Fondamenta | **File personali fuori dal repository** | Estratto conto, CSV e note di ricerca sono su GitHub dal commit `1ee18c3`: toglierli dai prossimi commit e metterli in `.gitignore`; decidere se riscrivere la storia (push forzato) | A | S | decisione tua · Card 3 |
+| T02 | 0 | **Promemoria tenuti tra una pagina e l'altra** | Oggi ~27 query e 60–80 ms su ogni pagina; in memoria per archivio e utente, scartati a ogni scrittura o dopo 60 s | A | M | — · velocità 2 |
+| T03 | 0 | **Serie storiche degli investimenti e patrimonio mese per mese** | Prezzi e operazioni letti una volta: Dashboard da 904 a ~150 query, Portafoglio e Crescita da centinaia a decine | A | M | test di rendimento e patrimonio · velocità 1 e 5 |
+| T04 | 0 | **Uscite e Bollette senza cicli di query** | Categorie lette una volta in Uscite (204 query in meno), bollette precedenti cercate in memoria | M | S | — · velocità 3 e 6 |
+| T05 | 0 | **Utente di prova per le verifiche a schermo** | Un utente locale nei dati di esempio, mai nel database reale, per aprire e fotografare le pagine dopo ogni modifica | A | S | — · Card 2 |
+| T06 | 0 | **Suite completa, test live e CI dopo il giro 0** | Suite intera, `scripts/live/run.sh`, controllo della CI su GitHub, numeri in CLAUDE.md | A | S | T02–T05 |
+| T07 | 1 Schemi comuni | **«Sezione finita»: l'elenco di controllo per togliere il badge TBD** | Un elenco unico da applicare a ogni sezione: periodo condiviso dove ha senso, barra nell'ordine deciso, schede sottolineate, export CSV ed Excel, modifica nel pop-up, colori (contanti verde, debiti viola, investimenti blu), iconcine i, finestra stretta | A | S | decisione tua sulle voci |
+| T08 | 1 | **Export CSV ed Excel dove manca, con numeri veri** | Oggi l'export c'è in Transazioni, Report, Portafoglio, Fisco, Clienti: aggiungerlo alle tabelle di Budget, Obiettivi, Debiti, Assicurazioni, Bollette, Lavoretti, Prestiti, Documenti, Istantanee, Eventi; nell'Excel importi e date come numeri e date | M | M | T07 · Card 15 |
+| T09 | 1 | **Periodo: orizzonte delle Previsioni nel riquadro, avviso al cambio** | Previsioni senza selettori fuori dal riquadro «Periodo»; un breve avviso quando un link cambia il periodo condiviso | M | S | — · Card 9, 11 |
+| T10 | 1 | **Menu a hamburger su tutte le pagine** | Sotto i 1200 px i comandi della barra si raccolgono nel menu, nello stesso ordine, come nella dashboard | M | M | — · Card 10 |
+| T11 | 2 Tutti i giorni | **Riconciliazione: promemoria e storico** | Dopo una riconciliazione «Ricordami tra…» (1 mese proposto) che crea un promemoria collegato al conto; nella pagina del conto le ultime riconciliazioni | A | M | — · Card 5, 8 |
+| T12 | 2 | **Riconciliazione: candidati e controllo in Salute dei dati** | Prima di registrare la differenza, le cause probabili (stesso importo su un altro conto, spesa senza conto, import non finito); i conti fermi da più di N giorni tra i controlli | M | M | T11 · Card 6, 7 |
+| T13 | 2 | **Regole di categoria, seconda tornata (F94)** | Condizioni su importo, segno, conto o carta; azioni su tag, controparte pulita e nota; priorità tra le regole | A | M | — · F94 |
+| T14 | 2 | **Transazioni: modelli, «duplica», viste da gestire** | Modelli di transazione e duplica (F66); viste salvate da rinominare, riordinare, una predefinita | M | M | — · F66, Card 14 |
+| T15 | 2 | **Transazioni: card in cima, segno delle ricorrenti, finestra AI nel registro** | Decidere se togliere o cambiare le tre card; entrate ricorrenti positive; «Classifica con AI» dal registro con barra e «Interrompi» | M | S | decisione tua sulle card · Card 12, 13, 19 |
+| T16 | 2 | **Annulla un import intero e registro delle modifiche (F62)** | Ogni import con il suo numero e «Annulla questo import»; chi ha cambiato cosa | M | M | — · F62 |
+| T17 | 2 | **Flussi: conti piccoli in «Altri», netto e confronto, immagine PNG** | Con tanti conti il grafo resta leggibile; netto sotto ogni pallino e frecce del periodo prima; «Scarica immagine» | B | M | — · Card 16–18, F67 |
+| T18 | 2 | **Report salvabili (F63)** | Salvare tipo di grafico, raggruppamento, periodo e filtri; il report salvato diventa una scheda della dashboard (al posto di «Nuova scheda — TBD») | M | L | D14 · F63, F91 |
+| T19 | 2 | **Panoramica Finanziaria e dashboard: confronto del patrimonio** | «Confronta» anche sul patrimonio netto; revisione a schermo delle sue pagine con T07 | M | S | T03, T07 · Card 21 |
+| T20 | 2 | **Budget proposto dallo storico e revisione di fine mese** | «Proponi budget» dalla media o mediana di 6 mesi; il primo del mese il riepilogo degli sforamenti con la proposta per il mese nuovo | A | M | — · B1, B5 |
+| T21 | 2 | **Budget annuali, per gruppo, per evento, per persona, a buste** | Spese irregolari con budget annuale e ritmo mensile; tetto su un gruppo o un evento; per titolare; «da assegnare» a zero | M | L | T20 · B2, B3, B4, B6 |
+| T22 | 2 | **Obiettivi collegati a un conto o a un portafoglio; fondo d'emergenza calcolato** | L'avanzamento letto dal saldo o dal valore; l'emergenza come N mesi di spese essenziali | A | M | — · O1, O3 |
+| T23 | 2 | **Obiettivi: ripartizione del risparmio, probabilità, tappe, di famiglia** | Proposta mensile per priorità e scadenza; probabilità di arrivarci (come Pensione/FIRE); avvisi al 25/50/75/100 %; quote per persona | M | L | T22 · O2, O4, O5, O6 |
+| T24 | 3 Patrimonio | **Debiti: rimborso anticipato e strategia di estinzione** | Versare X oggi (rata o durata, interessi risparmiati, penale) contro investirli; valanga contro palla di neve con date e risparmio | A | M | — · D1, D2 |
+| T25 | 3 | **Debiti: surroga, sostenibilità, tasso variabile** | Offerta di un'altra banca con punto di pareggio; rapporto rate/reddito con soglie; rata con Euribor +1 e +2 % | M | M | T24 · D3, D5, D6 |
+| T26 | 3 | **Portafoglio, Fase 2: database dei prezzi (★ F92)** | Primo scaricamento da Yahoo sul tuo PC (F89), fonti aperte di riserva (F90), cambi BCE per i titoli non in euro, cache dei valori giornalieri, TWR/XIRR giornalieri (F47 parte 4) | A | L | lancio sul tuo PC · F92, F89, F90 |
+| T27 | 3 | **Registro ordini con prezzi, commissioni e tasse (F45)** | Dettaglio di ogni ordine (mercato, valuta, cambio, commissione, Tobin tax, ritenuta) con controllo di quadratura e fissato bollato allegato | A | M | F56a per le aliquote · F45 |
+| T28 | 3 | **Costo totale, sovrapposizione tra ETF, «dove metto i prossimi soldi»** | TER + commissioni + bollo per portafoglio; quanto due ETF hanno in comune (dal look-through); un importo diviso verso il modello e trasformato in ordini teorici | M | M | T26 per i prezzi · P2, P3, P4 |
+| T29 | 3 | **Backtest (F88) e IPS (F85)** | Un modello su un periodo passato con PAC, ribilanciamento e costi; il documento delle regole d'investimento, controllato dall'app | M | L | T26 · F88, F85, P7 |
+| T30 | 3 | **Grafici del catalogo (F68), avvisi di prezzo, titoli da osservare, buoni postali (F54)** | I grafici ad alta priorità G37–G41; avvisi su soglia e discesa; lista di titoli non posseduti; BFP e libretti a valore tabellare | B | L | D14 per i plugin · F68, P5, P6, F54 |
+| T31 | 4 Fisco | **F56a: verifica sulle fonti ufficiali** | Tobin tax, bollo titoli, IVAFE, cumulo BFP, ETF non armonizzati, costo medio per rapporto: prima di qualunque calcolo nuovo | A | M | materiale tuo o ricerca · F56a |
+| T32 | 4 | **Zainetto fiscale e riepilogo fiscale del portafoglio** | Minusvalenze per conto titoli con l'anno di scadenza e promemoria; plusvalenze, redditi, ritenute, bollo e IVAFE per anno; quadri RT, RM, RW come stima | A | L | T31 · F56b, P1, P8 |
+| T33 | 4 | **«Se vendo oggi» e interessi del mutuo nel 730** | Imposta stimata, zainetto usato e incasso netto prima di confermare un ordine; interessi passivi della prima casa nel riepilogo del 730 | M | M | T31, T32 · F93, D4 |
+| T34 | 5 Servizio | **Assicurazioni, Documenti, Istantanee: revisione** | Revisione a schermo con T07; OCR dei documenti del broker e degli allegati (F82) | M | M | T07 · F82 |
+| T35 | 5 | **Bollette, Lavoretti, Prestiti tra persone: revisione** | Revisione a schermo con T07 | B | S | T04, T07 |
+| T36 | 5 | **Eventi, Promemoria, Previsioni, Salute dei dati: revisione** | Revisione a schermo con T07; in Salute dei dati un controllo per sezione | B | M | T07, T09 |
+| T37 | 6 Piattaforma | **Database cifrato (F84) e dove sta la chiave (D15)** | IBAN, numeri di conto, documenti e note cifrati; chiave nel portachiavi del sistema con copia stampabile | A | L | decisione D15 · F84 |
+| T38 | 6 | **Un archivio per utente (F87)** | Il login apre l'archivio dell'utente; quello di famiglia condiviso dall'amministratore; migrazione dell'archivio attuale | A | L | decisione sull'archivio attuale · F87 |
+| T39 | 6 | **Archivi: ricerca nel selettore; compressione e misure rimaste** | Campo di ricerca e archivi recenti con più di 10 archivi; misurare la compressione sulle pagine grandi | B | S | — · Card 20 |
+| T40 | 6 | **Prova con estratti reali e parser dei broker (F4, F55)** | Otto banche e i broker italiani su file veri anonimizzati | A | L | **file tuoi** · F4, F55 |
+| T41 | 6 | **Unire su `main` (D1) e pulizia dei rami** | PR #8 fuori dalla bozza, rami `Mapping-Excel` e `Dona317-patch-1` cancellati | A | S | richiesta esplicita tua · D1, D2 |
+
+**In attesa di te**: T01 (storia del repository), T07 (voci dell'elenco), T15 (card di Transazioni), T26 (primo scaricamento
+sul tuo PC), T31 e T40 (materiale), T37 (D15), T38, T41; D14 (libreria dei grafici) blocca T18 e T30.
 
 ---
 
