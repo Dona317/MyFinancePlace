@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from datetime import date
 from decimal import Decimal
 
-from flask import Response, flash, redirect, request, url_for
+from flask import Response, flash, jsonify, redirect, request, url_for
 from flask_babel import gettext as _
 from openpyxl import Workbook
 
@@ -85,6 +85,19 @@ def csv_text(rows) -> str:
     buffer = io.StringIO()
     csv.writer(buffer, delimiter=";").writerows(rows)
     return "\ufeff" + buffer.getvalue()
+
+
+def layout_answer(save, reset):
+    """The POST of a page's blocks (static/js/blocks.js): {"widgets": [{id, span, height, visible}]} saved with
+    `save(widgets)`, or {"reset": true} with `reset()`; the answer is the layout as it now is."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(error=_("Atteso un oggetto JSON.")), 400
+    if data.get("reset"):
+        return jsonify(layout=reset())
+    if not isinstance(data.get("widgets"), list):
+        return jsonify(error=_("Manca l'elenco dei blocchi.")), 400
+    return jsonify(layout=save(data["widgets"]))
 
 
 @contextmanager

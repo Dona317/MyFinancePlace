@@ -22,7 +22,7 @@ from decimal import Decimal, InvalidOperation
 from flask_babel import gettext as _
 
 from app.services.money import CENT
-from app.services.parsing import clean_text, to_decimal, valid_amount
+from app.services.parsing import clean_text, decode_text, to_decimal, valid_amount
 
 FORMATS = {"ofx": "OFX", "qif": "QIF", "camt": "CAMT.053 (ISO 20022)"}
 QIF_ACCOUNT_TYPES = ("bank", "ccard", "cash", "oth a", "oth l")
@@ -69,21 +69,12 @@ def parse(filename: str, raw: bytes) -> Statement | None:
     kind = detect(raw)
     if kind is None:
         return None
-    statement = {"ofx": _ofx, "qif": _qif, "camt": _camt}[kind](_text(raw) if kind != "camt" else raw)
+    statement = {"ofx": _ofx, "qif": _qif, "camt": _camt}[kind](decode_text(raw) if kind != "camt" else raw)
     if not statement.movements:
         raise StructuredFileError(_("Il file %(format)s non contiene movimenti contabilizzati.", format=FORMATS[kind])
                                   + (" " + statement.unread[0] if statement.unread else ""))
     statement.movements.sort(key=lambda m: m.date)
     return statement
-
-
-def _text(raw: bytes) -> str:
-    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
-        try:
-            return raw.decode(encoding)
-        except UnicodeDecodeError:
-            continue
-    return raw.decode("latin-1", errors="replace")  # pragma: no cover - latin-1 decodes any byte
 
 
 def _amount(text: str | None) -> Decimal | None:

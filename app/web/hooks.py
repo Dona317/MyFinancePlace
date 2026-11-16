@@ -1,7 +1,8 @@
 """What runs before every request, in this order: open the client's archive, refuse requests from other sites or with
 NUL characters, ask to sign in, keep a user who is not an administrator on their own archive, make its fixed accounts
 (Contanti, Debiti), close the past years (once a day), hide the modules switched off in Settings and the sections
-blocked for the user. Plus /health."""
+blocked for the user. After it: the answer compressed for a browser on another machine. Plus /health."""
+import gzip
 from datetime import date
 from urllib.parse import urlsplit
 
@@ -136,6 +137,29 @@ def block_disabled_modules():
     return None
 
 
+COMPRESSED_TYPES = {"text/html", "text/css", "text/plain", "text/csv", "application/javascript", "text/javascript",
+                    "application/json", "image/svg+xml"}
+COMPRESS_FROM = 1024  # bytes: below it the saving is not worth the work
+LOOPBACK = {"127.0.0.1", "::1"}
+
+
+def compress(response):
+    """Pages are 200–400 KB of HTML and the style sheet 150 KB: gzip makes them about a seventh on the way to a
+    browser on another machine (the cloud, the home network). Not for the desktop app or a proxy on this machine:
+    nothing travels, the work would be wasted — and a proxy compresses by itself."""
+    if (response.status_code != 200 or request.remote_addr in LOOPBACK or response.mimetype not in COMPRESSED_TYPES
+            or "Content-Encoding" in response.headers or "gzip" not in request.headers.get("Accept-Encoding", "").lower()
+            or request.method == "HEAD" or (response.is_streamed and not response.direct_passthrough)):
+        return response
+    response.direct_passthrough = False  # a static file: read it, as a page already is
+    body = response.get_data()
+    if len(body) >= COMPRESS_FROM:
+        response.set_data(gzip.compress(body, compresslevel=5))
+        response.headers["Content-Encoding"] = "gzip"
+        response.vary.add("Accept-Encoding")
+    return response
+
+
 def health():
     """For the desktop launcher and monitoring: the app answers and reaches its database."""
     try:
@@ -156,3 +180,4 @@ def register_hooks(app: Flask) -> None:
     for hook in (open_client_archive, refuse_foreign_and_broken_requests, require_login, confine_to_own_archive,
                  ensure_fixed_accounts, close_past_years, block_disabled_modules):
         app.before_request(hook)
+    app.after_request(compress)

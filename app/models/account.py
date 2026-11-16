@@ -1,7 +1,16 @@
 from app.extensions import db
 
 
-class Account(db.Model):
+class FeeRule:
+    """What an account and a securities account share: the commission rule of their trades (fee_fixed, fee_percent,
+    fee_min, fee_max — columns of each table)."""
+
+    @property
+    def has_fee_rule(self) -> bool:
+        return any(v is not None for v in (self.fee_fixed, self.fee_percent, self.fee_min, self.fee_max))
+
+
+class Account(FeeRule, db.Model):
     """A bank account, card, savings account or cash wallet the transactions belong to."""
     __tablename__ = "accounts"
 
@@ -34,7 +43,3 @@ class Account(db.Model):
     # instead of the Italian stamp duty)
     tax_regime       = db.Column(db.String(20), nullable=False, default="amministrato", server_default="amministrato")
     abroad           = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
-
-    @property
-    def has_fee_rule(self) -> bool:
-        return any(v is not None for v in (self.fee_fixed, self.fee_percent, self.fee_min, self.fee_max))

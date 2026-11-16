@@ -132,10 +132,7 @@ def _closest(start: date, end: date) -> Period:
 
 
 def _key() -> str:
-    from flask_login import current_user
-
-    user = getattr(current_user, "id", None) if getattr(current_user, "is_authenticated", False) else None
-    return SETTING.format(user=user or 0)
+    return settings_store.user_key(SETTING)
 
 
 def saved(today: date | None = None) -> Period:

@@ -4,13 +4,13 @@ or amount order, the hand-written ones and the .ics file. Its blocks are arrange
 """
 from datetime import date, datetime, timedelta
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_babel import format_date
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.reminder import Reminder
-from app.routes.helpers import download, export_name, flash_errors
+from app.routes.helpers import download, export_name, flash_errors, layout_answer
 from app.services import deadlines, notifications, page_layout, periods, sections, settings_store
 from app.services.i18n import _l
 from app.services.parsing import to_date, to_decimal
@@ -68,14 +68,8 @@ def index():
 @deadlines_bp.route("/layout", methods=["POST"])
 def save_layout():
     """The blocks of the page: {"widgets": [{id, span, height, visible}]} or {"reset": true}."""
-    data = request.get_json(silent=True)
-    if not isinstance(data, dict):
-        return jsonify(error=_("Atteso un oggetto JSON.")), 400
-    if data.get("reset"):
-        return jsonify(layout=page_layout.reset(LAYOUT_SETTING, BLOCKS))
-    if not isinstance(data.get("widgets"), list):
-        return jsonify(error=_("Manca l'elenco dei blocchi.")), 400
-    return jsonify(layout=page_layout.save(LAYOUT_SETTING, BLOCKS, data["widgets"]))
+    return layout_answer(lambda widgets: page_layout.save(LAYOUT_SETTING, BLOCKS, widgets),
+                         lambda: page_layout.reset(LAYOUT_SETTING, BLOCKS))
 
 
 def _save(reminder: Reminder | None):

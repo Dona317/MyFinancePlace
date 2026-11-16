@@ -23,6 +23,8 @@ from xml.etree import ElementTree
 
 from flask_babel import gettext as _
 
+from app.services.parsing import decode_text  # noqa: F401 - also used as statement_readers.decode_text
+
 OLE2_MAGIC = b"\xd0\xcf\x11\xe0"
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif", ".tiff", ".heic", ".webp")
 
@@ -91,15 +93,6 @@ def read_document(filename: str, raw: bytes) -> Document:
     if text.lstrip()[:1] == "<":
         return Document(kind="html", tables=[_html_rows(text)])
     return text_document("csv" if name.endswith(".csv") else "txt", text)
-
-
-def decode_text(raw: bytes) -> str:
-    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
-        try:
-            return raw.decode(encoding)
-        except UnicodeDecodeError:
-            continue
-    return raw.decode("latin-1", errors="replace")
 
 
 # ── Spreadsheets ───────────────────────────────────────────────────────────────

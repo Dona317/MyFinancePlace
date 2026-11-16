@@ -37,6 +37,7 @@ ICONS = ("archive", "house", "house-heart", "people", "person", "briefcase", "ba
          "credit-card", "cart", "shop", "gift", "airplane", "car-front", "globe", "tree", "sun", "umbrella", "book",
          "mortarboard", "tools", "palette", "star")
 PRIMARY_SLUG = "principale"
+STUDIO_CACHE = "is_studio"  # request_cache: the answer of is_studio(), forgotten when a client is made or removed
 
 
 class StudioError(Exception):
@@ -95,11 +96,14 @@ def open_name() -> str | None:
 
 def is_studio() -> bool:
     """More than one archive: the interface shows which client is open."""
-    try:
-        return Client.query.filter(Client.database.isnot(None)).count() > 0
-    except Exception:  # noqa: BLE001 - a database not yet migrated: no studio
-        db.session.rollback()
-        return False
+    store = request_cache.cache()
+    if STUDIO_CACHE not in store:
+        try:
+            store[STUDIO_CACHE] = Client.query.filter(Client.database.isnot(None)).count() > 0
+        except Exception:  # noqa: BLE001 - a database not yet migrated: no studio
+            db.session.rollback()
+            return False
+    return store[STUDIO_CACHE]
 
 
 def activate(client: Client | None) -> None:
@@ -250,6 +254,7 @@ def create(name: str, color: str | None = None, notes: str | None = None) -> Cli
         raise
     db.session.add(client)
     db.session.commit()
+    request_cache.cache().pop(STUDIO_CACHE, None)
     return client
 
 
@@ -291,6 +296,7 @@ def delete(client: Client) -> Path:
     shutil.rmtree(_home(client), ignore_errors=True)
     db.session.delete(client)
     db.session.commit()
+    request_cache.cache().pop(STUDIO_CACHE, None)
     return path
 
 

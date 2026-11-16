@@ -22,6 +22,15 @@ def forget() -> None:
     request_cache.cache().pop(CACHE_KEY, None)
 
 
+def user_key(template: str) -> str:
+    """The key of a setting each user has their own of: `template` with {user} filled by the signed-in user's id
+    (0 with no sign-in)."""
+    from flask_login import current_user
+
+    user = getattr(current_user, "id", None) if getattr(current_user, "is_authenticated", False) else None
+    return template.format(user=user or 0)
+
+
 def get(key: str, default: str | None = None) -> str | None:
     value = _all().get(key)
     return value if value not in (None, "") else default

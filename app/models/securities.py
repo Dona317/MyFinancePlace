@@ -10,9 +10,10 @@ trades (services.securities), never stored by hand.
 from datetime import datetime
 
 from app.extensions import db
+from app.models.account import FeeRule
 
 
-class SecuritiesAccount(db.Model):
+class SecuritiesAccount(FeeRule, db.Model):
     """A broker's dossier: its settlement account, how its gains are taxed and what its commissions are."""
     __tablename__ = "securities_accounts"
 
@@ -37,10 +38,6 @@ class SecuritiesAccount(db.Model):
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
 
     settlement_account = db.relationship("Account", foreign_keys=[settlement_account_id])
-
-    @property
-    def has_fee_rule(self) -> bool:
-        return any(v is not None for v in (self.fee_fixed, self.fee_percent, self.fee_min, self.fee_max))
 
 
 class Portfolio(db.Model):

@@ -7,7 +7,7 @@ class Transaction(db.Model):
     __tablename__ = "transactions"
 
     id             = db.Column(db.Integer,        primary_key=True)
-    date           = db.Column(db.Date,           nullable=False)
+    date           = db.Column(db.Date,           nullable=False, index=True)
     description    = db.Column(db.Text,           nullable=False)
     amount         = db.Column(db.Numeric(38, 2), nullable=False)  # 36 integer digits: no practical limit
     currency       = db.Column(db.String(3),      default="EUR")

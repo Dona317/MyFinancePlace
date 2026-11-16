@@ -1,14 +1,14 @@
 import re
 from datetime import date, timedelta
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, render_template, request
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.account import Account
 from app.models.client import ClientGroup
 from app.models.transaction import Transaction
-from app.routes.helpers import csv_text, download, export_file, export_name, year_arg
+from app.routes.helpers import csv_text, download, export_file, export_name, layout_answer, year_arg
 from app.services import (
     accounts,
     analytics,
@@ -100,14 +100,9 @@ def _block_titles() -> dict[str, str]:
 @reports_bp.route("/<any(income, spending):section>/layout", methods=["POST"])
 def save_layout(section: str):
     """The blocks of Entrate or Uscite: {"widgets": [{id, span, height, visible}]} or {"reset": true}."""
-    data = request.get_json(silent=True)
-    if not isinstance(data, dict):
-        return jsonify(error=_("Atteso un oggetto JSON.")), 400
-    if data.get("reset"):
-        return jsonify(layout=page_layout.reset(_layout_setting(section), _blocks(section)))
-    if not isinstance(data.get("widgets"), list):
-        return jsonify(error=_("Manca l'elenco dei blocchi.")), 400
-    return jsonify(layout=page_layout.save(_layout_setting(section), _blocks(section), data["widgets"]))
+    setting, blocks = _layout_setting(section), _blocks(section)
+    return layout_answer(lambda widgets: page_layout.save(setting, blocks, widgets),
+                         lambda: page_layout.reset(setting, blocks))
 
 
 @reports_bp.route("/income")

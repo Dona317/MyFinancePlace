@@ -1,12 +1,12 @@
 from datetime import date
 
 from apiflask import APIBlueprint
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.transaction import Transaction
-from app.routes.helpers import back_to
+from app.routes.helpers import back_to, layout_answer
 from app.services import analytics, forecast, forecast_prefs, planning
 from app.services.parsing import to_decimal
 
@@ -51,14 +51,7 @@ def save_preferences():
 @forecast_bp.route("/layout", methods=["POST"])
 def save_layout():
     """Panels of the page, in order, each half or whole row, shown or hidden: {"widgets": [...]} or {"reset": true}."""
-    data = request.get_json(silent=True)
-    if not isinstance(data, dict):
-        return jsonify(error="Atteso un oggetto JSON."), 400
-    if data.get("reset"):
-        return jsonify(layout=forecast.reset_layout())
-    if not isinstance(data.get("widgets"), list):
-        return jsonify(error="Manca l'elenco dei pannelli."), 400
-    return jsonify(layout=forecast.save_layout(data["widgets"]))
+    return layout_answer(forecast.save_layout, forecast.reset_layout)
 
 
 @forecast_bp.route("/recurring/<int:tx_id>", methods=["POST"])

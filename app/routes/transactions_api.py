@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from apiflask import abort
 from flask_babel import gettext as _
+from sqlalchemy.orm import selectinload
 
 from app.extensions import db
 from app.models.account import Account
@@ -17,7 +18,8 @@ from app.services import cards, splits
 @transactions_bp.get("/api")
 @transactions_bp.output(TransactionListOut)
 def api_list():
-    transactions = Transaction.query.order_by(Transaction.date.desc()).all()
+    # the answer lists the splits of each transaction: read together, not one query per transaction
+    transactions = Transaction.query.options(selectinload(Transaction.splits)).order_by(Transaction.date.desc()).all()
     return {"success": True, "transactions": transactions, "total": len(transactions)}
 
 

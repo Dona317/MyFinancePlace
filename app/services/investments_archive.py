@@ -135,8 +135,7 @@ def create_archive() -> bytes:
     return buffer.getvalue()
 
 
-def counts(data: dict) -> dict[str, int]:
-    return {name: len(rows) for name, rows in data.get("tables", {}).items()}
+counts = backup.counts  # {table: rows} of an archive, as for a full backup
 
 
 # ── Restore ────────────────────────────────────────────────────────────────────

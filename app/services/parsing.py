@@ -82,6 +82,16 @@ def valid_amount(amount: Decimal | None) -> bool:
     return amount is not None and amount.is_finite() and Decimal(0) < abs(amount) <= MAX_AMOUNT
 
 
+def decode_text(raw: bytes) -> str:
+    """The text of a file whose encoding nobody declares: UTF-8, else the Windows one, else latin-1."""
+    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
+        try:
+            return raw.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return raw.decode("latin-1", errors="replace")  # pragma: no cover - latin-1 decodes any byte
+
+
 def clean_text(value) -> str | None:
     """Text with its whitespace collapsed; None when empty."""
     if value is None:
