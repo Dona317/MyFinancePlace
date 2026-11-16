@@ -357,3 +357,47 @@ def test_the_broad_fallback_counts_as_no_category(client, ollama, db):
     db.session.commit()
     page = client.post("/transactions/classify", data={"ids": [str(tx.id)]}).get_data(as_text=True)
     assert f'name="apply" value="{tx.id}" checked' in page  # the suggestion replaces the fallback
+
+
+# ── The register asks a group at a time, to show the progress (F102 in the register) ──
+
+def test_the_register_classifies_a_group_at_a_time_then_reviews(client, ollama, saved):
+    page = client.get("/transactions/").get_data(as_text=True)
+    assert 'id="ai-progress"' in page and "classify/batch" in page and 'id="classify-review-form"' in page
+    ids = client.post("/transactions/classify/ids", data={}).get_json()["ids"]
+    assert ids == [saved[2].id, saved[1].id, saved[0].id]  # those without a category, newest first
+    assert client.post("/transactions/classify/ids", data={"ids": [str(saved[3].id)]}).get_json()["ids"] == [saved[3].id]
+
+    first = client.post("/transactions/classify/batch", json={"ids": ids[:2]}).get_json()
+    second = client.post("/transactions/classify/batch", json={"ids": ids[2:]}).get_json()
+    assert first["model"] and set(first["suggestions"]) == {str(saved[1].id)}  # nothing sure for «Bonifico XYZ»
+    assert second["suggestions"][str(saved[0].id)] == {"category": "Alimentari", "counterparty": "Esselunga",
+                                                      "confidence": "alta"}
+    assert len(ollama.calls) == 2  # one request to the model per group
+
+    found = first["suggestions"] | second["suggestions"] | {
+        "999999": {"category": "Alimentari"},                                # no such transaction: not shown
+        str(saved[3].id): {"category": "Categoria inventata dal browser"}}   # not a category of the archive: dropped
+    page = client.post("/transactions/classify/review", data={
+        "ids": [str(i) for i in ids], "suggestions": json.dumps(found), "next": "/transactions/?q=x"}).get_data(as_text=True)
+    assert len(ollama.calls) == 2  # the review does not ask the model again
+    assert "Bonifico XYZ" in page and "Categoria inventata" not in page and 'href="/transactions/?q=x"' in page
+    data = form_data(page, "classify-form")
+    assert sorted(data["apply"]) == sorted([str(saved[0].id), str(saved[1].id)])  # as the one-go page preselects
+    client.post("/transactions/classify/apply", data=data)
+    assert _db.session.get(Transaction, saved[0].id).category == "Alimentari"
+
+
+def test_the_groups_of_the_register_refuse_what_is_not_a_classification(client, app, ollama, saved):
+    assert client.post("/transactions/classify/batch", json={"ids": []}).status_code == 400
+    assert client.post("/transactions/classify/batch", json={"ids": ["x", None]}).status_code == 400
+    assert client.post("/transactions/classify/batch", data="no", content_type="text/plain").status_code == 400
+    app.config["LLM_PROVIDER"] = ""  # no model to ask: the group answers with the error, for the window to show
+    failed = client.post("/transactions/classify/batch", json={"ids": [saved[0].id]})
+    assert failed.status_code == 400 and "non riuscita" in failed.get_json()["error"]
+    for body in ({"ids": [str(saved[0].id)], "suggestions": "{non json"}, {"suggestions": "{}"}, {"ids": ["1"], "suggestions": "[]"}):
+        response = client.post("/transactions/classify/review", data=body)
+        assert response.status_code in (200, 302)
+    page = client.post("/transactions/classify/review", data={
+        "ids": [str(saved[0].id)], "suggestions": json.dumps({str(saved[0].id): {"category": "Alimentari", "confidence": "?"}})})
+    assert "bassa" in page.get_data(as_text=True)  # an unknown confidence counts as the lowest

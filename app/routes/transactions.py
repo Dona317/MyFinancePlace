@@ -4,7 +4,7 @@ import json
 from datetime import date, timedelta
 
 from apiflask import APIBlueprint
-from flask import flash, get_flashed_messages, redirect, render_template, request, url_for
+from flask import flash, get_flashed_messages, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_babel import ngettext
 from sqlalchemy import func, or_
@@ -22,7 +22,6 @@ from app.services import (
     accounts,
     ai_classification,
     ai_extraction,
-    analytics,
     bank_import,
     broker,
     category_rules,
@@ -30,9 +29,7 @@ from app.services import (
     display,
     duplicates,
     family,
-    forecast,
     merchant,
-    periods,
     portfolio_ops,
     register_views,
     securities,
@@ -145,16 +142,6 @@ FILTER_KEYS = ("q", "type", "category", "month", "recurring", "account", "tag", 
                "max", "card", "to")
 
 
-def _section_cards(today: date) -> dict:
-    """F81: the figures of the three cards on top — this month's income and expenses, the recurring series."""
-    month = today.replace(day=1)
-    sums = analytics.totals(month, periods.add_months(month, 1))
-    templates = forecast.scheduled_templates(Transaction.query.filter(Transaction.is_recurring.is_(True)).all())
-    spent = [t for t in templates if t.type == "expense"]
-    return {"income": sums["income"], "expenses": sums["expenses"], "recurring": len(templates),
-            "recurring_monthly": sum(forecast.monthly_equivalent(t) for t in spent)}
-
-
 def register_context(locked: dict | None = None, title: str | None = None) -> dict:
     """F99: the register — search, filters, bulk edit and the list — for the page being drawn: the Transazioni tab,
     or Entrate, Uscite and Ricorrenti with a filter of their own that cannot be changed (`locked`, e.g. type=income).
@@ -222,7 +209,7 @@ def index():
     if all(len(day) == 10 for day in given) and not request.args.get("part"):  # dates in the address: exactly those
         first, last = given
     register = register_context(locked={"start": first, "end": last})
-    return render_template("transactions/index.html", cards=_section_cards(date.today()),
+    return render_template("transactions/index.html",
                            period_keep={k: v for k, v in request.args.items() if k not in shared_period.ADDRESS_KEYS},
                            **register)
 
@@ -242,10 +229,9 @@ def save_view():
 
 @transactions_bp.route("/prefs", methods=["POST"])
 def save_prefs():
-    """F101: «Gestisci» of Transazioni — rows per page, the columns shown, the cards on top."""
+    """F101: «Gestisci» of Transazioni — rows per page, the columns shown."""
     shown = request.form.getlist("show_col")
-    register_views.save_prefs(request.form.get("page_size"), [c for c in register_views.HIDEABLE if c not in shown],
-                              "cards" in request.form)
+    register_views.save_prefs(request.form.get("page_size"), [c for c in register_views.HIDEABLE if c not in shown])
     return back_to("transactions.index")
 
 
@@ -688,21 +674,34 @@ def _detail_tags(suggestions: dict) -> list[str]:
 
 @transactions_bp.route("/classify", methods=["POST"])
 def classify():
-    """Ask the AI for category/counterparty suggestions and show them for review (nothing is saved)."""
-    ids = selected_ids()
-    query = Transaction.query.filter(Transaction.id.in_(ids)) if ids else _unclassified_query()
-    transactions = query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
+    """Ask the AI for category/counterparty suggestions and show them for review (nothing is saved). In one go:
+    the register's button asks a group at a time instead (classify_ids, classify_batch, classify_review), to show
+    its progress; this stays for a browser without scripts."""
+    transactions = _to_classify().all()
     if not transactions:
         flash(_("Nessuna transazione da classificare."), "warning")
         return back_to("transactions.index")
-    items = [
-        {"id": tx.id, "text": _classification_text(tx), "amount": tx.signed_amount} for tx in transactions
-    ]
     try:
-        suggestions = ai_classification.classify(items, known_categories())
+        suggestions = ai_classification.classify(_classification_items(transactions), known_categories())
     except ai_extraction.AIExtractionError as exc:
         flash(_("Classificazione AI non riuscita: %(exc)s", exc=exc), "error")
         return back_to("transactions.index")
+    return _classify_page(transactions, suggestions)
+
+
+def _to_classify():
+    """What a classification works on: the selection (ticked rows or the whole search), else the transactions
+    without a category; newest first."""
+    ids = selected_ids()
+    query = Transaction.query.filter(Transaction.id.in_(ids)) if ids else _unclassified_query()
+    return query.order_by(Transaction.date.desc(), Transaction.id.desc())
+
+
+def _classification_items(transactions) -> list[dict]:
+    return [{"id": tx.id, "text": _classification_text(tx), "amount": tx.signed_amount} for tx in transactions]
+
+
+def _classify_page(transactions, suggestions: dict):
     return render_template(
         "transactions/classify.html",
         rows=[(tx, suggestions.get(tx.id)) for tx in transactions],
@@ -711,6 +710,59 @@ def classify():
         with_tags=_detail_tags(suggestions),
         next_url=safe_next(),
     )
+
+
+CLASSIFY_BATCH_MAX = 50  # transactions a single request of the progress window may ask for
+
+
+@transactions_bp.route("/classify/ids", methods=["POST"])
+def classify_ids():
+    """F102 in the register: the transactions the classification will work on, in the order of the review page."""
+    return jsonify(ids=[row[0] for row in _to_classify().with_entities(Transaction.id)])
+
+
+@transactions_bp.route("/classify/batch", methods=["POST"])
+def classify_batch():
+    """One group of the classification under way (JSON in, JSON out); nothing is saved here."""
+    body = request.get_json(silent=True)
+    ids = body.get("ids") if isinstance(body, dict) else None
+    ids = [i for i in ids if isinstance(i, int)][:CLASSIFY_BATCH_MAX] if isinstance(ids, list) else []
+    transactions = Transaction.query.filter(Transaction.id.in_(ids)).all() if ids else []
+    if not transactions:
+        return jsonify(error=_("Nessuna transazione da classificare.")), 400
+    try:
+        suggestions = ai_classification.classify(_classification_items(transactions), known_categories())
+    except ai_extraction.AIExtractionError as exc:
+        return jsonify(error=_("Classificazione AI non riuscita: %(exc)s", exc=exc)), 400
+    return jsonify(model=ai_classification.model_name(),
+                   suggestions={str(tx_id): s.to_dict() for tx_id, s in suggestions.items()})
+
+
+@transactions_bp.route("/classify/review", methods=["POST"])
+def classify_review():
+    """The page that reviews the suggestions the groups brought (the model is not asked again, nothing is saved).
+    They come back from the browser: a category that is not one of the archive's is dropped, the rest cut to size."""
+    try:
+        sent = json.loads(request.form.get("suggestions") or "{}")
+    except ValueError:
+        sent = {}
+    allowed = {category_service.resolve(c) for c in known_categories()} | set(known_categories()) | {category_service.fallback()}
+    suggestions = {}
+    for key, value in sent.items() if isinstance(sent, dict) else []:
+        if not str(key).isdigit() or not isinstance(value, dict) or value.get("category") not in allowed:
+            continue
+        confidence = value.get("confidence")
+        suggestions[int(key)] = ai_classification.Suggestion(
+            value["category"], str(value.get("counterparty") or "")[:200],
+            confidence if confidence in ai_classification.CONFIDENCE else ai_classification.CONFIDENCE[-1],
+            from_history=value.get("from_history") is True, tag=str(value.get("tag") or "")[:100])
+    ids = form_ids()
+    transactions = (Transaction.query.filter(Transaction.id.in_(ids))
+                    .order_by(Transaction.date.desc(), Transaction.id.desc()).all()) if ids else []
+    if not transactions:
+        flash(_("Nessuna transazione da classificare."), "warning")
+        return back_to("transactions.index")
+    return _classify_page(transactions, suggestions)
 
 
 @transactions_bp.route("/classify/apply", methods=["POST"])

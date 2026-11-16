@@ -1,6 +1,7 @@
 {# F99: the register — search, filters, Modifica massiva and the list — the same on Transazioni, Entrate, Uscite
    and Ricorrenti. Its links and forms stay on the page that shows it (register_url, register_with); a `locked`
    filter (the type, the period, only recurring) is set by the page and cannot be changed here. #}
+{% from "partials/ai_progress.html" import ai_progress_window %}
 {% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
 {% from "partials/info.html" import info %}
@@ -391,6 +392,12 @@
   <form method="POST" action="{{ url_for('transactions.classify') }}" id="classify-form">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
   </form>
+  {# F102 in the register: the suggestions the groups brought go to the page that reviews them #}
+  <form method="POST" action="{{ url_for('transactions.classify_review') }}" id="classify-review-form">
+    <input type="hidden" name="next" value="{{ request.full_path }}" />
+    <input type="hidden" name="suggestions" value="" />
+  </form>
+  {{ ai_progress_window() }}
   <template id="quick-template">
     <tr class="quick-row"><td colspan="7">
       <form class="quick-edit" autocomplete="off">

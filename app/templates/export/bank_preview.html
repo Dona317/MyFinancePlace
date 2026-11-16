@@ -3,6 +3,7 @@
 {% from "partials/kpi.html" import kpi %}
 {% import "partials/fields.html" as f %}
 
+{% from "partials/ai_progress.html" import ai_progress_window, ai_progress_script %}
 {% block page_title %}{{ _('Anteprima Importazione') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('export.import_page') }}">{{ _('Importa') }}</a></li><li>{{ _('Estratto conto') }}</li>{% endblock %}
 
@@ -307,24 +308,7 @@
       </table>
     </div>
     <div id="ai-classify-status" class="alert" style="display:none;margin:0 20px 12px;"></div>
-    {# F102: the AI classification under way — stays open until it ends, with its progress #}
-    <div class="modal-overlay" id="ai-progress" aria-hidden="true">
-      <div class="modal ai-progress" role="dialog" aria-modal="true" aria-labelledby="ai-progress-title" aria-live="polite">
-        <div class="modal-header">
-          <h3 class="modal-title" id="ai-progress-title"><i class="bi bi-stars"></i> {{ _('Classificazione con AI') }}</h3>
-        </div>
-        <div class="modal-body">
-          <p class="text-sm mb-8" id="ai-progress-text"></p>
-          <div class="ai-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="ai-progress-fill"></span></div>
-          <p class="text-xs text-muted mt-8 mb-0" id="ai-progress-meta"></p>
-          <p class="text-sm mt-8 mb-0 text-negative" id="ai-progress-error" hidden></p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost btn-sm" id="ai-progress-stop"><i class="bi bi-stop-circle"></i> {{ _('Interrompi') }}</button>
-          <button type="button" class="btn btn-primary btn-sm" id="ai-progress-close" hidden>{{ _('Chiudi') }}</button>
-        </div>
-      </div>
-    </div>
+    {{ ai_progress_window() }}
     <div class="card-body" style="border-top:1px solid var(--clr-border);padding-top:12px;padding-bottom:12px;">
       <button type="button" class="btn btn-outline btn-sm" id="add-row"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi riga') }}</button>
       <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-left:8px;">{{ _('per un movimento mancante o letto male') }}</span>
@@ -538,43 +522,7 @@ function showStatus(kind, text) {
   classifyStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// F102: the window of the classification under way — open, a step at a time, the seconds gone, an error, closed
-const aiProgress = (() => {
-  const $ = (id) => document.getElementById(id);
-  let total = 0, done = 0, model = '';
-  const draw = (seconds) => {
-    const pct = total ? Math.round(done / total * 100) : 0;
-    $('ai-progress-fill').style.width = `${pct}%`;
-    $('ai-progress-fill').parentElement.setAttribute('aria-valuenow', String(pct));
-    $('ai-progress-text').textContent = fmt({{ _('Movimenti classificati: %(done)s di %(total)s', done='%(done)s', total='%(total)s')|tojson }}, {done, total});
-    if (seconds !== undefined) {
-      $('ai-progress-meta').textContent = fmt({{ _('%(seconds)s s', seconds='%(seconds)s')|tojson }}, {seconds}) + (model ? ' · ' + model : '');
-    }
-  };
-  return {
-    open(count, onStop) {
-      total = count; done = 0; model = '';
-      $('ai-progress-error').hidden = true;
-      $('ai-progress-close').hidden = true;
-      $('ai-progress-stop').hidden = false;
-      $('ai-progress-stop').disabled = false;
-      $('ai-progress-stop').onclick = () => { onStop(); $('ai-progress-stop').disabled = true; $('ai-progress-text').textContent = {{ _('Interruzione dopo il gruppo in corso…')|tojson }}; };
-      $('ai-progress-close').onclick = () => this.close();
-      draw(0);
-      openModal('ai-progress');
-      return this;
-    },
-    step(count, name) { done = count; model = name || model; draw(); },
-    tick(seconds) { draw(seconds); },
-    fail(message) {
-      $('ai-progress-error').textContent = message;
-      $('ai-progress-error').hidden = false;
-      $('ai-progress-stop').hidden = true;
-      $('ai-progress-close').hidden = false;
-    },
-    close() { closeModal('ai-progress'); },
-  };
-})();
+{{ ai_progress_script() }}
 
 classifyButton?.addEventListener('click', async () => {
   if (classifyButton.dataset.cloud === 'true' &&

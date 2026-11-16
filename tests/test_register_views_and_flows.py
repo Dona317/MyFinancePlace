@@ -29,10 +29,8 @@ def test_a_view_is_saved_replaced_by_name_and_deleted(app, client, db):
 def test_the_register_prefs_keep_only_known_values(app, client, db):
     client.post("/transactions/prefs", data={"page_size": "50", "show_col": ["category"]})
     with app.test_request_context():
-        assert register_views.prefs() == {"page_size": 50, "hide": ["tags"], "cards": False}
-        assert register_views.save_prefs("tanti", ["tags", "boh"], True) == {"page_size": 100, "hide": ["tags"],
-                                                                            "cards": True}
-        assert register_views.prefs()["cards"] is True
+        assert register_views.prefs() == {"page_size": 50, "hide": ["tags"]}
+        assert register_views.save_prefs("tanti", ["tags", "boh"]) == {"page_size": 100, "hide": ["tags"]}
 
 
 def test_the_flows_between_the_accounts(app, client, db):
