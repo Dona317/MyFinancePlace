@@ -12,8 +12,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from urllib.parse import urlsplit
 
-from flask import request
+from flask import flash, has_request_context, request
 from flask_babel import gettext as _
 
 from app.services import settings_store
@@ -160,10 +161,19 @@ def current(today: date | None = None, args=None) -> Period:
     elif args.get("period"):
         found = _from_legacy(args, today)
     if found is not None:
-        if found != saved(today):
-            save(found)
-        return found
+        return _share(found, today)
     return saved(today)
+
+
+def _share(found: Period, today: date) -> Period:
+    """The period the address carries becomes the shared one. When it changes arriving from another page (a month
+    clicked on a chart, a link kept among the bookmarks) a short notice says so: the change is no longer silent. The
+    box on top of the page itself needs none — the page is asked again from itself."""
+    if found != saved(today):
+        save(found)
+        if has_request_context() and urlsplit(request.referrer or "").path != request.path:
+            flash(_("Periodo: %(label)s", label=found.label()), "info")
+    return found
 
 
 def from_register(args, today: date | None = None) -> Period:
@@ -180,9 +190,7 @@ def from_register(args, today: date | None = None) -> Period:
         except ValueError:
             found = None
     if found is not None and 1900 < found.year < 3000:
-        if found != saved(today):
-            save(found)
-        return found
+        return _share(found, today)
     return current(today, args)
 
 

@@ -20,6 +20,9 @@ forecast_bp = APIBlueprint(
 
 @forecast_bp.route("/")
 def index():
+    if request.args.get("remember") and request.args.get("horizon"):  # the period box on top: the horizon is kept
+        forecast.save_preferences(horizon=request.args.get("horizon"))
+        return redirect(url_for("forecast.index", scenario=request.args.get("scenario")))
     # Values in the address (e.g. a shared link) win over the saved preferences, without replacing them
     prefs = forecast.preferences(request.args.get("method"), request.args.get("window"), request.args.get("horizon"),
                                  request.args.get("recurring"))

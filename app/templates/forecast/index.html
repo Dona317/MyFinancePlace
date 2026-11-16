@@ -3,10 +3,15 @@
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/info.html" import info %}
+{% from "partials/period_box.html" import choice_box %}
 
 {% block page_title %}{{ _('Previsioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Previsioni') }}</li>{% endblock %}
 {% block topbar_actions %}
+{# the horizon is this page's period: the same box as on every other page (one format of selector in the app) #}
+{%- set horizons = [] -%}
+{%- for n in ([3, 6, 12, 18, 24] + [prefs.horizon])|unique|sort %}{{ horizons.append((n, _('Prossimi %(n)s mesi', n=n))) or '' }}{% endfor -%}
+{{ choice_box('horizon', horizons, prefs.horizon, keep={'remember': '1'}, hint=_('Fin dove arriva la previsione. La scelta viene ricordata.')) }}
 {# F101: the scenarios are the presets of this page — a click reads the forecast another way, the choice is kept #}
 <div class="dash-presets forecast-scenarios" role="group" aria-label="{{ _('Scenari della previsione') }}">
   {% for key, (label, hint) in scenarios.items() %}
@@ -46,14 +51,6 @@
       <select name="recurring" class="form-select">
         {% for key, (label, description) in recurring_amounts.items() %}
         <option value="{{ key }}" title="{{ description }}" {{ 'selected' if key == prefs.recurring else '' }}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <label>
-      <span>{{ _('Orizzonte') }}</span>
-      <select name="horizon" class="form-select">
-        {% for n in ([3, 6, 12, 18, 24] + [prefs.horizon])|unique|sort %}
-        <option value="{{ n }}" {{ 'selected' if n == prefs.horizon else '' }}>{{ _('%(n)s mesi', n=n) }}</option>
         {% endfor %}
       </select>
     </label>
