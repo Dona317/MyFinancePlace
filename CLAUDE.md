@@ -2,9 +2,11 @@
 
 ## Versione attuale
 - **La versione attuale dell'app è il ramo `test-Cloud`** (PR #8, in bozza verso `main`).
-  Ultima verifica: 15 nov 2026 — suite 1303 test (1302 ok; fallisce solo `test_a_tilted_photo_is_straightened`,
-  che dipende dal motore OCR locale), copertura ~96,7 %, 0 funzioni non testate. Test live non rifatti dopo
-  il 14 nov (273/273 allora). CI del push da controllare su GitHub.
+  Ultima verifica: 18 nov 2026 — suite 1309 test (1308 ok; fallisce solo `test_a_tilted_photo_is_straightened`,
+  che dipende dal motore OCR locale), copertura 97,24 %, 0 funzioni non testate, CI verde su GitHub. Test live non
+  rifatti dopo il 14 nov (273/273 allora): su Windows non girano (gunicorn, Playwright).
+- Pagine da provare a schermo senza la password vera: `python scripts/demo_server.py` (porta 5055, database
+  `…_demo` con i dati finti a 3 anni, utente «demo»). Il database locale gira in Docker (`docker compose up -d db`).
 - `main` è indietro (lo scheletro iniziale) finché la PR #8 non viene unita: decisione D1, rimandata a
   novembre 2026. **Non unire su `main` senza una richiesta esplicita.**
 - Si lavora e si pusha solo su `test-Cloud`. I rami `Mapping-Excel` e `Dona317-patch-1` sono già contenuti

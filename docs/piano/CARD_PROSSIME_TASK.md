@@ -6,7 +6,7 @@ stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare cos
 - **Priorità**: Alta, Media, Bassa. **Sforzo**: S fino a mezza giornata, M un giro di lavoro, L più giri.
 - **Origine**: la voce del piano (Fn, Dn), la card dei brainstorm del 15 nov (Card 1–21, P, D, O, B) o la misura di
   velocità del 15 nov da cui nasce.
-- **Card finite e tolte da questo file**: T01 file personali fuori dal repository e dalla storia, T02 promemoria tenuti tra le pagine, T03 serie storiche e patrimonio mese per mese, T04 Uscite e Bollette, T05 utente di prova, T07 elenco «sezione finita» (16 nov 2026). I risultati sono nel piano.
+- **Card finite e tolte da questo file**: T01 file personali fuori dal repository e dalla storia, T02 promemoria tenuti tra le pagine, T03 serie storiche e patrimonio mese per mese, T04 Uscite e Bollette, T05 utente di prova, T07 elenco «sezione finita» (16 nov 2026); T09 orizzonte e avviso del periodo, T11 promemoria e storico della riconciliazione, T15 Transazioni senza card e con la finestra AI (18 nov 2026). I risultati sono nel piano.
 - Le pagine non sono state riviste a schermo una per una: nelle Card di revisione la revisione a schermo è il primo
   passo.
 
@@ -14,12 +14,14 @@ stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare cos
 
 ## Giro 0 — Fondamenta
 
-**Card T06 — Suite completa, test live e CI dopo il giro 0**
+**Card T06 — Test live a ogni giro**
 - **Area:** Affidabilità · **Giro:** 0 · **Priorità:** Alta · **Sforzo:** S
-- **Descrizione:** Dopo le modifiche di velocità e i duplicati uniti la suite completa non è stata rilanciata, i test live sono fermi al 14 novembre e la CI su GitHub non è stata controllata. Va rifatto tutto e vanno aggiornati i numeri in `CLAUDE.md`.
-- **Dipende da:** T02, T03, T04, T05.
+- **Fatto il 18 nov:** suite completa verde (1308 passati; fallisce solo il test dell'OCR locale), copertura 97,24 %, `untested_functions` a 0, CI verde su GitHub, numeri in `CLAUDE.md`.
+- **Resta:** i test live (`sh scripts/live/run.sh`) non girano su questo PC Windows: servono gunicorn (solo Linux e macOS), Playwright con Chromium e `psql`. Al loro posto le pagine nuove si provano a schermo con il server demo (T05).
+- **Da decidere:** dove farli girare — in un container Linux (Docker, con un `Dockerfile` di prova) o in una sessione cloud — oppure lasciarli prima dei rilasci soltanto.
+- **Dipende da:** la tua decisione.
 - **Origine:** Card 1 e 4.
-- **Fatto quando:** suite verde con copertura almeno al 94 %, `untested_functions` a 0, test live verdi, CI verde, `CLAUDE.md` aggiornato.
+- **Fatto quando:** i test live sono verdi su `test-Cloud` dopo il giro 2.
 
 ---
 
@@ -32,13 +34,6 @@ stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare cos
 - **Origine:** richiesta «export ovunque», Card 15.
 - **Fatto quando:** ogni tabella delle sezioni elencate ha i due pulsanti, e una somma in Excel sugli importi esportati funziona.
 
-**Card T09 — Periodo: orizzonte delle Previsioni nel riquadro, avviso al cambio**
-- **Area:** Periodo e barra · **Giro:** 1 · **Priorità:** Media · **Sforzo:** S
-- **Descrizione:** In Previsioni l'orizzonte è ancora tra le preferenze: va nel riquadro «Periodo» in alto, come nelle altre pagine. Quando un link cambia il periodo condiviso, oggi lo fa in silenzio: un breve avviso («Periodo: marzo 2026») rende chiaro il cambio.
-- **Dipende da:** niente.
-- **Origine:** Card 9 e 11.
-- **Fatto quando:** Previsioni non ha selettori del periodo fuori dal riquadro, e ogni cambio di periodo arrivato da un link mostra l'avviso.
-
 **Card T10 — Menu a hamburger su tutte le pagine**
 - **Area:** Periodo e barra · **Giro:** 1 · **Priorità:** Media · **Sforzo:** M
 - **Descrizione:** Su finestre strette solo la Dashboard raccoglie i comandi della barra in un menu a destra. Va esteso a tutte le pagine, con le voci nello stesso ordine della barra (Periodo, preset o viste, Confronta, altre azioni, Modifica, Gestisci).
@@ -49,13 +44,6 @@ stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare cos
 ---
 
 ## Giro 2 — Tutti i giorni
-
-**Card T11 — Riconciliazione: promemoria e storico**
-- **Area:** Conti · **Giro:** 2 · **Priorità:** Alta · **Sforzo:** M
-- **Descrizione:** Dopo una riconciliazione appare una finestra «Ricordami di riconciliare tra…», già compilata a 1 mese e modificabile (3 mesi, 1 anno, una data). Confermando nasce un promemoria nello Scadenzario, collegato al conto. Nella pagina del conto compare l'elenco delle riconciliazioni fatte, con data, importo, direzione e link al movimento.
-- **Dipende da:** niente.
-- **Origine:** Card 5 e 8.
-- **Fatto quando:** dalla finestra nasce un promemoria che apre la pagina del conto, e la pagina del conto mostra le ultime riconciliazioni.
 
 **Card T12 — Riconciliazione: candidati e controllo in Salute dei dati**
 - **Area:** Conti · **Giro:** 2 · **Priorità:** Media · **Sforzo:** M
@@ -77,13 +65,6 @@ stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare cos
 - **Dipende da:** niente.
 - **Origine:** F66, Card 14.
 - **Fatto quando:** «Duplica» crea una transazione già compilata, e dal menu «Viste» sono disponibili rinomina, ordine e vista predefinita.
-
-**Card T15 — Transazioni: via le tre card in cima, finestra AI nel registro**
-- **Area:** Transazioni · **Giro:** 2 · **Priorità:** Media · **Sforzo:** S
-- **Descrizione:** Le tre card in cima (Entrate, Uscite, Ricorrenti) ripetono le schede con lo stesso nome: **deciso il 16 nov, si tolgono** (con la loro voce in «Gestisci»), e la pagina parte dalle schede e dal registro. «Classifica con AI» dal registro non ha la finestra con barra, conteggio e «Interrompi» che c'è nell'import: va aggiunta.
-- **Dipende da:** niente.
-- **Origine:** Card 12, 13 e 19.
-- **Fatto quando:** Transazioni non ha più le tre card, e classificare dal registro mostra l'avanzamento fino alla fine.
 
 **Card T16 — Annulla un import intero e registro delle modifiche (F62)**
 - **Area:** Importa · **Giro:** 2 · **Priorità:** Media · **Sforzo:** M
