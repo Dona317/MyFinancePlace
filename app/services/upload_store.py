@@ -41,6 +41,12 @@ def save(filename: str, raw: bytes, **meta) -> str:
     return token
 
 
+def replace(token: str, raw: bytes) -> None:
+    """Write new bytes for a saved token (e.g. the rendered page of an import preview, made after its token)."""
+    data_path, _meta_path = _paths(token)
+    data_path.write_bytes(raw)
+
+
 def load(token: str) -> tuple[bytes, dict]:
     """Return (raw bytes, metadata); KeyError when the token is unknown or expired."""
     data_path, meta_path = _paths(token)

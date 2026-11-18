@@ -390,3 +390,14 @@ def test_preview_suggests_the_tags_already_used_for_the_counterparty(client, db)
     _confirm(client, html, include=["0"], **{"counterparty-0": "Esselunga"})
     imported = Transaction.query.filter(Transaction.import_ref.isnot(None)).one()
     assert imported.tags[0] == "Esselunga" and imported.counterparty == "Esselunga"
+
+
+def test_a_preview_can_be_opened_again_until_it_is_imported(client, db):
+    # F102: an AI classification goes on in the other pages; «Torna all'import» opens the same preview again
+    html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
+    token = re.search(r'name="preview_token" value="([^"]+)"', html).group(1)
+    again = client.get(f"/export/bank/preview/{token}")
+    assert again.status_code == 200 and again.get_data(as_text=True) == html
+    _confirm(client, html, include=["0"])
+    assert client.get(f"/export/bank/preview/{token}").status_code == 302  # imported: the kept page is gone
+    assert client.get("/export/bank/preview/not-a-kept-preview-token").status_code == 302

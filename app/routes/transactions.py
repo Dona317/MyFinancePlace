@@ -524,6 +524,22 @@ def quick_update(tx_id):
     return {"ok": True}
 
 
+@transactions_bp.route("/<int:tx_id>/tag", methods=["POST"])
+def add_tag(tx_id):
+    """A tag typed in the tag box of the register: it is added to the transaction, the other tags stay as they are."""
+    tx = db.get_or_404(Transaction, tx_id)
+    new = parse_tags(request.form.get("tag", ""))
+    if not new:
+        return {"error": _("Scrivi un tag.")}, 400
+    tags = list(tx.tags or [])
+    tags += [t for t in new if t.casefold() not in {x.casefold() for x in tags}]
+    tx.tags = tags
+    tx.counterparty = tx.counterparty or next((t for t in tags if t != AI_TAG), None)
+    clusters.resolve(tx)
+    db.session.commit()
+    return {"ok": True, "tags": tags}
+
+
 @transactions_bp.route("/embed-done")
 def embed_done():
     """Where the pop-up goes after saving or deleting: the page under it closes it and shows what was done in a note

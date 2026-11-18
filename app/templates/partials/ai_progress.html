@@ -1,29 +1,26 @@
-{# F102: the window of an AI classification under way — it stays open until the end, with its progress and «Interrompi».
-   Used by the import's preview and by the register: `ai_progress_window()` where the page keeps its windows,
-   `ai_progress_script()` inside its <script> (it defines `aiProgress`). #}
+{# F102: the AI classification under way — a narrow pill at the bottom of the page. It is in every page of the app
+   (base.html) and the classification goes on from page to page: its state is kept in the browser tab
+   (sessionStorage), and each page that opens picks it up where it stopped. Two kinds of job:
+   - "register": the transactions of the register; at the end the review page opens (from any page);
+   - "import": the rows of an import preview; the preview applies the suggestions as they come, and when it is
+     left the pill offers «Torna all'import» (the preview is kept for a while, see export.bank_reopen).
+   `ai_progress_window()` and `ai_progress_script()` once, in base.html. #}
 {% macro ai_progress_window() %}
-{# F102: the AI classification under way — stays open until it ends, with its progress #}
-<div class="modal-overlay" id="ai-progress" aria-hidden="true">
-  <div class="modal ai-progress" role="dialog" aria-modal="true" aria-labelledby="ai-progress-title" aria-live="polite">
-    <div class="modal-header">
-      <h3 class="modal-title" id="ai-progress-title"><i class="bi bi-stars"></i> {{ _('Classificazione con AI') }}</h3>
-    </div>
-    <div class="modal-body">
-      <p class="text-sm mb-8" id="ai-progress-text"></p>
-      <div class="ai-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="ai-progress-fill"></span></div>
-      <p class="text-xs text-muted mt-8 mb-0" id="ai-progress-meta"></p>
-      <p class="text-sm mt-8 mb-0 text-negative" id="ai-progress-error" hidden></p>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-ghost btn-sm" id="ai-progress-stop"><i class="bi bi-stop-circle"></i> {{ _('Interrompi') }}</button>
-      <button type="button" class="btn btn-primary btn-sm" id="ai-progress-close" hidden>{{ _('Chiudi') }}</button>
-    </div>
+<div class="ai-pill" id="ai-progress" role="status" aria-live="polite" hidden>
+  <div class="ai-pill-row">
+    <i class="bi bi-stars"></i>
+    <span class="ai-pill-text" id="ai-progress-text"></span>
+    <span class="ai-pill-meta text-xs text-muted" id="ai-progress-meta"></span>
+    <a class="btn btn-primary btn-sm ai-pill-go" id="ai-progress-go" hidden>{{ _("Torna all'import") }}</a>
+    <button type="button" class="ai-pill-x" id="ai-progress-stop" aria-label="{{ _('Annulla la classificazione') }}" title="{{ _('Annulla la classificazione') }}"><i class="bi bi-x-lg"></i></button>
   </div>
+  <div class="ai-pill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="ai-progress-fill"></span></div>
+  <p class="ai-pill-error" id="ai-progress-error" hidden></p>
 </div>
 {% endmacro %}
 
 {% macro ai_progress_script() %}
-// F102: the window of the classification under way — open, a step at a time, the seconds gone, an error, closed
+// F102: the pill of the classification under way — shown, a step at a time, the seconds gone, an error, the end
 const aiProgress = (() => {
   const $ = (id) => document.getElementById(id);
   let total = 0, done = 0, model = '';
@@ -40,25 +37,167 @@ const aiProgress = (() => {
     open(count, onStop) {
       total = count; done = 0; model = '';
       $('ai-progress-error').hidden = true;
-      $('ai-progress-close').hidden = true;
-      $('ai-progress-stop').hidden = false;
+      $('ai-progress-go').hidden = true;
       $('ai-progress-stop').disabled = false;
+      // the X: stops after the group under way; what came is kept
       $('ai-progress-stop').onclick = () => { onStop(); $('ai-progress-stop').disabled = true; $('ai-progress-text').textContent = {{ _('Interruzione dopo il gruppo in corso…')|tojson }}; };
-      $('ai-progress-close').onclick = () => this.close();
       draw(0);
-      openModal('ai-progress');
+      $('ai-progress').hidden = false;
       return this;
     },
     step(count, name) { done = count; model = name || model; draw(); },
     tick(seconds) { draw(seconds); },
+    // a link in the pill (e.g. back to the import preview the job belongs to)
+    link(href) { $('ai-progress-go').href = href; $('ai-progress-go').hidden = !href; },
     fail(message, onClose) {
       $('ai-progress-error').textContent = message;
       $('ai-progress-error').hidden = false;
-      $('ai-progress-stop').hidden = true;
-      $('ai-progress-close').hidden = false;
-      if (onClose) $('ai-progress-close').onclick = () => { this.close(); onClose(); };
+      $('ai-progress-stop').disabled = false;
+      $('ai-progress-stop').onclick = () => { this.close(); if (onClose) onClose(); };  // the X closes the error
     },
-    close() { closeModal('ai-progress'); },
+    // the job ended away from its page: the pill says so, its link opens the page; the X closes it
+    finished(text, href, onClose) {
+      done = total;
+      draw();
+      $('ai-progress-text').textContent = text;
+      $('ai-progress').hidden = false;
+      this.link(href);
+      $('ai-progress-stop').disabled = false;
+      $('ai-progress-stop').onclick = () => { this.close(); if (onClose) onClose(); };
+    },
+    close() { $('ai-progress').hidden = true; },
   };
 })();
+
+// The classification as a job kept in the tab: it goes on in any page of the app, until the end or the X.
+// The state is in sessionStorage; a page that opens with a job under way takes it over (its loop checks the owner).
+const aiJob = (() => {
+  const KEY = 'mfp-ai-job';
+  const BATCH = 15;
+  const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const read = () => { try { return JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
+  const write = (state) => { try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage blocked */ } };
+  const clear = () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* nothing to remove */ } };
+  const mine = (state) => !!state && state.owner === token;
+  const onStop = () => { const state = read(); if (state) { state.stopped = true; write(state); } };
+  let attached = null;  // {preview, apply(data) → counts, finish(state)}: the import preview this page shows
+  const here = (state) => !!attached && state.kind === 'import' && state.preview === attached.preview;
+
+  // the import preview applies what came while it was not open, and adds up what it applied
+  const catchUp = (state) => {
+    const pending = {};
+    for (const [index, s] of Object.entries(state.found || {})) if (!state.applied.includes(index)) pending[index] = s;
+    if (!Object.keys(pending).length) return;
+    const counts = attached.apply({ suggestions: pending, model: state.model });
+    for (const key of Object.keys(state.totals)) state.totals[key] += counts[key] || 0;
+    state.applied.push(...Object.keys(pending));
+  };
+
+  // the review page of the register: the suggestions that came, with the transactions they are about
+  const review = (state) => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = state.reviewUrl;
+    const add = (name, value) => {
+      const input = document.createElement('input');
+      input.type = 'hidden'; input.name = name; input.value = value;
+      form.appendChild(input);
+    };
+    state.items.slice(0, state.reached).forEach(id => add('ids', id));
+    add('suggestions', JSON.stringify(state.found || {}));
+    add('next', state.next);
+    document.body.appendChild(form);
+    form.submit();
+  };
+
+  // the end, in this page: the register opens its review; an import preview shows its result, or (in another page)
+  // the pill waits with its link back to the preview
+  const finish = (state) => {
+    if (state.kind === 'register') {
+      clear();
+      if (state.error) aiProgress.fail(state.error, state.reached ? () => review(state) : null);
+      else { aiProgress.close(); review(state); }
+      return;
+    }
+    if (here(state)) {
+      catchUp(state);
+      clear();
+      aiProgress.close();
+      attached.finish(state);
+      return;
+    }
+    write(state);  // kept until the preview opens again
+    aiProgress.finished(state.error || {{ _("Classificazione finita: i suggerimenti ti aspettano nell'import.")|tojson }},
+                        state.reopenUrl, clear);
+  };
+
+  const run = async () => {
+    let state = read();
+    if (!state) return;
+    state.owner = token;
+    if (here(state)) catchUp(state);
+    write(state);
+    if (state.status === 'done') { finish(state); return; }
+    aiProgress.open(state.items.length, onStop);
+    aiProgress.step(state.reached, state.model);
+    if (state.kind === 'import' && !here(state)) aiProgress.link(state.reopenUrl);
+    const timer = setInterval(() => aiProgress.tick(Math.round((Date.now() - state.started) / 1000)), 1000);
+    try {
+      for (;;) {
+        state = read();
+        if (!mine(state)) return;  // another page took the job over
+        if (state.stopped || state.reached >= state.items.length) break;
+        const batch = state.items.slice(state.reached, state.reached + BATCH);
+        const response = await fetch(state.batchUrl, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(state.kind === 'import' ? { rows: batch } : { ids: batch }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || {{ _('Classificazione non riuscita.')|tojson }});
+        state = read();
+        if (!mine(state)) return;
+        state.found = Object.assign(state.found || {}, data.suggestions);
+        state.reached = Math.min(state.reached + batch.length, state.items.length);
+        state.model = data.model;
+        if (here(state)) catchUp(state);  // the preview is open: the suggestions land in its table now
+        write(state);
+        aiProgress.step(state.reached, state.model);
+      }
+      clearInterval(timer);
+      state = read();
+      if (!mine(state)) return;
+      state.status = 'done';
+      finish(state);
+    } catch (error) {
+      clearInterval(timer);
+      state = read();
+      if (!mine(state)) return;
+      // what the groups before the error brought is not lost
+      state.status = 'done';
+      state.error = error.message;
+      finish(state);
+    }
+  };
+
+  return {
+    // job: {kind: 'register'|'import', items, batchUrl, and reviewUrl + next (register) or preview + reopenUrl
+    // (import)}; false when a classification is already under way: it is not started twice
+    start(job) {
+      if (read()) return false;
+      write({ ...job, reached: 0, found: {}, applied: [], totals: { applied: 0, unsure: 0, kept: 0 }, model: '',
+              started: Date.now(), stopped: false, status: 'running', error: '', owner: null });
+      run();
+      return true;
+    },
+    // the import preview `preview` is open in this page: how it applies the suggestions and shows the end
+    attach(preview, hooks) { attached = { preview, ...hooks }; },
+    // a job of the import preview `preview` is under way (or ended and waits for it)
+    active(preview) { const state = read(); return !!state && state.kind === 'import' && state.preview === preview; },
+    busy() { return !!read(); },
+    // a page that opens with a job under way goes on with it
+    resume() { if (read()) run(); },
+  };
+})();
+
+document.addEventListener('DOMContentLoaded', () => aiJob.resume());
 {% endmacro %}

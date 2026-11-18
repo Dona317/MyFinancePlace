@@ -3,6 +3,7 @@
    and no top bar #}
 {% set in_popup = request.values.get("embed") == "1" %}
 {% set embedded = in_popup or focus_page is defined %}
+{% from "partials/ai_progress.html" import ai_progress_window, ai_progress_script %}
 <html lang="{{ current_language() }}"{{ ' class="embedded"'|safe if in_popup else (' class="focus"'|safe if embedded) }} data-font="{{ ui_font() }}" data-locale="{{ display.locale }}" data-currency="{{ display.currency }}">
 <head>
   <meta charset="UTF-8" />
@@ -541,6 +542,9 @@
   "ask_none": _("Nessun modello AI configurato: sceglilo nelle Impostazioni."), "ask_wait": _("Sto pensando…"),
   "ask_check": _("Risposta di un modello AI: controlla i numeri nelle pagine indicate."), "ask_error": _("Non è stato possibile rispondere."),
 }|tojson }};</script>
+<!-- F102: the AI classification pill and its job: in every page, so a classification goes on from page to page -->
+{{ ai_progress_window() }}
+<script>{{ ai_progress_script() }}</script>
 <!-- Chart.js and its helpers: only on the pages with charts -->
 {% block chart_scripts %}{% endblock %}
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>

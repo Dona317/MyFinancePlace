@@ -1,5 +1,4 @@
 {# F99: the register's script, with _register.html (in the page's scripts block: after main.js) #}
-{% from "partials/ai_progress.html" import ai_progress_script %}
 <script>
 /* ── The small filters of the titles (Categoria, Importo): a funnel opens its box under the title; a click elsewhere closes it ── */
 document.querySelectorAll('.col-filter').forEach(box => {
@@ -16,10 +15,9 @@ document.querySelectorAll('.col-filter').forEach(box => {
 });
 document.addEventListener('click', () => document.querySelectorAll('.col-pop').forEach(p => { p.hidden = true; }));
 
-/* ── The toolbar's two panels (Filtri, Modifica massiva): a pill opens and closes each; the page remembers it. The
-   filters stay open while one is on; ticking a row never opens the Modifica massiva (the table would move under the
-   mouse): its pill lights up and counts ── */
-[['filters-toggle', 'search-box'], ['bulk-toggle', 'bulk-box']].forEach(([buttonId, panelId]) => {
+/* ── The Modifica massiva panel: its pill opens and closes it; the page remembers it. Ticking a row never opens it
+   (the table would move under the mouse): its pill lights up and counts. The filters are a row always there ── */
+[['bulk-toggle', 'bulk-box']].forEach(([buttonId, panelId]) => {
   const button = document.getElementById(buttonId), panel = document.getElementById(panelId);
   if (!button || !panel) return;
   const show = (on) => { panel.classList.toggle('is-open', on); button.setAttribute('aria-expanded', String(on)); };
@@ -36,6 +34,8 @@ document.addEventListener('click', () => document.querySelectorAll('.col-pop').f
 });
 // the amount: written, then Enter (the form's own) or leaving the field after changing it
 document.querySelectorAll('#search-box .tx-amount').forEach(input => input.addEventListener('change', () => input.form.requestSubmit()));
+// «Altro»: a click outside closes it
+document.addEventListener('click', e => document.querySelectorAll('.tx-more[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }));
 
 /* ── The selection: the ticked rows, or (the box on the header of the table) the whole search, every page ── */
 const searchTotal = {{ total|tojson }};
@@ -123,6 +123,37 @@ document.querySelectorAll('.tx-row').forEach(row => row.addEventListener('click'
 }));
 }
 
+/* ── A tag typed in the tag box of a row: Enter adds it to the transaction; a click on the box (not on a tag) writes
+      there and does not open the quick form of the row ── */
+{
+const addTag = async (input) => {
+  const value = input.value.trim();
+  if (!value) return;
+  const body = new FormData();
+  body.append('tag', value);
+  input.disabled = true;
+  try {
+    const res = await fetch(input.dataset.addTagUrl, { method: 'POST', body });
+    if (res.ok) { location.reload(); return; }
+    const data = await res.json().catch(() => ({}));
+    window.alert(data.error || {{ _('Tag non salvato.')|tojson }});
+  } finally {
+    input.disabled = false;
+  }
+};
+document.querySelectorAll('.tag-add').forEach(input => {
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addTag(input); }
+    if (e.key === 'Escape') { input.value = ''; input.blur(); }
+  });
+});
+document.querySelectorAll('.tag-cell').forEach(cell => cell.addEventListener('click', e => {
+  if (e.target.closest('a, button, form, input')) return;
+  e.stopPropagation();  // the row would open its quick form
+  cell.querySelector('.tag-add')?.focus();
+}));
+}
+
 /* ── Search history: the searches made with a filter, kept in this browser (newest first, at most 100) ── */
 {
 const KEY = 'mfp-search-history', MAX = 100;
@@ -189,7 +220,6 @@ const bulkButton = document.getElementById('bulk-delete');
     bulkBoxes.forEach(box => { box.disabled = form.id === 'bulk-form' && wholeSearch(); });
   });
 });
-{{ ai_progress_script() }}
 const classifyButton = document.getElementById('ai-classify');
 const refreshBulk = () => {
   const count = selectedCount();
@@ -221,47 +251,26 @@ classifyButton?.addEventListener('click', async () => {
   fillSelection(form);
   classifyButton.disabled = true;
   document.getElementById('ai-classify-label').textContent = {{ _('Classificazione in corso…')|tojson }};
-  // F102: the transactions go to the model in small groups, so the window shows real progress; «Interrompi» stops
-  // after the group under way, and what came is reviewed all the same
-  const BATCH = 15;
-  const found = {};
-  let ids = [], reached = 0, stopped = false, timer = null;
-  const review = () => {
-    const target = document.getElementById('classify-review-form');
-    target.querySelectorAll('input[name=ids]').forEach(el => el.remove());
-    ids.slice(0, reached).forEach(id => target.appendChild(Object.assign(document.createElement('input'),
-      { type: 'hidden', name: 'ids', value: id })));
-    target.querySelector('[name=suggestions]').value = JSON.stringify(found);
-    target.submit();
-  };
+  // F102: the classification is a job kept in the tab: the transactions go to the model in small groups, and it goes
+  // on from page to page; the pill shows it, and its X stops it after the group under way
+  let ids = null;
   try {
     const listed = await fetch("{{ url_for('transactions.classify_ids') }}", { method: 'POST', body: new FormData(form) });
     ids = (await listed.json()).ids || [];
-    if (!ids.length) { form.submit(); return; }  // nothing to classify: the page says so
-    const started = Date.now();
-    const progress = aiProgress.open(ids.length, () => { stopped = true; });
-    timer = setInterval(() => progress.tick(Math.round((Date.now() - started) / 1000)), 1000);
-    while (reached < ids.length && !stopped) {
-      const response = await fetch("{{ url_for('transactions.classify_batch') }}", {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: ids.slice(reached, reached + BATCH) }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || {{ _('Classificazione non riuscita.')|tojson }});
-      Object.assign(found, data.suggestions);
-      reached = Math.min(reached + BATCH, ids.length);
-      progress.step(reached, data.model);
-    }
-    clearInterval(timer);
-    review();
   } catch (error) {
-    clearInterval(timer);
-    // what the groups before the error brought is not lost: closing the window opens its review
-    if (ids.length) aiProgress.fail(error.message, reached ? review : null);
-    else window.alert(error.message);
-    classifyButton.disabled = false;
-    refreshBulk();
+    window.alert(error.message);
   }
+  if (ids === null) { refreshBulk(); return; }  // the list failed: the button is back
+  if (!ids.length) { form.submit(); return; }   // nothing to classify: the page says so
+  const started = aiJob.start({
+    kind: 'register',
+    items: ids,
+    batchUrl: "{{ url_for('transactions.classify_batch') }}",
+    reviewUrl: "{{ url_for('transactions.classify_review') }}",
+    next: location.pathname + location.search,
+  });
+  if (!started) window.alert({{ _('Una classificazione è già in corso: aspettala o annullala con la X.')|tojson }});
+  refreshBulk();
 });
 bulkBoxes.forEach(b => b.addEventListener('change', refreshBulk));
 refreshBulk();

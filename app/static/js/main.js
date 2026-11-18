@@ -1037,4 +1037,19 @@ document.addEventListener("DOMContentLoaded", () => {
   initToBottom();
   initScrollArrows();
   initActiveNav();
+  initScrollReveal();
 });
+
+// A scrollable box shows its bar for a few seconds after it is scrolled (the CSS shows it under the pointer)
+function initScrollReveal() {
+  const SHOW_MS = 2000;
+  const timers = new WeakMap();
+  document.addEventListener('scroll', (event) => {
+    let el = event.target;
+    if (el === document) el = document.documentElement;  // the page itself
+    if (!(el instanceof Element)) return;
+    el.classList.add('scroll-show');
+    clearTimeout(timers.get(el));
+    timers.set(el, setTimeout(() => el.classList.remove('scroll-show'), SHOW_MS));
+  }, true);  // scroll does not bubble: listen in the capture phase
+}

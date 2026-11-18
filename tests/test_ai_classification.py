@@ -363,7 +363,8 @@ def test_the_broad_fallback_counts_as_no_category(client, ollama, db):
 
 def test_the_register_classifies_a_group_at_a_time_then_reviews(client, ollama, saved):
     page = client.get("/transactions/").get_data(as_text=True)
-    assert 'id="ai-progress"' in page and "classify/batch" in page and 'id="classify-review-form"' in page
+    # the pill and its job are in every page; the register's button starts a job that ends on the review page
+    assert 'id="ai-progress"' in page and "aiJob.start" in page and "classify/batch" in page and "classify/review" in page
     ids = client.post("/transactions/classify/ids", data={}).get_json()["ids"]
     assert ids == [saved[2].id, saved[1].id, saved[0].id]  # those without a category, newest first
     assert client.post("/transactions/classify/ids", data={"ids": [str(saved[3].id)]}).get_json()["ids"] == [saved[3].id]

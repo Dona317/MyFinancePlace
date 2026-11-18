@@ -16,6 +16,11 @@ def _side(items: list[dict]) -> list[tuple[str, float]]:
     return shown + ([(OTHER, rest)] if rest > 0 else [])
 
 
+def _category(name: str, special: bool) -> str | None:
+    """The category a node or a band opens in the transactions; None when it is not a real category."""
+    return None if special or name == OTHER else name
+
+
 def _band(x0: float, y0: float, x1: float, y1: float, thickness: float) -> str:
     """An SVG path: a band of `thickness` from (x0, y0) to (x1, y1) (top edges), curved in the middle."""
     middle = (x0 + x1) / 2
@@ -49,6 +54,7 @@ def flow(start: date, end: date) -> dict | None:
             special = name in (SAVINGS, FROM_SAVINGS)
             nodes.append({"label": name, "amount": round(amount, 2), "x": x, "y": round(y, 1),
                           "h": round(max(amount * scale, 1), 1), "kind": kind, "special": special,
+                          "category": _category(name, special),
                           "color": "positive" if special else f"chart-{index % 8 + 1}"})
             y += amount * scale + GAP
         return nodes
@@ -58,15 +64,17 @@ def flow(start: date, end: date) -> dict | None:
     centre_x = (WIDTH - NODE) / 2
     centre = {"label": N_("Entrate"), "amount": round(total_in, 2), "x": centre_x,
               "y": round((HEIGHT - total * scale) / 2, 1), "h": round(total * scale, 1), "kind": "total",
-              "special": False, "color": "primary"}
+              "special": False, "category": None, "color": "primary"}
     bands, y_in, y_out = [], centre["y"], centre["y"]
-    for node in left:   # each income flows into the middle, stacked
+    for node in left:   # each income flows into the middle, stacked; its band opens the income category
         bands.append({"d": _band(NODE, node["y"], centre_x, y_in, node["h"]), "color": node["color"],
-                      "label": node["label"], "amount": node["amount"], "to": centre["label"]})
+                      "label": node["label"], "amount": node["amount"], "to": centre["label"],
+                      "kind": "income", "category": node["category"]})
         y_in += node["h"]
-    for node in right:  # the middle flows out to each expense, stacked
+    for node in right:  # the middle flows out to each expense, stacked; its band opens the expense category
         bands.append({"d": _band(centre_x + NODE, y_out, node["x"], node["y"], node["h"]), "color": node["color"],
-                      "label": centre["label"], "amount": node["amount"], "to": node["label"]})
+                      "label": centre["label"], "amount": node["amount"], "to": node["label"],
+                      "kind": "expense", "category": node["category"]})
         y_out += node["h"]
     return {"nodes": [*left, centre, *right], "bands": bands, "width": WIDTH, "height": HEIGHT,
             "node_width": NODE, "total_in": round(total_in, 2), "total_out": round(total_out, 2)}

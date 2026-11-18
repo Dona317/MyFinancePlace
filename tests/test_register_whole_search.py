@@ -51,17 +51,21 @@ def test_without_the_whole_search_only_the_ticked_rows_change(client, db):
     assert [tx.id for tx in Transaction.query] == [second.id]
 
 
-def test_the_filters_panel_opens_with_a_filter_on_and_the_pill_counts_them(client, db):
+def test_the_filters_are_one_slim_row_and_altro_counts_its_own(client, db):
     _add(db, 1, category="Alimentari")
-    html = client.get("/transactions/?category=Alimentari&type=expense&q=spesa").get_data(as_text=True)
-    # two filters on (the search text apart): the panel open, «Filtri · 2» lit, «Azzera» there
-    assert 'class="tx-panel is-open" id="search-box" data-remember="mfp-search-open" data-forced="1"' in html
-    assert "Filtri · 2" in html and 'id="filters-toggle" aria-controls="search-box"' in html and "Togli ricerca e filtri" in html
+    html = client.get("/transactions/?category=Alimentari&type=expense&q=spesa&recurring=1").get_data(as_text=True)
+    # one row always there: the type as a switch (Uscite on), the category lit, «Altro · 1» for «Solo ricorrenti»
+    assert '<div class="tx-filter-row" id="search-box">' in html and 'id="filters-toggle"' not in html
+    assert 'class="tx-seg-item is-on">\n          <input type="radio" name="type" value="expense" checked' in html
+    assert 'name="category" class="form-select tx-compact is-on"' in html
+    assert "Altro · 1" in html and "Togli ricerca e filtri" in html
+    # the dates are the shared period's: no Dal / Al / Mese in the register of Transazioni
+    assert 'name="start"' not in html.split('id="search-box"')[1].split("</form>")[0]
     plain = client.get("/transactions/").get_data(as_text=True)
-    assert 'class="tx-panel" id="search-box"' in plain and "Filtri ·" not in plain and "Togli ricerca e filtri" not in plain
+    assert "Altro ·" not in plain and "Togli ricerca e filtri" not in plain
     # the search alone: no filter counted, but «Azzera» shows
     only_text = client.get("/transactions/?q=spesa").get_data(as_text=True)
-    assert "Filtri ·" not in only_text and "Togli ricerca e filtri" in only_text
+    assert "Altro ·" not in only_text and "Togli ricerca e filtri" in only_text
 
 
 def test_search_filters_and_bulk_edit_live_inside_the_table_card(client, db):

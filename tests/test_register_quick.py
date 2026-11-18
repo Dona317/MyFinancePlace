@@ -53,3 +53,11 @@ def test_the_report_downloads_as_pdf(client, db):
     for query in (f"?account={account.id}", "?account=none&tab=spending"):
         response = client.get("/reports/report.pdf" + query)
         assert response.status_code == 200 and response.data.startswith(b"%PDF")
+
+
+def test_a_tag_typed_in_the_tag_box_is_added_to_the_others(client, db):
+    tx = add(db, description="Pieno", amount=-60, tags=["auto"])
+    response = client.post(f"/transactions/{tx.id}/tag", data={"tag": "viaggio, Auto"})
+    assert response.status_code == 200 and response.get_json()["ok"]
+    assert db.session.get(Transaction, tx.id).tags == ["auto", "viaggio"]  # «Auto» is already there
+    assert client.post(f"/transactions/{tx.id}/tag", data={"tag": " "}).status_code == 400

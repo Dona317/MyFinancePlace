@@ -3,7 +3,6 @@
 {% from "partials/kpi.html" import kpi %}
 {% import "partials/fields.html" as f %}
 
-{% from "partials/ai_progress.html" import ai_progress_window, ai_progress_script %}
 {% block page_title %}{{ _('Anteprima Importazione') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('export.import_page') }}">{{ _('Importa') }}</a></li><li>{{ _('Estratto conto') }}</li>{% endblock %}
 
@@ -107,6 +106,7 @@
 
 <form method="POST" action="{{ url_for('export.bank_confirm') }}" id="preview-form">
   <input type="hidden" name="payload" value="{{ payload }}" />
+  <input type="hidden" name="preview_token" value="{{ preview_token }}" />
   <div class="preview-actions preview-actions-top">
     <span class="text-xs text-muted">{{ _('Controlla conto, banca e righe, poi salva') }}</span>
     <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost btn-sm"><i class="bi bi-x"></i> {{ _('Annulla') }}</a>
@@ -308,7 +308,6 @@
       </table>
     </div>
     <div id="ai-classify-status" class="alert" style="display:none;margin:0 20px 12px;"></div>
-    {{ ai_progress_window() }}
     <div class="card-body" style="border-top:1px solid var(--clr-border);padding-top:12px;padding-bottom:12px;">
       <button type="button" class="btn btn-outline btn-sm" id="add-row"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi riga') }}</button>
       <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-left:8px;">{{ _('per un movimento mancante o letto male') }}</span>
@@ -355,6 +354,29 @@
   .ai-low { border-color: var(--clr-warning) !important; box-shadow: 0 0 0 2px rgba(230, 145, 20, .18); }
 </style>
 <script>
+// F102: a preview left while its AI classification went on comes back as it was left (edits, added and removed rows,
+// the suggestions already applied): the form is put back before the code below binds to it
+const PREVIEW = {{ preview_token|tojson }};
+const PREVIEW_KEY = `mfp-ai-preview-${PREVIEW}`;
+(() => {
+  let kept = null;
+  try { kept = sessionStorage.getItem(PREVIEW_KEY); sessionStorage.removeItem(PREVIEW_KEY); } catch (e) { /* storage blocked */ }
+  if (kept) document.getElementById('preview-form').innerHTML = kept;
+})();
+// leaving the page while the classification goes on: the form is kept, every value written into its markup
+window.addEventListener('pagehide', () => {
+  if (!aiJob.active(PREVIEW)) return;
+  const form = document.getElementById('preview-form');
+  form.querySelectorAll('input, select, textarea').forEach(el => {
+    if (el.type === 'checkbox' || el.type === 'radio') el.toggleAttribute('checked', el.checked);
+    else if (el.tagName === 'SELECT') [...el.options].forEach(o => o.toggleAttribute('selected', o.selected));
+    else if (el.tagName === 'TEXTAREA') el.textContent = el.value;
+    else if (el.type !== 'file') el.setAttribute('value', el.value);
+    el.toggleAttribute('disabled', el.disabled);
+  });
+  try { sessionStorage.setItem(PREVIEW_KEY, form.innerHTML); } catch (e) { /* too big: the preview opens as it was made */ }
+});
+
 // Long descriptions: one line, the whole text on hover; the arrow opens the cell to read (and edit) all of it
 document.addEventListener('click', e => {
   const toggle = e.target.closest('.long-toggle');
@@ -451,7 +473,8 @@ const table = document.querySelector('#preview-table tbody');
 const counter = document.getElementById('selected-count');
 const importButton = document.getElementById('import-button');
 const balance = document.getElementById('balance-check');
-let nextIndex = {{ preview.rows|length }};
+// past the rows of the file and those added by hand (a preview put back may have some)
+let nextIndex = Math.max({{ preview.rows|length }}, ...[...table.querySelectorAll('.preview-row')].map(r => Number(r.dataset.index) + 1 || 0));
 
 const euro = (v) => formatMoney(v, 'EUR');
 
@@ -522,7 +545,6 @@ function showStatus(kind, text) {
   classifyStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-{{ ai_progress_script() }}
 
 classifyButton?.addEventListener('click', async () => {
   if (classifyButton.dataset.cloud === 'true' &&
@@ -539,42 +561,40 @@ classifyButton?.addEventListener('click', async () => {
   }).filter(r => r.text.trim());
   if (!rows.length) return;
 
-  // F102: the rows go to the model in small batches, so the window shows real progress and the suggestions land in
-  // the table as they arrive; «Interrompi» stops after the batch under way and keeps what came
-  const BATCH = 15;
-  const totals = { applied: 0, unsure: 0, kept: 0, model: '' };
-  let stopped = false;
-  const started = Date.now();
-  const progress = aiProgress.open(rows.length, () => { stopped = true; });
-  const timer = setInterval(() => progress.tick(Math.round((Date.now() - started) / 1000)), 1000);
+  // F102: the rows go to the model in small batches as a job kept in the tab: the suggestions land in the table as
+  // they arrive, and the job goes on if the page is left (the pill brings back here); the X stops it after the batch
+  const started = aiJob.start({
+    kind: 'import',
+    items: rows,
+    batchUrl: "{{ url_for('export.bank_classify') }}",
+    preview: PREVIEW,
+    reopenUrl: {{ reopen_url|tojson }},
+  });
+  if (!started) { window.alert({{ _('Una classificazione è già in corso: aspettala o annullala con la X.')|tojson }}); return; }
   classifyButton.disabled = true;
-  try {
-    for (let done = 0; done < rows.length && !stopped; done += BATCH) {
-      const batch = rows.slice(done, done + BATCH);
-      const response = await fetch("{{ url_for('export.bank_classify') }}", {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rows: batch }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || {{ _('Classificazione non riuscita.')|tojson }});
-      totals.model = data.model;
-      applySuggestions(data, totals);
-      progress.step(Math.min(done + BATCH, rows.length), data.model);
-    }
-    progress.close();
+});
+
+// this preview's job: its suggestions are applied here (also those that came while the page was left), and its end
+// says how it went
+aiJob.attach(PREVIEW, {
+  apply(data) {
+    const counts = { applied: 0, unsure: 0, kept: 0 };
+    applySuggestions(data, counts);
+    return counts;
+  },
+  finish(state) {
+    if (classifyButton) classifyButton.disabled = false;
+    const totals = state.totals;
+    if (state.error) { showStatus('error', state.error); return; }
     showStatus(totals.unsure ? 'warning' : 'success',
-      (stopped ? {{ _('Interrotta. ')|tojson }} : '') +
-      fmt({{ _('%(count)s movimenti classificati con %(model)s: i suggerimenti sono evidenziati', count='%(count)s', model='%(model)s')|tojson }}, {count: totals.applied, model: totals.model}) +
+      (state.stopped ? {{ _('Interrotta. ')|tojson }} : '') +
+      fmt({{ _('%(count)s movimenti classificati con %(model)s: i suggerimenti sono evidenziati', count='%(count)s', model='%(model)s')|tojson }}, {count: totals.applied, model: state.model}) +
       (totals.unsure ? fmt({{ _(', %(count)s poco sicuri in arancione', count='%(count)s')|tojson }}, {count: totals.unsure}) : '') +
       (totals.kept ? fmt({{ _('; per %(count)s è rimasta la categoria già assegnata (il modello non era sicuro)', count='%(count)s')|tojson }}, {count: totals.kept}) : '') +
       {{ _('. Controllali prima di salvare.')|tojson }});
-  } catch (error) {
-    progress.fail(error.message);
-    showStatus('error', error.message);
-  } finally {
-    clearInterval(timer);
-    classifyButton.disabled = false;
-  }
+  },
 });
+if (classifyButton && aiJob.active(PREVIEW)) classifyButton.disabled = true;  // the job of this preview goes on
 
 function applySuggestions(data, totals) {
   for (const [index, s] of Object.entries(data.suggestions)) {

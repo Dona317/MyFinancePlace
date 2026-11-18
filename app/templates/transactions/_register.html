@@ -1,7 +1,6 @@
 {# F99: the register — search, filters, Modifica massiva and the list — the same on Transazioni, Entrate, Uscite
    and Ricorrenti. Its links and forms stay on the page that shows it (register_url, register_with); a `locked`
    filter (the type, the period, only recurring) is set by the page and cannot be changed here. #}
-{% from "partials/ai_progress.html" import ai_progress_window %}
 {% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
 {% from "partials/info.html" import info %}
@@ -61,7 +60,7 @@
       </a>
       {% endif %}
       {% if transactions and ai_classifier %}
-      <button type="button" class="btn btn-outline btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
+      <button type="button" class="btn btn-ghost btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
               data-unclassified="{{ unclassified }}" title="Suggerisce categoria e controparte dalla causale ({{ ai_classifier }})">
         <i class="bi bi-stars"></i> <span id="ai-classify-label">{{ _('Classifica con AI (%(count)s senza categoria)', count=unclassified) if unclassified else _('Classifica con AI') }}</span>
       </button>
@@ -76,7 +75,7 @@
       {% endif %}
       {% if to_confirm %}
       <a href="{{ register_with(tag=ai_tag) if filters.tag != ai_tag else register_url }}"
-         class="btn btn-sm {{ 'btn-primary' if filters.tag == ai_tag else 'btn-outline' }}">
+         class="btn btn-sm {{ 'btn-primary' if filters.tag == ai_tag else 'btn-ghost' }}">
         <i class="bi bi-stars"></i> {{ _('Da confermare (AI): %(count)s', count=to_confirm) }}
       </a>
       {% endif %}
@@ -114,11 +113,6 @@
           </div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-sm">{{ _('Cerca') }}</button>
-      <button type="button" class="tx-pill{{ ' is-on' if active_filters }}" id="filters-toggle" aria-controls="search-box"
-              aria-expanded="{{ 'true' if active_filters else 'false' }}">
-        <i class="bi bi-funnel"></i> {{ _('Filtri') }}{% if active_filters %} · {{ active_filters }}{% endif %} <i class="bi bi-chevron-down tx-pill-chevron"></i>
-      </button>
       {# F101: saved views — a search (text, filters, order) under a name; the period is the shared one #}
       {% set current_view = views|selectattr('query', 'equalto', view_query)|map(attribute='name')|first if view_query else none %}
       <details class="tx-views">
@@ -153,29 +147,49 @@
       {% endif %}
     </div>
 
-    {# Filtri: open when a filter is on (the search text apart), else as the user left it (mfp-search-open) #}
-    <div class="tx-panel{{ ' is-open' if active_filters }}" id="search-box" data-remember="mfp-search-open"{% if active_filters %} data-forced="1"{% endif %}>
-      <div class="tx-panel-inner">
-        <div class="tx-filter-grid">
-          <label class="tx-field"><span>{{ _('Tipo') }}</span>
-            <select name="type" class="form-select" onchange="this.form.submit()"{{ ' disabled' if 'type' in locked }}>
-              <option value="">{{ _('Tutti') }}</option>
-              {% for val, lbl in [('expense',_('Uscite')),('income',_('Entrate')),('transfer',_('Trasferimenti'))] %}
-              <option value="{{ val }}" {{ 'selected' if filters.type == val else '' }}>{{ lbl }}</option>
-              {% endfor %}
-            </select></label>
-          <label class="tx-field"><span>{{ _('Categoria') }}</span>
-            <select name="category" class="form-select" onchange="this.form.submit()">
-              <option value="">{{ _('Tutte') }}</option>
-              {{ f.category_options(all_categories, filters.category) }}
-            </select></label>
+    {# Filtri (proposal B of 18 Nov 2026, UI-17): one slim row, always there — the type as a switch, Categoria, Conto,
+       Tag, the amount written from – to, and «Altro» for the rest. The dates are the shared period's (the box on top):
+       they show in «Altro» only where the page does not set them (Ricorrenti) #}
+    {% set more_keys = ['to', 'person', 'cluster', 'recurring'] + (['start', 'end', 'month']|reject('in', locked)|list) %}
+    {% set more_on = filters.items()|selectattr(0, 'in', more_keys)|map(attribute=1)|select|list|length %}
+    <div class="tx-filter-row" id="search-box">
+      {% if 'type' not in locked %}
+      <div class="tx-seg" role="radiogroup" aria-label="{{ _('Tipo') }}">
+        {% for val, lbl in [('', _('Tutte')), ('income', _('Entrate')), ('expense', _('Uscite')), ('transfer', _('Trasferimenti'))] %}
+        <label class="tx-seg-item{{ ' is-on' if (filters.type or '') == val }}">
+          <input type="radio" name="type" value="{{ val }}"{{ ' checked' if (filters.type or '') == val }} onchange="this.form.submit()" /> {{ lbl }}
+        </label>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <select name="category" class="form-select tx-compact{{ ' is-on' if filters.category }}" onchange="this.form.submit()" aria-label="{{ _('Categoria') }}">
+        <option value="">{{ _('Tutte le categorie') }}</option>
+        {{ f.category_options(all_categories, filters.category) }}
+      </select>
+      {% if accounts %}
+      <select name="account" class="form-select tx-compact{{ ' is-on' if filters.account }}" onchange="this.form.submit()" aria-label="{{ _('Conto') }}">
+        <option value="">{{ _('Tutti i conti') }}</option>
+        {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if filters.account == a.id|string }}>{{ a.name }}</option>{% endfor %}
+        <option value="none" {{ 'selected' if filters.account == 'none' }}>{{ _('— Senza conto —') }}</option>
+      </select>
+      {% endif %}
+      <select name="tag" class="form-select tx-compact{{ ' is-on' if filters.tag }}" onchange="this.form.submit()" aria-label="{{ _('Tag') }}">
+        <option value="">{{ _('Tutti i tag') }}</option>
+        {% for tag in tag_pool %}<option value="{{ tag }}" {{ 'selected' if filters.tag == tag }}>{{ tag }}</option>{% endfor %}
+      </select>
+      {# the amount, written: from – to (Enter, or leaving the field after changing it) #}
+      <div class="tx-range{{ ' is-on' if filters.min or filters.max }}" role="group" aria-label="{{ _('Importo') }}">
+        <span class="tx-range-label" aria-hidden="true">€</span>
+        <input type="text" inputmode="decimal" name="min" value="{{ filters.min }}" class="form-control tx-amount" placeholder="{{ _('da') }}" autocomplete="off" aria-label="{{ _('Importo da') }}" />
+        <span class="text-muted" aria-hidden="true">–</span>
+        <input type="text" inputmode="decimal" name="max" value="{{ filters.max }}" class="form-control tx-amount" placeholder="{{ _('a') }}" autocomplete="off" aria-label="{{ _('Importo a') }}" />
+      </div>
+      <details class="tx-views tx-more">
+        <summary class="tx-pill{{ ' is-on' if more_on }}">
+          <i class="bi bi-sliders"></i> {{ _('Altro') }}{% if more_on %} · {{ more_on }}{% endif %} <i class="bi bi-chevron-down tx-pill-chevron"></i>
+        </summary>
+        <div class="tx-views-pop tx-more-pop">
           {% if accounts %}
-          <label class="tx-field"><span>{{ _('Conto') }}</span>
-            <select name="account" class="form-select" onchange="this.form.submit()">
-              <option value="">{{ _('Tutti') }}</option>
-              {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if filters.account == a.id|string }}>{{ a.name }}</option>{% endfor %}
-              <option value="none" {{ 'selected' if filters.account == 'none' }}>{{ _('— Senza conto —') }}</option>
-            </select></label>
           {# F105: the transfers arriving on an account (an arrow of the Flussi graph) #}
           <label class="tx-field"><span>{{ _('Verso il conto') }}</span>
             <select name="to" class="form-select" onchange="this.form.submit()">
@@ -192,35 +206,26 @@
               {% for key, name in people if key != 'joint' %}<option value="{{ key }}" {{ 'selected' if filters.person == key }}>{{ name }}</option>{% endfor %}
             </select></label>
           {% endif %}
-          <label class="tx-field"><span>{{ _('Tag') }}</span>
-            <select name="tag" class="form-select" onchange="this.form.submit()">
-              <option value="">{{ _('Tutti') }}</option>
-              {% for tag in tag_pool %}<option value="{{ tag }}" {{ 'selected' if filters.tag == tag }}>{{ tag }}</option>{% endfor %}
-            </select></label>
           <label class="tx-field"><span>{{ _('Gruppo') }}</span>
             <select name="cluster" class="form-select" onchange="this.form.submit()">
               <option value="">{{ _('Tutti') }}</option>
               {% for key, name in cluster_choices.items() %}<option value="{{ key }}" {{ 'selected' if filters.cluster == key }}>{{ name }}</option>{% endfor %}
             </select></label>
+          {% if 'start' not in locked %}
           <label class="tx-field"><span>{{ _('Dal') }}</span>
-            <input type="date" name="start" value="{{ filters.start }}" class="form-control" onchange="this.form.submit()"{{ ' disabled' if 'start' in locked }} /></label>
+            <input type="date" name="start" value="{{ filters.start }}" class="form-control" onchange="this.form.submit()" /></label>
           <label class="tx-field"><span>{{ _('Al') }}</span>
-            <input type="date" name="end" value="{{ filters.end }}" class="form-control" onchange="this.form.submit()"{{ ' disabled' if 'end' in locked }} /></label>
+            <input type="date" name="end" value="{{ filters.end }}" class="form-control" onchange="this.form.submit()" /></label>
           <label class="tx-field"><span>{{ _('Mese') }}</span>
-            <input type="month" name="month" value="{{ filters.month }}" class="form-control" onchange="this.form.submit()"{{ ' disabled' if 'start' in locked }} /></label>
-          {# the amount, written: from – to (Enter, or leaving the field after changing it) #}
-          <div class="tx-field" role="group" aria-labelledby="tx-amount-label"><span id="tx-amount-label">{{ _('Importo') }}</span>
-            <div class="tx-range">
-              <input type="text" inputmode="decimal" name="min" value="{{ filters.min }}" class="form-control tx-amount" placeholder="0" autocomplete="off" aria-label="{{ _('Importo da') }}" />
-              <span class="text-muted" aria-hidden="true">–</span>
-              <input type="text" inputmode="decimal" name="max" value="{{ filters.max }}" class="form-control tx-amount" placeholder="∞" autocomplete="off" aria-label="{{ _('Importo a') }}" />
-            </div>
-          </div>
-          <label class="tx-field tx-check">
-            <input class="check" type="checkbox" name="recurring" value="1" {{ 'checked' if filters.recurring else '' }} onchange="this.form.submit()"{{ ' disabled' if 'recurring' in locked }} /> {{ _('Solo ricorrenti') }}
+            <input type="month" name="month" value="{{ filters.month }}" class="form-control" onchange="this.form.submit()" /></label>
+          {% endif %}
+          {% if 'recurring' not in locked %}
+          <label class="tx-check">
+            <input class="check" type="checkbox" name="recurring" value="1" {{ 'checked' if filters.recurring else '' }} onchange="this.form.submit()" /> {{ _('Solo ricorrenti') }}
           </label>
+          {% endif %}
         </div>
-      </div>
+      </details>
     </div>
   </form>
 
@@ -354,6 +359,9 @@
             <a class="tag-chip" href="{{ register_with(tag=tag) }}" title="{{ _('Mostra le transazioni con questo tag') }}">{{ tag }}</a>
             {%- endif %}
             {%- endfor %}
+            <input type="text" class="tag-add" list="quick-tags" data-add-tag-url="{{ url_for('transactions.add_tag', tx_id=tx.id) }}"
+                   placeholder="{{ _('+ tag') }}" aria-label="{{ _('Scrivi un tag e premi Invio') }}"
+                   title="{{ _('Scrivi un tag e premi Invio per aggiungerlo') }}" />
             </div>
           </td>
           <td class="text-right">
@@ -392,12 +400,6 @@
   <form method="POST" action="{{ url_for('transactions.classify') }}" id="classify-form">
     <input type="hidden" name="next" value="{{ request.full_path }}" />
   </form>
-  {# F102 in the register: the suggestions the groups brought go to the page that reviews them #}
-  <form method="POST" action="{{ url_for('transactions.classify_review') }}" id="classify-review-form">
-    <input type="hidden" name="next" value="{{ request.full_path }}" />
-    <input type="hidden" name="suggestions" value="" />
-  </form>
-  {{ ai_progress_window() }}
   <template id="quick-template">
     <tr class="quick-row"><td colspan="7">
       <form class="quick-edit" autocomplete="off">

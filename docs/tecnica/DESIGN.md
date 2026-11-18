@@ -124,9 +124,12 @@ evitano se si può spiegare cosa manca.
   colonna; larghezze trascinabili dove serve.
 - Testi lunghi: si tagliano con «…» **solo** se il testo completo resta leggibile al passaggio del mouse (`title`)
   o nella modifica; le categorie hanno una larghezza minima che lascia leggere la parola.
-- Sopra le colonne, dentro il riquadro, la **barra della tabella** (modello Transazioni): ricerca compatta (30px),
-  Cerca, pillole «Filtri · N», «Viste», «Modifica massiva · selezionate/trovate»; i pannelli si aprono sotto la barra
-  con controlli da 28px, 4 per riga (2 su tablet, 1 su telefono).
+- Sopra le colonne, dentro il riquadro, la **barra della tabella** (modello Transazioni): ricerca compatta (30px,
+  parte con Invio, senza pulsante «Cerca»), pillole «Viste» e «Modifica massiva · selezionate/trovate». Sotto, la
+  **riga dei filtri**, sempre visibile (UI-17): il tipo come interruttore a pillole, le tendine principali da 28px
+  con il nome nel valore vuoto («Tutte le categorie»), l'importo «€ da – a» scritto a mano e la pillola «Altro · N»
+  per i filtri meno usati. Un filtro attivo ha il bordo arancio. Le date non sono filtri: le decide il Periodo.
+  Il pannello della modifica massiva si apre sotto la barra con controlli da 28px, 4 per riga (2 su tablet, 1 su telefono).
 - Le righe si aprono con un clic per la modifica rapida; le azioni di riga (matita, cestino) a destra.
 - **Su telefono** (sotto 576px) solo le colonne essenziali (data, descrizione, importo; le altre si nascondono) e
   scorrimento orizzontale dentro il riquadro, mai la pagina tagliata a destra; righe a scheda solo nelle liste brevi
@@ -225,6 +228,7 @@ Nessuna (le A1–A5 del 18 nov sono diventate UI-12…UI-16). Una domanda nuova 
 | UI-14 | 18 nov 2026 | Al massimo 7 schede per pagina, il resto in «Altro» o in sottosezioni |
 | UI-15 | 18 nov 2026 | Categorie con badge neutro (o colore del gruppo di spesa), conteggi in testo normale: niente arancio |
 | UI-16 | 18 nov 2026 | Tabelle su telefono: colonne essenziali e scorrimento dentro il riquadro; righe a scheda solo nelle liste brevi |
+| UI-17 | 18 nov 2026 | Filtri di Transazioni (aggiorna UI-04): una riga compatta sempre visibile — tipo a pillole, Categoria, Conto, Tag, importo «da – a», «Altro» (Verso il conto, Persona, Gruppo, Solo ricorrenti); niente Dal/Al/Mese dove c'è il Periodo; niente pulsante «Cerca»; «Classifica con AI» e «Da confermare» come pulsanti leggeri |
 
 ## 16. Fotografia di partenza (18 nov 2026)
 Da dove si parte, per misurare i progressi della pulizia:

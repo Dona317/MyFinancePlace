@@ -287,12 +287,15 @@
       <svg class="sankey" viewBox="-260 -34 {{ s.width + 520 }} {{ s.height + 44 }}" role="img"
            aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
         {% for b in s.bands %}
+        {% set band_linked = tx_ok and b.category %}
+        {% if band_linked %}<a href="{{ url_for('transactions.index', category=b.category, type=b.kind, start=year_start.isoformat(), end=year_last.isoformat()) }}" class="sankey-link">{% endif %}
         <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
-          <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}</title></path>
+          <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}{{ ' — ' ~ _('clic per le transazioni') if band_linked }}</title></path>
+        {% if band_linked %}</a>{% endif %}
         {% endfor %}
         {% for n in s.nodes %}
-        {% set linked = tx_ok and n.kind in ('income', 'expense') and not n.special %}
-        {% if linked %}<a href="{{ url_for('transactions.index', category=n.label, type=n.kind, start=year_start.isoformat(), end=year_last.isoformat()) }}" class="sankey-link">{% endif %}
+        {% set linked = tx_ok and n.category %}
+        {% if linked %}<a href="{{ url_for('transactions.index', category=n.category, type=n.kind, start=year_start.isoformat(), end=year_last.isoformat()) }}" class="sankey-link">{% endif %}
         <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
               style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
           <title>{{ n.label|tr }}: {{ n.amount|money }}{{ ' — ' ~ _('clic per le transazioni') if linked }}</title></rect>

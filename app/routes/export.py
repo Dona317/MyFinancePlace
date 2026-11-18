@@ -349,8 +349,13 @@ def _render_preview(preview, filename: str, ai_retry: str | None = None, text: s
     preset_account = (preset or {}).get("options", {}).get("account_id")
     if preset_account and any(a.id == preset_account for a in accounts.active()):
         suggested = preset_account
-    return render_template(
+    # the page is kept for a while under a token: an AI classification started here goes on in the other pages of the
+    # app, and «Torna all'import» opens this preview again (bank_reopen)
+    token = upload_store.save(filename, b"", kind="preview")
+    html = render_template(
         "export/bank_preview.html",
+        preview_token=token,
+        reopen_url=url_for("export.bank_reopen", token=token),
         preview=preview,
         payload=payload,
         filename=filename,
@@ -364,6 +369,22 @@ def _render_preview(preview, filename: str, ai_retry: str | None = None, text: s
         preset=preset,
         **ai_classification.template_context(),
     )
+    upload_store.replace(token, html.encode("utf-8"))
+    return html
+
+
+@export_bp.route("/bank/preview/<token>")
+def bank_reopen(token):
+    """An import preview opened again (for a while), as it was rendered: the page puts back the edits and the AI
+    suggestions kept in the browser tab."""
+    try:
+        raw, meta = upload_store.load(token)
+    except KeyError:
+        raw, meta = b"", {}
+    if meta.get("kind") != "preview" or not raw:
+        flash(_("L'anteprima non è più disponibile: carica di nuovo il file."), "error")
+        return redirect(url_for("export.import_page"))
+    return current_app.response_class(raw, mimetype="text/html")
 
 
 def _suggested_account(bank_name: str, text: str = "") -> int | None:
@@ -652,6 +673,7 @@ def bank_confirm():
         flash(_("Alcuni movimenti risultano già importati: ricarica il file e riprova."), "error")
         return redirect(url_for("export.import_page"))
 
+    upload_store.delete(request.form.get("preview_token", ""))  # the kept page of the preview: saved, not needed
     flash(_import_message(len(created), bank_name, account, skipped, linked), "success")
     if invalid:
         flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")

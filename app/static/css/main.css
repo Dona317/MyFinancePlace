@@ -19,13 +19,15 @@ body {
   transition: background var(--transition), color var(--transition);
 }
 
-/* Scrollbars everywhere (pages, tables, menus, the desktop app's window): a thin rounded thumb at low opacity, no
-   track and no arrows. They say how long the page is without catching the eye; stronger under the pointer. */
-* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+/* Scrollbars everywhere (pages, tables, menus, the desktop app's window): hidden at rest. A scrollable box shows its
+   thin bar while the pointer is over it, and for a few seconds after it is scrolled (main.js adds .scroll-show). */
+* { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+*:not(html):not(body):hover, .scroll-show { scrollbar-color: var(--scroll-thumb) transparent; }
 ::-webkit-scrollbar { width: 6px; height: 6px; background: transparent; }
 ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
-::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 6px; }
+::-webkit-scrollbar-thumb { background: transparent; border-radius: 6px; }
+*:not(html):not(body):hover::-webkit-scrollbar-thumb, .scroll-show::-webkit-scrollbar-thumb { background: var(--scroll-thumb); }
 ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
 :root { --scroll-thumb: rgba(128, 128, 128, .28); --scroll-thumb-hover: rgba(128, 128, 128, .55); }
 /* the page never scrolls sideways: wide tables and charts scroll inside their own box */
@@ -2097,8 +2099,17 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 .tx-table td { overflow: hidden; }
 .cell-clip { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .cell-clip > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tx-table .tag-cell .cell-clip { display: block; }
+/* the tags of a row scroll sideways inside their box when they do not fit: one line, no wrap, a thin bar */
+.tx-table .tag-cell .cell-clip { display: block; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
 .tx-table .tag-cell .tag-chip { display: inline-flex; margin-right: 4px; }
+/* the box of a tag typed straight into a row of the register: quiet until it is hovered or focused */
+.tag-add { width: 84px; max-width: 100%; border: 1px solid transparent; border-radius: 999px; background: transparent;
+           color: var(--clr-text-primary); font-size: var(--font-size-xs); padding: 2px 8px; margin: 2px 0; outline: none;
+           transition: var(--transition); }
+.tag-add::placeholder { color: var(--clr-text-muted); }
+.tag-add:hover, .tag-add:focus { border-color: var(--clr-border); background: var(--clr-bg-input); }
+.tag-add:focus { border-color: var(--clr-primary); }
+.tag-add:disabled { opacity: .6; }
 .badge-clip { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 
 /* the category cell on one line too: the category (cut, whole on hover), «suddivisa», the spending group */
@@ -2281,6 +2292,26 @@ details.card:not([open]) > summary.card-header { border-bottom: 0; }  /* a close
 .tx-range .tx-amount { flex: 1; }
 .tx-check { flex-direction: row; align-items: center; gap: 6px; font-size: var(--font-size-xs); height: 28px; align-self: end; }
 .tx-apply { justify-content: flex-end; align-items: flex-start; }
+/* the filters (proposal B of 18 Nov 2026): one slim row under the toolbar, always there; 28px controls */
+.tx-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 16px;
+  border-bottom: 1px solid var(--clr-border-light); }
+.tx-seg { display: inline-flex; height: 28px; padding: 2px; gap: 2px; border: 1px solid var(--clr-border); border-radius: 999px;
+  background: var(--clr-bg-card); flex-shrink: 0; }
+.tx-seg-item { display: inline-flex; align-items: center; padding: 0 10px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+  font-size: var(--font-size-xs); color: var(--clr-text-secondary); transition: background var(--transition), color var(--transition); }
+.tx-seg-item input { position: absolute; opacity: 0; pointer-events: none; }
+.tx-seg-item:hover { color: var(--clr-text-primary); }
+.tx-seg-item.is-on { background: var(--clr-primary-light); color: var(--clr-primary); font-weight: 600; }
+.tx-seg-item:focus-within { outline: 2px solid var(--clr-primary); outline-offset: 1px; }
+.tx-filter-row .tx-compact { height: 28px; width: auto; min-width: 0; max-width: 190px; padding-top: 0; padding-bottom: 0;
+  font-size: var(--font-size-xs); }
+.tx-filter-row .is-on.tx-compact, .tx-range.is-on .tx-amount { border-color: var(--clr-primary); }
+.tx-filter-row .tx-range { gap: 4px; }
+.tx-range-label { font-size: var(--font-size-xs); color: var(--clr-text-muted); }
+.tx-filter-row .tx-amount { width: 76px; height: 28px; padding-top: 0; padding-bottom: 0; font-size: var(--font-size-xs); }
+.tx-more { margin-left: auto; }
+.tx-more > summary.tx-pill { height: 28px; }
+.tx-more-pop { display: grid; gap: 10px; width: 260px; }
 .tx-apply .btn { height: 28px; }
 .tx-bulk-form { margin: 0; }
 .tx-bulk-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -2299,6 +2330,11 @@ details.card:not([open]) > summary.card-header { border-bottom: 0; }  /* a close
   .tx-toolbar { flex-wrap: wrap; }
   .tx-search-field { flex: 1 1 100%; }
   .tx-filter-grid { grid-template-columns: minmax(0, 1fr); }
+  .tx-filter-row > .combo, .tx-filter-row > .tx-compact { flex: 1 1 40%; }
+  .tx-filter-row .tx-compact { max-width: none; width: 100%; }
+  .tx-seg { flex: 1 1 100%; overflow-x: auto; }
+  .tx-more { margin-left: 0; }
+  .tx-more-pop { left: 0; right: auto; }
   .tx-inline-action { flex: 1 1 100%; }
   .tx-inline-action .form-select { flex: 1; max-width: none; }
 }
@@ -2442,15 +2478,29 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .tx-table.hide-category [data-col="category"], .tx-table.hide-category .category-cell,
 .tx-table.hide-tags [data-col="tags"], .tx-table.hide-tags .tag-cell { display: none; }
 
-/* F102: the AI classification under way — a bar that fills as the batches come back */
-.ai-progress { max-width: 440px; }
-.ai-progress .modal-title .bi { color: var(--clr-primary); margin-right: 4px; }
-.ai-progress-bar { height: 10px; border-radius: 999px; background: var(--clr-bg-input); overflow: hidden; }
-.ai-progress-bar > span { display: block; height: 100%; width: 0; background: var(--clr-primary); border-radius: inherit; transition: width .3s ease; }
-.ai-progress-bar > span:not([style*="100%"]) { background-image: linear-gradient(90deg, var(--clr-primary), color-mix(in srgb, var(--clr-primary) 60%, #fff), var(--clr-primary));
+/* F102: the AI classification under way — a narrow pill at the bottom of the page: it does not block the page,
+   with the count, the seconds, a bar that fills as the batches come back, and an X to cancel */
+.ai-pill { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 96;
+  width: min(360px, calc(100vw - 32px)); padding: 8px 12px 10px; border: 1px solid var(--clr-border);
+  border-radius: var(--border-radius); background: var(--clr-bg-card); box-shadow: var(--shadow-md); }
+.ai-pill[hidden] { display: none; }
+.ai-pill-row { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm); }
+.ai-pill-row > .bi { color: var(--clr-primary); flex: 0 0 auto; }
+.ai-pill-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-pill-meta { flex: 0 0 auto; white-space: nowrap; }
+.ai-pill-go { flex: 0 0 auto; padding: 2px 10px; }
+.ai-pill-go[hidden] { display: none; }
+.ai-pill-x { flex: 0 0 auto; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%; background: transparent; color: var(--clr-text-muted); cursor: pointer; transition: var(--transition); }
+.ai-pill-x:hover { background: var(--clr-bg-input); color: var(--clr-text-primary); }
+.ai-pill-x:disabled { opacity: .5; cursor: default; }
+.ai-pill-bar { height: 4px; margin-top: 8px; border-radius: 999px; background: var(--clr-bg-input); overflow: hidden; }
+.ai-pill-bar > span { display: block; height: 100%; width: 0; background: var(--clr-primary); border-radius: inherit; transition: width .3s ease; }
+.ai-pill-bar > span:not([style*="100%"]) { background-image: linear-gradient(90deg, var(--clr-primary), color-mix(in srgb, var(--clr-primary) 60%, #fff), var(--clr-primary));
   background-size: 200% 100%; animation: ai-progress-run 1.4s linear infinite; }
+.ai-pill-error { margin: 6px 0 0; font-size: var(--font-size-xs); color: var(--clr-negative-text); }
 @keyframes ai-progress-run { to { background-position: -200% 0; } }
-@media (prefers-reduced-motion: reduce) { .ai-progress-bar > span { animation: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ai-pill-bar > span { animation: none; transition: none; } }
 
 /* F105: the flows between the accounts — a graph the user can move */
 .flows-card .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
