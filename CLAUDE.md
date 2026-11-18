@@ -16,6 +16,8 @@
 - Indice di tutta la documentazione (piano, strategia e business, analisi, tecnica): `docs/README.md`
 - Piano, decisioni e TODO: `docs/piano/PIANO_E_TODO.md`
 - App desktop (pacchetti, notifiche, avvio automatico, installatore): `docs/tecnica/DESKTOP.md`
+- **Linee guida di design** (colori, testi, componenti, checklist, registro decisioni UI): `docs/tecnica/DESIGN.md` —
+  da leggere prima di toccare template o CSS; ogni nuova decisione di design va nel suo registro
 - Dati demo: `docs/Transaction samples/dati_fittizi/` (investimenti: `docs/Transaction samples/dati_fittizi/investimenti/`, generati da `genera_investimenti.py`)
 - Stato dei lavori (SAL) e decisioni aperte: sezione 0 di `docs/piano/PIANO_E_TODO.md` (riaperta dal promemoria delle 13:30)
 

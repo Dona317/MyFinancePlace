@@ -7,7 +7,7 @@ le decisioni prese e quelle aperte.
 | File | Cosa contiene |
 |---|---|
 | [PIANO_E_TODO.md](piano/PIANO_E_TODO.md) | **Il documento principale.** Sezione 0: stato dei lavori (SAL), fasi confermate, decisioni aperte (Dn). Poi le funzionalità numerate (Fn) con priorità, stato e dettagli |
-| [CARD_PROSSIME_TASK.md](piano/CARD_PROSSIME_TASK.md) | Le 41 Card delle prossime task (F106, 16 nov 2026): una per task, in ordine, pronte da copiare |
+| [CARD_PROSSIME_TASK.md](piano/CARD_PROSSIME_TASK.md) | Le Card delle prossime task (F106, 16 nov 2026; giro D di design del 18 nov): una per task, in ordine, pronte da copiare |
 | [ROADMAP.md](piano/ROADMAP.md) | Ordine di sviluppo delle sezioni dell'app e cosa sta fuori dall'MVP |
 | [MVP.md](piano/MVP.md) | Cosa deve fare la prima versione completa, voce per voce |
 | [NEXT_STEPS.md](piano/NEXT_STEPS.md) | Stato e prossimi passi (storico, in inglese) |
@@ -34,6 +34,7 @@ le decisioni prese e quelle aperte.
 ## [tecnica/](tecnica/) — come si sviluppa, si installa, si distribuisce
 | File | Cosa contiene |
 |---|---|
+| [DESIGN.md](tecnica/DESIGN.md) | Linee guida di design: principi, colori, testi, componenti, checklist per le pagine nuove, registro delle decisioni UI |
 | [GUIDA_SVILUPPO.md](tecnica/GUIDA_SVILUPPO.md) | Guida per lo sviluppo: architettura, convenzioni, come aggiungere una funzionalità (in inglese) |
 | [DEPLOY.md](tecnica/DEPLOY.md) | L'app come servizio: Docker, HTTPS, backup, aggiornamenti (in inglese) |
 | [DESKTOP.md](tecnica/DESKTOP.md) | L'app desktop: pacchetti, notifiche, avvio automatico, installatore, pubblicare una versione |

@@ -376,6 +376,13 @@ stretta, nessun testo segnaposto.
 | T39 | 6 | **Archivi: ricerca nel selettore; compressione e misure rimaste** | Campo di ricerca e archivi recenti con più di 10 archivi; misurare la compressione sulle pagine grandi | B | S | — · Card 20 |
 | T40 | 6 | **Prova con estratti reali e parser dei broker (F4, F55)** | Otto banche e i broker italiani su file veri anonimizzati | A | L | **file tuoi** · F4, F55 |
 | T41 | 6 | **Unire su `main` (D1) e pulizia dei rami** | PR #8 fuori dalla bozza, rami `Mapping-Excel` e `Dona317-patch-1` cancellati | A | S | richiesta esplicita tua · D1, D2 |
+| T42 | D Design | **Colori: il blu solo agli investimenti, niente arancio su KPI e categorie** | `--clr-neutral` da blu a grigio-ardesia; Patrimonio netto e Valore totale non arancio; categorie con badge neutro, conteggi in testo normale | A | S | — · DESIGN UI-08, UI-15 |
+| T43 | D | **Telefono: tabelle, Periodo e pulsanti fluttuanti** | Sotto 576px colonne essenziali e scorrimento nel riquadro; Periodo dentro lo schermo; spazio in fondo per i pulsanti fluttuanti | A | M | con T10 · DESIGN UI-16 |
+| T44 | D | **Barra e schede: titolo ovunque, massimo 7 schede** | Titolo e percorso su ogni pagina (Transazioni); Portafoglio da 13 a 7 schede con «Altro»; i badge TBD restano | A | M | — · DESIGN UI-13, UI-14 |
+| T45 | D | **Pulsanti e tabelle: un solo arancio pieno, tabelle compatte** | Un `btn-primary` per vista, gli altri con bordo o leggeri; tutte le tabelle compatte | M | S | — · DESIGN UI-10, UI-11 |
+| T46 | D | **Testi: maiuscole, spessori, dimensioni, italiano** | Solo la prima lettera maiuscola; spessori 400/600 (55 usi di 700); dimensioni dalla scala; inglese evitabile in italiano | M | M | — · DESIGN UI-07, UI-09 |
+| T47 | D | **Variabili: spaziature, angoli, larghezze, durate, colori** | `--space-1…6`; 5 raggi, 4 larghezze, durate e colori solo da variabili; `--border` e `--shadow-card-hover` definite | M | M | dopo T42 · DESIGN 4–6, 12 |
+| T48 | D | **Stili scritti nei template: da 626 a classi** | Gli `style="…"` in classi o macro, dai file con più stili, una sezione alla volta | B | L | T47 · DESIGN 12, 16 |
 
 **In attesa di te**: T26 (primo scaricamento
 sul tuo PC), T31 e T40 (materiale), T37 (D15), T38, T41; D14 (libreria dei grafici) blocca T18 e T30.

@@ -1,7 +1,7 @@
 # Card delle prossime task (F106) — 16 novembre 2026
 
-Una Card per ognuna delle task ancora aperte tra le 41 di «Piano delle prossime task» in [PIANO_E_TODO.md](PIANO_E_TODO.md), nello
-stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare così com'è.
+Una Card per ognuna delle task ancora aperte tra le 48 di «Piano delle prossime task» in [PIANO_E_TODO.md](PIANO_E_TODO.md), nello
+stesso ordine (giri 0–6, più il giro D di design aggiunto il 18 nov). Ogni Card sta in piedi da sola e si può copiare così com'è.
 
 - **Priorità**: Alta, Media, Bassa. **Sforzo**: S fino a mezza giornata, M un giro di lavoro, L più giri.
 - **Origine**: la voce del piano (Fn, Dn), la card dei brainstorm del 15 nov (Card 1–21, P, D, O, B) o la misura di
@@ -267,3 +267,61 @@ stesso ordine (giri 0–6). Ogni Card sta in piedi da sola e si può copiare cos
 - **Dipende da:** una tua richiesta esplicita; T01; T06.
 - **Origine:** D1, D2.
 - **Fatto quando:** `main` contiene `test-Cloud`, la PR #8 è chiusa e i due rami sono cancellati.
+
+---
+
+## Giro D — Design (in parallelo agli altri giri)
+
+Le card di pulizia decise il 18 nov 2026 (UI-12 in [DESIGN.md](../tecnica/DESIGN.md)): portano le pagine esistenti alle
+linee guida di design, in ordine di impatto. Si possono fare tra un giro e l'altro; T42–T44 conviene farle prima delle
+revisioni del giro 5. Sono modifiche visive: lint e screenshot con il server demo, i test a fine giro. I numeri di
+partenza sono nella sezione 16 di DESIGN.md.
+
+**Card T42 — Colori: il blu solo agli investimenti, niente arancio su KPI e categorie**
+- **Area:** Design · **Giro:** D · **Priorità:** Alta · **Sforzo:** S
+- **Descrizione:** `--clr-neutral` (oggi blu #1971C2) passa a un grigio-ardesia in tutti e due i temi, così trasferimenti, avvisi «info» e l'icona dei conti non sembrano investimenti (UI-08). I KPI Patrimonio netto e Valore totale del portafoglio passano da arancio a `kpi-neutral` o `kpi-blue`. Categorie con badge neutro e conteggi in testo normale (UI-15).
+- **Dipende da:** niente.
+- **Origine:** DESIGN.md 2.2, 7.4, 7.5; UI-08, UI-15.
+- **Fatto quando:** in Dashboard, Transazioni, Conti e Portafoglio il blu compare solo sugli investimenti e l'arancio solo su azioni e stato attivo, in chiaro e in scuro.
+
+**Card T43 — Telefono: tabelle, Periodo e pulsanti fluttuanti**
+- **Area:** Design · **Giro:** D · **Priorità:** Alta · **Sforzo:** M
+- **Descrizione:** Sotto i 576px le tabelle mostrano solo data, descrizione e importo e scorrono dentro il riquadro (UI-16); il riquadro «Periodo» non esce dallo schermo; il fondo delle pagine lascia spazio ai pulsanti fluttuanti (+, assistente, torna su), che oggi coprono l'ultima riga e la colonna Importo.
+- **Dipende da:** niente; va d'accordo con T10 (menu a hamburger).
+- **Origine:** DESIGN.md 6.3, 7.3; UI-16.
+- **Fatto quando:** a 375px nessuna pagina del menu ha scorrimento orizzontale della pagina, e l'ultima riga di ogni tabella si legge senza pulsanti sopra.
+
+**Card T44 — Barra e schede: titolo ovunque, massimo 7 schede**
+- **Area:** Design · **Giro:** D · **Priorità:** Alta · **Sforzo:** M
+- **Descrizione:** Ogni pagina ha titolo e percorso a sinistra nella barra in alto (Transazioni oggi no). Il Portafoglio passa da 13 schede a 7 al massimo, con le altre in «Altro» o in sottosezioni (UI-14); stesso controllo sulle altre pagine con molte schede. I badge «TBD» restano (UI-13).
+- **Dipende da:** niente.
+- **Origine:** DESIGN.md 6.1; UI-06, UI-14.
+- **Fatto quando:** nessuna pagina ha più di 7 schede e tutte mostrano il titolo nella barra.
+
+**Card T45 — Pulsanti e tabelle: un solo arancio pieno, tabelle compatte**
+- **Area:** Design · **Giro:** D · **Priorità:** Media · **Sforzo:** S
+- **Descrizione:** Dove una vista ha più `btn-primary`, uno solo resta pieno e gli altri diventano `btn-outline` o `btn-ghost` (UI-10). Tutte le tabelle usano la misura compatta (UI-11).
+- **Dipende da:** niente.
+- **Origine:** DESIGN.md 7.1, 7.3; UI-10, UI-11.
+- **Fatto quando:** un conteggio sui template non trova viste con due pulsanti arancio pieni, e nessuna tabella usa la misura larga.
+
+**Card T46 — Testi: maiuscole, spessori, dimensioni, italiano**
+- **Area:** Design · **Giro:** D · **Priorità:** Media · **Sforzo:** M
+- **Descrizione:** Titoli, pulsanti, schede e menu con la sola prima lettera maiuscola (UI-07), anche nel catalogo inglese; `font-weight` solo 400 e 600 (oggi 55 usi di 700, UI-09); dimensioni del testo solo dalla scala (oggi 15 fuori scala); le etichette inglesi evitabili («Defaults», «Backtest» senza spiegazione) in italiano.
+- **Dipende da:** niente.
+- **Origine:** DESIGN.md 3, 10; UI-07, UI-09.
+- **Fatto quando:** nel CSS e nei template non ci sono 500 o 700 né dimensioni fuori scala (salvo gli 11px del maiuscoletto), e i titoli del menu e delle schede seguono la regola.
+
+**Card T47 — Variabili: spaziature, angoli, larghezze, durate, colori**
+- **Area:** Design · **Giro:** D · **Priorità:** Media · **Sforzo:** M
+- **Descrizione:** Aggiungere `--space-1…6` e usarle; angoli solo dalle tre variabili più 999px e 50% (oggi 15 valori); larghezze di ridisposizione solo 576, 768, 992, 1200 (oggi 15); durate dalle variabili (oggi 11); i 14 codici colore e le 11 trasparenze di `main.css` in variabili; definire o sostituire `--border` e `--shadow-card-hover`, usate ma non definite.
+- **Dipende da:** niente; meglio dopo T42.
+- **Origine:** DESIGN.md 4, 5, 6.2, 12.
+- **Fatto quando:** lo script di conteggio (sezione 16 di DESIGN.md) dà 0 variabili non definite, 4 larghezze, 5 raggi e nessun codice colore fuori da `theme.css`.
+
+**Card T48 — Stili scritti nei template: da 626 a classi**
+- **Area:** Design · **Giro:** D · **Priorità:** Bassa · **Sforzo:** L
+- **Descrizione:** Togliere gli `style="…"` dai template, spostandoli in classi di `main.css` o in macro di `partials/`, partendo dai file con più stili (`export/bank_preview.html` 47, `settings/ai.html` 29, `settings/index.html` 29). Si può fare a pezzi, una sezione alla volta, insieme alla sua revisione.
+- **Dipende da:** T47 (le variabili da usare nelle classi).
+- **Origine:** DESIGN.md 12, 16.
+- **Fatto quando:** meno di 50 `style="…"` in tutti i template, solo per valori calcolati (larghezze di barre, colori presi dai dati).
