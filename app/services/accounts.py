@@ -271,6 +271,13 @@ def reconcile(account: Account, on: date, statement_balance: Decimal) -> dict:
             "difference": difference, "on": on, "later": later, "adjustment": adjustment}
 
 
+def reconciliations(account: Account, limit: int = 12) -> list[Transaction]:
+    """The «Riconciliazione» movements of an account, newest first: the differences its reconciliations recorded (one
+    that found the balances equal leaves no movement, only the account's «reconciled on»)."""
+    return (Transaction.query.filter(Transaction.account_id == account.id, Transaction.tags.any(RECONCILIATION_TAG))
+            .order_by(Transaction.date.desc(), Transaction.id.desc()).limit(limit).all())
+
+
 def assign(transaction_ids: set[int], account_id: int | None) -> int:
     """Put transactions on an account (bulk action on the transactions list)."""
     if not transaction_ids:

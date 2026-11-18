@@ -140,6 +140,41 @@ def save(reminder: Reminder | None, *, title: str, due: date | None, repeat: str
 
 # ── Reminders and spending events, tied both ways (F33) ───────────────────────
 
+# ── «Reconcile this account again» (T11) ───────────────────────────────────────────
+
+RECONCILE_AGAIN = {"1m": 1, "3m": 3, "12m": 12}  # the choices of the window after a reconciliation, in months
+
+
+def reconcile_reminder(account) -> Reminder | None:
+    """The reminder waiting for an account's next reconciliation (one per account)."""
+    return (Reminder.query.filter_by(account_id=account.id, done=False, repeat="none")
+            .order_by(Reminder.due).first())
+
+
+def remind_to_reconcile(account, due: date) -> Reminder:
+    """The account's next reconciliation on `due`: its reminder made, or moved there. Announced on the day."""
+    reminder = reconcile_reminder(account) or Reminder(account_id=account.id, repeat="none")
+    reminder.title, reminder.due, reminder.notice_days = _("Riconcilia il conto %(name)s", name=account.name)[:200], due, 0
+    db.session.add(reminder)
+    db.session.commit()
+    return reminder
+
+
+def reconciled(account, on: date) -> None:
+    """The account was reconciled: the reminders that asked for it by then are done (the caller commits)."""
+    for reminder in Reminder.query.filter_by(account_id=account.id, done=False, repeat="none"):
+        if reminder.due <= max(on, date.today()):
+            reminder.done = True
+
+
+def reminder_url(reminder: Reminder, day: date) -> str:
+    """Where a hand-written deadline leads: its place in the Scadenzario, or — the reminder of a reconciliation — the
+    account's page, at the reconciliation."""
+    if reminder.account_id:
+        return url_for("accounts.detail", account_id=reminder.account_id) + "#reconcile"
+    return url_for("deadlines.index", month=f"{day:%Y-%m}") + f"#reminder-{reminder.id}"
+
+
 def event_from_reminder(reminder: Reminder) -> SpendingEvent | None:
     """A one-off reminder with an amount has its spending event (the name, the day, the amount as its budget): made
     the first time, brought up to date afterwards. A repeating one or one without an amount makes none."""
@@ -311,7 +346,7 @@ def _reminders(start: date, end: date) -> list[Deadline]:
         for day in occurrences(r, start, end):
             found.append(Deadline(day, "reminder", r.title, r.notes or "",
                                   Decimal(r.amount) if r.amount is not None else None,
-                                  url=url_for("deadlines.index", month=f"{day:%Y-%m}") + f"#reminder-{r.id}",
+                                  url=reminder_url(r, day),
                                   key=f"reminder{r.id}-{day}", series=f"reminder{r.id}" if repeating else "",
                                   rrule=rrule(r.repeat, day, day=r.due.day) if repeating else ""))
     return found

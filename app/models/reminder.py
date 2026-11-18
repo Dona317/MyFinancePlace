@@ -21,4 +21,7 @@ class Reminder(db.Model):
     # its spending event (F33): one-off with an amount makes one, an event makes its reminder; kept in step both ways
     event_id   = db.Column(db.Integer, db.ForeignKey("spending_events.id", ondelete="SET NULL"), index=True)
     event      = db.relationship("SpendingEvent", foreign_keys=[event_id])
+    # T11: «reconcile this account again» — made after a reconciliation, it opens the account's page
+    account_id = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)
+    account    = db.relationship("Account", foreign_keys=[account_id])
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)

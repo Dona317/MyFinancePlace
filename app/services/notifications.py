@@ -191,7 +191,8 @@ def _deadlines(today: date) -> list[Notification]:
     """The deadlines written by hand, as many days ahead as each asks (the others already have their own reminders)."""
     return [Notification(f"reminder-{r.id}-{day}", "warning" if day <= today else "info", "calendar-check", r.title,
                          _("Scade il %(day)s", day=display.day(day)) + (f" · {_money(r.amount)}" if r.amount else ""),
-                         day, url_for("deadlines.index", month=f"{day:%Y-%m}")) for r, day in deadlines.due_reminders(today)]
+                         day, deadlines.reminder_url(r, day) if r.account_id else url_for("deadlines.index", month=f"{day:%Y-%m}"))
+            for r, day in deadlines.due_reminders(today)]
 
 
 def _year_closes(today: date) -> list[Notification]:

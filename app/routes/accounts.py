@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.routes.helpers import delete_and_redirect, form_choice, form_date, form_decimal, form_text, safe_next, save_form
-from app.services import accounts, cash, display, family, owners, securities, wealth
+from app.services import accounts, cash, deadlines, display, family, owners, periods, securities, wealth
 from app.services import cards as card_service
 from app.services import currency as currency_service
 from app.services.parsing import to_decimal
@@ -134,6 +134,9 @@ def _render_detail(account: Account, recent: list[Transaction], result: dict | N
                            currencies=accounts.by_currency(account) if account.kind == "cash" else {},
                            tracking=cash.tracking(account, date.today().year) if account.kind == "cash" else None,
                            recent=recent, kinds=accounts.KINDS, today=date.today(), result=result,
+                           reconciliations=accounts.reconciliations(account),
+                           reconcile_reminder=deadlines.reconcile_reminder(account),
+                           remind_default=periods.add_months(date.today(), 1),
                            symbol=currency_service.symbol(account.currency), estimated=accounts.estimated(account),
                            in_account=lambda tx: accounts.amount_in(tx, account),
                            dossiers=[(d, securities.value(d)) for d in securities.dossiers_by_account().get(account.id, [])],
@@ -152,6 +155,8 @@ def reconcile(account_id):
         flash(str(exc), "error")
         return redirect(url_for("accounts.detail", account_id=account.id))
     result = accounts.reconcile(account, on, statement)
+    deadlines.reconciled(account, on)  # T11: the reminders that asked for this reconciliation are done
+    db.session.commit()
     if result["difference"] == 0:
         flash(_("Conto riconciliato al %(on)s: il saldo coincide con quello del conto.", on=display.day(on)), "success")
     else:  # F104: the difference recorded on its own, out of the analyses
@@ -160,6 +165,24 @@ def reconcile(account_id):
     recent = (Transaction.query.filter(Transaction.account_id == account.id, Transaction.date <= on)
               .order_by(Transaction.date.desc(), Transaction.id.desc()).limit(50).all())
     return _render_detail(account, recent, result)
+
+
+@accounts_bp.route("/<int:account_id>/reconcile/reminder", methods=["POST"])
+def reconcile_reminder(account_id):
+    """T11: «remind me to reconcile in…» — the window shown after a reconciliation: one month, three, a year or a
+    date; the reminder goes to the Scadenzario and opens this account."""
+    account = db.get_or_404(Account, account_id)
+    months = deadlines.RECONCILE_AGAIN.get(request.form.get("when", ""))
+    try:
+        due = periods.add_months(date.today(), months) if months else form_date("on", _("Data del promemoria"), required=True)
+        if due <= date.today():
+            raise ValueError(_("Data del promemoria: scegli un giorno dopo oggi."))
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("accounts.detail", account_id=account.id) + "#reconcile")
+    deadlines.remind_to_reconcile(account, due)
+    flash(_("Promemoria creato: riconcilia «%(name)s» il %(day)s.", name=account.name, day=display.day(due)), "success")
+    return redirect(url_for("accounts.detail", account_id=account.id) + "#reconcile")
 
 
 @accounts_bp.route("/<int:account_id>/count", methods=["POST"])
