@@ -79,7 +79,7 @@ def test_budget_page_saves_the_rollover_and_shows_the_carry(client, db):
                                                          "rollover-Alimentari": "on"})
     assert Budget.query.one().rollover_since == date(2026, 5, 1)
     _food(db, 70)
-    html = client.get("/lifestyle/budget?month=2026-06").get_data(as_text=True)
+    html = client.get("/lifestyle/budget?month=2026-06&tab=categories").get_data(as_text=True)
     assert 'name="rollover-Alimentari" checked' in html and "di cui riportati" in html and "riportati" in html
     client.post("/lifestyle/budget?month=2026-06", data={"category": ["Alimentari"], "every-Alimentari": "100"})
     assert Budget.query.one().rollover_since is None

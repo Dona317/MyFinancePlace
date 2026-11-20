@@ -42,7 +42,7 @@ def test_over_budget_alert_on_dashboard(client, db):
 
 
 def test_budget_page_saves_and_removes(client, db):
-    html = client.get("/lifestyle/budget?month=2026-06").get_data(as_text=True)
+    html = client.get("/lifestyle/budget?month=2026-06&tab=categories").get_data(as_text=True)
     assert_divs_balanced(html)
     assert "Alimentari" in html
     client.post("/lifestyle/budget?month=2026-06", data={"category": ["Alimentari", "Svago"],

@@ -1,0 +1,16 @@
+{# UI-21: the «come sto» row of a page — 3 or 4 compact figures in place of the big cards. Each item is a dict:
+   label, value, and optionally sub (a line under it), cls (positive / negative / warning / blue / purple: the colour
+   of the figure), href (the figure opens that page), meter (0–100: a thin bar under the figure). #}
+{% macro stat_row(items, label=None) -%}
+<div class="stat-row" role="list"{% if label %} aria-label="{{ label }}"{% endif %}>
+  {%- for item in items if item %}
+  {% set tag = 'a' if item.href else 'div' %}
+  <{{ tag }} class="stat{{ ' stat-' ~ item.cls if item.cls }}" role="listitem"{% if item.href %} href="{{ item.href }}"{% endif %}>
+    <span class="stat-label">{{ item.label }}</span>
+    <span class="stat-value">{{ item.value }}</span>
+    {% if item.meter is not none and item.meter is defined %}<span class="stat-meter"><span style="width: {{ [[item.meter, 0]|max, 100]|min }}%"></span></span>{% endif %}
+    {% if item.sub %}<span class="stat-sub">{{ item.sub }}</span>{% endif %}
+  </{{ tag }}>
+  {%- endfor %}
+</div>
+{%- endmacro %}

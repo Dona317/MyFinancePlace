@@ -1624,6 +1624,26 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .tmap-rest { background: var(--clr-bg-input); color: var(--clr-text-secondary); }
 .tmap-name { font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tmap-amount { font-size: var(--font-size-xs); font-family: var(--font-mono); opacity: .9; }
+/* UI-21: the «come sto» row of a page (partials/stat_row.html) — compact figures in one strip, no big cards */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; margin-bottom: 16px;
+  background: var(--clr-bg-card); border: 1px solid var(--clr-border-light); border-radius: var(--border-radius); overflow: hidden; }
+.stat { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; background: var(--clr-bg-card); color: inherit; box-shadow: 1px 0 0 var(--clr-border-light), 0 1px 0 var(--clr-border-light);
+  text-decoration: none; min-width: 0; }
+a.stat:hover { background: color-mix(in srgb, var(--clr-bg-input) 50%, var(--clr-bg-card)); }
+.stat-label { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--clr-text-muted); }
+.stat-value { font-size: var(--font-size-xl); font-weight: 600; font-family: var(--font-mono); color: var(--clr-text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat-sub { font-size: var(--font-size-xs); color: var(--clr-text-muted); }
+.stat-positive .stat-value { color: var(--clr-positive); }
+.stat-negative .stat-value { color: var(--clr-negative); }
+.stat-warning .stat-value { color: var(--clr-warning); }
+.stat-blue .stat-value { color: var(--chart-3); }
+.stat-purple .stat-value { color: var(--chart-5); }
+.stat-meter { height: 4px; border-radius: 999px; background: var(--clr-bg-input); overflow: hidden; margin-top: 4px; }
+.stat-meter > span { display: block; height: 100%; background: var(--clr-positive); }
+.stat-negative .stat-meter > span { background: var(--clr-negative); }
+.stat-warning .stat-meter > span { background: var(--clr-warning); }
+.page-tabs { margin-bottom: 16px; }
 /* UI-19: a block waiting for its data — a grey sketch, the reason under it */
 .ghost-sketch { width: 100%; height: 110px; display: block; }
 .ghost-sketch rect, .ghost-sketch path { fill: var(--clr-border-light); }
@@ -2608,3 +2628,5 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .topbar-actions > #layout-reset, .topbar-actions > #layout-done, .topbar-actions > .topbar-right-actions { order: 80; }
 .topbar-actions > #layout-manage, .topbar-actions > .tx-manage { order: 90; }
 .topbar-actions > .topbar-menu-btn { order: 95; }
+.budget-lines .budget-mini + .budget-mini { margin-top: 14px; }
+.budget-history-bar { min-width: 160px; }

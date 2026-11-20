@@ -54,14 +54,39 @@ def budget():
     for row in rows:
         row["rollover"] = row["category"] in rollover
     planned = sum(line["available"] for line in lines.values())
+    # UI-21: the page in tabs — the month, the categories (the form), the set-asides, the history
+    tab = request.args.get("tab", "month")
+    tab = tab if tab in BUDGET_TABS else "month"
+    history = _budget_history(month) if tab == "history" else []
     return render_template(
-        "lifestyle/budget.html", month=month, rows=rows, planned=planned,
+        "lifestyle/budget.html", month=month, rows=rows, planned=planned, tab=tab, history=history,
+        lines_by_share=sorted(status, key=lambda line: -line["share"]),
         carried=sum(line["carried"] for line in lines.values()), set_asides=budgets.set_asides(),
         spent_total=sum(line["spent"] for line in lines.values()),
         unbudgeted=sum(v for k, v in spent.items() if k not in lines),
         prev=add_months(month, -1), next=add_months(month, 1), warning=budgets.WARNING_SHARE,
         pace=budgets.pace(month, lines=status),
     )
+
+
+BUDGET_TABS = ("month", "categories", "set_asides", "history")
+HISTORY_MONTHS = 12
+
+
+def _budget_history(month) -> list[dict]:
+    """The budgeted months up to this one: planned, spent, left and the categories over budget, the newest first."""
+    rows = []
+    for n in range(HISTORY_MONTHS):
+        day = add_months(month, -n)
+        lines = budgets.status(day, day)
+        if not lines:
+            continue
+        planned = round(sum(line["available"] for line in lines), 2)
+        spent = round(sum(line["spent"] for line in lines), 2)
+        rows.append({"month": day, "planned": planned, "spent": spent, "left": round(planned - spent, 2),
+                     "over": [line["category"] for line in lines if line["state"] == "over"],
+                     "share": round(spent / planned * 100, 1) if planned else None})
+    return rows
 
 
 @lifestyle_bp.route("/budget", methods=["POST"])

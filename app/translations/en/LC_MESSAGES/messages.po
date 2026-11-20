@@ -16220,3 +16220,79 @@ msgstr "Net worth"
 #: app/routes/dashboard.py
 msgid "Vista sconosciuta."
 msgstr "Unknown view."
+
+#: app/templates/lifestyle/budget.html
+msgid "Speso / previsto"
+msgstr "Spent / planned"
+
+#: app/templates/lifestyle/budget.html
+msgid "su %(amount)s"
+msgstr "of %(amount)s"
+
+#: app/templates/lifestyle/budget.html
+msgid "di cui riportati %(amount)s"
+msgstr "of which carried over %(amount)s"
+
+#: app/templates/lifestyle/budget.html
+msgid "Giorni del mese"
+msgstr "Days of the month"
+
+#: app/templates/lifestyle/budget.html
+msgid "passati"
+msgstr "gone by"
+
+#: app/templates/lifestyle/budget.html
+msgid "Categorie sforate"
+msgstr "Categories over budget"
+
+#: app/templates/lifestyle/budget.html
+msgid "nessuna"
+msgstr "none"
+
+#: app/templates/lifestyle/budget.html
+msgid "Fuori budget"
+msgstr "Outside the budget"
+
+#: app/templates/lifestyle/budget.html
+msgid "categorie senza budget"
+msgstr "categories without a budget"
+
+#: app/templates/lifestyle/budget.html
+msgid "Il mese in breve"
+msgstr "The month at a glance"
+
+#: app/templates/lifestyle/budget.html
+msgid "Accantonamenti"
+msgstr "Set-asides"
+
+#: app/templates/lifestyle/budget.html
+msgid "Sezioni del budget"
+msgstr "Budget sections"
+
+#: app/templates/lifestyle/budget.html
+msgid "Le categorie, dalla più vicina al limite"
+msgstr "The categories, closest to the limit first"
+
+#: app/templates/lifestyle/budget.html
+msgid "Cambia i budget"
+msgstr "Change the budgets"
+
+#: app/templates/lifestyle/budget.html
+msgid "Nessun budget per questo mese: scegli le cifre nella scheda «Categorie»."
+msgstr "No budget for this month: choose the amounts in the «Categories» tab."
+
+#: app/templates/lifestyle/budget.html
+msgid "Nessuna spesa non mensile negli ultimi 12 mesi: niente da accantonare."
+msgstr "No non-monthly expenses in the last 12 months: nothing to set aside."
+
+#: app/templates/lifestyle/budget.html
+msgid "Gli ultimi 12 mesi con budget"
+msgstr "The last 12 months with a budget"
+
+#: app/templates/lifestyle/budget.html
+msgid "Sforate"
+msgstr "Over budget"
+
+#: app/templates/lifestyle/budget.html
+msgid "Nessun mese con budget negli ultimi 12 mesi."
+msgstr "No month with a budget in the last 12 months."
