@@ -498,12 +498,14 @@
   {% set b = extra.bridge %}
   <div class="card">
     <div class="card-header"><div>
-      <div class="card-header-title">{{ _('Ponte del mese') }} {{ info(_('Le entrate del mese, poi quanto si è preso ogni gruppo di spesa, e quello che resta.')) }}</div>
-      <div class="card-header-sub">{{ _('Resta') }} <strong class="{{ 'text-positive' if b.left >= 0 else 'text-negative' }}">{{ b.left|money }}</strong></div>
+      <div class="card-header-title">{{ _('Ponte del mese') }} {{ info(_('Le entrate del mese, poi quanto si è preso ogni gruppo di spesa e quanto hai risparmiato; se hai speso più delle entrate, quanto hai preso dai risparmi. I giroconti tra i tuoi conti e i prelievi verso Contanti non sono spese: quei soldi sono ancora tuoi e restano nei risparmi. Le riconciliazioni non contano.')) }}</div>
+      <div class="card-header-sub">{{ b.month }} · {{ _('il mese in corso del periodo in alto') if b.current else _('l’ultimo mese del periodo in alto') }}
+        · {% if b.left >= 0 %}{{ _('Risparmi') }} <strong class="text-positive">{{ b.left|money }}</strong>
+        {%- else %}{{ _('Presi dai risparmi') }} <strong class="text-muted">{{ (-b.left)|money }}</strong>{% endif %}</div>
     </div></div>
     <div class="card-body">
       {% if b.income or b.steps|length > 2 %}<div class="chart-container chart-h-md"><canvas id="bridgeChart"></canvas></div>
-      {% else %}{{ empty_state(text=_('Ancora nessun movimento questo mese.'), compact=True) }}{% endif %}
+      {% else %}{{ empty_state(text=_('Nessun movimento in questo mese.'), compact=True) }}{% endif %}
     </div>
   </div>
 
@@ -725,7 +727,7 @@ if (extra.bridge && shown('bridge') && document.getElementById('bridgeChart')) {
   const steps = extra.bridge.steps;
   makeBarChart('bridgeChart', steps.map(s => s.label), [
     { label: {{ _('Ponte del mese')|tojson }}, data: steps.map(s => [s.low, s.high]),
-      colors: steps.map(s => ({ income: 'income', expense: 'expense', saving: 'blue', left: 'positive', negative: 'negative' })[s.kind]) },
+      colors: steps.map(s => ({ income: 'income', expense: 'expense', saving: 'blue', left: 'positive', drawn: 'textMuted' })[s.kind]) },
   ], { legend: false });
 }
 // the next 30 days: the liquid money with the deadlines

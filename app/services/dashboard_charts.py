@@ -21,6 +21,7 @@ from app.models.transaction import Transaction
 from app.services import analytics_clusters, budgets, clusters, data_health, deadlines, forecast, wealth
 from app.services.ai_classification import AI_TAG
 from app.services.periods import add_months, first_of_month, month_bounds, month_index, month_label
+from app.services.totals import value_total
 
 SIZE = func.abs(func.coalesce(Transaction.amount_base, Transaction.amount))
 NEXT_DAYS = 30
@@ -68,29 +69,43 @@ def spending_pace(today: date) -> dict:
     }
 
 
-def month_bridge(today: date) -> dict:
-    """The month as a bridge: what came in, what each spending group took, what is left."""
-    start, end = month_bounds(today.year, today.month)
-    income = float(db.session.query(func.sum(SIZE)).filter(
-        Transaction.type == "income", Transaction.date >= start, Transaction.date < end).scalar() or 0)
+def month_bridge(today: date, month: date | None = None) -> dict:
+    """The month as a bridge: what came in, what each spending group took, what is left. `month` (its first day):
+    the month to show, the one of the shared period on the dashboard; the current one when not given.
+    Only real income and spending: the giroconti between own accounts and the cash taken out at the ATM move money
+    that stays the user's, and the categories left out of the analyses (a reconciliation) are neither — so what
+    they move is part of what is left."""
+    month = month or today.replace(day=1)
+    start, end = month_bounds(month.year, month.month)
+    in_month = (Transaction.date >= start, Transaction.date < end)
+    income = value_total(Transaction.type == "income", *in_month)
     # each group with the one the rules give a transaction that has none (as on the Uscite page)
     grouped = analytics_clusters.cluster_breakdown(start, end)
     order = list(clusters.CLUSTERS)
     groups = [(g["label"], g["amount"], g["cluster"]) for g in sorted(grouped, key=lambda g: order.index(g["cluster"]))]
-    expenses = float(db.session.query(func.sum(SIZE)).filter(
-        Transaction.type == "expense", Transaction.date >= start, Transaction.date < end).scalar() or 0)
+    expenses = value_total(Transaction.type == "expense", *in_month)
     unset = round(expenses - sum(amount for _name, amount, _key in groups), 2)
     if unset > 0:
         groups.append((_("Senza gruppo"), unset, None))
-    steps, level = [{"label": _("Entrate"), "low": 0.0, "high": round(income, 2), "kind": "income"}], income
+    spent = sum(amount for _name, amount, _key in groups)
+    # a month that spent more than came in took the rest from the savings: that is money in too, shown grey on top of
+    # the income, so the bridge always goes down — never a red column rising from under zero (21 Nov)
+    drawn = round(max(0.0, spent - income), 2)
+    steps = [{"label": _("Entrate"), "low": 0.0, "high": round(income, 2), "kind": "income"}]
+    if drawn:
+        steps.append({"label": _("Presi dai risparmi"), "low": round(income, 2), "high": round(income + drawn, 2),
+                      "kind": "drawn"})
+    level = income + drawn
     for name, amount, key in groups:
         if amount:  # the money put aside or invested is blue (UI-08), the spending red
-            steps.append({"label": name, "low": round(level - amount, 2), "high": round(level, 2),
+            steps.append({"label": name, "low": round(max(0.0, level - amount), 2), "high": round(level, 2),
                           "kind": "saving" if key == clusters.SAVING else "expense"})
             level -= amount
-    steps.append({"label": _("Resta"), "low": min(0.0, round(level, 2)), "high": max(0.0, round(level, 2)),
-                  "kind": "left" if level >= 0 else "negative"})
-    return {"steps": steps, "left": round(level, 2), "income": round(income, 2)}
+    left = round(income - spent, 2)
+    if left > 0:  # what was not spent: the month's savings (giroconti and cash taken out are in here)
+        steps.append({"label": _("Risparmi"), "low": 0.0, "high": left, "kind": "left"})
+    return {"steps": steps, "left": left, "income": round(income, 2),
+            "month": month_label(month_index(start)), "current": start <= today < end}
 
 
 def next_days(today: date, days: int = NEXT_DAYS) -> dict:

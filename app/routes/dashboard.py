@@ -222,7 +222,9 @@ def dashboard():
     cards = {card: {"start": pie_start, "end": pie_end, "totals": period_totals} for card in dashboard_prefs.WINDOW_CARDS}
     # UI-18: the new blocks, each computed only when it is on the page
     new_blocks = {
-        "pace": dashboard_charts.spending_pace, "bridge": dashboard_charts.month_bridge,
+        "pace": dashboard_charts.spending_pace,
+        # the bridge shows the month of the shared period: the current one when the period holds it, else its last
+        "bridge": lambda day: dashboard_charts.month_bridge(day, shared_period.month_of(period, day)),
         "next_days": dashboard_charts.next_days, "budget_top": dashboard_charts.budgets_near_limit,
         "future_balance": dashboard_charts.future_balance,
         "big_expenses": dashboard_charts.big_expenses,

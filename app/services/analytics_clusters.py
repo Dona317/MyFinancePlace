@@ -7,13 +7,15 @@ from datetime import date
 from app.models.transaction import Transaction
 from app.services import clusters
 from app.services.categories import UNCATEGORIZED
+from app.services.totals import analysed
 
 
 def cluster_breakdown(start: date, end: date) -> list[dict]:
     """Expenses of [start, end) grouped by cluster, biggest first; each cluster lists its categories, biggest first.
-    A transaction without a cluster gets the one the rules give it."""
+    A transaction without a cluster gets the one the rules give it. The categories left out of the analyses
+    (a reconciliation, money spent for others) are left out here too."""
     groups: dict[str, dict] = {}
-    for tx in Transaction.query.filter(Transaction.type == "expense",
+    for tx in Transaction.query.filter(Transaction.type == "expense", analysed(),
                                        Transaction.date >= start, Transaction.date < end).all():
         key = tx.cluster if tx.cluster in clusters.CLUSTERS else clusters.suggest(tx)
         if key is None:

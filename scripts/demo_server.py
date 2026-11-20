@@ -26,7 +26,7 @@ from sqlalchemy.engine import make_url  # noqa: E402
 
 DEMO_USER = "demo"
 DEMO_PASSWORD = "demo-solo-dati-finti-2026"  # noqa: S105 - a local demo database of invented data
-PORT = int(os.environ.get("DEMO_PORT") or 5055)
+PORT = int(os.environ.get("DEMO_PORT") or os.environ.get("PORT") or 5055)  # PORT: the one a preview tool assigns
 BACKUP = ROOT / "docs" / "Transaction samples" / "dati_fittizi" / "backup_completo_3anni.zip"
 
 

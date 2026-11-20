@@ -256,6 +256,7 @@ Nessuna (le A1–A5 del 18 nov sono diventate UI-12…UI-16). Una domanda nuova 
 | UI-19 | 18 nov 2026 | Un grafico senza dati si mostra con uno schizzo grigio e la «i» che dice cosa manca e quando arriverà |
 | UI-20 | 21 nov 2026 | Dashboard: via le vecchie schede numeriche in alto; «Come sto» sono 4 numeri (patrimonio netto con linea e variazione del mese, risparmio del mese contro la media, mesi coperti dalla liquidità, da sistemare); il loro contenuto va nelle schede Panoramica · Questo mese · Patrimonio · Investimenti, ognuna con la sua «Modifica»; la mappa a riquadri dice dove va il denaro, il Sankey è il riquadro dei flussi |
 | UI-21 | 21 nov 2026 | Conti e Carte, Obiettivi, Budget, Promemoria (con Eventi come scheda), Previsioni e Debiti passano allo stile a schede, non a riquadri impilati: proposta in REDESIGN_SCHERMATE.md |
+| UI-22 | 21 nov 2026 | Ponte del mese: mostra il mese del periodo in alto (il mese in corso se c'è, se no l'ultimo) e lo scrive; conta solo entrate e spese vere (giroconti, prelievi e riconciliazioni no); in fondo «Risparmi» in verde, oppure, se si è speso più delle entrate, «Presi dai risparmi» in grigio sopra le entrate, così la cascata scende sempre a zero |
 
 ## 16. Fotografia di partenza (18 nov 2026)
 Da dove si parte, per misurare i progressi della pulizia:
