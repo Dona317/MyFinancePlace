@@ -52,7 +52,7 @@ WIDGETS = {
     "to_fix":        (_l("Da sistemare"), 1, "dashboard_health"),
     # «Questo mese»
     "pace":          (_l("Ritmo di spesa"), 2, "dashboard_month_charts"),
-    "bridge":        (_l("Ponte del mese"), 1, "dashboard_month_charts"),
+    "bridge":        (_l("Bridge del mese"), 1, "dashboard_month_charts"),
     "next_days":     (_l("Prossimi 30 giorni"), 1, "dashboard_month_charts"),
     "budget_top":    (_l("Budget più vicini al limite"), 1, "dashboard_month_charts"),
     # where the money goes: the map of the expenses (tiles as big as each category); the flow from the income to the

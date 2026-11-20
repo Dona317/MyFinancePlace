@@ -1,4 +1,4 @@
-"""«Ponte del mese» (18–21 Nov 2026): only real income and spending — giroconti, cash taken out and reconciliations
+"""«Bridge del mese» (it was «Ponte del mese») (18–21 Nov 2026): only real income and spending — giroconti, cash taken out and reconciliations
 stay out — on the month of the shared period, which the card names."""
 from datetime import date
 from decimal import Decimal
@@ -43,7 +43,7 @@ def test_the_dashboard_shows_the_month_of_the_shared_period(client, db):
     db.session.commit()
     client.post("/dashboard/layout?view=month", json={"widgets": [{"id": "bridge", "span": 1}]})
     page = client.get("/dashboard?view=month&year=2025&part=year").get_data(as_text=True)
-    card = page[page.index("Ponte del mese"):][:1500]
+    card = page[page.index("Bridge del mese"):][:1500]
     assert "Dic 25" in card and "l’ultimo mese del periodo in alto" in card
     page = client.get("/dashboard?view=month&year=2025&part=M03").get_data(as_text=True)
-    assert "Mar 25" in page[page.index("Ponte del mese"):][:1500]
+    assert "Mar 25" in page[page.index("Bridge del mese"):][:1500]

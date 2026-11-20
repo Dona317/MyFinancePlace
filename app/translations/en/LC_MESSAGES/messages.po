@@ -15962,7 +15962,7 @@ msgid "a questo ritmo %(amount)s a fine mese"
 msgstr "at this pace %(amount)s at the end of the month"
 
 #: app/templates/dashboard/index.html
-msgid "Ponte del mese"
+msgid "Bridge del mese"
 msgstr "The month's bridge"
 
 #: app/templates/dashboard/index.html
@@ -16142,7 +16142,7 @@ msgid "Il mese in corso"
 msgstr "The current month"
 
 #: app/templates/dashboard/index.html
-msgid "Ritmo di spesa, ponte del mese, prossimi 30 giorni, budget più vicini al limite"
+msgid "Ritmo di spesa, bridge del mese, prossimi 30 giorni, budget più vicini al limite"
 msgstr "Spending pace, the month's bridge, next 30 days, budgets closest to the limit"
 
 #: app/templates/dashboard/index.html

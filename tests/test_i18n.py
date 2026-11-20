@@ -23,7 +23,7 @@ def use_english(db):
 
 def test_italian_is_the_default(client, db):
     html = client.get("/dashboard").get_data(as_text=True)
-    assert '<html lang="it"' in html and "Ponte del mese" in html and "The month's bridge" not in html
+    assert '<html lang="it"' in html and "Bridge del mese" in html and "The month's bridge" not in html
 
 
 def test_english_everywhere_once_chosen(client, db):
@@ -37,7 +37,7 @@ def test_english_everywhere_once_chosen(client, db):
     assert '<html lang="en"' in html and 'value="en" lang="en" selected' in html
     dashboard = client.get("/dashboard").get_data(as_text=True)
     assert "The month's bridge" in dashboard and "Income by category" in dashboard
-    assert "Ponte del mese" not in dashboard
+    assert "Bridge del mese" not in dashboard
     # texts used by the scripts, and the theme button
     assert '"to_dark": "Switch to dark mode"' in dashboard and 'aria-label="Switch to dark mode"' in dashboard
     # chart month labels

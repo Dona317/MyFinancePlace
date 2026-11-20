@@ -57,7 +57,7 @@ dalla più usata) e se in queste pagine serve «Modifica» per spostare i blocch
 ## Le schede, in ordine di uso
 
 ### 1. Dashboard — «Come sto, e cosa devo fare?»  ✅ in corso (UI-18)
-Fasce: Come sto (KPI, Salute finanziaria, Da sistemare) · Questo mese (ritmo di spesa, ponte del mese, prossimi 30
+Fasce: Come sto (KPI, Salute finanziaria, Da sistemare) · Questo mese (ritmo di spesa, bridge del mese, prossimi 30
 giorni, budget al limite, Sankey) · Nel tempo (chiusa) · Futuro (chiusa). Restano da fare: le opzioni dietro il ⋯,
 la treemap come seconda vista del Sankey, i grafici con la «i».
 
