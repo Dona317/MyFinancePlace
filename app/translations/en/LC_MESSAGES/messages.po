@@ -15929,3 +15929,294 @@ msgstr "← Back to Export"
 msgid "🎉 Obiettivo «%(name)s» raggiunto!"
 msgstr "🎉 Goal «%(name)s» reached!"
 
+#: app/templates/dashboard/index.html
+msgid "Da sistemare"
+msgstr "To fix"
+
+#: app/templates/dashboard/index.html
+msgid "Le cose che chiedono un tuo sguardo: un clic apre la pagina dove si sistemano."
+msgstr "The things that need a look: a click opens the page where they are fixed."
+
+#: app/templates/dashboard/index.html
+msgid "Tutto in ordine."
+msgstr "All in order."
+
+#: app/templates/dashboard/index.html
+msgid "Ritmo di spesa — %(month)s"
+msgstr "Spending pace — %(month)s"
+
+#: app/templates/dashboard/index.html
+msgid "Le uscite del mese sommate giorno per giorno, contro lo stesso giorno del mese scorso (tratteggiato) e, se ci sono budget, la linea che li raggiunge a fine mese."
+msgstr "The month's expenses added up day by day, against the same day of last month (dashed) and, when there are budgets, the line that reaches them at the end of the month."
+
+#: app/templates/dashboard/index.html
+msgid "Speso finora"
+msgstr "Spent so far"
+
+#: app/templates/dashboard/index.html
+msgid "mese scorso allo stesso giorno %(amount)s"
+msgstr "last month on the same day %(amount)s"
+
+#: app/templates/dashboard/index.html
+msgid "a questo ritmo %(amount)s a fine mese"
+msgstr "at this pace %(amount)s at the end of the month"
+
+#: app/templates/dashboard/index.html
+msgid "Ponte del mese"
+msgstr "The month's bridge"
+
+#: app/templates/dashboard/index.html
+msgid "Le entrate del mese, poi quanto si è preso ogni gruppo di spesa, e quello che resta."
+msgstr "The month's income, then what each spending group took, and what is left."
+
+#: app/templates/dashboard/index.html
+msgid "Resta"
+msgstr "Left"
+
+#: app/templates/dashboard/index.html
+msgid "Ancora nessun movimento questo mese."
+msgstr "No movements this month yet."
+
+#: app/templates/dashboard/index.html
+msgid "La liquidità di oggi con le scadenze dello Scadenzario: ricorrenti, rate, polizze, promemoria con importo."
+msgstr "Today's liquid money with the deadlines of the Schedule: recurring payments, instalments, policies, reminders with an amount."
+
+#: app/templates/dashboard/index.html
+msgid "Oggi %(start)s → fra 30 giorni %(end)s · punto più basso %(low)s"
+msgstr "Today %(start)s → in 30 days %(end)s · lowest point %(low)s"
+
+#: app/templates/dashboard/index.html
+msgid "Scadenzario"
+msgstr "Schedule"
+
+#: app/templates/dashboard/index.html
+msgid "Budget più vicini al limite"
+msgstr "Budgets closest to the limit"
+
+#: app/templates/dashboard/index.html
+msgid "La tacca dice dove dovresti essere oggi, a questo punto del mese."
+msgstr "The notch shows where you should be today, at this point of the month."
+
+#: app/templates/dashboard/index.html
+msgid "Nessun budget per questo mese."
+msgstr "No budget for this month."
+
+#: app/templates/dashboard/index.html
+msgid "Saldo dei prossimi 12 mesi"
+msgstr "Balance of the next 12 months"
+
+#: app/templates/dashboard/index.html
+msgid "La previsione di Previsioni: la banda va dal metodo più prudente al più ottimista."
+msgstr "The forecast of Forecasts: the band goes from the most cautious method to the most optimistic one."
+
+#: app/templates/dashboard/index.html
+msgid "Fra 12 mesi %(amount)s"
+msgstr "In 12 months %(amount)s"
+
+#: app/templates/dashboard/index.html
+msgid "Servono almeno 3 mesi completi di movimenti: poi la previsione si disegna da sola."
+msgstr "At least 3 complete months of movements are needed: then the forecast draws itself."
+
+#: app/templates/dashboard/index.html
+msgid "Uscite grosse dei prossimi 12 mesi"
+msgstr "Big expenses of the next 12 months"
+
+#: app/templates/dashboard/index.html
+msgid "Le scadenze da almeno 300 € dello Scadenzario (bollo, polizze, rate, tasse), mese per mese."
+msgstr "The deadlines of at least €300 in the Schedule (car tax, policies, instalments, taxes), month by month."
+
+#: app/templates/dashboard/index.html
+msgid "In tutto %(amount)s"
+msgstr "In all %(amount)s"
+
+#: app/templates/dashboard/index.html
+msgid "Nessuna scadenza grossa nei prossimi 12 mesi."
+msgstr "No big deadline in the next 12 months."
+
+#: app/templates/dashboard/index.html
+msgid "Variazione del patrimonio"
+msgstr "Change in net worth"
+
+#: app/templates/dashboard/index.html
+msgid "Da costruire: dirà perché il patrimonio è cambiato nel periodo, a cascata — versamenti, rendite, plus e minusvalenze, costi e tasse. I movimenti che servono ci sono già."
+msgstr "To be built: it will show why the net worth changed in the period, as a waterfall — contributions, income, gains and losses, costs and taxes. The movements it needs are already there."
+
+#: app/templates/dashboard/index.html
+msgid "Servono i prezzi giornalieri dei titoli: arrivano con il database dei prezzi del Portafoglio (Fase 2). Allora dirà quanto sei sotto il massimo e da quanto."
+msgstr "The daily prices of the securities are needed: they come with the Portfolio's price database (Phase 2). Then it will show how far below the peak you are, and for how long."
+
+#: app/templates/dashboard/index.html
+msgid "Patrimonio tra 10 anni"
+msgstr "Net worth in 10 years"
+
+#: app/templates/dashboard/index.html
+msgid "Da costruire: il patrimonio di oggi proiettato al ritmo di risparmio attuale, con il rendimento che sceglierai; il passato pieno, il futuro tratteggiato. I dati ci sono già."
+msgstr "To be built: today's net worth projected at the current saving pace, with the return you choose; the past solid, the future dashed. The data are already there."
+
+#: app/templates/dashboard/index.html
+msgid "Il calcolo c'è già in Previsioni → Pensione: qui arriverà il ventaglio delle simulazioni con la linea di quanto serve."
+msgstr "The calculation is already in Forecasts → Retirement: the fan of the simulations with the line of what is needed will come here."
+
+#: app/templates/dashboard/index.html
+msgid "Apri Pensione"
+msgstr "Open Retirement"
+
+#: app/templates/dashboard/index.html
+msgid "Obiettivi: quando ci arrivo"
+msgstr "Goals: when I get there"
+
+#: app/templates/dashboard/index.html
+msgid "Da costruire: la data prevista per ogni obiettivo. Diventa precisa quando gli obiettivi saranno collegati a un conto o a un portafoglio."
+msgstr "To be built: the expected date of each goal. It becomes precise when the goals are linked to an account or a portfolio."
+
+#: app/templates/dashboard/index.html
+msgid "Apri Obiettivi"
+msgstr "Open Goals"
+
+#: app/templates/dashboard/index.html
+msgid "Debiti: quando finisco"
+msgstr "Debts: when I finish"
+
+#: app/templates/dashboard/index.html
+msgid "Da costruire: il debito residuo fino all'estinzione, dai piani di ammortamento che ci sono già."
+msgstr "To be built: the remaining debt until it is paid off, from the amortization plans already there."
+
+#: app/templates/dashboard/index.html
+msgid "Apri Debiti"
+msgstr "Open Debts"
+
+#: app/templates/dashboard/index.html
+msgid "Rendite dei prossimi 12 mesi"
+msgstr "Income of the next 12 months"
+
+#: app/templates/dashboard/index.html
+msgid "Servono le cedole e i dividendi previsti dei titoli: arrivano con il database dei prezzi del Portafoglio (Fase 2)."
+msgstr "The expected coupons and dividends of the securities are needed: they come with the Portfolio's price database (Phase 2)."
+
+#: app/templates/dashboard/index.html
+msgid "Liquidità prevista"
+msgstr "Expected liquid money"
+
+#: app/templates/dashboard/index.html
+msgid "Più prudente"
+msgstr "Most cautious"
+
+#: app/templates/dashboard/index.html
+msgid "Più ottimista"
+msgstr "Most optimistic"
+
+#: app/templates/dashboard/index.html
+msgid "Uscite grosse"
+msgstr "Big expenses"
+
+#: app/templates/dashboard/index.html
+msgid "Senza gruppo"
+msgstr "No group"
+
+#: app/templates/dashboard/index.html
+msgid "Scadenze nei prossimi 7 giorni"
+msgstr "Deadlines in the next 7 days"
+
+#: app/templates/dashboard/index.html
+msgid "Categorie proposte dall'AI da confermare"
+msgstr "Categories suggested by the AI to confirm"
+
+#: app/templates/dashboard/index.html
+msgid "Totale del periodo"
+msgstr "Total of the period"
+
+#: app/templates/dashboard/index.html
+msgid "Come sto"
+msgstr "How I'm doing"
+
+#: app/templates/dashboard/index.html
+msgid "Nel tempo"
+msgstr "Over time"
+
+#: app/templates/dashboard/index.html
+msgid "Futuro"
+msgstr "Future"
+
+#: app/templates/dashboard/index.html
+msgid "Il mese in corso"
+msgstr "The current month"
+
+#: app/templates/dashboard/index.html
+msgid "Ritmo di spesa, ponte del mese, prossimi 30 giorni, budget più vicini al limite"
+msgstr "Spending pace, the month's bridge, next 30 days, budgets closest to the limit"
+
+#: app/templates/dashboard/index.html
+msgid "Saldo dei prossimi 12 mesi, uscite grosse dell’anno e le previsioni in arrivo"
+msgstr "Balance of the next 12 months, the year's big expenses and the forecasts to come"
+
+#: app/templates/dashboard/index.html
+msgid "Viste della dashboard"
+msgstr "Dashboard views"
+
+#: app/templates/dashboard/index.html
+msgid "dalla fine del mese scorso"
+msgstr "since the end of last month"
+
+#: app/templates/dashboard/index.html
+msgid "Apri il flusso di cassa"
+msgstr "Open the cash flow"
+
+#: app/templates/dashboard/index.html
+msgid "Media 12 mesi %(rate)s%%"
+msgstr "12-month average %(rate)s%%"
+
+#: app/templates/dashboard/index.html
+msgid "Apri i conti"
+msgstr "Open the accounts"
+
+#: app/templates/dashboard/index.html
+msgid "Quanti mesi di spese copre la liquidità, senza stipendio, contro il tuo obiettivo (Impostazioni → Dashboard)."
+msgstr "How many months of spending the liquid money covers without a salary, against your goal (Settings → Dashboard)."
+
+#: app/templates/dashboard/index.html
+msgid "%(n)s mesi su %(target)s"
+msgstr "%(n)s months out of %(target)s"
+
+#: app/templates/dashboard/index.html
+msgid "Obiettivo %(n)s mesi"
+msgstr "Goal %(n)s months"
+
+#: app/templates/dashboard/index.html
+msgid "Clic su una categoria per le sue transazioni."
+msgstr "Click a category for its transactions."
+
+#: app/templates/dashboard/index.html
+msgid "Flusso del denaro — %(period)s"
+msgstr "Money flow — %(period)s"
+
+#: app/templates/dashboard/index.html
+msgid "Entrate e uscite — %(period)s"
+msgstr "Income and expenses — %(period)s"
+
+#: app/templates/dashboard/index.html
+msgid "Il periodo della barra in alto; sotto ogni cifra la previsione e, con «Confronta», il periodo prima."
+msgstr "The period of the top bar; under each figure the forecast and, with «Compare», the period before."
+
+#: app/templates/dashboard/index.html
+msgid "Debito totale"
+msgstr "Total debt"
+
+#: app/templates/dashboard/index.html
+msgid "Nessun debito in corso"
+msgstr "No debt in progress"
+
+#: app/templates/dashboard/index.html
+msgid "Flusso del denaro"
+msgstr "Money flow"
+
+#: app/templates/dashboard/index.html
+msgid "Entrate e uscite del periodo"
+msgstr "Income and expenses of the period"
+
+#: app/templates/dashboard/index.html
+msgid "Patrimonio"
+msgstr "Net worth"
+
+#: app/routes/dashboard.py
+msgid "Vista sconosciuta."
+msgstr "Unknown view."

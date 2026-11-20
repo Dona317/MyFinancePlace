@@ -19,17 +19,22 @@ body {
   transition: background var(--transition), color var(--transition);
 }
 
-/* Scrollbars everywhere (pages, tables, menus, the desktop app's window): hidden at rest. A scrollable box shows its
-   thin bar while the pointer is over it, and for a few seconds after it is scrolled (main.js adds .scroll-show). */
-* { scrollbar-width: thin; scrollbar-color: transparent transparent; }
-*:not(html):not(body):hover, .scroll-show { scrollbar-color: var(--scroll-thumb) transparent; }
-::-webkit-scrollbar { width: 6px; height: 6px; background: transparent; }
+/* Scrollbars everywhere (pages, tables, menus, the desktop app's window), as on a Mac: no track and no arrows, hidden
+   at rest; a slim pill shows while the pointer is over a scrollable box and for a moment after it is scrolled
+   (main.js adds .scroll-show), and it grows a little under the pointer. The standard properties are for Firefox
+   only: Chrome and Edge ignore every ::-webkit-scrollbar rule once scrollbar-width is set. */
+:root { --scroll-thumb: rgba(128, 128, 128, .35); --scroll-thumb-hover: rgba(128, 128, 128, .6); }
+::-webkit-scrollbar { width: 10px; height: 10px; background: transparent; }
 ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
-::-webkit-scrollbar-thumb { background: transparent; border-radius: 6px; }
-*:not(html):not(body):hover::-webkit-scrollbar-thumb, .scroll-show::-webkit-scrollbar-thumb { background: var(--scroll-thumb); }
-::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
-:root { --scroll-thumb: rgba(128, 128, 128, .28); --scroll-thumb-hover: rgba(128, 128, 128, .55); }
+/* the transparent border keeps the pill thin (4px) inside a 10px hit area, away from the edge */
+::-webkit-scrollbar-thumb { background: transparent; border: 3px solid transparent; border-radius: 999px; background-clip: padding-box; min-height: 32px; }
+*:not(html):not(body):hover::-webkit-scrollbar-thumb, .scroll-show::-webkit-scrollbar-thumb { background-color: var(--scroll-thumb); }
+::-webkit-scrollbar-thumb:hover, ::-webkit-scrollbar-thumb:active { background-color: var(--scroll-thumb-hover); border-width: 2px; }
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+  *:not(html):not(body):hover, .scroll-show { scrollbar-color: var(--scroll-thumb) transparent; }
+}
 /* the page never scrolls sideways: wide tables and charts scroll inside their own box */
 html, body { overflow-x: hidden; }
 
@@ -1570,6 +1575,65 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
   .dash-grid > .fc-widget[data-span] { grid-column: 1 / -1; }
 }
 .span-label { font-size: 11px; font-weight: 600; }
+/* UI-18: the dashboard in bands — «Come sto» on top, then «Questo mese», «Nel tempo», «Futuro» (these two open on a click) */
+.dash-band-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--clr-text-secondary); margin: 0 0 8px; }
+.dash-band { margin-top: 24px; }
+.dash-band-head { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; margin-bottom: 12px;
+  font-size: var(--font-size-sm); font-weight: 600; color: var(--clr-text-secondary); }
+.dash-band-head::-webkit-details-marker { display: none; }
+.dash-band-head:hover { color: var(--clr-text-primary); }
+.dash-band-chevron { font-size: 12px; transition: transform var(--transition); }
+.dash-band[open] .dash-band-chevron { transform: rotate(90deg); }
+#fc-grid-now { margin-bottom: 8px; }
+#fc-grid-now:not(:has(> .fc-widget:not([hidden]))) { display: none; }  /* nothing shown in it: no empty row */
+.chart-h-sm { height: 160px; }
+.chart-h-md { height: 240px; }
+.fix-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.fix-list a { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: var(--border-radius-sm);
+  color: var(--clr-text-primary); font-size: var(--font-size-sm); }
+.fix-list a:hover { background: var(--clr-bg-input); }
+.fix-list a > span { flex: 1; min-width: 0; }
+.fix-list i { color: var(--clr-text-muted); }
+.fix-ok { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--clr-positive); font-size: var(--font-size-sm); }
+.budget-mini + .budget-mini { margin-top: 12px; }
+.budget-mini-head { display: flex; justify-content: space-between; gap: 8px; font-size: var(--font-size-xs); margin-bottom: 4px; }
+.budget-mini-bar { position: relative; height: 6px; border-radius: 999px; background: var(--clr-bg-input); }
+.budget-mini-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--clr-positive); }
+.budget-mini-bar > span.is-warning { background: var(--clr-warning); }
+.budget-mini-bar > span.is-over { background: var(--clr-negative); }
+.budget-mini-bar > i { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--clr-text-primary); }
+.big-exp-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; }
+.big-exp-list li { display: flex; justify-content: space-between; gap: 8px; }
+/* «Come sto»: the little line of the net worth, the bar of the months the cash covers, the links of «Da sistemare» */
+.kpi-spark { display: block; width: 100%; height: 24px; margin-top: 6px; }
+.kpi-spark polyline { fill: none; stroke: var(--kpi-accent, var(--clr-text-secondary)); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.kpi-meter { height: 6px; border-radius: 999px; background: var(--clr-bg-input); margin: 6px 0 4px; overflow: hidden; }
+.kpi-meter > span { display: block; height: 100%; border-radius: 999px; background: var(--clr-positive); }
+.kpi-fix { display: flex; flex-direction: column; gap: 2px; }
+.kpi-fix a { color: inherit; }
+.kpi-fix a:hover { color: var(--clr-primary); }
+/* the old cards of the period, now a block of the view «Questo mese» */
+.fc-widget[data-widget="period_totals"] .kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .fc-widget[data-widget="period_totals"] .kpi-strip { grid-template-columns: minmax(0, 1fr); } }
+/* «Dove va il denaro» as a map: one tile per category, as big as its spending, reds from strong to light */
+.tmap { display: flex; flex-wrap: wrap; gap: 3px; min-height: 220px; align-content: stretch; }
+.tmap-cell { flex-basis: 28%; flex-shrink: 1; min-width: 84px; min-height: 64px; padding: 8px; border-radius: var(--border-radius-sm);
+  display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; text-decoration: none;
+  background: color-mix(in srgb, var(--clr-negative) var(--tmap-mix, 60%), var(--clr-bg-card)); color: #fff; }
+.tmap-cell:hover { filter: brightness(1.08); }
+.tmap-rest { background: var(--clr-bg-input); color: var(--clr-text-secondary); }
+.tmap-name { font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tmap-amount { font-size: var(--font-size-xs); font-family: var(--font-mono); opacity: .9; }
+/* UI-19: a block waiting for its data — a grey sketch, the reason under it */
+.ghost-sketch { width: 100%; height: 110px; display: block; }
+.ghost-sketch rect, .ghost-sketch path { fill: var(--clr-border-light); }
+.ghost-sketch .ghost-strong { fill: var(--clr-border); }
+.ghost-sketch .ghost-line { fill: none; stroke: var(--clr-text-muted); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.ghost-sketch .ghost-dash { stroke-dasharray: 5 4; }
+.ghost-note { margin: 10px 0 0; }
+.ghost-card .badge { white-space: nowrap; flex-shrink: 0; }
+.ghost-link { margin-top: 8px; align-self: flex-start; }
+@media (prefers-reduced-motion: reduce) { .dash-band-chevron { transition: none; } }
 .dash-year-head { flex-wrap: wrap; align-items: flex-end; }
 .dash-year-form { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; }
 .dash-select { display: flex; flex-direction: column; gap: 4px; margin: 0; }
@@ -1849,7 +1913,7 @@ html.focus .page-content { padding: 24px 16px 40px; }
 /* a pie's own legend: names wrap, so two columns fit beside the pie in a half-width card instead of the second
    being cut off */
 .legend-side .chart-legend-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start;
-  flex-wrap: nowrap; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }
+  flex-wrap: nowrap; overflow-x: hidden; overflow-y: auto; }
 .legend-side .chart-legend-list li { min-width: 0; }
 .legend-side .chart-legend-item { white-space: normal; text-align: left; align-items: flex-start; }
 .legend-side .chart-legend-item .chart-legend-dot { margin-top: 4px; }
@@ -1925,6 +1989,11 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .kpi-strip > .fc-widget { scroll-snap-align: start; }
 .kpi-strip > .fc-widget[data-span="2"] { grid-column: span 2; }
 .kpi-strip > .fc-widget[hidden] { display: none; }
+/* «Come sto» (UI-18): its four cards fit the row — the net worth two fifths, the others one fifth each; two a row on a
+   tablet, one on a phone. No sideways scrolling. */
+#kpi-grid { grid-auto-flow: row; grid-template-columns: repeat(5, minmax(0, 1fr)); overflow: visible; padding-bottom: 0; }
+@media (max-width: 1200px) { #kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 576px) { #kpi-grid { grid-template-columns: minmax(0, 1fr); } #kpi-grid > .fc-widget[data-span="2"] { grid-column: auto; } }
 
 /* ── Dashboard top bar: the period in a box of its own, in the middle; Modifica and Gestisci on the right ── */
 .dash-period-box { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--clr-border);
@@ -2100,7 +2169,7 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 .cell-clip { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .cell-clip > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* the tags of a row scroll sideways inside their box when they do not fit: one line, no wrap, a thin bar */
-.tx-table .tag-cell .cell-clip { display: block; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.tx-table .tag-cell .cell-clip { display: block; overflow-x: auto; overflow-y: hidden; }
 .tx-table .tag-cell .tag-chip { display: inline-flex; margin-right: 4px; }
 /* the box of a tag typed straight into a row of the register: quiet until it is hovered or focused */
 .tag-add { width: 84px; max-width: 100%; border: 1px solid transparent; border-radius: 999px; background: transparent;

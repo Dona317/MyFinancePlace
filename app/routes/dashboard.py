@@ -4,11 +4,11 @@ from apiflask import APIBlueprint
 from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
-from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding
 from app.services import (
     analytics,
     budgets,
+    dashboard_charts,
     dashboard_prefs,
     encrypted_backup,
     forecast,
@@ -36,8 +36,6 @@ dashboard_bp = APIBlueprint(
 TREND_LINES = 6  # categories drawn one by one in the monthly lines; the rest are added up in «Altre»
 PIE_PARTS = ("year", "H1", "H2", "Q1", "Q2", "Q3", "Q4")  # the doughnuts: the whole year, a half or a quarter
 COMPARE_SETTING = "dashboard.compare"
-RECENT_ROWS = 25  # the last ones of the «Transazioni» card; the card scrolls when its row is shorter
-IMPACT_ROWS = 60  # biggest movements of the window sent to the page, filtered there by category
 # Typical unexpected expenses («cigni neri»): what each would take from the savings
 SHOCKS = (("car", 4000), ("appliance", 700), ("house", 8000), ("health", 2500))
 
@@ -175,7 +173,18 @@ def dashboard():
     encrypted_backup.run_in_background()  # the automatic encrypted backup, when due
     today = date.today()
     settings = current_settings()
-    layout = [w for w in dashboard_prefs.layout() if settings.get(dashboard_prefs.WIDGETS[w["id"]][2], True)]
+    dashboard_prefs.upgrade()  # an arrangement saved before the bands (UI-18) goes to the new page once
+    # the tabs on top: «Panoramica» (the bands, as arranged in Modifica) or one of the views with its own blocks
+    view = request.args.get("view", "overview")
+    view = view if view in dashboard_prefs.VIEWS else "overview"
+    arranged = dashboard_prefs.layout() if view == "overview" else dashboard_prefs.view_layout(view)
+    layout = [w for w in arranged if settings.get(dashboard_prefs.WIDGETS[w["id"]][2], True)]
+    # UI-18: the blocks band by band (the order inside a band is the user's)
+    band_order = list(dashboard_prefs.BANDS)
+    if view == "overview":
+        layout.sort(key=lambda w: band_order.index(dashboard_prefs.BAND_OF[w["id"]]))
+    # a view is one grid, without bands
+    band_of = dashboard_prefs.BAND_OF if view == "overview" else {w["id"]: "now" for w in layout}
     shown = {w["id"] for w in layout if w["visible"]}
     kpis = analytics.dashboard_kpis(today)
     last_12 = analytics.last_12_months(today)  # the financial health is about the last 12 months, whatever the period
@@ -211,18 +220,25 @@ def dashboard():
     kpis = {**kpis, "net_worth": sheet["net_worth"], "total_investments": sheet["investments"],
             "total_debt": sheet["total_liabilities"]}
     cards = {card: {"start": pie_start, "end": pie_end, "totals": period_totals} for card in dashboard_prefs.WINDOW_CARDS}
-    window = cards["expenses"]
-    recent = (Transaction.query.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(RECENT_ROWS).all()
-              if "recent" in shown else [])
-    impact = (Transaction.query.filter(Transaction.type.in_(["income", "expense"]),
-                                       Transaction.date >= window["start"], Transaction.date < window["end"])
-              .order_by(Transaction.amount_base.desc().nullslast()).limit(IMPACT_ROWS).all() if "recent" in shown else [])
+    # UI-18: the new blocks, each computed only when it is on the page
+    new_blocks = {
+        "pace": dashboard_charts.spending_pace, "bridge": dashboard_charts.month_bridge,
+        "next_days": dashboard_charts.next_days, "budget_top": dashboard_charts.budgets_near_limit,
+        "future_balance": dashboard_charts.future_balance,
+        "big_expenses": dashboard_charts.big_expenses,
+    }
+    extra = {key: compute(today) if key in shown else None for key, compute in new_blocks.items()}
+    # «Come sto»: the cards on top (and the «Da sistemare» block, when shown)
+    kpi_shown = {k["id"] for k in dashboard_prefs.kpi_layout() if k["visible"]} if view == "overview" else set()
+    extra["to_fix"] = dashboard_charts.to_fix(today) if {"to_fix"} & (shown | kpi_shown) else []
+    extra["spark"] = dashboard_charts.net_worth_spark(today) if "net_worth" in kpi_shown else None
+    extra["month_saving"] = dashboard_charts.month_saving(today, last_12) if "month_savings" in kpi_shown else None
     return render_template(
         "dashboard/index.html",
         kpis=kpis,
         cards=cards,
         forecast_figures=_forecast_figures(today),
-        rates=_rates() if settings["dashboard_investments"] or settings["dashboard_debt"] else {},
+        rates=_rates() if shown & {"investments", "debt_summary"} else {},
         cash_flow=cash_flow,
         savings_flow=_savings_flow(cash_flow),
         year=year, year_to=year_to, years=years, part=part, as_of=as_of, pie_parts=PIE_PARTS, pie_start=pie_start, pie_last=pie_end - timedelta(days=1),
@@ -239,8 +255,10 @@ def dashboard():
         sankey=sankey.flow(pie_start, pie_end) if "sankey" in shown else None,
         year_start=pie_start, year_last=pie_end - timedelta(days=1),
         net_worth_trend=_net_worth_trend(chart_months, today) if "net_worth" in shown and chart_months else None,
-        recent_transactions=recent,
-        impact_transactions=impact,
+        extra=extra,
+        bands=dashboard_prefs.BANDS, band_of=band_of, view=view,
+        view_tabs=[(key, url_for("dashboard.dashboard", view=None if key == "overview" else key), title, icon)
+                   for key, (title, icon, _blocks) in dashboard_prefs.VIEWS.items()],
         health=_health(kpis, last_12),
         investments=portfolio_overview.dashboard_blocks(today) if shown & {"investments", "investments_trend"} else None,
         budget_alerts=budgets.alerts(today),
@@ -260,6 +278,16 @@ def save_layout():
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify(error=_("Atteso un oggetto JSON.")), 400
+    # a view other than «Panoramica» (?view=month): its own blocks, saved apart
+    view = request.args.get("view", "overview")
+    if view != "overview":
+        if view not in dashboard_prefs.VIEWS:
+            return jsonify(error=_("Vista sconosciuta.")), 400
+        if data.get("reset"):
+            return jsonify(layout=dashboard_prefs.reset_view_layout(view))
+        if not isinstance(data.get("widgets"), list):
+            return jsonify(error=_("Manca l'elenco dei blocchi.")), 400
+        return jsonify(layout=dashboard_prefs.save_view_layout(view, data["widgets"]))
     if data.get("reset"):
         return jsonify(layout=dashboard_prefs.reset_layout())
     if not isinstance(data.get("widgets"), list) and not isinstance(data.get("kpis"), list):

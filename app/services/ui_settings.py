@@ -29,6 +29,8 @@ DEFAULT_SETTINGS = {
     "dashboard_sankey":         True,
     "dashboard_recent_tx":      True,
     "dashboard_health":         True,
+    "dashboard_month_charts":   True,   # UI-18: ritmo di spesa, ponte del mese, prossimi 30 giorni, budget
+    "dashboard_future":         True,   # UI-18: the «Futuro» band
     "dashboard_portfolio_blocks": True,  # F48: two blocks with the investments (key figures, value vs money put in)
     "autonomy_target":          "6",   # months of spending the liquid money should cover (Salute Finanziaria)
     # ── Data from the internet ───────────────────────────────────────────

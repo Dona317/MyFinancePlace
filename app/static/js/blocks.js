@@ -45,9 +45,13 @@ function initBlockEditor({ grids, saveUrl }) {
     renderHidden();
     paint();
     clearTimeout(saveTimer);
-    const body = Object.fromEntries(grids.map(g => [g.key, [...g.el.querySelectorAll(":scope > .fc-widget")].map(w => ({
-      id: w.dataset.widget, span: +w.dataset.span, ...(g.heights ? { height: +w.dataset.height || 0 } : {}), visible: !isOff(w),
-    }))]));
+    // grids with the same key (the dashboard's bands) are saved together, one after the other
+    const body = {};
+    grids.forEach(g => {
+      body[g.key] = (body[g.key] || []).concat([...g.el.querySelectorAll(":scope > .fc-widget")].map(w => ({
+        id: w.dataset.widget, span: +w.dataset.span, ...(g.heights ? { height: +w.dataset.height || 0 } : {}), visible: !isOff(w),
+      })));
+    });
     saveTimer = setTimeout(() => fetch(saveUrl, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     }).then(() => document.dispatchEvent(new CustomEvent("blocks:saved"))), 250);

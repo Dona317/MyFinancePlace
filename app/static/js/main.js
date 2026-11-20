@@ -1042,7 +1042,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // A scrollable box shows its bar for a few seconds after it is scrolled (the CSS shows it under the pointer)
 function initScrollReveal() {
-  const SHOW_MS = 2000;
+  const SHOW_MS = 1200;  // as on a Mac: the bar goes soon after the scrolling stops
   const timers = new WeakMap();
   document.addEventListener('scroll', (event) => {
     let el = event.target;

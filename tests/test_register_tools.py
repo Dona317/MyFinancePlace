@@ -169,10 +169,10 @@ def test_the_layout_is_saved_and_cleaned(client, db):
 
 
 def test_a_block_keeps_the_height_chosen(client, db):
-    client.post("/dashboard/layout", json={"widgets": [{"id": "recent", "span": 2, "height": 2}, {"id": "health", "height": 9}]})
+    client.post("/dashboard/layout", json={"widgets": [{"id": "sankey", "span": 2, "height": 2}, {"id": "health", "height": 9}]})
     layout = {w["id"]: w for w in dashboard_prefs.layout()}
-    assert layout["recent"]["height"] == 2 and layout["health"]["height"] == 0  # an unknown height: automatic
-    assert 'data-widget="recent" data-span="2" data-height="2"' in client.get("/dashboard").get_data(as_text=True)
+    assert layout["sankey"]["height"] == 2 and layout["health"]["height"] == 0  # an unknown height: automatic
+    assert 'data-widget="sankey" data-span="2" data-height="2"' in client.get("/dashboard").get_data(as_text=True)
 
 
 def test_dashboard_renders_with_data(client, sample_data):
@@ -228,15 +228,32 @@ def test_import_needs_the_account(client, db):
     assert response.status_code == 302  # an invalid payload is refused before anything is saved
 
 
+def test_each_view_keeps_its_own_arrangement(client, db):
+    # UI-18: «Questo mese» has Modifica too; its blocks are saved apart from the overview's
+    assert 'id="layout-edit"' in client.get("/dashboard?view=month").get_data(as_text=True)
+    client.post("/dashboard/layout?view=month", json={"widgets": [{"id": "bridge", "span": 3}, {"id": "net_worth"},
+                                                                  {"id": "pace", "visible": False}]})
+    month = dashboard_prefs.view_layout("month")
+    assert month[0] == {"id": "bridge", "span": 3, "height": 0, "visible": True} and month[1]["id"] == "pace"
+    assert "net_worth" not in {w["id"] for w in month}  # a block of another view is dropped
+    assert dashboard_prefs.layout() == dashboard_prefs.default_layout()  # the overview untouched
+    page = client.get("/dashboard?view=month").get_data(as_text=True)
+    assert 'data-widget="pace" data-span="2" data-height="0" data-title="Ritmo di spesa" hidden' in page
+    client.post("/dashboard/layout?view=month", json={"reset": True})
+    assert dashboard_prefs.view_layout("month") == dashboard_prefs.default_view_layout("month")
+    assert client.post("/dashboard/layout?view=nope", json={"widgets": []}).status_code == 400
+
+
 def test_the_cards_on_top_keep_order_width_and_visibility(client, db):
-    client.post("/dashboard/layout", json={"kpis": [{"id": "debt", "span": 2}, {"id": "income", "visible": False},
-                                                    {"id": "nope"}, {"id": "debt"}, {"id": "tbd", "span": 5}]})
+    # UI-18: «Come sto» is four cards; the old ones (income, debt, TBD…) are gone and dropped when sent
+    client.post("/dashboard/layout", json={"kpis": [{"id": "liquidity", "span": 2}, {"id": "month_savings", "visible": False},
+                                                    {"id": "debt"}, {"id": "liquidity"}, {"id": "to_fix", "span": 5}]})
     kpis = dashboard_prefs.kpi_layout()
-    assert kpis[0] == {"id": "debt", "span": 2, "visible": True}
-    assert kpis[1]["visible"] is False and kpis[2] == {"id": "tbd", "span": 1, "visible": True}  # a wrong width: one
-    assert len(kpis) == len(dashboard_prefs.KPI_CARDS)
+    assert kpis[0] == {"id": "liquidity", "span": 2, "visible": True}
+    assert kpis[1]["visible"] is False and kpis[2] == {"id": "to_fix", "span": 1, "visible": True}  # a wrong width: one
+    assert len(kpis) == len(dashboard_prefs.KPI_CARDS) == 4
     page = client.get("/dashboard").get_data(as_text=True)
-    assert 'data-widget="debt" data-span="2"' in page and ">TBD<" in page
+    assert 'data-widget="liquidity" data-span="2"' in page and 'kpi-tbd' not in page
     assert client.post("/dashboard/layout", json={"reset": True}).status_code == 200
     assert dashboard_prefs.kpi_layout() == dashboard_prefs.default_kpis()
 

@@ -25,22 +25,22 @@ def test_a_preset_saves_blocks_cards_and_period_and_brings_them_back(client, db)
     # another period on the page: «Salva preset» appears
     html = client.get(f"/dashboard?year={year - 1}&year_to={year - 1}&part=Q2").get_data(as_text=True)
     assert 'id="preset-save" hidden' not in html
-    client.post("/dashboard/layout", json={"widgets": [{"id": "recent", "span": 3, "visible": False}],
-                                           "kpis": [{"id": "debt", "span": 2}]})
+    client.post("/dashboard/layout", json={"widgets": [{"id": "sankey", "span": 3, "visible": False}],
+                                           "kpis": [{"id": "liquidity", "span": 2}]})
     saved = client.post("/dashboard/presets/2/save", json={"period": {"year": year - 1, "year_to": year - 1, "part": "Q2"}}).get_json()
     assert saved["period"] == {"year": year - 1, "year_to": year - 1, "part": "Q2"}
     # preset 1: the default arrangement and the current year
     assert client.post("/dashboard/presets/1/use").get_json() == {"url": "/dashboard"}
     html = client.get("/dashboard").get_data(as_text=True)
     assert _active(html) == "Preset 1" and f'<option value="{year}" selected' in html
-    assert dashboard_prefs.layout()[0]["id"] == "cashflow"
+    assert dashboard_prefs.layout()[0]["id"] == "health"
     # back to preset 2: its blocks, cards and period, nothing to save
     client.post("/dashboard/presets/2/use")
     html = client.get("/dashboard").get_data(as_text=True)
     assert _active(html) == "Preset 2" and f'<option value="{year - 1}" selected' in html
     assert '<option value="Q2" selected' in html and 'id="preset-save" hidden' in html
-    assert dashboard_prefs.layout()[0] == {"id": "recent", "span": 3, "height": 0, "visible": False}
-    assert dashboard_prefs.kpi_layout()[0] == {"id": "debt", "span": 2, "visible": True}
+    assert dashboard_prefs.layout()[0] == {"id": "sankey", "span": 3, "height": 0, "visible": False}
+    assert dashboard_prefs.kpi_layout()[0] == {"id": "liquidity", "span": 2, "visible": True}
     # a block moved in Modifica: the page differs from the preset
     client.post("/dashboard/layout", json={"widgets": [{"id": "health"}]})
     assert 'id="preset-save" hidden' not in client.get("/dashboard").get_data(as_text=True)

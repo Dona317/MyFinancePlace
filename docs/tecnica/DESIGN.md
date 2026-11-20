@@ -173,6 +173,29 @@ e in verde, trasferimenti con ⇄ e colore neutro. Le valute diverse dall'euro m
 - Legenda cliccabile per nascondere serie; «Deseleziona tutto» quando le serie sono tante; le etichette della
   legenda non si troncano a metà parola.
 - Assi e numeri nel formato italiano; niente decimali inutili sugli assi.
+- Etichette dirette sulle linee al posto delle legende lunghe; **un solo numero in evidenza** per grafico (l'«oggi» o
+  il totale); il confronto (mese scorso, anno scorso, budget) sempre **tratteggiato e grigio**, mai un secondo colore.
+- Un clic su una barra, un mese o una categoria apre le transazioni filtrate.
+- Al massimo una ciambella per pagina; niente torte.
+- **Grafico senza i dati che gli servono** (UI-19): si mostra lo stesso, con uno schizzo grigio al posto delle serie
+  e l'icona «i» che dice cosa manca e quando si riempirà («Servono i prezzi giornalieri: arrivano con la Fase 2 del
+  Portafoglio»). Niente dati inventati.
+
+### 9.1 Dashboard (UI-18)
+Dall'urgente al lento, in fasce:
+1. **Come sto** — una riga di 4 numeri: patrimonio netto (con variazione del mese e linea minima), risparmio del mese
+   contro la media, mesi coperti dalla liquidità (barra verso l'obiettivo), «Da sistemare».
+2. **Questo mese** — ritmo di spesa, ponte del mese (cascata), dove va il denaro (Sankey o treemap), budget più vicini
+   al limite, prossimi 30 giorni.
+3. **Nel tempo** — patrimonio, valore contro versato, risparmio per anno; chiusa di default, la pagina ricorda la scelta.
+4. **Futuro** — saldo dei prossimi 12 mesi, uscite grosse dell'anno; con la «i» (UI-19) finché mancano: patrimonio
+   tra 10 anni, pensione e FIRE, obiettivi, debiti, rendite.
+
+Il redesign delle altre schermate sullo stesso modello è in bozza in
+[REDESIGN_SCHERMATE.md](../piano/REDESIGN_SCHERMATE.md).
+
+Le opzioni di ogni riquadro (confronto, serie, vista alternativa, export) stanno dietro il suo ⋯; «Gestisci» sceglie
+riquadri, ordine e fasce aperte. «Ultime transazioni» non è più in dashboard (ripete il registro).
 
 ## 10. Testi
 - Italiano; termini inglesi solo se non hanno un uso comune in italiano (ETF, IBAN, PAC, KPI). Niente «Defaults»,
@@ -229,6 +252,10 @@ Nessuna (le A1–A5 del 18 nov sono diventate UI-12…UI-16). Una domanda nuova 
 | UI-15 | 18 nov 2026 | Categorie con badge neutro (o colore del gruppo di spesa), conteggi in testo normale: niente arancio |
 | UI-16 | 18 nov 2026 | Tabelle su telefono: colonne essenziali e scorrimento dentro il riquadro; righe a scheda solo nelle liste brevi |
 | UI-17 | 18 nov 2026 | Filtri di Transazioni (aggiorna UI-04): una riga compatta sempre visibile — tipo a pillole, Categoria, Conto, Tag, importo «da – a», «Altro» (Verso il conto, Persona, Gruppo, Solo ricorrenti); niente Dal/Al/Mese dove c'è il Periodo; niente pulsante «Cerca»; «Classifica con AI» e «Da confermare» come pulsanti leggeri |
+| UI-18 | 18 nov 2026 | Dashboard in fasce: Come sto · Questo mese · Nel tempo (chiusa) · Futuro; grafici nuovi: ritmo di spesa, ponte del mese, prossimi 30 giorni, valore contro versato, budget al limite, treemap; via «Ultime transazioni»; opzioni dietro il ⋯ |
+| UI-19 | 18 nov 2026 | Un grafico senza dati si mostra con uno schizzo grigio e la «i» che dice cosa manca e quando arriverà |
+| UI-20 | 21 nov 2026 | Dashboard: via le vecchie schede numeriche in alto; «Come sto» sono 4 numeri (patrimonio netto con linea e variazione del mese, risparmio del mese contro la media, mesi coperti dalla liquidità, da sistemare); il loro contenuto va nelle schede Panoramica · Questo mese · Patrimonio · Investimenti, ognuna con la sua «Modifica»; la mappa a riquadri dice dove va il denaro, il Sankey è il riquadro dei flussi |
+| UI-21 | 21 nov 2026 | Conti e Carte, Obiettivi, Budget, Promemoria (con Eventi come scheda), Previsioni e Debiti passano allo stile a schede, non a riquadri impilati: proposta in REDESIGN_SCHERMATE.md |
 
 ## 16. Fotografia di partenza (18 nov 2026)
 Da dove si parte, per misurare i progressi della pulizia:

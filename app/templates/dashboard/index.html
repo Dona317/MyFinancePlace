@@ -5,6 +5,7 @@
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/tabs.html" import tab_bar %}
 
 {% block page_title %}{{ _('Dashboard') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Dashboard') }}</li>{% endblock %}
@@ -85,7 +86,10 @@
 
 <!-- KPI Row: a click on a card opens its detail; the period of income, expenses and savings is chosen in the card -->
 {% set fc = forecast_figures %}
-<div class="kpi-grid kpi-strip fc-grid-kpi mb-24" id="kpi-grid">
+{{ tab_bar(view_tabs, view, _('Viste della dashboard')) }}
+{% if view == 'overview' %}
+<h2 class="dash-band-title">{{ bands.now[0] }}</h2>
+<div class="kpi-grid kpi-strip fc-grid-kpi mb-16" id="kpi-grid">
 {% for k in kpi_layout %}
 {% if k.id == 'net_worth' and settings.dashboard_net_worth %}
 {% call kpi_slot(k) %}
@@ -93,69 +97,47 @@
     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
     <div class="kpi-label">{{ _('Patrimonio Netto') }}</div>
     <div class="kpi-value" data-amount="{{ kpis.net_worth }}">—</div>
-    <div class="kpi-sub">{{ _('Attività − passività, al %(date)s', date=as_of|it_date) }}</div>
+    {% if extra.spark %}{% set sp = extra.spark %}{% set lo, hi = sp['values']|min, sp['values']|max %}
+    <div class="kpi-sub"><span class="{{ 'text-positive' if sp.change >= 0 else 'text-negative' }}">{{ '+' if sp.change >= 0 }}{{ sp.change|money }}</span> {{ _('dalla fine del mese scorso') }}</div>
+    <svg class="kpi-spark" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><polyline points="{% for v in sp['values'] %}{{ (loop.index0 * 100 / (sp['values']|length - 1))|round(1) }},{{ (22 - ((v - lo) / ((hi - lo) or 1) * 20))|round(1) }} {% endfor %}"/></svg>
+    {% else %}<div class="kpi-sub">{{ _('Attività − passività, al %(date)s', date=as_of|it_date) }}</div>{% endif %}
   </div>
 {% endcall %}
-{% elif k.id == 'income' and settings.dashboard_income %}
+{% elif k.id == 'month_savings' and extra.month_saving %}
 {% call kpi_slot(k) %}
-  {% set c = cards.income %}
-  {{ window_card('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive',
-                 url_for('reports.income', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
-                 amount=c.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else ''), before=(before_totals.income|money if before_totals else none)) }}
-{% endcall %}
-{% elif k.id == 'expenses' and settings.dashboard_expenses %}
-{% call kpi_slot(k) %}
-  {% set c = cards.expenses %}
-  {{ window_card('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative',
-                 url_for('reports.spending', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
-                 amount=c.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else ''), before=(before_totals.expenses|money if before_totals else none)) }}
-{% endcall %}
-{% elif k.id == 'savings_rate' and settings.dashboard_savings_rate %}
-{% call kpi_slot(k) %}
-  {% set c = cards.savings_rate %}
-  {{ window_card('savings_rate', 'piggy-bank', _('Tasso di Risparmio'), 'kpi-neutral',
-                 url_for('accounting.cash_flow', year=pie_last.year),
-                 value=("%.1f"|format(c.totals.savings_rate) ~ '%'), forecast=fc,
-                 forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else ''), before=(("%.1f"|format(before_totals.savings_rate) ~ '%') if before_totals else none)) }}
-{% endcall %}
-{% elif k.id == 'investments' and settings.dashboard_investments and allowed('portfolio') %}
-{% call kpi_slot(k) %}
-  <div class="kpi-card kpi-click kpi-blue" data-href="{{ url_for('portfolio.index') }}" title="{{ _('Apri il portafoglio') }}">
-    <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
-    <div class="kpi-label">{{ _('Investimenti') }}</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_investments }}">—</div>
-    <div class="kpi-sub" title="{{ _('Rendimento passato (TWR): non è una previsione') }}">
-      {% if rates.return_1y is not none %}{{ _('Rendimento ultimi 12 mesi: %(rate)s%%', rate=rates.return_1y|number(1)) }}{% else %}{{ _('Rendimento: servono 12 mesi di storico') }}{% endif %}
-      {% if rates.return_annual is not none %}<br />{{ _('Annuo dall’inizio: %(rate)s%%', rate=rates.return_annual|number(1)) }}{% endif %}
-    </div>
+  {% set ms = extra.month_saving %}
+  <div class="kpi-card kpi-click {{ 'kpi-negative' if ms.rate is not none and ms.rate < 0 else 'kpi-positive' }}" data-href="{{ url_for('accounting.cash_flow', year=as_of.year) }}" title="{{ _('Apri il flusso di cassa') }}">
+    <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
+    <div class="kpi-label">{{ _('Risparmio del mese') }}</div>
+    <div class="kpi-value">{{ (ms.rate|number(0) ~ '%') if ms.rate is not none else '—' }}</div>
+    <div class="kpi-sub">{% if ms.average is not none %}{{ _('Media 12 mesi %(rate)s%%', rate=ms.average|number(0)) }} · {% endif %}{{ ms.saved|money }}</div>
   </div>
 {% endcall %}
-{% elif k.id == 'debt' and settings.dashboard_debt and allowed('debt') %}
+{% elif k.id == 'liquidity' %}
 {% call kpi_slot(k) %}
-  <div class="kpi-card kpi-click kpi-purple" data-href="{{ url_for('debt.index') }}" title="{{ _('Apri i debiti') }}">
-    <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
-    <div class="kpi-label">{{ _('Debito Totale') }}</div>
-    <div class="kpi-value" data-amount="{{ kpis.total_debt }}">—</div>
-    <div class="kpi-sub" title="{{ _('Tasso annuo nominale (TAN) medio, pesato sul debito residuo') }}">
-      {% if rates.debt_rate is not none %}{{ _('TAN medio %(rate)s%%', rate=rates.debt_rate|number(2)) }}{% else %}{{ _('In corso') }}{% endif %}
-    </div>
+  {% set months = health.months_cash %}
+  <div class="kpi-card kpi-click kpi-positive" data-href="{{ url_for('accounts.index') }}" title="{{ _('Apri i conti') }}">
+    <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
+    <div class="kpi-label">{{ _('Liquidità') }} {{ info(_('Quanti mesi di spese copre la liquidità, senza stipendio, contro il tuo obiettivo (Impostazioni → Dashboard).')) }}</div>
+    <div class="kpi-value">{{ _('%(n)s mesi', n=months|number(1)) if months is not none else '—' }}</div>
+    {% if months is not none %}<div class="kpi-meter" role="img" aria-label="{{ _('%(n)s mesi su %(target)s', n=months|number(1), target=autonomy_target) }}"><span style="width: {{ [months / autonomy_target * 100, 100]|min }}%"></span></div>{% endif %}
+    <div class="kpi-sub">{{ _('Obiettivo %(n)s mesi', n=autonomy_target) }}</div>
   </div>
 {% endcall %}
-{% elif k.id.startswith('tbd') %}
+{% elif k.id == 'to_fix' %}
 {% call kpi_slot(k) %}
-  <div class="kpi-card kpi-tbd">
-    <div class="kpi-label">{{ kpi_titles[k.id] if k.id == 'tbd' else _('Nuova scheda') }}</div>
-    <div class="kpi-value">TBD</div>
-    <div class="kpi-sub">{{ _('Per una funzionalità futura') }}</div>
+  {% set fix_total = extra.to_fix|sum(attribute='count') %}
+  <div class="kpi-card {{ 'kpi-warning' if fix_total else 'kpi-positive' }}">
+    <div class="kpi-icon"><i class="bi bi-{{ 'list-check' if fix_total else 'check-circle' }}"></i></div>
+    <div class="kpi-label">{{ _('Da sistemare') }}</div>
+    <div class="kpi-value">{{ fix_total }}</div>
+    <div class="kpi-sub kpi-fix">{% for item in extra.to_fix %}<a href="{{ item.url }}" title="{{ item.label }}">{{ item.count }} · {{ item.label|lower }}</a>{% else %}{{ _('Tutto in ordine.') }}{% endfor %}</div>
   </div>
 {% endcall %}
 {% endif %}
 {% endfor %}
 </div>
-
-<div class="dash-year-head">
-  <h2>{{ _('Grafici: %(period)s', period=period_label) }}</h2>
-</div>
+{% endif %}
 
 
 {% set tx_ok = allowed('transactions') %}
@@ -211,10 +193,41 @@
 </div>
 {% endmacro %}
 
+{# UI-19: a block whose data are not there yet — a grey sketch of the chart and the «i» saying what is missing #}
+{% macro ghost(title, reason, sketch, link=None, link_label=None) %}
+<div class="card ghost-card">
+  <div class="card-header"><div class="card-header-title">{{ title }} {{ info(reason) }}</div><span class="badge badge-muted">{{ _('In arrivo') }}</span></div>
+  <div class="card-body">
+    <svg class="ghost-sketch" viewBox="0 0 300 110" preserveAspectRatio="none" aria-hidden="true">
+      {% if sketch == 'waterfall' %}<rect x="10" y="20" width="40" height="80"/><rect x="62" y="20" width="40" height="22"/><rect x="114" y="10" width="40" height="10"/><rect x="166" y="10" width="40" height="18"/><rect x="218" y="28" width="40" height="72" class="ghost-strong"/>
+      {% elif sketch == 'drawdown' %}<path d="M0,10 L40,10 L70,40 L100,70 L130,55 L170,30 L210,12 L250,10 L300,10 L300,0 L0,0Z"/><polyline points="0,10 300,10" class="ghost-line"/>
+      {% elif sketch == 'fan' %}<path d="M0,80 L150,70 L300,10 L300,100 L150,85 Z"/><polyline points="0,80 150,78 300,55" class="ghost-line"/>
+      {% elif sketch == 'progress' %}<rect x="0" y="15" width="300" height="12" rx="6"/><rect x="0" y="15" width="190" height="12" rx="6" class="ghost-strong"/><rect x="0" y="50" width="300" height="12" rx="6"/><rect x="0" y="50" width="90" height="12" rx="6" class="ghost-strong"/><rect x="0" y="85" width="300" height="12" rx="6"/><rect x="0" y="85" width="240" height="12" rx="6" class="ghost-strong"/>
+      {% elif sketch == 'payoff' %}<path d="M0,15 C100,30 200,70 300,100 L0,100Z"/><polyline points="0,15 100,30 200,70 300,100" class="ghost-line"/>
+      {% elif sketch == 'bars' %}{% for i in range(12) %}<rect x="{{ 4 + i * 25 }}" y="{{ 100 - (20 + (i * 37) % 60) }}" width="17" height="{{ 20 + (i * 37) % 60 }}"/>{% endfor %}
+      {% else %}<polyline points="0,95 60,85 120,72 160,60" class="ghost-line"/><polyline points="160,60 220,42 300,15" class="ghost-line ghost-dash"/>{% endif %}
+    </svg>
+    <p class="ghost-note text-xs text-muted">{{ reason }}</p>
+    {% if link %}<a href="{{ link }}" class="btn btn-ghost btn-sm ghost-link">{{ link_label }} <i class="bi bi-arrow-right"></i></a>{% endif %}
+  </div>
+</div>
+{% endmacro %}
+
 {% set shock_names = {'car': _('Auto da riparare o sostituire'), 'appliance': _('Elettrodomestico (lavatrice, frigo)'), 'house': _('Casa (tetto, caldaia)'), 'health': _('Spese mediche')} %}
 
-<div class="fc-grid dash-grid" id="fc-grid">
-{% for w in layout if not (w.id == 'recent' and not allowed('transactions')) and not (w.id in ('investments', 'investments_trend') and not allowed('portfolio')) %}
+{# UI-18: the blocks in bands, from the most urgent to the slowest; «Nel tempo» and «Futuro» open on a click and the
+   browser remembers it. A block stays in its band; Modifica moves it inside the band. #}
+{% set ns = namespace(band=None) %}
+{% for w in layout if not (w.id in ('investments', 'investments_trend', 'drawdown') and not allowed('portfolio')) %}
+{% if band_of[w.id] != ns.band %}
+{% if ns.band %}</div>{% if ns.band != 'now' %}</details>{% endif %}{% endif %}
+{% set ns.band = band_of[w.id] %}
+{% if ns.band != 'now' %}
+<details class="dash-band" data-band="{{ ns.band }}"{{ ' open' if bands[ns.band][2] }}>
+  <summary class="dash-band-head"><i class="bi bi-chevron-right dash-band-chevron" aria-hidden="true"></i> {{ bands[ns.band][0] }}</summary>
+{% endif %}
+<div class="fc-grid dash-grid" id="fc-grid-{{ ns.band }}">
+{% endif %}
 <section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-height="{{ w.height }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
   {% call blocks.tools() %}{{ widgets[w.id][0] }}{% endcall %}
 
@@ -275,10 +288,37 @@
   {% elif w.id == 'expense_trend' %}{{ trend('expense', _('Uscite per categoria nel tempo')) }}
   {% elif w.id == 'income_trend' %}{{ trend('income', _('Entrate per categoria nel tempo')) }}
 
-  {% elif w.id == 'sankey' %}
+  {% elif w.id == 'money_map' %}
   <div class="card">
     <div class="card-header"><div>
       <div class="card-header-title">{{ _('Dove va il denaro — %(period)s', period=period_label) }}</div>
+      <div class="card-header-sub">{{ _('Clic su una categoria per le sue transazioni.') }}</div>
+    </div>
+</div>
+    <div class="card-body">
+      {% set parts = expense_breakdown|rejectattr('apart')|list %}
+      <div>
+        {% if parts %}
+        {% set shown_parts = parts[:9] %}
+        {% set rest = (parts[9:]|sum(attribute='amount')) %}
+        <div class="tmap" role="list">
+          {% for c in shown_parts %}
+          <a class="tmap-cell" role="listitem" style="flex-grow: {{ c.amount|round(0) }}; --tmap-mix: {{ [90 - loop.index0 * 8, 35]|max }}%"
+             {% if tx_ok %}href="{{ url_for('transactions.index', category=c.category, type='expense', start=year_start.isoformat(), end=year_last.isoformat()) }}"{% endif %}
+             title="{{ c.category|tr }}: {{ c.amount|money }} ({{ c.share|number(1) }}%)">
+            <span class="tmap-name">{{ c.category|tr }}</span><span class="tmap-amount">{{ c.amount|money }}</span></a>
+          {% endfor %}
+          {% if rest %}<span class="tmap-cell tmap-rest" role="listitem" style="flex-grow: {{ rest|round(0) }}" title="{{ _('Altre') }}: {{ rest|money }}"><span class="tmap-name">{{ _('Altre') }}</span><span class="tmap-amount">{{ rest|money }}</span></span>{% endif %}
+        </div>
+        {% else %}{{ empty_state(text=_('Nessuna spesa in questo periodo.'), compact=True) }}{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% elif w.id == 'sankey' %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Flusso del denaro — %(period)s', period=period_label) }}</div>
       <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio. Clic su una categoria per le sue transazioni.') }}</div>
     </div></div>
     <div class="card-body">
@@ -346,80 +386,6 @@
     </div>
   </div>
 
-  {% elif w.id == 'recent' %}
-  {# The last transactions (or the biggest of the period): the register's table in small — a click on a title sorts,
-     long texts end in «…»; one switch on top, the filters (category, account) under a funnel. Narrow (a third of the
-     row), the category and the account go under the description instead of squeezing the columns. #}
-  {% set rows_all = recent_transactions + impact_transactions %}
-  <div class="card recent-card">
-    <div class="card-header recent-head">
-      <div class="card-header-title">{{ _('Ultime transazioni') }}</div>
-      <div class="recent-tools">
-        <div class="seg" role="group" aria-label="{{ _('Quali transazioni') }}">
-          <button type="button" class="seg-btn" data-mode="recent" aria-pressed="true" title="{{ _('Le ultime registrate') }}">{{ _('Ultime') }}</button>
-          <button type="button" class="seg-btn" data-mode="impact" aria-pressed="false" title="{{ _('Le più grandi del periodo: %(period)s', period=period_label) }}">{{ _('Più grandi') }}</button>
-        </div>
-        <span class="col-filter recent-filter">
-          <button type="button" class="col-filter-btn" id="recent-filter-btn" aria-haspopup="true" aria-expanded="false" title="{{ _('Filtra per categoria o conto') }}"><i class="bi bi-funnel"></i></button>
-          <div class="col-pop recent-pop" id="recent-pop" hidden>
-            <label class="filter-field"><span>{{ _('Categoria') }}</span>
-              <select id="recent-category" class="form-select form-select-sm">
-                <option value="">{{ _('Tutte le categorie') }}</option>
-                {% for name in rows_all|map(attribute='category')|reject('none')|unique|sort %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
-              </select></label>
-            <label class="filter-field"><span>{{ _('Conto') }}</span>
-              <select id="recent-account" class="form-select form-select-sm">
-                <option value="">{{ _('Tutti i conti') }}</option>
-                {% for account in rows_all|map(attribute='account')|reject('none')|unique|sort(attribute='name') %}<option value="{{ account.id }}">{{ account.name }}</option>{% endfor %}
-                {% if rows_all|selectattr('account_id', 'none')|list %}<option value="none">{{ _('— Senza conto —') }}</option>{% endif %}
-              </select></label>
-            <div class="col-pop-actions"><button type="button" class="btn btn-ghost btn-sm" id="recent-filter-clear">{{ _('Togli') }}</button></div>
-          </div>
-        </span>
-        <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost btn-sm recent-all" title="{{ _('Vedi tutto') }}"><span class="recent-all-word">{{ _('Vedi tutto') }}</span> <i class="bi bi-arrow-right"></i></a>
-      </div>
-    </div>
-    <div class="table-wrapper">
-      <table class="tx-table recent-table" id="recent-table">
-        <thead>
-          <tr>
-            <th class="col-date"><button type="button" class="sort-link" data-sort="date">{{ _('Data') }}</button></th>
-            <th class="col-desc"><button type="button" class="sort-link" data-sort="description">{{ _('Descrizione') }}</button></th>
-            <th class="col-category"><button type="button" class="sort-link" data-sort="category">{{ _('Categoria') }}</button></th>
-            <th class="col-account"><button type="button" class="sort-link" data-sort="account">{{ _('Conto') }}</button></th>
-            <th class="col-amount text-right"><button type="button" class="sort-link" data-sort="amount">{{ _('Importo') }}</button></th>
-          </tr>
-        </thead>
-        {% for mode, rows in (('recent', recent_transactions), ('impact', impact_transactions)) %}
-        <tbody class="recent-rows" data-mode="{{ mode }}" {{ 'hidden' if mode == 'impact' }}>
-          {% for tx in rows %}
-          <tr data-category="{{ tx.category or '' }}" data-account="{{ tx.account_id or 'none' }}" data-date="{{ tx.date.isoformat() }}"
-              data-description="{{ tx.description|lower }}" data-account-name="{{ (tx.account.name if tx.account else '')|lower }}"
-              data-size="{{ (tx.amount_base or tx.amount or 0)|abs }}" data-order="{{ loop.index0 }}">
-            <td class="col-date nowrap text-xs text-muted">{{ tx.date|it_date }}</td>
-            <td class="col-desc"><div class="cell-clip" title="{{ tx.description }}"><span class="recent-desc">{{ tx.description }}</span></div>
-              <div class="recent-sub text-xs text-muted cell-clip">{{ tx.category or '—' }}{% if tx.account %} · {{ tx.account.name }}{% endif %}</div></td>
-            <td class="col-category"><div class="cell-clip">{% if tx.category %}<span class="badge badge-primary" title="{{ tx.category }}">{{ tx.category }}</span>{% else %}—{% endif %}</div></td>
-            <td class="col-account text-xs text-muted"><div class="cell-clip" title="{{ tx.account.name if tx.account else '' }}">{{ tx.account.name if tx.account else '—' }}</div></td>
-            {% if tx.type == 'transfer' %}
-            <td class="col-amount amount text-right nowrap text-muted" title="{{ _('Trasferimento tra conti') }}">⇄ {{ tx.amount|abs|money }}</td>
-            {% else %}
-            <td class="col-amount amount text-right nowrap" data-amount="{{ tx.signed_amount }}">—</td>
-            {% endif %}
-          </tr>
-          {% else %}
-          <tr class="recent-empty"><td colspan="5">
-            {% call empty_state(text=_('Nessuna transazione. Aggiungi la prima!'), icon='bi-inbox', compact=True) %}
-              <a class="btn btn-primary btn-sm" href="{{ url_for('transactions.new') }}"><i class="bi bi-plus"></i> {{ _('Aggiungi Transazione') }}</a>
-            {% endcall %}
-          </td></tr>
-          {% endfor %}
-        </tbody>
-        {% endfor %}
-      </table>
-    </div>
-  </div>
-
   {% elif w.id == 'health' %}
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Salute Finanziaria') }} {{ info(_('Ultimi 12 mesi: risparmio, mesi coperti dalla liquidità, debiti sul patrimonio.')) }}</div></div>
@@ -468,10 +434,147 @@
       </a>
     </div>
   </div>
+  {% elif w.id == 'period_totals' %}
+  {% set fc = forecast_figures %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Entrate e uscite — %(period)s', period=period_label) }} {{ info(_('Il periodo della barra in alto; sotto ogni cifra la previsione e, con «Confronta», il periodo prima.')) }}</div></div>
+    <div class="card-body"><div class="kpi-grid kpi-strip">
+      {{ window_card('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive',
+                     url_for('reports.income', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
+                     amount=cards.income.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else ''), before=(before_totals.income|money if before_totals else none)) }}
+      {{ window_card('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative',
+                     url_for('reports.spending', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
+                     amount=cards.expenses.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else ''), before=(before_totals.expenses|money if before_totals else none)) }}
+      {{ window_card('savings_rate', 'piggy-bank', _('Tasso di risparmio'), 'kpi-neutral',
+                     url_for('accounting.cash_flow', year=pie_last.year),
+                     value=("%.1f"|format(cards.savings_rate.totals.savings_rate) ~ '%'), forecast=fc,
+                     forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else ''), before=(("%.1f"|format(before_totals.savings_rate) ~ '%') if before_totals else none)) }}
+    </div></div>
+  </div>
+
+  {% elif w.id == 'debt_summary' %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Debiti') }}</div>
+      {% if allowed('debt') %}<a href="{{ url_for('debt.index') }}" class="btn btn-ghost btn-sm">{{ _('Debiti') }} <i class="bi bi-arrow-right"></i></a>{% endif %}</div>
+    <div class="card-body">
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
+        <div class="kpi-label">{{ _('Debito totale') }}</div>
+        <div class="kpi-value" data-amount="{{ kpis.total_debt }}">—</div>
+        <div class="kpi-sub" title="{{ _('Tasso annuo nominale (TAN) medio, pesato sul debito residuo') }}">
+          {% if rates.debt_rate is not none %}{{ _('TAN medio %(rate)s%%', rate=rates.debt_rate|number(2)) }}{% else %}{{ _('Nessun debito in corso') }}{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% elif w.id == 'to_fix' %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Da sistemare') }} {{ info(_('Le cose che chiedono un tuo sguardo: un clic apre la pagina dove si sistemano.')) }}</div></div>
+    <div class="card-body">
+      {% if extra.to_fix %}
+      <ul class="fix-list">
+        {% for item in extra.to_fix %}
+        <li><a href="{{ item.url }}"><i class="bi bi-{{ item.icon }}" aria-hidden="true"></i><span>{{ item.label }}</span><strong>{{ item.count }}</strong></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="fix-ok"><i class="bi bi-check-circle" aria-hidden="true"></i> {{ _('Tutto in ordine.') }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% elif w.id == 'pace' %}
+  {% set p = extra.pace %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Ritmo di spesa — %(month)s', month=p.month) }} {{ info(_('Le uscite del mese sommate giorno per giorno, contro lo stesso giorno del mese scorso (tratteggiato) e, se ci sono budget, la linea che li raggiunge a fine mese.')) }}</div>
+      <div class="card-header-sub">{{ _('Speso finora') }} <strong>{{ p.spent|money }}</strong> · {{ _('mese scorso allo stesso giorno %(amount)s', amount=p.previous_same_day|money) }}{% if p.projected %} · {{ _('a questo ritmo %(amount)s a fine mese', amount=p.projected|money) }}{% endif %}</div>
+    </div></div>
+    <div class="card-body"><div class="chart-container chart-h-md"><canvas id="paceChart"></canvas></div></div>
+  </div>
+
+  {% elif w.id == 'bridge' %}
+  {% set b = extra.bridge %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Ponte del mese') }} {{ info(_('Le entrate del mese, poi quanto si è preso ogni gruppo di spesa, e quello che resta.')) }}</div>
+      <div class="card-header-sub">{{ _('Resta') }} <strong class="{{ 'text-positive' if b.left >= 0 else 'text-negative' }}">{{ b.left|money }}</strong></div>
+    </div></div>
+    <div class="card-body">
+      {% if b.income or b.steps|length > 2 %}<div class="chart-container chart-h-md"><canvas id="bridgeChart"></canvas></div>
+      {% else %}{{ empty_state(text=_('Ancora nessun movimento questo mese.'), compact=True) }}{% endif %}
+    </div>
+  </div>
+
+  {% elif w.id == 'next_days' %}
+  {% set n = extra.next_days %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Prossimi 30 giorni') }} {{ info(_('La liquidità di oggi con le scadenze dello Scadenzario: ricorrenti, rate, polizze, promemoria con importo.')) }}</div>
+      <div class="card-header-sub">{{ _('Oggi %(start)s → fra 30 giorni %(end)s · punto più basso %(low)s', start=n.start|money, end=n.end|money, low=n.lowest|money) }}</div>
+    </div>
+    <a href="{{ url_for('deadlines.index') }}" class="btn btn-ghost btn-sm">{{ _('Scadenzario') }} <i class="bi bi-arrow-right"></i></a></div>
+    <div class="card-body"><div class="chart-container chart-h-sm"><canvas id="nextDaysChart"></canvas></div>
+      {% if n.marks %}<ul class="big-exp-list text-xs">{% for m in n.marks %}<li><span>{{ m.day[8:10] }}/{{ m.day[5:7] }} · {{ m.title }}</span><strong class="{{ 'text-positive' if m.amount > 0 else 'text-negative' }}">{{ m.amount|money }}</strong></li>{% endfor %}</ul>{% endif %}
+    </div>
+  </div>
+
+  {% elif w.id == 'budget_top' %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Budget più vicini al limite') }} {{ info(_('La tacca dice dove dovresti essere oggi, a questo punto del mese.')) }}</div>
+      {% if allowed('budget') %}<a href="{{ url_for('lifestyle.budget') }}" class="btn btn-ghost btn-sm">{{ _('Budget') }} <i class="bi bi-arrow-right"></i></a>{% endif %}</div>
+    <div class="card-body">
+      {% for line in extra.budget_top %}
+      <div class="budget-mini">
+        <div class="budget-mini-head"><span>{{ line.category }}</span><span class="text-muted">{{ line.spent|money }} / {{ line.available|money }}</span></div>
+        <div class="budget-mini-bar"><span class="is-{{ line.state }}" style="width: {{ [line.share, 100]|min }}%"></span><i style="left: {{ line.pace }}%"></i></div>
+      </div>
+      {% else %}
+      {{ empty_state(text=_('Nessun budget per questo mese.'), compact=True) }}
+      {% endfor %}
+    </div>
+  </div>
+
+  {% elif w.id == 'future_balance' %}
+  {% set fb = extra.future_balance %}
+  {% if fb %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Saldo dei prossimi 12 mesi') }} {{ info(_('La previsione di Previsioni: la banda va dal metodo più prudente al più ottimista.')) }}</div>
+      <div class="card-header-sub">{{ _('Fra 12 mesi %(amount)s', amount=fb.end|money) }}</div>
+    </div>
+    <a href="{{ url_for('forecast.index') }}" class="btn btn-ghost btn-sm">{{ _('Previsioni') }} <i class="bi bi-arrow-right"></i></a></div>
+    <div class="card-body"><div class="chart-container chart-h-md"><canvas id="futureBalanceChart"></canvas></div></div>
+  </div>
+  {% else %}{{ ghost(_('Saldo dei prossimi 12 mesi'), _('Servono almeno 3 mesi completi di movimenti: poi la previsione si disegna da sola.'), 'fan') }}{% endif %}
+
+  {% elif w.id == 'big_expenses' %}
+  {% set be = extra.big_expenses %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Uscite grosse dei prossimi 12 mesi') }} {{ info(_('Le scadenze da almeno 300 € dello Scadenzario (bollo, polizze, rate, tasse), mese per mese.')) }}</div>
+      <div class="card-header-sub">{{ _('In tutto %(amount)s', amount=be.total|money) }}</div>
+    </div></div>
+    <div class="card-body">
+      {% if be.total %}
+      <div class="chart-container chart-h-sm"><canvas id="bigExpensesChart"></canvas></div>
+      <ul class="big-exp-list text-xs">{% for item in be.top %}<li><span>{{ item.day|it_date }} · {{ item.title }}</span><strong>{{ item.amount|money }}</strong></li>{% endfor %}</ul>
+      {% else %}{{ empty_state(text=_('Nessuna scadenza grossa nei prossimi 12 mesi.'), compact=True) }}{% endif %}
+    </div>
+  </div>
+
+  {% elif w.id == 'net_worth_bridge' %}{{ ghost(_('Variazione del patrimonio'), _('Da costruire: dirà perché il patrimonio è cambiato nel periodo, a cascata — versamenti, rendite, plus e minusvalenze, costi e tasse. I movimenti che servono ci sono già.'), 'waterfall') }}
+  {% elif w.id == 'drawdown' %}{{ ghost(_('Calo dal massimo'), _('Servono i prezzi giornalieri dei titoli: arrivano con il database dei prezzi del Portafoglio (Fase 2). Allora dirà quanto sei sotto il massimo e da quanto.'), 'drawdown') }}
+  {% elif w.id == 'future_net_worth' %}{{ ghost(_('Patrimonio tra 10 anni'), _('Da costruire: il patrimonio di oggi proiettato al ritmo di risparmio attuale, con il rendimento che sceglierai; il passato pieno, il futuro tratteggiato. I dati ci sono già.'), 'line') }}
+  {% elif w.id == 'fire' %}{{ ghost(_('Pensione e indipendenza finanziaria'), _("Il calcolo c'è già in Previsioni → Pensione: qui arriverà il ventaglio delle simulazioni con la linea di quanto serve."), 'fan', url_for('forecast.retirement'), _('Apri Pensione')) }}
+  {% elif w.id == 'goals_eta' %}{{ ghost(_('Obiettivi: quando ci arrivo'), _('Da costruire: la data prevista per ogni obiettivo. Diventa precisa quando gli obiettivi saranno collegati a un conto o a un portafoglio.'), 'progress', url_for('lifestyle.goals'), _('Apri Obiettivi')) }}
+  {% elif w.id == 'debt_payoff' %}{{ ghost(_('Debiti: quando finisco'), _("Da costruire: il debito residuo fino all'estinzione, dai piani di ammortamento che ci sono già."), 'payoff', url_for('debt.index'), _('Apri Debiti')) }}
+  {% elif w.id == 'future_income' %}{{ ghost(_('Rendite dei prossimi 12 mesi'), _('Servono le cedole e i dividendi previsti dei titoli: arrivano con il database dei prezzi del Portafoglio (Fase 2).'), 'bars') }}
   {% endif %}
 </section>
 {% endfor %}
-</div>
+{% if ns.band %}</div>{% if ns.band != 'now' %}</details>{% endif %}{% endif %}
 
 {% endblock %}
 
@@ -606,58 +709,55 @@ if (shown('savings_trend')) (function () {
 }());
 {% endif %}
 
-/* ── The transactions block: the last ones or the biggest of the period; a category, an account; sorted by a title ── */
-{
-const table = document.getElementById('recent-table');
-if (table) {
-  const category = document.getElementById('recent-category'), account = document.getElementById('recent-account');
-  const filterButton = document.getElementById('recent-filter-btn'), pop = document.getElementById('recent-pop');
-  const SHOWN = 10;
-  let mode = 'recent', sort = null, direction = 'desc';
-  try { mode = localStorage.getItem('mfp-recent-mode') === 'impact' ? 'impact' : 'recent'; } catch (e) { /* private window */ }
-  const keyOf = { date: r => r.dataset.date, description: r => r.dataset.description, category: r => r.dataset.category.toLowerCase(),
-                  account: r => r.dataset.accountName, amount: r => parseFloat(r.dataset.size) || 0 };
-  const apply = () => {
-    document.querySelectorAll('.recent-card .seg-btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
-    filterButton.classList.toggle('is-on', !!(category.value || account.value));
-    table.querySelectorAll('.recent-rows').forEach(body => {
-      body.hidden = body.dataset.mode !== mode;
-      const rows = [...body.querySelectorAll('tr[data-category]')];
-      // a click on a title: that column (again: the other way round); none chosen, the order of the list
-      rows.sort((a, b) => {
-        if (!sort) return a.dataset.order - b.dataset.order;
-        const x = keyOf[sort](a), y = keyOf[sort](b);
-        return (x < y ? -1 : x > y ? 1 : 0) * (direction === 'asc' ? 1 : -1);
-      }).forEach(row => body.appendChild(row));
-      let count = 0;
-      rows.forEach(row => {
-        const ok = (!category.value || row.dataset.category === category.value) && (!account.value || row.dataset.account === account.value);
-        row.hidden = !ok || count >= SHOWN;
-        if (ok) count += 1;
-      });
-    });
-    table.querySelectorAll('.sort-link').forEach(b => {
-      b.classList.toggle('is-sorted', b.dataset.sort === sort);
-      b.dataset.dir = b.dataset.sort === sort ? direction : '';
-    });
-    try { localStorage.setItem('mfp-recent-mode', mode); } catch (e) { /* private window */ }
-  };
-  document.querySelectorAll('.recent-card .seg-btn').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode; apply(); }));
-  table.querySelectorAll('.sort-link').forEach(b => b.addEventListener('click', () => {
-    const column = b.dataset.sort;
-    direction = sort === column ? (direction === 'asc' ? 'desc' : 'asc') : (column === 'date' || column === 'amount' ? 'desc' : 'asc');
-    sort = column;
-    apply();
-  }));
-  // the funnel: its box under it; a click elsewhere closes it
-  filterButton.addEventListener('click', e => { e.stopPropagation(); pop.hidden = !pop.hidden; filterButton.setAttribute('aria-expanded', String(!pop.hidden)); });
-  pop.addEventListener('click', e => e.stopPropagation());
-  document.addEventListener('click', () => { pop.hidden = true; filterButton.setAttribute('aria-expanded', 'false'); });
-  [category, account].forEach(select => select.addEventListener('change', apply));
-  document.getElementById('recent-filter-clear').addEventListener('click', () => { category.value = ''; account.value = ''; apply(); pop.hidden = true; });
-  apply();
+/* ── UI-18: the new blocks ── */
+const extra = {{ extra|tojson }};
+// the spending of the month day by day: red, against the month before (grey, dashed) and the budgets' line
+if (extra.pace && shown('pace')) {
+  const p = extra.pace;
+  makeLineChart('paceChart', p.labels, [
+    { label: {{ _('Questo mese')|tojson }}, data: p.actual, color: 'expense', tension: 0, fillAlpha: 0.06, pointRadius: 0 },
+    { label: {{ _('Mese scorso')|tojson }}, data: p.previous, color: 'textMuted', dash: [4, 4], fill: false, tension: 0, pointRadius: 0 },
+    ...(p.ideal ? [{ label: {{ _('Budget')|tojson }}, data: p.ideal, color: 'neutral', dash: [2, 3], fill: false, tension: 0, pointRadius: 0 }] : []),
+  ], { money: true });
 }
+// the month as a bridge: floating bars, from the income down to what is left
+if (extra.bridge && shown('bridge') && document.getElementById('bridgeChart')) {
+  const steps = extra.bridge.steps;
+  makeBarChart('bridgeChart', steps.map(s => s.label), [
+    { label: {{ _('Ponte del mese')|tojson }}, data: steps.map(s => [s.low, s.high]),
+      colors: steps.map(s => ({ income: 'income', expense: 'expense', saving: 'blue', left: 'positive', negative: 'negative' })[s.kind]) },
+  ], { legend: false });
 }
+// the next 30 days: the liquid money with the deadlines
+if (extra.next_days && shown('next_days')) {
+  const n = extra.next_days;
+  makeLineChart('nextDaysChart', n.labels, [
+    { label: {{ _('Liquidità prevista')|tojson }}, data: n.balance, color: 'positive', tension: 0, pointRadius: 0, fillAlpha: 0.08 },
+  ], { money: true, legend: false });
+}
+// the next 12 months: the forecast balance inside the range of the methods
+if (extra.future_balance && shown('future_balance')) {
+  const f = extra.future_balance;
+  makeLineChart('futureBalanceChart', f.labels, [
+    { label: {{ _('Più prudente')|tojson }}, data: f.low, color: 'textMuted', fill: false, borderWidth: 0, pointRadius: 0, noLegend: true },
+    { label: {{ _('Più ottimista')|tojson }}, data: f.high, color: 'textMuted', fill: '-1', fillAlpha: 0.12, borderWidth: 0, pointRadius: 0, noLegend: true },
+    { label: {{ _('Saldo previsto')|tojson }}, data: f.balance, color: 'positive', fill: false, dash: [6, 4] },
+  ], { money: true, legend: false });
+}
+if (extra.big_expenses && extra.big_expenses.total && shown('big_expenses')) {
+  makeBarChart('bigExpensesChart', extra.big_expenses.labels, [
+    { label: {{ _('Uscite grosse')|tojson }}, data: extra.big_expenses.amounts, color: 'expense' },
+  ], { legend: false });
+}
+// the bands «Nel tempo» and «Futuro»: open or closed as this browser left them; the charts redrawn when opened
+document.querySelectorAll('.dash-band').forEach(band => {
+  const key = 'mfp-dash-band-' + band.dataset.band;
+  try { const saved = localStorage.getItem(key); if (saved !== null) band.open = saved === '1'; } catch (e) { /* private window */ }
+  band.addEventListener('toggle', () => {
+    try { localStorage.setItem(key, band.open ? '1' : '0'); } catch (e) { /* private window */ }
+    if (band.open) requestAnimationFrame(() => band.querySelectorAll('canvas').forEach(c => { const chart = Chart.getChart(c); chart?.resize(); chart?.update('none'); }));
+  });
+});
 
 /* ── Top cards: a click opens the detail ── */
 document.querySelectorAll('.kpi-click').forEach(card => card.addEventListener('click', e => {
@@ -726,10 +826,11 @@ saveButton.addEventListener('click', () => {
 }
 
 /* ── Modifica: the blocks (1–3 thirds wide, of a chosen height) and the cards on top (1–2 columns) ── */
+// each view keeps its own arrangement (?view=…); the cards of «Come sto» are in the overview only
 initBlockEditor({
-  saveUrl: {{ url_for('dashboard.save_layout')|tojson }},
-  grids: [{ el: document.getElementById('fc-grid'), key: 'widgets', spans: 3, heights: true },
-          { el: document.getElementById('kpi-grid'), key: 'kpis', spans: 2 }],
+  saveUrl: {{ url_for('dashboard.save_layout', view=None if view == 'overview' else view)|tojson }},
+  grids: [...[...document.querySelectorAll('.dash-grid')].map(el => ({ el, key: 'widgets', spans: 3, heights: true })),
+          ...(document.getElementById('kpi-grid') ? [{ el: document.getElementById('kpi-grid'), key: 'kpis', spans: 2 }] : [])],
 });
 </script>
 {% endblock %}

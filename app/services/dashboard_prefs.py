@@ -47,28 +47,72 @@ def save_forecast_choice(value: str) -> str:
 
 # id: (title, default width in thirds of the row, the Settings switch that turns it on)
 WIDGETS = {
-    "cashflow":      (_l("Flusso di cassa e risparmio"), 3, "dashboard_cashflow_chart"),
-    "net_worth":     (_l("Andamento del patrimonio"), 3, "dashboard_net_worth_trend"),
+    # «Come sto»
+    "health":        (_l("Salute finanziaria"), 2, "dashboard_health"),
+    "to_fix":        (_l("Da sistemare"), 1, "dashboard_health"),
+    # «Questo mese»
+    "pace":          (_l("Ritmo di spesa"), 2, "dashboard_month_charts"),
+    "bridge":        (_l("Ponte del mese"), 1, "dashboard_month_charts"),
+    "next_days":     (_l("Prossimi 30 giorni"), 1, "dashboard_month_charts"),
+    "budget_top":    (_l("Budget più vicini al limite"), 1, "dashboard_month_charts"),
+    # where the money goes: the map of the expenses (tiles as big as each category); the flow from the income to the
+    # expenses (Sankey) is a block of its own
+    "money_map":     (_l("Dove va il denaro"), 1, "dashboard_sankey"),
+    "sankey":        (_l("Flusso del denaro"), 3, "dashboard_sankey"),
     "expense_pie":   (_l("Uscite per categoria"), 1, "dashboard_expense_pie"),
-    "expense_trend": (_l("Uscite per categoria nel tempo"), 2, "dashboard_category_trends"),
     "income_pie":    (_l("Entrate per categoria"), 1, "dashboard_income_pie"),
+    "year_total":    (_l("Totale del periodo"), 1, "dashboard_net"),
+    # what the old cards on top showed: income, expenses and savings rate of the period (with the forecast and the
+    # comparison), and the debts — in the views «Questo mese» and «Patrimonio»
+    "period_totals": (_l("Entrate e uscite del periodo"), 3, "dashboard_net"),
+    "debt_summary":  (_l("Debiti"), 1, "dashboard_net_worth_trend"),
+    # «Nel tempo»
+    "net_worth":     (_l("Andamento del patrimonio"), 1, "dashboard_net_worth_trend"),
+    "net_worth_bridge": (_l("Variazione del patrimonio"), 1, "dashboard_net_worth_trend"),
+    "cashflow":      (_l("Flusso di cassa e risparmio"), 2, "dashboard_cashflow_chart"),
+    "savings_trend": (_l("Tasso di risparmio mese per mese"), 1, "dashboard_savings_trend"),
+    "expense_trend": (_l("Uscite per categoria nel tempo"), 2, "dashboard_category_trends"),
     "income_trend":  (_l("Entrate per categoria nel tempo"), 2, "dashboard_category_trends"),
-    "sankey":        (_l("Dove va il denaro"), 3, "dashboard_sankey"),
-    "year_total":    (_l("Totale dell'anno"), 1, "dashboard_net"),
-    "savings_trend": (_l("Tasso di risparmio mese per mese"), 2, "dashboard_savings_trend"),
-    "recent":        (_l("Ultime transazioni"), 2, "dashboard_recent_tx"),
-    "health":        (_l("Salute finanziaria"), 1, "dashboard_health"),
     # F48 (D13): the investments in short, next to the full overview in the Portfolio
     "investments":       (_l("Investimenti in breve"), 1, "dashboard_portfolio_blocks"),
-    "investments_trend": (_l("Investimenti: valore e versato"), 2, "dashboard_portfolio_blocks"),
+    "investments_trend": (_l("Investimenti: valore e versato"), 1, "dashboard_portfolio_blocks"),
+    "drawdown":      (_l("Calo dal massimo"), 1, "dashboard_portfolio_blocks"),
+    # «Futuro»
+    "future_balance": (_l("Saldo dei prossimi 12 mesi"), 2, "dashboard_future"),
+    "big_expenses":  (_l("Uscite grosse dei prossimi 12 mesi"), 1, "dashboard_future"),
+    "future_net_worth": (_l("Patrimonio tra 10 anni"), 2, "dashboard_future"),
+    "fire":          (_l("Pensione e indipendenza finanziaria"), 1, "dashboard_future"),
+    "goals_eta":     (_l("Obiettivi: quando ci arrivo"), 1, "dashboard_future"),
+    "debt_payoff":   (_l("Debiti: quando finisco"), 1, "dashboard_future"),
+    "future_income": (_l("Rendite dei prossimi 12 mesi"), 1, "dashboard_future"),
 }
+# UI-18: the bands of the page, from the most urgent to the slowest; «Nel tempo» and «Futuro» closed at first
+BANDS = {
+    "now":    (_l("Come sto"), ("health", "to_fix"), True),
+    "month":  (_l("Questo mese"), ("pace", "bridge", "money_map", "budget_top", "next_days", "sankey", "period_totals", "expense_pie",
+                                    "income_pie", "year_total"), True),
+    "time":   (_l("Nel tempo"), ("net_worth", "investments_trend", "savings_trend", "net_worth_bridge", "cashflow",
+                                  "expense_trend", "income_trend", "investments", "debt_summary", "drawdown"), False),
+    "future": (_l("Futuro"), ("future_balance", "big_expenses", "future_net_worth", "fire", "goals_eta",
+                               "debt_payoff", "future_income"), False),
+}
+BAND_OF = {widget: band for band, (_title, members, _open) in BANDS.items() for widget in members}
+
 LAYOUT_SETTING = "dashboard.layout"
 SPANS = (1, 2, 3)
 HEIGHTS = (0, 1, 2, 3)  # 0: as tall as its content (and its row); 1–3: medium, tall, very tall
 
 
+# Hidden at first (Modifica shows them again): what the sketch of 18 Nov leaves out of the page — «Come sto» is the
+# row of cards on top, the doughnuts and the older charts are a click away.
+DEFAULT_HIDDEN = {"health", "to_fix", "sankey", "period_totals", "debt_summary", "expense_pie", "income_pie", "year_total", "cashflow", "expense_trend",
+                  "income_trend", "investments", "drawdown"}
+
+
 def default_layout() -> list[dict]:
-    return [{"id": key, "span": span, "height": 0, "visible": True} for key, (_title, span, _setting) in WIDGETS.items()]
+    """Band by band (BANDS), in the sketch's order and widths."""
+    return [{"id": key, "span": WIDGETS[key][1], "height": 0, "visible": key not in DEFAULT_HIDDEN}
+            for _title, members, _open in BANDS.values() for key in members]
 
 
 def normalize_layout(items) -> list[dict]:
@@ -95,6 +139,7 @@ def layout() -> list[dict]:
 def save_layout(items) -> list[dict]:
     items = normalize_layout(items)
     settings_store.set_json(LAYOUT_SETTING, items)
+    _mark_current()  # arranged on the new page: no upgrade over it
     return items
 
 
@@ -107,22 +152,21 @@ def reset_layout() -> list[dict]:
 # The cards on top: their order, width (one or two columns) and whether they are shown. "tbd" keeps a place for
 # what comes next.
 KPI_CARDS = {
-    "net_worth":    _l("Patrimonio Netto"),
-    "income":       _l("Entrate"),
-    "expenses":     _l("Uscite"),
-    "savings_rate": _l("Tasso di Risparmio"),
-    "investments":  _l("Investimenti"),
-    "debt":         _l("Debito Totale"),
-    "tbd":          _l("Carte"),  # the cards of the accounts, at a glance (to come)
-    "tbd2":         _l("Nuova scheda 2"),
-    "tbd3":         _l("Nuova scheda 3"),
+    # UI-18: «Come sto» — net worth, the month's saving, the months the cash covers, what to fix. The old cards
+    # (income, expenses, savings rate of the period, investments, debts) are blocks of the views now.
+    "net_worth":     _l("Patrimonio netto"),
+    "month_savings": _l("Risparmio del mese"),
+    "liquidity":     _l("Liquidità"),
+    "to_fix":        _l("Da sistemare"),
 }
 KPI_SETTING = "dashboard.kpis"
 KPI_SPANS = (1, 2)
 
 
+
 def default_kpis() -> list[dict]:
-    return [{"id": key, "span": 1, "visible": True} for key in KPI_CARDS]
+    """The four cards of «Come sto» shown, the net worth two columns wide; the others hidden (Modifica shows them)."""
+    return [{"id": key, "span": 2 if key == "net_worth" else 1, "visible": True} for key in KPI_CARDS]
 
 
 def normalize_kpis(items) -> list[dict]:
@@ -144,7 +188,84 @@ def kpi_layout() -> list[dict]:
 def save_kpis(items) -> list[dict]:
     items = normalize_kpis(items)
     settings_store.set_json(KPI_SETTING, items)
+    _mark_current()
     return items
+
+
+# The views of the page (the tabs on top): «Panoramica» is the page in bands, as arranged in Modifica; the others
+# show their own blocks, in this order and width, whatever is hidden in the overview.
+VIEWS = {
+    "overview":    (_l("Panoramica"), "grid-1x2", ()),
+    "month":       (_l("Questo mese"), "calendar-month", (("period_totals", 3), ("pace", 2), ("bridge", 1),
+                    ("money_map", 1), ("budget_top", 1), ("next_days", 1), ("sankey", 3), ("expense_pie", 1), ("income_pie", 1),
+                    ("year_total", 1), ("cashflow", 3), ("expense_trend", 3))),
+    "wealth":      (_l("Patrimonio"), "bank", (("net_worth", 3), ("net_worth_bridge", 1), ("health", 1),
+                    ("debt_summary", 1), ("debt_payoff", 1), ("future_net_worth", 2), ("big_expenses", 1))),
+    "investments": (_l("Investimenti"), "briefcase", (("investments", 1), ("investments_trend", 2), ("drawdown", 1),
+                    ("future_income", 1), ("fire", 1))),
+}
+
+
+VIEW_SETTING = "dashboard.view.%s"
+
+
+def default_view_layout(view: str) -> list[dict]:
+    return [{"id": key, "span": span, "height": 0, "visible": True} for key, span in VIEWS[view][2]]
+
+
+def _normalize_view(view: str, items) -> list[dict]:
+    """The view's own blocks once each, in the given order (width 1–3, height 0–3, shown or hidden); its blocks
+    missing from it at the end, as in the view's default; other blocks dropped."""
+    own = {key for key, _span in VIEWS[view][2]}
+    kept = [w for w in normalize_layout(items) if w["id"] in own]
+    given = {item.get("id") for item in items if isinstance(item, dict)} if isinstance(items, list) else set()
+    out = [w for w in kept if w["id"] in given]
+    return out + [w for w in default_view_layout(view) if w["id"] not in {x["id"] for x in out}]
+
+
+def view_layout(view: str) -> list[dict]:
+    """A view's blocks as arranged in its Modifica (the default the first time)."""
+    return _normalize_view(view, settings_store.get_json(VIEW_SETTING % view, [], expect=list))
+
+
+def save_view_layout(view: str, items) -> list[dict]:
+    items = _normalize_view(view, items)
+    settings_store.set_json(VIEW_SETTING % view, items)
+    return items
+
+
+def reset_view_layout(view: str) -> list[dict]:
+    settings_store.set(VIEW_SETTING % view, None)
+    return default_view_layout(view)
+
+
+LAYOUT_VERSION = 3  # 2: the dashboard in bands (UI-18, 20 Nov 2026); 3: the cards of «Come sto», map and flow apart
+VERSION_SETTING = "dashboard.layout_version"
+
+
+def _mark_current() -> None:
+    settings_store.set(VERSION_SETTING, str(LAYOUT_VERSION))
+
+
+def upgrade() -> bool:
+    """An arrangement saved before the bands goes to the new page once: blocks, cards and the presets' blocks and
+    cards (their names and periods stay). True when it did."""
+    try:
+        version = int(settings_store.get(VERSION_SETTING, 0) or 0)
+    except (TypeError, ValueError):
+        version = 0
+    if version >= LAYOUT_VERSION:
+        return False
+    settings_store.set(LAYOUT_SETTING, None)
+    settings_store.set(KPI_SETTING, None)
+    saved = settings_store.get_json(PRESETS_SETTING, None, expect=dict)
+    if saved and isinstance(saved.get("items"), list):
+        for item in saved["items"]:
+            if isinstance(item, dict):
+                item["layout"], item["kpis"] = default_layout(), default_kpis()
+        settings_store.set_json(PRESETS_SETTING, saved)
+    settings_store.set(VERSION_SETTING, str(LAYOUT_VERSION))
+    return True
 
 
 def settings_order() -> list[str]:
