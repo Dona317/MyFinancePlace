@@ -57,12 +57,12 @@ def test_nothing_to_draw(app, db):
 
 def test_dashboard_shows_the_new_charts_and_they_can_be_hidden(client, db):
     _year(db)
-    html = client.get("/dashboard?year=2026").get_data(as_text=True)
+    html = client.get("/dashboard?year=2026&view=month").get_data(as_text=True)
     assert 'class="sankey"' in html and "Dove va il denaro" in html and "Risparmio" in html
     # the year's totals stay; «Netto mese per mese» was dropped (the cash-flow chart shows the monthly savings)
     assert 'id="yearChart"' in html and 'id="netChart"' not in html
     client.post("/settings/save", data={})  # every checkbox unticked
-    html = client.get("/dashboard?year=2026").get_data(as_text=True)
+    html = client.get("/dashboard?year=2026&view=month").get_data(as_text=True)
     assert 'class="sankey"' not in html and 'id="yearChart"' not in html
 
 

@@ -30,6 +30,8 @@ BLOCKS = {"reminders": 3, "calendar": 2, "next": 1, "mine": 2, "fiscal": 1}
 BLOCK_TITLES = {"reminders": _l("Promemoria"), "calendar": _l("Calendario del mese"), "next": _l("Prossime scadenze"),
                 "mine": _l("Le tue scadenze"), "fiscal": _l("Scadenze fiscali")}
 LAYOUT_SETTING = "deadlines.layout"
+# the tabs and the blocks each one shows (Modifica arranges them inside the tab)
+TABS = {"next": ("reminders", "next"), "calendar": ("calendar",), "mine": ("mine", "fiscal"), "events": ()}
 NEXT_DAYS, NEXT_ROWS = 366, 100  # the next deadlines: a year ahead, the first hundred
 # F101: the horizon of the page — how far ahead the next deadlines look (kept as a preference)
 HORIZONS = (30, 60, 90, 180, 365)
@@ -41,8 +43,15 @@ def render_page():
     today = date.today()
     items = notifications.collect()
     hidden = [n for n in notifications.collect(include_dismissed=True) if n.key in set(notifications.dismissed())]
+    # UI-21: the page in tabs — a month in the address opens the calendar, a reminder to edit «Le tue scadenze»
+    tab = request.args.get("tab") or ("calendar" if request.args.get("month") else "mine" if request.args.get("edit") else "next")
+    tab = tab if tab in TABS else "next"
     context = {"items": items, "hidden": hidden, "today": today, "with_deadlines": sections.allowed("deadlines"),
-               "layout": page_layout.load(LAYOUT_SETTING, BLOCKS), "titles": BLOCK_TITLES}
+               "layout": page_layout.load(LAYOUT_SETTING, BLOCKS), "titles": BLOCK_TITLES, "tab": tab,
+               "tab_blocks": TABS[tab], "with_events": sections.allowed("events")}
+    if tab == "events" and context["with_events"]:
+        from app.routes.events import list_context
+        context.update(list_context())
     if context["with_deadlines"]:
         grid = deadlines.month_grid(_month())
         upcoming = deadlines.upcoming(today, days=NEXT_DAYS)

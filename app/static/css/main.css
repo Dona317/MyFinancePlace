@@ -2630,3 +2630,7 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .topbar-actions > .topbar-menu-btn { order: 95; }
 .budget-lines .budget-mini + .budget-mini { margin-top: 14px; }
 .budget-history-bar { min-width: 160px; }
+.event-new-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin: 0; }
+.event-new-form .form-group { margin: 0; }
+.event-new-form .form-group:first-child { flex: 1; min-width: 220px; }
+.event-new-budget { width: 140px; }

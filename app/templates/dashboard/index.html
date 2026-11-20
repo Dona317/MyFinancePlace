@@ -86,7 +86,8 @@
 
 <!-- KPI Row: a click on a card opens its detail; the period of income, expenses and savings is chosen in the card -->
 {% set fc = forecast_figures %}
-{{ tab_bar(view_tabs, view, _('Viste della dashboard')) }}
+{# the view «Investimenti» only for who can open the portfolio #}
+{{ tab_bar(view_tabs|rejectattr(0, 'equalto', 'investments' if not allowed('portfolio') else '')|list, view, _('Viste della dashboard')) }}
 {% if view == 'overview' %}
 <h2 class="dash-band-title">{{ bands.now[0] }}</h2>
 <div class="kpi-grid kpi-strip fc-grid-kpi mb-16" id="kpi-grid">
@@ -525,7 +526,7 @@
   {% elif w.id == 'budget_top' %}
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Budget più vicini al limite') }} {{ info(_('La tacca dice dove dovresti essere oggi, a questo punto del mese.')) }}</div>
-      {% if allowed('budget') %}<a href="{{ url_for('lifestyle.budget') }}" class="btn btn-ghost btn-sm">{{ _('Budget') }} <i class="bi bi-arrow-right"></i></a>{% endif %}</div>
+      {% if shown('budget') %}<a href="{{ url_for('lifestyle.budget') }}" class="btn btn-ghost btn-sm">{{ _('Budget') }} <i class="bi bi-arrow-right"></i></a>{% endif %}</div>
     <div class="card-body">
       {% for line in extra.budget_top %}
       <div class="budget-mini">

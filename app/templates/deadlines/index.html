@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/period_box.html" import choice_box %}
-{% from "partials/kpi.html" import kpi %}
+{% from "partials/stat_row.html" import stat_row %}
+{% from "partials/tabs.html" import tab_bar %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/actions.html" import icon_link, delete_button %}
 {% import "partials/blocks.html" as blocks with context %}
@@ -65,16 +66,28 @@
 {%- endmacro %}
 
 {% block content %}
+{# UI-21: «come sto» in one row, then the tabs: next, calendar, your deadlines, events #}
 {% if with_deadlines %}
-<div class="kpi-grid mb-16">
-  {{ kpi('calendar-event', _('Scadenze nel mese'), value=grid['items']|length) }}
-  {{ kpi('arrow-up-circle', _('Da pagare nel mese'), value=grid.to_pay|money, cls='kpi-negative' if grid.to_pay else 'kpi-neutral') }}
-  {{ kpi('calendar-check', _('Nei prossimi %(days)s giorni', days=horizon), value=upcoming_60|length) }}
-</div>
+{% set biggest = upcoming_60|selectattr('outgoing')|rejectattr('amount', 'none')|sort(attribute='amount', reverse=true)|first %}
+{{ stat_row([
+  {'label': _('Nei prossimi %(days)s giorni', days=horizon), 'value': upcoming_60|length, 'sub': _('scadenze')},
+  {'label': _('Da pagare nel mese'), 'value': grid.to_pay|money, 'cls': 'negative' if grid.to_pay else None, 'sub': month_title},
+  {'label': _('La più grossa'), 'value': biggest.amount|money if biggest else '—', 'sub': (biggest.title ~ ' · ' ~ biggest.day|it_date) if biggest else _('niente in arrivo')},
+  {'label': _('Promemoria da vedere'), 'value': items|length, 'cls': 'warning' if items else 'positive', 'sub': _('avvisi non ancora visti')},
+], _('Le scadenze in breve')) }}
 {% endif %}
+<div class="page-tabs">{{ tab_bar(
+  ([('next', url_for('deadlines.index'), _('Prossimi'), 'calendar2-week')]
+   + ([('calendar', url_for('deadlines.index', tab='calendar'), _('Calendario'), 'calendar3'),
+       ('mine', url_for('deadlines.index', tab='mine'), _('Le tue scadenze'), 'calendar-check')] if with_deadlines else [])
+   + ([('events', url_for('deadlines.index', tab='events'), _('Eventi'), 'airplane')] if with_events else [])),
+  tab, _('Sezioni dei promemoria')) }}</div>
 
+{% if tab == 'events' %}
+{% if with_events %}{% include "events/_list.html" %}{% endif %}
+{% else %}
 <div class="fc-grid dash-grid" id="blocks-grid">
-{% for w in layout if w.id == 'reminders' or with_deadlines %}
+{% for w in layout if (w.id == 'reminders' or with_deadlines) and w.id in tab_blocks %}
 {% call blocks.block(w, titles[w.id]) %}
 
   {% if w.id == 'reminders' %}
@@ -210,6 +223,7 @@
 {% endcall %}
 {% endfor %}
 </div>
+{% endif %}
 
 {# «Nuovo promemoria»: what, when, how often, how long before to be told, an amount and a note #}
 <div class="modal-overlay" id="new-reminder" onclick="if (event.target === this) closeModal('new-reminder')">

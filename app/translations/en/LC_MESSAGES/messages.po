@@ -16296,3 +16296,67 @@ msgstr "Over budget"
 #: app/templates/lifestyle/budget.html
 msgid "Nessun mese con budget negli ultimi 12 mesi."
 msgstr "No month with a budget in the last 12 months."
+
+#: app/templates/deadlines/index.html
+msgid "scadenze"
+msgstr "deadlines"
+
+#: app/templates/deadlines/index.html
+msgid "La più grossa"
+msgstr "The biggest"
+
+#: app/templates/deadlines/index.html
+msgid "niente in arrivo"
+msgstr "nothing coming"
+
+#: app/templates/deadlines/index.html
+msgid "Promemoria da vedere"
+msgstr "Reminders to see"
+
+#: app/templates/deadlines/index.html
+msgid "avvisi non ancora visti"
+msgstr "alerts not seen yet"
+
+#: app/templates/deadlines/index.html
+msgid "Le scadenze in breve"
+msgstr "Deadlines at a glance"
+
+#: app/templates/deadlines/index.html
+msgid "Prossimi"
+msgstr "Next"
+
+#: app/templates/deadlines/index.html
+msgid "Calendario"
+msgstr "Calendar"
+
+#: app/templates/deadlines/index.html
+msgid "Sezioni dei promemoria"
+msgstr "Reminder sections"
+
+#: app/templates/deadlines/index.html
+msgid "Nessun evento: creane uno qui sotto e assegnagli i movimenti."
+msgstr "No events: create one below and assign its movements."
+
+#: app/templates/deadlines/index.html
+msgid "Le entrate del mese, poi quanto si è preso ogni gruppo di spesa e quanto hai risparmiato; se hai speso più delle entrate, quanto hai preso dai risparmi. I giroconti tra i tuoi conti e i prelievi verso Contanti non sono spese: quei soldi sono ancora tuoi e restano nei risparmi. Le riconciliazioni non contano."
+msgstr "The month's income, then what each spending group took and what you saved; if you spent more than the income, what you took from the savings. Transfers between your accounts and withdrawals to Cash are not expenses: that money is still yours and stays in the savings. Reconciliations do not count."
+
+#: app/templates/deadlines/index.html
+msgid "il mese in corso del periodo in alto"
+msgstr "the current month of the period on top"
+
+#: app/templates/deadlines/index.html
+msgid "l’ultimo mese del periodo in alto"
+msgstr "the last month of the period on top"
+
+#: app/templates/deadlines/index.html
+msgid "Risparmi"
+msgstr "Savings"
+
+#: app/templates/deadlines/index.html
+msgid "Presi dai risparmi"
+msgstr "Taken from savings"
+
+#: app/templates/deadlines/index.html
+msgid "Nessun movimento in questo mese."
+msgstr "No movements this month."

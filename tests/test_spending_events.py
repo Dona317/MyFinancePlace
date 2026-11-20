@@ -56,7 +56,7 @@ def test_validation(app, args, message):
 
 
 def test_pages(client, db, trip):
-    page = client.get("/events/").get_data(as_text=True)
+    page = client.get("/deadlines/?tab=events").get_data(as_text=True)
     assert "Giappone" in page and "€ 2.080,00" in page
     page = client.get(f"/events/{trip.id}").get_data(as_text=True)
     assert "restano € 920,00" in page and "Treno" in page and "€ 208,00" in page

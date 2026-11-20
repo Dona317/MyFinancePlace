@@ -172,7 +172,7 @@ def test_pages(client, db):
 def test_one_page_for_reminders_and_deadlines_with_blocks_to_arrange(client, db):
     page = client.get("/notifications/").get_data(as_text=True)
     assert 'id="blocks-grid"' in page and "Prossime scadenze" in page and "Nuovo promemoria" in page
-    assert client.get("/deadlines/").get_data(as_text=True).count('data-widget="calendar"') == 1
+    assert client.get("/deadlines/?tab=calendar").get_data(as_text=True).count('data-widget="calendar"') == 1
     client.post("/deadlines/layout", json={"widgets": [{"id": "next", "span": 3, "height": 1}, {"id": "nope"}]})
     page = client.get("/deadlines/").get_data(as_text=True)
     assert page.index('data-widget="next"') < page.index('data-widget="reminders"')
@@ -217,10 +217,10 @@ def test_a_one_off_reminder_with_an_amount_makes_its_event_and_both_stay_in_step
     db.session.refresh(reminder)
     assert (reminder.title, reminder.due, float(reminder.amount)) == ("Nozze Luca", date(2027, 6, 14), 400.0)
     assert "apri il promemoria" in client.get(f"/events/{event.id}").get_data(as_text=True)
-    assert "Evento collegato" in client.get("/deadlines/?month=2027-06").get_data(as_text=True)
+    assert "Evento collegato" in client.get("/deadlines/?month=2027-06&tab=mine").get_data(as_text=True)
     # the question before deleting says the other goes too; deleting the event deletes its reminder
-    assert "e il suo promemoria?" in client.get("/events/").get_data(as_text=True)
-    assert "e il suo evento «Nozze Luca»?" in client.get("/deadlines/?month=2027-06").get_data(as_text=True)
+    assert "e il suo promemoria?" in client.get("/deadlines/?tab=events").get_data(as_text=True)
+    assert "e il suo evento «Nozze Luca»?" in client.get("/deadlines/?month=2027-06&tab=mine").get_data(as_text=True)
     client.post(f"/events/{event.id}/delete")
     assert Reminder.query.count() == 0 and SpendingEvent.query.count() == 0
     # and deleting the reminder deletes its event

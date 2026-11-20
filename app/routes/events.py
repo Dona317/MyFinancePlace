@@ -40,12 +40,18 @@ def index():
             flash(_("Evento creato: aggiungi i suoi movimenti."), "success")
             return redirect(url_for("events.detail", event_id=event.id))
         return redirect(url_for("events.index"))
+    # UI-21: the events are a tab of Promemoria
+    return redirect(url_for("deadlines.index", tab="events"))
+
+
+def list_context() -> dict:
+    """What the list of the events needs (events/_list.html)."""
     today = date.today()
     start = date(today.year, 1, 1)
     linked = {r.event_id for r in Reminder.query.filter(Reminder.event_id.isnot(None))}
-    return render_template("events/index.html", summaries=spending_events.all_summaries(), year=today.year, linked=linked,
-                           ordinary=spending_events.spent_outside_events(start, today),
-                           in_events=spending_events.spent_in_events(start, today))
+    return {"summaries": spending_events.all_summaries(), "year": today.year, "linked": linked,
+            "ordinary": spending_events.spent_outside_events(start, today),
+            "in_events": spending_events.spent_in_events(start, today)}
 
 
 @events_bp.route("/<int:event_id>", methods=["GET", "POST"])
