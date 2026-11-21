@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
-{% from "partials/kpi.html" import kpi %}
+{% from "partials/stat_row.html" import stat_row %}
+{% from "partials/tabs.html" import tab_bar %}
+{% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Conti e Carte') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Conti e Carte') }}</li>{% endblock %}
 
@@ -10,23 +12,93 @@
 {% endblock %}
 
 {% block content %}
-<div class="kpi-grid mb-24">
-  {{ kpi('bank', _('Saldo Totale'), value=total|money, cls='kpi-primary', sub=(_('conti attivi e contanti'))) }}
-  {{ kpi('wallet2', _('Conti'), value=rows|length, sub=(_('%(count)s attivi', count=rows|selectattr('account.active')|list|length))) }}
-  {# the two fixed accounts, at a glance: the cash (each currency below) and every debt (the Debiti section and the Debiti account) #}
-  {% if cash %}
-  {% call kpi('cash-coin', _('Contanti'), value=cash.balance|money(cash.symbol), cls='kpi-positive') %}
-    {% if currencies|length > 1 %}{% for code, value in currencies.items() %}{{ value|money(code) }}{{ ' · ' if not loop.last }}{% endfor %} · {% endif %}<a href="{{ url_for('accounts.detail', account_id=cash.account.id) }}">{{ _('apri') }}</a>
-  {% endcall %}
-  {% endif %}
-  {# every debt of the Debiti section; the Debiti account holds the part no transaction explains (F40) #}
-  {% call kpi('receipt', _('Debiti totali'), value=debts.total|money, cls='kpi-purple') %}
-    {% if debts.residual %}{{ _('%(amount)s non spiegati da transazioni', amount=debts.residual|money) }} · {% endif %}<a href="{{ url_for('debt.index') }}">{{ _('vedi i debiti') }}</a>
-  {% endcall %}
-  {% call kpi('question-circle', _('Senza Conto'), value=unassigned, cls=('kpi-warning' if unassigned else 'kpi-positive')) %}{% if unassigned %}<a href="{{ url_for('transactions.index', account='none') }}">{{ _('assegnale') }}</a>{% else %}{{ _('tutte assegnate') }}{% endif %}{% endcall %}
+{# UI-21: «come sto» in one row, then the tabs #}
+{# the cash in each currency, under its figure #}
+{% set cash_parts = namespace(text='') %}
+{% for code, value in currencies.items() %}{% set cash_parts.text = cash_parts.text ~ (' · ' if not loop.first else '') ~ value|money(code) %}{% endfor %}
+{% set stale = reconcile|selectattr('days', 'none')|list + reconcile|rejectattr('days', 'none')|selectattr('days', 'gt', stale_days)|list %}
+{{ stat_row([
+  {'label': _('Liquidità'), 'value': total|money, 'cls': 'positive', 'sub': _('conti attivi e contanti')},
+  {'label': _('Contanti'), 'value': cash.balance|money(cash.symbol), 'href': url_for('accounts.detail', account_id=cash.account.id),
+   'sub': cash_parts.text if currencies|length > 1 else None} if cash else None,
+  {'label': _('Debiti totali'), 'value': debts.total|money, 'cls': 'purple', 'href': url_for('debt.index'),
+   'sub': _('%(amount)s non spiegati da transazioni', amount=debts.residual|money) if debts.residual else None},
+  {'label': _('Da riconciliare'), 'value': stale|length, 'cls': 'warning' if stale else 'positive',
+   'href': url_for('accounts.index', tab='reconcile'), 'sub': _('mai o da più di %(days)s giorni', days=stale_days)},
+  {'label': _('Senza conto'), 'value': unassigned, 'cls': 'warning' if unassigned else 'positive',
+   'href': url_for('transactions.index', account='none') if unassigned else None, 'sub': _('transazioni da assegnare') if unassigned else _('tutte assegnate')},
+], _('Conti in breve')) }}
+<div class="page-tabs">{{ tab_bar([
+  ('overview', url_for('accounts.index'), _('Panoramica'), 'grid-1x2'),
+  ('accounts', url_for('accounts.index', tab='accounts'), _('Conti'), 'bank'),
+  ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),
+  ('reconcile', url_for('accounts.index', tab='reconcile'), _('Riconciliazioni'), 'check2-square'),
+], tab, _('Sezioni di conti e carte')) }}</div>
+
+{% if tab == 'overview' %}
+{% set top = (by_kind|map(attribute=1)|map('abs')|max) if by_kind else 0 %}
+<div class="card">
+  <div class="card-header"><div class="card-header-title">{{ _('I saldi per tipo di conto') }}</div></div>
+  <div class="card-body">
+    {% for kind, amount in by_kind %}
+    <div class="budget-mini">
+      <div class="budget-mini-head"><span><i class="bi bi-{{ icons.get(kind, 'wallet2') }}"></i> {{ kinds.get(kind, kind) }}</span><strong class="amount {{ 'negative' if amount < 0 }}">{{ amount|money }}</strong></div>
+      <div class="budget-mini-bar"><span class="{{ 'is-over' if amount < 0 else 'is-ok' }}{{ ' is-debt' if kind == 'debt' }}" style="width: {{ (amount|abs / top * 100) if top else 0 }}%"></span></div>
+    </div>
+    {% else %}
+    {{ empty_state(text=_('Nessun conto attivo.'), compact=True) }}
+    {% endfor %}
+  </div>
 </div>
 
+{% elif tab == 'cards' %}
+<div class="card">
+  {% if card_rows %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Carta') }}</th><th>{{ _('Conto') }}</th><th class="text-right">{{ _('Speso nel mese') }}</th><th class="text-right">{{ _('Movimenti') }}</th><th>{{ _('Scadenza') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+        {% for c in card_rows %}
+        <tr>
+          <td><i class="bi bi-credit-card"></i> {{ c.card.name }}{{ ' ' ~ c.card.last4 if c.card.last4 }}</td>
+          <td><a href="{{ url_for('accounts.detail', account_id=c.account.id) }}">{{ c.account.name }}</a></td>
+          <td class="amount text-right">{{ c.month|money }}</td>
+          <td class="text-right">{{ c.count }}</td>
+          <td class="{{ 'text-negative' if c.soon }}">{{ c.expiry|it_date if c.expiry else '—' }}</td>
+          <td><div class="cell-actions">{{ icon_link(url_for('accounts.card_edit', card_id=c.card.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=c.card.name)) }}</div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body">{{ empty_state(text=_('Nessuna carta: aggiungila dalla pagina del suo conto.'), icon='bi-credit-card', compact=True) }}</div>
+  {% endif %}
+</div>
 
+{% elif tab == 'reconcile' %}
+<div class="card">
+  <div class="card-header"><div class="card-header-title">{{ _('Quando hai confrontato i saldi con la banca') }} {{ info(_('Riconciliare: dire all’app il saldo che vedi in banca; la differenza diventa un movimento «Riconciliazione». Prima i conti mai riconciliati o fermi da più tempo.')) }}</div></div>
+  {% if reconcile %}
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Conto') }}</th><th class="text-right">{{ _('Saldo') }}</th><th>{{ _('Ultima riconciliazione') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+        {% for r in reconcile %}
+        <tr>
+          <td><a class="cell-title" href="{{ url_for('accounts.detail', account_id=r.account.id) }}">{{ r.account.name }}</a></td>
+          <td class="amount text-right">{{ r.balance|money(r.symbol) }}</td>
+          <td class="{{ 'text-negative' if r.days is none or r.days > stale_days else '' }}">{% if r.days is none %}{{ _('mai') }}{% else %}{{ r.account.reconciled_on|it_date }} · {{ _('%(days)s giorni fa', days=r.days) }}{% endif %}</td>
+          <td><div class="cell-actions">{{ icon_link(url_for('accounts.detail', account_id=r.account.id), 'bi-check2-square', _('Riconcilia'), _('Riconcilia %(name)s', name=r.account.name)) }}</div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="card-body">{{ empty_state(text=_('Nessun conto attivo.'), compact=True) }}</div>{% endif %}
+</div>
+
+{% else %}
 <div class="card">
   {% if rows %}
   <div class="table-wrapper">
@@ -88,4 +160,5 @@
   {% endcall %}
   {% endif %}
 </div>
+{% endif %}
 {% endblock %}

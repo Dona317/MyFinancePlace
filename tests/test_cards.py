@@ -138,7 +138,7 @@ def test_pages(client, db, bank):
     db.session.commit()
     response = client.post(f"/accounts/cards/{card.id}/number")
     assert response.status_code == 409 and "un'altra chiave" in response.get_json()["error"]
-    assert "Visa Fineco 4821" in client.get("/accounts/").get_data(as_text=True)
+    assert "Visa Fineco 4821" in client.get("/accounts/?tab=cards").get_data(as_text=True)
     page = client.post(f"/accounts/cards/{card.id}/edit", data={**form, "expiry": "99/99"}, follow_redirects=True)
     assert "Scadenza non valida" in page.get_data(as_text=True)
     client.post(f"/accounts/cards/{card.id}/edit", data={**form, "number": "4821", "active": [""], "forget_number": "1"})

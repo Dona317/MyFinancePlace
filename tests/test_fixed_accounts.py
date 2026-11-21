@@ -24,12 +24,12 @@ def _add(db, **values):
 
 
 def test_the_two_accounts_are_made_once_and_shown_as_cards(client, db, fixed_on):
-    html = client.get("/accounts/").get_data(as_text=True)
+    html = client.get("/accounts/?tab=accounts").get_data(as_text=True)
     cash, debt = accounts.fixed("cash"), accounts.fixed("debt")
     assert (cash.name, cash.kind, debt.name, debt.kind) == ("Contanti", "cash", "Debiti", "debt")
     # not in the table of the banks: two cards on top
-    assert 'class="cell-title"' not in html and "Debiti totali" in html and "vedi i debiti" in html
-    client.get("/accounts/")
+    assert 'class="cell-title"' not in html and "Debiti totali" in html and "/debt/" in html  # the figure on top opens the debts
+    client.get("/accounts/?tab=accounts")
     assert Account.query.count() == 2  # not made again
     bank = Account(name="Fineco", kind="current", currency="EUR")
     db.session.add_all([bank, Debt(name="Mutuo", type="Mutuo", principal=10000, annual_rate=0, start_date=date(2026, 1, 1),
@@ -38,7 +38,7 @@ def test_the_two_accounts_are_made_once_and_shown_as_cards(client, db, fixed_on)
     _add(db, account_id=cash.id, amount=12, currency="CHF")
     _add(db, account_id=cash.id, amount=30, type="income")
     _add(db, account_id=debt.id, amount=250)
-    html = client.get("/accounts/").get_data(as_text=True)
+    html = client.get("/accounts/?tab=accounts").get_data(as_text=True)
     assert html.count('class="cell-title"') == 1 and "Fineco" in html  # only the bank in the table
     assert "-CHF 12,00" in html and "non spiegati da transazioni" in html
     loans = wealth.debt_summary(Debt.query.one(), date.today())["balance"]
@@ -132,7 +132,7 @@ def test_a_statement_can_be_saved_when_only_the_fixed_accounts_exist(client, db,
     from tests.form_helper import form_data
     from tests.statements import fineco_xlsx
 
-    client.get("/accounts/")  # makes Contanti and Debiti
+    client.get("/accounts/?tab=accounts")  # makes Contanti and Debiti
     assert Account.query.count() == 2
     html = client.post("/export/bank", data={"file": (io.BytesIO(fineco_xlsx()), "movimenti.xlsx"), "bank": "auto"},
                        content_type="multipart/form-data").get_data(as_text=True)

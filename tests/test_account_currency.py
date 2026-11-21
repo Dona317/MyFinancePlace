@@ -56,7 +56,7 @@ def test_totals_in_base_currency(client, db, setup):
     assert wealth.cash_balance() == 1400.0 - 8.0
     rows = {r["account"].name: r for r in accounts.summary()}
     assert rows["Conto USD"]["balance"] == 490.0 and rows["Conto USD"]["balance_base"] == 392.0
-    html = client.get("/accounts/").get_data(as_text=True)
+    html = client.get("/accounts/?tab=accounts").get_data(as_text=True)
     assert "$ 490,00" in html and "€ 1.392,00" in html
 
 

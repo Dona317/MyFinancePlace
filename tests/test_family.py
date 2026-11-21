@@ -57,7 +57,7 @@ def test_pages_and_filters(client, db, household):
     page = client.get("/transactions/?person=Anna+Bianchi").get_data(as_text=True)
     assert "Esselunga di Mario" not in page
     assert "Esselunga di Mario" in client.get("/transactions/?person=Mario+Rossi").get_data(as_text=True)
-    assert "Cointestato" in client.get("/accounts/").get_data(as_text=True)
+    assert "Cointestato" in client.get("/accounts/?tab=accounts").get_data(as_text=True)
     form = {"name": "Conto Mario", "kind": "current", "currency": "EUR", "opening_balance": "1000", "owner": "Anna Bianchi",
             "active": "1"}
     client.post(f"/accounts/{mine.id}/edit", data=form)

@@ -95,8 +95,24 @@ def index():
     cash = next((r for r in rows if r["account"].fixed == "cash"), None)
     debt = next((r for r in rows if r["account"].fixed == "debt"), None)
     rows = [r for r in rows if not r["account"].fixed]
+    # UI-21: the page in tabs — the overview by kind, the accounts, the cards, the reconciliations
+    tab = request.args.get("tab", "overview")
+    tab = tab if tab in ACCOUNT_TABS else "overview"
+    today = date.today()
+    active_rows = [r for r in rows if r["account"].active]
+    by_kind: dict[str, float] = {}
+    for r in active_rows:
+        by_kind[r["account"].kind] = by_kind.get(r["account"].kind, 0.0) + float(r["balance_base"])
+    reconcile = sorted(active_rows, key=lambda r: r["account"].reconciled_on or date.min)
+    for r in reconcile:
+        r["days"] = (today - r["account"].reconciled_on).days if r["account"].reconciled_on else None
+    from app.routes.cards import account_cards  # the cards of each account with the month's spending
+    card_rows = [dict(item, account=r["account"]) for r in active_rows for item in account_cards(r["account"])] \
+        if tab == "cards" else []
     return render_template(
         "accounts/index.html", rows=rows, kinds=accounts.KINDS, icons=accounts.ICONS, cash=cash, debt_account=debt,
+        tab=tab, by_kind=sorted(by_kind.items(), key=lambda item: -abs(item[1])), reconcile=reconcile,
+        card_rows=card_rows, stale_days=RECONCILE_STALE_DAYS,
         currencies=accounts.by_currency(cash["account"]) if cash else {},
         debts=wealth.debt_picture(),
         total=sum(r["balance_base"] for r in rows if r["account"].active and r["account"].kind != "debt")
@@ -104,6 +120,10 @@ def index():
         unassigned=accounts.unassigned_count(),
         dossiers_of={aid: [(d, securities.value(d)) for d in ds] for aid, ds in securities.dossiers_by_account().items()},
     )
+
+
+ACCOUNT_TABS = ("overview", "accounts", "cards", "reconcile")
+RECONCILE_STALE_DAYS = 90  # as Salute dei dati: an account not reconciled for longer is flagged
 
 
 @accounts_bp.route("/<int:account_id>")

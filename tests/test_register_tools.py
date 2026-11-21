@@ -210,7 +210,7 @@ def test_one_favourite_account_at_a_time(client, db):
 def test_codes_are_kept_whole_and_shown_masked(client, db):
     account = bank(db, "Fineco 1", bank="Fineco", account_number="00012345678", iban="IT60X0542811101000000123456")
     assert accounts.masked(account.iban) == "•••• 3456"
-    html = client.get("/accounts/").get_data(as_text=True)
+    html = client.get("/accounts/?tab=accounts").get_data(as_text=True)
     assert "•••• 5678" in html and 'data-copy="00012345678"' in html and "Fineco" in html
 
 

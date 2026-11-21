@@ -16360,3 +16360,55 @@ msgstr "Taken from savings"
 #: app/templates/deadlines/index.html
 msgid "Nessun movimento in questo mese."
 msgstr "No movements this month."
+
+#: app/templates/accounts/index.html
+msgid "Da riconciliare"
+msgstr "To reconcile"
+
+#: app/templates/accounts/index.html
+msgid "mai o da più di %(days)s giorni"
+msgstr "never or for more than %(days)s days"
+
+#: app/templates/accounts/index.html
+msgid "transazioni da assegnare"
+msgstr "transactions to assign"
+
+#: app/templates/accounts/index.html
+msgid "Conti in breve"
+msgstr "Accounts at a glance"
+
+#: app/templates/accounts/index.html
+msgid "Riconciliazioni"
+msgstr "Reconciliations"
+
+#: app/templates/accounts/index.html
+msgid "Sezioni di conti e carte"
+msgstr "Accounts and cards sections"
+
+#: app/templates/accounts/index.html
+msgid "I saldi per tipo di conto"
+msgstr "Balances by kind of account"
+
+#: app/templates/accounts/index.html
+msgid "Nessun conto attivo."
+msgstr "No active account."
+
+#: app/templates/accounts/index.html
+msgid "Nessuna carta: aggiungila dalla pagina del suo conto."
+msgstr "No card: add it from its account's page."
+
+#: app/templates/accounts/index.html
+msgid "Quando hai confrontato i saldi con la banca"
+msgstr "When you compared the balances with the bank"
+
+#: app/templates/accounts/index.html
+msgid "Riconciliare: dire all’app il saldo che vedi in banca; la differenza diventa un movimento «Riconciliazione». Prima i conti mai riconciliati o fermi da più tempo."
+msgstr "Reconciling: telling the app the balance you see at the bank; the difference becomes a «Reconciliation» movement. First the accounts never reconciled or idle the longest."
+
+#: app/templates/accounts/index.html
+msgid "Ultima riconciliazione"
+msgstr "Last reconciliation"
+
+#: app/templates/accounts/index.html
+msgid "%(days)s giorni fa"
+msgstr "%(days)s days ago"

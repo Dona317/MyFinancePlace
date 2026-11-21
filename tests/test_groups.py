@@ -123,7 +123,7 @@ def test_pages_and_csv(office, family, client):
 
     response = client.post(f"/groups/{group_id}/open/{family['giulia']}", follow_redirects=True)
     assert "Ora stai lavorando su «Giulia Rossi»" in response.get_data(as_text=True)
-    assert "Conto Giulia" in client.get("/accounts/").get_data(as_text=True)
+    assert "Conto Giulia" in client.get("/accounts/?tab=accounts").get_data(as_text=True)
 
 
 def test_create_edit_and_delete(office, family, client):

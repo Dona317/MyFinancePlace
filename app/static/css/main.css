@@ -2634,3 +2634,4 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .event-new-form .form-group { margin: 0; }
 .event-new-form .form-group:first-child { flex: 1; min-width: 220px; }
 .event-new-budget { width: 140px; }
+.budget-mini-bar > span.is-debt { background: var(--chart-5); }
