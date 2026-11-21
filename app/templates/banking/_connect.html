@@ -1,0 +1,60 @@
+{# «Collega una banca»: on the archive's page it links to the open archive; on Gestione PSD2 (`archives` given) the
+   archive the new consent belongs to is chosen here. #}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/info.html" import info %}
+<div class="card mb-16" id="connect">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-link-45deg"></i> {{ _('Collega una banca') }} {{ info(_('Lettura dei movimenti tramite PSD2: dai il consenso sul sito della tua banca, che dura fino a 180 giorni. MyFinancePlace legge soltanto, non può disporre pagamenti.')) }}</div>
+      <div class="card-header-sub">{{ _('Tramite Enable Banking, aggregatore autorizzato: i movimenti arrivano categorizzati come in un import, i doppioni vengono riconosciuti') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if not status.configured %}
+      {% call empty_state(text=_("Prima inserisci le credenziali della tua applicazione Enable Banking (una volta sola, valgono per tutti gli archivi)."), icon='bi-key', compact=True) %}
+        {% if not archives %}<a href="{{ url_for('banking.manage') }}#credentials" class="btn btn-outline btn-sm"><i class="bi bi-sliders"></i> {{ _('Apri Gestione PSD2') }}</a>{% endif %}
+      {% endcall %}
+    {% elif banks_error %}
+      <div class="alert alert-error">{{ banks_error }}</div>
+    {% else %}
+    <ol class="bank-steps">
+      <li>{{ _('Scegli archivio, paese e banca') if archives else _('Scegli paese e banca') }}</li>
+      <li>{{ _('Sul sito della banca accedi e autorizza la lettura') }}</li>
+      <li>{{ _('Torni qui: abbini i conti e controlli i movimenti') }}</li>
+    </ol>
+    <form method="GET" action="{{ request.path }}" class="bank-country-form">
+      <label class="form-label" for="bank-country">{{ _('Paese') }}</label>
+      <select id="bank-country" name="country" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for code in countries %}<option value="{{ code }}" {{ 'selected' if code == country }}>{{ code }}</option>{% endfor %}
+      </select>
+      <noscript><button type="submit" class="btn btn-ghost btn-sm">{{ _('Mostra') }}</button></noscript>
+    </form>
+    <form method="POST" action="{{ url_for('banking.connect') }}" class="bank-connect-form{{ ' with-archive' if archives }}">
+      <input type="hidden" name="country" value="{{ country }}" />
+      {% if archives %}
+      <input type="hidden" name="from" value="manage" />
+      <div class="form-group">
+        <label class="form-label" for="bank-archive">{{ _('Archivio') }} {{ info(_('Il collegamento appartiene a questo archivio e i movimenti finiscono nei suoi conti. Un archivio può avere più collegamenti, anche alla stessa banca.')) }}</label>
+        <select id="bank-archive" name="client_id" class="form-select">
+          {% for a in archives %}<option value="{{ a.id }}" {{ 'selected' if a.id == current_archive }}>{{ a.name }}</option>{% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="form-group">
+        <label class="form-label" for="bank-aspsp">{{ _('Banca') }}</label>
+        <input id="bank-aspsp" name="aspsp" class="form-control" list="bank-list" required placeholder="{{ _('es. Fineco') }}" autocomplete="off" />
+        <datalist id="bank-list">{% for b in banks %}<option value="{{ b.name }}"></option>{% endfor %}</datalist>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="bank-psu">{{ _('Tipo di conto') }}</label>
+        <select id="bank-psu" name="psu_type" class="form-select">
+          <option value="personal">{{ _('Privato') }}</option>
+          <option value="business">{{ _('Azienda') }}</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-up-right"></i> {{ _('Vai alla banca') }}</button>
+    </form>
+    <p class="form-hint">{{ _('%(count)s banche disponibili.', count=banks|length) }}</p>
+    {% endif %}
+  </div>
+</div>

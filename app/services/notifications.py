@@ -236,6 +236,39 @@ def _cards(today: date) -> list[Notification]:
     return items
 
 
+def _banks(today: date) -> list[Notification]:
+    """F107: the consent of a bank connection ends soon or ended, the last download failed, movements wait for a look,
+    an account of the bank has no account of the app."""
+    from app.models.bank_link import BankConnection
+    from app.services.open_banking import EXPIRY_NOTICE_DAYS
+
+    items, page = [], url_for("banking.index")
+    for c in BankConnection.query.order_by(BankConnection.id).all():
+        end = c.valid_until.date() if c.valid_until else None
+        if c.status != "active" or (end and end < today):
+            items.append(Notification(f"bank-expired-{c.id}-{end}", "danger", "bank2",
+                                      _("Consenso scaduto: %(bank)s", bank=c.aspsp_name),
+                                      _("Rinnovalo per continuare a scaricare i movimenti."), end or today, page))
+            continue
+        if end and (end - today).days <= EXPIRY_NOTICE_DAYS:
+            items.append(Notification(f"bank-expiring-{c.id}-{end}", "warning", "bank2",
+                                      _("Consenso in scadenza: %(bank)s", bank=c.aspsp_name),
+                                      _("Valido fino al %(day)s: rinnovalo dalla banca.", day=display.day(end)), end, page))
+        if c.last_error:
+            items.append(Notification(f"bank-error-{c.id}-{today}", "warning", "exclamation-triangle",
+                                      _("Download non riuscito: %(bank)s", bank=c.aspsp_name), c.last_error[:200], today, page))
+        for link in [k for k in c.links if k.active]:
+            name = link.name or link.iban or c.aspsp_name
+            if link.pending:
+                items.append(Notification(f"bank-pending-{link.id}-{len(link.pending)}", "info", "inbox",
+                                          _("%(count)s movimenti da controllare: %(name)s", count=len(link.pending), name=name),
+                                          c.aspsp_name, today, url_for("banking.review", link_id=link.id)))
+            if link.account_id is None:
+                items.append(Notification(f"bank-noaccount-{link.id}", "warning", "question-circle",
+                                          _("Scegli il conto dell'app per %(name)s", name=name), c.aspsp_name, today, page))
+    return items
+
+
 def _backup(today: date) -> list[Notification]:
     """The automatic backup failed, or has not run for two periods."""
     state = encrypted_backup.status()
@@ -264,7 +297,7 @@ def _update(today: date) -> list[Notification]:
 SOURCES = ((_policies, "insurance"), (_recurring, "transactions"), (_installments, "debt"), (_budgets, "budget"),
            (_goals, "goals"), (_portfolio, "portfolio"),
            (_data_health, "health"), (_limits, "tax"), (_gigs, "gigs"), (_loans, "loans"),
-           (_deadlines, "deadlines"), (_documents, "documents"), (_cards, "accounts"), (_year_closes, "accounting"),
+           (_deadlines, "deadlines"), (_documents, "documents"), (_cards, "accounts"), (_banks, "accounts"), (_year_closes, "accounting"),
            (_backup, "export"), (_update, "notifications"))
 
 

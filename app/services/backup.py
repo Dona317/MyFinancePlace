@@ -22,6 +22,9 @@ from app.extensions import db
 from app.models import (
     Account,
     AppSetting,
+    BankAccessLog,
+    BankAccountLink,
+    BankConnection,
     Budget,
     Card,
     Category,
@@ -67,7 +70,7 @@ KEEP_SAFETY_COPIES = 10
 SAFETY_NAME = re.compile(r"^prima-del-ripristino_\d{8}-\d{6}\.zip$")
 
 # Insertion order: a table comes after the tables it points to (documents and dismissals → transactions)
-MODELS = [AppSetting, Account, Card, SecuritiesAccount, Portfolio, Category, CategoryRule, ExchangeRate, Holding, HoldingExposure, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
+MODELS = [AppSetting, Account, BankConnection, BankAccountLink, BankAccessLog, Card, SecuritiesAccount, Portfolio, Category, CategoryRule, ExchangeRate, Holding, HoldingExposure, HoldingPrice, Debt, SpendingEvent, Transaction, TransactionSplit, DuplicateDismissal,
           InsurancePolicy, Goal, Budget, Document, Snapshot, PortfolioTemplate, TemplateSlot, SlotHolding,
           PortfolioRule, InvestmentPlan, PlannedOrder, ContributionLimit, Taxonomy, TaxonomyCategory, HoldingCategory, Gig, PersonalLoan, Reminder,
           UtilityReading, YearClose]  # parents before the rows that point to them

@@ -185,6 +185,9 @@ BANKS = {
 # Interchange formats (structured_statements): no columns to find, any bank
 FORMAT_LAYOUTS = {key: BankLayout(key=key, name=name, markers=(), signature=(), columns={})
                   for key, name in structured.FORMATS.items()}
+# the movements downloaded from a bank connection (services.open_banking): their tag and their own import_ref space
+PSD2_KEY = "psd2"
+FORMAT_LAYOUTS[PSD2_KEY] = BankLayout(key=PSD2_KEY, name="PSD2", markers=(), signature=(), columns={})
 
 
 def layout_named(key: str) -> BankLayout:

@@ -30,7 +30,7 @@ Pipeline:  readers.read_document() → candidate tables → detect_layout() → 
     balance-checked before the preview.
 Bank export preamble rows (account holder, period, balances) and footer rows are skipped automatically.
 """
-from .build import bank_causale, build_transaction  # noqa: F401
+from .build import assign_account, bank_causale, build_transaction, is_outgoing  # noqa: F401
 from .categorize import (  # noqa: F401
     _RULE_PATTERNS,
     _TRANSFER_PATTERN,
@@ -47,6 +47,7 @@ from .layouts import (  # noqa: F401
     FORMAT_LAYOUTS,
     HEADER_SCAN_ROWS,
     PENDING_STATUSES,
+    PSD2_KEY,
     BankLayout,
     Layout,
     _match_columns,
