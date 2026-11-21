@@ -2652,6 +2652,12 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .bank-redirect code { font-family: var(--font-mono); word-break: break-all; }
 .bank-key-text { font-family: var(--font-mono); font-size: var(--font-size-xs); }
 tr.is-muted td { color: var(--clr-text-muted); }
+.bank-connect-form.with-archive { grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) minmax(0, 1fr) auto; }
+.bank-steps { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 0 0 12px; padding-left: 18px; font-size: var(--font-size-sm); color: var(--clr-text-secondary); }
+.bank-at-bank { margin: 0 20px 12px; font-size: var(--font-size-sm); }
+.bank-at-bank summary { cursor: pointer; color: var(--clr-text-secondary); }
+.bank-at-bank table { margin-top: 8px; width: 100%; }
+.bank-error { font-size: var(--font-size-xs); }
 @media (max-width: 768px) {
-  .bank-connect-form { grid-template-columns: minmax(0, 1fr); }
+  .bank-connect-form, .bank-connect-form.with-archive { grid-template-columns: minmax(0, 1fr); }
 }

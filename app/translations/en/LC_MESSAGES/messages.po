@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-21 06:54+0000\n"
+"POT-Creation-Date: 2026-11-21 07:18+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -160,6 +160,10 @@ msgstr "%(count)s price increases"
 #, python-format
 msgid "%(count)s banche disponibili."
 msgstr "%(count)s banks available."
+
+#, python-format
+msgid "%(count)s collegamenti in %(archives)s archivi"
+msgstr "%(count)s connections in %(archives)s archives"
 
 #, python-format
 msgid ""
@@ -1024,6 +1028,9 @@ msgstr "= average"
 msgid "A"
 msgstr "To"
 
+msgid "A mano"
+msgstr "By hand"
+
 #, python-format
 msgid ""
 "A parte: «Spese non annotate» %(amount)s (%(share)s%% delle uscite), "
@@ -1613,6 +1620,9 @@ msgstr "Open"
 msgid "Apri Debiti"
 msgstr "Open Debts"
 
+msgid "Apri Gestione PSD2"
+msgstr "Open PSD2 management"
+
 msgid "Apri Obiettivi"
 msgstr "Open Goals"
 
@@ -1691,6 +1701,9 @@ msgstr "Archive of: %(name)s"
 
 msgid "Archivio esterno"
 msgstr "Outside archive"
+
+msgid "Archivio non disponibile."
+msgstr "Archive not available."
 
 msgid "Archivio principale"
 msgstr "Main archive"
@@ -1780,6 +1793,9 @@ msgstr ""
 "Automatic: Yahoo Finance (and Stooq when Yahoo does not answer) for "
 "shares, ETFs, funds, bonds and derivatives; CoinGecko for crypto. «By "
 "hand only» for unlisted securities, policies, deposit accounts."
+
+msgid "Automatico"
+msgstr "Automatic"
 
 msgid "Automatico (dalle regole)"
 msgstr "Automatic (from the rules)"
@@ -2767,8 +2783,14 @@ msgstr "Link account movements"
 msgid "Collega una banca"
 msgstr "Link a bank"
 
+msgid "Collegamenti"
+msgstr "Connections"
+
 msgid "Collegamenti bancari"
 msgstr "Bank connections"
+
+msgid "Collegamenti di questo archivio"
+msgstr "Connections of this archive"
 
 msgid ""
 "Collegamento bancario non configurato: inserisci l'ID dell'applicazione "
@@ -3174,6 +3196,9 @@ msgid ""
 "Confronto tra due modelli e tra ribilanciare o no (mensile, annuale, a "
 "bande)"
 msgstr "Two models compared, and rebalancing or not (monthly, yearly, with bands)"
+
+msgid "Consenso"
+msgstr "Consent"
 
 msgid "Consenso in scadenza"
 msgstr "Consent expiring"
@@ -4790,6 +4815,9 @@ msgstr "A user “%(name)s” already exists."
 msgid "Esiste già una classificazione «%(name)s»."
 msgstr "A classification “%(name)s” already exists."
 
+msgid "Esito"
+msgstr "Outcome"
+
 msgid "Espandi il menu"
 msgstr "Expand the menu"
 
@@ -5053,6 +5081,10 @@ msgstr "Until (age)"
 msgid "Fino al"
 msgstr "Until"
 
+#, python-format
+msgid "Fino al %(day)s"
+msgstr "Until %(day)s"
+
 msgid "Fiorino"
 msgstr "Forint"
 
@@ -5299,6 +5331,9 @@ msgstr "Debt Management"
 
 msgid "Gestione Finanze Personali"
 msgstr "Personal Finance Management"
+
+msgid "Gestione PSD2"
+msgstr "PSD2 management"
 
 msgid "Gestione attiva"
 msgstr "Actively managed"
@@ -5817,6 +5852,12 @@ msgstr ""
 
 msgid "Il codice ISIN del titolo: il modo più sicuro di riconoscerlo."
 msgstr "The holding's ISIN code: the surest way to recognise it."
+
+msgid ""
+"Il collegamento appartiene a questo archivio e i movimenti finiscono nei "
+"suoi conti. Un archivio può avere più collegamenti, anche alla stessa "
+"banca."
+msgstr "The connection belongs to this archive and its transactions go to its accounts. An archive can have several connections, even to the same bank."
 
 msgid ""
 "Il collegamento era stato avviato in un altro archivio: aprilo e "
@@ -6622,6 +6663,13 @@ msgstr ""
 "initial deposit and a PAC, how often to rebalance; the app simulates it "
 "on the price history."
 
+msgid "In attesa alla banca"
+msgstr "Pending at the bank"
+
+#, python-format
+msgid "In attesa alla banca: %(count)s"
+msgstr "Pending at the bank: %(count)s"
+
 msgid "In attesa di avvio…"
 msgstr "Waiting to start…"
 
@@ -7042,6 +7090,11 @@ msgstr "The last one is from %(day)s."
 
 msgid "La"
 msgstr "The"
+
+msgid ""
+"La PSD2 permette quattro letture al giorno per conto senza di te; quelle "
+"che fai con «Aggiorna ora» non contano."
+msgstr "PSD2 allows four reads a day per account without you; the ones you make with «Update now» do not count."
 
 #, python-format
 msgid "La banca non ha dato il consenso (%(detail)s)."
@@ -7695,6 +7748,9 @@ msgstr "Reading the columns…"
 msgid "Lettura in corso…"
 msgstr "Reading…"
 
+msgid "Letture automatiche oggi"
+msgstr "Automatic reads today"
+
 msgid "Leu"
 msgstr "Leu"
 
@@ -8300,6 +8356,13 @@ msgstr "Movements read with artificial intelligence"
 msgid "Movimenti nelle date dell'evento, non ancora in un evento"
 msgstr "Movements in the event's dates, not yet in an event"
 
+msgid ""
+"Movimenti non ancora contabilizzati (pagamenti con carta, "
+"preautorizzazioni). Non vengono salvati: arrivano con un download "
+"successivo, quando la banca li contabilizza, a volte con un importo "
+"diverso."
+msgstr "Transactions not booked yet (card payments, pre-authorisations). They are not saved: they arrive with a later download, once the bank books them, sometimes with a different amount."
+
 msgid "Movimenti nuovi"
 msgstr "New movements"
 
@@ -8429,6 +8492,9 @@ msgstr ""
 
 msgid "Nessun PAC."
 msgstr "No PACs."
+
+msgid "Nessun accesso ancora."
+msgstr "No accesses yet."
 
 msgid "Nessun acquisto da confermare: indica quote e prezzo."
 msgstr "No purchases to confirm: enter units and price."
@@ -8678,6 +8744,14 @@ msgstr "No limits: add the pension fund or a PIR below."
 
 msgid "Nessun titolo collegato allo storico: si usano i prezzi registrati."
 msgstr "No holding linked to the history: the recorded prices are used."
+
+msgid ""
+"Nessuna banca collegata a questo archivio. Collegane una qui sotto: i "
+"movimenti arriveranno da soli."
+msgstr "No bank linked to this archive. Link one below: the transactions will arrive by themselves."
+
+msgid "Nessuna banca collegata in nessun archivio."
+msgstr "No bank linked in any archive."
 
 msgid ""
 "Nessuna bolletta: registrane una qui sotto, o parti da un movimento della"
@@ -9111,6 +9185,9 @@ msgstr ""
 "Cannot download the ECB rates (%(exc)s). Check the connection or enter "
 "them by hand."
 
+msgid "Non riuscito"
+msgstr "Failed"
+
 msgid "Non salvata: controlla i campi."
 msgstr "Not saved: check the fields."
 
@@ -9480,6 +9557,17 @@ msgstr ""
 "Each client has an archive of its own: separate accounts, transactions, "
 "documents, settings and backups. You always work on one client at a time,"
 " the one shown at the top."
+
+msgid ""
+"Ogni collegamento (un consenso dato a una banca) appartiene a un "
+"archivio; un archivio può averne più di uno."
+msgstr "Every connection (a consent given to a bank) belongs to an archive; an archive can have more than one."
+
+#, python-format
+msgid ""
+"Ogni consenso e ogni download, con l'archivio per cui è stato fatto (gli "
+"ultimi %(count)s)"
+msgstr "Every consent and every download, with the archive it was made for (the latest %(count)s)"
 
 msgid "Ogni giorno"
 msgstr "Every day"
@@ -10807,9 +10895,9 @@ msgstr ""
 "last 10 are kept."
 
 msgid ""
-"Prima inserisci qui sotto le credenziali della tua applicazione Enable "
-"Banking."
-msgstr "First enter the credentials of your Enable Banking application below."
+"Prima inserisci le credenziali della tua applicazione Enable Banking (una"
+" volta sola, valgono per tutti gli archivi)."
+msgstr "First enter the credentials of your Enable Banking application (once: they apply to every archive)."
 
 msgid "Prima rata dell'IMU sulle case diverse dall'abitazione principale"
 msgstr "First IMU instalment on homes other than the main residence"
@@ -11015,6 +11103,9 @@ msgid ""
 msgstr ""
 "Which sites to use to look up ISINs and read the prices of bonds, funds "
 "and ETFs, and in which order."
+
+msgid "Quando"
+msgstr "When"
 
 msgid "Quando hai confrontato i saldi con la banca"
 msgstr "When you compared the balances with the bank"
@@ -11396,6 +11487,9 @@ msgstr "Recorded “%(category)s” for %(amount)s."
 
 msgid "Registro"
 msgstr "Register"
+
+msgid "Registro degli accessi"
+msgstr "Access log"
 
 msgid "Registro ordini"
 msgstr "Order register"
@@ -12000,6 +12094,9 @@ msgstr ""
 msgid "Ritmo ideale"
 msgstr "Ideal pace"
 
+msgid "Riuscito"
+msgstr "Succeeded"
+
 msgid "Rossi"
 msgstr "Reds"
 
@@ -12189,6 +12286,9 @@ msgstr "Save rule"
 msgid "Salva sul preset in uso la disposizione e il periodo di adesso"
 msgstr "Save the current layout and period on the preset in use"
 
+msgid "Salvati"
+msgstr "Saved"
+
 msgid "Salvato il"
 msgstr "Saved on"
 
@@ -12256,6 +12356,9 @@ msgid ""
 msgstr ""
 "Expired or expiring in the next %(months)s months: a reminder comes 60 "
 "days before."
+
+msgid "Scaduto"
+msgstr "Expired"
 
 msgid "Scansioni e foto"
 msgstr "Scans and photos"
@@ -12360,6 +12463,9 @@ msgstr "Choose at least one user to export."
 msgid "Scegli almeno una modifica."
 msgstr "Choose at least one change."
 
+msgid "Scegli archivio, paese e banca"
+msgstr "Choose archive, country and bank"
+
 msgid ""
 "Scegli come dirle: ordine per ordine; un totale, diviso sugli ordini in "
 "proporzione al controvalore; oppure la liquidità che ti resta sul conto "
@@ -12445,6 +12551,9 @@ msgstr "First choose or create a model portfolio."
 
 msgid "Scegli ogni quanto fare il backup."
 msgstr "Choose how often to back up."
+
+msgid "Scegli paese e banca"
+msgstr "Choose country and bank"
 
 msgid "Scegli quale transazione tenere."
 msgstr "Choose which transaction to keep."
@@ -13400,6 +13509,9 @@ msgstr ""
 "weight, country, sector and currency are read; the top 25 companies are "
 "kept."
 
+msgid "Sul sito della banca accedi e autorizza la lettura"
+msgstr "On the bank's site sign in and authorise the reading"
+
 msgid "Sul valore"
 msgstr "On value"
 
@@ -13734,6 +13846,9 @@ msgstr "Back"
 
 msgid "Torna su"
 msgstr "Back to the top"
+
+msgid "Torni qui: abbini i conti e controlli i movimenti"
+msgstr "Back here: match the accounts and review the transactions"
 
 msgid "Torta con la distribuzione delle entrate: anno, semestre o trimestre"
 msgstr "Pie of the income: year, half or quarter"
@@ -15561,6 +15676,10 @@ msgid "letto con AI"
 msgstr "read with AI"
 
 #, python-format
+msgid "letture automatiche oggi: %(count)s su 4"
+msgstr "automatic reads today: %(count)s of 4"
+
+#, python-format
 msgid "liquidità %(cash)s · investimenti %(investments)s"
 msgstr "cash %(cash)s · investments %(investments)s"
 
@@ -16030,6 +16149,9 @@ msgstr "below the all-time high"
 msgid "spazio deducibile non usato: %(amount)s"
 msgstr "unused deductible room: %(amount)s"
 
+msgid "spento"
+msgstr "off"
+
 msgid "spese con tag «detraibile» fuori dalle voci"
 msgstr "expenses tagged «detraibile» outside the items"
 
@@ -16173,6 +16295,9 @@ msgstr "last 300"
 
 msgid "ultimo accesso"
 msgstr "last sign-in"
+
+msgid "ultimo download non riuscito"
+msgstr "last download failed"
 
 #, python-format
 msgid ""

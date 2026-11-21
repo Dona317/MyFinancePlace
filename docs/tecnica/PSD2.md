@@ -18,14 +18,28 @@ doppioni vengono riconosciuti.
    registrazione). Per leggere **i conti dei clienti dello studio** serve la produzione piena, con un contratto
    (prezzi su preventivo): è la parte di D16 ancora da decidere.
 
-## 2. Inserire le credenziali
-- **Dall'app**: Conti e Carte → scheda **Collegamenti bancari** → riquadro «Applicazione Enable Banking»: ID e file
+## 2. Le due pagine
+- **Gestione PSD2** (Impostazioni → Gestione PSD2, o il pulsante in alto in Collegamenti bancari), per tutta l'app:
+  le credenziali di Enable Banking, **tutti i collegamenti di tutti gli archivi** (archivio, banca, scadenza del
+  consenso, conti abbinati, movimenti da controllare e in attesa alla banca, letture automatiche del giorno su 4),
+  «Collega una banca» con la **scelta dell'archivio**, e il **registro degli accessi** (ogni consenso e ogni download,
+  a mano o automatico, con esito e numeri, nell'archivio per cui è stato fatto). Chi non è amministratore vede solo il
+  proprio archivio.
+- **Collegamenti bancari** (scheda di Conti e Carte): i collegamenti dell'archivio aperto, con i conti da abbinare,
+  «Aggiorna ora», «Rinnova consenso», «Scollega», le impostazioni e i movimenti in attesa alla banca.
+
+Ogni collegamento (un consenso) appartiene a **un archivio**: sta nel database di quell'archivio, finisce nel suo
+backup, e i movimenti vanno nei suoi conti. Un archivio può avere **più collegamenti**, anche alla stessa banca
+(conto personale e conto cointestato con accessi diversi, banca privata e business).
+
+## 3. Inserire le credenziali
+- **Dall'app**: Gestione PSD2 → riquadro «Applicazione Enable Banking»: ID e file
   `.pem` (o la chiave incollata). Vanno nel file `enable_banking.json` della cartella dei dati, leggibile solo dal suo
   proprietario, con la chiave cifrata dalla chiave dei dati (`field_crypto`). Valgono per tutti gli archivi dei clienti.
 - **Dal server**: `ENABLE_BANKING_APP_ID` e `ENABLE_BANKING_KEY_FILE` (percorso del `.pem`); hanno la precedenza e la
   pagina non le modifica.
 
-## 3. Collegare una banca
+## 4. Collegare una banca
 «Collega una banca» → paese e banca (elenco di Enable Banking) → **Vai alla banca**: l'utente accede all'home banking
 e dà il consenso alla sola lettura, valido fino a 180 giorni (meno se la banca lo limita). Al ritorno l'app:
 - salva il collegamento (`bank_connections`, con l'id della sessione cifrato) e i conti che copre
@@ -34,10 +48,15 @@ e dà il consenso alla sola lettura, valido fino a 180 giorni (meno se la banca 
   scelgono dalla tabella;
 - scarica subito i movimenti degli ultimi 90 giorni.
 
-## 4. Come funziona il download
+## 5. Come funziona il download
 1. Si chiedono i movimenti da una settimana prima dell'ultimo contabilizzato (così non si perdono le contabilizzazioni
    in ritardo); la prima volta, degli ultimi 90 giorni.
-2. Solo i movimenti **contabilizzati** (`BOOK`); quelli in attesa si contano e arrivano a un download successivo.
+2. Solo i movimenti **contabilizzati** (`BOOK`) diventano transazioni. Quelli **in attesa** (`PDNG`: pagamenti con
+   carta non ancora addebitati, preautorizzazioni di hotel e distributori) si mostrano in «In attesa alla banca» e
+   non si salvano: tornano contabilizzati a un download successivo, spesso con un altro id e a volte con un altro
+   importo, e salvarli prima creerebbe doppioni.
+   Se la banca manda il **codice MCC** dell'esercente (pagamenti con carta), diventa un indizio per la categoria
+   (supermercati, carburanti, ristoranti, viaggi, salute…), usato quando la descrizione non basta.
 3. Ogni movimento passa dagli stessi passi dell'import da file (`bank_import.enrich`): tipo, categoria, esercente,
    giroconti tra conti propri, prelievi verso Contanti, movimenti simili a quelli già salvati.
 4. L'**`import_ref`** è l'id che la banca dà al movimento (`entry_reference` / `transaction_id`): scaricato di nuovo
@@ -56,24 +75,24 @@ Il download parte:
   si apre la dashboard (in un thread) e nel giro orario dell'app desktop, per tutti gli archivi. La PSD2 permette
   **quattro letture al giorno** senza l'utente per ogni conto.
 
-## 5. Promemoria
+## 6. Promemoria
 Nella campanella (e nelle notifiche di sistema dell'app desktop): consenso che scade entro 14 giorni o scaduto,
 download non riuscito, movimenti da controllare, conto della banca senza conto dell'app.
 
-## 6. Dove sta il codice
+## 7. Dove sta il codice
 | Cosa | Dove |
 |---|---|
 | Client dell'API (JWT RS256 firmato con `cryptography`, urllib) | `app/services/open_banking/client.py` |
 | Credenziali dell'applicazione | `app/services/open_banking/credentials.py` |
 | Consenso, download, revisione, giro automatico | `app/services/open_banking/sync.py` |
-| Tabelle | `app/models/bank_link.py`, migrazione `d8e0f2a4b6c9` |
+| Tabelle | `app/models/bank_link.py` (`bank_connections`, `bank_account_links`, `bank_access_log`), migrazione `d8e0f2a4b6c9`; nel backup dell'archivio |
 | Pagina | `app/routes/banking.py`, `app/templates/banking/index.html` |
 | Test (API finta) | `tests/test_open_banking.py` |
 
 Configurazione: `ENABLE_BANKING_API_URL` (default `https://api.enablebanking.com`), `ENABLE_BANKING_REDIRECT_URL`,
 `BANK_SYNC_HOURS`, `BANK_SYNC_INLINE` (test: download dentro la richiesta).
 
-## 7. Limiti noti
+## 8. Limiti noti
 - Provato solo contro un'API finta: **va provato con la sandbox di Enable Banking e con una banca vera** prima di
   contarci.
 - Le carte di credito sono lette solo se la banca le espone come conto PSD2 (in Italia Enable Banking ha esteso

@@ -1,6 +1,10 @@
 """Collegamenti bancari (F107): link a bank through PSD2 (Enable Banking), tie its accounts to the app's, download the
-movements by hand or by themselves, and look at the ones waiting (in the usual import preview)."""
-from datetime import datetime, timezone
+movements by hand or by themselves, and look at the ones waiting (in the usual import preview).
+
+Two pages: «Collegamenti bancari» (a tab of Conti e Carte) for the archive open now, and «Gestione PSD2» for the whole
+app — the Enable Banking credentials, every connection of every archive, the log of the accesses, and «Collega una
+banca» with the archive the new consent belongs to (an archive can hold several)."""
+from datetime import date, datetime, timezone
 
 from apiflask import APIBlueprint
 from flask import current_app, flash, redirect, render_template, request, url_for
@@ -10,8 +14,9 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.bank_link import BankAccountLink, BankConnection
 from app.routes.helpers import uploaded_file
-from app.services import accounts, open_banking
+from app.services import accounts, open_banking, studio
 from app.services.open_banking import credentials
+from app.services.parsing import to_date, to_decimal
 
 banking_bp = APIBlueprint("banking", __name__, url_prefix="/banking", tag="Banking")
 
@@ -31,8 +36,12 @@ def _connection(connection_id: int) -> BankConnection:
     return db.get_or_404(BankConnection, connection_id)
 
 
-@banking_bp.route("/")
-def index():
+def _manage():
+    return redirect(url_for("banking.manage"))
+
+
+def _bank_choices() -> dict:
+    """The country asked for and its banks, for the «Collega una banca» form."""
     country = (request.args.get("country") or "IT").upper()
     country = country if country in COUNTRIES else "IT"
     banks, error = [], None
@@ -41,20 +50,73 @@ def index():
             banks = open_banking.banks(country)
         except open_banking.BankingError as exc:
             error = str(exc)
+    return {"countries": COUNTRIES, "country": country, "banks": banks, "banks_error": error,
+            "status": credentials.status()}
+
+
+def _now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+@banking_bp.route("/")
+def index():
+    """The bank connections of the archive open now."""
     connections = BankConnection.query.order_by(BankConnection.aspsp_name, BankConnection.id).all()
     return render_template(
-        "banking/index.html", status=credentials.status(), redirect_url=_redirect_url(), countries=COUNTRIES,
-        country=country, banks=banks, banks_error=error, connections=connections, accounts=accounts.active(),
-        notice_days=open_banking.EXPIRY_NOTICE_DAYS, now_utc=datetime.now(timezone.utc).replace(tzinfo=None),
+        "banking/index.html", connections=connections, accounts=accounts.active(),
+        notice_days=open_banking.EXPIRY_NOTICE_DAYS, now_utc=_now(), today=_now().date(),
         sync_hours=int(current_app.config.get("BANK_SYNC_HOURS", open_banking.SYNC_HOURS)),
+        auto_today={c.id: open_banking.unattended_today(c) for c in connections},
+        at_bank_rows={c.id: _at_bank(c) for c in connections}, **_bank_choices(),
     )
+
+
+def _at_bank(connection: BankConnection) -> list[dict]:
+    """The movements not booked yet at the bank, newest first, with real dates and amounts for the page."""
+    rows = []
+    for link in [k for k in connection.links if k.active]:
+        for item in link.at_bank or []:
+            rows.append({"date": to_date(item.get("date")), "description": item.get("description"),
+                         "amount": to_decimal(item.get("amount")), "currency": item.get("currency") or "EUR"})
+    return sorted(rows, key=lambda r: r["date"] or date.min, reverse=True)
+
+
+@banking_bp.route("/manage")
+def manage():
+    """Gestione PSD2: the application's credentials, every archive's connections, the accesses."""
+    connections, accesses = open_banking.overview()
+    archives = open_banking.archives_shown()
+    return render_template(
+        "banking/manage.html", connections=connections, accesses=accesses, archives=archives,
+        current_archive=open_banking.archive_id(), redirect_url=_redirect_url(), notice_days=open_banking.EXPIRY_NOTICE_DAYS,
+        now_utc=_now(), **_bank_choices(),
+    )
+
+
+@banking_bp.route("/manage/open/<int:client_id>", methods=["POST"])
+def open_archive(client_id):
+    """From Gestione PSD2 to the connections of another archive: it becomes the open one."""
+    target = _shown_archive(client_id)
+    if target is None:
+        return _manage()
+    studio.choose(target)
+    return redirect(url_for("banking.index") + (f"#connection-{request.form['connection']}"
+                                                if (request.form.get("connection") or "").isdigit() else ""))
+
+
+def _shown_archive(client_id: int | None):
+    """One of the archives the user may work on; None (after saying why) for any other."""
+    target = next((c for c in open_banking.archives_shown() if c.id == client_id), None)
+    if target is None:
+        flash(_("Archivio non disponibile."), "error")
+    return target
 
 
 @banking_bp.route("/credentials", methods=["POST"])
 def save_credentials():
     if credentials.from_environment():
         flash(_("Le credenziali sono impostate dal server (ENABLE_BANKING_APP_ID): si cambiano lì."), "error")
-        return _back()
+        return _manage()
     upload = uploaded_file()
     pem = upload.read().decode("utf-8", "ignore") if upload is not None else (request.form.get("key_text") or "")
     try:
@@ -62,27 +124,34 @@ def save_credentials():
     except ValueError:
         flash(_("Servono l'ID dell'applicazione e la sua chiave privata (il file .pem scaricato da Enable Banking)."),
               "error")
-        return _back()
+        return _manage()
     flash(_("Credenziali di Enable Banking salvate."), "success")
-    return _back()
+    return _manage()
 
 
 @banking_bp.route("/credentials/delete", methods=["POST"])
 def delete_credentials():
     credentials.remove()
     flash(_("Credenziali di Enable Banking rimosse: i download si fermano finché non le inserisci di nuovo."), "success")
-    return _back()
+    return _manage()
 
 
 @banking_bp.route("/connect", methods=["POST"])
 def connect():
-    """«Collega»: off to the bank's page to give the consent."""
+    """«Vai alla banca»: off to the bank's page to give the consent, for the archive chosen (Gestione PSD2) or the
+    open one; the chosen archive becomes the open one, so the way back lands in it."""
+    client_id = request.form.get("client_id", type=int)
+    if client_id and client_id != open_banking.archive_id():
+        target = _shown_archive(client_id)
+        if target is None:
+            return _manage()
+        studio.choose(target)
     try:
         url = open_banking.start(request.form.get("aspsp", ""), request.form.get("country", "IT"), _redirect_url(),
                                  psu_type=request.form.get("psu_type") or "personal")
     except open_banking.BankingError as exc:
         flash(str(exc), "error")
-        return _back()
+        return _manage() if request.form.get("from") == "manage" else _back()
     return redirect(url)
 
 

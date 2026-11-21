@@ -26,7 +26,7 @@ from flask_babel import gettext as _
 
 from app.extensions import db
 from app.models.account import Account
-from app.models.bank_link import BankAccountLink, BankConnection
+from app.models.bank_link import BankAccessLog, BankAccountLink, BankConnection
 from app.services import accounts, bank_import, field_crypto, money, studio
 from app.services import cards as card_service
 from app.services.parsing import clean_text, to_date
@@ -66,7 +66,11 @@ class SyncResult:
 class _Downloaded:
     rows: list = field(default_factory=list)
     refs: list = field(default_factory=list)
-    pending: int = 0
+    at_bank: list = field(default_factory=list)   # not booked yet: {date, description, amount, currency}
+
+    @property
+    def pending(self) -> int:
+        return len(self.at_bank)
 
 
 # ── The application's credentials ───────────────────────────────────────────
@@ -155,12 +159,17 @@ def start(aspsp: str, country: str, redirect_url: str, connection: BankConnectio
         raise BankingError(_message(exc)) from exc
     if not answer.get("url"):
         raise BankingError(_("Enable Banking non ha indicato la pagina della banca: riprova."))
-    current = studio.current()
     waiting = dict(list(session.get(STATE_KEY, {}).items())[-4:])  # a few at most: abandoned attempts drop out
     waiting[state] = {"aspsp": aspsp, "country": country, "connection": connection.id if connection else None,
-                      "client": current.id if current else None}
+                      "client": archive_id()}
     session[STATE_KEY] = waiting
     return answer["url"]
+
+
+def archive_id() -> int:
+    """The archive open now (the primary one when none was chosen): every consent belongs to one."""
+    current = studio.current()
+    return current.id if current is not None else studio.primary().id
 
 
 def _parse_time(value) -> datetime | None:
@@ -225,8 +234,7 @@ def finish(state: str | None, code: str | None, error: str | None = None) -> Ban
     session[STATE_KEY] = waiting
     if pending is None:
         raise BankingError(_("Collegamento non riconosciuto o scaduto: ricomincia da «Collega una banca»."))
-    current = studio.current()
-    if pending.get("client") != (current.id if current else None):
+    if pending.get("client") != archive_id():
         raise BankingError(_("Il collegamento era stato avviato in un altro archivio: aprilo e ricomincia."))
     if error or not code:
         raise BankingError(_("La banca non ha dato il consenso (%(detail)s).", detail=error or _("annullato")))
@@ -245,6 +253,8 @@ def finish(state: str | None, code: str | None, error: str | None = None) -> Ban
     connection.valid_until = _parse_time((answer.get("access") or {}).get("valid_until"))
     connection.status, connection.last_error = "active", None
     _update_links(connection, list(answer.get("accounts") or []))
+    db.session.flush()
+    log(connection, "consent")
     db.session.commit()
     return connection
 
@@ -312,6 +322,33 @@ def _texts(item: dict, outgoing: bool) -> tuple[str | None, str | None, str | No
     return description, " · ".join(dict.fromkeys(extra)) or None, counterparty
 
 
+# The merchant category code (ISO 18245) some banks give with card payments, as a word the built-in category rules
+# know (bank_import.CATEGORY_RULES): used only when the description itself says nothing
+_MCC_WORDS = (
+    ((5411, 5412, 5422, 5441, 5451, 5462, 5499), "supermercati"),
+    ((5541, 5542, 5983), "carburanti"),
+    ((4111, 4112, 4121, 4131, 4511, 4784, 4789, 7523), "trasporti"),
+    ((5812, 5813, 5814), "ristorante"),
+    ((4722, 7011), "viaggi"),
+    ((7832, 7922, 7991, 7996, 7999), "tempo libero"),
+    ((5912, 8011, 8021, 8043, 8062, 8099), "salute"),
+    ((4814, 4899, 5815, 5816, 5817, 5818), "abbonamenti"),
+    ((4900,), "utenze"),
+    ((5200, 5251, 5712, 5719), "casa"),
+)
+_MCC_RANGES = (((3000, 3350), "trasporti"), ((3501, 3999), "viaggi"))  # airlines, hotels
+
+
+def mcc_word(code) -> str | None:
+    """The word of a merchant category code, None when unknown."""
+    try:
+        number = int(str(code).strip())
+    except (TypeError, ValueError):
+        return None
+    word = next((w for codes, w in _MCC_WORDS if number in codes), None)
+    return word or next((w for (low, high), w in _MCC_RANGES if low <= number <= high), None)
+
+
 def provider_ref(item: dict, uid: str) -> str | None:
     """The movement's own id at the bank, as an import_ref (None: the bank gives none)."""
     value = item.get("entry_reference") or item.get("transaction_id")
@@ -324,18 +361,20 @@ def to_rows(items: list[dict], uid: str, currency: str = "EUR") -> _Downloaded:
     """The booked movements as import rows (the others are counted: they come back once booked)."""
     found = _Downloaded()
     for item in items:
-        if (item.get("status") or BOOKED).upper() != BOOKED:
-            found.pending += 1
-            continue
+        booked = (item.get("status") or BOOKED).upper() == BOOKED
         day = to_date(item.get("booking_date") or item.get("value_date") or item.get("transaction_date"))
         amount = _amount(item)
+        description, details, counterparty = _texts(item, (amount or 0) < 0)
+        code = ((item.get("transaction_amount") or {}).get("currency") or currency).upper()[:3]
+        if not booked:
+            found.at_bank.append({"date": (day or date.today()).isoformat(), "description": description or _("Movimento"),
+                                  "amount": str(amount) if amount is not None else None, "currency": code})
+            continue
         if day is None or amount is None or not amount:
             continue
-        description, details, counterparty = _texts(item, amount < 0)
         found.rows.append(bank_import.StatementRow(
             date=day, description=description or _("Movimento"), amount=amount, details=details,
-            currency=((item.get("transaction_amount") or {}).get("currency") or currency).upper()[:3],
-            counterparty=counterparty))
+            bank_category=mcc_word(item.get("merchant_category_code")), currency=code, counterparty=counterparty))
         found.refs.append(provider_ref(item, uid))
     return found
 
@@ -424,6 +463,7 @@ def sync_link(link: BankAccountLink, creds: client.Credentials, today: date | No
     items = client.transactions(creds, link.uid, since, psu=psu)
     downloaded = to_rows(items, link.uid, link.currency)
     result.pending_at_bank = downloaded.pending
+    link.at_bank = sorted(downloaded.at_bank, key=lambda item: item["date"], reverse=True) or None
     skipped = set(link.skipped or [])
     rows = [r for r in prepare(downloaded.rows, downloaded.refs, link.uid) if not r.duplicate and r.import_ref not in skipped]
     account = link.account if link.account and link.account.active else None
@@ -453,6 +493,7 @@ def sync_connection(connection: BankConnection, today: date | None = None, psu: 
         db.session.commit()
         raise BankingError(_("Il consenso per %(bank)s è scaduto: rinnovalo.", bank=connection.aspsp_name))
     creds = _credentials()
+    kind = "manual" if psu else "auto"
     results = []
     for link in [k for k in connection.links if k.active]:
         try:
@@ -463,11 +504,28 @@ def sync_connection(connection: BankConnection, today: date | None = None, psu: 
             if exc.consent_gone:
                 connection.status = "expired"
             connection.last_error = _message(exc)
+            log(connection, kind, results, connection.last_error)
             db.session.commit()
             raise BankingError(connection.last_error) from exc
     connection.last_error = None
+    log(connection, kind, results)
     db.session.commit()
     return results
+
+
+def log(connection: BankConnection, kind: str, results: list[SyncResult] = (), error: str | None = None) -> None:
+    """One access to the bank, in the archive it was made for (committed by the caller)."""
+    db.session.add(BankAccessLog(
+        connection_id=connection.id, bank=connection.aspsp_name, at=_utcnow(), kind=kind, ok=error is None,
+        saved=sum(r.saved for r in results), waiting=sum(r.waiting for r in results),
+        at_bank=sum(r.pending_at_bank for r in results), message=error))
+
+
+def unattended_today(connection: BankConnection, now: datetime | None = None) -> int:
+    """The automatic reads of the day (UTC) for a connection: PSD2 allows four per account."""
+    start = (now or _utcnow()).replace(hour=0, minute=0, second=0, microsecond=0)
+    return BankAccessLog.query.filter(BankAccessLog.connection_id == connection.id, BankAccessLog.kind == "auto",
+                                      BankAccessLog.at >= start).count()
 
 
 def summary(results: list[SyncResult]) -> str:
@@ -582,3 +640,46 @@ def _thread(app, current, key) -> None:
     finally:
         with _lock:
             _running.discard(key)
+
+
+# ── Every archive at once (Gestione PSD2) ─────────────────────────────────────
+
+LOG_SHOWN = 30
+
+
+def archives_shown() -> list:
+    """The archives the page shows: all of them to whoever moves between archives, else only the open one."""
+    if studio.sees_archives():
+        return [c for c in studio.clients() if not c.archived]
+    return [studio.current() or studio.primary()]
+
+
+def _connection_view(connection: BankConnection, now: datetime) -> dict:
+    links = [k for k in connection.links if k.active]
+    return {"id": connection.id, "bank": connection.aspsp_name, "country": connection.aspsp_country,
+            "expired": connection.status != "active" or bool(connection.valid_until and connection.valid_until <= now),
+            "valid_until": connection.valid_until, "accounts": len(links),
+            "mapped": sum(1 for k in links if k.account_id), "waiting": sum(len(k.pending or []) for k in links),
+            "at_bank": sum(len(k.at_bank or []) for k in links),
+            "last_sync": max((k.last_sync_at for k in links if k.last_sync_at), default=None),
+            "auto_sync": connection.auto_sync, "auto_today": unattended_today(connection, now),
+            "error": connection.last_error}
+
+
+def overview(now: datetime | None = None) -> tuple[list[dict], list[dict]]:
+    """(the connections, the latest accesses) of every archive shown, each with its archive."""
+    now = now or _utcnow()
+    connections, accesses = [], []
+    for item in archives_shown():
+        try:
+            with studio.using(item):
+                for connection in BankConnection.query.order_by(BankConnection.aspsp_name, BankConnection.id):
+                    connections.append({"archive": item, **_connection_view(connection, now)})
+                for entry in BankAccessLog.query.order_by(BankAccessLog.at.desc()).limit(LOG_SHOWN):
+                    accesses.append({"archive": item, "bank": entry.bank, "at": entry.at, "kind": entry.kind,
+                                     "ok": entry.ok, "saved": entry.saved, "waiting": entry.waiting,
+                                     "at_bank": entry.at_bank, "message": entry.message})
+        except Exception:  # noqa: BLE001 - an archive not upgraded yet (or not reachable): left out of the list
+            db.session.rollback()
+    accesses.sort(key=lambda a: a["at"], reverse=True)
+    return connections, accesses[:LOG_SHOWN]

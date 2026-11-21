@@ -49,6 +49,26 @@ class BankAccountLink(db.Model):
     balance_date  = db.Column(db.Date)
     pending       = db.Column(db.JSON)                           # rows waiting for the preview (sync._stored)
     skipped       = db.Column(db.JSON)                           # import_refs left out in the preview: not brought back
+    # the movements not booked yet at the bank, as the last download saw them: shown, never saved (they come back
+    # booked, often with another id and sometimes another amount — a card hold, a hotel, a fuel station)
+    at_bank       = db.Column(db.JSON)
 
     connection = db.relationship("BankConnection", back_populates="links")
     account    = db.relationship("Account")
+
+
+class BankAccessLog(db.Model):
+    """Every access to the bank through the aggregator (a consent given, a download by hand or by itself), in the
+    archive it was made for: the page Gestione PSD2 shows them, and how many unattended reads a day were used."""
+    __tablename__ = "bank_access_log"
+
+    id            = db.Column(db.Integer, primary_key=True)
+    connection_id = db.Column(db.Integer, db.ForeignKey("bank_connections.id", ondelete="SET NULL"), index=True)
+    bank          = db.Column(db.String(120), nullable=False)   # kept: the log outlives an unlinked connection
+    at            = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)  # UTC
+    kind          = db.Column(db.String(10), nullable=False)    # consent | manual | auto
+    ok            = db.Column(db.Boolean, nullable=False, default=True)
+    saved         = db.Column(db.Integer, nullable=False, default=0)
+    waiting       = db.Column(db.Integer, nullable=False, default=0)
+    at_bank       = db.Column(db.Integer, nullable=False, default=0)  # not booked yet at the bank
+    message       = db.Column(db.Text)

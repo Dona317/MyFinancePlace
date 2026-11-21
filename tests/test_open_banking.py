@@ -239,8 +239,9 @@ def test_credentials_from_the_environment(app, monkeypatch, pem, tmp_path):
 
 
 def test_credentials_page(client, db, pem, monkeypatch):
-    html = client.get("/banking/").get_data(as_text=True)
+    html = client.get("/banking/manage").get_data(as_text=True)
     assert "Da configurare" in html and "/banking/callback" in html
+    assert "Apri Gestione PSD2" in client.get("/banking/").get_data(as_text=True)
     response = client.post("/banking/credentials", data={"app_id": "app-9", "key_text": "nope"}, follow_redirects=True)
     assert "Servono l&#39;ID" in response.get_data(as_text=True)
     client.post("/banking/credentials", data={"app_id": "app-9", "file": (io.BytesIO(pem.encode()), "key.pem")},
@@ -602,3 +603,105 @@ def test_unknown_pages_answer_404(client, db):
 
 def test_the_accounts_page_links_here(client, db):
     assert "/banking/" in client.get("/accounts/").get_data(as_text=True)
+
+
+# ── Gestione PSD2: every archive, the accesses, the archive of a new consent ───
+
+@pytest.fixture()
+def office(app):
+    """A second archive (its own database, migrated); dropped afterwards."""
+    from app.extensions import db as _db
+    from app.models.client import Client
+    from app.services import studio
+
+    yield
+    _db.session.rollback()
+    for item in Client.query.filter(Client.database.isnot(None)).all():
+        studio._drop(item)
+
+
+def test_manage_page_lists_every_archive_and_links_to_the_chosen_one(client, db, bank, office):
+    from app.models.client import Client
+
+    bank.movements = [tx("e1", "5"), tx("p1", "80", status="PDNG", text="HOTEL PREAUTORIZZAZIONE")]
+    _connect(client, bank)  # the primary archive
+    client.post("/clients/new", data={"name": "Mario Rossi", "color": "#16a34a"})
+    rossi = Client.query.filter_by(name="Mario Rossi").one()
+    page = client.get("/banking/manage").get_data(as_text=True)
+    assert f'<option value="{rossi.id}" selected>Mario Rossi</option>' in page  # the open archive is proposed
+
+    primary = next(c for c in open_banking.archives_shown() if c.database is None)
+    client.post("/banking/connect", data={"aspsp": "Fineco", "client_id": primary.id, "from": "manage"})
+    with client.session_transaction() as s:
+        state = list(s[sync.STATE_KEY])[-1]
+        assert s[sync.STATE_KEY][state]["client"] == primary.id
+    client.get(f"/banking/callback?state={state}&code=c-9")  # a second consent in the same archive
+    client.post("/banking/connect", data={"aspsp": "Banca Sella", "client_id": rossi.id, "from": "manage"})
+    with client.session_transaction() as s:
+        state = list(s[sync.STATE_KEY])[-1]
+    client.get(f"/banking/callback?state={state}&code=c-10")  # the open archive is now Rossi's
+
+    page = client.get("/banking/manage").get_data(as_text=True)
+    connections, accesses = open_banking.overview()
+    assert [(c["archive"].name, c["bank"]) for c in connections] == [
+        (primary.name, "Fineco"), (primary.name, "Fineco"), ("Mario Rossi", "Banca Sella")]
+    assert connections[0]["at_bank"] == 1 and connections[0]["mapped"] == 0
+    assert {a["kind"] for a in accesses} == {"consent", "manual"} and len(accesses) == 6
+    assert "Registro degli accessi" in page and "Mario Rossi" in page and "Consenso" in page
+
+    response = client.post(f"/banking/manage/open/{primary.id}", data={"connection": connections[0]["id"]})
+    assert response.headers["Location"].endswith(f"/banking/#connection-{connections[0]['id']}")
+    html = client.get("/banking/").get_data(as_text=True)
+    assert "In attesa alla banca: 1" in html and "HOTEL PREAUTORIZZAZIONE" in html
+    assert "letture automatiche oggi: 0 su 4" in html
+    response = client.post("/banking/manage/open/999", follow_redirects=True)
+    assert "Archivio non disponibile" in response.get_data(as_text=True)
+    response = client.post("/banking/connect", data={"aspsp": "Fineco", "client_id": 999}, follow_redirects=True)
+    assert "Archivio non disponibile" in response.get_data(as_text=True)
+
+
+def test_an_archive_left_behind_is_skipped(app, db, monkeypatch):
+    from app.services import studio
+
+    class Broken:
+        def __enter__(self):
+            raise RuntimeError("not upgraded")
+
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setattr(studio, "using", lambda item: Broken())
+    assert open_banking.overview() == ([], [])
+
+
+def test_accesses_are_logged_with_their_kind(client, db, bank):
+    from app.models.bank_link import BankAccessLog
+
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    connection.links[0].last_sync_at = None
+    db.session.commit()
+    open_banking.sync_due()
+    bank.fail["/accounts/acc-1/transactions"] = eb.ProviderError("boom", 500)
+    with pytest.raises(open_banking.BankingError):
+        open_banking.sync_connection(connection, psu={"Psu-Ip-Address": "1"})
+    kinds = [(e.kind, e.ok) for e in BankAccessLog.query.order_by(BankAccessLog.id)]
+    assert kinds == [("consent", True), ("manual", True), ("auto", True), ("manual", False)]
+    assert open_banking.unattended_today(connection) == 1
+    assert BankAccessLog.query.filter_by(ok=False).one().message == "Enable Banking: boom"
+
+
+def test_merchant_codes_help_the_category(app, db):
+    assert open_banking.mcc_word("5411") == "supermercati" and open_banking.mcc_word(3010) == "trasporti"
+    assert open_banking.mcc_word("3700") == "viaggi" and open_banking.mcc_word("1234") is None
+    assert open_banking.mcc_word(None) is None and open_banking.mcc_word("x") is None
+    found = open_banking.to_rows([tx("m1", "23.40", text="POS 1234 SRL XYZ", merchant_category_code="5411")], "u")
+    rows = open_banking.prepare(found.rows, found.refs, "u")
+    assert rows[0].bank_category == "supermercati" and rows[0].category != "Altro"
+
+
+def test_pending_movements_are_shown_not_saved(app, db):
+    found = open_banking.to_rows([tx("p1", "50", status="PDNG"), tx("p2", "x", status="PDNG", booking_date=None)], "u")
+    assert found.rows == [] and found.pending == 2
+    assert found.at_bank[0]["amount"] == "-50.00" and found.at_bank[1]["amount"] is None
+    assert found.at_bank[1]["date"] == date.today().isoformat()

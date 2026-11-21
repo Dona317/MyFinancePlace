@@ -46,7 +46,9 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
   database delle serie storiche di ETF, azioni e indici, da costruire o trovare.
 
 - **21 novembre**: **lettura dei movimenti via PSD2** con Enable Banking (D16, F107): collegamento della banca,
-  download a mano e automatico, revisione nell'anteprima dell'import, promemoria del consenso.
+  download a mano e automatico, revisione nell'anteprima dell'import, promemoria del consenso. Poi **Gestione PSD2**
+  (tutti i collegamenti di tutti gli archivi, archivio scelto al collegamento, registro degli accessi), movimenti in
+  attesa alla banca mostrati e non salvati, codice MCC come indizio di categoria, tabelle PSD2 nel backup.
 
 ### In lavorazione o deciso di proseguire
 - **▶ Prossimo passo (deciso il 15 nov, sera): F106 — analisi e pianificazione delle prossime task**, per completare le sezioni e le funzionalità rimanenti: una sezione alla volta, poi **una Card per ogni task** (vedi F106 nel backlog del Portafoglio). **16 nov: elenco fatto** — 41 task in 7 giri (T01–T41, «Piano delle prossime task»); le 41 Card sono in [CARD_PROSSIME_TASK.md](CARD_PROSSIME_TASK.md); prossimo passo: approvarle e partire dal giro 0.

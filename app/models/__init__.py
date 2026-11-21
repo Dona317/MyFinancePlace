@@ -1,6 +1,6 @@
 # Importing the models registers them with SQLAlchemy (tables, migrations).
 from .account import Account
-from .bank_link import BankAccountLink, BankConnection
+from .bank_link import BankAccessLog, BankAccountLink, BankConnection
 from .budget import Budget
 from .card import Card
 from .category import Category, CategoryRule
@@ -30,5 +30,5 @@ __all__ = [
     "PortfolioTemplate", "TemplateSlot", "SlotHolding", "PortfolioRule", "InvestmentPlan", "SpendingEvent",
     "ContributionLimit", "Taxonomy", "TaxonomyCategory", "HoldingCategory", "Gig", "PersonalLoan", "Reminder", "UtilityReading",
     "SecuritiesAccount", "Portfolio", "PlannedOrder",
-    "YearClose", "BankConnection", "BankAccountLink",
+    "YearClose", "BankConnection", "BankAccountLink", "BankAccessLog",
 ]
