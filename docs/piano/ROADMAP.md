@@ -145,6 +145,13 @@ il badge `TBD` indica la priorità, non che manchino.
 - **Report** (spese, entrate, cash flow per periodo e conto), **login** con utenti gestiti dall'amministratore,
   **saldi nella valuta del conto**, **backup completo**, interfaccia italiano/inglese, Docker
 
+## Decisioni cambiate
+
+- **Collegamento alle banche (PSD2)**: a ottobre si era deciso «niente sincronizzazione, solo file». Il 21 nov 2026 la
+  scelta è cambiata (D16): lettura dei movimenti via PSD2 con Enable Banking, download automatico fino a 4 volte al
+  giorno nella fascia 8–24, gestione dei collegamenti per archivio (F107, [PSD2.md](../tecnica/PSD2.md)). L'import da
+  file resta.
+
 ## Scartato
 
 - ~~Transazioni: **partita doppia** sempre bilanciata~~ — idea scartata per non complicare l'app: bastano i giroconti

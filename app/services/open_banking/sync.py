@@ -9,7 +9,8 @@ Reading the bank through PSD2 (F107): link a bank, download its movements, keep 
 A movement keeps the id the bank gives it (entry_reference / transaction_id) in its import_ref: downloaded again it is
 recognised, whatever its text. What looks like something already saved (the same movement imported from a statement
 file, a giroconto whose other side is saved) always waits for the user's look; with «salva da solo» off, everything
-does. The automatic download runs at most every SYNC_HOURS (PSD2 allows four unattended reads a day per account).
+does. The automatic download runs four times a day at most (PSD2 allows four unattended reads a day per account), all of
+them in the hours the app is used: the window 8–24 (local time) cut in four slots — 8, 12, 16, 20 — one read per slot.
 """
 from __future__ import annotations
 
@@ -35,7 +36,8 @@ from . import client, credentials
 
 INITIAL_DAYS = 90         # history read the first time (most banks give at least 90 days)
 OVERLAP_DAYS = 7          # read again from a week before the last booked movement: late bookings are not missed
-SYNC_HOURS = 6            # automatic downloads at most this often (config BANK_SYNC_HOURS)
+SYNC_WINDOW = (8, 24)     # automatic downloads only between these local hours (config BANK_SYNC_WINDOW)
+READS_PER_DAY = 4         # …cut into this many slots, one read each (config BANK_SYNC_PER_DAY; PSD2: 4 at most)
 CONSENT_DAYS = 180        # the longest consent asked for; the bank's own maximum when lower
 EXPIRY_NOTICE_DAYS = 14   # the reminder to renew appears this many days before the end
 STATE_KEY = "psd2_auth"   # the session's pending consents (state → what to do on the way back)
@@ -287,7 +289,8 @@ def disconnect(connection: BankConnection) -> None:
 
 def encrypted_fields() -> list[tuple[BankConnection, str]]:
     """The encrypted values of the connections, for a change of key (services.field_crypto)."""
-    return [(c, "session_enc") for c in BankConnection.query.filter(BankConnection.session_enc.isnot(None))]
+    return [(c, "session_enc") for c in BankConnection.query.filter(BankConnection.session_enc.isnot(None))] + \
+        credentials.encrypted_row()
 
 
 # ── Movements ─────────────────────────────────────────────────────────────────
@@ -522,8 +525,10 @@ def log(connection: BankConnection, kind: str, results: list[SyncResult] = (), e
 
 
 def unattended_today(connection: BankConnection, now: datetime | None = None) -> int:
-    """The automatic reads of the day (UTC) for a connection: PSD2 allows four per account."""
-    start = (now or _utcnow()).replace(hour=0, minute=0, second=0, microsecond=0)
+    """The automatic reads of the day (local) for a connection: PSD2 allows four per account."""
+    now = now or _utcnow()
+    local = _local(now)
+    start = now - (local - local.replace(hour=0, minute=0, second=0, microsecond=0))  # local midnight, in UTC
     return BankAccessLog.query.filter(BankAccessLog.connection_id == connection.id, BankAccessLog.kind == "auto",
                                       BankAccessLog.at >= start).count()
 
@@ -562,19 +567,51 @@ def forget_saved(link: BankAccountLink, dropped: set[str] = frozenset()) -> None
 
 # ── By itself ─────────────────────────────────────────────────────────────────
 
-def _hours() -> float:
-    return float(current_app.config.get("BANK_SYNC_HOURS", SYNC_HOURS))
+def _window() -> tuple[int, int, int]:
+    """(first hour, last hour, reads a day) of the automatic downloads."""
+    start, end = current_app.config.get("BANK_SYNC_WINDOW", SYNC_WINDOW)
+    reads = max(1, min(4, int(current_app.config.get("BANK_SYNC_PER_DAY", READS_PER_DAY))))
+    return int(start), int(end), reads
+
+
+def _local(now_utc: datetime) -> datetime:
+    """The computer's local time of a UTC moment (the window is in the user's hours)."""
+    return now_utc.replace(tzinfo=timezone.utc).astimezone().replace(tzinfo=None)
+
+
+def slot_start(now: datetime | None = None) -> datetime | None:
+    """Start (UTC) of the download slot `now` falls in; None outside the window."""
+    now = now or _utcnow()
+    local = _local(now)
+    start, end, reads = _window()
+    if not start <= local.hour < end:
+        return None
+    length = (end - start) / reads
+    index = int((local.hour - start + local.minute / 60) // length)
+    begins = local.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=start + index * length)
+    return now - (local - begins)
+
+
+def slots() -> list[str]:
+    """The local hours the slots start at («8:00», «12:00»…), for the page."""
+    start, end, reads = _window()
+    length = (end - start) / reads
+    return [f"{int(start + i * length)}:{int((start + i * length) % 1 * 60):02d}" for i in range(reads)]
 
 
 def due(connection: BankConnection, now: datetime | None = None) -> bool:
+    """An automatic download is due: inside the window, none yet in this slot, under the reads of the day."""
     now = now or _utcnow()
     if not connection.auto_sync or connection.status != "active":
         return False
     links = [k for k in connection.links if k.active]
-    if not links:
+    begins = slot_start(now)
+    if not links or begins is None:
+        return False
+    if unattended_today(connection, now) >= _window()[2]:
         return False
     oldest = min((k.last_sync_at for k in links), default=None, key=lambda t: t or datetime.min)
-    return oldest is None or now - oldest >= timedelta(hours=_hours())
+    return oldest is None or oldest < begins
 
 
 def sync_due(now: datetime | None = None) -> int:

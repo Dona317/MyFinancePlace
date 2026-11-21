@@ -34,8 +34,9 @@ def pem(rsa_key):
 
 
 @pytest.fixture(autouse=True)
-def fresh(monkeypatch):
+def fresh(monkeypatch, app):
     sync._banks_kept.clear()
+    app.config["BANK_SYNC_WINDOW"] = (0, 24)  # the tests run at any hour; the 8–24 window has its own test
     monkeypatch.delenv(credentials.ENV_ID, raising=False)
     monkeypatch.delenv(credentials.ENV_KEY, raising=False)
 
@@ -208,24 +209,48 @@ def test_the_calls_use_the_documented_paths(app, monkeypatch, pem):
 
 # ── The credentials ──────────────────────────────────────────────────────────
 
-def test_credentials_saved_encrypted_and_removed(app, pem):
+def test_credentials_saved_encrypted_in_the_studio_database(app, db, pem):
     assert credentials.current() is None and credentials.status()["configured"] is False
     with pytest.raises(ValueError):
         credentials.save(" ", pem)
     with pytest.raises(ValueError):
         credentials.save("app", "junk")
     credentials.save(" app-1 ", pem)
-    stored = json.loads(credentials._path().read_text())
-    assert stored["app_id"] == "app-1" and stored["key"].startswith(field_crypto.PREFIX)
-    assert (credentials._path().stat().st_mode & 0o777) == 0o600
+    stored = credentials._stored()
+    assert stored.startswith(field_crypto.PREFIX) and "BEGIN" not in stored and "app-1" not in stored
+    assert json.loads(field_crypto.decrypt(stored)) == {"app_id": "app-1", "key": pem}
     assert credentials.current() == eb.Credentials("app-1", pem)
     assert credentials.status() == {"configured": True, "environment": False, "app_id": "app-1"}
-    credentials._path().write_text("{bad json")
+    credentials.save("app-2", pem)  # replaced, not added
+    assert credentials.current().app_id == "app-2"
+    assert credentials.encrypted_row()[0][1] == "value"  # follows a change of the data key
+    credentials._write(field_crypto.encrypt("{bad json"))
     assert credentials.current() is None
-    credentials._path().write_text(json.dumps({"app_id": "x", "key": None}))
+    credentials._write(json.dumps({"app_id": "x", "key": None}))
     assert credentials.current() is None
     credentials.remove()
-    assert not credentials._path().exists()
+    assert credentials._stored() is None and credentials.encrypted_row() == []
+
+
+def test_the_older_file_moves_into_the_database(app, db, pem):
+    credentials._legacy_path().write_text(json.dumps({"app_id": "old", "key": field_crypto.encrypt(pem)}))
+    assert credentials.current() == eb.Credentials("old", pem)
+    assert not credentials._legacy_path().exists() and credentials._stored().startswith(field_crypto.PREFIX)
+    assert credentials.current() == eb.Credentials("old", pem)
+
+
+def test_the_key_never_reaches_the_page(client, db, bank, pem):
+    for url in ("/banking/manage", "/banking/"):
+        html = client.get(url).get_data(as_text=True)
+        assert "PRIVATE KEY-----\n" not in html and pem.splitlines()[1] not in html
+
+
+def test_no_encrypted_row_from_a_client_archive(app, db, monkeypatch, pem):
+    from app.services import studio
+
+    credentials.save("app", pem)
+    monkeypatch.setattr(studio, "current", lambda: type("C", (), {"is_primary": False})())
+    assert credentials.encrypted_row() == []
 
 
 def test_credentials_from_the_environment(app, monkeypatch, pem, tmp_path):
@@ -477,11 +502,11 @@ def test_automatic_download_when_due(client, db, bank, app, monkeypatch):
     connection = BankConnection.query.one()
     assert not open_banking.due(connection)  # just downloaded
     assert open_banking.sync_due() == 0
-    later = sync._utcnow() + timedelta(hours=sync.SYNC_HOURS + 1)
+    later = sync._utcnow() + timedelta(hours=7)  # another slot (6 hours each in the tests)
     assert open_banking.due(connection, later)
     bank.movements = [tx("e9", "7")]
     assert open_banking.sync_due(later) == 1
-    assert open_banking.sync_all_archives(later + timedelta(hours=sync.SYNC_HOURS + 1)) == 1  # the same one, waiting
+    assert open_banking.sync_all_archives(later + timedelta(hours=7)) == 1  # the same one, waiting
     connection = BankConnection.query.one()
     connection.auto_sync = False
     db.session.commit()
@@ -544,7 +569,8 @@ def test_desktop_round_downloads_the_banks(app, bank, monkeypatch):
 def test_session_ids_follow_a_change_of_key(client, db, bank):
     _connect(client, bank)
     connection = BankConnection.query.one()
-    assert open_banking.encrypted_fields() == [(connection, "session_enc")]
+    fields = open_banking.encrypted_fields()
+    assert fields[0] == (connection, "session_enc") and fields[1][1] == "value"  # and the application's credentials
     connection.session_enc = "v1:broken"
     db.session.commit()
     assert open_banking.session_id(connection) is None
@@ -705,3 +731,30 @@ def test_pending_movements_are_shown_not_saved(app, db):
     assert found.rows == [] and found.pending == 2
     assert found.at_bank[0]["amount"] == "-50.00" and found.at_bank[1]["amount"] is None
     assert found.at_bank[1]["date"] == date.today().isoformat()
+
+
+def test_automatic_reads_fall_in_four_slots_between_8_and_24(app, db, bank, client, monkeypatch):
+    from app.models.bank_link import BankAccessLog
+
+    app.config["BANK_SYNC_WINDOW"] = (8, 24)
+    monkeypatch.setattr(sync, "_local", lambda moment: moment)  # the computer's clock in UTC, for the test
+    day = datetime(2026, 11, 21)
+    at = lambda h, m=0: day.replace(hour=h, minute=m)  # noqa: E731
+    assert open_banking.slots() == ["8:00", "12:00", "16:00", "20:00"]
+    assert open_banking.slot_start(at(7, 59)) is None and open_banking.slot_start(at(8, 30)) == at(8)
+    assert open_banking.slot_start(at(13)) == at(12) and open_banking.slot_start(at(23, 59)) == at(20)
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    for link in connection.links:
+        link.last_sync_at = at(12, 10)
+    db.session.commit()
+    assert not open_banking.due(connection, at(15))     # already read in the 12–16 slot
+    assert open_banking.due(connection, at(16, 5))      # a new slot
+    assert not open_banking.due(connection, at(7))      # before the window
+    db.session.add_all([BankAccessLog(connection_id=connection.id, bank="Fineco", at=at(9 + i), kind="auto")
+                        for i in range(4)])
+    db.session.commit()
+    assert not open_banking.due(connection, at(16, 5))  # four automatic reads already today
+    assert open_banking.unattended_today(connection, at(16, 5)) == 4
+    app.config["BANK_SYNC_PER_DAY"] = 9  # never more than PSD2's four
+    assert open_banking.slots() == ["8:00", "12:00", "16:00", "20:00"]

@@ -65,7 +65,7 @@ def index():
     return render_template(
         "banking/index.html", connections=connections, accounts=accounts.active(),
         notice_days=open_banking.EXPIRY_NOTICE_DAYS, now_utc=_now(), today=_now().date(),
-        sync_hours=int(current_app.config.get("BANK_SYNC_HOURS", open_banking.SYNC_HOURS)),
+        sync_slots=open_banking.slots(),
         auto_today={c.id: open_banking.unattended_today(c) for c in connections},
         at_bank_rows={c.id: _at_bank(c) for c in connections}, **_bank_choices(),
     )

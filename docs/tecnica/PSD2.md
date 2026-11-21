@@ -32,12 +32,22 @@ Ogni collegamento (un consenso) appartiene a **un archivio**: sta nel database d
 backup, e i movimenti vanno nei suoi conti. Un archivio può avere **più collegamenti**, anche alla stessa banca
 (conto personale e conto cointestato con accessi diversi, banca privata e business).
 
-## 3. Inserire le credenziali
-- **Dall'app**: Gestione PSD2 → riquadro «Applicazione Enable Banking»: ID e file
-  `.pem` (o la chiave incollata). Vanno nel file `enable_banking.json` della cartella dei dati, leggibile solo dal suo
-  proprietario, con la chiave cifrata dalla chiave dei dati (`field_crypto`). Valgono per tutti gli archivi dei clienti.
+## 3. Inserire le credenziali (e come sono protette)
+- **Dall'app**: Gestione PSD2 → riquadro «Applicazione Enable Banking»: ID e file `.pem` (o la chiave incollata).
+- **Dove finiscono**: nel **database dello studio** (l'archivio principale), tabella `app_settings`, chiave
+  `open_banking.credentials`. Il valore è **cifrato per intero**, ID e chiave privata, con AES-256-GCM e la chiave dei
+  dati (`field_crypto`, formato `v1:…`): nel database e nei backup c'è solo testo cifrato. Valgono per tutti gli
+  archivi dei clienti. Se cambi la chiave dei dati (Esporta → chiave), si cifrano di nuovo come i numeri delle carte.
+- **Mai nel browser**: dopo il salvataggio la pagina mostra solo «Configurata» e l'ID; nessuna pagina e nessuna API
+  restituisce la chiave. Ogni chiamata a Enable Banking è firmata **sul server** con un JWT di un'ora, e anche quello
+  non passa mai dal browser. Gli id delle sessioni bancarie sono cifrati allo stesso modo.
 - **Dal server**: `ENABLE_BANKING_APP_ID` e `ENABLE_BANKING_KEY_FILE` (percorso del `.pem`); hanno la precedenza e la
   pagina non le modifica.
+- **Limite noto (D15)**: la chiave dei dati sta nella cartella dei dati (`data.key`), oppure in `MFP_DATA_KEY` sul
+  server. Chi copia il database o un backup non legge niente; chi ha l'intero computer acceso con l'app sì. Il
+  portachiavi del sistema (D15) è il passo successivo.
+- Una versione precedente teneva le credenziali nel file `enable_banking.json`: alla prima lettura passano nel
+  database e il file viene cancellato.
 
 ## 4. Collegare una banca
 «Collega una banca» → paese e banca (elenco di Enable Banking) → **Vai alla banca**: l'utente accede all'home banking
@@ -71,9 +81,12 @@ e dà il consenso alla sola lettura, valido fino a 180 giorni (meno se la banca 
 Il download parte:
 - **a mano**, con «Aggiorna ora» (con l'utente presente: l'app manda alla banca gli header `Psu-Ip-Address` e
   `Psu-User-Agent`, quindi non conta tra le letture senza l'utente);
-- **da solo**, se «Scarica da solo i movimenti» è acceso: al massimo ogni `BANK_SYNC_HOURS` ore (6 di default), quando
-  si apre la dashboard (in un thread) e nel giro orario dell'app desktop, per tutti gli archivi. La PSD2 permette
-  **quattro letture al giorno** senza l'utente per ogni conto.
+- **da solo**, se «Scarica da solo i movimenti» è acceso: **fino a 4 volte al giorno, tutte tra le 8 e le 24** (ora
+  del computer), cioè nelle ore in cui l'app si usa. La fascia è divisa in quattro parti, che iniziano alle **8, 12, 16 e
+  20**, con una lettura per parte. Parte all'apertura della dashboard (in un thread) e nel giro orario dell'app
+  desktop, per tutti gli archivi. Una lettura fatta a mano dentro una fascia la copre. Il registro conta le letture
+  automatiche del giorno, che non superano mai 4: la PSD2 ne permette **quattro al giorno** senza l'utente per ogni
+  conto. Configurabile con `BANK_SYNC_WINDOW` (default `(8, 24)`) e `BANK_SYNC_PER_DAY` (default 4, mai di più).
 
 ## 6. Promemoria
 Nella campanella (e nelle notifiche di sistema dell'app desktop): consenso che scade entro 14 giorni o scaduto,
@@ -90,7 +103,7 @@ download non riuscito, movimenti da controllare, conto della banca senza conto d
 | Test (API finta) | `tests/test_open_banking.py` |
 
 Configurazione: `ENABLE_BANKING_API_URL` (default `https://api.enablebanking.com`), `ENABLE_BANKING_REDIRECT_URL`,
-`BANK_SYNC_HOURS`, `BANK_SYNC_INLINE` (test: download dentro la richiesta).
+`BANK_SYNC_WINDOW`, `BANK_SYNC_PER_DAY`, `BANK_SYNC_INLINE` (test: download dentro la richiesta).
 
 ## 8. Limiti noti
 - Provato solo contro un'API finta: **va provato con la sandbox di Enable Banking e con una banca vera** prima di

@@ -106,7 +106,7 @@
   <div class="card-body">
     <form method="POST" action="{{ url_for('banking.options', connection_id=c.id) }}" class="bank-options">
       <label><input type="checkbox" name="auto_sync" value="1" {{ 'checked' if c.auto_sync }} /> {{ _('Scarica da solo i movimenti') }}
-        {{ info(_("Ogni %(hours)s ore al massimo, all'apertura dell'app e nel giro dell'app desktop: la PSD2 permette quattro letture al giorno senza di te.", hours=sync_hours)) }}</label>
+        {{ info(_("Fino a quattro volte al giorno, nelle ore in cui l'app si usa: una lettura per fascia, dalle %(slots)s (ora del computer), all'apertura dell'app e nel giro dell'app desktop. La PSD2 permette quattro letture al giorno senza di te.", slots=sync_slots|join(', '))) }}</label>
       <label><input type="checkbox" name="auto_save" value="1" {{ 'checked' if c.auto_save }} /> {{ _('Salva da solo i movimenti nuovi') }}
         {{ info(_('Solo quelli che non somigliano a niente di già salvato e hanno un conto scelto: gli altri (possibili doppioni, giroconti da collegare) restano da controllare.')) }}</label>
       <button type="submit" class="btn btn-ghost btn-sm">{{ _('Salva impostazioni') }}</button>

@@ -2,7 +2,8 @@
 from . import client, credentials  # noqa: F401
 from .sync import (  # noqa: F401
     EXPIRY_NOTICE_DAYS,
-    SYNC_HOURS,
+    READS_PER_DAY,
+    SYNC_WINDOW,
     BankingError,
     SyncResult,
     archive_id,
@@ -23,6 +24,8 @@ from .sync import (  # noqa: F401
     psu_headers,
     run_in_background,
     session_id,
+    slot_start,
+    slots,
     start,
     summary,
     sync_all_archives,
