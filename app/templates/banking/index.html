@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/info.html" import info %}
+{% from "partials/tabs.html" import tab_bar %}
+
+{% block title %}{{ _('Collegamenti bancari') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Collegamenti bancari') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ _('Collegamenti bancari') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost btn-sm"><i class="bi bi-upload"></i> {{ _('Importa da file') }}</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-tabs">{{ tab_bar([
+  ('overview', url_for('accounts.index'), _('Panoramica'), 'grid-1x2'),
+  ('accounts', url_for('accounts.index', tab='accounts'), _('Conti'), 'bank'),
+  ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),
+  ('reconcile', url_for('accounts.index', tab='reconcile'), _('Riconciliazioni'), 'check2-square'),
+  ('banking', url_for('banking.index'), _('Collegamenti bancari'), 'link-45deg'),
+], 'banking', _('Sezioni di conti e carte')) }}</div>
+
+{# ── The banks linked ─────────────────────────────────────────────────────────── #}
+{% for c in connections %}
+{% set days_left = ((c.valid_until - now_utc).days) if c.valid_until else none %}
+{% set expired = c.status != 'active' or (days_left is not none and days_left < 0) %}
+<div class="card mb-16 bank-connection" id="connection-{{ c.id }}">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-bank2"></i> {{ c.aspsp_name }}
+        {% if not expired %}
+          {% if days_left is not none and days_left <= notice_days %}<span class="badge badge-warning">{{ _('Consenso in scadenza') }}</span>
+          {% else %}<span class="badge badge-positive">{{ _('Attivo') }}</span>{% endif %}
+        {% else %}<span class="badge badge-negative">{{ _('Consenso scaduto') }}</span>{% endif %}
+      </div>
+      <div class="card-header-sub">
+        {% if c.valid_until %}{{ _('Consenso valido fino al %(day)s', day=c.valid_until.date()|it_date) }} · {% endif %}
+        {{ _('Download automatico') if c.auto_sync else _('Solo su richiesta') }}{% if c.auto_save %} · {{ _('salva da solo i movimenti nuovi') }}{% endif %}
+      </div>
+    </div>
+    <div class="bank-connection-actions">
+      {% if not expired %}
+      <form method="POST" action="{{ url_for('banking.sync', connection_id=c.id) }}">
+        <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Aggiorna ora') }}</button>
+      </form>
+      {% endif %}
+      <form method="POST" action="{{ url_for('banking.renew', connection_id=c.id) }}">
+        <button type="submit" class="btn {{ 'btn-outline' if expired else 'btn-ghost' }} btn-sm"><i class="bi bi-shield-check"></i> {{ _('Rinnova consenso') }}</button>
+      </form>
+      <form method="POST" action="{{ url_for('banking.delete', connection_id=c.id) }}"
+            data-confirm="{{ _('Scollegare %(bank)s? Il consenso viene ritirato; i movimenti già salvati restano.', bank=c.aspsp_name) }}">
+        <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Scollega') }}" aria-label="{{ _('Scollega %(bank)s', bank=c.aspsp_name) }}"><i class="bi bi-trash3"></i></button>
+      </form>
+    </div>
+  </div>
+  {% if c.last_error %}<div class="alert alert-warning bank-alert">{{ c.last_error }}</div>{% endif %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr>
+        <th>{{ _('Conto della banca') }}</th><th>{{ _("Conto dell'app") }} {{ info(_('I movimenti di questo conto della banca vanno sul conto scelto. Senza conto restano da controllare.')) }}</th>
+        <th class="text-right">{{ _('Saldo in banca') }}</th><th>{{ _('Ultimo download') }}</th><th class="text-right">{{ _('Da controllare') }}</th>
+      </tr></thead>
+      <tbody>
+      {% for link in c.links %}
+        <tr{% if not link.active %} class="is-muted"{% endif %}>
+          <td><div>{{ link.name or _('Conto') }}</div>{% if link.iban %}<div class="text-muted bank-iban" title="{{ link.iban }}">{{ link.iban|masked }}</div>{% endif %}</td>
+          <td>
+            <form method="POST" action="{{ url_for('banking.link_account', link_id=link.id) }}" class="bank-link-form">
+              <select name="account_id" class="form-select form-select-sm" aria-label="{{ _("Conto dell'app") }}">
+                <option value="">{{ _('— nessuno —') }}</option>
+                {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == link.account_id }}>{{ a.name }}</option>{% endfor %}
+              </select>
+              <label class="bank-link-active"><input type="checkbox" name="active" value="1" {{ 'checked' if link.active }} /> {{ _('Leggi') }}</label>
+              <button type="submit" class="btn btn-ghost btn-sm">{{ _('Salva') }}</button>
+            </form>
+          </td>
+          <td class="text-right amount">{% if link.balance is not none %}{{ link.balance|money(None if link.currency == 'EUR' else link.currency) }}{% if link.balance_date %}<div class="text-muted">{{ link.balance_date|it_date }}</div>{% endif %}{% else %}—{% endif %}</td>
+          <td>{{ link.last_sync_at|it_date if link.last_sync_at else _('mai') }}</td>
+          <td class="text-right">
+            {% if link.pending %}<a href="{{ url_for('banking.review', link_id=link.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-eye"></i> {{ _('Controlla %(count)s', count=link.pending|length) }}</a>
+            {% else %}<span class="text-muted">0</span>{% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-muted">{{ _('La banca non ha indicato conti in questo consenso.') }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('banking.options', connection_id=c.id) }}" class="bank-options">
+      <label><input type="checkbox" name="auto_sync" value="1" {{ 'checked' if c.auto_sync }} /> {{ _('Scarica da solo i movimenti') }}
+        {{ info(_("Ogni %(hours)s ore al massimo, all'apertura dell'app e nel giro dell'app desktop: la PSD2 permette quattro letture al giorno senza di te.", hours=sync_hours)) }}</label>
+      <label><input type="checkbox" name="auto_save" value="1" {{ 'checked' if c.auto_save }} /> {{ _('Salva da solo i movimenti nuovi') }}
+        {{ info(_('Solo quelli che non somigliano a niente di già salvato e hanno un conto scelto: gli altri (possibili doppioni, giroconti da collegare) restano da controllare.')) }}</label>
+      <button type="submit" class="btn btn-ghost btn-sm">{{ _('Salva impostazioni') }}</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+
+{# ── Link a bank ─────────────────────────────────────────────────────────────── #}
+<div class="card mb-16" id="connect">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-link-45deg"></i> {{ _('Collega una banca') }} {{ info(_('Lettura dei movimenti tramite PSD2: dai il consenso sul sito della tua banca, che dura fino a 180 giorni. MyFinancePlace legge soltanto, non può disporre pagamenti.')) }}</div>
+      <div class="card-header-sub">{{ _('Tramite Enable Banking, aggregatore autorizzato: i movimenti arrivano categorizzati come in un import, i doppioni vengono riconosciuti') }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if not status.configured %}
+      {{ empty_state(text=_('Prima inserisci qui sotto le credenziali della tua applicazione Enable Banking.'), icon='bi-key', compact=True) }}
+    {% elif banks_error %}
+      <div class="alert alert-error">{{ banks_error }}</div>
+    {% else %}
+    <form method="GET" action="{{ url_for('banking.index') }}" class="bank-country-form">
+      <label class="form-label" for="bank-country">{{ _('Paese') }}</label>
+      <select id="bank-country" name="country" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for code in countries %}<option value="{{ code }}" {{ 'selected' if code == country }}>{{ code }}</option>{% endfor %}
+      </select>
+      <noscript><button type="submit" class="btn btn-ghost btn-sm">{{ _('Mostra') }}</button></noscript>
+    </form>
+    <form method="POST" action="{{ url_for('banking.connect') }}" class="bank-connect-form">
+      <input type="hidden" name="country" value="{{ country }}" />
+      <div class="form-group">
+        <label class="form-label" for="bank-aspsp">{{ _('Banca') }}</label>
+        <input id="bank-aspsp" name="aspsp" class="form-control" list="bank-list" required placeholder="{{ _('es. Fineco') }}" autocomplete="off" />
+        <datalist id="bank-list">{% for b in banks %}<option value="{{ b.name }}"></option>{% endfor %}</datalist>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="bank-psu">{{ _('Tipo di conto') }}</label>
+        <select id="bank-psu" name="psu_type" class="form-select">
+          <option value="personal">{{ _('Privato') }}</option>
+          <option value="business">{{ _('Azienda') }}</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-up-right"></i> {{ _('Vai alla banca') }}</button>
+    </form>
+    <p class="form-hint">{{ _('%(count)s banche disponibili.', count=banks|length) }}</p>
+    {% endif %}
+  </div>
+</div>
+
+{# ── The Enable Banking application ──────────────────────────────────────────── #}
+<div class="card" id="credentials">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-key"></i> {{ _('Applicazione Enable Banking') }}
+        {% if status.configured %}<span class="badge badge-positive">{{ _('Configurata') }}</span>{% else %}<span class="badge badge-muted">{{ _('Da configurare') }}</span>{% endif %}</div>
+      <div class="card-header-sub">{{ _("Registrala su enablebanking.com (Control panel → Applications): per i tuoi conti basta la modalità ristretta, gratuita, collegando i conti dal pannello") }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="bank-redirect">{{ _('Indirizzo di ritorno da registrare nell\'applicazione:') }}
+      <code id="bank-redirect-url">{{ redirect_url }}</code>
+      <button type="button" class="copy-btn" data-copy="{{ redirect_url }}" title="{{ _('Copia') }}" aria-label="{{ _('Copia') }}"><i class="bi bi-clipboard"></i></button></p>
+    {% if status.environment %}
+      <p class="text-muted">{{ _('Credenziali impostate dal server (ENABLE_BANKING_APP_ID, ENABLE_BANKING_KEY_FILE): applicazione %(app)s.', app=status.app_id or '—') }}</p>
+    {% else %}
+    <form method="POST" action="{{ url_for('banking.save_credentials') }}" enctype="multipart/form-data" class="bank-credentials-form">
+      <div class="form-group">
+        <label class="form-label" for="bank-app-id">{{ _("ID dell'applicazione") }}</label>
+        <input id="bank-app-id" name="app_id" class="form-control" required value="{{ status.app_id or '' }}" placeholder="aad1c4f0-…" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="bank-key-file">{{ _('Chiave privata (.pem)') }} {{ info(_('Il file scaricato quando hai creato l\'applicazione. Viene conservato cifrato nella cartella dei dati.')) }}</label>
+        <input id="bank-key-file" type="file" name="file" class="form-control" accept=".pem,.key,.txt" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="bank-key-text">{{ _('…oppure incolla la chiave') }}</label>
+        <textarea id="bank-key-text" name="key_text" class="form-control bank-key-text" rows="3" placeholder="-----BEGIN PRIVATE KEY-----"></textarea>
+      </div>
+      <div class="form-actions">
+        {% if status.configured %}
+        <button type="submit" form="bank-credentials-delete" class="btn btn-danger-ghost btn-sm">{{ _('Rimuovi credenziali') }}</button>
+        {% endif %}
+        <button type="submit" class="btn btn-outline">{{ _('Salva credenziali') }}</button>
+      </div>
+    </form>
+    {% if status.configured %}
+    <form method="POST" id="bank-credentials-delete" action="{{ url_for('banking.delete_credentials') }}"
+          data-confirm="{{ _('Rimuovere le credenziali? I download si fermano finché non le inserisci di nuovo.') }}"></form>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

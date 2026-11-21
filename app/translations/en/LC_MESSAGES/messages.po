@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-18 22:09+0100\n"
+"POT-Creation-Date: 2026-11-21 06:54+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -44,10 +44,6 @@ msgstr " — text only, cannot read images"
 #, python-format
 msgid "%% Entrate"
 msgstr "%% Income"
-
-#, python-format
-msgid "%% del previsto"
-msgstr "%% of plan"
 
 #, python-format
 msgid "%% sul Totale"
@@ -118,6 +114,18 @@ msgid "%(amount)s sul valore di oggi"
 msgstr "%(amount)s on today's value"
 
 #, python-format
+msgid "%(bank)s aggiornata: %(summary)s"
+msgstr "%(bank)s updated: %(summary)s"
+
+#, python-format
+msgid "%(bank)s collegata: %(count)s conti."
+msgstr "%(bank)s linked: %(count)s accounts."
+
+#, python-format
+msgid "%(bank)s scollegata: i movimenti già salvati restano."
+msgstr "%(bank)s unlinked: the transactions already saved stay."
+
+#, python-format
 msgid "%(bps)s pb · %(quarter)s a trimestre · %(month)s al mese"
 msgstr "%(bps)s bp · %(quarter)s a quarter · %(month)s a month"
 
@@ -146,12 +154,12 @@ msgid "%(count)s acquisti del PAC registrati."
 msgstr "%(count)s PAC purchases recorded."
 
 #, python-format
-msgid "%(count)s attivi"
-msgstr "%(count)s active"
-
-#, python-format
 msgid "%(count)s aumenti di prezzo"
 msgstr "%(count)s price increases"
+
+#, python-format
+msgid "%(count)s banche disponibili."
+msgstr "%(count)s banks available."
 
 #, python-format
 msgid ""
@@ -170,6 +178,10 @@ msgstr "%(count)s checks found something to fix."
 #, python-format
 msgid "%(count)s da confermare"
 msgstr "%(count)s to confirm"
+
+#, python-format
+msgid "%(count)s da controllare"
+msgstr "%(count)s to review"
 
 #, python-format
 msgid "%(count)s fuori tolleranza"
@@ -223,6 +235,10 @@ msgstr ""
 "transfers are classified by their category name."
 
 #, python-format
+msgid "%(count)s movimenti da controllare: %(name)s"
+msgstr "%(count)s transactions to review: %(name)s"
+
+#, python-format
 msgid "%(count)s movimenti erano già stati importati e verranno ignorati."
 msgstr "%(count)s movements had already been imported and will be skipped."
 
@@ -243,8 +259,16 @@ msgstr ""
 " the pending ones once the bank has booked them."
 
 #, python-format
+msgid "%(count)s movimenti salvati"
+msgstr "%(count)s transactions saved"
+
+#, python-format
 msgid "%(count)s movimenti tolti dagli eventi."
 msgstr "%(count)s movements taken out of events."
+
+#, python-format
+msgid "%(count)s non ancora contabilizzati"
+msgstr "%(count)s not booked yet"
 
 #, python-format
 msgid "%(count)s operazioni importate."
@@ -329,6 +353,10 @@ msgstr "%(day)s: sold %(sold)s, held %(held)s"
 #, python-format
 msgid "%(days)s giorni"
 msgstr "%(days)s days"
+
+#, python-format
+msgid "%(days)s giorni fa"
+msgstr "%(days)s days ago"
 
 #, python-format
 msgid "%(deleted)s transazioni eliminate."
@@ -421,6 +449,10 @@ msgstr "%(months)s months"
 #, python-format
 msgid "%(n)s mesi"
 msgstr "%(n)s months"
+
+#, python-format
+msgid "%(n)s mesi su %(target)s"
+msgstr "%(n)s months out of %(target)s"
 
 #, python-format
 msgid "%(name)s esclusa dalle analisi"
@@ -1033,6 +1065,9 @@ msgstr "Subscriptions and fixed costs"
 msgid "Accantona %(amount)s al mese"
 msgstr "Set aside %(amount)s a month"
 
+msgid "Accantonamenti"
+msgstr "Set-asides"
+
 msgid "Accedi"
 msgstr "Sign in"
 
@@ -1123,6 +1158,9 @@ msgstr "Update the %(year)s statements"
 msgid "Aggiorna il preset"
 msgstr "Update the preset"
 
+msgid "Aggiorna ora"
+msgstr "Update now"
+
 msgid "Aggiorna prezzi"
 msgstr "Update prices"
 
@@ -1156,9 +1194,6 @@ msgstr "Add Holding"
 
 msgid "Aggiungi Posizione al Portafoglio"
 msgstr "Add Holding to Portfolio"
-
-msgid "Aggiungi Transazione"
-msgstr "Add Transaction"
 
 msgid "Aggiungi a Google Calendar"
 msgstr "Add to Google Calendar"
@@ -1526,10 +1561,6 @@ msgstr[1] "Undone: the %(num)d added transactions were removed."
 msgid "Annuo"
 msgstr "Yearly"
 
-#, python-format
-msgid "Annuo dall’inizio: %(rate)s%%"
-msgstr "Yearly since the start: %(rate)s%%"
-
 msgid "Anteprima"
 msgstr "Preview"
 
@@ -1563,6 +1594,9 @@ msgstr "Apply selected"
 msgid "Applica subito alle transazioni senza categoria"
 msgstr "Apply now to transactions without a category"
 
+msgid "Applicazione Enable Banking"
+msgstr "Enable Banking application"
+
 msgid "Apr"
 msgstr "Apr"
 
@@ -1576,8 +1610,17 @@ msgstr ""
 msgid "Apri"
 msgstr "Open"
 
-msgid "Apri i debiti"
-msgstr "Open the debts"
+msgid "Apri Debiti"
+msgstr "Open Debts"
+
+msgid "Apri Obiettivi"
+msgstr "Open Goals"
+
+msgid "Apri Pensione"
+msgstr "Open Retirement"
+
+msgid "Apri i conti"
+msgstr "Open the accounts"
 
 msgid "Apri il conto"
 msgstr "Open the account"
@@ -1595,14 +1638,19 @@ msgstr "Open the securities account"
 msgid "Apri il dettaglio"
 msgstr "Open the detail"
 
-msgid "Apri il portafoglio"
-msgstr "Open the portfolio"
+msgid "Apri il flusso di cassa"
+msgstr "Open the cash flow"
 
 msgid "Apri le previsioni"
 msgstr "Open the forecast"
 
 msgid "Apri lo Stato Patrimoniale"
 msgstr "Open the Balance Sheet"
+
+msgid "Apri «Controlla» sui conti per vedere i movimenti in attesa e salvarli."
+msgstr ""
+"Open «Review» on the accounts to see the waiting transactions and save "
+"them."
 
 msgid "Aprili in MyFinancePlace → Notifiche."
 msgstr "Open them in MyFinancePlace → Notifications."
@@ -1781,6 +1829,9 @@ msgstr "Today's alerts"
 #, python-format
 msgid "Avviso all'%(share)s%% e quando lo superi. Lascia vuoto per nessun budget."
 msgstr "Warning at %(share)s%% and when you go over it. Leave empty for no budget."
+
+msgid "Azienda"
+msgstr "Business"
 
 msgid "Azionario"
 msgstr "Equities"
@@ -2004,6 +2055,9 @@ msgstr "Bank transfer"
 msgid "Borsa"
 msgstr "Exchange"
 
+msgid "Bridge del mese"
+msgstr "The month's bridge"
+
 msgid "Broker"
 msgstr "Broker"
 
@@ -2023,9 +2077,6 @@ msgstr "Budget %(category)s exceeded"
 
 msgid "Budget (€)"
 msgstr "Budget (€)"
-
-msgid "Budget Mensili"
-msgstr "Monthly Budgets"
 
 msgid "Budget del mese:"
 msgstr "This month's budget:"
@@ -2048,6 +2099,9 @@ msgstr "Monthly budget for %(name)s"
 
 msgid "Budget per categoria"
 msgstr "Budget by category"
+
+msgid "Budget più vicini al limite"
+msgstr "Budgets closest to the limit"
 
 msgid "Budget salvati."
 msgstr "Budgets saved."
@@ -2088,6 +2142,9 @@ msgstr "Computed from the account's rule, if it has one; correct it if needed."
 msgid "Calcolo commissioni"
 msgstr "Fee calculator"
 
+msgid "Calendario"
+msgstr "Calendar"
+
 msgid "Calendario del mese"
 msgstr "Month calendar"
 
@@ -2121,6 +2178,9 @@ msgstr "Official ECB rates"
 
 msgid "Cambia colonne"
 msgstr "Change columns"
+
+msgid "Cambia i budget"
+msgstr "Change the budgets"
 
 msgid "Cambia i campi"
 msgstr "Change the fields"
@@ -2410,6 +2470,9 @@ msgstr "Categories month by month — %(year)s"
 msgid "Categorie nel tempo"
 msgstr "Categories over time"
 
+msgid "Categorie proposte dall'AI da confermare"
+msgstr "Categories suggested by the AI to confirm"
+
 #, python-format
 msgid ""
 "Categorie riordinate: %(moved)s transazioni spostate, %(merged)s "
@@ -2417,6 +2480,9 @@ msgid ""
 msgstr ""
 "Categories reordered: %(moved)s transactions moved, %(merged)s categories"
 " merged."
+
+msgid "Categorie sforate"
+msgstr "Categories over budget"
 
 msgid "Categorie, gruppi e tag"
 msgstr "Categories, groups and tags"
@@ -2516,6 +2582,9 @@ msgstr ""
 "Key of the MyFinancePlace encrypted data (code %(code)s). Keep it with "
 "the backups, somewhere safe: without it, card numbers cannot be read on "
 "another computer."
+
+msgid "Chiave privata (.pem)"
+msgstr "Private key (.pem)"
 
 #, python-format
 msgid ""
@@ -2633,6 +2702,9 @@ msgstr "Click to edit it here"
 msgid "Clic per modificarlo"
 msgstr "Click to edit it"
 
+msgid "Clic su una categoria per le sue transazioni."
+msgstr "Click a category for its transactions."
+
 msgid "Clicca per partire da un modello: potrai cambiare nome e importo"
 msgstr "Click to start from a template: you can change name and amount"
 
@@ -2691,6 +2763,24 @@ msgstr "Link movements"
 
 msgid "Collega movimenti del conto"
 msgstr "Link account movements"
+
+msgid "Collega una banca"
+msgstr "Link a bank"
+
+msgid "Collegamenti bancari"
+msgstr "Bank connections"
+
+msgid ""
+"Collegamento bancario non configurato: inserisci l'ID dell'applicazione "
+"Enable Banking e la sua chiave privata."
+msgstr ""
+"Bank connection not set up: enter the Enable Banking application ID and "
+"its private key."
+
+msgid ""
+"Collegamento non riconosciuto o scaduto: ricomincia da «Collega una "
+"banca»."
+msgstr "Connection not recognised or expired: start again from «Link a bank»."
 
 msgid "Colonna Categoria"
 msgstr "Category column"
@@ -2790,6 +2880,9 @@ msgstr ""
 
 msgid "Come sarebbe andato nel passato"
 msgstr "How it would have gone in the past"
+
+msgid "Come sto"
+msgstr "How I'm doing"
 
 msgid "Commissione"
 msgstr "Commission"
@@ -3048,6 +3141,9 @@ msgstr "Set up the AI models"
 msgid "Configura un modello AI"
 msgstr "Set up an AI model"
 
+msgid "Configurata"
+msgstr "Set up"
+
 msgid "Confronta"
 msgstr "Compare"
 
@@ -3078,6 +3174,24 @@ msgid ""
 "Confronto tra due modelli e tra ribilanciare o no (mensile, annuale, a "
 "bande)"
 msgstr "Two models compared, and rebalancing or not (monthly, yearly, with bands)"
+
+msgid "Consenso in scadenza"
+msgstr "Consent expiring"
+
+#, python-format
+msgid "Consenso in scadenza: %(bank)s"
+msgstr "Consent expiring: %(bank)s"
+
+msgid "Consenso scaduto"
+msgstr "Consent expired"
+
+#, python-format
+msgid "Consenso scaduto: %(bank)s"
+msgstr "Consent expired: %(bank)s"
+
+#, python-format
+msgid "Consenso valido fino al %(day)s"
+msgstr "Consent valid until %(day)s"
 
 msgid "Consigliato: il più preciso nel leggere documenti e tabelle"
 msgstr "Recommended: the most accurate at reading documents and tables"
@@ -3163,6 +3277,9 @@ msgstr "Accounts and Cards"
 msgid "Conti e investimenti"
 msgstr "Accounts and investments"
 
+msgid "Conti in breve"
+msgstr "Accounts at a glance"
+
 msgid "Conti su cui arrivano i versamenti"
 msgstr "Accounts the payments arrive on"
 
@@ -3203,6 +3320,12 @@ msgstr "Account of the loan «%(name)s»"
 #, python-format
 msgid "Conto del prestito «%(name)s» aperto: le rate versate lo riducono."
 msgstr "Loan account «%(name)s» opened: the installments paid reduce it."
+
+msgid "Conto dell'app"
+msgstr "Account in the app"
+
+msgid "Conto della banca"
+msgstr "Bank account"
 
 msgid "Conto deposito"
 msgstr "Savings account"
@@ -3301,6 +3424,10 @@ msgstr "Contribution of the holdings"
 
 msgid "Contribuzione mensile"
 msgstr "Monthly contribution"
+
+#, python-format
+msgid "Controlla %(count)s"
+msgstr "Review %(count)s"
 
 msgid "Controlla conto, banca e movimenti"
 msgstr "Check account, bank and movements"
@@ -3494,6 +3621,24 @@ msgstr "Create a model"
 msgid "Crea utente"
 msgstr "Create user"
 
+msgid ""
+"Credenziali di Enable Banking rimosse: i download si fermano finché non "
+"le inserisci di nuovo."
+msgstr ""
+"Enable Banking credentials removed: downloads stop until you enter them "
+"again."
+
+msgid "Credenziali di Enable Banking salvate."
+msgstr "Enable Banking credentials saved."
+
+#, python-format
+msgid ""
+"Credenziali impostate dal server (ENABLE_BANKING_APP_ID, "
+"ENABLE_BANKING_KEY_FILE): applicazione %(app)s."
+msgstr ""
+"Credentials set by the server (ENABLE_BANKING_APP_ID, "
+"ENABLE_BANKING_KEY_FILE): application %(app)s."
+
 msgid "Crediti verso persone"
 msgstr "Owed to me by people"
 
@@ -3551,6 +3696,44 @@ msgstr "To confirm"
 msgid "Da confermare (AI): %(count)s"
 msgstr "To confirm (AI): %(count)s"
 
+msgid "Da configurare"
+msgstr "To set up"
+
+msgid "Da controllare"
+msgstr "To review"
+
+msgid ""
+"Da costruire: dirà perché il patrimonio è cambiato nel periodo, a cascata"
+" — versamenti, rendite, plus e minusvalenze, costi e tasse. I movimenti "
+"che servono ci sono già."
+msgstr ""
+"To be built: it will show why the net worth changed in the period, as a "
+"waterfall — contributions, income, gains and losses, costs and taxes. The"
+" movements it needs are already there."
+
+msgid ""
+"Da costruire: il debito residuo fino all'estinzione, dai piani di "
+"ammortamento che ci sono già."
+msgstr ""
+"To be built: the remaining debt until it is paid off, from the "
+"amortization plans already there."
+
+msgid ""
+"Da costruire: il patrimonio di oggi proiettato al ritmo di risparmio "
+"attuale, con il rendimento che sceglierai; il passato pieno, il futuro "
+"tratteggiato. I dati ci sono già."
+msgstr ""
+"To be built: today's net worth projected at the current saving pace, with"
+" the return you choose; the past solid, the future dashed. The data are "
+"already there."
+
+msgid ""
+"Da costruire: la data prevista per ogni obiettivo. Diventa precisa quando"
+" gli obiettivi saranno collegati a un conto o a un portafoglio."
+msgstr ""
+"To be built: the expected date of each goal. It becomes precise when the "
+"goals are linked to an account or a portfolio."
+
 msgid ""
 "Da dove arrivano le entrate e dove vanno: categorie di entrata → uscite e"
 " risparmio"
@@ -3598,6 +3781,12 @@ msgstr "From when it counts in the balance sheet of past months."
 
 msgid "Da restituire entro (facoltativo)"
 msgstr "To be given back by (optional)"
+
+msgid "Da riconciliare"
+msgstr "To reconcile"
+
+msgid "Da sistemare"
+msgstr "To fix"
 
 msgid "Da tutte le istantanee"
 msgstr "From all snapshots"
@@ -3785,6 +3974,9 @@ msgstr "Other debts"
 msgid "Debiti verso persone"
 msgstr "Owed by me to people"
 
+msgid "Debiti: quando finisco"
+msgstr "Debts: when I finish"
+
 msgid "Debito"
 msgstr "Debt"
 
@@ -3799,6 +3991,9 @@ msgstr "Total Debt"
 
 msgid "Debito rimborsato"
 msgstr "Debt repaid"
+
+msgid "Debito totale"
+msgstr "Total debt"
 
 #, python-format
 msgid "Debito «%(name)s» aggiornato."
@@ -4096,9 +4291,16 @@ msgstr "Where it is held"
 msgid "Download"
 msgstr "Download"
 
+msgid "Download automatico"
+msgstr "Automatic download"
+
 #, python-format
 msgid "Download di %(name)s avviato: puoi seguire l'avanzamento qui sotto."
 msgstr "Download of %(name)s started: you can follow the progress below."
+
+#, python-format
+msgid "Download non riuscito: %(bank)s"
+msgstr "Download failed: %(bank)s"
 
 msgid ""
 "Due mesi prima compare tra i promemoria; il giorno della scadenza è nello"
@@ -4328,6 +4530,27 @@ msgstr[1] "%(num)d transactions deleted."
 msgid "Emittente"
 msgstr "Issuer"
 
+#, python-format
+msgid ""
+"Enable Banking ha rifiutato le credenziali: controlla l'ID "
+"dell'applicazione e la chiave privata (%(detail)s)."
+msgstr ""
+"Enable Banking refused the credentials: check the application ID and the "
+"private key (%(detail)s)."
+
+msgid "Enable Banking non ha indicato la pagina della banca: riprova."
+msgstr "Enable Banking did not give the bank's page: try again."
+
+#, python-format
+msgid ""
+"Enable Banking non raggiungibile: controlla la connessione a internet "
+"(%(detail)s)."
+msgstr "Enable Banking not reachable: check the internet connection (%(detail)s)."
+
+#, python-format
+msgid "Enable Banking: %(detail)s"
+msgstr "Enable Banking: %(detail)s"
+
 msgid "Energia"
 msgstr "Energy"
 
@@ -4397,8 +4620,15 @@ msgstr "Income and expenses"
 msgid "Entrate e uscite cumulate nel flusso di cassa"
 msgstr "Cumulative income and expenses in the cash flow"
 
+msgid "Entrate e uscite del periodo"
+msgstr "Income and expenses of the period"
+
 msgid "Entrate e uscite per mese"
 msgstr "Income and expenses by month"
+
+#, python-format
+msgid "Entrate e uscite — %(period)s"
+msgstr "Income and expenses — %(period)s"
 
 msgid "Entrate per categoria"
 msgstr "Income by category"
@@ -4765,9 +4995,6 @@ msgstr "Filter"
 msgid "Filtra per categoria"
 msgstr "Filter by category"
 
-msgid "Filtra per categoria o conto"
-msgstr "Filter by category or account"
-
 msgid "Filtra per importo"
 msgstr "Filter by amount"
 
@@ -4885,8 +5112,15 @@ msgstr "Net Flow"
 msgid "Flusso Operativo Netto"
 msgstr "Net Operating Flow"
 
+msgid "Flusso del denaro"
+msgstr "Money flow"
+
 msgid "Flusso del denaro (Sankey)"
 msgstr "Money flow (Sankey)"
+
+#, python-format
+msgid "Flusso del denaro — %(period)s"
+msgstr "Money flow — %(period)s"
 
 msgid "Flusso di Cassa"
 msgstr "Cash Flow"
@@ -4993,6 +5227,10 @@ msgstr "Supplier"
 msgid "Fotografie della situazione finanziaria nel tempo"
 msgstr "Pictures of your financial situation over time"
 
+#, python-format
+msgid "Fra 12 mesi %(amount)s"
+msgstr "In 12 months %(amount)s"
+
 msgid "Franco svizzero"
 msgstr "Swiss franc"
 
@@ -5019,14 +5257,17 @@ msgstr "Invalid frequency."
 msgid "Frequenza sconosciuta."
 msgstr "Unknown frequency."
 
-msgid "Fuori Budget"
-msgstr "Outside Budget"
+msgid "Fuori budget"
+msgstr "Outside the budget"
 
 msgid "Fuori dal modello"
 msgstr "Outside the model"
 
 msgid "Fuori tolleranza"
 msgstr "Outside tolerance"
+
+msgid "Futuro"
+msgstr "Future"
 
 msgid "Garanzia"
 msgstr "Warranty"
@@ -5073,6 +5314,9 @@ msgstr "Thu"
 
 msgid "Giorni con spese"
 msgstr "Days with spending"
+
+msgid "Giorni del mese"
+msgstr "Days of the month"
 
 msgid "Giorni più cari:"
 msgstr "Most expensive days:"
@@ -5173,12 +5417,11 @@ msgstr ""
 "Balance sheets and the net worth trend value the holding at the latest "
 "price known on that date."
 
+msgid "Gli ultimi 12 mesi con budget"
+msgstr "The last 12 months with a budget"
+
 msgid "Globale"
 msgstr "Global"
-
-#, python-format
-msgid "Grafici: %(period)s"
-msgstr "Charts: %(period)s"
 
 msgid "Grafico Entrate per Categoria"
 msgstr "Income by Category Chart"
@@ -5308,6 +5551,13 @@ msgstr ""
 msgid "I metodi"
 msgstr "The methods"
 
+msgid ""
+"I movimenti di questo conto della banca vanno sul conto scelto. Senza "
+"conto restano da controllare."
+msgstr ""
+"The transactions of this bank account go to the chosen account. Without "
+"one they wait for review."
+
 msgid "I movimenti in queste valute non si possono convertire in euro."
 msgstr "Movements in these currencies cannot be converted to euro."
 
@@ -5393,6 +5643,9 @@ msgstr ""
 "The first %(count)s make %(pct)s%% of the portfolio (%(total)s holdings "
 "in all)."
 
+msgid "I saldi per tipo di conto"
+msgstr "Balances by kind of account"
+
 msgid ""
 "I soldi messi nel conto titoli dall'inizio, meno quelli ritirati. Con il "
 "versato il calcolo ricava le commissioni e i costi già pagati: versato − "
@@ -5430,6 +5683,9 @@ msgstr "Accounts' IBANs"
 
 msgid "IC cripto-attività"
 msgstr "IC crypto-assets"
+
+msgid "ID dell'applicazione"
+msgstr "Application ID"
 
 msgid ""
 "IMU (16 giugno e 16 dicembre), saldo e acconti IRPEF (30 giugno e 30 "
@@ -5552,11 +5808,27 @@ msgstr "The classic balanced mix: equities to grow, bonds to cushion the falls."
 msgid "Il budget non può essere negativo."
 msgstr "The budget cannot be negative."
 
+msgid ""
+"Il calcolo c'è già in Previsioni → Pensione: qui arriverà il ventaglio "
+"delle simulazioni con la linea di quanto serve."
+msgstr ""
+"The calculation is already in Forecasts → Retirement: the fan of the "
+"simulations with the line of what is needed will come here."
+
 msgid "Il codice ISIN del titolo: il modo più sicuro di riconoscerlo."
 msgstr "The holding's ISIN code: the surest way to recognise it."
 
+msgid ""
+"Il collegamento era stato avviato in un altro archivio: aprilo e "
+"ricomincia."
+msgstr "The connection was started in another archive: open it and start again."
+
 msgid "Il compenso lordo deve essere positivo."
 msgstr "The gross fee must be positive."
+
+#, python-format
+msgid "Il consenso per %(bank)s è scaduto: rinnovalo."
+msgstr "The consent for %(bank)s has expired: renew it."
 
 msgid "Il consumo non può essere negativo."
 msgstr "Consumption cannot be negative."
@@ -5698,6 +5970,13 @@ msgstr "The file is not a MyFinancePlace backup."
 msgid "Il file non è un export degli investimenti di MyFinancePlace."
 msgstr "The file is not a MyFinancePlace investments export."
 
+msgid ""
+"Il file scaricato quando hai creato l'applicazione. Viene conservato "
+"cifrato nella cartella dei dati."
+msgstr ""
+"The file downloaded when you created the application. It is kept "
+"encrypted in the data folder."
+
 msgid "Il file è vuoto."
 msgstr "The file is empty."
 
@@ -5741,6 +6020,12 @@ msgstr "The job is back to be collected."
 
 msgid "Il lavoro è già incassato."
 msgstr "The job is already collected."
+
+msgid "Il mese in breve"
+msgstr "The month at a glance"
+
+msgid "Il mese in corso"
+msgstr "The current month"
 
 msgid "Il metodo scelto, così com'è."
 msgstr "The chosen method, as it is."
@@ -5874,6 +6159,13 @@ msgstr "Wealth over the years"
 
 msgid "Il percorso completo, sul computer dove gira l’app."
 msgstr "The full path, on the computer where the app runs."
+
+msgid ""
+"Il periodo della barra in alto; sotto ogni cifra la previsione e, con "
+"«Confronta», il periodo prima."
+msgstr ""
+"The period of the top bar; under each figure the forecast and, with "
+"«Compare», the period before."
 
 msgid "Il periodo della stessa durata appena prima"
 msgstr "The period of the same length just before"
@@ -6102,6 +6394,9 @@ msgstr "Import Bank Statement"
 msgid "Importa Transazioni"
 msgstr "Import Transactions"
 
+msgid "Importa da file"
+msgstr "Import from file"
+
 msgid "Importa dal broker"
 msgstr "Import from broker"
 
@@ -6279,6 +6574,10 @@ msgstr "Settings"
 msgid "Impostazioni dell'app salvate."
 msgstr "App settings saved."
 
+#, python-format
+msgid "Impostazioni di %(bank)s salvate."
+msgstr "%(bank)s settings saved."
+
 msgid "Impostazioni ripristinate ai valori predefiniti."
 msgstr "Settings reset to the defaults."
 
@@ -6332,9 +6631,6 @@ msgstr "Up"
 msgid "In calo"
 msgstr "Down"
 
-msgid "In corso"
-msgstr "Ongoing"
-
 msgid "In euro"
 msgstr "In euro"
 
@@ -6358,6 +6654,10 @@ msgstr ""
 
 msgid "In scadenza"
 msgstr "Expiring"
+
+#, python-format
+msgid "In tutto %(amount)s"
+msgstr "In all %(amount)s"
 
 msgid "In uso"
 msgstr "In use"
@@ -6443,6 +6743,9 @@ msgstr "Financial independence"
 
 msgid "Indirizzo"
 msgstr "Address"
+
+msgid "Indirizzo di ritorno da registrare nell'applicazione:"
+msgstr "Redirect URL to register in the application:"
 
 msgid "Indirizzo: deve iniziare con https:// (o http://)."
 msgstr "Address: it must start with https:// (or http://)."
@@ -6741,6 +7044,13 @@ msgid "La"
 msgstr "The"
 
 #, python-format
+msgid "La banca non ha dato il consenso (%(detail)s)."
+msgstr "The bank did not give the consent (%(detail)s)."
+
+msgid "La banca non ha indicato conti in questo consenso."
+msgstr "The bank listed no accounts in this consent."
+
+#, python-format
 msgid "La categoria «%(name)s» esiste già: aggiornata."
 msgstr "The category «%(name)s» already exists: updated."
 
@@ -6859,6 +7169,13 @@ msgid ""
 msgstr "The dashed grey line is the expenses of the same months a year before."
 
 msgid ""
+"La liquidità di oggi con le scadenze dello Scadenzario: ricorrenti, rate,"
+" polizze, promemoria con importo."
+msgstr ""
+"Today's liquid money with the deadlines of the Schedule: recurring "
+"payments, instalments, policies, reminders with an amount."
+
+msgid ""
 "La parte delle entrate di ogni mese che resta, confrontata con l'anno "
 "prima"
 msgstr "The share of each month's income left over, compared with the year before"
@@ -6872,6 +7189,16 @@ msgstr "The password must be at least %(n)s characters long."
 
 msgid "La più alta"
 msgstr "Largest"
+
+msgid "La più grossa"
+msgstr "The biggest"
+
+msgid ""
+"La previsione di Previsioni: la banda va dal metodo più prudente al più "
+"ottimista."
+msgstr ""
+"The forecast of Forecasts: the band goes from the most cautious method to"
+" the most optimistic one."
 
 msgid "La prima cedola non può essere dopo la scadenza."
 msgstr "The first coupon cannot be after the maturity."
@@ -6929,6 +7256,9 @@ msgstr ""
 
 msgid "La tabella delle partecipazioni non ha righe con un peso."
 msgstr "The holdings table has no rows with a weight."
+
+msgid "La tacca dice dove dovresti essere oggi, a questo punto del mese."
+msgstr "The notch shows where you should be today, at this point of the month."
 
 msgid "La tolleranza va da 0 a 50 punti."
 msgstr "The tolerance goes from 0 to 50 points."
@@ -7012,6 +7342,9 @@ msgstr ""
 "paid with a card say so, and the account's page shows what each spent "
 "this month."
 
+msgid "Le categorie, dalla più vicina al limite"
+msgstr "The categories, closest to the limit first"
+
 msgid ""
 "Le causali dei movimenti verranno inviate ad Anthropic (cloud) per la "
 "classificazione. Continuare?"
@@ -7044,8 +7377,33 @@ msgstr "Fees are computed with the account's rule."
 msgid "Le copie da tenere vanno da 1 a 100."
 msgstr "Copies to keep go from 1 to 100."
 
+msgid ""
+"Le cose che chiedono un tuo sguardo: un clic apre la pagina dove si "
+"sistemano."
+msgstr "The things that need a look: a click opens the page where they are fixed."
+
+msgid ""
+"Le credenziali sono impostate dal server (ENABLE_BANKING_APP_ID): si "
+"cambiano lì."
+msgstr ""
+"The credentials are set by the server (ENABLE_BANKING_APP_ID): change "
+"them there."
+
 msgid "Le due password non coincidono."
 msgstr "The two passwords do not match."
+
+msgid ""
+"Le entrate del mese, poi quanto si è preso ogni gruppo di spesa e quanto "
+"hai risparmiato; se hai speso più delle entrate, quanto hai preso dai "
+"risparmi. I giroconti tra i tuoi conti e i prelievi verso Contanti non "
+"sono spese: quei soldi sono ancora tuoi e restano nei risparmi. Le "
+"riconciliazioni non contano."
+msgstr ""
+"The month's income, then what each spending group took and what you "
+"saved; if you spent more than the income, what you took from the savings."
+" Transfers between your accounts and withdrawals to Cash are not "
+"expenses: that money is still yours and stays in the savings. "
+"Reconciliations do not count."
 
 msgid ""
 "Le età devono essere in ordine: oggi < pensione < fine dell'orizzonte (al"
@@ -7060,10 +7418,6 @@ msgid ""
 msgstr ""
 "Images are not supported: download the PDF, Excel or CSV of the movements"
 " from online banking."
-
-#, python-format
-msgid "Le più grandi del periodo: %(period)s"
-msgstr "The largest of the period: %(period)s"
 
 msgid "Le più vecchie si cancellano da sole."
 msgstr "The oldest are deleted automatically."
@@ -7131,6 +7485,16 @@ msgid ""
 msgstr ""
 "Next month's PAC instalments and the rules' alerts (drift, cash to "
 "invest, market moves…)."
+
+msgid ""
+"Le scadenze da almeno 300 € dello Scadenzario (bollo, polizze, rate, "
+"tasse), mese per mese."
+msgstr ""
+"The deadlines of at least €300 in the Schedule (car tax, policies, "
+"instalments, taxes), month by month."
+
+msgid "Le scadenze in breve"
+msgstr "Deadlines at a glance"
 
 msgid "Le scelte vengono ricordate"
 msgstr "Your choices are remembered"
@@ -7214,13 +7578,19 @@ msgstr "Your rules"
 msgid "Le tue scadenze"
 msgstr "Your deadlines"
 
-msgid "Le ultime registrate"
-msgstr "The last recorded"
-
 msgid ""
 "Le ultime registrate o le più grandi del periodo, anche di una sola "
 "categoria"
 msgstr "The last recorded or the biggest of the period, also of one category only"
+
+msgid ""
+"Le uscite del mese sommate giorno per giorno, contro lo stesso giorno del"
+" mese scorso (tratteggiato) e, se ci sono budget, la linea che li "
+"raggiunge a fine mese."
+msgstr ""
+"The month's expenses added up day by day, against the same day of last "
+"month (dashed) and, when there are budgets, the line that reaches them at"
+" the end of the month."
 
 msgid "Le uscite per gruppo di spesa e, dentro, per categoria."
 msgstr "Expenses by spending group and, inside, by category."
@@ -7310,6 +7680,15 @@ msgstr "Read with AI"
 msgid "Lettura con l'intelligenza artificiale"
 msgstr "Reading with artificial intelligence"
 
+msgid ""
+"Lettura dei movimenti tramite PSD2: dai il consenso sul sito della tua "
+"banca, che dura fino a 180 giorni. MyFinancePlace legge soltanto, non può"
+" disporre pagamenti."
+msgstr ""
+"Reading transactions through PSD2: you give the consent on your bank's "
+"site, valid up to 180 days. MyFinancePlace only reads, it cannot make "
+"payments."
+
 msgid "Lettura delle colonne…"
 msgstr "Reading the columns…"
 
@@ -7348,6 +7727,9 @@ msgstr "Cash to invest on the securities accounts above (€)"
 #, python-format
 msgid "Liquidità ora su «%(account)s»"
 msgstr "Cash now on «%(account)s»"
+
+msgid "Liquidità prevista"
+msgstr "Expected liquid money"
 
 msgid "Liquidità su"
 msgstr "Cash on"
@@ -7487,6 +7869,10 @@ msgstr "Max"
 
 msgid "Media"
 msgstr "Average"
+
+#, python-format
+msgid "Media 12 mesi %(rate)s%%"
+msgstr "12-month average %(rate)s%%"
 
 msgid ""
 "Media a pesi lineari: x̂ = Σ i·xᵢ / Σ i, con peso 1 al mese più vecchio e"
@@ -8014,6 +8400,9 @@ msgstr ""
 "On the chosen day a reminder appears: you confirm the purchases, split as"
 " the model portfolio says, at the day's prices."
 
+msgid "Nel tempo"
+msgstr "Over time"
+
 msgid "Nella sua valuta"
 msgstr "In its currency"
 
@@ -8057,6 +8446,12 @@ msgstr ""
 msgid "Nessun backup ancora."
 msgstr "No backup yet."
 
+msgid "Nessun budget per questo mese."
+msgstr "No budget for this month."
+
+msgid "Nessun budget per questo mese: scegli le cifre nella scheda «Categorie»."
+msgstr "No budget for this month: choose the amounts in the «Categories» tab."
+
 msgid ""
 "Nessun cambio salvato: le transazioni in altre valute contano 1:1 finché "
 "non ne aggiungi uno."
@@ -8069,6 +8464,9 @@ msgstr "No rate: counted 1:1"
 
 msgid "Nessun conto"
 msgstr "No account"
+
+msgid "Nessun conto attivo."
+msgstr "No active account."
 
 msgid "Nessun conto corrente, conto deposito o investimento."
 msgstr "No current account, deposit account or investment."
@@ -8093,6 +8491,9 @@ msgstr ""
 "No data: upload the holdings file or type the top countries and sectors "
 "by hand."
 
+msgid "Nessun debito in corso"
+msgstr "No debt in progress"
+
 msgid "Nessun debito in corso."
 msgstr "No active debts."
 
@@ -8115,8 +8516,8 @@ msgstr ""
 "No documents. Upload the invoice or receipt in Documents and link it to "
 "this transaction."
 
-msgid "Nessun evento."
-msgstr "No events."
+msgid "Nessun evento: creane uno qui sotto e assegnagli i movimenti."
+msgstr "No events: create one below and assign its movements."
 
 msgid ""
 "Nessun gruppo: creane uno qui sotto con gli archivi delle persone della "
@@ -8135,6 +8536,9 @@ msgstr "No investments: add the positions in the Portfolio."
 #, python-format
 msgid "Nessun lavoro registrato nel %(year)s."
 msgstr "No jobs recorded in %(year)s."
+
+msgid "Nessun mese con budget negli ultimi 12 mesi."
+msgstr "No month with a budget in the last 12 months."
 
 msgid "Nessun modello AI configurato (Impostazioni → Modelli AI)."
 msgstr "No AI model configured (Settings → AI models)."
@@ -8167,8 +8571,14 @@ msgstr ""
 msgid "Nessun movimento da registrare."
 msgstr "No movements to record."
 
+msgid "Nessun movimento in attesa su questo conto."
+msgstr "No transactions waiting on this account."
+
 msgid "Nessun movimento in questo anno."
 msgstr "No movements in this year."
+
+msgid "Nessun movimento in questo mese."
+msgstr "No movements this month."
 
 msgid "Nessun movimento in questo periodo: cambia il periodo in alto."
 msgstr "No movements in this period: change the period on top."
@@ -8285,6 +8695,9 @@ msgid ""
 msgstr ""
 "No linked cards: add the debit, credit or prepaid cards charged on this "
 "account."
+
+msgid "Nessuna carta: aggiungila dalla pagina del suo conto."
+msgstr "No card: add it from its account's page."
 
 msgid "Nessuna categoria prevista."
 msgstr "No category forecast."
@@ -8415,6 +8828,9 @@ msgstr "No readable row with these columns."
 msgid "Nessuna scadenza"
 msgstr "No expiry"
 
+msgid "Nessuna scadenza grossa nei prossimi 12 mesi."
+msgstr "No big deadline in the next 12 months."
+
 msgid "Nessuna scadenza in questo mese."
 msgstr "No deadlines this month."
 
@@ -8466,6 +8882,9 @@ msgstr ""
 "No expenses in the categories linked to the 730 items this year. Link the"
 " categories below."
 
+msgid "Nessuna spesa non mensile negli ultimi 12 mesi: niente da accantonare."
+msgstr "No non-monthly expenses in the last 12 months: nothing to set aside."
+
 msgid "Nessuna spesa registrata"
 msgstr "No spending recorded"
 
@@ -8496,9 +8915,6 @@ msgstr ""
 
 msgid "Nessuna transazione selezionata."
 msgstr "No transactions selected."
-
-msgid "Nessuna transazione. Aggiungi la prima!"
-msgstr "No transactions. Add the first one!"
 
 msgid "Nessuna uscita"
 msgstr "No expenses"
@@ -8839,15 +9255,6 @@ msgstr "New holding"
 msgid "Nuova regola"
 msgstr "New rule"
 
-msgid "Nuova scheda"
-msgstr "New card"
-
-msgid "Nuova scheda 2"
-msgstr "New card 2"
-
-msgid "Nuova scheda 3"
-msgstr "New card 3"
-
 msgid "Nuova transazione"
 msgstr "New transaction"
 
@@ -8985,12 +9392,19 @@ msgstr "Suggested Goals"
 msgid "Obiettivi ed eventi"
 msgstr "Goals and events"
 
+msgid "Obiettivi: quando ci arrivo"
+msgstr "Goals: when I get there"
+
 msgid "Obiettivo"
 msgstr "Target"
 
 #, python-format
 msgid "Obiettivo %%"
 msgstr "Target %%"
+
+#, python-format
+msgid "Obiettivo %(n)s mesi"
+msgstr "Goal %(n)s months"
 
 msgid "Obiettivo di mesi di autonomia"
 msgstr "Months of autonomy target"
@@ -9032,8 +9446,20 @@ msgstr "Today"
 msgid "Oggi %(amount)s"
 msgstr "Today %(amount)s"
 
+#, python-format
+msgid "Oggi %(start)s → fra 30 giorni %(end)s · punto più basso %(low)s"
+msgstr "Today %(start)s → in 30 days %(end)s · lowest point %(low)s"
+
 msgid "Oggi (dati attuali)"
 msgstr "Today (current data)"
+
+#, python-format
+msgid ""
+"Ogni %(hours)s ore al massimo, all'apertura dell'app e nel giro dell'app "
+"desktop: la PSD2 permette quattro letture al giorno senza di te."
+msgstr ""
+"At most every %(hours)s hours, when the app is opened and in the desktop "
+"app round: PSD2 allows four reads a day without you."
 
 msgid "Ogni anno"
 msgstr "Every year"
@@ -9479,6 +9905,9 @@ msgstr "Wrong password, or the file was modified or is damaged."
 msgid "Password: almeno %(count)s caratteri."
 msgstr "Password: at least %(count)s characters."
 
+msgid "Patrimonio"
+msgstr "Net worth"
+
 msgid "Patrimonio Netto"
 msgstr "Net Worth"
 
@@ -9511,6 +9940,9 @@ msgstr "Net worth today: %(amount)s"
 
 msgid "Patrimonio per persona"
 msgstr "Net worth by person"
+
+msgid "Patrimonio tra 10 anni"
+msgstr "Net worth in 10 years"
 
 msgid "Patrimonio, spese, volatilità e prelievo non possono essere negativi."
 msgstr "Wealth, expenses, volatility and withdrawal cannot be negative."
@@ -9798,9 +10230,6 @@ msgstr ""
 msgid "Per un patrimonio netto corretto, tieni aggiornate queste tre fonti"
 msgstr "For a correct net worth, keep these three sources up to date"
 
-msgid "Per una funzionalità futura"
-msgstr "For a future feature"
-
 msgid ""
 "Per un’auto, un telefono, un computer: la percentuale di valore persa "
 "ogni anno dall’ultima valutazione (un’auto circa 15). Vuoto: il valore "
@@ -9912,8 +10341,11 @@ msgstr ""
 "Several accounts of the same bank: «Fineco 1», «Fineco 2» as the name, "
 "«Fineco» here."
 
-msgid "Più grandi"
-msgstr "Largest"
+msgid "Più ottimista"
+msgstr "Most optimistic"
+
+msgid "Più prudente"
+msgstr "Most cautious"
 
 msgid "Più recenti"
 msgstr "Newer"
@@ -10151,6 +10583,9 @@ msgstr ""
 "Preset «%(name)s» saved: it will be applied to the next files with the "
 "same columns."
 
+msgid "Presi dai risparmi"
+msgstr "Taken from savings"
+
 msgid ""
 "Prestazioni occasionali: oltre 5.000 € lordi l’anno (tutti i committenti "
 "insieme) si paga la Gestione separata sulla parte eccedente. Per la "
@@ -10371,6 +10806,11 @@ msgstr ""
 "Before every restore the app saves the data about to be replaced. The "
 "last 10 are kept."
 
+msgid ""
+"Prima inserisci qui sotto le credenziali della tua applicazione Enable "
+"Banking."
+msgstr "First enter the credentials of your Enable Banking application below."
+
 msgid "Prima rata dell'IMU sulle case diverse dall'abitazione principale"
 msgstr "First IMU instalment on homes other than the main residence"
 
@@ -10408,6 +10848,9 @@ msgstr ""
 msgid "Primo avvio"
 msgstr "First start"
 
+msgid "Privato"
+msgstr "Personal"
+
 msgid "Probabile entrata registrata come uscita"
 msgstr "Likely income booked as an expense"
 
@@ -10436,6 +10879,9 @@ msgstr "Reminders as system notifications"
 #, python-format
 msgid "Promemoria creato: riconcilia «%(name)s» il %(day)s."
 msgstr "Reminder created: reconcile “%(name)s” on %(day)s."
+
+msgid "Promemoria da vedere"
+msgstr "Reminders to see"
 
 #, python-brace-format
 msgid "Pronti {count} file"
@@ -10475,6 +10921,9 @@ msgstr "Upcoming recurring"
 
 msgid "Prossime scadenze"
 msgstr "Next deadlines"
+
+msgid "Prossimi"
+msgstr "Next"
 
 #, python-format
 msgid "Prossimi %(days)s giorni"
@@ -10567,8 +11016,8 @@ msgstr ""
 "Which sites to use to look up ISINs and read the prices of bonds, funds "
 "and ETFs, and in which order."
 
-msgid "Quali transazioni"
-msgstr "Which transactions"
+msgid "Quando hai confrontato i saldi con la banca"
+msgstr "When you compared the balances with the bank"
 
 msgid ""
 "Quanti mesi completi recenti usare per stimare le spese e le entrate "
@@ -10576,6 +11025,13 @@ msgid ""
 msgstr ""
 "How many recent full months to use to estimate variable spending and "
 "income"
+
+msgid ""
+"Quanti mesi di spese copre la liquidità, senza stipendio, contro il tuo "
+"obiettivo (Impostazioni → Dashboard)."
+msgstr ""
+"How many months of spending the liquid money covers without a salary, "
+"against your goal (Settings → Dashboard)."
 
 msgid "Quanti mesi di spese vuoi coprire con la liquidità (di solito da 3 a 12)"
 msgstr ""
@@ -10917,6 +11373,15 @@ msgstr "Record the installment"
 msgid "Registra la restituzione"
 msgstr "Record the repayment"
 
+msgid ""
+"Registrala su enablebanking.com (Control panel → Applications): per i "
+"tuoi conti basta la modalità ristretta, gratuita, collegando i conti dal "
+"pannello"
+msgstr ""
+"Register it on enablebanking.com (Control panel → Applications): for your"
+" own accounts the free restricted mode is enough, linking the accounts "
+"from the panel"
+
 #, python-format
 msgid "Registrato fino al %(day)s + previsto"
 msgstr "Recorded up to %(day)s + expected"
@@ -11039,21 +11504,11 @@ msgstr "Return of the instruments (TWR)"
 msgid "Rendimento obbligazioni (%%)"
 msgstr "Bond return (%%)"
 
-msgid "Rendimento passato (TWR): non è una previsione"
-msgstr "Past return (TWR): not a forecast"
-
 msgid "Rendimento sugli ultimi 12 mesi: sul prezzo pagato e sul valore di oggi."
 msgstr "Yield over the last 12 months: on the price paid and on today's value."
 
 msgid "Rendimento sui tuoi soldi (XIRR)"
 msgstr "Return on your money (XIRR)"
-
-#, python-format
-msgid "Rendimento ultimi 12 mesi: %(rate)s%%"
-msgstr "Return of the last 12 months: %(rate)s%%"
-
-msgid "Rendimento: servono 12 mesi di storico"
-msgstr "Return: 12 months of history needed"
 
 msgid "Rendite"
 msgstr "Income"
@@ -11066,6 +11521,9 @@ msgstr "Passive income, 12 months"
 
 msgid "Rendite attese nei prossimi 12 mesi"
 msgstr "Income expected in the next 12 months"
+
+msgid "Rendite dei prossimi 12 mesi"
+msgstr "Income of the next 12 months"
 
 msgid "Renminbi"
 msgstr "Renminbi"
@@ -11183,8 +11641,20 @@ msgstr "Reconcile with the account balance"
 msgid "Riconcilia il conto %(name)s"
 msgstr "Reconcile the account %(name)s"
 
+msgid ""
+"Riconciliare: dire all’app il saldo che vedi in banca; la differenza "
+"diventa un movimento «Riconciliazione». Prima i conti mai riconciliati o "
+"fermi da più tempo."
+msgstr ""
+"Reconciling: telling the app the balance you see at the bank; the "
+"difference becomes a «Reconciliation» movement. First the accounts never "
+"reconciled or idle the longest."
+
 msgid "Riconciliato"
 msgstr "Reconciled"
+
+msgid "Riconciliazioni"
+msgstr "Reconciliations"
 
 msgid "Riconciliazioni registrate"
 msgstr "Recorded reconciliations"
@@ -11325,11 +11795,25 @@ msgstr "Redemption at maturity: a percentage of the nominal, usually 100."
 msgid "Rimuovere il modello %(name)s (~%(size)s GB)?"
 msgstr "Remove the model %(name)s (~%(size)s GB)?"
 
+msgid ""
+"Rimuovere le credenziali? I download si fermano finché non le inserisci "
+"di nuovo."
+msgstr "Remove the credentials? Downloads stop until you enter them again."
+
 msgid "Rimuovi"
 msgstr "Remove"
 
+msgid "Rimuovi credenziali"
+msgstr "Remove credentials"
+
 msgid "Rimuovi riga"
 msgstr "Remove row"
+
+msgid "Rinnova consenso"
+msgstr "Renew consent"
+
+msgid "Rinnovalo per continuare a scaricare i movimenti."
+msgstr "Renew it to keep downloading transactions."
 
 msgid "Rinomina"
 msgstr "Rename"
@@ -11419,6 +11903,9 @@ msgstr "Restore all the default settings?"
 msgid "Riprova"
 msgstr "Try again"
 
+msgid "Risparmi"
+msgstr "Savings"
+
 msgid "Risparmiato"
 msgstr "Saved"
 
@@ -11499,6 +11986,17 @@ msgstr "Rhythm"
 msgid "Ritmo di spesa"
 msgstr "Spending pace"
 
+#, python-format
+msgid "Ritmo di spesa — %(month)s"
+msgstr "Spending pace — %(month)s"
+
+msgid ""
+"Ritmo di spesa, bridge del mese, prossimi 30 giorni, budget più vicini al"
+" limite"
+msgstr ""
+"Spending pace, the month's bridge, next 30 days, budgets closest to the "
+"limit"
+
 msgid "Ritmo ideale"
 msgstr "Ideal pace"
 
@@ -11532,8 +12030,15 @@ msgstr "Opening Balance"
 msgid "Saldo Oggi"
 msgstr "Balance Today"
 
-msgid "Saldo Totale"
-msgstr "Total Balance"
+msgid "Saldo dei prossimi 12 mesi"
+msgstr "Balance of the next 12 months"
+
+msgid ""
+"Saldo dei prossimi 12 mesi, uscite grosse dell’anno e le previsioni in "
+"arrivo"
+msgstr ""
+"Balance of the next 12 months, the year's big expenses and the forecasts "
+"to come"
 
 msgid "Saldo del conto negli ultimi 12 mesi"
 msgstr "Account balance over the last 12 months"
@@ -11546,6 +12051,9 @@ msgstr "Expected cash balance"
 
 msgid "Saldo di oggi più il netto previsto di ogni mese"
 msgstr "Today's balance plus the expected net of each month"
+
+msgid "Saldo in banca"
+msgstr "Bank balance"
 
 msgid "Saldo iniziale"
 msgstr "Opening balance"
@@ -11639,11 +12147,20 @@ msgstr "Save as preset"
 msgid "Salva conto titoli"
 msgstr "Save securities account"
 
+msgid "Salva credenziali"
+msgstr "Save credentials"
+
+msgid "Salva da solo i movimenti nuovi"
+msgstr "Save new transactions by itself"
+
 msgid "Salva i nomi"
 msgstr "Save the names"
 
 msgid "Salva il conto, poi aggiungi le sue carte."
 msgstr "Save the account, then add its cards."
+
+msgid "Salva impostazioni"
+msgstr "Save settings"
 
 msgid "Salva la fonte"
 msgstr "Save the source"
@@ -11720,11 +12237,14 @@ msgstr "Invalid expiry: write it as MM/YY."
 msgid "Scadenza «%(title)s» salvata."
 msgstr "Deadline «%(title)s» saved."
 
+msgid "Scadenzario"
+msgstr "Schedule"
+
 msgid "Scadenze fiscali"
 msgstr "Tax deadlines"
 
-msgid "Scadenze nel mese"
-msgstr "Deadlines this month"
+msgid "Scadenze nei prossimi 7 giorni"
+msgstr "Deadlines in the next 7 days"
 
 msgid "Scaduta"
 msgstr "Expired"
@@ -11773,6 +12293,9 @@ msgstr "Download ECB rates"
 
 msgid "Scarica da Yahoo: fondi principali e i tuoi titoli"
 msgstr "Download from Yahoo: main funds and your holdings"
+
+msgid "Scarica da solo i movimenti"
+msgstr "Download transactions by itself"
 
 msgid "Scarica di nuovo"
 msgstr "Download again"
@@ -11867,6 +12390,10 @@ msgstr "Choose the account you pay the installment from."
 msgid "Scegli il conto da cui proviene l'estratto conto: carica di nuovo il file."
 msgstr "Choose the account the statement comes from: upload the file again."
 
+#, python-format
+msgid "Scegli il conto dell'app per %(name)s"
+msgstr "Choose the account in the app for %(name)s"
+
 msgid ""
 "Scegli il conto di liquidità del conto titoli: ogni conto titoli ne ha "
 "uno."
@@ -11894,6 +12421,9 @@ msgstr "Choose the backup file to restore."
 
 msgid "Scegli l'utenza."
 msgstr "Choose the utility."
+
+msgid "Scegli la banca da collegare."
+msgstr "Choose the bank to link."
 
 msgid "Scegli la cartella dove salvare i backup."
 msgstr "Choose the folder to save the backups to."
@@ -11948,6 +12478,21 @@ msgstr "Card with the total net worth (assets − liabilities)"
 
 msgid "Schede, blocchi e previsioni della dashboard nelle Impostazioni"
 msgstr "Dashboard cards, blocks and forecasts in Settings"
+
+msgid "Scollega"
+msgstr "Unlink"
+
+#, python-format
+msgid "Scollega %(bank)s"
+msgstr "Unlink %(bank)s"
+
+#, python-format
+msgid ""
+"Scollegare %(bank)s? Il consenso viene ritirato; i movimenti già salvati "
+"restano."
+msgstr ""
+"Unlink %(bank)s? The consent is withdrawn; the transactions already saved"
+" stay."
 
 msgid ""
 "Scontrini e fatture con «garanzia fino al»: un promemoria arriva 30 "
@@ -12191,9 +12736,6 @@ msgstr "Halves"
 msgid "Sensibilità"
 msgstr "Sensitivity"
 
-msgid "Senza Conto"
-msgstr "No Account"
-
 msgid "Senza categoria"
 msgstr "Uncategorized"
 
@@ -12206,8 +12748,14 @@ msgstr "No account"
 msgid "Senza dati"
 msgstr "No data"
 
+msgid "Senza gruppo"
+msgstr "No group"
+
 msgid "Senza scadenza"
 msgstr "No expiry"
+
+msgid "Senza scaricare file:"
+msgstr "Without downloading files:"
 
 msgid ""
 "Senza segno: vale la scelta Uscita / Entrata qui sopra. Scrivendo − o + "
@@ -12243,6 +12791,13 @@ msgstr ""
 "Date, Description and a signed Amount are needed (or Outflows and "
 "Inflows)."
 
+msgid ""
+"Servono almeno 3 mesi completi di movimenti: poi la previsione si disegna"
+" da sola."
+msgstr ""
+"At least 3 complete months of movements are needed: then the forecast "
+"draws itself."
+
 msgid "Servono almeno 3 mesi completi di spese per la media."
 msgstr "At least 3 complete months of spending are needed for the average."
 
@@ -12268,6 +12823,29 @@ msgstr "Some movements are needed to make a forecast"
 msgid "Servono i prezzi di allora: aggiorna i prezzi o aggiungi lo storico."
 msgstr "The prices of then are needed: update the prices or add the history."
 
+msgid ""
+"Servono i prezzi giornalieri dei titoli: arrivano con il database dei "
+"prezzi del Portafoglio (Fase 2). Allora dirà quanto sei sotto il massimo "
+"e da quanto."
+msgstr ""
+"The daily prices of the securities are needed: they come with the "
+"Portfolio's price database (Phase 2). Then it will show how far below the"
+" peak you are, and for how long."
+
+msgid ""
+"Servono l'ID dell'applicazione e la sua chiave privata (il file .pem "
+"scaricato da Enable Banking)."
+msgstr ""
+"The application ID and its private key are needed (the .pem file "
+"downloaded from Enable Banking)."
+
+msgid ""
+"Servono le cedole e i dividendi previsti dei titoli: arrivano con il "
+"database dei prezzi del Portafoglio (Fase 2)."
+msgstr ""
+"The expected coupons and dividends of the securities are needed: they "
+"come with the Portfolio's price database (Phase 2)."
+
 msgid "Set"
 msgstr "Sep"
 
@@ -12289,6 +12867,12 @@ msgstr "Section turned off"
 msgid "Sezioni"
 msgstr "Sections"
 
+msgid "Sezioni dei promemoria"
+msgstr "Reminder sections"
+
+msgid "Sezioni del budget"
+msgstr "Budget sections"
+
 msgid "Sezioni del fisco"
 msgstr "Tax sections"
 
@@ -12299,9 +12883,15 @@ msgstr "Portfolio sections"
 msgid "Sezioni di %(name)s"
 msgstr "Sections of %(name)s"
 
+msgid "Sezioni di conti e carte"
+msgstr "Accounts and cards sections"
+
 #, python-format
 msgid "Sezioni di «%(name)s» aggiornate."
 msgstr "Sections of «%(name)s» updated."
+
+msgid "Sforate"
+msgstr "Over budget"
 
 msgid "Si chiudono solo gli anni passati."
 msgstr "Only past years can be closed."
@@ -12410,11 +13000,23 @@ msgstr "Investments only: export and restore"
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
 
+msgid ""
+"Solo quelli che non somigliano a niente di già salvato e hanno un conto "
+"scelto: gli altri (possibili doppioni, giroconti da collegare) restano da"
+" controllare."
+msgstr ""
+"Only those that look like nothing already saved and have an account "
+"chosen: the others (possible duplicates, transfers to join) wait for "
+"review."
+
 msgid "Solo ricorrenti"
 msgstr "Recurring only"
 
 msgid "Solo se lo conosci dall'estratto: prevale sul piano."
 msgstr "Only if you know it from the statement: it takes precedence over the plan."
+
+msgid "Solo su richiesta"
+msgstr "On request only"
 
 msgid "Solo testo"
 msgstr "Text only"
@@ -12526,6 +13128,12 @@ msgstr "Spent %(spent)s of %(planned)s (%(share)s%%)"
 
 msgid "Speso"
 msgstr "Spent"
+
+msgid "Speso / previsto"
+msgstr "Spent / planned"
+
+msgid "Speso finora"
+msgstr "Spent so far"
 
 msgid "Speso nel mese"
 msgstr "Spent this month"
@@ -12995,6 +13603,9 @@ msgstr "Type of %(name)s"
 msgid "Tipo di carta sconosciuto."
 msgstr "Unknown card type."
 
+msgid "Tipo di conto"
+msgstr "Account type"
+
 msgid "Tipo di grafico"
 msgstr "Chart type"
 
@@ -13164,6 +13775,9 @@ msgstr "Total proceeds"
 msgid "Totale dei costi o valori di acquisto"
 msgstr "Total costs or purchase values"
 
+msgid "Totale del periodo"
+msgstr "Total of the period"
+
 #, python-format
 msgid "Totale del periodo %(period)s"
 msgstr "Total for %(period)s"
@@ -13214,6 +13828,13 @@ msgstr "Tracking of financial goals with progress bars"
 
 msgid "Tramite"
 msgstr "Through"
+
+msgid ""
+"Tramite Enable Banking, aggregatore autorizzato: i movimenti arrivano "
+"categorizzati come in un import, i doppioni vengono riconosciuti"
+msgstr ""
+"Through Enable Banking, a licensed aggregator: transactions arrive "
+"categorised as in an import, duplicates are recognised"
 
 msgid "Transazione"
 msgstr "Transaction"
@@ -13454,6 +14075,9 @@ msgstr ""
 "(wealth, expenses and saving of the last 12 months): change them as you "
 "like. It is an estimate, not advice."
 
+msgid "Tutto in ordine."
+msgstr "All in order."
+
 msgid "Tutto l’anno"
 msgstr "The whole year"
 
@@ -13479,17 +14103,14 @@ msgstr "Last count: %(day)s, %(amount)s."
 msgid "Ultima rata"
 msgstr "Last instalment"
 
-msgid "Ultime"
-msgstr "Latest"
+msgid "Ultima riconciliazione"
+msgstr "Last reconciliation"
 
 msgid "Ultime cifre IBAN / carta"
 msgstr "Last digits of IBAN / card"
 
 msgid "Ultime cifre IBAN o carta"
 msgstr "Last digits of IBAN or card"
-
-msgid "Ultime transazioni"
-msgstr "Latest transactions"
 
 #, python-format
 msgid "Ultimi %(count)s mesi"
@@ -13535,6 +14156,9 @@ msgstr "Last sign-in"
 #, python-format
 msgid "Ultimo backup riuscito: %(day)s alle %(time)s, «%(file)s»."
 msgstr "Last successful backup: %(day)s at %(time)s, «%(file)s»."
+
+msgid "Ultimo download"
+msgstr "Last download"
 
 msgid "Ultimo giorno per presentare il 730"
 msgstr "Last day to file the 730"
@@ -13721,7 +14345,9 @@ msgid "Una categoria non può essere sottocategoria di sé stessa."
 msgstr "A category cannot be a subcategory of itself."
 
 msgid "Una classificazione è già in corso: aspettala o annullala con la X."
-msgstr "A classification is already under way: wait for it or cancel it with the X."
+msgstr ""
+"A classification is already under way: wait for it or cancel it with the "
+"X."
 
 msgid ""
 "Una data passata aggiunge i prezzi allo storico senza cambiare quelli più"
@@ -13859,6 +14485,12 @@ msgstr "Expenses of %(year)s"
 msgid "Uscite del periodo prima"
 msgstr "Expenses of the period before"
 
+msgid "Uscite grosse"
+msgstr "Big expenses"
+
+msgid "Uscite grosse dei prossimi 12 mesi"
+msgstr "Big expenses of the next 12 months"
+
 msgid "Uscite o entrate ricorrenti"
 msgstr "Recurring expenses or income"
 
@@ -13909,6 +14541,9 @@ msgstr "Holiday"
 msgid "Vai a promemoria"
 msgstr "Go to reminders"
 
+msgid "Vai alla banca"
+msgstr "Go to the bank"
+
 msgid "Vai alla lista transazioni"
 msgstr "Go to the transactions"
 
@@ -13921,6 +14556,10 @@ msgstr "Go to the bottom of the page"
 #, python-format
 msgid "Valida fino al %(day)s · %(card)s"
 msgstr "Valid until %(day)s · %(card)s"
+
+#, python-format
+msgid "Valido fino al %(day)s: rinnovalo dalla banca."
+msgstr "Valid until %(day)s: renew it with the bank."
 
 msgid "Valore"
 msgstr "Value"
@@ -14023,6 +14662,9 @@ msgstr "Change %"
 msgid "Variazione Netta Cassa"
 msgstr "Net Change in Cash"
 
+msgid "Variazione del patrimonio"
+msgstr "Change in net worth"
+
 msgid "Variazione del prezzo; il guadagno è con le quote di oggi."
 msgstr "Price change; the gain uses today's units."
 
@@ -14107,12 +14749,18 @@ msgstr "Travel"
 msgid "Viola e rosa"
 msgstr "Purples and pinks"
 
+msgid "Vista sconosciuta."
+msgstr "Unknown view."
+
 #, python-format
 msgid "Vista «%(name)s» salvata."
 msgstr "View «%(name)s» saved."
 
 msgid "Viste"
 msgstr "Views"
+
+msgid "Viste della dashboard"
+msgstr "Dashboard views"
 
 msgid "Visualizzazione"
 msgstr "Display"
@@ -14181,6 +14829,10 @@ msgstr "by hand"
 
 msgid "a parte"
 msgstr "apart"
+
+#, python-format
+msgid "a questo ritmo %(amount)s a fine mese"
+msgstr "at this pace %(amount)s at the end of the month"
 
 #, python-format
 msgid "acquisti %(buy)s, vendite %(sell)s"
@@ -14264,14 +14916,14 @@ msgstr "year %(year)s"
 msgid "anno in corso: valori a oggi"
 msgstr "current year: values as of today"
 
+msgid "annullato"
+msgstr "cancelled"
+
 #, python-format
 msgid "annuo sul denaro (XIRR) · TWR %(twr)s"
 msgstr "yearly money-weighted (XIRR) · TWR %(twr)s"
 
 msgid "aperto"
-msgstr "open"
-
-msgid "apri"
 msgstr "open"
 
 msgid "apri il promemoria"
@@ -14286,14 +14938,14 @@ msgstr "main archive"
 msgid "archivio suo"
 msgstr "own archive"
 
-msgid "assegnale"
-msgstr "assign them"
-
 msgid "attivo"
 msgstr "active"
 
 msgid "automatica"
 msgstr "automatic"
+
+msgid "avvisi non ancora visti"
+msgstr "alerts not seen yet"
 
 msgid "azionario 15–18, bilanciato 8–10"
 msgstr "equities 15–18, balanced 8–10"
@@ -14305,10 +14957,6 @@ msgstr ""
 
 msgid "bolletta"
 msgstr "bill"
-
-#, python-format
-msgid "budget del mese + %(amount)s riportati"
-msgstr "month's budgets + %(amount)s rolled over"
 
 msgid "calcolata con le regole del conto: puoi correggerla"
 msgstr "computed with the account's rules: you can correct it"
@@ -14328,6 +14976,9 @@ msgstr "uploaded on %(date)s"
 
 msgid "categorie"
 msgstr "categories"
+
+msgid "categorie senza budget"
+msgstr "categories without a budget"
 
 msgid "chiuso"
 msgstr "closed"
@@ -14359,6 +15010,9 @@ msgstr "click a slice for the transactions"
 
 msgid "codice"
 msgstr "code"
+
+msgid "collega la banca (PSD2)"
+msgstr "link the bank (PSD2)"
 
 #, python-format
 msgid "colonna «%(path)s» non trovata"
@@ -14468,6 +15122,9 @@ msgstr "from your history"
 msgid "dall'ISIN"
 msgstr "by ISIN"
 
+msgid "dalla fine del mese scorso"
+msgstr "since the end of last month"
+
 msgid "dallo stato attuale"
 msgstr "from the current state"
 
@@ -14510,6 +15167,10 @@ msgstr "of %(total)s"
 #, python-format
 msgid "di cui ricorrenti %(amount)s"
 msgstr "of which recurring %(amount)s"
+
+#, python-format
+msgid "di cui riportati %(amount)s"
+msgstr "of which carried over %(amount)s"
 
 #, python-format
 msgid "di cui riportati: %(amount)s"
@@ -14792,6 +15453,9 @@ msgstr "on %(day)s"
 msgid "il CSV non ha righe"
 msgstr "the CSV has no rows"
 
+msgid "il mese in corso del periodo in alto"
+msgstr "the current month of the period on top"
+
 msgid "il portafoglio modello attivo"
 msgstr "the active model portfolio"
 
@@ -14915,11 +15579,18 @@ msgstr "before commissions"
 msgid "lordo meno spese"
 msgstr "gross less expenses"
 
+msgid "l’ultimo mese del periodo in alto"
+msgstr "the last month of the period on top"
+
 msgid "mai"
 msgstr "never"
 
 msgid "mai aggiornato"
 msgstr "never updated"
+
+#, python-format
+msgid "mai o da più di %(days)s giorni"
+msgstr "never or for more than %(days)s days"
 
 msgid "massimali cumulati"
 msgstr "combined coverage limits"
@@ -14942,6 +15613,10 @@ msgstr "less tax in the 730 %(next)s"
 #, python-format
 msgid "meno reddito: valgono %(low)s–%(high)s"
 msgstr "less income: worth %(low)s–%(high)s"
+
+#, python-format
+msgid "mese scorso allo stesso giorno %(amount)s"
+msgstr "last month on the same day %(amount)s"
 
 msgid "mesi"
 msgstr "months"
@@ -14989,9 +15664,6 @@ msgstr "in the securities account «%(name)s»"
 msgid "nel file"
 msgstr "in the file"
 
-msgid "nelle categorie con budget"
-msgstr "in the categories with a budget"
-
 msgid "nessun aumento di prezzo"
 msgstr "no price increases"
 
@@ -15020,6 +15692,9 @@ msgstr "no price for «%(ticker)s»"
 msgid "nessun risultato"
 msgstr "no result"
 
+msgid "nessuna"
+msgstr "none"
+
 msgid "nessuna fonte attiva per questo titolo"
 msgstr "no source switched on for this holding"
 
@@ -15039,6 +15714,9 @@ msgstr "net, received"
 #, python-format
 msgid "netto %(amount)s"
 msgstr "net %(amount)s"
+
+msgid "niente in arrivo"
+msgstr "nothing coming"
 
 msgid "no piece table"
 msgstr "no piece table"
@@ -15105,6 +15783,9 @@ msgstr "page %(page)s of %(pages)s"
 #, python-format
 msgid "passaggi interni esclusi: %(amount)s"
 msgstr "internal moves left out: %(amount)s"
+
+msgid "passati"
+msgstr "gone by"
 
 #, python-format
 msgid "patrimonio netto al %(day)s"
@@ -15273,12 +15954,18 @@ msgstr "balance of the settlement account"
 msgid "saldo inserito da te"
 msgstr "balance entered by you"
 
+msgid "salva da solo i movimenti nuovi"
+msgstr "saves new transactions by itself"
+
 #, python-format
 msgid "scade il %(day)s"
 msgstr "expires on %(day)s"
 
 msgid "scadenza o rinnovo"
 msgstr "expiry or renewal"
+
+msgid "scadenze"
+msgstr "deadlines"
 
 msgid "scaduta"
 msgstr "matured"
@@ -15327,9 +16014,6 @@ msgstr "crypto only"
 msgid "solo spese fisse e non mensili: %(months)s mesi"
 msgstr "fixed and non-monthly costs only: %(months)s months"
 
-msgid "somma dei budget del mese"
-msgstr "sum of this month's budgets"
-
 msgid "somma delle rate in corso"
 msgstr "sum of the active installments"
 
@@ -15349,14 +16033,15 @@ msgstr "unused deductible room: %(amount)s"
 msgid "spese con tag «detraibile» fuori dalle voci"
 msgstr "expenses tagged «detraibile» outside the items"
 
-msgid "spese in categorie senza budget"
-msgstr "spending in categories without a budget"
-
 msgid "stesso giorno"
 msgstr "same day"
 
 msgid "stima"
 msgstr "estimate"
+
+#, python-format
+msgid "su %(amount)s"
+msgstr "of %(amount)s"
 
 #, python-format
 msgid "su %(amount)s di entrate medie al mese"
@@ -15445,6 +16130,9 @@ msgstr "in %(years)s years"
 
 msgid "transazioni"
 msgstr "transactions"
+
+msgid "transazioni da assegnare"
+msgstr "transactions to assign"
 
 msgid "tu"
 msgstr "you"
@@ -15914,6 +16602,9 @@ msgstr ""
 "• Non-monthly: a few times a year (taxes, insurance)\n"
 "• Variable: the part you can cut"
 
+msgid "…oppure incolla la chiave"
+msgstr "…or paste the key"
+
 #, python-format
 msgid "€ per %(unit)s"
 msgstr "€ per %(unit)s"
@@ -15929,486 +16620,3 @@ msgstr "← Back to Export"
 msgid "🎉 Obiettivo «%(name)s» raggiunto!"
 msgstr "🎉 Goal «%(name)s» reached!"
 
-#: app/templates/dashboard/index.html
-msgid "Da sistemare"
-msgstr "To fix"
-
-#: app/templates/dashboard/index.html
-msgid "Le cose che chiedono un tuo sguardo: un clic apre la pagina dove si sistemano."
-msgstr "The things that need a look: a click opens the page where they are fixed."
-
-#: app/templates/dashboard/index.html
-msgid "Tutto in ordine."
-msgstr "All in order."
-
-#: app/templates/dashboard/index.html
-msgid "Ritmo di spesa — %(month)s"
-msgstr "Spending pace — %(month)s"
-
-#: app/templates/dashboard/index.html
-msgid "Le uscite del mese sommate giorno per giorno, contro lo stesso giorno del mese scorso (tratteggiato) e, se ci sono budget, la linea che li raggiunge a fine mese."
-msgstr "The month's expenses added up day by day, against the same day of last month (dashed) and, when there are budgets, the line that reaches them at the end of the month."
-
-#: app/templates/dashboard/index.html
-msgid "Speso finora"
-msgstr "Spent so far"
-
-#: app/templates/dashboard/index.html
-msgid "mese scorso allo stesso giorno %(amount)s"
-msgstr "last month on the same day %(amount)s"
-
-#: app/templates/dashboard/index.html
-msgid "a questo ritmo %(amount)s a fine mese"
-msgstr "at this pace %(amount)s at the end of the month"
-
-#: app/templates/dashboard/index.html
-msgid "Bridge del mese"
-msgstr "The month's bridge"
-
-#: app/templates/dashboard/index.html
-msgid "Le entrate del mese, poi quanto si è preso ogni gruppo di spesa, e quello che resta."
-msgstr "The month's income, then what each spending group took, and what is left."
-
-#: app/templates/dashboard/index.html
-msgid "Resta"
-msgstr "Left"
-
-#: app/templates/dashboard/index.html
-msgid "Ancora nessun movimento questo mese."
-msgstr "No movements this month yet."
-
-#: app/templates/dashboard/index.html
-msgid "La liquidità di oggi con le scadenze dello Scadenzario: ricorrenti, rate, polizze, promemoria con importo."
-msgstr "Today's liquid money with the deadlines of the Schedule: recurring payments, instalments, policies, reminders with an amount."
-
-#: app/templates/dashboard/index.html
-msgid "Oggi %(start)s → fra 30 giorni %(end)s · punto più basso %(low)s"
-msgstr "Today %(start)s → in 30 days %(end)s · lowest point %(low)s"
-
-#: app/templates/dashboard/index.html
-msgid "Scadenzario"
-msgstr "Schedule"
-
-#: app/templates/dashboard/index.html
-msgid "Budget più vicini al limite"
-msgstr "Budgets closest to the limit"
-
-#: app/templates/dashboard/index.html
-msgid "La tacca dice dove dovresti essere oggi, a questo punto del mese."
-msgstr "The notch shows where you should be today, at this point of the month."
-
-#: app/templates/dashboard/index.html
-msgid "Nessun budget per questo mese."
-msgstr "No budget for this month."
-
-#: app/templates/dashboard/index.html
-msgid "Saldo dei prossimi 12 mesi"
-msgstr "Balance of the next 12 months"
-
-#: app/templates/dashboard/index.html
-msgid "La previsione di Previsioni: la banda va dal metodo più prudente al più ottimista."
-msgstr "The forecast of Forecasts: the band goes from the most cautious method to the most optimistic one."
-
-#: app/templates/dashboard/index.html
-msgid "Fra 12 mesi %(amount)s"
-msgstr "In 12 months %(amount)s"
-
-#: app/templates/dashboard/index.html
-msgid "Servono almeno 3 mesi completi di movimenti: poi la previsione si disegna da sola."
-msgstr "At least 3 complete months of movements are needed: then the forecast draws itself."
-
-#: app/templates/dashboard/index.html
-msgid "Uscite grosse dei prossimi 12 mesi"
-msgstr "Big expenses of the next 12 months"
-
-#: app/templates/dashboard/index.html
-msgid "Le scadenze da almeno 300 € dello Scadenzario (bollo, polizze, rate, tasse), mese per mese."
-msgstr "The deadlines of at least €300 in the Schedule (car tax, policies, instalments, taxes), month by month."
-
-#: app/templates/dashboard/index.html
-msgid "In tutto %(amount)s"
-msgstr "In all %(amount)s"
-
-#: app/templates/dashboard/index.html
-msgid "Nessuna scadenza grossa nei prossimi 12 mesi."
-msgstr "No big deadline in the next 12 months."
-
-#: app/templates/dashboard/index.html
-msgid "Variazione del patrimonio"
-msgstr "Change in net worth"
-
-#: app/templates/dashboard/index.html
-msgid "Da costruire: dirà perché il patrimonio è cambiato nel periodo, a cascata — versamenti, rendite, plus e minusvalenze, costi e tasse. I movimenti che servono ci sono già."
-msgstr "To be built: it will show why the net worth changed in the period, as a waterfall — contributions, income, gains and losses, costs and taxes. The movements it needs are already there."
-
-#: app/templates/dashboard/index.html
-msgid "Servono i prezzi giornalieri dei titoli: arrivano con il database dei prezzi del Portafoglio (Fase 2). Allora dirà quanto sei sotto il massimo e da quanto."
-msgstr "The daily prices of the securities are needed: they come with the Portfolio's price database (Phase 2). Then it will show how far below the peak you are, and for how long."
-
-#: app/templates/dashboard/index.html
-msgid "Patrimonio tra 10 anni"
-msgstr "Net worth in 10 years"
-
-#: app/templates/dashboard/index.html
-msgid "Da costruire: il patrimonio di oggi proiettato al ritmo di risparmio attuale, con il rendimento che sceglierai; il passato pieno, il futuro tratteggiato. I dati ci sono già."
-msgstr "To be built: today's net worth projected at the current saving pace, with the return you choose; the past solid, the future dashed. The data are already there."
-
-#: app/templates/dashboard/index.html
-msgid "Il calcolo c'è già in Previsioni → Pensione: qui arriverà il ventaglio delle simulazioni con la linea di quanto serve."
-msgstr "The calculation is already in Forecasts → Retirement: the fan of the simulations with the line of what is needed will come here."
-
-#: app/templates/dashboard/index.html
-msgid "Apri Pensione"
-msgstr "Open Retirement"
-
-#: app/templates/dashboard/index.html
-msgid "Obiettivi: quando ci arrivo"
-msgstr "Goals: when I get there"
-
-#: app/templates/dashboard/index.html
-msgid "Da costruire: la data prevista per ogni obiettivo. Diventa precisa quando gli obiettivi saranno collegati a un conto o a un portafoglio."
-msgstr "To be built: the expected date of each goal. It becomes precise when the goals are linked to an account or a portfolio."
-
-#: app/templates/dashboard/index.html
-msgid "Apri Obiettivi"
-msgstr "Open Goals"
-
-#: app/templates/dashboard/index.html
-msgid "Debiti: quando finisco"
-msgstr "Debts: when I finish"
-
-#: app/templates/dashboard/index.html
-msgid "Da costruire: il debito residuo fino all'estinzione, dai piani di ammortamento che ci sono già."
-msgstr "To be built: the remaining debt until it is paid off, from the amortization plans already there."
-
-#: app/templates/dashboard/index.html
-msgid "Apri Debiti"
-msgstr "Open Debts"
-
-#: app/templates/dashboard/index.html
-msgid "Rendite dei prossimi 12 mesi"
-msgstr "Income of the next 12 months"
-
-#: app/templates/dashboard/index.html
-msgid "Servono le cedole e i dividendi previsti dei titoli: arrivano con il database dei prezzi del Portafoglio (Fase 2)."
-msgstr "The expected coupons and dividends of the securities are needed: they come with the Portfolio's price database (Phase 2)."
-
-#: app/templates/dashboard/index.html
-msgid "Liquidità prevista"
-msgstr "Expected liquid money"
-
-#: app/templates/dashboard/index.html
-msgid "Più prudente"
-msgstr "Most cautious"
-
-#: app/templates/dashboard/index.html
-msgid "Più ottimista"
-msgstr "Most optimistic"
-
-#: app/templates/dashboard/index.html
-msgid "Uscite grosse"
-msgstr "Big expenses"
-
-#: app/templates/dashboard/index.html
-msgid "Senza gruppo"
-msgstr "No group"
-
-#: app/templates/dashboard/index.html
-msgid "Scadenze nei prossimi 7 giorni"
-msgstr "Deadlines in the next 7 days"
-
-#: app/templates/dashboard/index.html
-msgid "Categorie proposte dall'AI da confermare"
-msgstr "Categories suggested by the AI to confirm"
-
-#: app/templates/dashboard/index.html
-msgid "Totale del periodo"
-msgstr "Total of the period"
-
-#: app/templates/dashboard/index.html
-msgid "Come sto"
-msgstr "How I'm doing"
-
-#: app/templates/dashboard/index.html
-msgid "Nel tempo"
-msgstr "Over time"
-
-#: app/templates/dashboard/index.html
-msgid "Futuro"
-msgstr "Future"
-
-#: app/templates/dashboard/index.html
-msgid "Il mese in corso"
-msgstr "The current month"
-
-#: app/templates/dashboard/index.html
-msgid "Ritmo di spesa, bridge del mese, prossimi 30 giorni, budget più vicini al limite"
-msgstr "Spending pace, the month's bridge, next 30 days, budgets closest to the limit"
-
-#: app/templates/dashboard/index.html
-msgid "Saldo dei prossimi 12 mesi, uscite grosse dell’anno e le previsioni in arrivo"
-msgstr "Balance of the next 12 months, the year's big expenses and the forecasts to come"
-
-#: app/templates/dashboard/index.html
-msgid "Viste della dashboard"
-msgstr "Dashboard views"
-
-#: app/templates/dashboard/index.html
-msgid "dalla fine del mese scorso"
-msgstr "since the end of last month"
-
-#: app/templates/dashboard/index.html
-msgid "Apri il flusso di cassa"
-msgstr "Open the cash flow"
-
-#: app/templates/dashboard/index.html
-msgid "Media 12 mesi %(rate)s%%"
-msgstr "12-month average %(rate)s%%"
-
-#: app/templates/dashboard/index.html
-msgid "Apri i conti"
-msgstr "Open the accounts"
-
-#: app/templates/dashboard/index.html
-msgid "Quanti mesi di spese copre la liquidità, senza stipendio, contro il tuo obiettivo (Impostazioni → Dashboard)."
-msgstr "How many months of spending the liquid money covers without a salary, against your goal (Settings → Dashboard)."
-
-#: app/templates/dashboard/index.html
-msgid "%(n)s mesi su %(target)s"
-msgstr "%(n)s months out of %(target)s"
-
-#: app/templates/dashboard/index.html
-msgid "Obiettivo %(n)s mesi"
-msgstr "Goal %(n)s months"
-
-#: app/templates/dashboard/index.html
-msgid "Clic su una categoria per le sue transazioni."
-msgstr "Click a category for its transactions."
-
-#: app/templates/dashboard/index.html
-msgid "Flusso del denaro — %(period)s"
-msgstr "Money flow — %(period)s"
-
-#: app/templates/dashboard/index.html
-msgid "Entrate e uscite — %(period)s"
-msgstr "Income and expenses — %(period)s"
-
-#: app/templates/dashboard/index.html
-msgid "Il periodo della barra in alto; sotto ogni cifra la previsione e, con «Confronta», il periodo prima."
-msgstr "The period of the top bar; under each figure the forecast and, with «Compare», the period before."
-
-#: app/templates/dashboard/index.html
-msgid "Debito totale"
-msgstr "Total debt"
-
-#: app/templates/dashboard/index.html
-msgid "Nessun debito in corso"
-msgstr "No debt in progress"
-
-#: app/templates/dashboard/index.html
-msgid "Flusso del denaro"
-msgstr "Money flow"
-
-#: app/templates/dashboard/index.html
-msgid "Entrate e uscite del periodo"
-msgstr "Income and expenses of the period"
-
-#: app/templates/dashboard/index.html
-msgid "Patrimonio"
-msgstr "Net worth"
-
-#: app/routes/dashboard.py
-msgid "Vista sconosciuta."
-msgstr "Unknown view."
-
-#: app/templates/lifestyle/budget.html
-msgid "Speso / previsto"
-msgstr "Spent / planned"
-
-#: app/templates/lifestyle/budget.html
-msgid "su %(amount)s"
-msgstr "of %(amount)s"
-
-#: app/templates/lifestyle/budget.html
-msgid "di cui riportati %(amount)s"
-msgstr "of which carried over %(amount)s"
-
-#: app/templates/lifestyle/budget.html
-msgid "Giorni del mese"
-msgstr "Days of the month"
-
-#: app/templates/lifestyle/budget.html
-msgid "passati"
-msgstr "gone by"
-
-#: app/templates/lifestyle/budget.html
-msgid "Categorie sforate"
-msgstr "Categories over budget"
-
-#: app/templates/lifestyle/budget.html
-msgid "nessuna"
-msgstr "none"
-
-#: app/templates/lifestyle/budget.html
-msgid "Fuori budget"
-msgstr "Outside the budget"
-
-#: app/templates/lifestyle/budget.html
-msgid "categorie senza budget"
-msgstr "categories without a budget"
-
-#: app/templates/lifestyle/budget.html
-msgid "Il mese in breve"
-msgstr "The month at a glance"
-
-#: app/templates/lifestyle/budget.html
-msgid "Accantonamenti"
-msgstr "Set-asides"
-
-#: app/templates/lifestyle/budget.html
-msgid "Sezioni del budget"
-msgstr "Budget sections"
-
-#: app/templates/lifestyle/budget.html
-msgid "Le categorie, dalla più vicina al limite"
-msgstr "The categories, closest to the limit first"
-
-#: app/templates/lifestyle/budget.html
-msgid "Cambia i budget"
-msgstr "Change the budgets"
-
-#: app/templates/lifestyle/budget.html
-msgid "Nessun budget per questo mese: scegli le cifre nella scheda «Categorie»."
-msgstr "No budget for this month: choose the amounts in the «Categories» tab."
-
-#: app/templates/lifestyle/budget.html
-msgid "Nessuna spesa non mensile negli ultimi 12 mesi: niente da accantonare."
-msgstr "No non-monthly expenses in the last 12 months: nothing to set aside."
-
-#: app/templates/lifestyle/budget.html
-msgid "Gli ultimi 12 mesi con budget"
-msgstr "The last 12 months with a budget"
-
-#: app/templates/lifestyle/budget.html
-msgid "Sforate"
-msgstr "Over budget"
-
-#: app/templates/lifestyle/budget.html
-msgid "Nessun mese con budget negli ultimi 12 mesi."
-msgstr "No month with a budget in the last 12 months."
-
-#: app/templates/deadlines/index.html
-msgid "scadenze"
-msgstr "deadlines"
-
-#: app/templates/deadlines/index.html
-msgid "La più grossa"
-msgstr "The biggest"
-
-#: app/templates/deadlines/index.html
-msgid "niente in arrivo"
-msgstr "nothing coming"
-
-#: app/templates/deadlines/index.html
-msgid "Promemoria da vedere"
-msgstr "Reminders to see"
-
-#: app/templates/deadlines/index.html
-msgid "avvisi non ancora visti"
-msgstr "alerts not seen yet"
-
-#: app/templates/deadlines/index.html
-msgid "Le scadenze in breve"
-msgstr "Deadlines at a glance"
-
-#: app/templates/deadlines/index.html
-msgid "Prossimi"
-msgstr "Next"
-
-#: app/templates/deadlines/index.html
-msgid "Calendario"
-msgstr "Calendar"
-
-#: app/templates/deadlines/index.html
-msgid "Sezioni dei promemoria"
-msgstr "Reminder sections"
-
-#: app/templates/deadlines/index.html
-msgid "Nessun evento: creane uno qui sotto e assegnagli i movimenti."
-msgstr "No events: create one below and assign its movements."
-
-#: app/templates/deadlines/index.html
-msgid "Le entrate del mese, poi quanto si è preso ogni gruppo di spesa e quanto hai risparmiato; se hai speso più delle entrate, quanto hai preso dai risparmi. I giroconti tra i tuoi conti e i prelievi verso Contanti non sono spese: quei soldi sono ancora tuoi e restano nei risparmi. Le riconciliazioni non contano."
-msgstr "The month's income, then what each spending group took and what you saved; if you spent more than the income, what you took from the savings. Transfers between your accounts and withdrawals to Cash are not expenses: that money is still yours and stays in the savings. Reconciliations do not count."
-
-#: app/templates/deadlines/index.html
-msgid "il mese in corso del periodo in alto"
-msgstr "the current month of the period on top"
-
-#: app/templates/deadlines/index.html
-msgid "l’ultimo mese del periodo in alto"
-msgstr "the last month of the period on top"
-
-#: app/templates/deadlines/index.html
-msgid "Risparmi"
-msgstr "Savings"
-
-#: app/templates/deadlines/index.html
-msgid "Presi dai risparmi"
-msgstr "Taken from savings"
-
-#: app/templates/deadlines/index.html
-msgid "Nessun movimento in questo mese."
-msgstr "No movements this month."
-
-#: app/templates/accounts/index.html
-msgid "Da riconciliare"
-msgstr "To reconcile"
-
-#: app/templates/accounts/index.html
-msgid "mai o da più di %(days)s giorni"
-msgstr "never or for more than %(days)s days"
-
-#: app/templates/accounts/index.html
-msgid "transazioni da assegnare"
-msgstr "transactions to assign"
-
-#: app/templates/accounts/index.html
-msgid "Conti in breve"
-msgstr "Accounts at a glance"
-
-#: app/templates/accounts/index.html
-msgid "Riconciliazioni"
-msgstr "Reconciliations"
-
-#: app/templates/accounts/index.html
-msgid "Sezioni di conti e carte"
-msgstr "Accounts and cards sections"
-
-#: app/templates/accounts/index.html
-msgid "I saldi per tipo di conto"
-msgstr "Balances by kind of account"
-
-#: app/templates/accounts/index.html
-msgid "Nessun conto attivo."
-msgstr "No active account."
-
-#: app/templates/accounts/index.html
-msgid "Nessuna carta: aggiungila dalla pagina del suo conto."
-msgstr "No card: add it from its account's page."
-
-#: app/templates/accounts/index.html
-msgid "Quando hai confrontato i saldi con la banca"
-msgstr "When you compared the balances with the bank"
-
-#: app/templates/accounts/index.html
-msgid "Riconciliare: dire all’app il saldo che vedi in banca; la differenza diventa un movimento «Riconciliazione». Prima i conti mai riconciliati o fermi da più tempo."
-msgstr "Reconciling: telling the app the balance you see at the bank; the difference becomes a «Reconciliation» movement. First the accounts never reconciled or idle the longest."
-
-#: app/templates/accounts/index.html
-msgid "Ultima riconciliazione"
-msgstr "Last reconciliation"
-
-#: app/templates/accounts/index.html
-msgid "%(days)s giorni fa"
-msgstr "%(days)s days ago"

@@ -1,6 +1,8 @@
 """A previewed row, as edited by the user, saved as a transaction."""
 from __future__ import annotations
 
+from app.extensions import db
+from app.models.account import Account
 from app.models.transaction import Transaction
 from app.services import categories, money
 from app.services.ai_classification import AI_TAG
@@ -46,3 +48,23 @@ def build_transaction(base: dict, bank_key: str, fields: dict | None = None, ai:
         import_ref=base.get("import_ref"),
         bank_description=bank_causale(base) if base else None,
     )
+
+
+def is_outgoing(base: dict) -> bool:
+    """The statement row moves money out of the account (the preview shows amounts without sign)."""
+    return (to_decimal(base.get("amount")) or 0) <= 0
+
+
+def assign_account(tx: Transaction, base: dict, account: Account) -> None:
+    """Money coming in through a transfer arrives on `account`; everything else moves from it. The direction comes
+    from the statement row as read; the IBAN of another own account in the row is the other side of the giroconto."""
+    if tx.type == "transfer" and not is_outgoing(base):
+        tx.counter_account_id = account.id
+    else:
+        tx.account_id = account.id
+    other = base.get("own_account")
+    if tx.type == "transfer" and other and other != account.id and db.session.get(Account, other) is not None:
+        if is_outgoing(base):
+            tx.counter_account_id = other
+        else:
+            tx.account_id = other

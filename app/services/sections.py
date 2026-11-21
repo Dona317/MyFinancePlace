@@ -42,7 +42,7 @@ SECTIONS = [
     Section("goals", _l("Obiettivi"), "trophy", _l("Stile di Vita"), ("lifestyle.goal",), "lifestyle_goals"),
     Section("events", _l("Eventi"), "airplane", _l("Stile di Vita"), ("events.",)),
     Section("transactions", _l("Transazioni"), "list-ul", _l("Gestione"), ("transactions.",)),
-    Section("accounts", _l("Conti e Carte"), "bank", _l("Gestione"), ("accounts.",)),
+    Section("accounts", _l("Conti e Carte"), "bank", _l("Gestione"), ("accounts.", "banking.")),
     Section("portfolio", _l("Portafoglio"), "briefcase", _l("Gestione"), ("portfolio.",), "module_portfolio"),
     Section("debt", _l("Debiti"), "credit-card", _l("Gestione"), ("debt.",), "module_debt"),
     Section("insurance", _l("Assicurazioni"), "shield-check", _l("Gestione"), ("insurance.",), "module_insurance"),

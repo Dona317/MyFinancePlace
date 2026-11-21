@@ -1,0 +1,604 @@
+"""F107: reading the bank through PSD2 (Enable Banking), against a fake API."""
+import base64
+import io
+import json
+import re
+import urllib.error
+from datetime import date, datetime, timedelta
+from decimal import Decimal
+
+import pytest
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
+from app.models.account import Account
+from app.models.bank_link import BankAccountLink, BankConnection
+from app.models.transaction import Transaction
+from app.services import field_crypto, open_banking
+from app.services.open_banking import client as eb
+from app.services.open_banking import credentials, sync
+from tests.form_helper import form_data
+
+IBAN = "IT60X0542811101000000123456"
+
+
+@pytest.fixture(scope="module")
+def rsa_key():
+    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+
+@pytest.fixture()
+def pem(rsa_key):
+    return rsa_key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
+                                 serialization.NoEncryption()).decode()
+
+
+@pytest.fixture(autouse=True)
+def fresh(monkeypatch):
+    sync._banks_kept.clear()
+    monkeypatch.delenv(credentials.ENV_ID, raising=False)
+    monkeypatch.delenv(credentials.ENV_KEY, raising=False)
+
+
+def tx(ref, amount, day="2026-11-10", indicator="DBIT", text="PAGAMENTO POS ESSELUNGA", status="BOOK", **extra):
+    item = {"entry_reference": ref, "transaction_amount": {"amount": str(amount), "currency": "EUR"},
+            "credit_debit_indicator": indicator, "status": status, "booking_date": day,
+            "remittance_information": [text]}
+    item.update(extra)
+    return item
+
+
+class FakeBank:
+    """The Enable Banking API as the tests need it: records the calls, answers from its fields."""
+
+    def __init__(self):
+        self.calls, self.movements, self.fail = [], [], {}
+        self.accounts = [{"uid": "acc-1", "account_id": {"iban": IBAN}, "name": "Conto Fineco", "currency": "EUR"}]
+        self.valid_until = (sync._utcnow() + timedelta(days=180)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+    def __call__(self, creds, method, path, params=None, body=None, psu=None):
+        self.calls.append((method, path, params, body, psu))
+        if path in self.fail:
+            raise self.fail[path]
+        if path == "/aspsps":
+            return {"aspsps": [{"name": "Fineco", "country": "IT", "maximum_consent_validity": 90 * 86400},
+                               {"name": "Banca Sella", "country": "IT"}, {"country": "IT"}]}
+        if path == "/auth":
+            return {"url": "https://bank.example/consent", "authorization_id": "a-1"}
+        if path == "/sessions":
+            return {"session_id": "sess-1", "accounts": self.accounts, "access": {"valid_until": self.valid_until}}
+        if path.endswith("/transactions"):
+            if params.get("continuation_key"):
+                return {"transactions": self.movements[1:], "continuation_key": None}
+            return {"transactions": self.movements[:1], "continuation_key": "next" if len(self.movements) > 1 else None}
+        if path.endswith("/balances"):
+            return {"balances": [{"balance_type": "ITAV", "balance_amount": {"amount": "1000.00"}},
+                                 {"balance_type": "CLBD", "balance_amount": {"amount": "1234.56"},
+                                  "reference_date": "2026-11-20"}]}
+        return {}
+
+
+@pytest.fixture()
+def bank(monkeypatch, app, pem):
+    fake = FakeBank()
+    monkeypatch.setattr(eb, "request", fake)
+    credentials.save("app-123", pem)
+    return fake
+
+
+def _connect(client, bank, aspsp="Fineco"):
+    response = client.post("/banking/connect", data={"aspsp": aspsp, "country": "IT"})
+    assert response.status_code == 302 and response.headers["Location"] == "https://bank.example/consent"
+    with client.session_transaction() as s:
+        state = next(iter(s[sync.STATE_KEY]))
+    return client.get(f"/banking/callback?state={state}&code=c-1", follow_redirects=True)
+
+
+def _fineco(db):
+    account = Account(name="Fineco", kind="current", iban=IBAN)
+    db.session.add(account)
+    db.session.commit()
+    return account
+
+
+# ── The API client ───────────────────────────────────────────────────────────
+
+def test_the_token_is_signed_with_the_application_key(rsa_key, pem):
+    jwt = eb.token(eb.Credentials("app-123", pem), now=1_000_000)
+    head, body, signature = jwt.split(".")
+    pad = lambda s: base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))  # noqa: E731
+    assert json.loads(pad(head)) == {"typ": "JWT", "alg": "RS256", "kid": "app-123"}
+    claims = json.loads(pad(body))
+    assert claims["aud"] == "api.enablebanking.com" and claims["exp"] - claims["iat"] == eb.TOKEN_SECONDS
+    rsa_key.public_key().verify(pad(signature), f"{head}.{body}".encode(), padding.PKCS1v15(), hashes.SHA256())
+
+
+def test_keys_that_are_not_rsa_private_keys_are_refused():
+    from cryptography.hazmat.primitives.asymmetric import ec
+
+    other = ec.generate_private_key(ec.SECP256R1()).private_bytes(
+        serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()).decode()
+    for text in ("not a key", other):
+        with pytest.raises(ValueError):
+            eb.load_private_key(text)
+
+
+class _Answer:
+    def __init__(self, raw):
+        self.raw = raw
+
+    def read(self):
+        return self.raw
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+
+def test_request_signs_sends_and_reads_json(app, monkeypatch, pem):
+    seen = {}
+
+    def urlopen(call, timeout):
+        seen.update(url=call.full_url, method=call.get_method(), headers=dict(call.header_items()), data=call.data)
+        return _Answer(b'{"ok": true}')
+
+    monkeypatch.setattr(eb.urllib.request, "urlopen", urlopen)
+    creds = eb.Credentials("app-123", pem)
+    assert eb.request(creds, "POST", "/x", {"a": 1, "b": None}, {"k": "v"}, psu={"Psu-Ip-Address": "1.2.3.4"}) == {"ok": True}
+    assert seen["url"] == "https://api.enablebanking.com/x?a=1" and seen["method"] == "POST"
+    assert seen["headers"]["Authorization"].startswith("Bearer ") and seen["headers"]["Psu-ip-address"] == "1.2.3.4"
+    assert json.loads(seen["data"]) == {"k": "v"}
+    for raw, expected in ((b"", {}), (b"[1, 2]", {"items": [1, 2]})):
+        monkeypatch.setattr(eb.urllib.request, "urlopen", lambda call, timeout, raw=raw: _Answer(raw))
+        assert eb.request(creds, "GET", "/y") == expected
+    monkeypatch.setattr(eb.urllib.request, "urlopen", lambda call, timeout: _Answer(b"<html>"))
+    with pytest.raises(eb.ProviderError, match="invalid answer"):
+        eb.request(creds, "GET", "/y")
+
+
+def test_request_errors_become_provider_errors(app, monkeypatch, pem):
+    creds = eb.Credentials("app-123", pem)
+
+    def refuse(body, status=422):
+        def urlopen(call, timeout):
+            raise urllib.error.HTTPError(call.full_url, status, "x", {}, io.BytesIO(body))
+        monkeypatch.setattr(eb.urllib.request, "urlopen", urlopen)
+
+    refuse(b'{"message": "Session expired", "code": "EXPIRED_SESSION"}')
+    with pytest.raises(eb.ProviderError) as caught:
+        eb.request(creds, "GET", "/z")
+    assert caught.value.status == 422 and caught.value.consent_gone
+    for body in (b"oops", b"[1]"):
+        refuse(body, 500)
+        with pytest.raises(eb.ProviderError, match="HTTP 500") as caught:
+            eb.request(creds, "GET", "/z")
+        assert not caught.value.consent_gone
+
+    def offline(call, timeout):
+        raise urllib.error.URLError("no route")
+    monkeypatch.setattr(eb.urllib.request, "urlopen", offline)
+    with pytest.raises(eb.ProviderError, match="no route") as caught:
+        eb.request(creds, "GET", "/z")
+    assert caught.value.status == 0
+
+
+def test_the_calls_use_the_documented_paths(app, monkeypatch, pem):
+    calls = []
+
+    def fake(creds, method, path, params=None, body=None, psu=None):
+        calls.append((method, path))
+        return {"aspsps": [], "balances": [], "transactions": []}
+
+    monkeypatch.setattr(eb, "request", fake)
+    creds = eb.Credentials("app", pem)
+    eb.application(creds)
+    eb.aspsps(creds, "IT")
+    eb.start_authorization(creds, "Fineco", "IT", "https://x/cb", "st", datetime(2027, 1, 1))
+    eb.create_session(creds, "code")
+    eb.get_session(creds, "s/1")
+    eb.delete_session(creds, "s/1")
+    eb.balances(creds, "u 1")
+    eb.transactions(creds, "u 1", date(2026, 1, 1), date(2026, 2, 1))
+    assert calls == [("GET", "/application"), ("GET", "/aspsps"), ("POST", "/auth"), ("POST", "/sessions"),
+                     ("GET", "/sessions/s%2F1"), ("DELETE", "/sessions/s%2F1"), ("GET", "/accounts/u%201/balances"),
+                     ("GET", "/accounts/u%201/transactions")]
+
+
+# ── The credentials ──────────────────────────────────────────────────────────
+
+def test_credentials_saved_encrypted_and_removed(app, pem):
+    assert credentials.current() is None and credentials.status()["configured"] is False
+    with pytest.raises(ValueError):
+        credentials.save(" ", pem)
+    with pytest.raises(ValueError):
+        credentials.save("app", "junk")
+    credentials.save(" app-1 ", pem)
+    stored = json.loads(credentials._path().read_text())
+    assert stored["app_id"] == "app-1" and stored["key"].startswith(field_crypto.PREFIX)
+    assert (credentials._path().stat().st_mode & 0o777) == 0o600
+    assert credentials.current() == eb.Credentials("app-1", pem)
+    assert credentials.status() == {"configured": True, "environment": False, "app_id": "app-1"}
+    credentials._path().write_text("{bad json")
+    assert credentials.current() is None
+    credentials._path().write_text(json.dumps({"app_id": "x", "key": None}))
+    assert credentials.current() is None
+    credentials.remove()
+    assert not credentials._path().exists()
+
+
+def test_credentials_from_the_environment(app, monkeypatch, pem, tmp_path):
+    key = tmp_path / "eb.pem"
+    key.write_text(pem)
+    monkeypatch.setenv(credentials.ENV_ID, "env-app")
+    monkeypatch.setenv(credentials.ENV_KEY, str(key))
+    assert credentials.current() == eb.Credentials("env-app", pem) and credentials.status()["environment"]
+    monkeypatch.setenv(credentials.ENV_KEY, str(tmp_path / "missing.pem"))
+    assert credentials.current() is None
+
+
+def test_credentials_page(client, db, pem, monkeypatch):
+    html = client.get("/banking/").get_data(as_text=True)
+    assert "Da configurare" in html and "/banking/callback" in html
+    response = client.post("/banking/credentials", data={"app_id": "app-9", "key_text": "nope"}, follow_redirects=True)
+    assert "Servono l&#39;ID" in response.get_data(as_text=True)
+    client.post("/banking/credentials", data={"app_id": "app-9", "file": (io.BytesIO(pem.encode()), "key.pem")},
+                content_type="multipart/form-data")
+    assert credentials.current().app_id == "app-9"
+    client.post("/banking/credentials/delete")
+    assert credentials.current() is None
+    monkeypatch.setenv(credentials.ENV_ID, "env")
+    monkeypatch.setenv(credentials.ENV_KEY, "/nowhere")
+    response = client.post("/banking/credentials", data={"app_id": "x", "key_text": pem}, follow_redirects=True)
+    assert "impostate dal server" in response.get_data(as_text=True)
+
+
+# ── Linking a bank ───────────────────────────────────────────────────────────
+
+def test_link_a_bank_end_to_end(client, db, bank):
+    fineco = _fineco(db)
+    bank.movements = [tx("e1", "42.10"), tx("e2", "1500", indicator="CRDT", text="STIPENDIO NOVEMBRE",
+                                             debtor={"name": "ACME SPA"}),
+                      tx("e3", "9.99", status="PDNG")]
+    page = client.get("/banking/").get_data(as_text=True)
+    assert "Fineco" in page and "2 banche disponibili" in page
+    html = _connect(client, bank).get_data(as_text=True)
+    assert "Fineco collegata: 1 conti." in html and "0 movimenti salvati, 2 da controllare, 1 non ancora contabilizzati" in html
+    connection = BankConnection.query.one()
+    link = connection.links[0]
+    assert open_banking.session_id(connection) == "sess-1" and connection.session_enc != "sess-1"
+    assert link.account_id == fineco.id and link.iban == IBAN and link.balance == Decimal("1234.56")
+    assert link.last_booked == date(2026, 11, 10) and len(link.pending) == 2
+    auth = next(c for c in bank.calls if c[1] == "/auth")[3]
+    assert auth["aspsp"] == {"name": "Fineco", "country": "IT"} and auth["redirect_url"].endswith("/banking/callback")
+    assert auth["access"]["valid_until"][:10] == (sync._utcnow() + timedelta(days=90)).date().isoformat()
+    assert all(c[4] and "Psu-User-Agent" in c[4] for c in bank.calls if c[1].endswith("/transactions"))
+    assert "Controlla 2" in client.get("/banking/").get_data(as_text=True)
+
+    preview = client.get(f"/banking/links/{link.id}/review").get_data(as_text=True)
+    assert "STIPENDIO NOVEMBRE" in preview and re.search(rf'<option value="{fineco.id}" selected', preview)
+    rows = sorted(set(re.findall(r'name="include" value="(\d+)"', preview)), key=int)
+    salary = next(i for i in rows if re.search(rf'name="description-{i}"[^>]*title="STIPENDIO', preview))
+    client.post("/export/bank/confirm", data=form_data(preview, "preview-form", include=[salary]))
+    saved = Transaction.query.one()
+    assert saved.type == "income" and saved.account_id == fineco.id and "psd2" in saved.tags
+    assert saved.counterparty == "ACME SPA"
+    db.session.refresh(link)
+    assert link.pending is None and len(link.skipped) == 1  # the POS payment was left out on purpose
+
+    # the next download brings neither the saved movement nor the one left out
+    client.post(f"/banking/connections/{connection.id}/sync")
+    db.session.refresh(link)
+    assert link.pending is None and Transaction.query.count() == 1
+    since = [c[2]["date_from"] for c in bank.calls if c[1].endswith("/transactions")][-1]
+    assert since == "2026-11-03"  # a week before the last booked movement
+    response = client.get(f"/banking/links/{link.id}/review", follow_redirects=True)
+    assert "Nessun movimento in attesa" in response.get_data(as_text=True)
+
+
+def test_auto_save_keeps_only_doubtful_movements_waiting(client, db, bank):
+    fineco = _fineco(db)
+    db.session.add(Transaction(date=date(2026, 11, 9), description="PAGAMENTO POS ESSELUNGA", amount=Decimal("42.10"),
+                               type="expense", category="Spesa", tags=[], account_id=fineco.id))
+    db.session.commit()
+    bank.movements = [tx("e1", "42.10"), tx("e2", "12.00", text="NETFLIX"), tx(None, "3.00", text="CAFFE")]
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    connection.auto_save = True
+    db.session.commit()
+    link = connection.links[0]
+    link.pending, link.last_booked = None, None
+    db.session.commit()
+    results = open_banking.sync_connection(connection)
+    assert results[0].saved == 2 and results[0].waiting == 1  # the POS payment looks like the one already saved
+    assert {t.description for t in Transaction.query.filter(Transaction.tags.any("psd2"))} == {"NETFLIX", "CAFFE"}
+    # downloaded again: the bank's own ids (and the text of the one without) recognise them
+    results = open_banking.sync_connection(connection)
+    assert results[0].saved == 0 and results[0].waiting == 1
+
+
+def test_accounts_matched_kept_and_chosen(client, db, bank):
+    _fineco(db)
+    bank.accounts.append({"uid": "acc-2", "account_id": {}, "name": "Carta", "currency": "EUR"})
+    bank.accounts.append({"uid": "", "name": "senza id"})
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    card = next(k for k in connection.links if k.name == "Carta")
+    assert len(connection.links) == 2 and card.account_id is None
+    other = Account(name="Altro", kind="current")
+    db.session.add(other)
+    db.session.commit()
+    client.post(f"/banking/links/{card.id}/account", data={"account_id": other.id})
+    db.session.refresh(card)
+    assert card.account_id == other.id and not card.active
+    client.post(f"/banking/links/{card.id}/account", data={"account_id": "", "active": "1"})
+    db.session.refresh(card)
+    assert card.account_id is None and card.active
+
+    # renewing: a new session, new uids, the same links and accounts; the old consent is withdrawn
+    bank.accounts = [{"uid": "acc-1b", "account_id": {"iban": IBAN}, "name": "Conto Fineco"},
+                     {"uid": "acc-2b", "account_id": {}, "name": "Carta"}]
+    response = client.post(f"/banking/connections/{connection.id}/renew")
+    assert response.headers["Location"] == "https://bank.example/consent"
+    with client.session_transaction() as s:
+        state = next(iter(s[sync.STATE_KEY]))
+    client.get(f"/banking/callback?state={state}&code=c-2")
+    db.session.refresh(connection)
+    assert BankConnection.query.count() == 1 and sorted(k.uid for k in connection.links) == ["acc-1b", "acc-2b"]
+    assert ("DELETE", "/sessions/sess-1") in [(c[0], c[1]) for c in bank.calls]
+
+
+def test_callback_refusals(client, db, bank, app):
+    response = client.get("/banking/callback?state=nope&code=x", follow_redirects=True)
+    assert "non riconosciuto" in response.get_data(as_text=True)
+    client.post("/banking/connect", data={"aspsp": "Fineco", "country": "it"})
+    with client.session_transaction() as s:
+        state = next(iter(s[sync.STATE_KEY]))
+    response = client.get(f"/banking/callback?state={state}&error=access_denied", follow_redirects=True)
+    assert "non ha dato il consenso (access_denied)" in response.get_data(as_text=True)
+    client.post("/banking/connect", data={"aspsp": "Fineco"})
+    with client.session_transaction() as s:
+        state = next(iter(s[sync.STATE_KEY]))
+        waiting = s[sync.STATE_KEY]
+        waiting[state]["client"] = 999
+        s[sync.STATE_KEY] = waiting
+        s.modified = True
+    response = client.get(f"/banking/callback?state={state}&code=x", follow_redirects=True)
+    assert "altro archivio" in response.get_data(as_text=True)
+    client.post("/banking/connect", data={"aspsp": "Fineco"})
+    with client.session_transaction() as s:
+        state = next(iter(s[sync.STATE_KEY]))
+    bank.fail["/sessions"] = eb.ProviderError("Invalid code", 400)
+    response = client.get(f"/banking/callback?state={state}&code=x", follow_redirects=True)
+    assert "Enable Banking: Invalid code" in response.get_data(as_text=True)
+    assert BankConnection.query.count() == 0
+
+
+def test_connect_refusals(client, db, bank):
+    response = client.post("/banking/connect", data={"aspsp": " "}, follow_redirects=True)
+    assert "Scegli la banca" in response.get_data(as_text=True)
+    bank.fail["/auth"] = eb.ProviderError("down", 0)
+    response = client.post("/banking/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
+    assert "non raggiungibile" in response.get_data(as_text=True)
+    del bank.fail["/auth"]
+    bank.fail["/aspsps"] = eb.ProviderError("Unauthorized", 401)
+    sync._banks_kept.clear()
+    html = client.get("/banking/?country=XX").get_data(as_text=True)
+    assert "rifiutato le credenziali" in html
+    original = bank.__call__
+
+    class NoUrl(FakeBank):
+        def __call__(self, *args, **kwargs):
+            return {} if args[2] == "/auth" else original(*args, **kwargs)
+
+    sync.client.request = NoUrl()
+    response = client.post("/banking/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
+    assert "non ha indicato la pagina" in response.get_data(as_text=True)
+
+
+def test_nothing_works_without_credentials(client, db):
+    response = client.post("/banking/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
+    assert "non configurato" in response.get_data(as_text=True)
+    assert open_banking.sync_due() == 0
+
+
+def test_options_and_disconnect(client, db, bank):
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    client.post(f"/banking/connections/{connection.id}/options", data={"auto_save": "1"})
+    db.session.refresh(connection)
+    assert connection.auto_save and not connection.auto_sync
+    bank.fail["/auth"] = eb.ProviderError("Bank unavailable", 503)
+    response = client.post(f"/banking/connections/{connection.id}/renew", follow_redirects=True)
+    assert "Bank unavailable" in response.get_data(as_text=True)
+    bank.fail["/sessions/sess-1"] = eb.ProviderError("gone", 404)
+    response = client.post(f"/banking/connections/{connection.id}/delete", follow_redirects=True)
+    assert "scollegata" in response.get_data(as_text=True)
+    assert BankConnection.query.count() == 0 and BankAccountLink.query.count() == 0
+
+
+# ── Consents, errors, reminders ──────────────────────────────────────────────
+
+def test_expired_and_withdrawn_consents(client, db, bank, app):
+    from app.services import notifications
+
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    bank.fail["/accounts/acc-1/transactions"] = eb.ProviderError("Session is EXPIRED", 401, "EXPIRED_SESSION")
+    response = client.post(f"/banking/connections/{connection.id}/sync", follow_redirects=True)
+    assert "Session is EXPIRED" in response.get_data(as_text=True)
+    db.session.refresh(connection)
+    assert connection.status == "expired" and connection.last_error
+    with app.test_request_context("/"):
+        titles = [n.title for n in notifications.collect()]
+    assert "Consenso scaduto: Fineco" in titles
+
+    connection.status, connection.valid_until = "active", sync._utcnow() - timedelta(days=1)
+    db.session.commit()
+    with pytest.raises(open_banking.BankingError, match="scaduto"):
+        open_banking.sync_connection(connection)
+    assert connection.status == "expired"
+    assert "Consenso scaduto" in client.get("/banking/").get_data(as_text=True)
+
+
+def test_reminders_of_the_connections(client, db, bank, app):
+    from app.services import notifications
+
+    bank.movements = [tx("e1", "5")]
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    connection.valid_until = sync._utcnow() + timedelta(days=5)
+    connection.last_error = "Enable Banking: timeout"
+    connection.links[0].account_id = None
+    db.session.commit()
+    notifications._kept.clear()
+    with app.test_request_context("/"):
+        titles = [n.title for n in notifications.collect()]
+    assert "Consenso in scadenza: Fineco" in titles and "Download non riuscito: Fineco" in titles
+    assert "1 movimenti da controllare: Conto Fineco" in titles and "Scegli il conto dell'app per Conto Fineco" in titles
+    html = client.get("/banking/").get_data(as_text=True)
+    assert "Consenso in scadenza" in html and "Enable Banking: timeout" in html
+
+
+def test_a_failed_balance_does_not_stop_the_download(client, db, bank):
+    bank.movements = [tx("e1", "5")]
+    bank.fail["/accounts/acc-1/balances"] = eb.ProviderError("no balances", 500)
+    _connect(client, bank)
+    link = BankAccountLink.query.one()
+    assert link.balance is None and len(link.pending) == 1
+
+
+# ── By itself ─────────────────────────────────────────────────────────────────
+
+def test_automatic_download_when_due(client, db, bank, app, monkeypatch):
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    assert not open_banking.due(connection)  # just downloaded
+    assert open_banking.sync_due() == 0
+    later = sync._utcnow() + timedelta(hours=sync.SYNC_HOURS + 1)
+    assert open_banking.due(connection, later)
+    bank.movements = [tx("e9", "7")]
+    assert open_banking.sync_due(later) == 1
+    assert open_banking.sync_all_archives(later + timedelta(hours=sync.SYNC_HOURS + 1)) == 1  # the same one, waiting
+    connection = BankConnection.query.one()
+    connection.auto_sync = False
+    db.session.commit()
+    assert not open_banking.due(connection, later)
+    connection.auto_sync = True
+    for link in connection.links:
+        link.active = False
+    db.session.commit()
+    assert not open_banking.due(connection, later)
+    for link in connection.links:
+        link.active, link.last_sync_at = True, None
+    db.session.commit()
+    bank.fail["/accounts/acc-1/transactions"] = eb.ProviderError("boom", 500)
+    assert open_banking.sync_due() == 0  # the error is kept on the connection
+
+
+def test_run_in_background(client, db, bank, app, monkeypatch):
+    _connect(client, bank)
+    link = BankAccountLink.query.one()
+    link.last_sync_at = None
+    db.session.commit()
+    bank.movements = [tx("e5", "3")]
+    app.config["BANK_SYNC_INLINE"] = True
+    client.get("/dashboard")
+    db.session.refresh(link)
+    assert link.last_sync_at is not None and len(link.pending) == 1
+
+    app.config["BANK_SYNC_INLINE"] = False
+    started = []
+    monkeypatch.setattr(sync.threading, "Thread", lambda target, args, **kw: started.append((target, args)) or
+                        type("T", (), {"start": lambda self: None})())
+    link.last_sync_at = None
+    db.session.commit()
+    open_banking.run_in_background()
+    open_banking.run_in_background()  # already running for this archive
+    assert len(started) == 1
+    target, args = started[0]
+    target(*args)  # the thread's body: downloads, then frees the archive
+    assert sync._running == set()
+    monkeypatch.setattr(sync, "sync_due", lambda: 1 / 0)
+    target(*args)  # a failure is only logged
+    link.last_sync_at = sync._utcnow()
+    db.session.commit()
+    open_banking.run_in_background()  # nothing due
+    assert len(started) == 1
+
+
+def test_anything_due_survives_an_archive_not_upgraded(app, monkeypatch, bank):
+    monkeypatch.setattr(sync, "configured", lambda: 1 / 0)
+    assert sync.anything_due() is False
+
+
+def test_desktop_round_downloads_the_banks(app, bank, monkeypatch):
+    from desktop import main
+
+    monkeypatch.setattr(open_banking, "sync_all_archives", lambda: 3)
+    assert main.sync_banks(app) == 3
+
+
+def test_session_ids_follow_a_change_of_key(client, db, bank):
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    assert open_banking.encrypted_fields() == [(connection, "session_enc")]
+    connection.session_enc = "v1:broken"
+    db.session.commit()
+    assert open_banking.session_id(connection) is None
+    open_banking.disconnect(connection)  # no session to withdraw: only forgotten
+
+
+# ── Movements → rows ─────────────────────────────────────────────────────────
+
+def test_movements_become_import_rows(app, db):
+    items = [
+        tx("r1", "10", text="BONIFICO", creditor={"name": "Mario Rossi"},
+           creditor_account={"iban": "IT00 X123"}, bank_transaction_code={"description": "SEPA Credit Transfer"}),
+        {"transaction_id": "t2", "transaction_amount": {"amount": "-4.5", "currency": "usd"}, "value_date": "2026-11-02",
+         "remittance_information": "Coffee", "note": "card 1234"},
+        {"transaction_amount": {"amount": "x"}, "booking_date": "2026-11-01"},
+        {"transaction_amount": {"amount": "0"}, "booking_date": "2026-11-01"},
+        {"transaction_amount": {"amount": "3"}},
+        {"transaction_amount": {"amount": "8"}, "credit_debit_indicator": "DBIT", "booking_date": "2026-11-03",
+         "creditor": {"name": "Amazon"}},
+        tx("r9", "1", status="PDNG"),
+    ]
+    found = open_banking.to_rows(items, "u1")
+    assert found.pending == 1 and len(found.rows) == 3
+    transfer, coffee, amazon = found.rows
+    assert transfer.amount == Decimal("-10.00") and transfer.counterparty == "Mario Rossi"
+    assert transfer.details == "SEPA Credit Transfer · Mario Rossi · IT00X123"
+    assert coffee.currency == "USD" and coffee.description == "Coffee" and coffee.details == "card 1234"
+    assert amazon.description == "Amazon" and amazon.amount == Decimal("-8.00")
+    assert found.refs[0] == open_banking.provider_ref(items[0], "u1") and found.refs[2] is None
+    assert open_banking.provider_ref({}, "u1") is None
+
+
+def test_small_readers(app, db):
+    assert sync._parse_time(None) is None and sync._parse_time("soon") is None
+    assert sync._parse_time("2027-05-01T10:00:00+02:00") == datetime(2027, 5, 1, 8, 0)
+    assert sync._parse_time("2027-05-01T10:00:00") == datetime(2027, 5, 1, 10, 0)
+    link = BankAccountLink(uid="u")
+    sync._balance(link, [])
+    assert link.balance is None
+    sync._balance(link, [{"balance_type": "XYZ", "balance_amount": {"amount": "bad"}}])
+    assert link.balance is None
+    sync._balance(link, [{"balance_type": "XYZ", "balance_amount": {"amount": "7"}}])
+    assert link.balance == Decimal("7.00") and link.balance_date == date.today()
+    rows, refs = sync._from_stored([{"date": "2026-11-01", "amount": "nope"}, {"date": "never", "amount": "1"},
+                                    {"date": "2026-11-01", "amount": "-2", "import_ref": "r"}])
+    assert len(rows) == 1 and refs == ["r"] and rows[0].description == "Movimento"
+    assert sync.match_account(None) is None
+    ok = sync.SyncResult(link=link, saved=1, waiting=2)
+    assert open_banking.summary([ok]) == "1 movimenti salvati, 2 da controllare."
+
+
+def test_unknown_pages_answer_404(client, db):
+    assert client.post("/banking/connections/99/sync").status_code == 404
+    assert client.get("/banking/links/99/review").status_code == 404
+
+
+def test_the_accounts_page_links_here(client, db):
+    assert "/banking/" in client.get("/accounts/").get_data(as_text=True)
