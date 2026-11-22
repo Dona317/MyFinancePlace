@@ -221,7 +221,9 @@ def dashboard():
     as_of = min(pie_end - timedelta(days=1), today)
     sheet = wealth.balance_sheet(as_of)
     kpis = {**kpis, "net_worth": sheet["net_worth"], "total_investments": sheet["investments"],
-            "total_debt": sheet["total_liabilities"]}
+            "total_debt": sheet["total_liabilities"],
+            # the Portafoglio page's «Valore totale» (property and vehicles included) on the same day
+            "portfolio_value": wealth.portfolio_summary(wealth.holdings_on(as_of))["value"]}
     cards = {card: {"start": pie_start, "end": pie_end, "totals": period_totals} for card in dashboard_prefs.WINDOW_CARDS}
     # UI-18: the new blocks, each computed only when it is on the page
     new_blocks = {

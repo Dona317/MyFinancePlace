@@ -105,7 +105,7 @@
         <!-- Categoria (or split across several) ─────────────────────── -->
         {% macro split_row(category='', amount='') %}
         <div class="split-row">
-          <select name="split_category" class="form-select" aria-label="{{ _('Categoria della parte') }}">
+          <select name="split_category" class="form-select" data-allow-new aria-label="{{ _('Categoria della parte') }}">
             <option value="">{{ _('— Seleziona —') }}</option>
             {{ f.category_options(categories, category) }}
           </select>
@@ -121,7 +121,7 @@
             <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
             <button type="button" class="btn btn-ghost btn-sm" id="split-open"><i class="bi bi-diagram-2"></i> {{ _('Suddividi') }}</button>
           </div>
-          <select id="f-category" name="category" class="form-select" {% if split_open %}disabled{% endif %}>
+          <select id="f-category" name="category" class="form-select" data-allow-new {% if split_open %}disabled{% endif %}>
             <option value="">{{ _('— Seleziona —') }}</option>
             {{ f.category_options(categories, v.category) }}
           </select>
@@ -510,6 +510,17 @@
     });
     note.hidden = !isTransfer;
     if (counter) counter.hidden = !isTransfer;
+    // an expense's categories for an expense, an income's for an income (a transfer may use either); the one chosen
+    // stays even when it is of the other kind, so nothing is lost on a type change
+    const kind = isTransfer ? '' : field.value;
+    document.querySelectorAll('select[name=category], select[name=split_category]').forEach(select => {
+      select.dataset.newKind = kind || 'both';
+      [...select.options].forEach(o => {
+        if (!o.value || !o.dataset.kind) return;
+        const hide = !!kind && o.dataset.kind !== 'both' && o.dataset.kind !== kind && !o.selected;
+        if (o.hidden !== hide) o.hidden = hide;
+      });
+    });
   };
   options.forEach(o => o.addEventListener('click', () => { field.value = o.dataset.type; paint(); }));
   amount.addEventListener('input', () => {
@@ -566,6 +577,8 @@
   document.getElementById('split-close').addEventListener('click', () => toggle(false));
   document.getElementById('split-add').addEventListener('click', () => {
     rows.appendChild(document.getElementById('split-template').content.cloneNode(true));
+    window.initCombos?.(rows);
+    document.getElementById('f-transfer')?.dispatchEvent(new Event('change'));  // the new row's list follows the type
     refresh();
   });
   rows.addEventListener('click', (e) => {

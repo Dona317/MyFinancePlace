@@ -450,6 +450,14 @@
                      url_for('accounting.cash_flow', year=pie_last.year),
                      value=("%.1f"|format(cards.savings_rate.totals.savings_rate) ~ '%'), forecast=fc,
                      forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else ''), before=(("%.1f"|format(before_totals.savings_rate) ~ '%') if before_totals else none)) }}
+      {# 22 Nov 2026: what is invested and what is owed, at the end of the period (today for the one under way) #}
+      <div class="kpi-card kpi-click kpi-purple" data-href="{{ url_for('portfolio.index') if allowed('portfolio') else url_for('accounting.balance_sheet', date=as_of.isoformat()) }}" title="{{ _('Apri il portafoglio') }}">
+        <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
+        <div class="kpi-label">{{ _('Portafoglio e debiti') }}</div>
+        <div class="kpi-value" data-amount="{{ kpis.portfolio_value }}">—</div>
+        <div class="kpi-sub"><i class="bi bi-calendar3"></i> {{ _('Portafoglio al %(date)s', date=as_of|it_date) }}</div>
+        <div class="kpi-sub"><i class="bi bi-credit-card"></i> {% if kpis.total_debt %}{{ _('Debiti: %(amount)s', amount=kpis.total_debt|money) }}{% else %}{{ _('Nessun debito') }}{% endif %}</div>
+      </div>
     </div></div>
   </div>
 

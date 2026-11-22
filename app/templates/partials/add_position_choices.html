@@ -1,0 +1,13 @@
+{# The round + on the Portafoglio pages: the two ways to add positions, as for transactions — one by one in a
+   pop-up, or many at once from a file (a broker's statement or the model to fill in). Without JavaScript the link
+   goes to the page. #}
+<a class="add-choice" href="{{ url_for('portfolio.new') }}" data-popup-size="wide"
+   data-popup="{{ url_for('portfolio.new', embed=1, next=url_for('transactions.embed_done', reload=1), **{'from': 'add'}) }}" title="{{ _('Posizione singola') }}">
+  <span class="add-choice-head"><i class="bi bi-plus-circle"></i> <strong>{{ _('Posizione singola') }}</strong></span>
+  <span>{{ _('Aggiungi un titolo, un fondo, un bene o un conto deposito.') }}</span>
+</a>
+<a class="add-choice" href="{{ url_for('portfolio.broker_upload') }}" data-popup-size="wide"
+   data-popup="{{ url_for('portfolio.broker_upload', embed=1, next=url_for('transactions.embed_done', reload=1), **{'from': 'add'}) }}" title="{{ _('Più posizioni da un file') }}">
+  <span class="add-choice-head"><i class="bi bi-file-earmark-arrow-up"></i> <strong>{{ _('Più posizioni da un file') }}</strong></span>
+  <span>{{ _('Carica l\'estratto del broker o il modello Excel compilato: una riga per operazione, i titoli nuovi vengono creati.') }}</span>
+</a>

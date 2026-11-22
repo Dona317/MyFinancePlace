@@ -31,5 +31,6 @@ def register_filters(app: Flask) -> None:
     for name, function in filters.items():
         app.add_template_filter(function, name)
     app.jinja_env.globals["category_groups"] = categories.grouped
+    app.jinja_env.globals["category_kind"] = lambda name: categories.kinds().get(name, "both")
     # the archive's «no real category» («Altro», or «Imprevisti o altro» with the broad set)
     app.jinja_env.globals["fallback_category"] = categories.fallback

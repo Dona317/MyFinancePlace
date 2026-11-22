@@ -16,6 +16,7 @@ from app.routes.helpers import (
     form_date,
     form_decimal,
     form_text,
+    safe_next,
     save_form,
     uploaded_file,
 )
@@ -227,7 +228,8 @@ def index():
 def new():
     if request.method == "POST":
         return save_form(Holding(), _holding_from_form, _render_form,
-                         lambda h: _("Posizione «%(name)s» aggiunta.", name=h.name), lambda h: url_for("portfolio.index"))
+                         lambda h: _("Posizione «%(name)s» aggiunta.", name=h.name),
+                         lambda h: safe_next() or url_for("portfolio.index"))
     return _render_form(None, {})
 
 

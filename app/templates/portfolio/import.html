@@ -4,7 +4,14 @@
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Importa dal broker') }}</li>{% endblock %}
 
 {% block content %}
-{% set nav_active = 'import' %}{% include "portfolio/_nav.html" %}
+{% if request.values.get('from') == 'add' %}
+{# in the pop-up of the round +: back to the choice, or close #}
+<div class="popup-bar">
+  <button type="button" class="btn btn-ghost btn-icon" data-popup-back title="{{ _('Indietro') }}" aria-label="{{ _('Indietro') }}"><i class="bi bi-arrow-left"></i></button>
+  <button type="button" class="btn btn-ghost btn-icon" data-close-embed title="{{ _('Chiudi') }}" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+</div>
+{% endif %}
+{% if request.values.get('embed') != '1' %}{% set nav_active = 'import' %}{% include "portfolio/_nav.html" %}{% endif %}
 <div class="page-form">
   <div class="card">
     <div class="card-header">
@@ -76,6 +83,7 @@
     </div>
   </div>
 
+  {% if request.values.get('embed') != '1' %}{# the whole section's backup is not a way to add positions #}
   <div class="card" id="archive" style="margin-top:16px;">
     <div class="card-header">
       <div>
@@ -99,5 +107,6 @@
       </form>
     </div>
   </div>
+{% endif %}
 </div>
 {% endblock %}

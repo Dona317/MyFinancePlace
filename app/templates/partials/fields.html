@@ -72,13 +72,13 @@
 {%- for main, subs in category_groups(names) %}
   {%- if subs %}
 <optgroup label="{{ main }}">
-  <option value="{{ main }}" {{ 'selected' if selected == main }}>{{ main }}</option>
+  <option value="{{ main }}" data-kind="{{ category_kind(main) }}" {{ 'selected' if selected == main }}>{{ main }}</option>
   {%- for sub in subs %}
-  <option value="{{ sub }}" {{ 'selected' if selected == sub }}>{{ main }} › {{ sub }}</option>
+  <option value="{{ sub }}" data-kind="{{ category_kind(sub) }}" {{ 'selected' if selected == sub }}>{{ main }} › {{ sub }}</option>
   {%- endfor %}
 </optgroup>
   {%- else %}
-<option value="{{ main }}" {{ 'selected' if selected == main }}>{{ main }}</option>
+<option value="{{ main }}" data-kind="{{ category_kind(main) }}" {{ 'selected' if selected == main }}>{{ main }}</option>
   {%- endif %}
 {%- endfor %}
 {% endmacro %}

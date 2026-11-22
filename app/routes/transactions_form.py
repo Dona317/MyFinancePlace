@@ -13,7 +13,7 @@ from app.models.transaction import Transaction
 from app.models.wealth import Debt, Holding
 from app.routes.helpers import form_choice, form_date, form_decimal, form_int, form_text
 from app.schemas.transaction import RECURRENCES
-from app.services import broker, clusters, display, money, portfolio_ops, splits, wealth
+from app.services import broker, categories, clusters, display, money, portfolio_ops, splits, wealth
 from app.services import currency as currency_service
 from app.services.ai_classification import AI_TAG
 from app.services.forecast import step_date
@@ -95,6 +95,9 @@ def tx_from_form(tx: Transaction) -> Transaction:
     chosen = request.form.get("cluster", "")
     tx.cluster = chosen if clusters.valid(chosen) and tx.type == "expense" else None
     clusters.resolve(tx)
+    # a category typed in the form that is not in the list yet becomes one, for this movement's direction
+    for name in dict.fromkeys([tx.category, *(part.category for part in tx.splits)]):
+        categories.ensure(name, tx.type)
     return tx
 
 

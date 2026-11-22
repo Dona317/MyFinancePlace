@@ -421,6 +421,7 @@ def _seed_subcategories() -> None:
 def forget() -> None:
     request_cache.cache().pop("category_parents", None)
     request_cache.cache().pop("category_excluded", None)
+    request_cache.cache().pop("category_kinds", None)
 
 
 def excluded_names() -> list[str]:
@@ -506,6 +507,31 @@ def all_categories() -> list[Category]:
 def used_names() -> set[str]:
     names = {c for (c,) in db.session.query(Transaction.category).filter(Transaction.category.isnot(None)).distinct()}
     return names | {c for (c,) in db.session.query(TransactionSplit.category).filter(TransactionSplit.category.isnot(None)).distinct()}
+
+
+def kinds() -> dict[str, str]:
+    """{category: "expense" | "income" | "both"} — what each category is for (22 Nov 2026: the lists of a movement
+    show only its direction's categories); a subcategory with no direction of its own takes its main category's."""
+    store = request_cache.cache()
+    if "category_kinds" not in store:
+        rows = all_categories()
+        by_id = {c.id: c.kind for c in rows}
+        store["category_kinds"] = {c.name: c.kind or by_id.get(c.parent_id) or "both" for c in rows}
+    return store["category_kinds"]
+
+
+def ensure(name: str | None, tx_type: str | None) -> bool:
+    """A category written in a transaction's form that does not exist yet becomes one, for that direction (an
+    expense's, an income's; a transfer's for both). True when it was made."""
+    name = (name or "").strip()
+    if not name or Category.query.filter(func.lower(Category.name) == name.lower()).first() is not None:
+        return False
+    kind = tx_type if tx_type in ("expense", "income") else "both"
+    db.session.add(Category(name=name, kind=kind, position=len(all_categories()),
+                            nature=default_nature(name, kind)))
+    db.session.flush()
+    forget()
+    return True
 
 
 def known_categories(*extra: str | None) -> list[str]:

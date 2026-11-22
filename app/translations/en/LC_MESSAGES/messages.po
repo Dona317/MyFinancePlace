@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 19:59+0000\n"
+"POT-Creation-Date: 2026-11-22 20:25+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1281,6 +1281,9 @@ msgstr "Add an exchange rate"
 msgid "Aggiungi un conto"
 msgstr "Add an account"
 
+msgid "Aggiungi un titolo, un fondo, un bene o un conto deposito."
+msgstr "Add a security, a fund, an asset or a deposit account."
+
 msgid "Aggiungi un utente"
 msgstr "Add a user"
 
@@ -1681,6 +1684,9 @@ msgstr "Open the detail"
 
 msgid "Apri il flusso di cassa"
 msgstr "Open the cash flow"
+
+msgid "Apri il portafoglio"
+msgstr "Open the portfolio"
 
 msgid "Apri le previsioni"
 msgstr "Open the forecast"
@@ -2331,6 +2337,13 @@ msgstr "Upload the file"
 
 msgid "Carica il file dell'emittente"
 msgstr "Upload the issuer's file"
+
+msgid ""
+"Carica l'estratto del broker o il modello Excel compilato: una riga per "
+"operazione, i titoli nuovi vengono creati."
+msgstr ""
+"Upload the broker's statement or the filled-in Excel template: one row per "
+"trade; new securities are created."
 
 msgid ""
 "Carica la composizione dei fondi, o indica area e settore, nella scheda "
@@ -3745,6 +3758,10 @@ msgstr "Create a model"
 msgid "Crea utente"
 msgstr "Create user"
 
+#, python-brace-format
+msgid "Crea «{name}»"
+msgstr "Create “{name}”"
+
 msgid ""
 "Credenziali di Enable Banking rimosse: i download si fermano finché non "
 "le inserisci di nuovo."
@@ -4124,6 +4141,10 @@ msgstr "Other debts"
 
 msgid "Debiti verso persone"
 msgstr "Owed by me to people"
+
+#, python-format
+msgid "Debiti: %(amount)s"
+msgstr "Debts: %(amount)s"
 
 msgid "Debiti: quando finisco"
 msgstr "Debts: when I finish"
@@ -6265,7 +6286,10 @@ msgstr "The current month"
 msgid ""
 "Il mese in corso, fino a oggi; sotto ogni cifra il mese scorso e la media"
 " mensile dei 12 mesi prima. Riconciliazioni e storni non contano."
-msgstr "The month under way, up to today; under each figure last month and the monthly average of the 12 months before. Reconciliations and reversals do not count."
+msgstr ""
+"The month under way, up to today; under each figure last month and the "
+"monthly average of the 12 months before. Reconciliations and reversals do"
+" not count."
 
 msgid "Il metodo scelto, così com'è."
 msgstr "The chosen method, as it is."
@@ -8859,6 +8883,9 @@ msgstr ""
 "No data: upload the holdings file or type the top countries and sectors "
 "by hand."
 
+msgid "Nessun debito"
+msgstr "No debts"
+
 msgid "Nessun debito in corso"
 msgstr "No debt in progress"
 
@@ -10758,6 +10785,9 @@ msgstr ""
 msgid "Più ottimista"
 msgstr "Most optimistic"
 
+msgid "Più posizioni da un file"
+msgstr "Several positions from a file"
+
 msgid "Più prudente"
 msgstr "Most cautious"
 
@@ -10854,6 +10884,13 @@ msgstr "Portfolio (TWR)"
 msgid "Portafoglio Investimenti"
 msgstr "Investment Portfolio"
 
+#, python-format
+msgid "Portafoglio al %(date)s"
+msgstr "Portfolio on %(date)s"
+
+msgid "Portafoglio e debiti"
+msgstr "Portfolio and debts"
+
 msgid "Portafoglio investimenti"
 msgstr "Investment portfolio"
 
@@ -10888,6 +10925,9 @@ msgstr "Portfolio «%(name)s» saved."
 #, python-format
 msgid "Posizione iniziale: %(units)s quote a %(price)s%(when)s"
 msgstr "Opening position: %(units)s units at %(price)s%(when)s"
+
+msgid "Posizione singola"
+msgstr "Single position"
 
 #, python-format
 msgid "Posizione «%(name)s» aggiornata."

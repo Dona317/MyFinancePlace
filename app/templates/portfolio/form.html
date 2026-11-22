@@ -7,6 +7,13 @@
 {% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>{% endblock %}
 
 {% block content %}
+{% if request.values.get('from') == 'add' %}
+{# in the pop-up of the round +: back to the choice, or close #}
+<div class="popup-bar">
+  <button type="button" class="btn btn-ghost btn-icon" data-popup-back title="{{ _('Indietro') }}" aria-label="{{ _('Indietro') }}"><i class="bi bi-arrow-left"></i></button>
+  <button type="button" class="btn btn-ghost btn-icon" data-close-embed title="{{ _('Chiudi') }}" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+</div>
+{% endif %}
 <div class="page-form">
   <div class="card">
     <div class="card-header">

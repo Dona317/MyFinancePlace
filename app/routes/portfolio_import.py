@@ -18,7 +18,7 @@ from app.models.account import Account
 from app.models.securities import SecuritiesAccount
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.routes.helpers import download, export_name, form_ids, uploaded_file
+from app.routes.helpers import download, export_name, form_ids, safe_next, uploaded_file
 from app.routes.portfolio import portfolio_bp
 from app.services import (
     accounts,
@@ -261,7 +261,7 @@ def broker_confirm():
     flash(message, "success")
     if refused:
         flash(_("Non importate: %(rows)s", rows=" · ".join(refused[:5])), "warning")
-    return redirect(url_for("portfolio.index"))
+    return redirect(safe_next() or url_for("portfolio.index"))  # in the round + pop-up: it closes
 
 
 def _save_preset(account: Account | None) -> None:

@@ -439,17 +439,20 @@
   </div><!-- /main-content -->
 </div><!-- /app-wrapper -->
 
-{% if allowed('transactions') and not embedded %}
+{# on the Portafoglio pages the round + adds positions (one, or many from a file), elsewhere transactions #}
+{% set add_positions = request.blueprint == 'portfolio' and allowed('portfolio') %}
+{% if (add_positions or allowed('transactions')) and not embedded %}
 <!-- Nuova transazione: a round + at the bottom left of the page, like the AI button on the right -->
-<a href="{{ url_for('transactions.add') }}" class="add-bubble" id="add-bubble" title="{{ _('Nuova Transazione') }}" aria-label="{{ _('Nuova Transazione') }}"><i class="bi bi-plus-lg"></i></a>
+{% set add_label = _('Nuova posizione') if add_positions else _('Nuova Transazione') %}
+<a href="{{ url_for('portfolio.new') if add_positions else url_for('transactions.add') }}" class="add-bubble" id="add-bubble" title="{{ add_label }}" aria-label="{{ add_label }}"><i class="bi bi-plus-lg"></i></a>
 <div class="modal-overlay" id="add-chooser" onclick="if (event.target === this) closeModal('add-chooser')">
   <div class="modal add-chooser" role="dialog" aria-modal="true" aria-labelledby="add-chooser-title">
     <div class="modal-header">
-      <h3 class="modal-title" id="add-chooser-title">{{ _('Nuova transazione') }}</h3>
+      <h3 class="modal-title" id="add-chooser-title">{{ _('Nuova posizione') if add_positions else _('Nuova transazione') }}</h3>
       <button type="button" class="modal-close" onclick="closeModal('add-chooser')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="modal-body add-choices">
-      {% include "partials/add_choices.html" %}
+      {% include "partials/add_position_choices.html" if add_positions else "partials/add_choices.html" %}
     </div>
   </div>
 </div>
@@ -559,7 +562,7 @@
   "remove_tag": _("Togli il tag"), "expand_menu": _("Espandi il menu"), "shrink_menu": _("Riduci il menu"), "confirm": _("Sei sicuro?"),
   "to_dark": _("Passa alla modalità scura"), "to_light": _("Passa alla modalità chiara"),
   "hide_amounts": _("Nascondi gli importi"), "show_amounts": _("Mostra gli importi"),
-  "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"), "no_match": _("Nessun risultato"), "select_all": _("Seleziona tutto"), "deselect_all": _("Deseleziona tutto"), "show_hide": _("Mostra o nascondi"), "show": _("Mostra"), "hide": _("Nascondi"), "to_bottom": _("Vai in fondo alla pagina"), "to_top": _("Torna su"), "to_list": _("Vai alla lista transazioni"), "resize": _("Trascina per allargare o stringere la colonna"), "saved": _("Fatto."),
+  "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"), "no_match": _("Nessun risultato"), "create_new": _("Crea «{name}»"), "select_all": _("Seleziona tutto"), "deselect_all": _("Deseleziona tutto"), "show_hide": _("Mostra o nascondi"), "show": _("Mostra"), "hide": _("Nascondi"), "to_bottom": _("Vai in fondo alla pagina"), "to_top": _("Torna su"), "to_list": _("Vai alla lista transazioni"), "resize": _("Trascina per allargare o stringere la colonna"), "saved": _("Fatto."),
   "ask_local": _("Il modello gira sul tuo computer: nulla esce."), "ask_cloud": _("Il modello è su internet (Anthropic): il riassunto dei tuoi numeri lascia il computer."),
   "ask_none": _("Nessun modello AI configurato: sceglilo nelle Impostazioni."), "ask_wait": _("Sto pensando…"),
   "ask_check": _("Risposta di un modello AI: controlla i numeri nelle pagine indicate."), "ask_error": _("Non è stato possibile rispondere."),

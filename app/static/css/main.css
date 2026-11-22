@@ -1613,7 +1613,9 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .kpi-fix a { color: inherit; }
 .kpi-fix a:hover { color: var(--clr-primary); }
 /* the old cards of the period, now a block of the view «Questo mese» */
-.fc-widget[data-widget="period_totals"] .kpi-strip, .fc-widget[data-widget="month_totals"] .kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fc-widget[data-widget="month_totals"] .kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fc-widget[data-widget="period_totals"] .kpi-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .fc-widget[data-widget="period_totals"] .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .fc-widget[data-widget="period_totals"] .kpi-strip, .fc-widget[data-widget="month_totals"] .kpi-strip { grid-template-columns: minmax(0, 1fr); } }
 /* «Dove va il denaro» as a map: one tile per category, as big as its spending, reds from strong to light */
 .tmap { display: flex; flex-wrap: wrap; gap: 3px; min-height: 220px; align-content: stretch; }

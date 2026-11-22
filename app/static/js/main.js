@@ -697,6 +697,13 @@ function fallbackCopy(value) {
    (html.embedded) the buttons with data-close-embed close it. */
 function initPopups() {
   if (document.documentElement.classList.contains("embedded")) {
+    // a page of several steps (a file read, then its preview) stays in the window and ends where it was asked to:
+    // every form of it carries the window's embed, next and from
+    const here = new URLSearchParams(window.location.search);
+    document.querySelectorAll("form").forEach(form => ["embed", "next", "from"].forEach(name => {
+      if (!here.get(name) || form.querySelector(`[name="${name}"]`)) return;
+      form.appendChild(Object.assign(document.createElement("input"), { type: "hidden", name, value: here.get(name) }));
+    }));
     document.addEventListener("click", e => {
       if (e.target.closest("[data-close-embed]")) window.parent.postMessage({ mfp: "popup-close" }, window.location.origin);
       if (e.target.closest("[data-popup-back]")) window.parent.postMessage({ mfp: "popup-back" }, window.location.origin);
@@ -833,7 +840,8 @@ function initInfoTips() {
 const COMBO_MIN = 7;
 function initCombos(root = document) {
   root.querySelectorAll("select:not([multiple]):not([data-no-search]):not([data-combo])").forEach(select => {
-    if (select.options.length < COMBO_MIN || select.closest("template")) return;
+    const allowNew = select.hasAttribute("data-allow-new");  // a choice not in the list can be typed in (a category)
+    if ((select.options.length < COMBO_MIN && !allowNew) || select.closest("template")) return;
     select.dataset.combo = "1";
     const box = document.createElement("div");
     box.className = "combo";
@@ -875,6 +883,17 @@ function initCombos(root = document) {
         list.appendChild(li);
         items.push({ li, option });
       });
+      const typed = (filter || "").trim();
+      if (allowNew && typed && ![...select.options].some(o => o.value.toLocaleLowerCase() === typed.toLocaleLowerCase())) {
+        const li = Object.assign(document.createElement("li"), { className: "combo-option combo-new", textContent: "＋ " + (TEXT.create_new || "Crea «{name}»").replace("{name}", typed) });
+        li.setAttribute("role", "option");
+        const option = Object.assign(document.createElement("option"), { value: typed, textContent: typed });
+        option.dataset.kind = select.dataset.newKind || "both";
+        option.dataset.created = "1";
+        li.addEventListener("mousedown", e => { e.preventDefault(); select.appendChild(option); choose(option); });
+        list.appendChild(li);
+        items.push({ li, option, create: true });
+      }
       if (!items.length) list.appendChild(Object.assign(document.createElement("li"), { className: "combo-empty", textContent: TEXT.no_match || "Nessun risultato" }));
       active = items.findIndex(i => i.option.selected);
       paint();
@@ -899,7 +918,11 @@ function initCombos(root = document) {
       if (list.hidden && (e.key === "ArrowDown" || e.key === "Enter")) { open(); e.preventDefault(); return; }
       if (e.key === "ArrowDown") { active = Math.min(active + 1, items.length - 1); paint(); e.preventDefault(); }
       else if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); paint(); e.preventDefault(); }
-      else if (e.key === "Enter") { if (items[active]) { choose(items[active].option); } e.preventDefault(); }
+      else if (e.key === "Enter") {
+        const item = items[active] || (items.length === 1 ? items[0] : null);
+        if (item) { if (item.create) select.appendChild(item.option); choose(item.option); }
+        e.preventDefault();
+      }
       else if (e.key === "Escape") { close(); input.blur(); }
     });
     // the page may change the choices or the value (a preview, a form filled by script): follow it
