@@ -4,6 +4,7 @@ from datetime import date, timedelta
 import pytest
 
 from app.models.transaction import Transaction
+from app.routes.forecast import FORECAST_TABS
 from app.services import forecast
 from tests.conftest import make_tx
 from tests.form_helper import assert_divs_balanced
@@ -225,22 +226,25 @@ def test_page_is_a_two_column_dashboard(client, db):
     db.session.add_all([tx(recent(k, 3), "Esselunga", 100 + k, category="Alimentari") for k in range(1, 7)])
     db.session.add(tx(recent(1, 27), "Stipendio", 2500, type="income", category="Stipendio", is_recurring=True, recurrence="monthly"))
     db.session.commit()
-    html = client.get("/forecast/").get_data(as_text=True)
-    assert_divs_balanced(html)
-    # one grid of two equal columns, with every panel in the default order
-    assert html.count('class="fc-grid"') == 1 and "dash-grid" not in html
-    assert re.findall(r'<section class="fc-widget" data-widget="(\w+)" data-span="(\d)"', html) == [
-        (key, str(span)) for key, (_, span) in forecast.WIDGETS.items()]
-    assert 'id="layout-edit"' in html and 'id="layout-bar"' in html
-    for title in ("Netto mensile: storico e previsione", "Confronto dei metodi", "Saldo di cassa previsto",
-                  "Mese per mese", "per categoria", "Prossime ricorrenti", "Sembrano ricorrenti", "Come funziona"):
-        assert title in html
-    for chart in ("netChart", "incomeChart", "expensesChart", "balanceChart"):
-        assert f'id="{chart}"' in html
-    assert "Entrate: storico e previsione" in html and "Uscite: storico e previsione" in html
-    assert '<select name="recurring"' in html and "Err. entrate" in html and "Err. uscite" in html
-    assert "Netflix" in html.split('<div class="card-header-title">Sembrano ricorrenti')[1]      # suggested
-    assert "Stipendio" in html.split('<div class="card-header-title">Prossime ricorrenti')[1]    # scheduled
+    # UI-21: the figures on top in one row, then the tabs, each with its own panels of the one grid
+    pages = {tab: client.get(f"/forecast/?tab={tab}").get_data(as_text=True)
+             for tab in ("next12", "months", "recurring", "methods")}
+    for tab, html in pages.items():
+        assert_divs_balanced(html)
+        assert html.count('class="fc-grid"') == 1 and 'class="stat-row"' in html and 'id="layout-edit"' in html
+        shown = re.findall(r'<section class="fc-widget" data-widget="(\w+)"', html)
+        assert shown == [key for key in forecast.WIDGETS if key in FORECAST_TABS[tab]], tab
+    for tab, title in (("next12", "Netto mensile: storico e previsione"), ("methods", "Confronto dei metodi"),
+                       ("next12", "Saldo di cassa previsto"), ("months", "Mese per mese"), ("months", "per categoria"),
+                       ("next12", "Prossime ricorrenti"), ("recurring", "Sembrano ricorrenti"), ("methods", "Come funziona")):
+        assert title in pages[tab], title
+    for tab, chart in (("next12", "netChart"), ("months", "incomeChart"), ("months", "expensesChart"), ("next12", "balanceChart")):
+        assert f'id="{chart}"' in pages[tab]
+    assert "Pensione e FIRE" in pages["next12"]  # the retirement page is a tab too
+    assert "Entrate: storico e previsione" in pages["months"] and "Uscite: storico e previsione" in pages["months"]
+    assert '<select name="recurring"' in pages["methods"] and "Err. entrate" in pages["methods"] and "Err. uscite" in pages["methods"]
+    assert "Netflix" in pages["recurring"].split('<div class="card-header-title">Sembrano ricorrenti')[1]      # suggested
+    assert "Stipendio" in pages["next12"].split('<div class="card-header-title">Prossime ricorrenti')[1]    # scheduled
     for label, _ in forecast.METHODS.values():
         assert str(label) in html
     assert 'href="/forecast/"' in client.get("/transactions/").get_data(as_text=True)  # sidebar link
@@ -314,7 +318,9 @@ def test_layout_is_saved_and_applied(client, db):
     assert [w["id"] for w in saved[:3]] == ["balance", "kpi", "methods"] and len(saved) == len(forecast.WIDGETS)
     html = client.get("/forecast/").get_data(as_text=True)
     order = re.findall(r'<section class="fc-widget" data-widget="(\w+)" data-span="(\d)"[^>]*?( hidden)?>', html)
-    assert order[:3] == [("balance", "2", ""), ("kpi", "2", ""), ("methods", "1", " hidden")]
+    assert order[0] == ("balance", "2", "")  # the cards of «kpi» are the row on top now, not a panel
+    methods = client.get("/forecast/?tab=methods").get_data(as_text=True)
+    assert re.findall(r'<section class="fc-widget" data-widget="(\w+)" data-span="(\d)"[^>]*?( hidden)?>', methods)[0] == ("methods", "1", " hidden")
     assert_divs_balanced(html)
     # reset
     assert client.post("/forecast/layout", json={"reset": True}).get_json()["layout"] == forecast.default_layout()

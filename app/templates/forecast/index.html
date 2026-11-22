@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% from "partials/stat_row.html" import stat_row %}
+{% from "forecast/_tabs.html" import forecast_tabs with context %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/info.html" import info %}
@@ -27,6 +29,20 @@
 {% set cur = fc.current %}
 {% set nxt = fc.next_month %}
 {% set best = fc.methods|selectattr('best')|first %}
+{# UI-21: «come sto» in one row (in place of the block of cards), then the tabs #}
+{% if fc.history_months or fc.scheduled %}
+{{ stat_row([
+  {'label': _('Chiusura %(month)s', month=cur.label), 'value': cur.net|money, 'cls': 'positive' if cur.net >= 0 else 'negative',
+   'sub': _('Registrato fino al %(day)s + previsto', day=fc.cutoff|it_date)},
+  {'label': _('Netto %(month)s', month=nxt.label), 'value': nxt.net|money, 'cls': 'positive' if nxt.net >= 0 else 'negative',
+   'sub': _('entrate %(income)s · uscite %(expenses)s', income=nxt.income|money, expenses=nxt.expenses|money)} if nxt else None,
+  {'label': _('Saldo tra %(n)s mesi', n=fc.horizon), 'value': fc.final_balance|money, 'cls': 'positive' if fc.final_balance >= 0 else 'negative',
+   'sub': _('Oggi %(amount)s', amount=fc.balance_now|money)},
+  {'label': _('Ricorrenti al mese'), 'value': fc.recurring_monthly|money, 'href': url_for('forecast.index', tab='recurring'),
+   'sub': _('%(count)s programmate', count=fc.scheduled|length) ~ ((' · ' ~ _('%(count)s da confermare', count=fc.candidates|length)) if fc.candidates else '')},
+], _('Previsioni in breve')) }}
+{% endif %}
+{{ forecast_tabs(tab) }}
 
 <!-- Impostazioni della previsione ──────────────────────────────────────── -->
 <div class="card mb-16">
@@ -86,7 +102,7 @@
 </div>
 
 <div class="fc-grid" id="fc-grid">
-{% for w in layout %}
+{% for w in layout if w.id != 'kpi' and w.id in tab_blocks %}
 <section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
   <div class="fc-widget-tools">
     <span class="fc-drag" title="{{ _('Trascina per spostare') }}"><i class="bi bi-grip-vertical"></i> {{ widgets[w.id][0] }}</span>

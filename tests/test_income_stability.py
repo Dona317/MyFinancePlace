@@ -53,5 +53,5 @@ def test_no_income_and_income_without_category(app, db):
 
 def test_forecast_page_shows_the_panel(client, db):
     _income(db, "Stipendio", [2000] * 12)
-    html = client.get("/forecast/").get_data(as_text=True)
+    html = client.get("/forecast/?tab=methods").get_data(as_text=True)
     assert "Stabilità delle entrate" in html and "Stipendio" in html  # the window follows today: no fixed counts here

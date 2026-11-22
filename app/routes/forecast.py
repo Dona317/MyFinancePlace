@@ -18,6 +18,14 @@ forecast_bp = APIBlueprint(
 )
 
 
+FORECAST_TABS = {
+    "next12": ("balance", "net", "upcoming"),
+    "months": ("months", "income", "expenses", "categories"),
+    "recurring": ("candidates", "upcoming"),
+    "methods": ("methods", "stability", "help"),
+}
+
+
 @forecast_bp.route("/")
 def index():
     if request.args.get("remember") and request.args.get("horizon"):  # the period box on top: the horizon is kept
@@ -30,8 +38,12 @@ def index():
     scenario = forecast_prefs.scenario(request.args.get("scenario"))
     result = forecast.apply_scenario(forecast.load(**prefs, today=date.today()), scenario)
     stability = analytics.income_stability(date.today())
+    # UI-21: the page in tabs, each with its own blocks (Personalizza arranges them inside the tab)
+    tab = request.args.get("tab", "next12")
+    tab = tab if tab in FORECAST_TABS else "next12"
     return render_template(
         "forecast/index.html", scenario=scenario, scenarios=forecast_prefs.SCENARIOS,
+        tab=tab, tab_blocks=FORECAST_TABS[tab],
         fc=result, prefs=prefs, methods=forecast.METHODS, frequencies=forecast.FREQUENCIES,
         recurring_amounts=forecast.RECURRING_AMOUNTS, layout=forecast.layout(), widgets=forecast.WIDGETS,
         window_range=forecast.WINDOW_RANGE, horizon_range=forecast.HORIZON_RANGE, stability=stability,
@@ -64,11 +76,11 @@ def mark_recurring(tx_id):
     frequency = request.form.get("frequency")
     if frequency not in forecast.FREQUENCIES:
         flash(_("Frequenza non valida."), "error")
-        return redirect(url_for("forecast.index"))
+        return redirect(url_for("forecast.index", tab="recurring"))
     tx.is_recurring, tx.recurrence = True, frequency
     db.session.commit()
     flash(_("«%(description)s» è ora una transazione ricorrente (%(value)s).", description=tx.description, value=forecast.FREQUENCIES[frequency][0].lower()), "success")
-    return back_to("forecast.index")
+    return back_to("forecast.index", tab="recurring")  # back to the tab with the series to confirm
 
 
 # ── Retirement / FIRE (F20) ────────────────────────────────────────────────────

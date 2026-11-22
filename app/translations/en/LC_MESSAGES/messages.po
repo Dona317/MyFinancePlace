@@ -16592,3 +16592,19 @@ msgstr "A few months of spending are needed to know how big the fund should be."
 #: app/templates/lifestyle/goals.html
 msgid "Obiettivi suggeriti"
 msgstr "Suggested goals"
+
+#: app/templates/forecast/index.html
+msgid "entrate %(income)s · uscite %(expenses)s"
+msgstr "income %(income)s · expenses %(expenses)s"
+
+#: app/templates/forecast/index.html
+msgid "Previsioni in breve"
+msgstr "Forecasts at a glance"
+
+#: app/templates/forecast/_tabs.html
+msgid "Metodi"
+msgstr "Methods"
+
+#: app/templates/forecast/_tabs.html
+msgid "Sezioni delle previsioni"
+msgstr "Forecast sections"

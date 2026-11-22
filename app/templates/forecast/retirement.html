@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "forecast/_tabs.html" import forecast_tabs with context %}
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
@@ -13,6 +14,7 @@
 {% endmacro %}
 
 {% block content %}
+{{ forecast_tabs('retirement') }}
 {% if result %}
 <div class="kpi-grid" style="margin-bottom:24px;">
   {{ kpi('shield-check', _('Probabilità di successo'), value=result.success|number(1) ~ ' %',
