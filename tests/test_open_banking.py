@@ -944,3 +944,9 @@ def test_a_redirect_url_not_registered_says_which_one(client, db, bank):
     response = client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
     html = response.get_data(as_text=True)
     assert "non accetta l&#39;indirizzo di ritorno http://localhost/banking/callback" in html
+
+
+def test_the_bank_opens_in_the_whole_window_from_the_pop_up(client, db, bank):
+    account = _account()
+    page = client.get(f"/accounts/{account.id}/edit?embed=1").get_data(as_text=True)
+    assert 'class="bank-connect-form" target="_top"' in page  # banks refuse to load inside a frame
