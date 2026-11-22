@@ -198,6 +198,27 @@ def net_worth_spark(today: date) -> dict:
     return {"values": values, "change": round(values[-1] - values[-2], 2)}
 
 
+def month_totals(today: date) -> dict:
+    """Income, expenses and savings rate of the month under way, against last month and the monthly average of the
+    12 months before it (the analyses' rule: no reconciliation, no reversal)."""
+    from app.services import analytics
+
+    start, end = month_bounds(today.year, today.month)
+    previous_start = add_months(start, -1)
+    average_start = add_months(start, -12)
+    by_month = analytics.monthly_totals(average_start, start)
+    months = 12
+    avg_income = sum(v for (_day, kind), v in by_month.items() if kind == "income") / months
+    avg_expenses = sum(v for (_day, kind), v in by_month.items() if kind == "expense") / months
+    return {
+        "label": month_label(month_index(start)), "start": start, "last": end - timedelta(days=1),
+        "now": analytics.totals(start, end),
+        "previous": analytics.totals(previous_start, start), "previous_label": month_label(month_index(previous_start)),
+        "average": {"income": round(avg_income, 2), "expenses": round(avg_expenses, 2),
+                    "savings_rate": analytics.savings_rate(avg_income, avg_expenses)},
+    }
+
+
 def month_saving(today: date, last_12: dict) -> dict:
     """The share of this month's income that is left, and the same over the last 12 months."""
     start, end = month_bounds(today.year, today.month)

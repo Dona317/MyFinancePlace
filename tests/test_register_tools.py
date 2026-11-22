@@ -260,7 +260,7 @@ def test_the_cards_on_top_keep_order_width_and_visibility(client, db):
 
 def test_income_and_expenses_are_sections_of_their_own(client, sample_data):
     page = client.get("/reports/spending?period=custom&start=2026-01-01&end=2026-12-31").get_data(as_text=True)
-    assert "Netto del periodo" in page and "/accounting/cash-flow?year=2026" in page
+    assert "Netto del periodo" not in page and "report-net" not in page  # the card went on 22 Nov 2026
     assert 'name="tab"' not in page  # the period and filters stay on Uscite
     assert "Entrate" in client.get("/reports/income").get_data(as_text=True)
     flow = client.get("/accounting/cash-flow?year=2026").get_data(as_text=True)

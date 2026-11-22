@@ -65,6 +65,8 @@ WIDGETS = {
     # what the old cards on top showed: income, expenses and savings rate of the period (with the forecast and the
     # comparison), and the debts — in the views «Questo mese» and «Patrimonio»
     "period_totals": (_l("Entrate e uscite del periodo"), 3, "dashboard_net"),
+    # the month under way only (22 Nov 2026): the first block of «Questo mese», against last month and the average
+    "month_totals":  (_l("Entrate e uscite del mese"), 3, "dashboard_net"),
     "debt_summary":  (_l("Debiti"), 1, "dashboard_net_worth_trend"),
     # «Nel tempo»
     "net_worth":     (_l("Andamento del patrimonio"), 1, "dashboard_net_worth_trend"),
@@ -88,13 +90,15 @@ WIDGETS = {
 }
 # UI-18: the bands of the page, from the most urgent to the slowest; «Nel tempo» and «Futuro» closed at first
 BANDS = {
-    "now":    (_l("Come sto"), ("health", "to_fix"), True),
-    "month":  (_l("Questo mese"), ("pace", "bridge", "money_map", "budget_top", "next_days", "sankey", "period_totals", "expense_pie",
-                                    "income_pie", "year_total"), True),
-    "time":   (_l("Nel tempo"), ("net_worth", "investments_trend", "savings_trend", "net_worth_bridge", "cashflow",
-                                  "expense_trend", "income_trend", "investments", "debt_summary", "drawdown"), False),
+    # 22 Nov 2026: income and expenses of the period right under the cards of «Come sto»; «Nel tempo» and «Futuro»
+    # open (UI-25: they started closed, and nobody opened them)
+    "now":    (_l("Come sto"), ("period_totals", "health", "to_fix"), True),
+    "month":  (_l("Questo mese"), ("month_totals", "pace", "bridge", "money_map", "budget_top", "next_days", "sankey",
+                                    "expense_pie", "income_pie", "year_total"), True),
+    "time":   (_l("Nel tempo"), ("cashflow", "net_worth", "investments_trend", "savings_trend", "net_worth_bridge",
+                                  "expense_trend", "income_trend", "investments", "debt_summary", "drawdown"), True),
     "future": (_l("Futuro"), ("future_balance", "big_expenses", "future_net_worth", "fire", "goals_eta",
-                               "debt_payoff", "future_income"), False),
+                               "debt_payoff", "future_income"), True),
 }
 BAND_OF = {widget: band for band, (_title, members, _open) in BANDS.items() for widget in members}
 
@@ -105,8 +109,12 @@ HEIGHTS = (0, 1, 2, 3)  # 0: as tall as its content (and its row); 1–3: medium
 
 # Hidden at first (Modifica shows them again): what the sketch of 18 Nov leaves out of the page — «Come sto» is the
 # row of cards on top, the doughnuts and the older charts are a click away.
-DEFAULT_HIDDEN = {"health", "to_fix", "sankey", "period_totals", "debt_summary", "expense_pie", "income_pie", "year_total", "cashflow", "expense_trend",
-                  "income_trend", "investments", "drawdown"}
+DEFAULT_HIDDEN = {"health", "to_fix", "sankey", "month_totals", "debt_summary", "expense_pie", "income_pie", "year_total",
+                  "expense_trend", "income_trend", "investments", "drawdown"}
+# Blocks shown again once on an arrangement saved before (22 Nov 2026: income and expenses of the period, and the
+# cash-flow chart, were hidden); hidden afterwards in Modifica, they stay hidden
+REVEALED = ("period_totals", "cashflow")
+REVEALED_SETTING = "dashboard.revealed"
 
 
 def default_layout() -> list[dict]:
@@ -196,7 +204,7 @@ def save_kpis(items) -> list[dict]:
 # show their own blocks, in this order and width, whatever is hidden in the overview.
 VIEWS = {
     "overview":    (_l("Panoramica"), "grid-1x2", ()),
-    "month":       (_l("Questo mese"), "calendar-month", (("period_totals", 3), ("pace", 2), ("bridge", 1),
+    "month":       (_l("Questo mese"), "calendar-month", (("month_totals", 3), ("pace", 2), ("bridge", 1),
                     ("money_map", 1), ("budget_top", 1), ("next_days", 1), ("sankey", 3), ("expense_pie", 1), ("income_pie", 1),
                     ("year_total", 1), ("cashflow", 3), ("expense_trend", 3))),
     "wealth":      (_l("Patrimonio"), "bank", (("net_worth", 3), ("net_worth_bridge", 1), ("health", 1),
@@ -266,6 +274,30 @@ def upgrade() -> bool:
         settings_store.set_json(PRESETS_SETTING, saved)
     settings_store.set(VERSION_SETTING, str(LAYOUT_VERSION))
     return True
+
+
+def reveal() -> list[str]:
+    """The blocks of REVEALED shown once on an arrangement saved before them (the layout and the presets' layouts);
+    returns those made visible now. The ones the user hides afterwards stay hidden."""
+    done = set(settings_store.get_json(REVEALED_SETTING, [], expect=list))
+    todo = [key for key in REVEALED if key not in done]
+    if not todo:
+        return []
+    saved = settings_store.get_json(LAYOUT_SETTING, None, expect=list)
+    if saved:
+        for item in saved:
+            if isinstance(item, dict) and item.get("id") in todo:
+                item["visible"] = True
+        settings_store.set_json(LAYOUT_SETTING, saved)
+    presets_saved = settings_store.get_json(PRESETS_SETTING, None, expect=dict)
+    if presets_saved and isinstance(presets_saved.get("items"), list):
+        for preset in presets_saved["items"]:
+            for item in (preset.get("layout") or []) if isinstance(preset, dict) else []:
+                if isinstance(item, dict) and item.get("id") in todo:
+                    item["visible"] = True
+        settings_store.set_json(PRESETS_SETTING, presets_saved)
+    settings_store.set_json(REVEALED_SETTING, sorted(done | set(todo)))
+    return todo
 
 
 def settings_order() -> list[str]:

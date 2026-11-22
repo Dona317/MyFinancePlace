@@ -176,6 +176,7 @@ def dashboard():
     today = date.today()
     settings = current_settings()
     dashboard_prefs.upgrade()  # an arrangement saved before the bands (UI-18) goes to the new page once
+    dashboard_prefs.reveal()  # blocks hidden before and shown now (income and expenses of the period, the cash flow)
     # the tabs on top: «Panoramica» (the bands, as arranged in Modifica) or one of the views with its own blocks
     view = request.args.get("view", "overview")
     view = view if view in dashboard_prefs.VIEWS else "overview"
@@ -228,6 +229,7 @@ def dashboard():
         # the bridge shows the month of the shared period: the current one when the period holds it, else its last
         "bridge": lambda day: dashboard_charts.month_bridge(day, shared_period.month_of(period, day)),
         "next_days": dashboard_charts.next_days, "budget_top": dashboard_charts.budgets_near_limit,
+        "month_totals": dashboard_charts.month_totals,
         "future_balance": dashboard_charts.future_balance,
         "big_expenses": dashboard_charts.big_expenses,
     }

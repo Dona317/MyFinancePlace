@@ -1613,8 +1613,8 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .kpi-fix a { color: inherit; }
 .kpi-fix a:hover { color: var(--clr-primary); }
 /* the old cards of the period, now a block of the view «Questo mese» */
-.fc-widget[data-widget="period_totals"] .kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 760px) { .fc-widget[data-widget="period_totals"] .kpi-strip { grid-template-columns: minmax(0, 1fr); } }
+.fc-widget[data-widget="period_totals"] .kpi-strip, .fc-widget[data-widget="month_totals"] .kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .fc-widget[data-widget="period_totals"] .kpi-strip, .fc-widget[data-widget="month_totals"] .kpi-strip { grid-template-columns: minmax(0, 1fr); } }
 /* «Dove va il denaro» as a map: one tile per category, as big as its spending, reds from strong to light */
 .tmap { display: flex; flex-wrap: wrap; gap: 3px; min-height: 220px; align-content: stretch; }
 .tmap-cell { flex-basis: 28%; flex-shrink: 1; min-width: 84px; min-height: 64px; padding: 8px; border-radius: var(--border-radius-sm);
@@ -2053,9 +2053,6 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .accounting-tabs .statement-tab { text-decoration: none; }
 
 /* ── Entrate / Uscite: the net of the period on top, with the way to the cash flow ── */
-.report-net-body { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 20px; font-size: var(--font-size-sm); }
-.report-net-body strong { font-variant-numeric: tabular-nums; }
-.report-net-link { margin-left: auto; }
 
 /* ── Sidebar: the subtitles of a section (Strategia, Analisi, Pianificazione), their entries indented under them ── */
 .nav-subtitle { margin: 12px 12px 4px; padding: 3px 12px; font-size: 10px; font-weight: 600; letter-spacing: .06em; line-height: 1.5;

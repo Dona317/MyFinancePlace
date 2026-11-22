@@ -81,7 +81,7 @@ def _outlook(kind: str) -> dict | None:
 
 
 # F101: the blocks of Entrate and Uscite, with their default width in thirds («Spese e tendenze» only on Uscite)
-SECTION_BLOCKS = {"net": 3, "outlook": 3, "charts": 3, "trends": 3, "summary": 3, "register": 3}
+SECTION_BLOCKS = {"outlook": 3, "charts": 3, "trends": 3, "summary": 3, "register": 3}  # «net» went on 22 Nov 2026
 
 
 def _blocks(section: str) -> dict[str, int]:
@@ -93,7 +93,7 @@ def _layout_setting(section: str) -> str:
 
 
 def _block_titles() -> dict[str, str]:
-    return {"net": _("Netto del periodo"), "outlook": _("Previsione"), "charts": _("Per categoria e andamento"),
+    return {"outlook": _("Previsione"), "charts": _("Per categoria e andamento"),
             "trends": _("Spese e tendenze"), "summary": _("Riepilogo"), "register": _("Transazioni")}
 
 
@@ -143,8 +143,6 @@ def index(tab: str | None = None):
         types = [tx_type] if tx_type else ["income", "expense"]
         context["excluded"] = excluded_total(Transaction.type.in_(types), Transaction.date >= filters["start"],
                                              Transaction.date < filters["end"])
-    # the net of the period (income − expenses = saved), with the way to the cash flow of the same year
-    context["net"] = analytics.totals(filters["start"], filters["end"])
     if tab in ("income", "spending"):
         context["outlook"] = _outlook("income" if tab == "income" else "expenses")
     if tab == "spending":  # «Spese e tendenze», for the year of the period

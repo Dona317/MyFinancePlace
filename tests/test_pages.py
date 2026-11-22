@@ -182,11 +182,11 @@ def test_the_dashboard_is_in_bands_with_the_new_blocks_and_no_last_transactions(
     db.session.add(make_tx(description="Spesa grande", amount=500, category="Casa"))
     db.session.commit()
     html = client.get("/dashboard").get_data(as_text=True)
-    # UI-18: «Come sto» first, then «Questo mese» open, «Nel tempo» and «Futuro» closed
+    # UI-18: «Come sto» first, then «Questo mese»; UI-25: «Nel tempo» and «Futuro» open too
     for band in ("now", "month", "time", "future"):
         assert f'id="fc-grid-{band}"' in html, band
     assert '<details class="dash-band" data-band="month" open>' in html
-    assert '<details class="dash-band" data-band="time">' in html and '<details class="dash-band" data-band="future">' in html
+    assert '<details class="dash-band" data-band="time" open>' in html and '<details class="dash-band" data-band="future" open>' in html
     assert 'id="paceChart"' in html and 'data-widget="to_fix"' in html and 'id="nextDaysChart"' in html
     assert 'id="recent-table"' not in html
     # UI-19: a block without its data says what is missing

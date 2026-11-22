@@ -50,19 +50,7 @@
 </div>
 
 {# F101: the parts of the page; on Entrate and Uscite they are blocks the user arranges (Modifica) #}
-{% set chunk_net %}{% if f.tab != 'cashflow' %}
-<!-- The net of the period: income − expenses = saved; the cash flow tells where it went -->
-<div class="report-net card mb-16">
-  <div class="card-body report-net-body">
-    <span>{{ _('Entrate') }} <strong>{{ net.income|money }}</strong></span>
-    <span class="text-muted">−</span>
-    <span>{{ _('Uscite') }} <strong>{{ net.expenses|money }}</strong></span>
-    <span class="text-muted">=</span>
-    <span>{{ _('Netto del periodo') }} <strong class="{{ 'text-positive' if net.income >= net.expenses else 'text-negative' }}">{{ (net.income - net.expenses)|money }}</strong></span>
-    <a class="btn btn-ghost btn-sm report-net-link" href="{{ url_for('accounting.cash_flow', year=f.start.year) }}">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a>
-  </div>
-</div>
-{% endif %}{% endset %}
+{# 22 Nov 2026: the «Entrate − Uscite = Netto del periodo» card is gone (the cash flow, in Contabilità, tells it) #}
 {% set chunk_outlook %}{% if f.tab != 'cashflow' and outlook %}
 {# the forecast right after the cards on top: the same for Entrate and Uscite, the method of the Previsioni page #}
 <div class="card mb-16 report-outlook">
@@ -239,7 +227,7 @@
   </div>
 </div>
 {% endset %}
-{% set chunks = {'net': chunk_net, 'outlook': chunk_outlook, 'charts': chunk_charts, 'trends': chunk_trends,
+{% set chunks = {'outlook': chunk_outlook, 'charts': chunk_charts, 'trends': chunk_trends,
                  'summary': chunk_summary, 'register': register_html|safe if register_html else ''} %}
 {% if layout %}
 <div class="fc-grid dash-grid" id="blocks-grid">
@@ -248,7 +236,7 @@
 {% endfor %}
 </div>
 {% else %}
-{{ chunk_net }}{{ chunk_outlook }}{{ chunk_charts }}{{ chunk_trends }}{{ chunk_summary }}
+{{ chunk_outlook }}{{ chunk_charts }}{{ chunk_trends }}{{ chunk_summary }}
 {% endif %}
 {% endblock %}
 

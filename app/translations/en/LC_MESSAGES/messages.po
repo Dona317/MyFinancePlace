@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 19:56+0000\n"
+"POT-Creation-Date: 2026-11-22 19:59+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4784,6 +4784,9 @@ msgstr "Income and expenses"
 msgid "Entrate e uscite cumulate nel flusso di cassa"
 msgstr "Cumulative income and expenses in the cash flow"
 
+msgid "Entrate e uscite del mese"
+msgstr "Income and expenses of the month"
+
 msgid "Entrate e uscite del periodo"
 msgstr "Income and expenses of the period"
 
@@ -4797,13 +4800,19 @@ msgstr "Recurring income and expenses"
 msgid ""
 "Entrate e uscite ricorrenti (%(recurring)s) + variabili (%(method)s, "
 "%(n)s mesi)"
-msgstr "Recurring income and expenses (%(recurring)s) + variable (%(method)s, %(n)s months)"
+msgstr ""
+"Recurring income and expenses (%(recurring)s) + variable (%(method)s, "
+"%(n)s months)"
 
 msgid "Entrate e uscite ricorrenti al mese"
 msgstr "Recurring income and expenses a month"
 
 msgid "Entrate e uscite ricorrenti programmate + variabili stimate"
 msgstr "Scheduled recurring income and expenses + estimated variable"
+
+#, python-format
+msgid "Entrate e uscite — %(month)s"
+msgstr "Income and expenses — %(month)s"
 
 #, python-format
 msgid "Entrate e uscite — %(period)s"
@@ -6252,6 +6261,11 @@ msgstr "The month at a glance"
 
 msgid "Il mese in corso"
 msgstr "The current month"
+
+msgid ""
+"Il mese in corso, fino a oggi; sotto ogni cifra il mese scorso e la media"
+" mensile dei 12 mesi prima. Riconciliazioni e storni non contano."
+msgstr "The month under way, up to today; under each figure last month and the monthly average of the 12 months before. Reconciliations and reversals do not count."
 
 msgid "Il metodo scelto, così com'è."
 msgstr "The chosen method, as it is."
@@ -8194,6 +8208,10 @@ msgstr "Average"
 msgid "Media 12 mesi %(rate)s%%"
 msgstr "12-month average %(rate)s%%"
 
+#, python-format
+msgid "Media 12 mesi: %(value)s"
+msgstr "12-month average: %(value)s"
+
 msgid ""
 "Media a pesi lineari: x̂ = Σ i·xᵢ / Σ i, con peso 1 al mese più vecchio e"
 " N al più recente. Segue i cambiamenti più della media semplice."
@@ -9318,9 +9336,6 @@ msgstr "Net"
 #, python-format
 msgid "Netto %(month)s"
 msgstr "Net %(month)s"
-
-msgid "Netto del periodo"
-msgstr "Net of the period"
 
 msgid "Netto mensile"
 msgstr "Monthly net"

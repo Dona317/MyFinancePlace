@@ -216,8 +216,8 @@
 
 {% set shock_names = {'car': _('Auto da riparare o sostituire'), 'appliance': _('Elettrodomestico (lavatrice, frigo)'), 'house': _('Casa (tetto, caldaia)'), 'health': _('Spese mediche')} %}
 
-{# UI-18: the blocks in bands, from the most urgent to the slowest; «Nel tempo» and «Futuro» open on a click and the
-   browser remembers it. A block stays in its band; Modifica moves it inside the band. #}
+{# UI-18: the blocks in bands, from the most urgent to the slowest; every band starts open (UI-25), and the browser
+   remembers one the user closes. A block stays in its band; Modifica moves it inside the band. #}
 {% set ns = namespace(band=None) %}
 {% for w in layout if not (w.id in ('investments', 'investments_trend', 'drawdown') and not allowed('portfolio')) %}
 {% if band_of[w.id] != ns.band %}
@@ -450,6 +450,32 @@
                      url_for('accounting.cash_flow', year=pie_last.year),
                      value=("%.1f"|format(cards.savings_rate.totals.savings_rate) ~ '%'), forecast=fc,
                      forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else ''), before=(("%.1f"|format(before_totals.savings_rate) ~ '%') if before_totals else none)) }}
+    </div></div>
+  </div>
+
+  {% elif w.id == 'month_totals' and extra.month_totals %}
+  {# the month under way only: each figure against last month and the average of the 12 months before #}
+  {% set mt = extra.month_totals %}
+  <div class="card">
+    <div class="card-header"><div class="card-header-title">{{ _('Entrate e uscite — %(month)s', month=mt.label) }} {{ info(_('Il mese in corso, fino a oggi; sotto ogni cifra il mese scorso e la media mensile dei 12 mesi prima. Riconciliazioni e storni non contano.')) }}</div></div>
+    <div class="card-body"><div class="kpi-grid kpi-strip">
+      {% for key, icon, title, cls, href, now, before, average in [
+        ('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive', url_for('reports.income', period='custom', start=mt.start.isoformat(), end=mt.last.isoformat()),
+         mt.now.income|money, mt.previous.income|money, mt.average.income|money),
+        ('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative', url_for('reports.spending', period='custom', start=mt.start.isoformat(), end=mt.last.isoformat()),
+         mt.now.expenses|money, mt.previous.expenses|money, mt.average.expenses|money),
+        ('savings_rate', 'piggy-bank', _('Tasso di risparmio'), 'kpi-negative' if mt.now.savings_rate < 0 else 'kpi-neutral', url_for('accounting.cash_flow', year=mt.start.year),
+         mt.now.savings_rate|number(1) ~ '%', mt.previous.savings_rate|number(1) ~ '%', mt.average.savings_rate|number(1) ~ '%'),
+      ] %}
+      <div class="kpi-card kpi-click {{ cls }}" data-href="{{ href }}" title="{{ _('Apri il dettaglio') }}">
+        <div class="kpi-icon"><i class="bi bi-{{ icon }}"></i></div>
+        <div class="kpi-label">{{ title }}</div>
+        <div class="kpi-value">{{ now }}</div>
+        <div class="kpi-sub"><i class="bi bi-calendar3"></i> {{ mt.label }}</div>
+        <div class="kpi-sub kpi-before"><i class="bi bi-arrow-left-right"></i> {{ mt.previous_label }}: {{ before }}</div>
+        <div class="kpi-sub kpi-before"><i class="bi bi-bar-chart-line"></i> {{ _('Media 12 mesi: %(value)s', value=average) }}</div>
+      </div>
+      {% endfor %}
     </div></div>
   </div>
 
@@ -754,7 +780,8 @@ if (extra.big_expenses && extra.big_expenses.total && shown('big_expenses')) {
 }
 // the bands «Nel tempo» and «Futuro»: open or closed as this browser left them; the charts redrawn when opened
 document.querySelectorAll('.dash-band').forEach(band => {
-  const key = 'mfp-dash-band-' + band.dataset.band;
+  // v2 (22 Nov 2026, UI-25): the bands now start open; a choice remembered before that (often «closed») is not read
+  const key = 'mfp-dash-band-v2-' + band.dataset.band;
   try { const saved = localStorage.getItem(key); if (saved !== null) band.open = saved === '1'; } catch (e) { /* private window */ }
   band.addEventListener('toggle', () => {
     try { localStorage.setItem(key, band.open ? '1' : '0'); } catch (e) { /* private window */ }

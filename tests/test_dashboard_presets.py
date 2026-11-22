@@ -33,7 +33,7 @@ def test_a_preset_saves_blocks_cards_and_period_and_brings_them_back(client, db)
     assert client.post("/dashboard/presets/1/use").get_json() == {"url": "/dashboard"}
     html = client.get("/dashboard").get_data(as_text=True)
     assert _active(html) == "Preset 1" and f'<option value="{year}" selected' in html
-    assert dashboard_prefs.layout()[0]["id"] == "health"
+    assert dashboard_prefs.layout()[0]["id"] == "period_totals"  # first under «Come sto» since 22 Nov 2026
     # back to preset 2: its blocks, cards and period, nothing to save
     client.post("/dashboard/presets/2/use")
     html = client.get("/dashboard").get_data(as_text=True)
