@@ -37,9 +37,12 @@ pip install -r requirements.txt
 # 4. Set environment variables
 cp .env.example .env         # edit SECRET_KEY and DATABASE_URL if needed
 
-# 5. Run the development server
+# 5. Run the development server (it first brings the database and every client archive up to date)
 python run.py
 ```
+
+`python run.py` applies the migrations not yet applied — to the main database and to every client's archive — before
+serving, like the desktop app: after a `git pull`, restarting is enough (no `flask db upgrade` by hand).
 
 - Open `http://localhost:5000` in your browser.
 - The API swagger documentation: `http://localhost:5000/swagger`
