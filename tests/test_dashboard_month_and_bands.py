@@ -38,13 +38,13 @@ def test_panoramica_shows_the_period_card_first_and_every_band_open(client, db):
 
 
 def test_blocks_hidden_before_are_shown_once(client, db):
-    saved = [dict(w, visible=False) if w["id"] in ("period_totals", "cashflow", "sankey") else w
+    saved = [dict(w, visible=False) if w["id"] in ("period_totals", "cashflow", "expense_pie") else w
              for w in dashboard_prefs.default_layout()]
     settings_store.set_json(dashboard_prefs.LAYOUT_SETTING, saved)
     settings_store.set_json(dashboard_prefs.PRESETS_SETTING, {"active": 1, "items": [{"name": "P", "layout": saved}]})
-    assert dashboard_prefs.reveal() == ["period_totals", "cashflow"]
+    assert dashboard_prefs.reveal() == ["period_totals", "cashflow", "sankey"]
     shown = {w["id"]: w["visible"] for w in dashboard_prefs.layout()}
-    assert shown["period_totals"] and shown["cashflow"] and not shown["sankey"]  # only those two
+    assert shown["period_totals"] and shown["cashflow"] and shown["sankey"] and not shown["expense_pie"]
     preset = settings_store.get_json(dashboard_prefs.PRESETS_SETTING)["items"][0]["layout"]
     assert all(w["visible"] for w in preset if w["id"] in ("period_totals", "cashflow"))
     hidden_again = [dict(w, visible=False) if w["id"] == "cashflow" else w for w in dashboard_prefs.layout()]
@@ -54,4 +54,17 @@ def test_blocks_hidden_before_are_shown_once(client, db):
 
 
 def test_reveal_with_nothing_saved(db):
-    assert dashboard_prefs.reveal() == ["period_totals", "cashflow"]
+    assert dashboard_prefs.reveal() == ["period_totals", "cashflow", "sankey"]
+
+
+def test_the_flow_of_money_is_in_come_sto_and_shown_again_once(client, db):
+    from app.services import dashboard_prefs, settings_store
+    assert dashboard_prefs.BAND_OF["sankey"] == "now" and "sankey" not in dashboard_prefs.DEFAULT_HIDDEN
+    saved = [dict(item, visible=item["id"] != "sankey") for item in dashboard_prefs.default_layout()]
+    settings_store.set_json(dashboard_prefs.LAYOUT_SETTING, saved)
+    settings_store.set_json("ui.settings", {"dashboard_sankey": False})
+    settings_store.set_json(dashboard_prefs.REVEALED_SETTING, ["cashflow", "period_totals"])
+    assert dashboard_prefs.reveal() == ["sankey"]
+    assert next(w for w in dashboard_prefs.layout() if w["id"] == "sankey")["visible"]
+    assert settings_store.get_json("ui.settings", expect=dict)["dashboard_sankey"] is True
+    assert dashboard_prefs.reveal() == []

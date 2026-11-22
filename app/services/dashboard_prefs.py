@@ -92,8 +92,9 @@ WIDGETS = {
 BANDS = {
     # 22 Nov 2026: income and expenses of the period right under the cards of «Come sto»; «Nel tempo» and «Futuro»
     # open (UI-25: they started closed, and nobody opened them)
-    "now":    (_l("Come sto"), ("period_totals", "health", "to_fix"), True),
-    "month":  (_l("Questo mese"), ("month_totals", "pace", "bridge", "money_map", "budget_top", "next_days", "sankey",
+    # 22 Nov 2026: the flow of the money (Sankey) in «Come sto» too, shown from the start
+    "now":    (_l("Come sto"), ("period_totals", "sankey", "health", "to_fix"), True),
+    "month":  (_l("Questo mese"), ("month_totals", "pace", "bridge", "money_map", "budget_top", "next_days",
                                     "expense_pie", "income_pie", "year_total"), True),
     "time":   (_l("Nel tempo"), ("cashflow", "net_worth", "investments_trend", "savings_trend", "net_worth_bridge",
                                   "expense_trend", "income_trend", "investments", "debt_summary", "drawdown"), True),
@@ -109,12 +110,13 @@ HEIGHTS = (0, 1, 2, 3)  # 0: as tall as its content (and its row); 1–3: medium
 
 # Hidden at first (Modifica shows them again): what the sketch of 18 Nov leaves out of the page — «Come sto» is the
 # row of cards on top, the doughnuts and the older charts are a click away.
-DEFAULT_HIDDEN = {"health", "to_fix", "sankey", "month_totals", "debt_summary", "expense_pie", "income_pie", "year_total",
+DEFAULT_HIDDEN = {"health", "to_fix", "month_totals", "debt_summary", "expense_pie", "income_pie", "year_total",
                   "expense_trend", "income_trend", "investments", "drawdown"}
 # Blocks shown again once on an arrangement saved before (22 Nov 2026: income and expenses of the period, and the
 # cash-flow chart, were hidden); hidden afterwards in Modifica, they stay hidden
-REVEALED = ("period_totals", "cashflow")
+REVEALED = ("period_totals", "cashflow", "sankey")
 REVEALED_SETTING = "dashboard.revealed"
+UI_SETTINGS_KEY = "ui.settings"  # ui_settings.SETTINGS_KEY (not imported: ui_settings reads this module)
 
 
 def default_layout() -> list[dict]:
@@ -296,6 +298,10 @@ def reveal() -> list[str]:
                 if isinstance(item, dict) and item.get("id") in todo:
                     item["visible"] = True
         settings_store.set_json(PRESETS_SETTING, presets_saved)
+    if "sankey" in todo:  # its switch in Impostazioni → Dashboard, on again with it
+        ui = settings_store.get_json(UI_SETTINGS_KEY, None, expect=dict)
+        if isinstance(ui, dict) and ui.get("dashboard_sankey") is False:
+            settings_store.set_json(UI_SETTINGS_KEY, {**ui, "dashboard_sankey": True})
     settings_store.set_json(REVEALED_SETTING, sorted(done | set(todo)))
     return todo
 

@@ -696,6 +696,20 @@ function fallbackCopy(value) {
    closes it; when the page inside saves or deletes, it tells this one, which reloads. Inside such a window
    (html.embedded) the buttons with data-close-embed close it. */
 function initPopups() {
+  // a full page of the app inside the pop-up (no matryoshka): a save left the window's page for a list or a detail,
+  // or a link led out of it. After a save (its message is on the page) the window closes and the page under it
+  // reloads; after a link the page under it goes there.
+  if (window.self !== window.top && !document.documentElement.classList.contains("embedded")) {
+    let ours = false;
+    try { ours = window.parent.location.origin === window.location.origin; } catch (e) { /* another site's frame */ }
+    if (ours) {
+      const notes = [...document.querySelectorAll(".alert")].map(a => a.textContent.replace(/\s+/g, " ").trim()).filter(Boolean);
+      document.documentElement.style.visibility = "hidden";
+      window.parent.postMessage({ mfp: "popup-left", message: notes.join(" "), saved: notes.length > 0,
+                                  url: window.location.pathname + window.location.search }, window.location.origin);
+      return;
+    }
+  }
   if (document.documentElement.classList.contains("embedded")) {
     // a page of several steps (a file read, then its preview) stays in the window and ends where it was asked to:
     // every form of it carries the window's embed, next and from
@@ -749,6 +763,12 @@ function initPopups() {
   window.addEventListener("message", e => {
     if (e.origin !== window.location.origin || !e.data || !overlay) return;
     if (e.data.mfp === "popup-close") close();
+    if (e.data.mfp === "popup-left") {
+      close();
+      if (!e.data.saved) { window.location.href = e.data.url; return; }
+      try { sessionStorage.setItem("mfp-toast", e.data.message || ""); } catch (err) { /* private mode */ }
+      window.location.reload();
+    }
     if (e.data.mfp === "popup-back") { close(); openModal("add-chooser"); }  // back to the choice of the round +
     if (e.data.mfp === "tx-done") {
       close();
