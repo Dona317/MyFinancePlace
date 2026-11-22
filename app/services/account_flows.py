@@ -10,7 +10,7 @@ from collections import defaultdict
 from datetime import date
 
 from flask_babel import gettext as _
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from app.extensions import db
 from app.models.account import Account
@@ -25,22 +25,36 @@ def _node_id(account_id: int | None) -> str:
     return f"a{account_id}" if account_id else NOWHERE
 
 
+GIROCONTO = "Giroconto"  # the category of a transfer read from a bank statement
+
+
 def flows(start: date, end: date) -> dict:
     """{"nodes": [{id, label, kind, value, filter}], "edges": [{source, target, kind, value, count, filter}]} of the
     movements in [start, end); `value` in the base currency, `filter` the register's query for them."""
+    giro = (Transaction.category == GIROCONTO)
     rows = (db.session.query(Transaction.type, Transaction.account_id, Transaction.counter_account_id,
-                             func.sum(SIZE), func.count(Transaction.id))
+                             func.sum(SIZE), func.count(Transaction.id), func.coalesce(giro, False))
             .filter(Transaction.date >= start, Transaction.date < end,
-                    Transaction.type.in_(("income", "expense", "transfer")), analysed())
-            .group_by(Transaction.type, Transaction.account_id, Transaction.counter_account_id).all())
+                    Transaction.type.in_(("income", "expense", "transfer")),
+                    # the excluded categories (Riconciliazione…) and the reversals are left out of incomes and
+                    # expenses; the transfers always count — «Giroconto» is excluded from the analyses, not from here
+                    or_(Transaction.type == "transfer", giro, analysed()))
+            .group_by(Transaction.type, Transaction.account_id, Transaction.counter_account_id,
+                      func.coalesce(giro, False)).all())
     edges: dict[tuple, dict] = {}
     through: dict[str, float] = defaultdict(float)
-    for kind, account_id, counter_id, total, count in rows:
+    for kind, account_id, counter_id, total, count, giroconto in rows:
         value = float(total or 0)
         if not value:
             continue
         here = _node_id(account_id)
-        if kind == "income":
+        if giroconto and kind in ("income", "expense"):
+            # a giroconto read from one bank only (its other half on an account not in the app, or not imported
+            # yet): drawn as a transfer, in or out
+            source, target = (OUTSIDE, here) if kind == "income" else (here, OUTSIDE)
+            query = {"type": kind, "account": account_id or "none", "category": GIROCONTO}
+            kind = "transfer"
+        elif kind == "income":
             source, target, query = OUTSIDE, here, {"type": "income", "account": account_id or "none"}
         elif kind == "expense":
             source, target, query = here, OUTSIDE, {"type": "expense", "account": account_id or "none"}

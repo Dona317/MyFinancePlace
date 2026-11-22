@@ -100,3 +100,30 @@ def test_the_value_and_the_use_of_a_securities_account(app, db):
         db.session.commit()
         assert securities.in_use(dossier)
         assert securities.value(dossier) == sum(p.value for p in securities.positions(securities_account_id=dossier.id))
+
+
+def test_the_flows_keep_the_giroconti_though_left_out_of_the_analyses(app, db):
+    from app.models.category import Category
+    from app.services import categories
+    bank, saving = Account(name="Banca", kind="checking"), Account(name="Deposito", kind="savings")
+    db.session.add_all([bank, saving])
+    db.session.commit()
+    giroconto = Category.query.filter_by(name="Giroconto").first() or Category(name="Giroconto", kind="both", position=99)
+    giroconto.excluded = True
+    db.session.add(giroconto)
+    db.session.add_all([
+        make_tx(amount=500, type="transfer", category="Giroconto", account_id=bank.id, counter_account_id=saving.id,
+                date=date(2026, 6, 3)),
+        make_tx(amount=7, type="expense", category="Giroconto", account_id=bank.id, date=date(2026, 6, 4)),
+        make_tx(amount=3, type="expense", category="Riconciliazione", account_id=bank.id, date=date(2026, 6, 5)),
+    ])
+    db.session.add(Category(name="Riconciliazione", kind="both", position=98, excluded=True))
+    db.session.commit()
+    categories.forget()
+    with app.test_request_context():
+        data = account_flows.flows(date(2026, 1, 1), date(2027, 1, 1))
+    edges = {(e["source"], e["target"], e["kind"]): e["value"] for e in data["edges"]}
+    assert edges[(f"a{bank.id}", f"a{saving.id}", "transfer")] == 500  # the giroconto is drawn
+    # one read from a single bank (an expense «Giroconto»): drawn as a transfer out of the account
+    assert edges[(f"a{bank.id}", account_flows.OUTSIDE, "transfer")] == 7
+    assert not any(kind == "expense" for _s, _t, kind in edges)
