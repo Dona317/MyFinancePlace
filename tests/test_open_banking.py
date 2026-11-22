@@ -950,3 +950,32 @@ def test_the_bank_opens_in_the_whole_window_from_the_pop_up(client, db, bank):
     account = _account()
     page = client.get(f"/accounts/{account.id}/edit?embed=1").get_data(as_text=True)
     assert 'class="bank-connect-form" target="_blank"' in page  # a new tab: banks refuse to load inside a frame
+
+
+def test_a_reversal_downloaded_by_itself_is_linked(client, db, bank):
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    connection.auto_save = True
+    link = connection.links[0]
+    link.pending, link.last_booked = None, None
+    db.session.commit()
+    bank.movements = [tx("r1", "19.90", day="2026-11-12", text="PAGAMENTO POS LIBRERIA"),
+                      tx("r2", "19.90", day="2026-11-14", indicator="CRDT", text="STORNO PAGAMENTO POS LIBRERIA")]
+    results = open_banking.sync_connection(connection)
+    assert results[0].saved == 2
+    saved = Transaction.query.filter(Transaction.tags.any("psd2")).all()
+    assert len(saved) == 2 and all(t.reversal_id for t in saved)
+
+
+def test_nothing_in_the_panel_reloads_inside_the_pop_up(client, db, bank):
+    account = _account()
+    page = client.get(f"/accounts/{account.id}/edit?embed=1").get_data(as_text=True)
+    panel = page[page.index('id="bank-link"'):]
+    panel = panel[:panel.index("</div>\n</div>") if "</div>\n</div>" in panel else len(panel)]
+    for tag in re.findall(r"<form [^>]*>", panel):
+        assert 'target="_top"' in tag or 'target="_blank"' in tag, tag
+    _connect(client, bank, account=account)
+    page = client.get(f"/accounts/{account.id}/edit?embed=1").get_data(as_text=True)
+    panel = page[page.index('id="bank-link"'):]
+    for tag in re.findall(r"<form [^>]*>", panel):
+        assert 'target="_top"' in tag or 'target="_blank"' in tag, tag

@@ -346,6 +346,37 @@
     </div>
   </div>
 
+  {% if is_edit and transaction.type in ('income', 'expense') %}
+  {# F108: a reversal — this movement and another of the same amount, the opposite way, cancel each other #}
+  <div class="card mt-16" id="reversal">
+    <div class="card-header"><div>
+      <div class="card-header-title"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Storno') }} {{ info(_("Un'uscita e un'entrata dello stesso importo che si annullano (un pagamento stornato, un addebito rimborsato): restano nel saldo del conto ma non contano nei totali, nei report e nei budget.")) }}</div>
+    </div></div>
+    <div class="card-body">
+      {% if reversal_partner %}
+      <p class="text-sm">{{ _('Si annulla con:') }}
+        <a href="{{ url_for('transactions.edit', tx_id=reversal_partner.id) }}" target="_top">{{ reversal_partner.date|it_date }} · {{ reversal_partner.description }}</a>
+        <span class="amount {{ reversal_partner.type|tone }}">{{ reversal_partner.signed_amount|money }}</span></p>
+      <form method="POST" action="{{ url_for('transactions.reversal_unlink', tx_id=transaction.id) }}">
+        <input type="hidden" name="next" value="{{ url_for('transactions.edit', tx_id=transaction.id) }}#reversal" />
+        <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-x-lg"></i> {{ _('Scollega lo storno') }}</button>
+      </form>
+      {% elif reversal_options %}
+      <form method="POST" action="{{ url_for('transactions.reversal_link') }}" class="reversal-form">
+        <input type="hidden" name="first" value="{{ transaction.id }}" />
+        <input type="hidden" name="next" value="{{ url_for('transactions.edit', tx_id=transaction.id) }}#reversal" />
+        <select name="second" class="form-select" aria-label="{{ _('Movimento che lo annulla') }}">
+          {% for o in reversal_options %}<option value="{{ o.id }}">{{ o.date|it_date }} · {{ o.description[:60] }} · {{ o.signed_amount|money }}{% if o.account %} · {{ o.account.name }}{% endif %}</option>{% endfor %}
+        </select>
+        <button type="submit" class="btn btn-outline btn-sm">{{ _('Collega come storno') }}</button>
+      </form>
+      {% else %}
+      <p class="text-sm text-muted">{{ _("Nessun movimento dello stesso importo nella direzione opposta: quando arriva, puoi collegarlo qui o in Transazioni → Storni.") }}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   {% if is_edit %}
   <div class="card mt-16">
     <div class="card-header">

@@ -32,6 +32,7 @@ from app.services import (
     merchant,
     portfolio_ops,
     register_views,
+    reversals,
     securities,
     shared_period,
     undo,
@@ -359,6 +360,8 @@ def _render_form(tx: Transaction | None):
         events=SpendingEvent.query.order_by(SpendingEvent.start.desc()).all(),
         documents=Document.query.filter_by(transaction_id=tx.id).order_by(Document.filename).all() if tx else [],
         cards=card_service.every(active_only=False),
+        reversal_partner=db.session.get(Transaction, tx.reversal_id) if tx and tx.reversal_id else None,
+        reversal_options=reversals.partners_for(tx) if tx else [],
     )
 
 
@@ -646,6 +649,53 @@ def duplicates_keep():
         db.session.commit()
         flash(_("Tenuta 1 transazione, eliminati %(count)s duplicati.", count=len(others)), "success")
     return back_to("transactions.duplicates_page")
+
+
+# ── Reversals (storni, F108): an expense and an income that cancel each other ───
+
+@transactions_bp.route("/reversals")
+def reversals_page():
+    """The possible reversals to confirm, and the ones already linked."""
+    return render_template("transactions/reversals.html", pairs=reversals.candidates(), linked=reversals.linked_pairs(),
+                           window=reversals.WINDOW_DAYS)
+
+
+def _pair_from_form() -> tuple[Transaction, Transaction]:
+    first = db.get_or_404(Transaction, request.form.get("first", type=int) or 0)
+    second = db.get_or_404(Transaction, request.form.get("second", type=int) or 0)
+    return first, second
+
+
+@transactions_bp.route("/reversals/link", methods=["POST"])
+def reversal_link():
+    first, second = _pair_from_form()
+    try:
+        reversals.link(first, second)
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return back_to("transactions.reversals_page")
+    db.session.commit()
+    flash(_("Storno collegato: «%(first)s» e «%(second)s» restano nel saldo ma non contano nei totali.",
+            first=first.description, second=second.description), "success")
+    return back_to("transactions.reversals_page")
+
+
+@transactions_bp.route("/reversals/dismiss", methods=["POST"])
+def reversal_dismiss():
+    first, second = _pair_from_form()
+    reversals.dismiss(first.id, second.id)
+    flash(_("Segnato: non è uno storno, non verrà più proposto."), "success")
+    return back_to("transactions.reversals_page")
+
+
+@transactions_bp.route("/<int:tx_id>/reversal/unlink", methods=["POST"])
+def reversal_unlink(tx_id):
+    tx = db.get_or_404(Transaction, tx_id)
+    reversals.unlink(tx)
+    db.session.commit()
+    flash(_("Storno scollegato: i due movimenti tornano a contare nei totali."), "success")
+    return back_to("transactions.reversals_page")
 
 
 # ── Counterparties of saved transactions, read from the causale ────────────────

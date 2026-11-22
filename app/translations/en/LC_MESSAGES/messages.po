@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 16:06+0000\n"
+"POT-Creation-Date: 2026-11-22 18:43+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -170,6 +170,10 @@ msgstr "%(count)s columns found (header on row %(line)s), %(rows)s rows."
 #, python-format
 msgid "%(count)s controlli hanno trovato qualcosa da sistemare."
 msgstr "%(count)s checks found something to fix."
+
+#, python-format
+msgid "%(count)s coppie: restano nel saldo, non contano nei totali"
+msgstr "%(count)s pairs: they stay in the balance, they do not count in the totals"
 
 #, python-format
 msgid "%(count)s da confermare"
@@ -575,10 +579,30 @@ msgstr[0] "%(num)d policy expires within %(days)s days:"
 msgstr[1] "%(num)d policies expire within %(days)s days:"
 
 #, python-format
+msgid "%(num)d possibile storno da controllare in Transazioni → Storni."
+msgid_plural "%(num)d possibili storni da controllare in Transazioni → Storni."
+msgstr[0] "%(num)d possible reversal to review in Transactions → Reversals."
+msgstr[1] "%(num)d possible reversals to review in Transactions → Reversals."
+
+#, python-format
 msgid "%(num)d probabile giroconto"
 msgid_plural "%(num)d probabili giroconti"
 msgstr[0] "%(num)d likely transfer"
 msgstr[1] "%(num)d likely transfers"
+
+#, python-format
+msgid ""
+"%(num)d storno riconosciuto e collegato: i due movimenti non contano nei "
+"totali."
+msgid_plural ""
+"%(num)d storni riconosciuti e collegati: i movimenti non contano nei "
+"totali."
+msgstr[0] ""
+"%(num)d reversal recognised and linked: the two transactions do not count"
+" in the totals."
+msgstr[1] ""
+"%(num)d reversals recognised and linked: the transactions do not count in"
+" the totals."
 
 #, python-format
 msgid "%(num)d transazione"
@@ -2780,6 +2804,9 @@ msgstr "Link to «%(name)s»"
 msgid "Collega al giroconto: %(tx)s"
 msgstr "Link to the transfer: %(tx)s"
 
+msgid "Collega come storno"
+msgstr "Link as a reversal"
+
 msgid "Collega i movimenti scelti"
 msgstr "Link the selected movements"
 
@@ -2832,6 +2859,15 @@ msgid ""
 msgstr ""
 "Connection not recognised or expired: start again from the account, with "
 "«Link to Enable Banking»."
+
+msgid ""
+"Collegati, i due movimenti restano nel saldo del conto ma non contano nei"
+" totali, nei report e nei budget. Quelli con «storno» nella causale si "
+"collegano da soli all'import."
+msgstr ""
+"Once linked, the two transactions stay in the account's balance but do "
+"not count in totals, reports and budgets. Those with «storno» in the "
+"description are linked by themselves on import."
 
 msgid "Collegato"
 msgstr "Linked"
@@ -4214,6 +4250,9 @@ msgstr "Cancelled: no longer in the forecast"
 #, python-format
 msgid "Disponibile la versione %(version)s"
 msgstr "Version %(version)s available"
+
+msgid "Distanza"
+msgstr "Distance"
 
 msgid "Distanza dai modelli"
 msgstr "Distance from the models"
@@ -7276,6 +7315,9 @@ msgstr "The category «%(name)s» already exists: updated."
 msgid "La causale corrisponde alla categoria «%(category)s»."
 msgstr "The description matches the category «%(category)s»."
 
+msgid "La causale parla di storno"
+msgstr "The description speaks of a reversal"
+
 msgid "La causale parla di un accredito o di uno stipendio."
 msgstr "The description mentions a credit or a salary."
 
@@ -8500,6 +8542,9 @@ msgstr "Show:"
 msgid "Movimenti"
 msgstr "Movements"
 
+msgid "Movimenti che si annullano tra loro: non contano nei totali"
+msgstr "Transactions that cancel each other: they do not count in the totals"
+
 #, python-format
 msgid "Movimenti classificati: %(done)s di %(total)s"
 msgstr "Movements classified: %(done)s of %(total)s"
@@ -8563,6 +8608,9 @@ msgstr "Movement"
 #, python-format
 msgid "Movimento %(number)s: data o importo non validi"
 msgstr "Transaction %(number)s: invalid date or amount"
+
+msgid "Movimento che lo annulla"
+msgstr "Transaction that cancels it"
 
 msgid "Movimento di mercato in 7 giorni oltre (in percentuale)"
 msgstr "Market move in 7 days above (percent)"
@@ -8816,6 +8864,13 @@ msgstr ""
 msgid "Nessun movimento da registrare."
 msgstr "No movements to record."
 
+msgid ""
+"Nessun movimento dello stesso importo nella direzione opposta: quando "
+"arriva, puoi collegarlo qui o in Transazioni → Storni."
+msgstr ""
+"No transaction of the same amount the opposite way: when it arrives, you "
+"can link it here or in Transactions → Reversals."
+
 msgid "Nessun movimento in attesa su questo conto."
 msgstr "No transactions waiting on this account."
 
@@ -8882,6 +8937,9 @@ msgstr "No active model portfolio."
 
 msgid "Nessun possibile duplicato"
 msgstr "No possible duplicates"
+
+msgid "Nessun possibile storno da controllare."
+msgstr "No possible reversal to review."
 
 msgid "Nessun preset salvato."
 msgstr "No presets saved."
@@ -9188,6 +9246,9 @@ msgstr "No views: search or choose some filters, then save it below."
 msgid "Nessuna voce"
 msgstr "No items"
 
+msgid "Nessuno storno collegato."
+msgstr "No reversal linked."
+
 msgid "Nessuno strumento trovato."
 msgstr "No instrument found."
 
@@ -9428,6 +9489,9 @@ msgstr ""
 
 msgid "Non è un backup cifrato di MyFinancePlace."
 msgstr "Not a MyFinancePlace encrypted backup."
+
+msgid "Non è uno storno"
+msgstr "Not a reversal"
 
 msgid "Nord America"
 msgstr "North America"
@@ -10782,6 +10846,9 @@ msgstr "Possible duplicates"
 msgid "Possibili duplicati"
 msgstr "Possible duplicates"
 
+msgid "Possibili storni"
+msgstr "Possible reversals"
+
 msgid "Predefinito"
 msgstr "Default"
 
@@ -11126,6 +11193,9 @@ msgstr ""
 
 msgid "Primo avvio"
 msgstr "First start"
+
+msgid "Primo movimento"
+msgstr "First transaction"
 
 msgid "Privato"
 msgstr "Personal"
@@ -12719,6 +12789,9 @@ msgstr ""
 "Pick from the tags already used or type a new one and press Enter. The "
 "counterparty (e.g. the shop) goes in the tags."
 
+msgid "Scegli due movimenti diversi."
+msgstr "Choose two different transactions."
+
 msgid "Scegli il conto da cui paghi la rata."
 msgstr "Choose the account you pay the installment from."
 
@@ -12828,6 +12901,9 @@ msgstr "Unlink"
 msgid "Scollega %(bank)s"
 msgstr "Unlink %(bank)s"
 
+msgid "Scollega lo storno"
+msgstr "Unlink the reversal"
+
 msgid "Scollega questo conto"
 msgstr "Unlink this account"
 
@@ -12838,6 +12914,9 @@ msgid ""
 msgstr ""
 "Unlink %(bank)s? The consent is withdrawn; the transactions already saved"
 " stay."
+
+msgid "Scollegare lo storno? I due movimenti torneranno a contare nei totali."
+msgstr "Unlink the reversal? The two transactions will count in the totals again."
 
 #, python-format
 msgid ""
@@ -13010,6 +13089,9 @@ msgstr "Second IRPEF advance"
 msgid "Secondo i piani di ammortamento"
 msgstr "According to the amortization plans"
 
+msgid "Secondo movimento"
+msgstr "Second transaction"
+
 msgid "Sede"
 msgstr "Domicile"
 
@@ -13041,6 +13123,9 @@ msgid ""
 msgstr ""
 "Marked as different transactions: they will no longer be suggested as "
 "duplicates."
+
+msgid "Segnato: non è uno storno, non verrà più proposto."
+msgstr "Marked: not a reversal, it will not be proposed again."
 
 msgid "Segue il saldo del conto"
 msgstr "Follows the account balance"
@@ -13272,6 +13357,9 @@ msgstr "Sections of «%(name)s» updated."
 
 msgid "Sforate"
 msgstr "Over budget"
+
+msgid "Si annulla con:"
+msgstr "Cancelled by:"
 
 msgid "Si apre in una nuova scheda del browser"
 msgstr "Opens in a new browser tab"
@@ -13708,6 +13796,33 @@ msgstr "Price history"
 #, python-format
 msgid "Storico prezzi di %(name)s"
 msgstr "Price history of %(name)s"
+
+msgid "Storni"
+msgstr "Reversals"
+
+msgid "Storni collegati"
+msgstr "Linked reversals"
+
+msgid "Storno"
+msgstr "Reversal"
+
+#, python-format
+msgid ""
+"Storno collegato: «%(first)s» e «%(second)s» restano nel saldo ma non "
+"contano nei totali."
+msgstr ""
+"Reversal linked: «%(first)s» and «%(second)s» stay in the balance but do "
+"not count in the totals."
+
+msgid "Storno scollegato: i due movimenti tornano a contare nei totali."
+msgstr "Reversal unlinked: the two transactions count in the totals again."
+
+msgid ""
+"Storno: si annulla con un altro movimento dello stesso importo; non conta"
+" nei totali"
+msgstr ""
+"Reversal: cancelled by another transaction of the same amount; it does "
+"not count in the totals"
 
 msgid "Strategia"
 msgstr "Strategy"
@@ -14731,6 +14846,25 @@ msgstr ""
 " to follow how your wealth changes and compare two moments."
 
 msgid ""
+"Un'uscita e un'entrata dello stesso importo che si annullano (un "
+"pagamento stornato, un addebito rimborsato): restano nel saldo del conto "
+"ma non contano nei totali, nei report e nei budget."
+msgstr ""
+"An expense and an income of the same amount that cancel each other (a "
+"reversed payment, a refunded charge): they stay in the account's balance "
+"but do not count in totals, reports and budgets."
+
+#, python-format
+msgid ""
+"Un'uscita e un'entrata dello stesso importo, sullo stesso conto, a non "
+"più di %(days)s giorni l'una dall'altra. Prima quelle la cui causale "
+"parla di storno, poi le più vicine nel tempo."
+msgstr ""
+"An expense and an income of the same amount, on the same account, at most"
+" %(days)s days apart. First those whose description speaks of a reversal,"
+" then the closest in time."
+
+msgid ""
 "Una banca si collega da un tuo conto: apri il conto in «Conti», poi "
 "«Modifica» → «Collega a Enable Banking». I movimenti arriveranno su quel "
 "conto."
@@ -14811,6 +14945,21 @@ msgstr "European Union"
 
 msgid "Università"
 msgstr "University"
+
+msgid "Uno dei due movimenti è già collegato a un altro storno."
+msgstr "One of the two transactions is already linked to another reversal."
+
+msgid "Uno storno ha lo stesso importo, nella stessa valuta, nei due movimenti."
+msgstr ""
+"A reversal has the same amount, in the same currency, in both "
+"transactions."
+
+msgid ""
+"Uno storno è un'uscita e un'entrata: i due movimenti devono avere "
+"direzioni opposte."
+msgstr ""
+"A reversal is an expense and an income: the two transactions must go "
+"opposite ways."
 
 msgid ""
 "Un’entrata da chi ti ridà i soldi: scala il suo debito e non conta come "
@@ -16506,6 +16655,12 @@ msgstr "same day"
 
 msgid "stima"
 msgstr "estimate"
+
+msgid "stornato"
+msgstr "reversed"
+
+msgid "storno nella causale"
+msgstr "reversal in the description"
 
 #, python-format
 msgid "su %(amount)s"

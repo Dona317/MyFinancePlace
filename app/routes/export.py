@@ -27,6 +27,7 @@ from app.services import (
     field_crypto,
     import_presets,
     open_banking,
+    reversals,
     statement_readers,
     transfer,
     upload_store,
@@ -667,10 +668,27 @@ def bank_confirm():
     upload_store.delete(request.form.get("preview_token", ""))  # the kept page of the preview: saved, not needed
     _done_waiting(data)
     flash(_import_message(len(created), bank_name, account, skipped, linked), "success")
+    _reversals_found([tx.id for tx in created])
     if invalid:
         flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")
     _save_preset(data.get("mapped"), account)
     return redirect(url_for("transactions.index"))
+
+
+def _reversals_found(ids: list[int]) -> None:
+    """F108: the movements just saved that cancel one already there (a causale says «storno»…) are linked; the
+    others that might are only proposed (Transazioni → Storni)."""
+    if not ids:
+        return
+    linked = reversals.auto_link(ids)
+    db.session.commit()
+    if linked:
+        flash(ngettext("%(num)d storno riconosciuto e collegato: i due movimenti non contano nei totali.",
+                       "%(num)d storni riconosciuti e collegati: i movimenti non contano nei totali.", linked), "info")
+    maybe = len(reversals.candidates(ids=ids))
+    if maybe:
+        flash(ngettext("%(num)d possibile storno da controllare in Transazioni → Storni.",
+                       "%(num)d possibili storni da controllare in Transazioni → Storni.", maybe), "info")
 
 
 def _done_waiting(data: dict) -> None:

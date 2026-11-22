@@ -31,6 +31,9 @@
   <a href="{{ url_for('transactions.duplicates_page') }}" class="btn btn-ghost btn-sm">
     <i class="bi bi-intersect"></i> {{ _('Cerca duplicati') }}
   </a>
+  <a href="{{ url_for('transactions.reversals_page') }}" class="btn btn-ghost btn-sm" title="{{ _('Movimenti che si annullano tra loro: non contano nei totali') }}">
+    <i class="bi bi-arrow-counterclockwise"></i> {{ _('Storni') }}
+  </a>
 {% endblock %}
 
 

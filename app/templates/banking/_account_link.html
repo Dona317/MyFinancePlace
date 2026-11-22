@@ -1,8 +1,9 @@
 {# F107: the bank connection of one account, on its edit page — where a bank is linked from (`bank_link` from
    routes.banking.account_panel). Its own card, below the account's form (forms cannot nest). The edit page often
    opens in the app's pop-up (an iframe), and the banks' pages refuse to load inside a frame ("refused to connect"): the
-   consent opens in a new tab of the browser (_blank), which comes back to the account when done; the other links
-   leave the pop-up for the whole window (_top). #}
+   consent opens in a new tab of the browser (_blank), which comes back to the account when done; every other form
+   and link of the panel works on the whole window (_top): a page reloaded inside the pop-up would lose the pop-up's
+   «embed» and stack the whole app inside it (and «Salva» would then open the account there). #}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/info.html" import info %}
 {% set here = url_for('accounts.edit', account_id=account.id) ~ '#bank-link' %}
@@ -36,7 +37,7 @@
       <div class="bank-connection-actions">
         {% if link.pending %}<a href="{{ url_for('banking.review', link_id=link.id) }}" class="btn btn-outline btn-sm" target="_top"><i class="bi bi-eye"></i> {{ _('Controlla %(count)s', count=link.pending|length) }}</a>{% endif %}
         {% if not expired %}
-        <form method="POST" action="{{ url_for('banking.sync', connection_id=c.id) }}">
+        <form method="POST" action="{{ url_for('banking.sync', connection_id=c.id) }}" target="_top">
           <input type="hidden" name="next" value="{{ here }}" />
           <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Aggiorna ora') }}</button>
         </form>
@@ -47,7 +48,7 @@
           <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-shield-check"></i> {{ _('Rinnova consenso') }}</button>
         </form>
         {% endif %}
-        <form method="POST" action="{{ url_for('banking.detach', account_id=account.id) }}"
+        <form method="POST" action="{{ url_for('banking.detach', account_id=account.id) }}" target="_top"
               data-confirm="{{ _('Scollegare «%(name)s» dalla banca? I movimenti già salvati restano; il consenso resta per gli altri conti (si ritira da Collegamenti bancari).', name=account.name) }}">
           <button type="submit" class="btn btn-ghost btn-sm btn-danger-ghost"><i class="bi bi-x-lg"></i> {{ _('Scollega questo conto') }}</button>
         </form>
@@ -64,7 +65,7 @@
     <div class="bank-free">
       <div class="form-label">{{ _('Già autorizzato dalla banca') }} {{ info(_('Conti compresi in un consenso dato per un altro conto e non ancora collegati: puoi usarne uno senza tornare sul sito della banca.')) }}</div>
       {% for link in bank_link.free %}
-      <form method="POST" action="{{ url_for('banking.use_link', account_id=account.id, link_id=link.id) }}" class="bank-free-row">
+      <form method="POST" action="{{ url_for('banking.use_link', account_id=account.id, link_id=link.id) }}" class="bank-free-row" target="_top">
         <span><i class="bi bi-bank2"></i> {{ link.connection.aspsp_name }} · {{ link.name or _('Conto') }} {% if link.iban %}<span class="text-muted" title="{{ link.iban }}">{{ link.iban|masked }}</span>{% endif %}</span>
         <button type="submit" class="btn btn-ghost btn-sm">{{ _('È questo conto') }}</button>
       </form>
@@ -80,7 +81,7 @@
       <li>{{ _('Sul sito della banca accedi e autorizza la lettura') }}</li>
       <li>{{ _('In una nuova scheda: alla fine ti mostra «%(name)s» con i movimenti', name=account.name) }}</li>
     </ol>
-    <form method="GET" action="{{ url_for('accounts.edit', account_id=account.id) }}#bank-link" class="bank-country-form">
+    <form method="GET" action="{{ url_for('accounts.edit', account_id=account.id) }}#bank-link" class="bank-country-form" target="_top">
       <label class="form-label" for="bank-country">{{ _('Paese') }}</label>
       <select id="bank-country" name="country" class="form-select form-select-sm" onchange="this.form.submit()">
         {% for code in bank_link.countries %}<option value="{{ code }}" {{ 'selected' if code == bank_link.country }}>{{ code }}</option>{% endfor %}

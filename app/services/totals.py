@@ -2,9 +2,10 @@
 The sum every report starts from: the value in the base currency of the transactions matching some filters.
 
 The analyses (reports, budgets, rhythm, savings rate…) leave out the categories excluded from them (F22: refunds
-of work expenses, money spent for others); balances, the balance sheet and the tax pages count everything.
+of work expenses, money spent for others) and the reversals (F108: storni); balances, the balance sheet and the tax
+pages count everything.
 """
-from sqlalchemy import case, func, or_, true
+from sqlalchemy import and_, case, func, or_
 
 from app.extensions import db
 from app.models.transaction import Transaction, TransactionSplit
@@ -21,11 +22,13 @@ LINE_VALUE = case(
 
 
 def analysed(column=Transaction.category):
-    """The condition that keeps the categories excluded from the analyses out (an uncategorized movement stays)."""
+    """The condition that keeps out of the analyses the categories excluded from them (an uncategorized movement
+    stays) and the reversals (F108: an expense and an income that cancel each other, services.reversals)."""
     from app.services import categories  # here: categories imports this module
 
     names = categories.excluded_names()
-    return or_(column.is_(None), column.notin_(names)) if names else true()
+    not_reversed = Transaction.reversal_id.is_(None)
+    return and_(not_reversed, or_(column.is_(None), column.notin_(names))) if names else not_reversed
 
 
 def with_lines(query, analysis: bool = True):

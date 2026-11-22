@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/info.html" import info %}
+
+{% block title %}{{ _('Storni') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Storni') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Storni') }}</li>{% endblock %}
+
+{% macro row(tx) -%}
+<span class="reversal-side">
+  <span class="text-muted">{{ tx.date|it_date }}</span>
+  <a href="{{ url_for('transactions.edit', tx_id=tx.id) }}">{{ tx.description }}</a>
+  <span class="amount {{ tx.type|tone }}">{{ tx.signed_amount|money }}</span>
+</span>
+{%- endmacro %}
+
+{% block content %}
+{# F108: an expense and an income of the same amount that cancel each other — both kept, neither in the totals #}
+<div class="card mb-16" id="proposed">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Possibili storni') }} {{ info(_("Un'uscita e un'entrata dello stesso importo, sullo stesso conto, a non più di %(days)s giorni l'una dall'altra. Prima quelle la cui causale parla di storno, poi le più vicine nel tempo.", days=window)) }}</div>
+    <div class="card-header-sub">{{ _('Collegati, i due movimenti restano nel saldo del conto ma non contano nei totali, nei report e nei budget. Quelli con «storno» nella causale si collegano da soli all\'import.') }}</div>
+  </div></div>
+  {% if pairs %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Primo movimento') }}</th><th>{{ _('Secondo movimento') }}</th><th>{{ _('Distanza') }}</th><th>{{ _('Conto') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+      {% for p in pairs %}
+        <tr>
+          <td>{{ row(p.first) }}</td>
+          <td>{{ row(p.second) }}</td>
+          <td>{{ _('%(days)s giorni', days=p.days) }}{% if p.signal %} <span class="badge badge-warning" title="{{ _('La causale parla di storno') }}">{{ _('storno nella causale') }}</span>{% endif %}</td>
+          <td>{{ p.first.account.name if p.first.account else '—' }}</td>
+          <td class="text-right">
+            <div class="reversal-actions">
+              <form method="POST" action="{{ url_for('transactions.reversal_link') }}">
+                <input type="hidden" name="first" value="{{ p.first.id }}" /><input type="hidden" name="second" value="{{ p.second.id }}" />
+                <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-link-45deg"></i> {{ _('Collega') }}</button>
+              </form>
+              <form method="POST" action="{{ url_for('transactions.reversal_dismiss') }}">
+                <input type="hidden" name="first" value="{{ p.first.id }}" /><input type="hidden" name="second" value="{{ p.second.id }}" />
+                <button type="submit" class="btn btn-ghost btn-sm">{{ _('Non è uno storno') }}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body">{{ empty_state(text=_('Nessun possibile storno da controllare.'), compact=True) }}</div>
+  {% endif %}
+</div>
+
+<div class="card" id="linked">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-link-45deg"></i> {{ _('Storni collegati') }}</div>
+    <div class="card-header-sub">{{ _('%(count)s coppie: restano nel saldo, non contano nei totali', count=linked|length) }}</div>
+  </div></div>
+  {% if linked %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Primo movimento') }}</th><th>{{ _('Secondo movimento') }}</th><th>{{ _('Conto') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <tbody>
+      {% for first, second in linked %}
+        <tr>
+          <td>{{ row(first) }}</td>
+          <td>{{ row(second) }}</td>
+          <td>{{ first.account.name if first.account else '—' }}</td>
+          <td class="text-right">
+            <form method="POST" action="{{ url_for('transactions.reversal_unlink', tx_id=first.id) }}"
+                  data-confirm="{{ _('Scollegare lo storno? I due movimenti torneranno a contare nei totali.') }}">
+              <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-x-lg"></i> {{ _('Scollega') }}</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body">{{ empty_state(text=_('Nessuno storno collegato.'), compact=True) }}</div>
+  {% endif %}
+</div>
+{% endblock %}

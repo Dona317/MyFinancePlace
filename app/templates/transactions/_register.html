@@ -335,7 +335,7 @@
           <td class="tx-date">{{ tx.date|it_date }}</td>
           <td>
             <div class="cell-clip">
-            <div class="tx-description">{{ tx.description }}</div>
+            <div class="tx-description">{{ tx.description }}{% if tx.reversal_id %} <a href="{{ url_for('transactions.edit', tx_id=tx.reversal_id) }}" class="badge badge-muted" title="{{ _('Storno: si annulla con un altro movimento dello stesso importo; non conta nei totali') }}"><i class="bi bi-arrow-counterclockwise"></i> {{ _('stornato') }}</a>{% endif %}</div>
             {%- if tx.bank_description and tx.bank_description != tx.description %}
             <div class="text-xs text-muted" title="{{ _('Causale originale della banca') }}"><i class="bi bi-bank"></i> {{ tx.bank_description }}</div>
             {%- endif %}

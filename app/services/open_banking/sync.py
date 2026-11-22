@@ -30,7 +30,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.bank_link import BankAccessLog, BankAccountLink, BankConnection
-from app.services import accounts, bank_import, field_crypto, money, studio
+from app.services import accounts, bank_import, field_crypto, money, reversals, studio
 from app.services import cards as card_service
 from app.services.parsing import clean_text, to_date
 
@@ -64,6 +64,7 @@ class SyncResult:
     waiting: int = 0
     pending_at_bank: int = 0     # not booked yet at the bank: they come with a later download
     error: str | None = None
+    created: list = field(default_factory=list)  # the transactions saved by this download
 
 
 @dataclass
@@ -535,7 +536,7 @@ def _savable(row) -> bool:
     return not row.duplicate and not row.similar_to and not row.pairs_with
 
 
-def _save(rows: list, account: Account) -> int:
+def _save(rows: list, account: Account) -> list:
     created = []
     for row in rows:
         base = row.to_dict()
@@ -544,7 +545,7 @@ def _save(rows: list, account: Account) -> int:
         created.append(tx)
     card_service.assign(created)
     db.session.add_all(created)
-    return len(created)
+    return created
 
 
 def _keep_waiting(link: BankAccountLink, rows: list) -> None:
@@ -581,7 +582,8 @@ def sync_link(link: BankAccountLink, creds: client.Credentials, today: date | No
     account = link.account if link.account and link.account.active else None
     if account is not None and link.connection.auto_save:
         savable = [r for r in rows if _savable(r)]
-        result.saved = _save(savable, account)
+        result.created = _save(savable, account)
+        result.saved = len(result.created)
         rows = [r for r in rows if not _savable(r)]
     _keep_waiting(link, rows)
     result.waiting = len(link.pending or [])
@@ -622,6 +624,10 @@ def sync_connection(connection: BankConnection, today: date | None = None, psu: 
     connection.last_error = None
     log(connection, kind, results)
     db.session.commit()
+    created = [tx.id for r in results for tx in r.created]
+    if created:  # F108: what was saved by itself and cancels a movement already there (a causale says «storno»)
+        reversals.auto_link(created)
+        db.session.commit()
     return results
 
 

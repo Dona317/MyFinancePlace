@@ -25,6 +25,10 @@ class Transaction(db.Model):
     import_ref     = db.Column(db.String(64), unique=True, index=True)  # fingerprint of a bank-statement row
     # a transfer between own accounts is in both statements: the other statement's row, once joined to this one
     counter_import_ref = db.Column(db.String(64), unique=True, index=True)
+    # F108: a reversal (storno) — an expense and an income of the same amount that cancel each other (a payment
+    # reversed, a charge refunded): each points to the other; both stay in the balances, neither counts in the
+    # analyses (services.totals.analysed), and each keeps its own category
+    reversal_id = db.Column(db.Integer, db.ForeignKey("transactions.id", ondelete="SET NULL"), unique=True, index=True)
     # The account the money leaves (expense, outgoing transfer) or reaches (income); for a transfer between
     # two own accounts, counter_account is where it arrives
     account_id         = db.Column(db.Integer, db.ForeignKey("accounts.id", ondelete="SET NULL"), index=True)

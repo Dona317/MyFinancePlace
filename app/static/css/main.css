@@ -2682,3 +2682,10 @@ tr.is-muted td { color: var(--clr-text-muted); }
 @media (max-width: 768px) {
   .bank-connect-form, .bank-connect-form.with-archive { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* F108: reversals (storni) — the two movements of a pair, the actions, the form on a transaction */
+.reversal-side { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.reversal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.reversal-actions form { margin: 0; }
+.reversal-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0; }
+.reversal-form .form-select { flex: 1; min-width: 0; }
