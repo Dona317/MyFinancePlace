@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ template.name if template else _('Nuovo portafoglio modello') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li><a href="{{ url_for('portfolio.models_index') }}">{{ _('Portafogli modello') }}</a></li><li>{{ template.name if template else _('Nuovo') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li><a href="{{ url_for('portfolio.models_index') }}">{{ _('Portafogli modello') }}</a></li><li>{{ template.name if template else _('Nuovo') }}</li>{% endblock %}
 
 {% block content %}
 <form method="POST" id="model-form">

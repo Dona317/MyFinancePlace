@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 22:54+0000\n"
+"POT-Creation-Date: 2026-11-22 22:55+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -5799,9 +5799,6 @@ msgstr "I understand: a full backup"
 msgid "Ho prestato o anticipato"
 msgstr "I lent or paid in advance"
 
-msgid "Holdings"
-msgstr "Holdings"
-
 msgid "Home"
 msgstr "Home"
 
@@ -11020,6 +11017,9 @@ msgstr "Portfolio «%(name)s» deleted."
 #, python-format
 msgid "Portafoglio «%(name)s» salvato."
 msgstr "Portfolio «%(name)s» saved."
+
+msgid "Portfolio"
+msgstr "Portfolio"
 
 #, python-format
 msgid "Posizione iniziale: %(units)s quote a %(price)s%(when)s"

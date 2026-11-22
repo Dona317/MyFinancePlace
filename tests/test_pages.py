@@ -75,12 +75,12 @@ def test_pages_have_balanced_divs(client, sample_data, url):
 
 def test_sidebar_sections_are_collapsible(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
-    # UI-34: Dashboard, Transazioni, Holdings, Obiettivi on top; the rest in «Da smistare», closed at first
+    # UI-34: Dashboard, Transazioni, Portfolio, Obiettivi on top; the rest in «Da smistare», closed at first
     sections = re.findall(r'<div class="nav-section(?: collapsed)?" data-section="(\w+)"', html)
     assert sections == ["altro"]
     top = html.split('<div class="nav-top">')[1].split("</div>")[0]
     assert [label for label in re.findall(r'<span class="nav-label"[^>]*>([^<]+)</span>', top)] == [
-        "Dashboard", "Transazioni", "Holdings", "Obiettivi"]
+        "Dashboard", "Transazioni", "Portfolio", "Obiettivi"]
     assert 'id="page-find-btn"' in html and 'class="page-find-macro"' in html
     for key in sections:
         # each title is a button controlling its own group of links

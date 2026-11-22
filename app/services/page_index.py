@@ -2,7 +2,7 @@
 Every page of the app, by macro section → section → its own pages (the tabs), for the page search at the top of the
 side menu and for the menu itself (22 Nov 2026, UI-34).
 
-The menu shows Dashboard, Transazioni, Holdings and Obiettivi on their own (MAIN); every other section is in the
+The menu shows Dashboard, Transazioni, Portfolio and Obiettivi on their own (MAIN); every other section is in the
 expandable «Da smistare» list, until it finds its place. The search lists them all, the sections the user may not
 see left out (sections.in_menu).
 """
@@ -81,7 +81,7 @@ def _tree() -> list[tuple[str, list[Entry]]]:
                 P(_l("Le tue scadenze"), "deadlines.index", {"tab": "mine"}))),
         ]),
         (_l("Gestione"), [
-            Entry("portfolio", _l("Holdings"), "briefcase", P(_l("Holdings"), "portfolio.index"), (
+            Entry("portfolio", _l("Portfolio"), "briefcase", P(_l("Portfolio"), "portfolio.index"), (
                 P(_l("Riepilogo"), "portfolio.overview_page"), P(_l("Portafogli e conti titoli"), "portfolio.portfolios_page"),
                 P(_l("Rendimenti"), "portfolio.performance_page"), P(_l("Ordini"), "portfolio.orders_page"),
                 P(_l("Ordini teorici"), "portfolio.planned_page"), P(_l("Calcolo commissioni"), "portfolio.fees_page"),

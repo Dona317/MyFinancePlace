@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Colonne del file del broker') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li><a href="{{ url_for('portfolio.broker_upload') }}">{{ _('Importa dal broker') }}</a></li><li>{{ _('Colonne') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li><a href="{{ url_for('portfolio.broker_upload') }}">{{ _('Importa dal broker') }}</a></li><li>{{ _('Colonne') }}</li>{% endblock %}
 
 {% block content %}
 {% set nav_active = 'import' %}{% include "portfolio/_nav.html" %}

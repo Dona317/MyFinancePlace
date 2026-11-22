@@ -4,7 +4,7 @@
 {% set is_edit = holding is not none %}
 {% set h = holding or {} %}
 {% block page_title %}{{ _('Modifica posizione') if is_edit else _('Nuova posizione') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuova') }}</li>{% endblock %}
 
 {% block content %}
 {% if request.values.get('from') == 'add' %}

@@ -6,7 +6,7 @@
 
 {% block title %}{{ _('Panoramica investimenti') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Panoramica investimenti') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li>{{ _('Panoramica') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Panoramica') }}</li>{% endblock %}
 
 {% macro pct(value) -%}{{ ((value|number(2)) ~ ' %') if value is not none else '—' }}{%- endmacro %}
 

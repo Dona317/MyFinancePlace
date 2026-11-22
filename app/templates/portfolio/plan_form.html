@@ -2,7 +2,7 @@
 {% import "partials/fields.html" as f %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ plan.name if plan else _("Nuovo piano d'accumulo") }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li><a href="{{ url_for('portfolio.rules') }}">{{ _('Regole e PAC') }}</a></li><li>{{ _('PAC') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li><a href="{{ url_for('portfolio.rules') }}">{{ _('Regole e PAC') }}</a></li><li>{{ _('PAC') }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">

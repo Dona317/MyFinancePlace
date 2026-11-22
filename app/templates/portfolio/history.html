@@ -3,7 +3,7 @@
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block title %}{{ _('Storico prezzi') }} — {{ holding.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ holding.name }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li>{{ _('Storico prezzi') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Storico prezzi') }}</li>{% endblock %}
 
 {% block content %}
 <div class="card mb-16">
