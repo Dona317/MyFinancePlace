@@ -150,7 +150,7 @@ def _analyse(filename: str, raw: bytes, *, mapping: dict | None = None, preset=A
         # a statement of the positions held (no trades): compared with the recorded ones, as the AI «Stato attuale»
         held = broker_import.positions(filename, raw)
         if held:
-            reading = portfolio_reading.compare(held, broker_import.file_date(filename))
+            reading = portfolio_reading.compare(held, broker_import.file_date(filename), layout="positions")
             return _state_preview(reading, filename, None)
     if preset is AUTO:
         preset = import_presets.match(headers, "broker")

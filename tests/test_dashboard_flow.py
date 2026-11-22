@@ -57,6 +57,11 @@ def test_nothing_to_draw(app, db):
 
 def test_dashboard_shows_the_new_charts_and_they_can_be_hidden(client, db):
     _year(db)
+    from tests.conftest import make_tx
+    # the flow of the money is the month under way's (22 Nov 2026)
+    db.session.add_all([make_tx(date=date.today(), category="Stipendio", type="income", amount=2000),
+                        make_tx(date=date.today(), category="Casa", amount=700)])
+    db.session.commit()
     html = client.get("/dashboard?year=2026&view=month").get_data(as_text=True)
     assert 'class="sankey"' in html and "Dove va il denaro" in html and "Risparmio" in html
     # the year's totals stay; «Netto mese per mese» was dropped (the cash-flow chart shows the monthly savings)

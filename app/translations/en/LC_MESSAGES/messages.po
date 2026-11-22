@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 20:25+0000\n"
+"POT-Creation-Date: 2026-11-22 21:01+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -40,6 +40,9 @@ msgstr " — press «Upload»"
 
 msgid " — solo testo, non legge immagini"
 msgstr " — text only, cannot read images"
+
+msgid "# quote"
+msgstr "# units"
 
 #, python-format
 msgid "%% Entrate"
@@ -305,6 +308,10 @@ msgstr "%(count)s payments, last on %(last)s"
 #, python-format
 msgid "%(count)s parti fuori dalla tolleranza di ± %(band)s punti"
 msgstr "%(count)s parts outside the ± %(band)s point tolerance"
+
+#, python-format
+msgid "%(count)s posizioni trovate"
+msgstr "%(count)s positions found"
 
 #, python-format
 msgid "%(count)s programmate"
@@ -2342,8 +2349,8 @@ msgid ""
 "Carica l'estratto del broker o il modello Excel compilato: una riga per "
 "operazione, i titoli nuovi vengono creati."
 msgstr ""
-"Upload the broker's statement or the filled-in Excel template: one row per "
-"trade; new securities are created."
+"Upload the broker's statement or the filled-in Excel template: one row "
+"per trade; new securities are created."
 
 msgid ""
 "Carica la composizione dei fondi, o indica area e settore, nella scheda "
@@ -5346,8 +5353,8 @@ msgid "Flusso del denaro (Sankey)"
 msgstr "Money flow (Sankey)"
 
 #, python-format
-msgid "Flusso del denaro — %(period)s"
-msgstr "Money flow — %(period)s"
+msgid "Flusso del denaro — %(month)s"
+msgstr "Money flow — %(month)s"
 
 msgid "Flusso di Cassa"
 msgstr "Cash Flow"
@@ -6262,6 +6269,11 @@ msgstr "The day of the operation (required)."
 msgid "Il giorno di addebito va da 1 a 31."
 msgstr "The charge day goes from 1 to 31."
 
+msgid ""
+"Il giorno in cui la posizione viene registrata: quello del file, come una"
+" riconciliazione."
+msgstr "The day the position is recorded: the file's, like a reconciliation."
+
 msgid "Il giorno prima"
 msgstr "The day before"
 
@@ -6282,6 +6294,11 @@ msgstr "The month at a glance"
 
 msgid "Il mese in corso"
 msgstr "The current month"
+
+msgid ""
+"Il mese in corso, fino a oggi, qualunque periodo sia scelto nella barra "
+"in alto."
+msgstr "The month under way, up to today, whatever period is chosen in the bar at the top."
 
 msgid ""
 "Il mese in corso, fino a oggi; sotto ogni cifra il mese scorso e la media"
@@ -6672,6 +6689,9 @@ msgstr "Import the row"
 
 msgid "Importa le operazioni scelte"
 msgstr "Import the selected operations"
+
+msgid "Importa le posizioni scelte"
+msgstr "Import the chosen positions"
 
 msgid "Importa le righe"
 msgstr "Import the lines"
@@ -8976,9 +8996,6 @@ msgstr ""
 msgid "Nessun movimento in attesa su questo conto."
 msgstr "No transactions waiting on this account."
 
-msgid "Nessun movimento in questo anno."
-msgstr "No movements in this year."
-
 msgid "Nessun movimento in questo mese."
 msgstr "No movements this month."
 
@@ -10179,6 +10196,9 @@ msgstr "Alternative PIR"
 msgid "PIR ordinario"
 msgstr "Ordinary PIR"
 
+msgid "PMC €"
+msgstr "ABP €"
+
 msgid "Paese"
 msgstr "Country"
 
@@ -10945,6 +10965,15 @@ msgid "Posizioni"
 msgstr "Holdings"
 
 #, python-format
+msgid ""
+"Posizioni al %(day)s lette dal file, confrontate con quelle già "
+"registrate: qui solo quelle nuove o con quote diverse (la differenza). "
+"%(count)s posizioni coincidono già."
+msgstr ""
+"Positions on %(day)s read from the file, compared with the recorded ones: only the new ones or those with "
+"different units are here (the difference). %(count)s positions already match."
+
+#, python-format
 msgid "Posizioni di %(name)s"
 msgstr "Positions of %(name)s"
 
@@ -11208,6 +11237,9 @@ msgstr "Average purchase price"
 
 msgid "Prezzo medio di carico"
 msgstr "Average cost"
+
+msgid "Prezzo medio di carico (average buying price)"
+msgstr "Average buying price"
 
 msgid "Prezzo medio ora"
 msgstr "Average price now"
@@ -16078,6 +16110,9 @@ msgstr "unchanged since %(day)s"
 
 msgid "file"
 msgstr "file"
+
+msgid "file delle posizioni"
+msgstr "positions file"
 
 #, python-format
 msgid "fino a %(month)s · peggiori %(pct)s %% (fino a %(worst)s)"

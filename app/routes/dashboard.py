@@ -260,7 +260,10 @@ def dashboard():
         part_labels={p: part_label(year, p) for p in PIE_PARTS},
         period_label=period.label(),
         savings=analytics.savings_rates_by_year(today),
-        sankey=sankey.flow(pie_start, pie_end) if "sankey" in shown else None,
+        # 22 Nov 2026: the flow of the money of the month under way, in «Questo mese», whatever the period of the bar
+        sankey=sankey.flow(today.replace(day=1), today + timedelta(days=1)) if "sankey" in shown else None,
+        sankey_start=today.replace(day=1), sankey_last=today,
+        sankey_month=month_label(month_index(today)),
         year_start=pie_start, year_last=pie_end - timedelta(days=1),
         net_worth_trend=_net_worth_trend(chart_months, today) if "net_worth" in shown and chart_months else None,
         extra=extra,

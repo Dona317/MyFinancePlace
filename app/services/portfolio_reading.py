@@ -202,7 +202,7 @@ def state(filename: str, raw: bytes, securities_account_id: int | None = None, o
 
 
 def compare(entries: list, on: date | None = None, securities_account_id: int | None = None,
-            complete: bool = False) -> Reading:
+            complete: bool = False, layout: str = "state") -> Reading:
     """Positions ({name, isin, ticker, quantity, price, value_eur}: read by the model, or from a positions file)
     against the recorded ones; the differences as purchases and sales on `on` (today when not given)."""
     day = min(on or date.today(), date.today())
@@ -257,5 +257,5 @@ def compare(entries: list, on: date | None = None, securities_account_id: int | 
             line += 1
             rows.append(broker_import.BrokerRow(line, day, holding.name, holding.isin, holding.ticker, -units,
                                                 Decimal(str(holding.price)), Decimal(0), "", holding_id))
-    preview = broker_import.finish(rows, [], "state") if rows else broker_import.Preview([], [], "state")
+    preview = broker_import.finish(rows, [], layout) if rows else broker_import.Preview([], [], layout)
     return Reading(preview, day, unchanged, notes)

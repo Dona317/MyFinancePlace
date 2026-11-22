@@ -32,8 +32,10 @@
 </div>
 {% elif reading %}
 <div class="alert alert-info mb-16" id="ai-reading">
-  <i class="bi bi-stars"></i>
-  {% if preview.layout == 'state' %}
+  <i class="bi bi-{{ 'list-check' if preview.layout == 'positions' else 'stars' }}"></i>
+  {% if preview.layout == 'positions' %}
+  {{ _('Posizioni al %(day)s lette dal file, confrontate con quelle già registrate: qui solo quelle nuove o con quote diverse (la differenza). %(count)s posizioni coincidono già.', day=reading.on|it_date, count=reading.unchanged) }}
+  {% elif preview.layout == 'state' %}
   {{ _('Operazioni ricavate dallo stato al %(day)s: la differenza fra le quote del documento e quelle registrate%(where)s. %(count)s posizioni coincidono già.', day=reading.on|it_date, where=(' ' ~ _('nel conto titoli «%(name)s»', name=dossier.name)) if dossier else '', count=reading.unchanged) }}
   {% else %}
   {{ _('Operazioni lette dal modello AI: controlla date, quote e prezzi prima di importarle.') }}
@@ -42,6 +44,9 @@
 </div>
 {% endif %}
 
+{# a file of positions (22 Nov 2026): what is held, not trades — no buy/sell and no commission; the price is the
+   average cost (PMC); the date is the day the position is recorded #}
+{% set positions = preview.layout == 'positions' %}
 <form method="POST" action="{{ url_for('portfolio.broker_confirm') }}" id="broker-form">
   <input type="hidden" name="payload" value="{{ payload }}" />
   <input type="hidden" name="mapped" value="{{ mapped }}" />
@@ -51,8 +56,8 @@
       <div>
         <div class="card-header-title">{{ filename }}</div>
         <div class="card-header-sub">
-          {{ _('%(count)s operazioni trovate', count=preview.rows|length) }}
-          · {{ {'degiro': _('formato Degiro'), 'ai': _('letto con AI'), 'state': _('dallo stato attuale')}.get(preview.layout, _('formato generico')) }}
+          {{ _('%(count)s posizioni trovate', count=preview.rows|length) if positions else _('%(count)s operazioni trovate', count=preview.rows|length) }}
+          · {{ {'degiro': _('formato Degiro'), 'ai': _('letto con AI'), 'state': _('dallo stato attuale'), 'positions': _('file delle posizioni')}.get(preview.layout, _('formato generico')) }}
           {% if preview.unread %} · {{ _('%(count)s righe ignorate (versamenti, dividendi o righe illeggibili)', count=preview.unread|length) }}{% endif %}
         </div>
       </div>
@@ -69,12 +74,17 @@
         <thead>
           <tr>
             <th style="width:32px;"></th>
-            <th>{{ _('Data') }}</th>
+            <th>{{ _('Data') }}{% if positions %} {{ info(_('Il giorno in cui la posizione viene registrata: quello del file, come una riconciliazione.')) }}{% endif %}</th>
             <th>{{ _('Titolo nel file') }}</th>
+            {% if positions %}
+            <th class="text-right">{{ _('# quote') }}</th>
+            <th class="text-right"><abbr title="{{ _('Prezzo medio di carico (average buying price)') }}">{{ _('PMC €') }}</abbr></th>
+            {% else %}
             <th>{{ _('Operazione') }}</th>
             <th class="text-right">{{ _('Quote') }}</th>
             <th class="text-right">{{ _('Prezzo €') }}</th>
             <th class="text-right">{{ _('Commissione €') }}</th>
+            {% endif %}
             <th style="width:240px;">{{ _('Titolo del portafoglio') }}</th>
           </tr>
         </thead>
@@ -89,10 +99,16 @@
             <td class="nowrap">{{ row.on|it_date }}</td>
             <td>{{ row.name }}<div class="text-xs text-muted">{{ row.isin or '' }} {{ row.ticker or '' }}</div>
               {% if row.duplicate %}<span class="badge badge-muted">{{ _('Già importato') }}</span>{% endif %}</td>
+            {% if positions %}
+            {# a line already held with other units: the difference, with its sign #}
+            <td class="text-right nowrap">{{ ('−' if row.units < 0) ~ row.units|abs|number(4) }}</td>
+            <td class="text-right nowrap">{{ row.price|money }}</td>
+            {% else %}
             <td>{{ _('Vendita') if row.units < 0 else _('Acquisto') }}</td>
             <td class="text-right nowrap">{{ row.units|abs|number(4) }}</td>
             <td class="text-right nowrap">{{ row.price|money }}</td>
             <td class="text-right nowrap">{{ row.fee|money }}</td>
+            {% endif %}
             <td>
               {% if not row.duplicate %}
               <select name="holding-{{ i }}" class="form-select" aria-label="{{ _('Titolo del portafoglio') }}">
@@ -119,7 +135,7 @@
     {% endif %}
     <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
       <a href="{{ url_for('portfolio.broker_upload') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Importa le operazioni scelte') }}</button>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Importa le posizioni scelte') if positions else _('Importa le operazioni scelte') }}</button>
     </div>
   </div>
 </form>

@@ -58,7 +58,7 @@ WIDGETS = {
     # where the money goes: the map of the expenses (tiles as big as each category); the flow from the income to the
     # expenses (Sankey) is a block of its own
     "money_map":     (_l("Dove va il denaro"), 1, "dashboard_sankey"),
-    "sankey":        (_l("Flusso del denaro"), 3, "dashboard_sankey"),
+    "sankey":        (_l("Flusso del denaro"), 2, "dashboard_sankey"),
     "expense_pie":   (_l("Uscite per categoria"), 1, "dashboard_expense_pie"),
     "income_pie":    (_l("Entrate per categoria"), 1, "dashboard_income_pie"),
     "year_total":    (_l("Totale del periodo"), 1, "dashboard_net"),
@@ -92,9 +92,9 @@ WIDGETS = {
 BANDS = {
     # 22 Nov 2026: income and expenses of the period right under the cards of «Come sto»; «Nel tempo» and «Futuro»
     # open (UI-25: they started closed, and nobody opened them)
-    # 22 Nov 2026: the flow of the money (Sankey) in «Come sto» too, shown from the start
-    "now":    (_l("Come sto"), ("period_totals", "sankey", "health", "to_fix"), True),
-    "month":  (_l("Questo mese"), ("month_totals", "pace", "bridge", "money_map", "budget_top", "next_days",
+    "now":    (_l("Come sto"), ("period_totals", "health", "to_fix"), True),
+    # 22 Nov 2026: the flow of the money (Sankey) of the month, shown from the start, two columns by two rows
+    "month":  (_l("Questo mese"), ("month_totals", "pace", "bridge", "money_map", "budget_top", "next_days", "sankey",
                                     "expense_pie", "income_pie", "year_total"), True),
     "time":   (_l("Nel tempo"), ("cashflow", "net_worth", "investments_trend", "savings_trend", "net_worth_bridge",
                                   "expense_trend", "income_trend", "investments", "debt_summary", "drawdown"), True),
@@ -114,14 +114,17 @@ DEFAULT_HIDDEN = {"health", "to_fix", "month_totals", "debt_summary", "expense_p
                   "expense_trend", "income_trend", "investments", "drawdown"}
 # Blocks shown again once on an arrangement saved before (22 Nov 2026: income and expenses of the period, and the
 # cash-flow chart, were hidden); hidden afterwards in Modifica, they stay hidden
-REVEALED = ("period_totals", "cashflow", "sankey")
+REVEALED = ("period_totals", "cashflow", "sankey", "sankey-2x2")
+# a step of REVEALED that also gives a block its size: «sankey-2x2» = the Sankey two columns wide and two rows tall
+REVEALED_SHAPES = {"sankey-2x2": ("sankey", {"span": 2, "height": 2})}
+DEFAULT_HEIGHTS = {"sankey": 2}
 REVEALED_SETTING = "dashboard.revealed"
 UI_SETTINGS_KEY = "ui.settings"  # ui_settings.SETTINGS_KEY (not imported: ui_settings reads this module)
 
 
 def default_layout() -> list[dict]:
     """Band by band (BANDS), in the sketch's order and widths."""
-    return [{"id": key, "span": WIDGETS[key][1], "height": 0, "visible": key not in DEFAULT_HIDDEN}
+    return [{"id": key, "span": WIDGETS[key][1], "height": DEFAULT_HEIGHTS.get(key, 0), "visible": key not in DEFAULT_HIDDEN}
             for _title, members, _open in BANDS.values() for key in members]
 
 
@@ -207,7 +210,7 @@ def save_kpis(items) -> list[dict]:
 VIEWS = {
     "overview":    (_l("Panoramica"), "grid-1x2", ()),
     "month":       (_l("Questo mese"), "calendar-month", (("month_totals", 3), ("pace", 2), ("bridge", 1),
-                    ("money_map", 1), ("budget_top", 1), ("next_days", 1), ("sankey", 3), ("expense_pie", 1), ("income_pie", 1),
+                    ("money_map", 1), ("budget_top", 1), ("next_days", 1), ("sankey", 2), ("expense_pie", 1), ("income_pie", 1),
                     ("year_total", 1), ("cashflow", 3), ("expense_trend", 3))),
     "wealth":      (_l("Patrimonio"), "bank", (("net_worth", 3), ("net_worth_bridge", 1), ("health", 1),
                     ("debt_summary", 1), ("debt_payoff", 1), ("future_net_worth", 2), ("big_expenses", 1))),
@@ -285,20 +288,26 @@ def reveal() -> list[str]:
     todo = [key for key in REVEALED if key not in done]
     if not todo:
         return []
+    changes: dict[str, dict] = {}
+    for key in todo:
+        block, shape = REVEALED_SHAPES.get(key, (key, {}))
+        changes.setdefault(block, {"visible": True}).update(shape)
+
+    def apply(items) -> None:
+        for item in items or []:
+            if isinstance(item, dict) and item.get("id") in changes:
+                item.update(changes[item["id"]])
+
     saved = settings_store.get_json(LAYOUT_SETTING, None, expect=list)
     if saved:
-        for item in saved:
-            if isinstance(item, dict) and item.get("id") in todo:
-                item["visible"] = True
+        apply(saved)
         settings_store.set_json(LAYOUT_SETTING, saved)
     presets_saved = settings_store.get_json(PRESETS_SETTING, None, expect=dict)
     if presets_saved and isinstance(presets_saved.get("items"), list):
         for preset in presets_saved["items"]:
-            for item in (preset.get("layout") or []) if isinstance(preset, dict) else []:
-                if isinstance(item, dict) and item.get("id") in todo:
-                    item["visible"] = True
+            apply(preset.get("layout") if isinstance(preset, dict) else None)
         settings_store.set_json(PRESETS_SETTING, presets_saved)
-    if "sankey" in todo:  # its switch in Impostazioni → Dashboard, on again with it
+    if "sankey" in changes:  # its switch in Impostazioni → Dashboard, on again with it
         ui = settings_store.get_json(UI_SETTINGS_KEY, None, expect=dict)
         if isinstance(ui, dict) and ui.get("dashboard_sankey") is False:
             settings_store.set_json(UI_SETTINGS_KEY, {**ui, "dashboard_sankey": True})

@@ -58,7 +58,9 @@ def test_the_positions_become_operations_to_review_and_confirm(client, db):
     db.session.commit()
     page = client.post("/portfolio/import", data={"file": (io.BytesIO(fineco_file()), "15112026_Fineco_Portafoglio.xlsx")},
                        content_type="multipart/form-data").get_data(as_text=True)
-    assert "Operazioni ricavate dallo stato al 15/11/2026" in page
+    assert "Posizioni al 15/11/2026 lette dal file" in page
+    # a position, not a trade: average cost (PMC) and units, no buy/sell and no commission
+    assert "PMC €" in page and "# quote" in page and "Commissione €" not in page and "Acquisto</td>" not in page
     reading = portfolio_reading.compare(broker_import.positions("f.xlsx", fineco_file()), date(2026, 11, 15))
     units = {row.isin: row.units for row in reading.preview.rows}
     assert units == {"IE00B579F325": 8, "IE00BK5BQT80": 6, "US0378331005": 10}  # 66 held, 60 recorded: 6 bought

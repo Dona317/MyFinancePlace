@@ -319,7 +319,7 @@
   {% elif w.id == 'sankey' %}
   <div class="card">
     <div class="card-header"><div>
-      <div class="card-header-title">{{ _('Flusso del denaro — %(period)s', period=period_label) }}</div>
+      <div class="card-header-title">{{ _('Flusso del denaro — %(month)s', month=sankey_month) }} {{ info(_('Il mese in corso, fino a oggi, qualunque periodo sia scelto nella barra in alto.')) }}</div>
       <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio. Clic su una categoria per le sue transazioni.') }}</div>
     </div></div>
     <div class="card-body">
@@ -329,14 +329,14 @@
            aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
         {% for b in s.bands %}
         {% set band_linked = tx_ok and b.category %}
-        {% if band_linked %}<a href="{{ url_for('transactions.index', category=b.category, type=b.kind, start=year_start.isoformat(), end=year_last.isoformat()) }}" class="sankey-link">{% endif %}
+        {% if band_linked %}<a href="{{ url_for('transactions.index', category=b.category, type=b.kind, start=sankey_start.isoformat(), end=sankey_last.isoformat()) }}" class="sankey-link">{% endif %}
         <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
           <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}{{ ' — ' ~ _('clic per le transazioni') if band_linked }}</title></path>
         {% if band_linked %}</a>{% endif %}
         {% endfor %}
         {% for n in s.nodes %}
         {% set linked = tx_ok and n.category %}
-        {% if linked %}<a href="{{ url_for('transactions.index', category=n.category, type=n.kind, start=year_start.isoformat(), end=year_last.isoformat()) }}" class="sankey-link">{% endif %}
+        {% if linked %}<a href="{{ url_for('transactions.index', category=n.category, type=n.kind, start=sankey_start.isoformat(), end=sankey_last.isoformat()) }}" class="sankey-link">{% endif %}
         <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
               style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
           <title>{{ n.label|tr }}: {{ n.amount|money }}{{ ' — ' ~ _('clic per le transazioni') if linked }}</title></rect>
@@ -351,7 +351,7 @@
         {% endfor %}
       </svg>
       {% else %}
-      {{ empty_state(text=_('Nessun movimento in questo anno.'), compact=True) }}
+      {{ empty_state(text=_('Nessun movimento in questo mese.'), compact=True) }}
       {% endif %}
     </div>
   </div>
