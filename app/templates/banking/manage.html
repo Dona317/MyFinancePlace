@@ -79,7 +79,7 @@
           <td>{{ a.at|it_date }} {{ a.at.strftime('%H:%M') }} UTC</td>
           <td>{{ a.archive.name }}</td>
           <td>{{ a.bank }}</td>
-          <td>{{ {'consent': _('Consenso'), 'manual': _('A mano'), 'auto': _('Automatico')}.get(a.kind, a.kind) }}</td>
+          <td>{{ {'consent': _('Consenso'), 'manual': _('A mano'), 'auto': _('Automatico'), 'open': _('Apertura app')}.get(a.kind, a.kind) }}</td>
           <td>{% if a.ok %}<span class="badge badge-positive">{{ _('Riuscito') }}</span>{% else %}<span class="badge badge-negative" title="{{ a.message }}">{{ _('Non riuscito') }}</span>{% endif %}</td>
           <td class="text-right">{{ a.saved }}</td><td class="text-right">{{ a.waiting }}</td><td class="text-right">{{ a.at_bank }}</td>
         </tr>

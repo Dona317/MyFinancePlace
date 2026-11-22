@@ -3,10 +3,11 @@ NUL characters, ask to sign in, keep a user who is not an administrator on their
 (Contanti, Debiti), close the past years (once a day), hide the modules switched off in Settings and the sections
 blocked for the user. After it: the answer compressed for a browser on another machine. Plus /health."""
 import gzip
+import time
 from datetime import date
 from urllib.parse import urlsplit
 
-from flask import Flask, current_app, g, jsonify, redirect, render_template, request, url_for
+from flask import Flask, current_app, g, jsonify, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
 from sqlalchemy import text
@@ -76,6 +77,28 @@ def close_past_years():
         _CLOSED_TODAY.add(key)
     except SQLAlchemyError:  # an archive not upgraded yet: the next request tries again
         db.session.rollback()
+
+
+OPEN_EVERY = 3600  # seconds: «the app was opened» again after this long without one (a session may last for days)
+
+
+def refresh_banks_on_open():
+    """F107: the first page of a visit reads the bank connections (in a thread), with the user there; at most once an
+    hour per browser. Off in the tests unless BANK_SYNC_ON_OPEN is set."""
+    if request.method != "GET" or request.endpoint in (None, "static", "health") or request.blueprint == "banking":
+        return  # pages only; not the bank's way back nor the banking pages (they read the banks themselves)
+    if wants_json() or (current_app.testing and not current_app.config.get("BANK_SYNC_ON_OPEN")):
+        return
+    signed_in = current_app.config.get("LOGIN_DISABLED") or getattr(current_user, "is_authenticated", False)
+    if not signed_in:
+        return
+    now = int(time.time())
+    if now - int(session.get("banks_opened_at") or 0) < OPEN_EVERY:
+        return
+    session["banks_opened_at"] = now
+    from app.services import open_banking
+
+    open_banking.run_on_open()
 
 
 def refuse_foreign_and_broken_requests():
@@ -179,6 +202,6 @@ def register_hooks(app: Flask) -> None:
     login_manager.user_loader(load_user)
     app.get("/health")(app.doc(hide=True)(health))
     for hook in (open_client_archive, refuse_foreign_and_broken_requests, require_login, confine_to_own_archive,
-                 ensure_fixed_accounts, close_past_years, block_disabled_modules):
+                 ensure_fixed_accounts, close_past_years, block_disabled_modules, refresh_banks_on_open):
         app.before_request(hook)
     app.after_request(compress)

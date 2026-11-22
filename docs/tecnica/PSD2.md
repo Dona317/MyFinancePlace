@@ -124,6 +124,10 @@ dei clienti si aggiornano a mano: `flask --app run db upgrade` e `flask --app ru
 6. Si legge anche il saldo della banca, mostrato accanto al conto.
 
 Il download parte:
+- **all'apertura dell'app** (dal 22 nov 2026): la prima pagina di una visita legge in background tutti i collegamenti
+  attivi dell'archivio, con l'utente presente (header `Psu-*`: non conta tra le quattro letture al giorno senza
+  l'utente); al massimo una volta all'ora per browser, e salta un collegamento letto da meno di 30 minuti. Nel
+  registro degli accessi è «Apertura app»;
 - **a mano**, con «Aggiorna ora» (con l'utente presente: l'app manda alla banca gli header `Psu-Ip-Address` e
   `Psu-User-Agent`, quindi non conta tra le letture senza l'utente);
 - **da solo**, se «Scarica da solo i movimenti» è acceso: **fino a 4 volte al giorno, tutte tra le 8 e le 24** (ora

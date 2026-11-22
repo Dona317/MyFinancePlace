@@ -615,7 +615,7 @@ def sync_link(link: BankAccountLink, creds: client.Credentials, today: date | No
 
 
 def sync_connection(connection: BankConnection, today: date | None = None, psu: dict | None = None,
-                    now: datetime | None = None) -> list[SyncResult]:
+                    now: datetime | None = None, kind: str | None = None) -> list[SyncResult]:
     """Every active account of a connection; the consent's state and the last error are kept on it."""
     now = now or _utcnow()
     if connection.valid_until and connection.valid_until <= now:
@@ -623,7 +623,7 @@ def sync_connection(connection: BankConnection, today: date | None = None, psu: 
         db.session.commit()
         raise BankingError(_("Il consenso per %(bank)s è scaduto: rinnovalo.", bank=connection.aspsp_name))
     creds = _credentials()
-    kind = "manual" if psu else "auto"
+    kind = kind or ("manual" if psu else "auto")
     results = []
     for link in [k for k in connection.links if k.active]:
         try:
@@ -805,6 +805,74 @@ def _thread(app, current, key) -> None:
             sync_due()
     except Exception:  # noqa: BLE001 - a failed download must not hurt the app; the next round tries again
         app.logger.exception("bank movements not downloaded")
+    finally:
+        with _lock:
+            _running.discard(key)
+
+
+# ── When the app is opened ────────────────────────────────────────────────────
+
+OPEN_SKIP_MINUTES = 30    # a connection read less than this ago is not read again when the app opens
+
+
+def opened_due(connection: BankConnection, now: datetime | None = None) -> bool:
+    """Read when the app opens: an active connection, with its automatic downloads on, not read in the last minutes."""
+    now = now or _utcnow()
+    links = [k for k in connection.links if k.active]
+    if not connection.auto_sync or connection.status != "active" or not links:
+        return False
+    if connection.valid_until and connection.valid_until <= now:
+        return False
+    newest = max((k.last_sync_at for k in links if k.last_sync_at), default=None)
+    return newest is None or now - newest >= timedelta(minutes=OPEN_SKIP_MINUTES)
+
+
+def sync_on_open(psu: dict, now: datetime | None = None) -> int:
+    """The app was just opened: every connection of the open archive read now, with the user there (the bank does not
+    count it among the four unattended reads of the day). Returns the movements saved or waiting."""
+    if not configured():
+        return 0
+    moved = 0
+    for connection in BankConnection.query.order_by(BankConnection.id).all():
+        if not opened_due(connection, now):
+            continue
+        try:
+            moved += sum(r.saved + r.waiting for r in sync_connection(connection, psu=psu, now=now, kind="open"))
+        except BankingError:
+            continue  # kept on the connection: the page and the reminders say it
+    return moved
+
+
+def run_on_open() -> None:
+    """On the first page of a visit: the bank connections read in a thread, the page does not wait."""
+    try:
+        wanted = configured() and any(opened_due(c) for c in BankConnection.query.all())
+    except Exception:  # noqa: BLE001 - an archive not upgraded yet: nothing to do
+        db.session.rollback()
+        return
+    if not wanted:
+        return
+    psu = psu_headers()
+    if current_app.config.get("BANK_SYNC_INLINE"):
+        sync_on_open(psu)
+        return
+    current = studio.current()
+    key = ("open", current.id if current is not None else None)
+    with _lock:
+        if key in _running:
+            return
+        _running.add(key)
+    app = current_app._get_current_object()
+    threading.Thread(target=_open_thread, args=(app, current, key, psu), daemon=True, name="bank-open").start()
+
+
+def _open_thread(app, current, key, psu) -> None:
+    try:
+        with app.app_context(), app.test_request_context("/"):
+            studio.activate(current)
+            sync_on_open(psu)
+    except Exception:  # noqa: BLE001 - a failed download must not hurt the app
+        app.logger.exception("bank movements not downloaded when the app opened")
     finally:
         with _lock:
             _running.discard(key)

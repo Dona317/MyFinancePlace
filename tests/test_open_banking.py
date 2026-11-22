@@ -1037,3 +1037,80 @@ def test_an_update_by_hand_points_to_the_waiting_movements(client, db, bank):
     bank.movements = [tx("w1", "8")]
     html = client.post(f"/banking/connections/{connection.id}/sync", follow_redirects=True).get_data(as_text=True)
     assert "Apri «Controlla» sui conti" in html
+
+
+def test_opening_the_app_reads_the_banks_with_the_user_there(client, db, bank, app):
+    from app.models.bank_link import BankAccessLog
+
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    app.config.update(BANK_SYNC_ON_OPEN=True, BANK_SYNC_INLINE=True)
+    reads = lambda: [c for c in bank.calls if c[1].endswith("/transactions")]  # noqa: E731
+    before = len(reads())
+    client.get("/dashboard")
+    assert len(reads()) == before  # read just now (the consent): not again within half an hour
+    connection.links[0].last_sync_at = sync._utcnow() - timedelta(hours=2)
+    db.session.commit()
+    with client.session_transaction() as s:
+        s.pop("banks_opened_at", None)  # a new visit
+    client.get("/dashboard")
+    assert len(reads()) == before + 1 and reads()[-1][4]  # with the user's headers: not one of the four a day
+    assert BankAccessLog.query.order_by(BankAccessLog.id.desc()).first().kind == "open"
+    assert open_banking.unattended_today(connection) == 0
+    connection.links[0].last_sync_at = sync._utcnow() - timedelta(hours=2)
+    db.session.commit()
+    client.get("/transactions/")  # the same visit, within the hour: nothing
+    assert len(reads()) == before + 1
+    assert "Apertura app" in client.get("/banking/manage").get_data(as_text=True)
+
+
+def test_opening_reads_in_a_thread_and_skips_what_is_not_due(client, db, bank, app, monkeypatch):
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    assert not sync.opened_due(connection)
+    later = sync._utcnow() + timedelta(hours=1)
+    assert sync.opened_due(connection, later)
+    connection.auto_sync = False
+    assert not sync.opened_due(connection, later)
+    connection.auto_sync, connection.valid_until = True, sync._utcnow() - timedelta(days=1)
+    assert not sync.opened_due(connection, later)
+    connection.valid_until = None
+    connection.links[0].last_sync_at = None
+    db.session.commit()
+    started = []
+    monkeypatch.setattr(sync.threading, "Thread", lambda target, args, **kw: started.append((target, args)) or
+                        type("T", (), {"start": lambda self: None})())
+    with app.test_request_context("/"):
+        open_banking.run_on_open()
+        open_banking.run_on_open()  # already running for this archive
+    assert len(started) == 1
+    target, args = started[0]
+    target(*args)
+    assert sync._running == set()
+    bank.fail["/accounts/acc-1/transactions"] = eb.ProviderError("boom", 500)
+    connection.links[0].last_sync_at = None
+    db.session.commit()
+    assert sync.sync_on_open({"Psu-Ip-Address": "1"}) == 0  # kept on the connection
+    monkeypatch.setattr(sync, "sync_on_open", lambda psu: 1 / 0)
+    target(*args)  # a failure is only logged
+    monkeypatch.setattr(sync, "configured", lambda: 1 / 0)
+    with app.test_request_context("/"):
+        open_banking.run_on_open()  # an archive not upgraded: nothing
+
+
+def test_nothing_is_read_on_open_without_credentials(app, db):
+    assert sync.sync_on_open({}) == 0
+
+
+def test_opening_with_a_failing_bank_and_without_signing_in(client, db, bank, app):
+    _connect(client, bank)
+    link = BankAccountLink.query.one()
+    link.last_sync_at = None
+    db.session.commit()
+    bank.fail["/accounts/acc-1/transactions"] = eb.ProviderError("Bank down", 503)
+    assert sync.sync_on_open({"Psu-Ip-Address": "1"}) == 0
+    assert BankConnection.query.one().last_error == "Enable Banking: Bank down"
+    app.config.update(BANK_SYNC_ON_OPEN=True, BANK_SYNC_INLINE=True, LOGIN_DISABLED=False)
+    calls = len(bank.calls)
+    client.get("/auth/login")  # nobody signed in: nothing is read
+    assert len(bank.calls) == calls
