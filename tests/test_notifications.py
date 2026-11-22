@@ -49,7 +49,7 @@ def test_dismiss_and_bell(client, db):
     key = client.get("/notifications/api").get_json()["notifications"][0]["key"]
     client.post("/notifications/dismiss", data={"key": key})
     assert client.get("/notifications/api").get_json()["notifications"] == []
-    assert "bell-count" not in client.get("/dashboard").get_data(as_text=True)
+    assert 'class="bell-count"' not in client.get("/dashboard").get_data(as_text=True)  # no number on the bell
     assert "Già visti (1)" in client.get("/notifications/").get_data(as_text=True)
 
 
