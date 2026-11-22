@@ -30,6 +30,7 @@ from app.services import (
     portfolio_reading,
     securities,
     transfer,
+    wealth,
 )
 from app.services.parsing import to_date, to_decimal
 
@@ -113,6 +114,11 @@ def broker_ai():
     except ai_extraction.AIExtractionError as exc:
         flash(_("Lettura AI non riuscita: %(exc)s", exc=exc), "error")
         return redirect(url_for("portfolio.broker_upload"))
+    return _state_preview(reading, upload.filename, dossier)
+
+
+def _state_preview(reading, filename: str, dossier: SecuritiesAccount | None):
+    """The review page of the operations a statement of positions gives (read by the model or from a file)."""
     if not reading.preview.rows:
         flash(_("Le posizioni del documento sono quelle già registrate (%(count)s): nessuna operazione da aggiungere.",
                 count=reading.unchanged), "success")
@@ -120,8 +126,8 @@ def broker_ai():
             flash(note, "warning")
         return redirect(url_for("portfolio.broker_upload"))
     active = accounts.active()
-    suggested = dossier.settlement_account_id if dossier else _suggested_account(active, upload.filename)
-    return render_template("portfolio/import_preview.html", preview=reading.preview, filename=upload.filename,
+    suggested = dossier.settlement_account_id if dossier else _suggested_account(active, filename)
+    return render_template("portfolio/import_preview.html", preview=reading.preview, filename=filename,
                            payload=_serializer().dumps([r.as_dict() for r in reading.preview.rows]),
                            holdings=Holding.query.order_by(Holding.name).all(), accounts=active, suggested=suggested,
                            token=None, mapped="", preset=None, presets=[], reading=reading, dossier=dossier)
@@ -140,6 +146,12 @@ def _analyse(filename: str, raw: bytes, *, mapping: dict | None = None, preset=A
     except transfer.TableError as exc:
         flash(str(exc), "error")
         return redirect(url_for("portfolio.broker_upload"))
+    if mapping is None and preset is AUTO and not edit:
+        # a statement of the positions held (no trades): compared with the recorded ones, as the AI «Stato attuale»
+        held = broker_import.positions(filename, raw)
+        if held:
+            reading = portfolio_reading.compare(held, broker_import.file_date(filename))
+            return _state_preview(reading, filename, None)
     if preset is AUTO:
         preset = import_presets.match(headers, "broker")
     if mapping is None:
@@ -248,6 +260,8 @@ def broker_confirm():
         try:
             with db.session.begin_nested():
                 portfolio_ops.record(holding, op)
+                if row.get("market"):  # a positions statement: the price of its day
+                    wealth.record_price(holding, Decimal(row["market"]), date.fromisoformat(row["on"]))
             saved += 1
         except ValueError as exc:
             refused.append(_("riga %(line)s: %(error)s", line=row["line"], error=exc))

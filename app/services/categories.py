@@ -524,11 +524,12 @@ def ensure(name: str | None, tx_type: str | None) -> bool:
     """A category written in a transaction's form that does not exist yet becomes one, for that direction (an
     expense's, an income's; a transfer's for both). True when it was made."""
     name = (name or "").strip()
-    if not name or Category.query.filter(func.lower(Category.name) == name.lower()).first() is not None:
+    existing = all_categories()  # first: it may create the default list, this name among them
+    if not name or any(c.name.lower() == name.lower() for c in existing) \
+            or Category.query.filter(func.lower(Category.name) == name.lower()).first() is not None:
         return False
     kind = tx_type if tx_type in ("expense", "income") else "both"
-    db.session.add(Category(name=name, kind=kind, position=len(all_categories()),
-                            nature=default_nature(name, kind)))
+    db.session.add(Category(name=name, kind=kind, position=len(existing), nature=default_nature(name, kind)))
     db.session.flush()
     forget()
     return True

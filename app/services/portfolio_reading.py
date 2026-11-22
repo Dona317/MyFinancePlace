@@ -197,33 +197,41 @@ def state(filename: str, raw: bytes, securities_account_id: int | None = None, o
     """
     found = ask(filename, raw, STATE_PROMPT, STATE_SCHEMA, model)
     read_on = next((to_date(a.get("date")) for a in found if to_date(a.get("date"))), None)
-    day = min(on or read_on or date.today(), date.today())
+    return compare([entry for answer in found for entry in answer.get("positions") or []], on or read_on,
+                   securities_account_id, complete)
+
+
+def compare(entries: list, on: date | None = None, securities_account_id: int | None = None,
+            complete: bool = False) -> Reading:
+    """Positions ({name, isin, ticker, quantity, price, value_eur}: read by the model, or from a positions file)
+    against the recorded ones; the differences as purchases and sales on `on` (today when not given)."""
+    day = min(on or date.today(), date.today())
     holdings = Holding.query.all()
     by_id = {h.id: h for h in holdings}
     held = _held(securities_account_id)
     lines: dict[object, tuple[broker_import.BrokerRow, Decimal | None, Decimal]] = {}
     notes, line = [], 0
-    for answer in found:
-        for entry in answer.get("positions") or []:
-            line += 1
-            if not isinstance(entry, dict):
-                continue
-            name = " ".join(str(entry.get("name") or "").split()) or _code(entry.get("isin")) or _code(entry.get("ticker"))
-            quantity = _decimal(entry.get("quantity"))
-            if not name or quantity is None or quantity < 0:
-                notes.append(_("riga %(line)s: %(name)s senza quantità", line=line, name=name or "?"))
-                continue
-            row = broker_import.BrokerRow(line, day, name[:200], _code(entry.get("isin")), _code(entry.get("ticker")),
-                                          quantity, Decimal(0), Decimal(0), "")
-            row.holding_id = broker_import._match(row, holdings)
-            key = row.holding_id or row.isin or row.ticker or name.casefold()
-            price, value = _decimal(entry.get("price")), _decimal(entry.get("value_eur")) or Decimal(0)
-            if key in lines:  # the same holding twice (two lots, two pages): units and value add up
-                first, first_price, first_value = lines[key]
-                first.units += quantity
-                lines[key] = (first, first_price or price, first_value + value)
-                continue
-            lines[key] = (row, price, value)
+    for entry in entries:
+        line += 1
+        if not isinstance(entry, dict):
+            continue
+        name = " ".join(str(entry.get("name") or "").split()) or _code(entry.get("isin")) or _code(entry.get("ticker"))
+        quantity = _decimal(entry.get("quantity"))
+        if not name or quantity is None or quantity < 0:
+            notes.append(_("riga %(line)s: %(name)s senza quantità", line=line, name=name or "?"))
+            continue
+        row = broker_import.BrokerRow(line, day, name[:200], _code(entry.get("isin")), _code(entry.get("ticker")),
+                                      quantity, Decimal(0), Decimal(0), "")
+        row.holding_id = broker_import._match(row, holdings)
+        row.market = _decimal(entry.get("market")) or None
+        key = row.holding_id or row.isin or row.ticker or name.casefold()
+        price, value = _decimal(entry.get("price")), _decimal(entry.get("value_eur")) or Decimal(0)
+        if key in lines:  # the same holding twice (two lots, two pages): units and value add up
+            first, first_price, first_value = lines[key]
+            first.units += quantity
+            lines[key] = (first, first_price or price, first_value + value)
+            continue
+        lines[key] = (row, price, value)
     rows, unchanged = [], 0
     for row, price, value in lines.values():
         difference = row.units - held.get(row.holding_id, Decimal(0))

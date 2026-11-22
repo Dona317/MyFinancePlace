@@ -62,10 +62,12 @@ class BrokerRow:
     ref: str
     holding_id: int | None = None
     duplicate: bool = False
+    market: Decimal | None = None  # a positions statement: the day's market price in euro, recorded on confirming
 
     def as_dict(self) -> dict:
         data = asdict(self)
-        data.update(on=self.on.isoformat(), units=str(self.units), price=str(self.price), fee=str(self.fee))
+        data.update(on=self.on.isoformat(), units=str(self.units), price=str(self.price), fee=str(self.fee),
+                    market=str(self.market) if self.market else None)
         return data
 
 
@@ -173,6 +175,86 @@ def _row(record: dict, cols: dict, line: int) -> BrokerRow | None:
         price = price / 100  # bonds are quoted in % of the nominal: the units are euro of nominal
     fee = abs(to_decimal(cell("fee")) or Decimal(0))
     return BrokerRow(line, on, name, isin, ticker, units, price, fee, "")
+
+
+# ── A statement of the positions (22 Nov 2026) ─────────────────────────────────
+# Not a list of trades but the securities held on a day (Fineco «Portafoglio di sintesi», a broker's positions
+# export): no date column, a quantity and the average cost or the market value of each line. portfolio_reading
+# compares it with the recorded positions, as for the state read by the AI model.
+POSITION_COLUMNS = {
+    "cost": ("p zo medio di carico", "prezzo medio di carico", "pzo medio di carico", "prezzo medio", "prezzo di carico",
+             "pmc", "average price", "avg price", "average cost"),
+    "cost_value": ("valore di carico", "controvalore di carico", "cost value", "book value"),
+    "market": ("p zo di mercato", "prezzo di mercato", "pzo di mercato", "market price", "last price", "prezzo"),
+    "market_value": ("valore di mercato", "controvalore di mercato", "market value", "controvalore", "valore"),
+    "currency": ("valuta", "divisa", "currency"),
+    "rate": ("cambio di carico", "cambio medio di carico", "exchange rate"),
+}
+FILE_DATE = re.compile(r"(?<!\d)(\d{2})(\d{2})(20\d{2})(?!\d)|(?<!\d)(20\d{2})-?(\d{2})-?(\d{2})(?!\d)")
+
+
+def _position_column(headers: list[str], name: str, taken: set[str]) -> str | None:
+    keys = {h: _key(h) for h in headers}
+    for exact in (True, False):
+        for word in POSITION_COLUMNS[name]:
+            for header, key in keys.items():
+                if header not in taken and (key == word if exact else (len(word) > 3 and key.startswith(word))):
+                    return header
+    return None
+
+
+def file_date(filename: str) -> date | None:
+    """The day in a file's name (15112026_Fineco_Portafoglio.xls, positions-2026-11-15.csv), if any."""
+    for found in FILE_DATE.finditer(filename or ""):
+        day, month, year = (found.group(1), found.group(2), found.group(3)) if found.group(1) else \
+            (found.group(6), found.group(5), found.group(4))
+        try:
+            return date(int(year), int(month), int(day))
+        except ValueError:
+            continue
+    return None
+
+
+def positions(filename: str, raw: bytes) -> list[dict] | None:
+    """The lines of a positions statement as {name, isin, ticker, quantity, price, value_eur} (price: the average
+    cost of one unit in euro, so the cost of what is held stays right), or None when the file is not one: it has a
+    date column, or no quantity, or neither a cost nor a market value."""
+    headers, records, _first = transfer.read_table(filename, raw)
+    cols = guess(headers)
+    if cols["date"] or not cols["units"] or not (cols["isin"] or cols["ticker"] or cols["name"]):
+        return None
+    taken = {c for c in cols.values() if c}
+    found = {}
+    for name in ("cost", "cost_value", "market", "market_value", "currency", "rate"):
+        found[name] = _position_column(headers, name, taken - ({cols["value"]} if name.endswith("value") else set()))
+        if found[name]:
+            taken.add(found[name])
+    if not (found["cost"] or found["cost_value"] or found["market"] or found["market_value"]):
+        return None
+    out = []
+    for record in records:
+        def cell(column):
+            return str(record.get(column) or "").strip() if column else ""
+        quantity = to_decimal(cell(cols["units"]))
+        isin_text = cell(cols["isin"]).upper()
+        isin = ISIN.search(isin_text).group(1) if ISIN.search(isin_text) else None
+        ticker = cell(cols["ticker"]).upper() or None
+        name = cell(cols["name"]) or isin or ticker
+        if quantity is None or not name or normalize(name).startswith(("totale", "total")):
+            continue
+        rate = to_decimal(cell(found["rate"])) if found["rate"] else None
+        foreign = cell(found["currency"]).upper() not in ("", "EUR", "€")
+        price = to_decimal(cell(found["cost"])) or to_decimal(cell(found["market"]))
+        if price and foreign and rate and rate > 0:
+            price = price / rate  # Fineco: the exchange rate is units of the currency for one euro
+        market_value, market = to_decimal(cell(found["market_value"])), to_decimal(cell(found["market"]))
+        if market_value and quantity:  # «Valore di mercato €»: in euro whatever the currency
+            market = abs(market_value) / abs(quantity)
+        value = None if foreign else (to_decimal(cell(found["cost_value"])) if found["cost"] or not found["market"]
+                                      else to_decimal(cell(found["market_value"])))
+        out.append({"name": name, "isin": isin or "", "ticker": ticker or "", "quantity": quantity,
+                    "price": price or 0, "value_eur": value or 0, "market": market or 0})
+    return out or None
 
 
 def _match(row: BrokerRow, holdings: list[Holding]) -> int | None:
