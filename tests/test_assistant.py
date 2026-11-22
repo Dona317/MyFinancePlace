@@ -88,8 +88,54 @@ def test_page_without_model(client, db, monkeypatch):
 def test_the_panel_asks_with_json(client, db, archive, model):
     assert client.get("/assistant/status").get_json()["available"] is True
     answer = client.post("/assistant/ask", json={"question": "Ristoranti?"}).get_json()
+    assert answer["state"] == "done"  # AI_JOBS_SYNC: the background job ran inline
     assert "Hai speso 40,00 €" in answer["text"] and any(url == "/reports/" for _label, url in answer["links"])
+    # the page polls the job: the same answer, also from another page; another user's job is not shown
+    again = client.get(f"/assistant/job/{answer['id']}").get_json()
+    assert again["text"] == answer["text"] and again["question"] == "Ristoranti?"
+    assert client.get("/assistant/job/nope").status_code == 404
     response = client.post("/assistant/ask", json={"question": ""})
     assert response.status_code == 400 and response.get_json()["error"] == "Scrivi una domanda."
     page = client.get("/dashboard").get_data(as_text=True)
     assert 'id="ask-bubble"' in page and 'id="ask-panel"' in page and 'href="/assistant/"' not in page  # out of the menu
+
+
+def test_a_failed_answer_is_an_error_of_the_job(client, db, archive, model, monkeypatch):
+    from app.services import assistant as service
+    from app.services.ai_extraction import AIExtractionError
+
+    def broken(question):
+        raise AIExtractionError("Il modello non risponde.")
+    monkeypatch.setattr(service, "ask", broken)
+    response = client.post("/assistant/ask", json={"question": "Quanto ho speso?"})
+    assert response.status_code == 400 and response.get_json()["error"] == "Il modello non risponde."
+
+    def crash(question):
+        raise RuntimeError("boom")
+    monkeypatch.setattr(service, "ask", crash)
+    response = client.post("/assistant/ask", json={"question": "Quanto ho speso?"})
+    assert response.status_code == 400 and "errore imprevisto" in response.get_json()["error"]
+
+
+def test_old_jobs_are_forgotten(app, db):
+    import time
+
+    from app.services import assistant_jobs
+    assistant_jobs._jobs["old"] = {"id": "old", "owner": "x", "started_at": time.time() - 7200, "finished_at": None}
+    assistant_jobs._forget_old()
+    assert "old" not in assistant_jobs._jobs
+
+
+def test_the_background_thread_answers_in_the_archive_of_who_asked(app, db, monkeypatch):
+    import time
+
+    from app.services import assistant as service
+    from app.services import assistant_jobs
+
+    class Answer:
+        text, links = "Fatto.", [("Report", "/reports/")]
+    monkeypatch.setattr(service, "ask", lambda question: Answer())
+    assistant_jobs._jobs["t1"] = {"id": "t1", "owner": "u", "question": "?", "state": "running",
+                                  "started_at": time.time(), "finished_at": None, "text": None, "links": [], "error": None}
+    assistant_jobs._run(app, None, "t1", "?")
+    assert assistant_jobs.get("t1", "u")["state"] == "done" and assistant_jobs.get("t1", "other") is None

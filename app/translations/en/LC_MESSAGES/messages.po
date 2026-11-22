@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 21:21+0000\n"
+"POT-Creation-Date: 2026-11-22 21:24+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4394,6 +4394,9 @@ msgstr "Sun"
 msgid "Domanda"
 msgstr "Question"
 
+msgid "Domanda non più disponibile: chiedi di nuovo."
+msgstr "Question no longer available: ask again."
+
 msgid "Domanda o dati troppo lunghi."
 msgstr "Question or data too long."
 
@@ -7288,6 +7291,9 @@ msgstr ""
 msgid "L'AI sta leggendo le intestazioni…"
 msgstr "The AI is reading the headers…"
 
+msgid "L'AI sta pensando…"
+msgstr "The AI is thinking…"
+
 #, python-format
 msgid "L'IBAN %(iban)s è già di un altro conto."
 msgstr "The IBAN %(iban)s already belongs to another account."
@@ -7616,6 +7622,9 @@ msgid "La ricerca usa internet: accendila in Impostazioni → Dati da internet."
 msgstr ""
 "The search uses the internet: turn it on in Settings → Data from the "
 "internet."
+
+msgid "La risposta dell'AI è pronta."
+msgstr "The AI's answer is ready."
 
 msgid "La scadenza non può essere prima dell'inizio."
 msgstr "The expiry cannot be before the start."

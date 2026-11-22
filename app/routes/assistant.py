@@ -5,8 +5,10 @@ page of its own stays for a link that opens it in full.
 """
 from apiflask import APIBlueprint
 from flask import jsonify, render_template, request
+from flask_babel import gettext as _
+from flask_login import current_user
 
-from app.services import assistant
+from app.services import assistant, assistant_jobs, studio
 from app.services.ai_extraction import AIExtractionError
 
 assistant_bp = APIBlueprint("assistant", __name__, url_prefix="/assistant", tag="Assistant")
@@ -39,12 +41,33 @@ def status():
     return jsonify(available=assistant.available(), cloud=assistant.leaves_computer(), examples=list(EXAMPLES))
 
 
+def _owner() -> str:
+    """Who asked: the user, in the archive open (a job is shown only to them)."""
+    client = studio.current()
+    return f"{current_user.get_id()}:{client.id if client is not None else ''}"
+
+
+def _job_reply(job: dict):
+    if job["state"] == "error":
+        return jsonify(job), 400
+    return jsonify(job)
+
+
 @assistant_bp.route("/ask", methods=["POST"])
 def ask():
-    """The panel's question: {"question": "..."} → {"text", "links": [[label, url]]} or {"error"}."""
+    """The panel's question: {"question": "..."} → the job answering it in the background ({"id", "state": "running"};
+    the page polls /assistant/job/<id>), or {"error"} for a question that cannot be asked."""
     data = request.get_json(silent=True) or {}
-    try:
-        answer = assistant.ask(str(data.get("question", "")))
-    except AIExtractionError as exc:
-        return jsonify(error=str(exc)), 400
-    return jsonify(question=answer.question, text=answer.text, links=[list(link) for link in answer.links])
+    question = str(data.get("question", "")).strip()
+    if not question:
+        return jsonify(error=_("Scrivi una domanda.")), 400
+    return _job_reply(assistant_jobs.start(question, _owner()))
+
+
+@assistant_bp.route("/job/<job_id>")
+def job(job_id):
+    """A question under way or answered: {"state": "running" | "done" | "error", "text", "links", "error"}."""
+    found = assistant_jobs.get(job_id, _owner())
+    if found is None:
+        return jsonify(error=_("Domanda non più disponibile: chiedi di nuovo."), state="gone"), 404
+    return _job_reply(found)

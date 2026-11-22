@@ -541,7 +541,8 @@
 <button type="button" class="ask-bubble" id="ask-bubble" aria-controls="ask-panel" aria-expanded="false"
         title="{{ _('Chiedi ai tuoi dati') }}" aria-label="{{ _('Chiedi ai tuoi dati') }}"><i class="bi bi-stars"></i></button>
 <aside class="ask-panel" id="ask-panel" hidden aria-label="{{ _('Chiedi ai tuoi dati') }}"
-       data-status="{{ url_for('assistant.status') }}" data-ask="{{ url_for('assistant.ask') }}">
+       data-status="{{ url_for('assistant.status') }}" data-ask="{{ url_for('assistant.ask') }}"
+       data-job="{{ url_for('assistant.job', job_id='0')[:-1] }}">
   <header class="ask-head">
     <span class="ask-title"><i class="bi bi-stars"></i> {{ _('Chiedi ai tuoi dati') }}</span>
     <button type="button" class="ask-clear" id="ask-clear" title="{{ _('Nuova conversazione') }}" aria-label="{{ _('Nuova conversazione') }}"><i class="bi bi-arrow-counterclockwise"></i></button>
@@ -564,7 +565,7 @@
   "hide_amounts": _("Nascondi gli importi"), "show_amounts": _("Mostra gli importi"),
   "ok": _("OK"), "cancel": _("Annulla"), "scroll_left": _("Scorri a sinistra"), "scroll_right": _("Scorri a destra"), "no_match": _("Nessun risultato"), "create_new": _("Crea «{name}»"), "select_all": _("Seleziona tutto"), "deselect_all": _("Deseleziona tutto"), "show_hide": _("Mostra o nascondi"), "show": _("Mostra"), "hide": _("Nascondi"), "to_bottom": _("Vai in fondo alla pagina"), "to_top": _("Torna su"), "to_list": _("Vai alla lista transazioni"), "resize": _("Trascina per allargare o stringere la colonna"), "saved": _("Fatto."),
   "ask_local": _("Il modello gira sul tuo computer: nulla esce."), "ask_cloud": _("Il modello è su internet (Anthropic): il riassunto dei tuoi numeri lascia il computer."),
-  "ask_none": _("Nessun modello AI configurato: sceglilo nelle Impostazioni."), "ask_wait": _("Sto pensando…"),
+  "ask_none": _("Nessun modello AI configurato: sceglilo nelle Impostazioni."), "ask_wait": _("Sto pensando…"), "ask_thinking": _("L'AI sta pensando…"), "ask_ready": _("La risposta dell'AI è pronta."), "ask_show": _("Apri"),
   "ask_check": _("Risposta di un modello AI: controlla i numeri nelle pagine indicate."), "ask_error": _("Non è stato possibile rispondere."),
 }|tojson }};</script>
 <!-- F102: the AI classification pill and its job: in every page, so a classification goes on from page to page -->

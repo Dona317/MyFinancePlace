@@ -303,9 +303,57 @@ function initAskPanel() {
   };
   bubble.addEventListener("click", () => open(panel.hidden));
   document.getElementById("ask-close").addEventListener("click", () => open(false));
-  document.getElementById("ask-clear").addEventListener("click", () => { chat = []; keep(); render(); input.focus(); });
+  document.getElementById("ask-clear").addEventListener("click", () => { chat = []; keep(); render(); paintBusy(); input.focus(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !panel.hidden) open(false); });
   input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+  // 22 Nov 2026: the question runs on the server in the background; the panel can be closed and the page changed
+  // meanwhile — the next page polls the same job (its id is kept with the chat) and says when the answer is ready
+  const OPEN_KEY = "mfp-ask-open";
+  const chip = Object.assign(document.createElement("div"), { className: "ask-thinking", hidden: true, role: "status" });
+  chip.innerHTML = '<span class="ask-thinking-dot"></span>';
+  chip.appendChild(Object.assign(document.createElement("span"), { textContent: TEXT.ask_thinking || "L'AI sta pensando…" }));
+  chip.addEventListener("click", () => { open(true); shown(true); });
+  document.body.appendChild(chip);
+  const busy = () => chat.some(m => m.job);
+  const paintBusy = () => {
+    bubble.classList.toggle("ask-busy", busy());
+    chip.hidden = !busy() || !panel.hidden;
+  };
+  const ready = () => {
+    document.querySelector(".toast")?.remove();
+    const toast = Object.assign(document.createElement("div"), { className: "toast", role: "status" });
+    toast.appendChild(Object.assign(document.createElement("span"), { textContent: TEXT.ask_ready || "La risposta dell'AI è pronta." }));
+    const show = Object.assign(document.createElement("button"), { type: "button", className: "toast-link", textContent: TEXT.ask_show || "Apri" });
+    show.addEventListener("click", () => { toast.remove(); open(true); });
+    toast.appendChild(show);
+    const close = Object.assign(document.createElement("button"), { type: "button", className: "toast-close", innerHTML: '<i class="bi bi-x"></i>' });
+    close.setAttribute("aria-label", TEXT.cancel || "Chiudi");
+    close.addEventListener("click", () => toast.remove());
+    toast.appendChild(close);
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 15000);
+  };
+  const settle = (message, data, ok) => {
+    const index = chat.indexOf(message);
+    if (index < 0) return;
+    chat[index] = ok ? { from: "bot", text: data.text, links: data.links } : { from: "bot", text: data.error || TEXT.ask_error, error: true };
+    keep();
+    render();
+    paintBusy();
+    if (panel.hidden && ok) ready();
+  };
+  const follow = (message) => {
+    const poll = async () => {
+      if (chat.indexOf(message) < 0) return;  // the conversation was cleared
+      try {
+        const res = await fetch(`${panel.dataset.job}${message.job}`, { headers: { Accept: "application/json" } });
+        const data = await res.json();
+        if (data.state === "running") { setTimeout(poll, 1500); return; }
+        settle(message, data, data.state === "done");
+      } catch (err) { setTimeout(poll, 4000); }  // the server restarting: try again
+    };
+    poll();
+  };
   form.addEventListener("submit", async e => {
     e.preventDefault();
     const question = input.value.trim();
@@ -318,13 +366,28 @@ function initAskPanel() {
     try {
       const res = await fetch(panel.dataset.ask, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) });
       const data = await res.json();
-      chat[chat.indexOf(waiting)] = res.ok ? { from: "bot", text: data.text, links: data.links } : { from: "bot", text: data.error || TEXT.ask_error, error: true };
+      if (res.ok && data.state === "running") {
+        waiting.job = data.id;
+        keep();
+        paintBusy();
+        follow(waiting);
+        return;
+      }
+      settle(waiting, data, res.ok && data.state === "done");
     } catch (err) {
-      chat[chat.indexOf(waiting)] = { from: "bot", text: TEXT.ask_error, error: true };
+      settle(waiting, {}, false);
     }
-    keep();
-    render();
   });
+  // the panel stays open from a page to the next one, and a question still under way is followed again
+  const shown = (on) => { try { sessionStorage.setItem(OPEN_KEY, on ? "1" : ""); } catch (e) { /* private mode */ } paintBusy(); };
+  bubble.addEventListener("click", () => shown(!panel.hidden));
+  document.getElementById("ask-close").addEventListener("click", () => shown(false));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") shown(!panel.hidden); });
+  chat.filter(m => m.job).forEach(follow);
+  paintBusy();
+  let reopen = false;
+  try { reopen = sessionStorage.getItem(OPEN_KEY) === "1"; } catch (e) { /* private mode */ }
+  if (reopen) open(true).then(paintBusy);
   if (new URLSearchParams(location.search).get("ask") === "1") open(true);
 }
 

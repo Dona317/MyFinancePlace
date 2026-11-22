@@ -266,6 +266,7 @@ Nessuna (le A1–A5 del 18 nov sono diventate UI-12…UI-16). Una domanda nuova 
 | UI-29 | 22 nov 2026 | **Import di un file di posizioni** (Fineco «Portafoglio di sintesi»): l'anteprima mostra la data (il giorno in cui la posizione viene registrata, come una riconciliazione), **# quote** e **PMC €** (prezzo medio di carico); niente colonna «Operazione» (non è un acquisto, la posizione c'è già) né «Commissione» (il file non la dice) |
 | UI-30 | 22 nov 2026 | **Conti e Carte senza «Panoramica»** (i saldi per tipo di conto non servivano): la pagina si apre su **Conti**; le schede sono Conti, Carte, Riconciliazioni, Collegamenti bancari |
 | UI-31 | 22 nov 2026 | **Portafoglio con meno schede**: «Panoramica e posizioni» (Riepilogo · Posizioni), «Portafogli e rendimenti» (Portafogli e conti titoli · Rendimenti), «Ordini» (Eseguiti · Teorici): una scheda per coppia, con un interruttore sotto la riga delle schede. **«Importa dal broker» non è più una scheda**: le posizioni si aggiungono con il «+» (una, o più da un file) |
+| UI-32 | 22 nov 2026 | **La chat «Chiedi ai tuoi dati» lavora in sottofondo**: la domanda continua anche chiudendo il pannello o cambiando pagina; il pannello aperto resta aperto da una pagina all'altra; mentre l'AI pensa, il pulsante pulsa e accanto c'è «L'AI sta pensando…» (clic: apre il pannello); quando la risposta è pronta e il pannello è chiuso arriva l'avviso «La risposta dell'AI è pronta. Apri» |
 
 ## 16. Fotografia di partenza (18 nov 2026)
 Da dove si parte, per misurare i progressi della pulizia:

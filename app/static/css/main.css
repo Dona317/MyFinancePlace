@@ -2082,6 +2082,17 @@ html.focus .page-content { padding: 24px 16px 40px; }
   display: flex; align-items: center; justify-content: center; transition: transform .15s ease; }
 .ask-bubble:hover { transform: scale(1.06); }
 .ask-bubble[aria-expanded="true"] { box-shadow: 0 0 0 4px var(--clr-primary-light), var(--shadow-lg); }
+/* a question under way (the panel closed or another page): the button pulses and a note says the AI is thinking */
+.ask-bubble.ask-busy { animation: ask-pulse 1.6s ease-in-out infinite; }
+@keyframes ask-pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--clr-primary-light), var(--shadow-lg); }
+                       50% { box-shadow: 0 0 0 8px var(--clr-primary-light), var(--shadow-lg); } }
+.ask-thinking { position: fixed; right: 70px; bottom: 26px; z-index: 95; display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 999px; background: var(--clr-bg-card); border: 1px solid var(--clr-border);
+  box-shadow: var(--shadow-md); font-size: var(--font-size-sm); color: var(--clr-text-primary); cursor: pointer; }
+.ask-thinking[hidden] { display: none; }
+.ask-thinking-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--clr-primary); animation: ask-blink 1s ease-in-out infinite; }
+@keyframes ask-blink { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .ask-bubble.ask-busy, .ask-thinking-dot { animation: none; } }
 /* one column in the corner: the AI button (36px), «to the bottom / back to the top» small above it,
    centred on it */
 body:has(.ask-bubble) .ask-bubble { right: 24px; bottom: 24px; width: 36px; height: 36px; font-size: 16px; }
@@ -2161,6 +2172,7 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
   padding: 10px 12px 10px 16px; border-radius: 12px; background: var(--clr-text-primary); color: var(--clr-bg-card);
   box-shadow: var(--shadow-lg); font-size: var(--font-size-sm); max-width: calc(100vw - 32px); }
 .toast-link { color: var(--clr-primary); font-weight: 600; white-space: nowrap; }
+button.toast-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }  /* «Apri» of the AI answer */
 .toast-close { border: none; background: none; color: inherit; opacity: .7; cursor: pointer; font-size: 16px; }
 
 /* the bar on top of a pop-up page: back on the left, close on the right */
