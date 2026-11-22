@@ -29,30 +29,13 @@
    'href': url_for('transactions.index', account='none') if unassigned else None, 'sub': _('transazioni da assegnare') if unassigned else _('tutte assegnate')},
 ], _('Conti in breve')) }}
 <div class="page-tabs">{{ tab_bar([
-  ('overview', url_for('accounts.index'), _('Panoramica'), 'grid-1x2'),
-  ('accounts', url_for('accounts.index', tab='accounts'), _('Conti'), 'bank'),
+  ('accounts', url_for('accounts.index'), _('Conti'), 'bank'),
   ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),
   ('reconcile', url_for('accounts.index', tab='reconcile'), _('Riconciliazioni'), 'check2-square'),
   ('banking', url_for('banking.index'), _('Collegamenti bancari'), 'link-45deg'),
 ], tab, _('Sezioni di conti e carte')) }}</div>
 
-{% if tab == 'overview' %}
-{% set top = (by_kind|map(attribute=1)|map('abs')|max) if by_kind else 0 %}
-<div class="card">
-  <div class="card-header"><div class="card-header-title">{{ _('I saldi per tipo di conto') }}</div></div>
-  <div class="card-body">
-    {% for kind, amount in by_kind %}
-    <div class="budget-mini">
-      <div class="budget-mini-head"><span><i class="bi bi-{{ icons.get(kind, 'wallet2') }}"></i> {{ kinds.get(kind, kind) }}</span><strong class="amount {{ 'negative' if amount < 0 }}">{{ amount|money }}</strong></div>
-      <div class="budget-mini-bar"><span class="{{ 'is-over' if amount < 0 else 'is-ok' }}{{ ' is-debt' if kind == 'debt' }}" style="width: {{ (amount|abs / top * 100) if top else 0 }}%"></span></div>
-    </div>
-    {% else %}
-    {{ empty_state(text=_('Nessun conto attivo.'), compact=True) }}
-    {% endfor %}
-  </div>
-</div>
-
-{% elif tab == 'cards' %}
+{% if tab == 'cards' %}
 <div class="card">
   {% if card_rows %}
   <div class="table-wrapper">

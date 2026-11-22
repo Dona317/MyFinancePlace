@@ -76,3 +76,9 @@ def test_the_flow_of_money_covers_the_month_whatever_the_period(client, db):
     page = client.get("/dashboard?period=year").get_data(as_text=True)
     assert "Flusso del denaro — " in page and "Il mese in corso, fino a oggi" in page
     assert date.today().replace(day=1).isoformat() in page or 'data-widget="sankey"' in page
+
+
+def test_conti_e_carte_opens_on_the_accounts_without_an_overview(client, db):
+    page = client.get("/accounts/").get_data(as_text=True)
+    assert "I saldi per tipo di conto" not in page and "bi-grid-1x2" not in page
+    assert client.get("/accounts/?tab=overview").status_code == 200  # an old link lands on the accounts

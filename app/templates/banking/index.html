@@ -14,8 +14,7 @@
 
 {% block content %}
 <div class="page-tabs">{{ tab_bar([
-  ('overview', url_for('accounts.index'), _('Panoramica'), 'grid-1x2'),
-  ('accounts', url_for('accounts.index', tab='accounts'), _('Conti'), 'bank'),
+  ('accounts', url_for('accounts.index'), _('Conti'), 'bank'),
   ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),
   ('reconcile', url_for('accounts.index', tab='reconcile'), _('Riconciliazioni'), 'check2-square'),
   ('banking', url_for('banking.index'), _('Collegamenti bancari'), 'link-45deg'),
@@ -118,7 +117,7 @@
 {# ── Linking starts from an account (F107): here only what is linked ───────────── #}
 {% if not connections %}
 {% call empty_state(text=_('Una banca si collega da un tuo conto: apri il conto in «Conti», poi «Modifica» → «Collega a Enable Banking». I movimenti arriveranno su quel conto.'), icon='bi-link-45deg', title=_('Nessuna banca collegata')) %}
-  <a href="{{ url_for('accounts.index', tab='accounts') }}" class="btn btn-outline btn-sm"><i class="bi bi-bank"></i> {{ _('Vai ai conti') }}</a>
+  <a href="{{ url_for('accounts.index') }}" class="btn btn-outline btn-sm"><i class="bi bi-bank"></i> {{ _('Vai ai conti') }}</a>
 {% endcall %}
 {% endif %}
 {% endblock %}
