@@ -30,7 +30,8 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.bank_link import BankAccessLog, BankAccountLink, BankConnection
-from app.services import accounts, bank_import, field_crypto, money, reversals, studio
+from app.models.transaction import Transaction
+from app.services import accounts, bank_import, field_crypto, money, request_cache, reversals, studio
 from app.services import cards as card_service
 from app.services.parsing import clean_text, to_date
 
@@ -48,6 +49,7 @@ PENDING_KEPT = 20
 KEEP_SKIPPED = 1000       # movements left out in the preview remembered per account (the newest)
 BOOKED = "BOOK"
 BALANCE_TYPES = ("CLBD", "ITBD", "XPCD", "ITAV", "CLAV", "OTHR")  # preferred first
+BOOKED_BALANCES = ("CLBD", "ITBD")  # only booked movements: what the downloaded ones add up to (no pending)
 
 
 def _utcnow() -> datetime:
@@ -67,6 +69,7 @@ class SyncResult:
     pending_at_bank: int = 0     # not booked yet at the bank: they come with a later download
     error: str | None = None
     created: list = field(default_factory=list)  # the transactions saved by this download
+    aligned: Decimal | None = None  # the difference with the bank's balance, recorded by this download
 
 
 @dataclass
@@ -571,16 +574,50 @@ def _keep_waiting(link: BankAccountLink, rows: list) -> None:
     link.pending = sorted(kept.values(), key=lambda item: item.get("date") or "") or None
 
 
-def _balance(link: BankAccountLink, items: list[dict]) -> None:
+def _balance(link: BankAccountLink, items: list[dict]) -> bool:
+    """The bank's balance kept on the link; True when it is a booked one in the account's currency (it can be
+    compared with the movements downloaded)."""
     by_type = {(b.get("balance_type") or "").upper(): b for b in items}
     chosen = next((by_type[t] for t in BALANCE_TYPES if t in by_type), items[0] if items else None)
     if not chosen:
-        return
+        return False
+    amount = chosen.get("balance_amount") or {}
     try:
-        link.balance = money.cents(Decimal(str((chosen.get("balance_amount") or {}).get("amount"))))
+        link.balance = money.cents(Decimal(str(amount.get("amount"))))
     except (InvalidOperation, ValueError):
-        return
+        return False
     link.balance_date = to_date(chosen.get("reference_date")) or date.today()
+    currency = (amount.get("currency") or link.currency or "EUR").upper()
+    return (chosen.get("balance_type") or "").upper() in BOOKED_BALANCES and currency == (link.currency or "EUR").upper()
+
+
+def align(link: BankAccountLink) -> Decimal | None:
+    """
+    22 Nov 2026: the account follows the bank. The app's balance on the day of the bank's booked balance is compared
+    with it; a difference is recorded — in the opening balance the first time, when the account's movements all came
+    from the bank connection (the money that was there before the history read), else as a «Riconciliazione»
+    movement (accounts.reconcile). Movements edited by the user stay as they are. Skipped while movements of the
+    account wait in the preview: the bank's balance already counts them. Returns the difference recorded.
+    """
+    account = link.account
+    if account is None or not account.active or link.pending or link.balance is None or not link.balance_date:
+        return None
+    on = min(link.balance_date, date.today())
+    difference = money.cents(Decimal(str(link.balance)) - Decimal(str(accounts.balance(account, on))))
+    if not difference:
+        account.reconciled_on, account.reconciled_balance = on, link.balance
+        return None
+    first_day = db.session.query(db.func.min(Transaction.date)).filter(
+        (Transaction.account_id == account.id) | (Transaction.counter_account_id == account.id)).scalar()
+    history_from_bank = first_day is not None and link.connection.created_at is not None \
+        and first_day >= link.connection.created_at.date() - timedelta(days=INITIAL_DAYS + OVERLAP_DAYS)
+    if account.reconciled_on is None and history_from_bank and not accounts.reconciliations(account, 1):
+        account.opening_balance = money.cents(Decimal(str(account.opening_balance or 0)) + difference)
+        account.reconciled_on, account.reconciled_balance = on, link.balance
+        request_cache.clear()  # the opening balances summed so far
+    else:
+        accounts.reconcile(account, on, Decimal(str(link.balance)))
+    return difference
 
 
 def sync_link(link: BankAccountLink, creds: client.Credentials, today: date | None = None,
@@ -607,9 +644,12 @@ def sync_link(link: BankAccountLink, creds: client.Credentials, today: date | No
         newest = max(r.date for r in downloaded.rows)
         link.last_booked = max(newest, link.last_booked) if link.last_booked else newest
     try:
-        _balance(link, client.balances(creds, link.uid, psu=psu))
+        comparable = _balance(link, client.balances(creds, link.uid, psu=psu))
     except client.ProviderError:
-        pass  # the movements matter; the balance comes with the next download
+        comparable = False  # the movements matter; the balance comes with the next download
+    if comparable:
+        db.session.flush()
+        result.aligned = align(link)
     link.last_sync_at = _utcnow()
     return result
 
@@ -670,6 +710,10 @@ def summary(results: list[SyncResult]) -> str:
     parts = [_("%(count)s movimenti salvati", count=saved), _("%(count)s da controllare", count=waiting)]
     if later:
         parts.append(_("%(count)s non ancora contabilizzati", count=later))
+    aligned = [r for r in results if r.aligned]
+    if aligned:
+        parts.append(_("saldo allineato alla banca (differenza %(amount)s)",
+                       amount=", ".join(f"{r.aligned:+.2f}".replace(".", ",") for r in aligned)))
     return ", ".join(parts) + "."
 
 

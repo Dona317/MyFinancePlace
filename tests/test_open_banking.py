@@ -1114,3 +1114,58 @@ def test_opening_with_a_failing_bank_and_without_signing_in(client, db, bank, ap
     calls = len(bank.calls)
     client.get("/auth/login")  # nobody signed in: nothing is read
     assert len(bank.calls) == calls
+
+
+# ── The account follows the bank's balance (22 Nov 2026) ─────────────────────
+
+def _auto_saving(client, bank):
+    _fineco(None)
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    connection.auto_save = True
+    link = connection.links[0]
+    link.pending, link.last_booked = None, None
+    from app.extensions import db as _db
+    _db.session.commit()
+    return connection, link
+
+
+def test_the_first_read_puts_the_missing_money_in_the_opening_balance(client, db, bank):
+    from app.services import accounts as account_service
+    bank.movements = [tx("e1", "100.00", text="NETFLIX")]
+    connection, link = _auto_saving(client, bank)
+    results = open_banking.sync_connection(connection)
+    fineco = link.account
+    assert results[0].aligned == Decimal("1334.56")  # the bank says 1234,56 after the 100 € paid
+    assert fineco.opening_balance == Decimal("1334.56") and fineco.reconciled_on == date(2026, 11, 20)
+    assert account_service.balance(fineco, date(2026, 11, 20)) == pytest.approx(1234.56)
+    assert not account_service.reconciliations(fineco)  # no movement: the history starts right
+    assert "saldo allineato alla banca (differenza +1334,56)" in open_banking.summary(results)
+    # later the app has 50 € less than the bank (a movement edited, a fee missed): a «Riconciliazione» movement
+    bank.movements = [tx("e1", "100.00", text="NETFLIX"), tx("e2", "50.00", day="2026-11-15", text="AMAZON")]
+    results = open_banking.sync_connection(connection)
+    assert results[0].aligned == Decimal("50.00")
+    adjustment = account_service.reconciliations(fineco)[0]
+    assert adjustment.type == "income" and adjustment.amount == Decimal("50.00") and adjustment.date == date(2026, 11, 20)
+    assert fineco.opening_balance == Decimal("1334.56")  # unchanged
+    # the same again: nothing more to align
+    assert open_banking.sync_connection(connection)[0].aligned is None
+
+
+def test_no_alignment_while_movements_wait_or_without_a_booked_balance(client, db, bank, monkeypatch):
+    bank.movements = [tx("e1", "100.00", text="NETFLIX")]
+    connection, link = _auto_saving(client, bank)
+    link.pending = [{"import_ref": "x", "date": "2026-11-12"}]
+    db.session.commit()
+    assert open_banking.align(link) is None  # the bank's balance counts what still waits in the preview
+    link.pending = None
+    db.session.commit()
+    real = FakeBank.__call__
+
+    def available_only(self, creds, method, path, params=None, body=None, psu=None):
+        if path.endswith("/balances"):
+            return {"balances": [{"balance_type": "ITAV", "balance_amount": {"amount": "999.00", "currency": "EUR"}}]}
+        return real(self, creds, method, path, params, body, psu)
+    monkeypatch.setattr(FakeBank, "__call__", available_only)
+    results = open_banking.sync_connection(connection)
+    assert results[0].aligned is None and link.account.opening_balance in (None, 0)  # with pending: not comparable

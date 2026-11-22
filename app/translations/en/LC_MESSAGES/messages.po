@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 21:24+0000\n"
+"POT-Creation-Date: 2026-11-22 22:02+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -16717,6 +16717,10 @@ msgstr "balance %(amount)s"
 
 msgid "saldo a fine anno"
 msgstr "balance at year end"
+
+#, python-format
+msgid "saldo allineato alla banca (differenza %(amount)s)"
+msgstr "balance aligned with the bank (difference %(amount)s)"
 
 msgid "saldo del conto di regolamento"
 msgstr "balance of the settlement account"

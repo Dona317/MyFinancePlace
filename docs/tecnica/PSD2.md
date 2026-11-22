@@ -137,6 +137,22 @@ Il download parte:
   automatiche del giorno, che non superano mai 4: la PSD2 ne permette **quattro al giorno** senza l'utente per ogni
   conto. Configurabile con `BANK_SYNC_WINDOW` (default `(8, 24)`) e `BANK_SYNC_PER_DAY` (default 4, mai di più).
 
+## 5-bis. Il conto segue il saldo della banca (22 nov 2026)
+
+A ogni lettura l'app chiede anche il saldo del conto. Se è un saldo **contabile** (`CLBD` o `ITBD`, senza i movimenti
+non ancora contabilizzati) nella valuta del conto, lo confronta con il saldo che l'app calcola per lo stesso giorno:
+
+- **la prima volta**, se tutti i movimenti del conto sono arrivati dal collegamento (la storia parte dalla prima
+  lettura), la differenza va nel **saldo iniziale** del conto: sono i soldi che c'erano prima della storia letta, e così
+  anche i saldi dei giorni passati tornano giusti;
+- **le volte dopo** (o se il conto ha movimenti importati in altri modi) la differenza diventa un movimento
+  **«Riconciliazione»** in quel giorno, escluso dalle analisi (come la riconciliazione fatta a mano);
+- le transazioni non vengono toccate: quelle importate e poi modificate restano come le hai lasciate;
+- niente allineamento mentre ci sono movimenti del conto **in attesa** nell'anteprima (il saldo della banca li conta già)
+  o quando la banca dà solo un saldo disponibile.
+
+Il messaggio della lettura lo dice: «saldo allineato alla banca (differenza +…)».
+
 ## 6. Promemoria
 Nella campanella (e nelle notifiche di sistema dell'app desktop): consenso che scade entro 14 giorni o scaduto,
 download non riuscito, movimenti da controllare, conto della banca senza conto dell'app.

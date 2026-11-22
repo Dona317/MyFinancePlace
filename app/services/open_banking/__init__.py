@@ -6,6 +6,7 @@ from .sync import (  # noqa: F401
     SYNC_WINDOW,
     BankingError,
     SyncResult,
+    align,
     archive_id,
     archives_shown,
     attach,
