@@ -378,6 +378,11 @@ all'uso da parte di amici, senza costi né licenze commerciali.
   - il controllo parte una volta al giorno;
   - senza rete l'errore viene tenuto e la valuta resta segnata «cambio mancante»;
   - una valuta nuova da un import fa partire lo scaricamento.
+- **Verificato il 22 nov 2026:** `https://data-api.ecb.europa.eu/service/data/EXR/D.DKK+USD.EUR.SP00.A?startPeriod=…&format=csvdata`
+  risponde 200 con CSV (colonne `CURRENCY`, `TIME_PERIOD`, `OBS_VALUE`) e restituisce le due valute in una sola chiamata;
+  il valore è unità di valuta per 1 EUR (DKK ≈ 7,47, USD ≈ 1,10), quindi va invertito come fa già `parse_ecb`.
+  Il dominio `sdw-wsrest.ecb.europa.eu` non risolve più: non usarlo. Riserva per il cambio del giorno:
+  `eurofxref-daily.xml`, che l'app usa già.
 - **Dipende da:** niente. Serve la rete verso `data-api.ecb.europa.eu`, che sul PC c'è.
 - **Origine:** prova sandbox PSD2 del 22 nov 2026 (conto «Ida Jensen», DKK).
 - **Fatto quando:** un conto in DKK importato senza cambi, al primo giro, scarica i cambi BCE della sola DKK dal primo
