@@ -27,7 +27,7 @@ def peek():
     """F100: the latest reminders, most urgent first, for the bell's window (a fragment, fetched when it opens)."""
     items = notifications.collect()
     back = request.args.get("back", "")
-    return render_template("notifications/_peek.html", items=items[:PEEK], more=max(0, len(items) - PEEK),
+    return render_template("notifications/_peek.html", items=items[:PEEK], more=max(0, len(items) - PEEK), total=len(items),
                            back=back if back.startswith("/") and not back.startswith("//") else "")
 
 
@@ -38,6 +38,8 @@ def dismiss():
     if request.form.get("all"):
         keys = [n.key for n in notifications.collect()]
     notifications.dismiss(keys)
+    if request.headers.get("X-Requested-With") == "fetch":  # the bell's window: it stays open and reloads its list
+        return "", 204
     return back_to("notifications.index")
 
 

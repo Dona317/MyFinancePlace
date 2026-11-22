@@ -2697,3 +2697,7 @@ tr.is-muted td { color: var(--clr-text-muted); }
 .bank-done-icon { font-size: var(--font-size-3xl); color: var(--clr-positive); }
 .bank-done-icon.is-error { color: var(--clr-negative); }
 .bank-done-close { margin-top: 16px; }
+
+/* the bell's window: a reminder dismissed fades while the list reloads */
+.reminders-peek-list li.is-leaving { opacity: .4; transition: opacity var(--transition); }
+@media (prefers-reduced-motion: reduce) { .reminders-peek-list li.is-leaving { transition: none; } }

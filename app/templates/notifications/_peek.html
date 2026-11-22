@@ -1,5 +1,6 @@
 {# F100: the latest reminders, in the bell's window (fetched when it opens); the whole list is on Promemoria #}
 {% from "partials/empty.html" import empty_state %}
+<div class="reminders-peek-content" data-total="{{ total }}">
 {% if items %}
 <ul class="notification-list reminders-peek-list">
   {% for n in items %}
@@ -20,3 +21,4 @@
 {% else %}
 {{ empty_state(text=_('Nessun promemoria: tutto in ordine.'), icon='bi-bell', compact=True) }}
 {% endif %}
+</div>

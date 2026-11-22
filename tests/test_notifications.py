@@ -65,3 +65,21 @@ def test_disabled_modules_give_no_reminders(client, db):
 
 def test_empty_page(client, db):
     assert "Nessun promemoria" in client.get("/notifications/").get_data(as_text=True)
+
+
+def test_the_bell_window_dismisses_in_place(client, db):
+    """The X in the bell's window hides the reminder without leaving the page: the window stays open and reloads its
+    list, the bell's number follows (checked in a browser on 22 Nov 2026)."""
+    for company in ("Unipol", "Allianz"):
+        db.session.add(InsurancePolicy(type="Auto", company=company, premium=Decimal("300"),
+                                       expiry_date=TODAY + timedelta(days=5)))
+    db.session.commit()
+    peek = client.get("/notifications/peek?back=/dashboard").get_data(as_text=True)
+    assert 'data-total="2"' in peek
+    key = client.get("/notifications/api").get_json()["notifications"][0]["key"]
+    response = client.post("/notifications/dismiss", data={"key": key, "next": "/dashboard"},
+                           headers={"X-Requested-With": "fetch"})
+    assert response.status_code == 204
+    assert 'data-total="1"' in client.get("/notifications/peek").get_data(as_text=True)
+    page = client.get("/dashboard").get_data(as_text=True)
+    assert "body.addEventListener('submit'" in page and "'X-Requested-With': 'fetch'" in page

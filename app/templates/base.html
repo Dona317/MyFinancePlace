@@ -499,14 +499,36 @@
   if (!bell) return;
   const body = document.getElementById('reminders-peek-body');
   const url = {{ url_for('notifications.peek')|tojson }};
+  // the number on the bell follows the list (the reminders not yet seen)
+  const setCount = total => {
+    let badge = bell.querySelector('.bell-count');
+    if (!total) { badge?.remove(); return; }
+    if (!badge) { badge = document.createElement('span'); badge.className = 'bell-count'; bell.append(badge); }
+    badge.textContent = total < 100 ? total : '99+';
+  };
+  const load = () => fetch(`${url}?back=${encodeURIComponent(location.pathname + location.search)}`, { credentials: 'same-origin' })
+    .then(response => { if (!response.ok) throw new Error(response.status); return response.text(); })
+    .then(html => {
+      body.innerHTML = html;
+      const content = body.querySelector('[data-total]');
+      if (content) setCount(Number(content.dataset.total));
+    });
   bell.addEventListener('click', event => {
     if (event.ctrlKey || event.metaKey || event.shiftKey) return;  // a new tab: the page, as before
     event.preventDefault();
     openModal('reminders-peek');
-    fetch(`${url}?back=${encodeURIComponent(location.pathname + location.search)}`, { credentials: 'same-origin' })
-      .then(response => { if (!response.ok) throw new Error(response.status); return response.text(); })
-      .then(html => { body.innerHTML = html; })
-      .catch(() => { window.location.href = bell.href; });  // the window cannot load: the page instead
+    load().catch(() => { window.location.href = bell.href; });  // the window cannot load: the page instead
+  });
+  // the X of a reminder hides it without leaving the window: the list reloads in place
+  body.addEventListener('submit', event => {
+    const form = event.target.closest('form');
+    if (!form) return;
+    event.preventDefault();
+    form.closest('li')?.classList.add('is-leaving');
+    fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin',
+                         headers: { 'X-Requested-With': 'fetch' } })
+      .then(response => { if (!response.ok) throw new Error(response.status); return load(); })
+      .catch(() => form.submit());  // something went wrong: the usual way, with the page
   });
 })();
 </script>
