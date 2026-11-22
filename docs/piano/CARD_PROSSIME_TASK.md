@@ -333,24 +333,52 @@ partenza sono nella sezione 16 di DESIGN.md.
 La lettura via PSD2 (F107, D16) funziona con la sandbox vera di Enable Banking. Queste card portano ai conti veri e
 all'uso da parte di amici, senza costi né licenze commerciali.
 
-**Card T49 — Cambio vero per i conti in valuta (oggi DKK = EUR 1:1)**
+**Card T49 — Cambi aggiornati da soli, solo per le valute in uso (oggi DKK = EUR 1:1)**
 - **Area:** Dati e qualità · **Giro:** PSD2 · **Priorità:** Alta · **Sforzo:** M
-- **Problema (visto nella prova sandbox):** i movimenti in corone danesi del conto di prova sono stati contati in euro
-  1:1 (+DKK 2,70 mostrato come +€ 2,70). La causa è in `app/services/currency.py`, `to_base()`: quando manca il cambio
-  del giorno usa `rate_on(...) or Decimal(1)`, cioè **1:1 senza dirlo**. I cambi BCE si scaricano solo a mano
-  (Impostazioni → Valute → BCE, `download_ecb`), quindi una valuta nuova arrivata da un import o dal PSD2 non ha cambi.
+- **Problema (visto nella prova sandbox del 22 nov):** i movimenti in corone danesi sono stati contati in euro 1:1
+  (+DKK 2,70 mostrato come +€ 2,70). Due cause, entrambe in `app/services/currency.py`:
+  1. `to_base()` usa `rate_on(...) or Decimal(1)`: senza cambio conta **1:1 senza dirlo**;
+  2. i cambi si scaricano solo a mano (Impostazioni → Valute → BCE, `download_ecb`), che prende **tutte** le valute
+     della BCE ma solo degli **ultimi 90 giorni** (`eurofxref-hist-90d.xml`). Una valuta nuova arrivata dal PSD2 o
+     da un file resta senza cambi, e lo storico più vecchio non arriva mai.
 - **Descrizione:**
-  1. niente più 1:1 silenzioso: senza cambio, `amount_base` resta **vuoto** e il movimento è segnato «cambio mancante»
-     (Salute dei dati e promemoria), invece di un numero falso nei totali;
-  2. quando entra una valuta nuova (import da file, PSD2, inserimento a mano) i cambi BCE si scaricano da soli,
-     in background, dal primo giorno che serve, e poi `recompute(valuta)`;
-  3. PSD2: se la banca manda `exchange_rate` sul movimento, si usa quello (è il cambio applicato davvero), e
-     `account_amount` per i conti in valuta;
-  4. il conto in valuta mostra il saldo nella sua valuta e sotto «≈ €» (DESIGN 8).
-- **Dipende da:** niente (la rete verso la BCE c'è già, `download_ecb`).
+  1. **Quali valute.** Le valute davvero usate, euro escluso: movimenti, conti, contanti in altre valute, titoli, e la
+     valuta di base se non è l'euro (estende `foreign_usage()`). Per ognuna, da quando serve: il primo movimento in
+     quella valuta.
+  2. **Solo quelle, solo quello che manca.** Il Data Portal della BCE risponde per valuta e periodo
+     (es. `…/EXR/D.DKK+USD.EUR.SP00.A?startPeriod=2026-08-01`). Una sola chiamata con le valute in uso; per ognuna si
+     parte dal giorno dopo l'ultimo cambio salvato. La prima volta arriva lo storico che serve, poi uno o due giorni
+     alla volta. Senza valute estere non parte nessuna chiamata.
+  3. **Quando parte:**
+     - una volta al giorno, come i prezzi: alla prima apertura della dashboard (in background, accanto a
+       `valuations.refresh_daily()`) e nel giro orario dell'app desktop (`price_feed`), per tutti gli archivi. La BCE
+       pubblica verso le 16 dei giorni lavorativi: basta un controllo al giorno;
+     - subito, quando entra una valuta nuova: dopo un import (da file o PSD2), un movimento o un conto in una valuta
+       senza cambi.
+  4. **Ricalcolo mirato.** `recompute()` solo per quella valuta e dalla prima data nuova, non tutto l'archivio.
+  5. **Niente 1:1 nascosto.** Finché il cambio manca, `amount_base` resta vuoto e il movimento è segnato «cambio
+     mancante» in Salute dei dati e nei promemoria, fuori dai totali. Il segno sparisce da solo quando il cambio arriva.
+  6. **Cambi che non si toccano.** Quelli scritti a mano (`source="manual"`) restano. Se la banca manda via PSD2 il
+     cambio applicato davvero (`exchange_rate`, `account_amount`), vale quello.
+  7. **Impostazioni → Valute:** interruttore «Aggiorna i cambi da soli» (acceso di default); stato, es. «aggiornati al
+     21/11/2026 · DKK, USD»; l'ultimo errore se la rete manca, con nuovo tentativo al giro dopo; il pulsante
+     «Scarica ora» resta.
+  8. Il conto in valuta mostra il saldo nella sua valuta e sotto «≈ €» (DESIGN 8).
+- **Test (con una BCE finta):** viene chiesta solo la valuta in uso e solo dal giorno che manca; nessuna chiamata
+  senza valute estere; la prima volta lo storico parte dal primo movimento; i cambi a mano e quelli del PSD2 non
+  vengono sovrascritti; il ricalcolo tocca solo la valuta e le date nuove; senza rete il movimento resta «cambio
+  mancante» (mai 1:1), l'errore compare in Impostazioni e il giro dopo riprova; con l'interruttore spento il giro
+  giornaliero non parte ma «Scarica ora» sì.
+- **Verificato il 22 nov 2026:** `https://data-api.ecb.europa.eu/service/data/EXR/D.DKK+USD.EUR.SP00.A?startPeriod=…&format=csvdata`
+  risponde 200 con CSV (colonne `CURRENCY`, `TIME_PERIOD`, `OBS_VALUE`) e restituisce le due valute in una sola chiamata;
+  il valore è unità di valuta per 1 EUR (DKK ≈ 7,47, USD ≈ 1,10), quindi va invertito come fa già `parse_ecb`.
+  Il dominio `sdw-wsrest.ecb.europa.eu` non risolve più: non usarlo. Riserva per il cambio del giorno:
+  `eurofxref-daily.xml`, che l'app usa già.
+- **Dipende da:** niente.
 - **Origine:** prova sandbox PSD2 del 22 nov 2026 (conto «Ida Jensen», DKK).
-- **Fatto quando:** un conto DKK importato senza cambi scarica i cambi BCE da solo e i totali in euro tornano
-  (13.066,20 DKK ≈ 1.750 €, non 13.066 €); senza rete il movimento dice «cambio mancante» e non entra nei totali come 1:1.
+- **Fatto quando:** un conto in DKK, al primo giro, scarica i cambi della sola DKK dal primo movimento a oggi;
+  13.066,20 DKK diventano circa 1.750 € (non 13.066 €), e nei giorni dopo arriva solo il cambio nuovo. Senza rete il
+  movimento dice «cambio mancante» e non entra nei totali come 1:1.
 
 **Card T50 — Prova con un conto vero (Production in modalità ristretta)**
 - **Area:** PSD2 · **Giro:** PSD2 · **Priorità:** Alta · **Sforzo:** S
