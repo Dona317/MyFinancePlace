@@ -25,8 +25,12 @@ COUNTRIES = ("IT", "AT", "BE", "DE", "ES", "FI", "FR", "IE", "LT", "LU", "LV", "
 
 
 def _redirect_url() -> str:
-    """Where the bank sends the user back: it must be among the redirect URLs of the Enable Banking application."""
-    return current_app.config.get("ENABLE_BANKING_REDIRECT_URL") or url_for("banking.callback", _external=True)
+    """Where the bank sends the user back: it must be among the redirect URLs of the Enable Banking application. The
+    server's setting, else the way back saved with the credentials (an https relay page, for Production), else this
+    app's own callback (enough for the sandbox)."""
+    found = credentials.current()
+    return (current_app.config.get("ENABLE_BANKING_REDIRECT_URL") or (found.redirect_url if found else None)
+            or url_for("banking.callback", _external=True))
 
 
 def _back():
@@ -135,7 +139,13 @@ def save_credentials():
     upload = uploaded_file()
     pem = upload.read().decode("utf-8", "ignore") if upload is not None else (request.form.get("key_text") or "")
     try:
-        credentials.save(request.form.get("app_id", ""), pem)
+        credentials.clean_redirect(request.form.get("redirect_url"))
+    except ValueError:
+        flash(_("L'indirizzo di ritorno deve iniziare con https:// (Enable Banking non accetta altro in Production)."),
+              "error")
+        return _manage()
+    try:
+        credentials.save(request.form.get("app_id", ""), pem, request.form.get("redirect_url"))
     except ValueError:
         flash(_("Servono l'ID dell'applicazione e la sua chiave privata (il file .pem scaricato da Enable Banking)."),
               "error")
@@ -240,6 +250,18 @@ def renew(connection_id):
         flash(str(exc), "error")
         return _account_page(account) if account is not None else _back()
     return redirect(url)
+
+
+@banking_bp.route("/callback/paste", methods=["POST"])
+def paste_return():
+    """The way back did not load: the address the browser was left on, pasted here, completes the link."""
+    try:
+        values = open_banking.pasted_return(request.form.get("url", ""))
+    except ValueError:
+        flash(_("Questo indirizzo non contiene la risposta della banca: copia tutto l'indirizzo della pagina su cui sei "
+                "arrivato dopo il consenso (contiene «code=» e «state=»)."), "error")
+        return redirect(safe_next() or url_for("banking.manage"))
+    return redirect(url_for("banking.callback", **values))
 
 
 @banking_bp.route("/callback")

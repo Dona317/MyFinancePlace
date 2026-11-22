@@ -18,6 +18,26 @@ doppioni vengono riconosciuti.
    registrazione). Per leggere **i conti dei clienti dello studio** serve la produzione piena, con un contratto
    (prezzi su preventivo): è la parte di D16 ancora da decidere.
 
+## 1-bis. Pagina di ritorno https (serve per Production)
+In **Production** Enable Banking accetta solo indirizzi di ritorno **https** (`http://localhost…` viene rifiutato con
+«uses unsupported scheme»; la Sandbox invece lo accetta). L'app gira sul computer di chi la usa, quindi serve una
+**pagina pubblica statica** che riceve il ritorno dalla banca e, nel browser stesso, rimanda subito all'app locale:
+`docs/psd2-ritorno/index.html`. Non ha server né dati: legge `state` (che termina con l'indirizzo dell'app,
+`localhost:5000` in base64), accetta solo `localhost`/`127.0.0.1` e va su `http://<quello>/banking/callback?…`.
+Il codice della banca vale una volta sola ed è inutile senza la chiave privata dell'app. La stessa pagina va bene per
+tutti (anche per gli amici).
+
+Pubblicarla gratis con GitHub Pages (una volta):
+1. su GitHub crea un repository **pubblico**, per esempio `mfp-ritorno`;
+2. «Add file → Upload files»: carica `docs/psd2-ritorno/index.html` (con questo nome) e fai il commit;
+3. Settings → Pages → «Deploy from a branch», branch `main`, cartella `/ (root)`, Save; dopo un paio di minuti la
+   pagina è su `https://<utente>.github.io/mfp-ritorno/`;
+4. registra quell'indirizzo, identico e con la `/` finale, tra i redirect URL dell'applicazione Production;
+5. in Gestione PSD2 scrivilo in «Indirizzo di ritorno https (per Production)» e salva.
+
+Se il ritorno non si carica comunque, in Gestione PSD2 → «Bloccato al ritorno dalla banca?» si incolla l'indirizzo
+della pagina su cui si è rimasti (contiene `code=` e `state=`) e il collegamento si completa.
+
 ## 2. Dove si fa cosa
 - **Si collega dal conto** (deciso il 22 nov 2026, UI-24): Conti e Carte → un conto → **Modifica** → riquadro
   «Collegamento bancario (PSD2)» → **Collega a Enable Banking**. Il conto dell'app esiste sempre prima del

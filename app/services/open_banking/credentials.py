@@ -88,19 +88,37 @@ def current() -> Credentials | None:
         return None
     if not data.get("app_id") or not pem:
         return None
-    return Credentials(str(data["app_id"]), pem)
+    return Credentials(str(data["app_id"]), pem, data.get("redirect_url") or None)
 
 
-def save(app_id: str, pem: str) -> Credentials:
-    """Keep the application's id and key (encrypted); ValueError when the id is empty or the key is not an RSA
-    private key."""
+def clean_redirect(url: str | None) -> str | None:
+    """An https address for the way back from the bank (Enable Banking's Production accepts only https); None when
+    empty. ValueError for anything else."""
+    url = (url or "").strip()
+    if not url:
+        return None
+    if not url.startswith("https://") or " " in url or len(url) > 300:
+        raise ValueError("redirect URL must be https")
+    return url
+
+
+def save(app_id: str, pem: str | None, redirect_url: str | None = None) -> Credentials:
+    """Keep the application's id, key and way back (encrypted). An empty key keeps the one saved for the same
+    application (to change only the way back). ValueError when the id is empty, the key is not an RSA private key or
+    the way back is not https."""
     app_id = (app_id or "").strip()
     if not app_id:
         raise ValueError("missing application id")
+    redirect_url = clean_redirect(redirect_url)
+    if not (pem or "").strip():
+        kept = None if from_environment() else current()
+        if kept is None or kept.app_id != app_id:
+            raise ValueError("missing private key")
+        pem = kept.private_key_pem
     load_private_key(pem)
-    _write(field_crypto.encrypt(json.dumps({"app_id": app_id, "key": pem})))
+    _write(field_crypto.encrypt(json.dumps({"app_id": app_id, "key": pem, "redirect_url": redirect_url})))
     _legacy_path().unlink(missing_ok=True)
-    return Credentials(app_id, pem)
+    return Credentials(app_id, pem, redirect_url)
 
 
 def remove() -> None:
@@ -112,7 +130,7 @@ def status() -> dict:
     """What the page shows: set or not, where from, the application id — never the key."""
     found = current()
     return {"configured": found is not None, "environment": from_environment(),
-            "app_id": found.app_id if found else None}
+            "app_id": found.app_id if found else None, "redirect_url": found.redirect_url if found else None}
 
 
 def encrypted_row() -> list[tuple[AppSetting, str]]:

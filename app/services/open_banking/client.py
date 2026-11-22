@@ -51,6 +51,7 @@ class ProviderError(Exception):
 class Credentials:
     app_id: str
     private_key_pem: str
+    redirect_url: str | None = None  # the https page the bank sends back to (a relay to this app), when set
 
 
 def _b64(data: bytes) -> str:

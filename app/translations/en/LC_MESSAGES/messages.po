@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 14:57+0000\n"
+"POT-Creation-Date: 2026-11-22 15:04+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2035,6 +2035,9 @@ msgstr "Year in review"
 msgid "Bloccata da un amministratore"
 msgstr "Blocked by an administrator"
 
+msgid "Bloccato al ritorno dalla banca?"
+msgstr "Stuck on the way back from the bank?"
+
 msgid "Blu"
 msgstr "Blues"
 
@@ -2607,6 +2610,11 @@ msgstr ""
 "Key replaced (code %(code)s): %(readable)s values now readable, %(again)s"
 " encrypted again with the new key."
 
+msgid ""
+"Chiave vuota: resta quella già salvata per questa applicazione (per "
+"cambiare solo l'indirizzo di ritorno)."
+msgstr "Empty key: the one already saved for this application stays (to change only the redirect URL)."
+
 msgid "Chiedi"
 msgstr "Ask"
 
@@ -3022,6 +3030,9 @@ msgstr "Fill in counterparties (%(count)s)"
 
 msgid "Completa i dati"
 msgstr "Complete the details"
+
+msgid "Completa il collegamento"
+msgstr "Complete the link"
 
 msgid "Completo (acquisti e vendite)"
 msgstr "Full (purchases and sales)"
@@ -6845,8 +6856,14 @@ msgstr "Financial independence"
 msgid "Indirizzo"
 msgstr "Address"
 
+msgid "Indirizzo della pagina di ritorno"
+msgstr "Address of the return page"
+
 msgid "Indirizzo di ritorno da registrare nell'applicazione:"
 msgstr "Redirect URL to register in the application:"
+
+msgid "Indirizzo di ritorno https (per Production)"
+msgstr "https redirect URL (for Production)"
 
 msgid "Indirizzo: deve iniziare con https:// (o http://)."
 msgstr "Address: it must start with https:// (or http://)."
@@ -7103,7 +7120,9 @@ msgstr "The preview is no longer available: upload the file again."
 msgid ""
 "L'applicazione non è attiva: nel pannello di Enable Banking usa «Activate"
 " by linking accounts» e collega i tuoi conti."
-msgstr "The application is not active: in the Enable Banking panel use «Activate by linking accounts» and link your accounts."
+msgstr ""
+"The application is not active: in the Enable Banking panel use «Activate "
+"by linking accounts» and link your accounts."
 
 msgid "L'archivio principale non si può eliminare."
 msgstr "The main archive cannot be deleted."
@@ -7146,7 +7165,14 @@ msgstr "The amount cannot be negative."
 msgid ""
 "L'indirizzo di ritorno dell'app (%(url)s) non è tra quelli registrati "
 "nell'applicazione: aggiungilo nel pannello di Enable Banking."
-msgstr "The app's redirect URL (%(url)s) is not among those registered in the application: add it in the Enable Banking panel."
+msgstr ""
+"The app's redirect URL (%(url)s) is not among those registered in the "
+"application: add it in the Enable Banking panel."
+
+msgid ""
+"L'indirizzo di ritorno deve iniziare con https:// (Enable Banking non "
+"accetta altro in Production)."
+msgstr "The redirect URL must start with https:// (Enable Banking accepts nothing else in Production)."
 
 #, python-format
 msgid "L'ultimo è del %(day)s."
@@ -7303,6 +7329,12 @@ msgid ""
 msgstr ""
 "Today's liquid money with the deadlines of the Schedule: recurring "
 "payments, instalments, policies, reminders with an amount."
+
+msgid ""
+"La pagina pubblica a cui la banca rimanda dopo il consenso, che ti "
+"riporta subito nell'app sul tuo computer. Vuoto: l'indirizzo dell'app, "
+"che va bene solo per la Sandbox."
+msgstr "The public page the bank sends you back to after the consent, which takes you straight back to the app on your computer. Empty: the app's own address, fine only for the Sandbox."
 
 msgid ""
 "La parte delle entrate di ogni mese che resta, confrontata con l'anno "
@@ -11356,6 +11388,12 @@ msgstr "This Month"
 msgid "Questo conto della banca è già collegato a un altro conto."
 msgstr "This bank account is already linked to another account."
 
+msgid ""
+"Questo indirizzo non contiene la risposta della banca: copia tutto "
+"l'indirizzo della pagina su cui sei arrivato dopo il consenso (contiene "
+"«code=» e «state=»)."
+msgstr "This address does not contain the bank's answer: copy the whole address of the page you landed on after the consent (it contains «code=» and «state=»)."
+
 msgid "Questo mese"
 msgstr "This month"
 
@@ -12831,6 +12869,12 @@ msgstr "Type a tag."
 
 msgid "Scrivi una domanda."
 msgstr "Write a question."
+
+msgid ""
+"Se dopo il consenso il browser resta su una pagina che non si carica, "
+"copia il suo indirizzo (contiene «code=» e «state=») e incollalo qui: il "
+"collegamento si completa."
+msgstr "If after the consent the browser stays on a page that does not load, copy its address (it contains «code=» and «state=») and paste it here: the link is completed."
 
 msgid "Se il formato del tuo file non viene riconosciuto"
 msgstr "If your file's format is not recognised"
@@ -14760,6 +14804,12 @@ msgstr "Utilities"
 
 msgid "VARIAZIONE NETTA CASSA (A+B+C)"
 msgstr "NET CHANGE IN CASH (A+B+C)"
+
+msgid ""
+"Va bene per la Sandbox. Per le banche vere (Production) Enable Banking "
+"accetta solo indirizzi https: pubblica la pagina di ritorno (guida PSD2, "
+"«Pagina di ritorno») e scrivi qui sotto il suo indirizzo."
+msgstr "Fine for the Sandbox. For real banks (Production) Enable Banking accepts only https addresses: publish the return page (PSD2 guide, «Pagina di ritorno») and write its address below."
 
 msgid "Vacanza"
 msgstr "Holiday"

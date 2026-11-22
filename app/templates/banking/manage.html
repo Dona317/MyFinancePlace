@@ -105,6 +105,9 @@
     <p class="bank-redirect">{{ _('Indirizzo di ritorno da registrare nell\'applicazione:') }}
       <code id="bank-redirect-url">{{ redirect_url }}</code>
       <button type="button" class="copy-btn" data-copy="{{ redirect_url }}" title="{{ _('Copia') }}" aria-label="{{ _('Copia') }}"><i class="bi bi-clipboard"></i></button></p>
+    {% if not redirect_url.startswith('https://') %}
+    <p class="form-hint">{{ _("Va bene per la Sandbox. Per le banche vere (Production) Enable Banking accetta solo indirizzi https: pubblica la pagina di ritorno (guida PSD2, «Pagina di ritorno») e scrivi qui sotto il suo indirizzo.") }}</p>
+    {% endif %}
     {% if status.environment %}
       <p class="text-muted">{{ _('Credenziali impostate dal server (ENABLE_BANKING_APP_ID, ENABLE_BANKING_KEY_FILE): applicazione %(app)s.', app=status.app_id or '—') }}</p>
       <form method="POST" action="{{ url_for('banking.check_credentials') }}"><button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-clipboard-check"></i> {{ _('Verifica applicazione') }}</button></form>
@@ -122,6 +125,11 @@
         <label class="form-label" for="bank-key-text">{{ _('…oppure incolla la chiave') }}</label>
         <textarea id="bank-key-text" name="key_text" class="form-control bank-key-text" rows="3" placeholder="-----BEGIN PRIVATE KEY-----"></textarea>
       </div>
+      <div class="form-group">
+        <label class="form-label" for="bank-redirect">{{ _('Indirizzo di ritorno https (per Production)') }} {{ info(_("La pagina pubblica a cui la banca rimanda dopo il consenso, che ti riporta subito nell'app sul tuo computer. Vuoto: l'indirizzo dell'app, che va bene solo per la Sandbox.")) }}</label>
+        <input id="bank-redirect" name="redirect_url" class="form-control" value="{{ status.redirect_url or '' }}" placeholder="https://nome.github.io/mfp-ritorno/" autocomplete="off" />
+      </div>
+      {% if status.configured %}<p class="form-hint">{{ _('Chiave vuota: resta quella già salvata per questa applicazione (per cambiare solo l\'indirizzo di ritorno).') }}</p>{% endif %}
       <div class="form-actions">
         {% if status.configured %}
         <button type="submit" form="bank-credentials-delete" class="btn btn-danger-ghost btn-sm">{{ _('Rimuovi credenziali') }}</button>
@@ -136,6 +144,20 @@
           data-confirm="{{ _('Rimuovere le credenziali? I download si fermano finché non le inserisci di nuovo.') }}"></form>
     {% endif %}
     {% endif %}
+  </div>
+</div>
+
+{# ── The way back did not load ──────────────────────────────────────────────── #}
+<div class="card mt-16" id="paste-return">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-signpost-split"></i> {{ _('Bloccato al ritorno dalla banca?') }}</div>
+    <div class="card-header-sub">{{ _("Se dopo il consenso il browser resta su una pagina che non si carica, copia il suo indirizzo (contiene «code=» e «state=») e incollalo qui: il collegamento si completa.") }}</div>
+  </div></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('banking.paste_return') }}" class="bank-paste-form">
+      <input name="url" class="form-control" required placeholder="https://…/banking/callback?state=…&code=…" autocomplete="off" aria-label="{{ _('Indirizzo della pagina di ritorno') }}" />
+      <button type="submit" class="btn btn-ghost">{{ _('Completa il collegamento') }}</button>
+    </form>
   </div>
 </div>
 {% endblock %}

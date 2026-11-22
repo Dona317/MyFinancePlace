@@ -228,9 +228,9 @@ def test_credentials_saved_encrypted_in_the_studio_database(app, db, pem):
     credentials.save(" app-1 ", pem)
     stored = credentials._stored()
     assert stored.startswith(field_crypto.PREFIX) and "BEGIN" not in stored and "app-1" not in stored
-    assert json.loads(field_crypto.decrypt(stored)) == {"app_id": "app-1", "key": pem}
+    assert json.loads(field_crypto.decrypt(stored)) == {"app_id": "app-1", "key": pem, "redirect_url": None}
     assert credentials.current() == eb.Credentials("app-1", pem)
-    assert credentials.status() == {"configured": True, "environment": False, "app_id": "app-1"}
+    assert credentials.status() == {"configured": True, "environment": False, "app_id": "app-1", "redirect_url": None}
     credentials.save("app-2", pem)  # replaced, not added
     assert credentials.current().app_id == "app-2"
     assert credentials.encrypted_row()[0][1] == "value"  # follows a change of the data key
@@ -888,3 +888,51 @@ def test_check_reports_refused_credentials(client, db, bank, pem):
     html = response.get_data(as_text=True)
     assert "Credenziali di Enable Banking salvate" in html and "Application does not exist" in html
     assert "Verifica applicazione" in html
+
+
+# ── The https way back (Production) ─────────────────────────────────────────
+
+RELAY = "https://nome.github.io/mfp-ritorno/"
+
+
+def test_the_https_way_back_is_saved_and_used(client, db, bank, pem):
+    response = client.post("/banking/credentials", data={"app_id": "app-123", "redirect_url": "http://x/cb"},
+                           follow_redirects=True)
+    assert "deve iniziare con https://" in response.get_data(as_text=True)
+    client.post("/banking/credentials", data={"app_id": "app-123", "redirect_url": RELAY})  # the key is kept
+    assert credentials.current() == eb.Credentials("app-123", pem, RELAY)
+    page = client.get("/banking/manage").get_data(as_text=True)
+    assert RELAY in page and "Va bene per la Sandbox" not in page
+    _connect(client, bank)
+    auth = next(c for c in bank.calls if c[1] == "/auth")[3]
+    assert auth["redirect_url"] == RELAY
+    state = auth["state"]
+    token, origin = state.rsplit(".", 1)
+    assert len(token) > 20 and base64.urlsafe_b64decode(origin + "=" * (-len(origin) % 4)) == b"localhost"
+    with pytest.raises(ValueError):
+        credentials.save("another-app", "")  # no key for another application
+    with pytest.raises(ValueError):
+        credentials.clean_redirect("ftp://x")
+    assert credentials.clean_redirect("  ") is None
+
+
+def test_a_pasted_address_completes_the_link(client, db, bank):
+    account = _account()
+    client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": "Fineco"})
+    with client.session_transaction() as s:
+        state = next(iter(s[sync.STATE_KEY]))
+    pasted = f"https://nome.github.io/mfp-ritorno/?state={state}&code=c-7"
+    response = client.post("/banking/callback/paste", data={"url": pasted})
+    assert "/banking/callback?" in response.headers["Location"] and "code=c-7" in response.headers["Location"]
+    client.get(response.headers["Location"])
+    assert BankConnection.query.count() == 1
+    response = client.post("/banking/callback/paste", data={"url": "https://example.com/nothing"}, follow_redirects=True)
+    assert "non contiene la risposta della banca" in response.get_data(as_text=True)
+    assert open_banking.pasted_return("x?state=s&error=access_denied") == {"state": "s", "error": "access_denied"}
+
+
+def test_the_relay_page_only_sends_back_to_this_computer():
+    from pathlib import Path
+
+    page = (Path(__file__).resolve().parents[1] / "docs" / "psd2-ritorno" / "index.html").read_text(encoding="utf-8")
+    assert "localhost|127\\.0\\.0\\.1" in page and "/banking/callback" in page and "location.replace" in page

@@ -2658,6 +2658,8 @@ tr.is-muted td { color: var(--clr-text-muted); }
 .bank-at-bank summary { cursor: pointer; color: var(--clr-text-secondary); }
 .bank-at-bank table { margin-top: 8px; width: 100%; }
 .bank-error { font-size: var(--font-size-xs); }
+.bank-paste-form { display: flex; gap: 8px; align-items: center; margin: 0; }
+.bank-paste-form .form-control { flex: 1; min-width: 0; }
 .bank-account-link { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 8px 0; }
 .bank-account-link + .bank-account-link { border-top: 1px solid var(--clr-border-light); }
 .bank-account-link-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-weight: 600; }

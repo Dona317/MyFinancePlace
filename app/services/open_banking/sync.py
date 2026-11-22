@@ -14,10 +14,12 @@ them in the hours the app is used: the window 8–24 (local time) cut in four sl
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import secrets
 import threading
 import time
+import urllib.parse
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -188,7 +190,7 @@ def start(aspsp: str, country: str, redirect_url: str, connection: BankConnectio
         raise BankingError(_("Si collega a partire da un conto: apri il conto in Conti e Carte, poi «Collega a Enable "
                              "Banking»."))
     now = now or _utcnow()
-    state = secrets.token_urlsafe(24)
+    state = new_state()
     try:
         answer = client.start_authorization(_credentials(), aspsp, country, redirect_url, state,
                                             _consent_end(aspsp, country, now), psu_type)
@@ -201,6 +203,23 @@ def start(aspsp: str, country: str, redirect_url: str, connection: BankConnectio
                       "client": archive_id(), "account": account.id if account else None}
     session[STATE_KEY] = waiting
     return answer["url"]
+
+
+def new_state() -> str:
+    """The `state` of a consent: a random token, then the address this app is open at (`localhost:5000`), so that a
+    relay page on https (the way back Production requires) knows where to send the browser back."""
+    origin = base64.urlsafe_b64encode(request.host.encode()).decode().rstrip("=")
+    return f"{secrets.token_urlsafe(24)}.{origin}"
+
+
+def pasted_return(text: str) -> dict:
+    """The query of the address the bank sent the browser back to, pasted by the user (when the way back did not
+    load): {state, code, error, error_description}. ValueError when it has neither a code nor an error."""
+    query = urllib.parse.urlsplit((text or "").strip()).query
+    values = {k: v[0] for k, v in urllib.parse.parse_qs(query).items() if v}
+    if not values.get("state") or not (values.get("code") or values.get("error")):
+        raise ValueError("no state and code")
+    return {k: values[k] for k in ("state", "code", "error", "error_description") if values.get(k)}
 
 
 def archive_id() -> int:

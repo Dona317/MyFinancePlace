@@ -27,6 +27,7 @@ from .sync import (  # noqa: F401
     mcc_word,
     needs_choice,
     overview,
+    pasted_return,
     prepare,
     provider_ref,
     psu_headers,
