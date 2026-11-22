@@ -1378,10 +1378,14 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 
 /* Sankey diagram (dashboard): drawn on the server as SVG, colours from the theme */
 .sankey { width: 100%; height: auto; display: block; }
-.sankey-band { opacity: .28; transition: opacity .15s; }
-.sankey-band:hover { opacity: .55; }
-.sankey-label { font-size: 15px; fill: var(--clr-text-primary); }
-.sankey-amount { fill: var(--clr-text-muted); font-size: 13px; }
+.sankey-band { opacity: .32; transition: opacity .15s; }
+.sankey-band:hover { opacity: .6; }
+.sankey-label { font-size: 15px; font-weight: 500; fill: var(--clr-text-primary); }
+.sankey-amount { fill: var(--clr-text-muted); font-size: 13px; font-weight: 400; }
+/* in its block the drawing fills the card: centred in what the card's height leaves */
+.fc-widget[data-widget="sankey"] > .card { display: flex; flex-direction: column; }
+.fc-widget[data-widget="sankey"] > .card > .card-body { flex: 1; display: flex; align-items: center; }
+.fc-widget[data-widget="sankey"] .sankey { max-height: 100%; }
 .sankey-special { font-weight: 600; fill: var(--clr-positive-text, var(--clr-positive)); }
 
 /* ── Summary table (Report → Riepilogo): category × month, cells shaded by --heat (0–1) ─────────────── */

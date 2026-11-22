@@ -7,7 +7,9 @@ from app.services.i18n import N_
 SIDE = 7  # categories shown on each side; the rest add up in "Altre"
 SAVINGS = N_("Risparmio")
 FROM_SAVINGS = N_("Dai risparmi")  # spent more than earned: the gap is taken from savings
-WIDTH, HEIGHT, NODE, GAP = 1000, 420, 14, 10
+# 22 Nov 2026: drawn for a block two columns wide and two rows tall — narrower and taller than before, the amount
+# under each label; a small category still gets the room of its two lines (SLOT), so the labels do not overlap
+WIDTH, HEIGHT, NODE, GAP, SLOT = 560, 500, 14, 12, 34
 
 
 def _side(items: list[dict]) -> list[tuple[str, float]]:
@@ -48,21 +50,22 @@ def flow(start: date, end: date) -> dict | None:
     scale = (HEIGHT - GAP * (rows - 1)) / total
 
     def column(items, x, kind):
-        height = sum(a for _, a in items) * scale + GAP * (len(items) - 1)
-        y, nodes = (HEIGHT - height) / 2, []
+        height = sum(max(a * scale, SLOT) for _, a in items) + GAP * (len(items) - 1)
+        y, nodes = max((HEIGHT - height) / 2, 0), []
         for index, (name, amount) in enumerate(items):
             special = name in (SAVINGS, FROM_SAVINGS)
             nodes.append({"label": name, "amount": round(amount, 2), "x": x, "y": round(y, 1),
                           "h": round(max(amount * scale, 1), 1), "kind": kind, "special": special,
                           "category": _category(name, special),
                           "color": "positive" if special else f"chart-{index % 8 + 1}"})
-            y += amount * scale + GAP
+            y += max(amount * scale, SLOT) + GAP
         return nodes
 
     left = column(incomes, 0, "income")
     right = column(expenses, WIDTH - NODE, "expense")
     centre_x = (WIDTH - NODE) / 2
-    centre = {"label": N_("Entrate"), "amount": round(total_in, 2), "x": centre_x,
+    # the middle is what passes through: the income, or the expenses when part of them came from the savings
+    centre = {"label": N_("Entrate") if total_in >= total_out else N_("Uscite"), "amount": round(total, 2), "x": centre_x,
               "y": round((HEIGHT - total * scale) / 2, 1), "h": round(total * scale, 1), "kind": "total",
               "special": False, "category": None, "color": "primary"}
     bands, y_in, y_out = [], centre["y"], centre["y"]
@@ -76,5 +79,6 @@ def flow(start: date, end: date) -> dict | None:
                       "label": centre["label"], "amount": node["amount"], "to": node["label"],
                       "kind": "expense", "category": node["category"]})
         y_out += node["h"]
-    return {"nodes": [*left, centre, *right], "bands": bands, "width": WIDTH, "height": HEIGHT,
+    bottom = max(n["y"] + max(n["h"], SLOT) for n in [*left, *right])
+    return {"nodes": [*left, centre, *right], "bands": bands, "width": WIDTH, "height": round(max(HEIGHT, bottom), 1),
             "node_width": NODE, "total_in": round(total_in, 2), "total_out": round(total_out, 2)}
