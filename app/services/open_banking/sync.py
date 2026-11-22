@@ -195,6 +195,10 @@ def start(aspsp: str, country: str, redirect_url: str, connection: BankConnectio
         answer = client.start_authorization(_credentials(), aspsp, country, redirect_url, state,
                                             _consent_end(aspsp, country, now), psu_type)
     except client.ProviderError as exc:
+        if "redirect" in str(exc).lower():
+            raise BankingError(_("Enable Banking non accetta l'indirizzo di ritorno %(url)s: deve essere identico a uno "
+                                 "di quelli registrati nell'applicazione (anche la «/» finale). Correggilo in Gestione "
+                                 "PSD2 → «Indirizzo di ritorno https».", url=redirect_url)) from exc
         raise BankingError(_message(exc)) from exc
     if not answer.get("url"):
         raise BankingError(_("Enable Banking non ha indicato la pagina della banca: riprova."))

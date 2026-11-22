@@ -1,5 +1,8 @@
 {# F107: the bank connection of one account, on its edit page — where a bank is linked from (`bank_link` from
-   routes.banking.account_panel). Its own card, below the account's form (forms cannot nest). #}
+   routes.banking.account_panel). Its own card, below the account's form (forms cannot nest). The edit page often
+   opens in the app's pop-up (an iframe), and the banks' pages refuse to load inside a frame ("refused to connect"): the
+   consent opens in a new tab of the browser (_blank), which comes back to the account when done; the other links
+   leave the pop-up for the whole window (_top). #}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/info.html" import info %}
 {% set here = url_for('accounts.edit', account_id=account.id) ~ '#bank-link' %}
@@ -9,7 +12,7 @@
       <div class="card-header-title"><i class="bi bi-link-45deg"></i> {{ _('Collegamento bancario (PSD2)') }} {{ info(_('I movimenti di questo conto arrivano da soli dalla banca, tramite Enable Banking: dai il consenso sul sito della banca (fino a 180 giorni). MyFinancePlace legge soltanto, non può disporre pagamenti.')) }}</div>
       <div class="card-header-sub">{{ _('Collega «%(name)s» alla sua banca per scaricare i movimenti senza file', name=account.name) }}</div>
     </div>
-    {% if bank_link.links %}<a href="{{ url_for('banking.index') }}" class="btn btn-ghost btn-sm">{{ _('Tutti i collegamenti') }} <i class="bi bi-chevron-right"></i></a>{% endif %}
+    {% if bank_link.links %}<a href="{{ url_for('banking.index') }}" class="btn btn-ghost btn-sm" target="_top">{{ _('Tutti i collegamenti') }} <i class="bi bi-chevron-right"></i></a>{% endif %}
   </div>
   <div class="card-body">
   {% if bank_link.links %}
@@ -31,7 +34,7 @@
         </div>
       </div>
       <div class="bank-connection-actions">
-        {% if link.pending %}<a href="{{ url_for('banking.review', link_id=link.id) }}" class="btn btn-outline btn-sm"><i class="bi bi-eye"></i> {{ _('Controlla %(count)s', count=link.pending|length) }}</a>{% endif %}
+        {% if link.pending %}<a href="{{ url_for('banking.review', link_id=link.id) }}" class="btn btn-outline btn-sm" target="_top"><i class="bi bi-eye"></i> {{ _('Controlla %(count)s', count=link.pending|length) }}</a>{% endif %}
         {% if not expired %}
         <form method="POST" action="{{ url_for('banking.sync', connection_id=c.id) }}">
           <input type="hidden" name="next" value="{{ here }}" />
@@ -39,7 +42,7 @@
         </form>
         {% endif %}
         {% if expired or (days_left is not none and days_left <= bank_link.notice_days) %}
-        <form method="POST" action="{{ url_for('banking.renew', connection_id=c.id) }}">
+        <form method="POST" action="{{ url_for('banking.renew', connection_id=c.id) }}" target="_blank" rel="noopener">
           <input type="hidden" name="account_id" value="{{ account.id }}" />
           <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-shield-check"></i> {{ _('Rinnova consenso') }}</button>
         </form>
@@ -53,7 +56,7 @@
     {% endfor %}
   {% elif not bank_link.configured %}
     {% call empty_state(text=_("Il collegamento bancario non è ancora configurato: servono le credenziali dell'applicazione Enable Banking, una volta sola per tutta l'app."), icon='bi-key', compact=True) %}
-      {% if bank_link.can_manage %}<a href="{{ url_for('banking.manage') }}#credentials" class="btn btn-outline btn-sm"><i class="bi bi-sliders"></i> {{ _('Configura in Gestione PSD2') }}</a>
+      {% if bank_link.can_manage %}<a href="{{ url_for('banking.manage') }}#credentials" class="btn btn-outline btn-sm" target="_top"><i class="bi bi-sliders"></i> {{ _('Configura in Gestione PSD2') }}</a>
       {% else %}<div class="text-muted text-sm">{{ _("Chiedi a un amministratore dell'app di configurarlo.") }}</div>{% endif %}
     {% endcall %}
   {% else %}
@@ -75,7 +78,7 @@
     <ol class="bank-steps">
       <li>{{ _('Scegli paese e banca') }}</li>
       <li>{{ _('Sul sito della banca accedi e autorizza la lettura') }}</li>
-      <li>{{ _('Torni qui: i movimenti arrivano su «%(name)s»', name=account.name) }}</li>
+      <li>{{ _('In una nuova scheda: alla fine ti mostra «%(name)s» con i movimenti', name=account.name) }}</li>
     </ol>
     <form method="GET" action="{{ url_for('accounts.edit', account_id=account.id) }}#bank-link" class="bank-country-form">
       <label class="form-label" for="bank-country">{{ _('Paese') }}</label>
@@ -84,7 +87,7 @@
       </select>
       <noscript><button type="submit" class="btn btn-ghost btn-sm">{{ _('Mostra') }}</button></noscript>
     </form>
-    <form method="POST" action="{{ url_for('banking.connect', account_id=account.id) }}" class="bank-connect-form">
+    <form method="POST" action="{{ url_for('banking.connect', account_id=account.id) }}" class="bank-connect-form" target="_blank" rel="noopener">
       <input type="hidden" name="country" value="{{ bank_link.country }}" />
       <div class="form-group">
         <label class="form-label" for="bank-aspsp">{{ _('Banca') }}</label>
@@ -100,7 +103,7 @@
           <option value="business">{{ _('Azienda') }}</option>
         </select>
       </div>
-      <button type="submit" class="btn btn-outline"><i class="bi bi-box-arrow-up-right"></i> {{ _('Collega a Enable Banking') }}</button>
+      <button type="submit" class="btn btn-outline" title="{{ _('Si apre in una nuova scheda del browser') }}"><i class="bi bi-box-arrow-up-right"></i> {{ _('Collega a Enable Banking') }}</button>
     </form>
     {% endif %}
   {% endif %}

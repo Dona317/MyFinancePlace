@@ -936,3 +936,17 @@ def test_the_relay_page_only_sends_back_to_this_computer():
 
     page = (Path(__file__).resolve().parents[1] / "docs" / "psd2-ritorno" / "index.html").read_text(encoding="utf-8")
     assert "localhost|127\\.0\\.0\\.1" in page and "/banking/callback" in page and "location.replace" in page
+
+
+def test_a_redirect_url_not_registered_says_which_one(client, db, bank):
+    account = _account()
+    bank.fail["/auth"] = eb.ProviderError("Redirect URI not allowed", 422)
+    response = client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
+    html = response.get_data(as_text=True)
+    assert "non accetta l&#39;indirizzo di ritorno http://localhost/banking/callback" in html
+
+
+def test_the_bank_opens_in_the_whole_window_from_the_pop_up(client, db, bank):
+    account = _account()
+    page = client.get(f"/accounts/{account.id}/edit?embed=1").get_data(as_text=True)
+    assert 'class="bank-connect-form" target="_blank"' in page  # a new tab: banks refuse to load inside a frame

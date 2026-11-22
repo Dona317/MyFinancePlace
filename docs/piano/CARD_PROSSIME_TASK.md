@@ -416,6 +416,10 @@ all'uso da parte di amici, senza costi né licenze commerciali.
   4. «Ora apri un conto e premi Collega a Enable Banking».
   App desktop: **porta fissa** del server locale (o `ENABLE_BANKING_REDIRECT_URL`), così l'indirizzo di ritorno non
   cambia a ogni avvio.
+  App desktop: il consenso si apre in una nuova scheda (dal 22 nov), che nella finestra dell'app desktop può finire nel
+  browser di sistema, che non ha la sessione dell'app. Il consenso in attesa (`state`) va tenuto **sul server**
+  (tabella o cache dell'archivio) e non nella sessione del browser, e il ritorno deve funzionare anche senza essere
+  entrati nel browser di sistema: completa il collegamento e dice «torna nell'app».
 - **Dipende da:** T50 (sapere cosa chiede davvero Production) e D17.
 - **Origine:** richiesta del 22 nov 2026 («chiunque scarichi l'app deve poterlo fare in autonomia, senza costi»).
 - **Fatto quando:** una persona che non conosce Enable Banking collega il suo conto seguendo solo le schermate
