@@ -18,7 +18,7 @@
 {% for code, value in currencies.items() %}{% set cash_parts.text = cash_parts.text ~ (' · ' if not loop.first else '') ~ value|money(code) %}{% endfor %}
 {% set stale = reconcile|selectattr('days', 'none')|list + reconcile|rejectattr('days', 'none')|selectattr('days', 'gt', stale_days)|list %}
 {{ stat_row([
-  {'label': _('Liquidità'), 'value': total|money, 'cls': 'positive', 'sub': _('conti attivi e contanti')},
+  {'label': _('Liquidità'), 'value': total|money, 'cls': 'negative' if total < 0 else 'positive', 'sub': _('conti attivi e contanti')},
   {'label': _('Contanti'), 'value': cash.balance|money(cash.symbol), 'href': url_for('accounts.detail', account_id=cash.account.id),
    'sub': cash_parts.text if currencies|length > 1 else None} if cash else None,
   {'label': _('Debiti totali'), 'value': debts.total|money, 'cls': 'purple', 'href': url_for('debt.index'),

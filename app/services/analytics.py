@@ -102,7 +102,7 @@ def monthly_series(year: int) -> dict:
             Transaction.type,
             func.sum(func.abs(Transaction.amount_base)),
         )
-        .filter(extract("year", Transaction.date) == year, Transaction.type.in_(["income", "expense"]))
+        .filter(extract("year", Transaction.date) == year, Transaction.type.in_(["income", "expense"]), analysed())
         .group_by(extract("month", Transaction.date), Transaction.type)
         .all()
     )

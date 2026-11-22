@@ -21,7 +21,7 @@ from app.models.transaction import Transaction
 from app.services import analytics_clusters, budgets, clusters, data_health, deadlines, forecast, wealth
 from app.services.ai_classification import AI_TAG
 from app.services.periods import add_months, first_of_month, month_bounds, month_index, month_label
-from app.services.totals import value_total
+from app.services.totals import analysed, value_total
 
 SIZE = func.abs(func.coalesce(Transaction.amount_base, Transaction.amount))
 NEXT_DAYS = 30
@@ -32,7 +32,7 @@ WEEK = 7
 
 def _by_day(kind: str, start: date, end: date) -> dict[int, float]:
     rows = (db.session.query(Transaction.date, func.sum(SIZE))
-            .filter(Transaction.type == kind, Transaction.date >= start, Transaction.date < end)
+            .filter(Transaction.type == kind, Transaction.date >= start, Transaction.date < end, analysed())
             .group_by(Transaction.date).all())
     return {day.day: float(total or 0) for day, total in rows}
 
@@ -201,10 +201,11 @@ def net_worth_spark(today: date) -> dict:
 def month_saving(today: date, last_12: dict) -> dict:
     """The share of this month's income that is left, and the same over the last 12 months."""
     start, end = month_bounds(today.year, today.month)
+    # without the categories left out of the analyses (Riconciliazione…) and the reversals: they are not savings
     income = float(db.session.query(func.sum(SIZE)).filter(
-        Transaction.type == "income", Transaction.date >= start, Transaction.date < end).scalar() or 0)
+        Transaction.type == "income", Transaction.date >= start, Transaction.date < end, analysed()).scalar() or 0)
     expenses = float(db.session.query(func.sum(SIZE)).filter(
-        Transaction.type == "expense", Transaction.date >= start, Transaction.date < end).scalar() or 0)
+        Transaction.type == "expense", Transaction.date >= start, Transaction.date < end, analysed()).scalar() or 0)
     year_in, year_out = sum(last_12.get("income", [])), sum(last_12.get("expenses", []))
     return {"rate": round((income - expenses) / income * 100, 1) if income else None,
             "average": round((year_in - year_out) / year_in * 100, 1) if year_in else None,

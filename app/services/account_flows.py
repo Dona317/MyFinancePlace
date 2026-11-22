@@ -15,6 +15,7 @@ from sqlalchemy import func
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
+from app.services.totals import analysed
 
 OUTSIDE, NOWHERE = "outside", "none"
 SIZE = func.abs(func.coalesce(Transaction.amount_base, Transaction.amount))
@@ -30,7 +31,7 @@ def flows(start: date, end: date) -> dict:
     rows = (db.session.query(Transaction.type, Transaction.account_id, Transaction.counter_account_id,
                              func.sum(SIZE), func.count(Transaction.id))
             .filter(Transaction.date >= start, Transaction.date < end,
-                    Transaction.type.in_(("income", "expense", "transfer")))
+                    Transaction.type.in_(("income", "expense", "transfer")), analysed())
             .group_by(Transaction.type, Transaction.account_id, Transaction.counter_account_id).all())
     edges: dict[tuple, dict] = {}
     through: dict[str, float] = defaultdict(float)

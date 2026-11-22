@@ -19,6 +19,7 @@ from app.extensions import db
 from app.models.event import SpendingEvent
 from app.models.transaction import Transaction
 from app.services import categories
+from app.services.totals import analysed
 
 SUGGESTIONS = 200
 
@@ -114,7 +115,7 @@ def assign(ids: list[int], event: SpendingEvent | None) -> int:
 def _expenses(start: date, end: date, in_events: bool) -> Decimal:
     event = Transaction.event_id.isnot(None) if in_events else Transaction.event_id.is_(None)
     total = db.session.query(func.sum(func.abs(func.coalesce(Transaction.amount_base, Transaction.amount)))).filter(
-        Transaction.type == "expense", event, Transaction.date >= start, Transaction.date <= end).scalar()
+        Transaction.type == "expense", event, Transaction.date >= start, Transaction.date <= end, analysed()).scalar()
     return Decimal(total or 0)
 
 
