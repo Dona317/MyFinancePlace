@@ -1,7 +1,8 @@
 {# F107: the bank connection of one account, on its edit page — where a bank is linked from (`bank_link` from
    routes.banking.account_panel). Its own card, below the account's form (forms cannot nest). The edit page often
-   opens in the app's pop-up (an iframe): everything that leaves for the bank, or for another page, targets the whole
-   window (_top) — the banks' pages refuse to load inside a frame ("refused to connect"). #}
+   opens in the app's pop-up (an iframe), and the banks' pages refuse to load inside a frame ("refused to connect"): the
+   consent opens in a new tab of the browser (_blank), which comes back to the account when done; the other links
+   leave the pop-up for the whole window (_top). #}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/info.html" import info %}
 {% set here = url_for('accounts.edit', account_id=account.id) ~ '#bank-link' %}
@@ -41,7 +42,7 @@
         </form>
         {% endif %}
         {% if expired or (days_left is not none and days_left <= bank_link.notice_days) %}
-        <form method="POST" action="{{ url_for('banking.renew', connection_id=c.id) }}" target="_top">
+        <form method="POST" action="{{ url_for('banking.renew', connection_id=c.id) }}" target="_blank" rel="noopener">
           <input type="hidden" name="account_id" value="{{ account.id }}" />
           <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-shield-check"></i> {{ _('Rinnova consenso') }}</button>
         </form>
@@ -77,7 +78,7 @@
     <ol class="bank-steps">
       <li>{{ _('Scegli paese e banca') }}</li>
       <li>{{ _('Sul sito della banca accedi e autorizza la lettura') }}</li>
-      <li>{{ _('Torni qui: i movimenti arrivano su «%(name)s»', name=account.name) }}</li>
+      <li>{{ _('In una nuova scheda: alla fine ti mostra «%(name)s» con i movimenti', name=account.name) }}</li>
     </ol>
     <form method="GET" action="{{ url_for('accounts.edit', account_id=account.id) }}#bank-link" class="bank-country-form">
       <label class="form-label" for="bank-country">{{ _('Paese') }}</label>
@@ -86,7 +87,7 @@
       </select>
       <noscript><button type="submit" class="btn btn-ghost btn-sm">{{ _('Mostra') }}</button></noscript>
     </form>
-    <form method="POST" action="{{ url_for('banking.connect', account_id=account.id) }}" class="bank-connect-form" target="_top">
+    <form method="POST" action="{{ url_for('banking.connect', account_id=account.id) }}" class="bank-connect-form" target="_blank" rel="noopener">
       <input type="hidden" name="country" value="{{ bank_link.country }}" />
       <div class="form-group">
         <label class="form-label" for="bank-aspsp">{{ _('Banca') }}</label>
@@ -102,7 +103,7 @@
           <option value="business">{{ _('Azienda') }}</option>
         </select>
       </div>
-      <button type="submit" class="btn btn-outline"><i class="bi bi-box-arrow-up-right"></i> {{ _('Collega a Enable Banking') }}</button>
+      <button type="submit" class="btn btn-outline" title="{{ _('Si apre in una nuova scheda del browser') }}"><i class="bi bi-box-arrow-up-right"></i> {{ _('Collega a Enable Banking') }}</button>
     </form>
     {% endif %}
   {% endif %}

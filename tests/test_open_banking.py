@@ -949,4 +949,4 @@ def test_a_redirect_url_not_registered_says_which_one(client, db, bank):
 def test_the_bank_opens_in_the_whole_window_from_the_pop_up(client, db, bank):
     account = _account()
     page = client.get(f"/accounts/{account.id}/edit?embed=1").get_data(as_text=True)
-    assert 'class="bank-connect-form" target="_top"' in page  # banks refuse to load inside a frame
+    assert 'class="bank-connect-form" target="_blank"' in page  # a new tab: banks refuse to load inside a frame

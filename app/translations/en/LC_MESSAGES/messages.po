@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 15:49+0000\n"
+"POT-Creation-Date: 2026-11-22 16:06+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4645,7 +4645,10 @@ msgid ""
 "Enable Banking non accetta l'indirizzo di ritorno %(url)s: deve essere "
 "identico a uno di quelli registrati nell'applicazione (anche la «/» "
 "finale). Correggilo in Gestione PSD2 → «Indirizzo di ritorno https»."
-msgstr "Enable Banking does not accept the redirect URL %(url)s: it must be identical to one of those registered in the application (the final «/» too). Fix it in PSD2 management → «https redirect URL»."
+msgstr ""
+"Enable Banking does not accept the redirect URL %(url)s: it must be "
+"identical to one of those registered in the application (the final «/» "
+"too). Fix it in PSD2 management → «https redirect URL»."
 
 msgid "Enable Banking non ha indicato la pagina della banca: riprova."
 msgstr "Enable Banking did not give the bank's page: try again."
@@ -6820,6 +6823,10 @@ msgstr "Expiring"
 #, python-format
 msgid "In tutto %(amount)s"
 msgstr "In all %(amount)s"
+
+#, python-format
+msgid "In una nuova scheda: alla fine ti mostra «%(name)s» con i movimenti"
+msgstr "In a new tab: at the end it shows «%(name)s» with the transactions"
 
 msgid "In uso"
 msgstr "In use"
@@ -13266,6 +13273,9 @@ msgstr "Sections of «%(name)s» updated."
 msgid "Sforate"
 msgstr "Over budget"
 
+msgid "Si apre in una nuova scheda del browser"
+msgstr "Opens in a new browser tab"
+
 msgid "Si chiudono solo gli anni passati."
 msgstr "Only past years can be closed."
 
@@ -14127,10 +14137,6 @@ msgstr "Back"
 
 msgid "Torna su"
 msgstr "Back to the top"
-
-#, python-format
-msgid "Torni qui: i movimenti arrivano su «%(name)s»"
-msgstr "Back here: the transactions arrive on «%(name)s»"
 
 msgid "Torta con la distribuzione delle entrate: anno, semestre o trimestre"
 msgstr "Pie of the income: year, half or quarter"
