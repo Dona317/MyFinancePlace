@@ -141,7 +141,25 @@ def save_credentials():
               "error")
         return _manage()
     flash(_("Credenziali di Enable Banking salvate."), "success")
+    _check()
     return _manage()
+
+
+@banking_bp.route("/credentials/check", methods=["POST"])
+def check_credentials():
+    """«Verifica applicazione»: what Enable Banking says about it, and what is missing."""
+    _check()
+    return _manage()
+
+
+def _check() -> None:
+    try:
+        info = open_banking.check_application(_redirect_url())
+    except open_banking.BankingError as exc:
+        flash(str(exc), "error")
+        return
+    for level, text in open_banking.describe_application(info, _redirect_url()):
+        flash(text, level)
 
 
 @banking_bp.route("/credentials/delete", methods=["POST"])

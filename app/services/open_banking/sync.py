@@ -89,6 +89,37 @@ def configured() -> bool:
     return credentials.current() is not None
 
 
+def check_application(redirect_url: str) -> dict:
+    """What Enable Banking says about the application: name, environment, active, the redirect URLs registered and
+    whether the app's own is among them. BankingError when the credentials are refused or the API is not reachable."""
+    try:
+        info = client.application(_credentials())
+    except client.ProviderError as exc:
+        raise BankingError(_message(exc)) from exc
+    urls = [str(u) for u in (info.get("redirect_urls") or [])]
+    environment = str(info.get("environment") or "").upper() or None
+    return {"name": info.get("name"), "environment": environment, "active": info.get("active"),
+            "redirect_urls": urls, "redirect_ok": redirect_url in urls if urls else None,
+            "production": environment == "PRODUCTION"}
+
+
+def describe_application(info: dict, redirect_url: str) -> list[tuple[str, str]]:
+    """The check as messages for the page: (level, text), worst first."""
+    found = []
+    if info["active"] is False:
+        found.append(("warning", _("L'applicazione non è attiva: nel pannello di Enable Banking usa «Activate by linking "
+                                   "accounts» e collega i tuoi conti.")))
+    if info["redirect_ok"] is False:
+        found.append(("warning", _("L'indirizzo di ritorno dell'app (%(url)s) non è tra quelli registrati "
+                                   "nell'applicazione: aggiungilo nel pannello di Enable Banking.", url=redirect_url)))
+    environment = {"PRODUCTION": _("Production (banche vere)"), "SANDBOX": _("Sandbox (banche di prova)")}.get(
+        info["environment"] or "", info["environment"] or "?")
+    state = {True: _("attiva"), False: _("non attiva")}.get(info["active"], _("stato non indicato"))
+    found.append(("success", _("Applicazione «%(name)s» · %(environment)s · %(state)s.", name=info["name"] or "?",
+                               environment=environment, state=state)))
+    return found
+
+
 def psu_headers() -> dict:
     """The user is there (a download asked from a page): the bank does not count it among the unattended ones."""
     return {"Psu-Ip-Address": request.remote_addr or "", "Psu-User-Agent": request.headers.get("User-Agent", "")}

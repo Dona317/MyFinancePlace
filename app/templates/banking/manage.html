@@ -107,6 +107,7 @@
       <button type="button" class="copy-btn" data-copy="{{ redirect_url }}" title="{{ _('Copia') }}" aria-label="{{ _('Copia') }}"><i class="bi bi-clipboard"></i></button></p>
     {% if status.environment %}
       <p class="text-muted">{{ _('Credenziali impostate dal server (ENABLE_BANKING_APP_ID, ENABLE_BANKING_KEY_FILE): applicazione %(app)s.', app=status.app_id or '—') }}</p>
+      <form method="POST" action="{{ url_for('banking.check_credentials') }}"><button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-clipboard-check"></i> {{ _('Verifica applicazione') }}</button></form>
     {% else %}
     <form method="POST" action="{{ url_for('banking.save_credentials') }}" enctype="multipart/form-data" class="bank-credentials-form">
       <div class="form-group">
@@ -125,10 +126,12 @@
         {% if status.configured %}
         <button type="submit" form="bank-credentials-delete" class="btn btn-danger-ghost btn-sm">{{ _('Rimuovi credenziali') }}</button>
         {% endif %}
+        {% if status.configured %}<button type="submit" form="bank-credentials-check" class="btn btn-ghost btn-sm"><i class="bi bi-clipboard-check"></i> {{ _('Verifica applicazione') }}</button>{% endif %}
         <button type="submit" class="btn btn-outline">{{ _('Salva credenziali') }}</button>
       </div>
     </form>
     {% if status.configured %}
+    <form method="POST" id="bank-credentials-check" action="{{ url_for('banking.check_credentials') }}"></form>
     <form method="POST" id="bank-credentials-delete" action="{{ url_for('banking.delete_credentials') }}"
           data-confirm="{{ _('Rimuovere le credenziali? I download si fermano finché non le inserisci di nuovo.') }}"></form>
     {% endif %}

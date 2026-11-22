@@ -857,3 +857,34 @@ def test_a_user_who_is_not_administrator_sees_only_their_archive(app, db, monkey
     monkeypatch.setattr(studio, "sees_archives", lambda: False)
     with app.test_request_context("/"):
         assert open_banking.archives_shown() == [studio.primary()]
+
+
+def test_check_the_application(client, db, bank):
+    bank.app_info = {"name": "MFP", "environment": "production", "active": False,
+                     "redirect_urls": ["https://elsewhere.example/cb"]}
+    original = bank.__call__
+
+    class WithApp(FakeBank):
+        def __call__(self, *args, **kwargs):
+            return dict(bank.app_info) if args[2] == "/application" else original(*args, **kwargs)
+
+    sync.client.request = WithApp()
+    html = client.post("/banking/credentials/check", follow_redirects=True).get_data(as_text=True)
+    assert "non è attiva" in html and "non è tra quelli registrati" in html and "Production (banche vere)" in html
+    bank.app_info = {"name": "MFP", "environment": "SANDBOX", "active": True,
+                     "redirect_urls": ["http://localhost/banking/callback"]}
+    info = open_banking.check_application("http://localhost/banking/callback")
+    assert info["redirect_ok"] and not info["production"]
+    messages = open_banking.describe_application(info, "http://localhost/banking/callback")
+    assert messages == [("success", "Applicazione «MFP» · Sandbox (banche di prova) · attiva.")]
+    bank.app_info = {}
+    info = open_banking.check_application("x")
+    assert info["redirect_ok"] is None and "stato non indicato" in open_banking.describe_application(info, "x")[0][1]
+
+
+def test_check_reports_refused_credentials(client, db, bank, pem):
+    bank.fail["/application"] = eb.ProviderError("Application does not exist", 403)
+    response = client.post("/banking/credentials", data={"app_id": "app-9", "key_text": pem}, follow_redirects=True)
+    html = response.get_data(as_text=True)
+    assert "Credenziali di Enable Banking salvate" in html and "Application does not exist" in html
+    assert "Verifica applicazione" in html
