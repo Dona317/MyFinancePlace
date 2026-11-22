@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>MyFinancePlace · ritorno dalla banca</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 540px; margin: 64px auto; padding: 0 16px; color: #1f2933; }
+  h1 { font-size: 20px; } code { word-break: break-all; } a { color: #c2410c; }
+</style>
+</head>
+<body>
+<h1>Ritorno dalla banca…</h1>
+<p id="msg">Ti riporto in MyFinancePlace, sul tuo computer.</p>
+<script>
+/* MyFinancePlace (F107): the https page Enable Banking sends the browser back to after the consent (Production only
+   accepts https). It sends the browser on to the app running on this same computer, with the same query (code, state).
+   The app's address is the last part of `state` (base64 of "localhost:5000"); only localhost / 127.0.0.1 are accepted.
+   Nothing is stored or sent anywhere else: the code is single-use and useless without the app's private key. */
+(function () {
+  var query = location.search, params = new URLSearchParams(query);
+  var state = params.get("state") || "", host = "localhost:5000", parts = state.split(".");
+  if (parts.length > 1) {
+    try { host = atob(parts[parts.length - 1].replace(/-/g, "+").replace(/_/g, "/")); } catch (e) { host = ""; }
+  }
+  var msg = document.getElementById("msg");
+  if (!/^(localhost|127\.0\.0\.1)(:\d{1,5})?$/.test(host)) {
+    msg.textContent = "Indirizzo dell'app non riconosciuto: apri MyFinancePlace, Gestione PSD2, e incolla l'indirizzo di questa pagina in «Bloccato al ritorno dalla banca?».";
+    return;
+  }
+  var target = "http://" + host + "/banking/callback" + query;
+  msg.innerHTML = 'Ti riporto in MyFinancePlace… Se non succede nulla, <a id="go">clicca qui</a>.';
+  document.getElementById("go").href = target;
+  location.replace(target);
+})();
+</script>
+</body>
+</html>

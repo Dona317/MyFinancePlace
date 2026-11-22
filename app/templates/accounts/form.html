@@ -106,5 +106,6 @@
       </form>
     </div>
   </div>
+  {% if is_edit and bank_link %}{% include "banking/_account_link.html" %}{% endif %}
 </div>
 {% endblock %}

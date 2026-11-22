@@ -82,7 +82,10 @@ def _account_from_form(account: Account) -> Account:
 
 
 def _render_form(account, values):
+    from app.routes.banking import account_panel  # F107: the account's bank connection, linked from here
+
     return render_template("accounts/form.html", tax_regimes=TAX_REGIMES, account=account, kinds=accounts.KINDS, currencies=CURRENCIES,
+                           bank_link=account_panel(account),
                            dossier=securities.dossier_of(account), dossier_kinds=DOSSIER_KINDS,
                            values=values, foreign=accounts.foreign_openings(account) if account else {}, card_kinds=card_service.KINDS, card_icons=card_service.ICONS, networks=card_service.NETWORKS)
 

@@ -325,3 +325,93 @@ partenza sono nella sezione 16 di DESIGN.md.
 - **Dipende da:** T47 (le variabili da usare nelle classi).
 - **Origine:** DESIGN.md 12, 16.
 - **Fatto quando:** meno di 50 `style="…"` in tutti i template, solo per valori calcolati (larghezze di barre, colori presi dai dati).
+
+---
+
+## Giro PSD2 — Dopo la prova in sandbox (22 nov 2026)
+
+La lettura via PSD2 (F107, D16) funziona con la sandbox vera di Enable Banking. Queste card portano ai conti veri e
+all'uso da parte di amici, senza costi né licenze commerciali.
+
+**Card T49 — Cambi aggiornati da soli, solo per le valute in uso (e niente più 1:1 nascosto)**
+- **Area:** Dati e qualità · **Giro:** PSD2 · **Priorità:** Alta · **Sforzo:** M
+- **Problema (visto nella prova sandbox del 22 nov):** i movimenti del conto di prova in corone danesi sono stati
+  contati in euro 1:1 (+2,70 DKK mostrati come +€ 2,70; il saldo 13.066 DKK vale circa 1.750 €, non 13.066 €).
+  Le cause sono due, in `app/services/currency.py`:
+  1. `to_base()` usa `rate_on(...) or Decimal(1)`: **senza cambio conta 1:1 senza dirlo** (anche `Transaction.magnitude`
+     ricade sull'importo quando `amount_base` manca);
+  2. i cambi si scaricano **solo a mano** (Impostazioni → Valute → «BCE», `download_ecb`), e scaricano **tutte** le
+     valute della BCE degli ultimi 90 giorni: una valuta arrivata da un import o dal PSD2 resta senza cambi, e uno
+     storico più vecchio di 90 giorni non c'è mai.
+- **Cosa fare:**
+  1. **Valute in uso** — `currency.in_use()`: l'insieme, senza l'euro, delle valute di movimenti (`transactions.currency`),
+     conti (`accounts.currency`), contanti in altre valute (`accounts.opening_foreign`), titoli (`holdings.currency`) e
+     della valuta di base se non è l'euro. Per ognuna, **da quando serve**: la data del primo movimento in quella valuta
+     (o la data di apertura del conto o del titolo).
+  2. **Si scarica solo quello che manca, solo per quelle valute** — dal Data Portal della BCE, che risponde per singola
+     valuta e periodo: `https://data-api.ecb.europa.eu/service/data/EXR/D.DKK+USD.EUR.SP00.A?startPeriod=AAAA-MM-GG&format=csvdata`
+     (una chiamata per tutte le valute in uso; la BCE dà le unità per 1 €, si salva l'inverso come oggi). Per ogni
+     valuta si parte dal giorno dopo l'ultimo cambio BCE già salvato, o dalla data del primo uso se non ce n'è nessuno:
+     il primo giro scarica lo storico che serve, quelli dopo un giorno o due. Nessuna valuta in uso = nessuna chiamata.
+     URL e formato da verificare alla prima chiamata vera; resta `eurofxref-daily.xml` come riserva per il giorno.
+  3. **Quando:**
+     - **una volta al giorno**, come i prezzi (`price_feed.refresh_in_background`): alla prima visita della dashboard, in
+       un thread, e nel giro orario dell'app desktop per tutti gli archivi (`desktop/main.py`, accanto a `read_prices`);
+       la BCE pubblica verso le 16 dei giorni lavorativi, quindi basta un controllo al giorno dopo quell'ora;
+     - **subito, quando entra una valuta nuova**: dopo il salvataggio di un import (file o PSD2), di un movimento o di un
+       conto in una valuta che non ha cambi per quelle date, parte lo scaricamento in background per quella valuta.
+  4. **Dopo lo scaricamento**, `recompute(valuta)` solo sui movimenti di quella valuta dalla prima data nuova in poi (non
+     su tutto l'archivio).
+  5. **Niente più 1:1 nascosto**: un movimento senza cambio per la sua data resta conteggiato come oggi finché non arriva
+     il cambio, ma è **segnato**. Compare in Salute dei dati come «N movimenti in DKK senza cambio», con un promemoria,
+     e accanto all'importo c'è «cambio mancante». Si toglie da solo quando il cambio arriva.
+  6. **Cambi che non si toccano**: quelli scritti a mano (`source="manual"`) restano; quelli che manda la banca via PSD2
+     (`exchange_rate` del movimento, `source="bank"`) valgono per quel movimento (`account_amount`) e hanno la precedenza.
+  7. **Impostazioni → Valute**: interruttore «Aggiorna i cambi da soli» (acceso di default), stato («aggiornati al
+     21/11/2026 · DKK, USD»), ultimo errore se la rete manca (si riprova al giro dopo); il pulsante «Scarica ora» resta.
+     Le valute senza uso non compaiono e non si scaricano.
+- **Test:**
+  - con la BCE finta, viene chiesta solo la valuta in uso (`D.DKK.EUR…`) e solo dal giorno che manca;
+  - nessuna chiamata senza valute estere;
+  - i cambi scritti a mano non vengono sovrascritti;
+  - il ricalcolo tocca solo i movimenti della valuta;
+  - il controllo parte una volta al giorno;
+  - senza rete l'errore viene tenuto e la valuta resta segnata «cambio mancante»;
+  - una valuta nuova da un import fa partire lo scaricamento.
+- **Dipende da:** niente. Serve la rete verso `data-api.ecb.europa.eu`, che sul PC c'è.
+- **Origine:** prova sandbox PSD2 del 22 nov 2026 (conto «Ida Jensen», DKK).
+- **Fatto quando:** un conto in DKK importato senza cambi, al primo giro, scarica i cambi BCE della sola DKK dal primo
+  movimento a oggi. I totali in euro tornano: 13.066,20 DKK ≈ 1.750 €. Nei giorni dopo arriva solo il cambio nuovo.
+  Senza rete i movimenti risultano «cambio mancante» e non come euro.
+
+**Card T50 — Prova con un conto vero (Production in modalità ristretta)**
+- **Area:** PSD2 · **Giro:** PSD2 · **Priorità:** Alta · **Sforzo:** S
+- **Descrizione:** su Enable Banking un'applicazione **Production**, attivata con «Activate by linking accounts»
+  collegando il proprio conto dal pannello (gratuita, senza contratto, legge solo i conti collegati lì). Credenziali
+  in Gestione PSD2 al posto di quelle sandbox, prova in un archivio di prova («prova1234») per non mescolare dati.
+  Da verificare: se Production accetta `http://localhost:5000/banking/callback` come la sandbox, quanto dura il
+  collegamento fatto dal pannello e se va rinnovato insieme al consenso dell'app, cosa manda davvero la banca italiana
+  (causali, controparti, MCC, id dei movimenti).
+- **Dipende da:** la tua registrazione dell'applicazione Production.
+- **Origine:** F107, D16; prova sandbox del 22 nov.
+- **Fatto quando:** i movimenti degli ultimi 90 giorni del tuo conto arrivano, si rivedono e si salvano; i risultati
+  sono in `docs/tecnica/PSD2.md`.
+
+**Card T51 — Attivazione guidata per chi scarica l'app (amici)**
+- **Area:** PSD2 · **Giro:** PSD2 · **Priorità:** Media · **Sforzo:** M
+- **Descrizione:** in modalità ristretta ognuno legge **solo i conti collegati alla propria applicazione**: chi usa
+  l'app (un amico) crea la sua applicazione Enable Banking gratuita, non usa la tua (la tua chiave darebbe accesso
+  anche ai tuoi conti). Per renderlo semplice, una procedura guidata in Gestione PSD2:
+  1. cosa serve e perché (2 righe), link alla registrazione di Enable Banking;
+  2. i valori da copiare nel modulo di Enable Banking, ognuno con il pulsante «copia»: nome, indirizzo di ritorno
+     esatto, privacy/termini;
+  3. caricamento di ID e `.pem` con **controllo immediato** (`GET /application`): nome, ambiente, attiva o no,
+     indirizzi di ritorno registrati — con l'avviso «l'indirizzo dell'app non è tra quelli registrati» o «applicazione
+     non attiva: collega i tuoi conti nel pannello (Activate by linking accounts)»;
+  4. «Ora apri un conto e premi Collega a Enable Banking».
+  App desktop: **porta fissa** del server locale (o `ENABLE_BANKING_REDIRECT_URL`), così l'indirizzo di ritorno non
+  cambia a ogni avvio.
+- **Dipende da:** T50 (sapere cosa chiede davvero Production) e D17.
+- **Origine:** richiesta del 22 nov 2026 («chiunque scarichi l'app deve poterlo fare in autonomia, senza costi»).
+- **Fatto quando:** una persona che non conosce Enable Banking collega il suo conto seguendo solo le schermate
+  dell'app, in meno di 15 minuti.

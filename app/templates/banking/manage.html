@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/info.html" import info %}
+
+{% block title %}{{ _('Gestione PSD2') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Gestione PSD2') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Gestione PSD2') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('banking.index') }}" class="btn btn-ghost btn-sm"><i class="bi bi-link-45deg"></i> {{ _('Collegamenti di questo archivio') }}</a>
+{% endblock %}
+
+{% block content %}
+{# ── Every connection of every archive ───────────────────────────────────────── #}
+<div class="card mb-16" id="connections">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-bank2"></i> {{ _('Collegamenti') }} {{ info(_('Ogni collegamento (un consenso dato a una banca) appartiene a un archivio; un archivio può averne più di uno.')) }}</div>
+      <div class="card-header-sub">{{ _('%(count)s collegamenti in %(archives)s archivi', count=connections|length, archives=archives|length) }} · {{ _('si collega una banca dalla pagina di un conto («Modifica» → «Collega a Enable Banking»)') }}</div>
+    </div>
+  </div>
+  {% if connections %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr>
+        <th>{{ _('Archivio') }}</th><th>{{ _('Banca') }}</th><th>{{ _('Consenso') }}</th><th class="text-right">{{ _('Conti') }}</th>
+        <th class="text-right">{{ _('Da controllare') }}</th><th class="text-right">{{ _('In attesa alla banca') }}</th>
+        <th>{{ _('Ultimo download') }}</th><th class="text-right">{{ _('Letture automatiche oggi') }} {{ info(_('La PSD2 permette quattro letture al giorno per conto senza di te; quelle che fai con «Aggiorna ora» non contano.')) }}</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for c in connections %}
+      {% set days_left = ((c.valid_until - now_utc).days) if c.valid_until else none %}
+        <tr>
+          <td>{{ c.archive.name }}</td>
+          <td>{{ c.bank }}{% if c.error %}<div class="text-muted bank-error" title="{{ c.error }}"><i class="bi bi-exclamation-triangle"></i> {{ _('ultimo download non riuscito') }}</div>{% endif %}</td>
+          <td>
+            {% if c.expired %}<span class="badge badge-negative">{{ _('Scaduto') }}</span>
+            {% elif days_left is not none and days_left <= notice_days %}<span class="badge badge-warning">{{ _('Scade il %(day)s', day=c.valid_until.date()|it_date) }}</span>
+            {% elif c.valid_until %}<span class="badge badge-positive">{{ _('Fino al %(day)s', day=c.valid_until.date()|it_date) }}</span>
+            {% else %}<span class="badge badge-positive">{{ _('Attivo') }}</span>{% endif %}
+          </td>
+          <td class="text-right">{{ c.mapped }}/{{ c.accounts }}</td>
+          <td class="text-right">{{ c.waiting }}</td>
+          <td class="text-right">{{ c.at_bank }}</td>
+          <td>{{ c.last_sync|it_date if c.last_sync else _('mai') }}</td>
+          <td class="text-right">{{ c.auto_today }}/4{% if not c.auto_sync %} · {{ _('spento') }}{% endif %}</td>
+          <td class="text-right">
+            <form method="POST" action="{{ url_for('banking.open_archive', client_id=c.archive.id) }}">
+              <input type="hidden" name="connection" value="{{ c.id }}" />
+              <button type="submit" class="btn btn-ghost btn-sm">{{ _('Apri') }} <i class="bi bi-chevron-right"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body">{{ empty_state(text=_('Nessuna banca collegata in nessun archivio.'), compact=True) }}</div>
+  {% endif %}
+</div>
+
+{# ── The accesses ───────────────────────────────────────────────────────────── #}
+<div class="card mb-16" id="accesses">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-clock-history"></i> {{ _('Registro degli accessi') }}</div>
+      <div class="card-header-sub">{{ _('Ogni consenso e ogni download, con l\'archivio per cui è stato fatto (gli ultimi %(count)s)', count=30) }}</div>
+    </div>
+  </div>
+  {% if accesses %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Quando') }}</th><th>{{ _('Archivio') }}</th><th>{{ _('Banca') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Esito') }}</th>
+        <th class="text-right">{{ _('Salvati') }}</th><th class="text-right">{{ _('Da controllare') }}</th><th class="text-right">{{ _('In attesa alla banca') }}</th></tr></thead>
+      <tbody>
+      {% for a in accesses %}
+        <tr>
+          <td>{{ a.at|it_date }} {{ a.at.strftime('%H:%M') }} UTC</td>
+          <td>{{ a.archive.name }}</td>
+          <td>{{ a.bank }}</td>
+          <td>{{ {'consent': _('Consenso'), 'manual': _('A mano'), 'auto': _('Automatico')}.get(a.kind, a.kind) }}</td>
+          <td>{% if a.ok %}<span class="badge badge-positive">{{ _('Riuscito') }}</span>{% else %}<span class="badge badge-negative" title="{{ a.message }}">{{ _('Non riuscito') }}</span>{% endif %}</td>
+          <td class="text-right">{{ a.saved }}</td><td class="text-right">{{ a.waiting }}</td><td class="text-right">{{ a.at_bank }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body">{{ empty_state(text=_('Nessun accesso ancora.'), compact=True) }}</div>
+  {% endif %}
+</div>
+
+{# ── The Enable Banking application (one for the whole app) ─────────────────── #}
+<div class="card" id="credentials">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-key"></i> {{ _('Applicazione Enable Banking') }}
+        {% if status.configured %}<span class="badge badge-positive">{{ _('Configurata') }}</span>{% else %}<span class="badge badge-muted">{{ _('Da configurare') }}</span>{% endif %}</div>
+      <div class="card-header-sub">{{ _("Registrala su enablebanking.com (Control panel → Applications): per i tuoi conti basta la modalità ristretta, gratuita, collegando i conti dal pannello") }}</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="bank-redirect">{{ _('Indirizzo di ritorno da registrare nell\'applicazione:') }}
+      <code id="bank-redirect-url">{{ redirect_url }}</code>
+      <button type="button" class="copy-btn" data-copy="{{ redirect_url }}" title="{{ _('Copia') }}" aria-label="{{ _('Copia') }}"><i class="bi bi-clipboard"></i></button></p>
+    {% if not redirect_url.startswith('https://') %}
+    <p class="form-hint">{{ _("Va bene per la Sandbox. Per le banche vere (Production) Enable Banking accetta solo indirizzi https: pubblica la pagina di ritorno (guida PSD2, «Pagina di ritorno») e scrivi qui sotto il suo indirizzo.") }}</p>
+    {% endif %}
+    {% if status.environment %}
+      <p class="text-muted">{{ _('Credenziali impostate dal server (ENABLE_BANKING_APP_ID, ENABLE_BANKING_KEY_FILE): applicazione %(app)s.', app=status.app_id or '—') }}</p>
+      <form method="POST" action="{{ url_for('banking.check_credentials') }}"><button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-clipboard-check"></i> {{ _('Verifica applicazione') }}</button></form>
+    {% else %}
+    <form method="POST" action="{{ url_for('banking.save_credentials') }}" enctype="multipart/form-data" class="bank-credentials-form">
+      <div class="form-group">
+        <label class="form-label" for="bank-app-id">{{ _("ID dell'applicazione") }}</label>
+        <input id="bank-app-id" name="app_id" class="form-control" required value="{{ status.app_id or '' }}" placeholder="aad1c4f0-…" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="bank-key-file">{{ _('Chiave privata (.pem)') }} {{ info(_('Il file scaricato quando hai creato l\'applicazione. Viene conservato cifrato nella cartella dei dati.')) }}</label>
+        <input id="bank-key-file" type="file" name="file" class="form-control" accept=".pem,.key,.txt" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="bank-key-text">{{ _('…oppure incolla la chiave') }}</label>
+        <textarea id="bank-key-text" name="key_text" class="form-control bank-key-text" rows="3" placeholder="-----BEGIN PRIVATE KEY-----"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="bank-redirect">{{ _('Indirizzo di ritorno https (per Production)') }} {{ info(_("La pagina pubblica a cui la banca rimanda dopo il consenso, che ti riporta subito nell'app sul tuo computer. Vuoto: l'indirizzo dell'app, che va bene solo per la Sandbox.")) }}</label>
+        <input id="bank-redirect" name="redirect_url" class="form-control" value="{{ status.redirect_url or '' }}" placeholder="https://nome.github.io/mfp-ritorno/" autocomplete="off" />
+      </div>
+      {% if status.configured %}<p class="form-hint">{{ _('Chiave vuota: resta quella già salvata per questa applicazione (per cambiare solo l\'indirizzo di ritorno).') }}</p>{% endif %}
+      <div class="form-actions">
+        {% if status.configured %}
+        <button type="submit" form="bank-credentials-delete" class="btn btn-danger-ghost btn-sm">{{ _('Rimuovi credenziali') }}</button>
+        {% endif %}
+        {% if status.configured %}<button type="submit" form="bank-credentials-check" class="btn btn-ghost btn-sm"><i class="bi bi-clipboard-check"></i> {{ _('Verifica applicazione') }}</button>{% endif %}
+        <button type="submit" class="btn btn-outline">{{ _('Salva credenziali') }}</button>
+      </div>
+    </form>
+    {% if status.configured %}
+    <form method="POST" id="bank-credentials-check" action="{{ url_for('banking.check_credentials') }}"></form>
+    <form method="POST" id="bank-credentials-delete" action="{{ url_for('banking.delete_credentials') }}"
+          data-confirm="{{ _('Rimuovere le credenziali? I download si fermano finché non le inserisci di nuovo.') }}"></form>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+{# ── The way back did not load ──────────────────────────────────────────────── #}
+<div class="card mt-16" id="paste-return">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-signpost-split"></i> {{ _('Bloccato al ritorno dalla banca?') }}</div>
+    <div class="card-header-sub">{{ _("Se dopo il consenso il browser resta su una pagina che non si carica, copia il suo indirizzo (contiene «code=» e «state=») e incollalo qui: il collegamento si completa.") }}</div>
+  </div></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('banking.paste_return') }}" class="bank-paste-form">
+      <input name="url" class="form-control" required placeholder="https://…/banking/callback?state=…&code=…" autocomplete="off" aria-label="{{ _('Indirizzo della pagina di ritorno') }}" />
+      <button type="submit" class="btn btn-ghost">{{ _('Completa il collegamento') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

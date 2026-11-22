@@ -13,6 +13,7 @@ from app.services import (
     encrypted_backup,
     forecast,
     i18n,
+    open_banking,
     performance,
     portfolio_overview,
     price_feed,
@@ -171,6 +172,7 @@ def dashboard():
     valuations.refresh_daily()  # the depreciation of the cars and the like, once a day
     price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
     encrypted_backup.run_in_background()  # the automatic encrypted backup, when due
+    open_banking.run_in_background()  # F107: the bank connections due, downloaded in a thread
     today = date.today()
     settings = current_settings()
     dashboard_prefs.upgrade()  # an arrangement saved before the bands (UI-18) goes to the new page once

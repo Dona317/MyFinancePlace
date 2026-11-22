@@ -38,6 +38,7 @@ le decisioni prese e quelle aperte.
 | [DESIGN.md](tecnica/DESIGN.md) | Linee guida di design: principi, colori, testi, componenti, checklist per le pagine nuove, registro delle decisioni UI |
 | [GUIDA_SVILUPPO.md](tecnica/GUIDA_SVILUPPO.md) | Guida per lo sviluppo: architettura, convenzioni, come aggiungere una funzionalità (in inglese) |
 | [DEPLOY.md](tecnica/DEPLOY.md) | L'app come servizio: Docker, HTTPS, backup, aggiornamenti (in inglese) |
+| [PSD2.md](tecnica/PSD2.md) | La lettura dei movimenti via PSD2 con Enable Banking: come registrare l'applicazione, collegare una banca, come funziona la sync |
 | [DESKTOP.md](tecnica/DESKTOP.md) | L'app desktop: pacchetti, notifiche, avvio automatico, installatore, pubblicare una versione |
 
 ## Fuori da questa cartella

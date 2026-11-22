@@ -68,6 +68,8 @@
           <a href="{{ url_for('settings.ai_models_page') }}">{{ _('Configura un modello AI') }}</a></span>
       {% endif %}
     </p>
+    <p class="form-hint"><i class="bi bi-link-45deg"></i> {{ _('Senza scaricare file:') }}
+      <a href="{{ url_for('banking.index') }}"{% if only_bank %} target="_top"{% endif %}>{{ _('collega la banca (PSD2)') }}</a></p>
   </div>
 </div>
 

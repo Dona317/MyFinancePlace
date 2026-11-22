@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.account import Account
+from app.models.bank_link import BankAccountLink
 from app.routes.helpers import download, export_file, export_name, form_ids, uploaded_file, year_arg
 from app.services import (
     accounts,
@@ -25,13 +26,13 @@ from app.services import (
     encrypted_backup,
     field_crypto,
     import_presets,
+    open_banking,
     statement_readers,
     transfer,
     upload_store,
 )
 from app.services import cards as card_service
 from app.services.categories import known_categories
-from app.services.parsing import to_decimal
 from app.services.periods import year_bounds
 from app.services.tags import all_tags
 
@@ -41,6 +42,11 @@ export_bp = APIBlueprint(
     url_prefix="/export",
     tag="Export"
 )
+
+
+def _encrypted_fields() -> list:
+    """Every encrypted value of the archive: card numbers and the sessions of the bank connections."""
+    return card_service.encrypted_fields() + open_banking.encrypted_fields()
 
 
 def _preview_serializer() -> URLSafeSerializer:
@@ -57,7 +63,7 @@ def index():
         auto=encrypted_backup.status(),
         frequencies=encrypted_backup.FREQUENCIES,
         key_from_env=field_crypto.from_environment(), key_code=field_crypto.fingerprint(),
-        unreadable=field_crypto.unreadable(card_service.encrypted_fields()),
+        unreadable=field_crypto.unreadable(_encrypted_fields()),
     )
 
 
@@ -83,7 +89,7 @@ def data_key_restore():
         flash(_("La chiave è impostata dal server (MFP_DATA_KEY): si cambia lì."), "error")
         return redirect(url_for("export.index") + "#data-key")
     try:
-        again, readable = field_crypto.replace_key(request.form.get("key", ""), card_service.encrypted_fields())
+        again, readable = field_crypto.replace_key(request.form.get("key", ""), _encrypted_fields())
     except ValueError:
         flash(_("Questa non è una chiave di MyFinancePlace: incolla tutto il testo della chiave salvata."), "error")
         return redirect(url_for("export.index") + "#data-key")
@@ -153,15 +159,15 @@ def restore():
     except backup.BackupError as exc:
         flash(str(exc), "error")
         return redirect(url_for("export.index") + "#backup")
-    if carried and not field_crypto.from_environment() and field_crypto.unreadable(card_service.encrypted_fields()):
+    if carried and not field_crypto.from_environment() and field_crypto.unreadable(_encrypted_fields()):
         try:
-            field_crypto.replace_key(carried, card_service.encrypted_fields())
+            field_crypto.replace_key(carried, _encrypted_fields())
             db.session.commit()
             flash(_("Anche la chiave dei dati cifrati era nel backup: è in uso (codice %(code)s), i numeri delle carte "
                     "si leggono.", code=field_crypto.fingerprint()), "info")
         except ValueError:
             pass  # a damaged key entry: the warning below says what to do
-    if field_crypto.unreadable(card_service.encrypted_fields()):
+    if field_crypto.unreadable(_encrypted_fields()):
         flash(_("I numeri delle carte del backup sono cifrati con la chiave di un altro computer: inseriscila in "
                 "«Chiave dei dati cifrati» per leggerli."), "warning")
     flash(
@@ -336,16 +342,20 @@ def import_csv():
 #                                                                     (background job, see ai_jobs)
 
 def _render_preview(preview, filename: str, ai_retry: str | None = None, text: str = "",
-                    mapped: dict | None = None, preset: dict | None = None):
+                    mapped: dict | None = None, preset: dict | None = None, account_id: int | None = None,
+                    psd2_link: int | None = None):
     """The editable preview; `mapped` (the columns of a manually mapped file) lets the user save them as a preset,
-    `preset` is the one applied to the file (its account is proposed)."""
+    `preset` is the one applied to the file (its account is proposed). `account_id`: the account the movements
+    belong to, when known (a bank connection's); `psd2_link`: the connection's account whose waiting movements
+    these are (they stop waiting once confirmed)."""
     payload = _preview_serializer().dumps({
         "bank": preview.bank.key,
         "ai": bool(preview.ai_model),
         "rows": [row.to_dict() for row in preview.rows],
         "mapped": mapped,
+        "psd2_link": psd2_link,
     })
-    suggested = _suggested_account(preview.bank.name, text)
+    suggested = account_id or _suggested_account(preview.bank.name, text)
     preset_account = (preset or {}).get("options", {}).get("account_id")
     if preset_account and any(a.id == preset_account for a in accounts.active()):
         suggested = preset_account
@@ -558,25 +568,6 @@ def bank_ai_cancel(token):
 PREVIEW_FIELDS = ("date", "description", "amount", "type", "category", "counterparty", "aicat", "aitag")
 
 
-def _assign_account(tx, base: dict, account: Account) -> None:
-    """Money coming in through a transfer arrives on `account`; everything else moves from it. The preview shows
-    amounts without sign: the direction comes from the statement row as read."""
-    if tx.type == "transfer" and not _outgoing(base):
-        tx.counter_account_id = account.id
-    else:
-        tx.account_id = account.id
-    other = base.get("own_account")  # the IBAN of another account in the row: the other side of the giroconto
-    if tx.type == "transfer" and other and other != account.id and db.session.get(Account, other) is not None:
-        if _outgoing(base):
-            tx.counter_account_id = other
-        else:
-            tx.account_id = other
-
-
-def _outgoing(base: dict) -> bool:
-    return (to_decimal(base.get("amount")) or 0) <= 0
-
-
 def _join_transfer(tx, base: dict, index: int, account: Account, taken: set[int]) -> bool:
     """Money moved between own accounts, whose other side is already saved from the other account's statement:
     that transaction becomes one transfer with both accounts (True) and this row adds nothing. A row the preview
@@ -586,7 +577,7 @@ def _join_transfer(tx, base: dict, index: int, account: Account, taken: set[int]
         return False
     if tx.type != "transfer" and not marked:
         return False
-    outgoing = _outgoing(base)
+    outgoing = bank_import.is_outgoing(base)
     other = bank_import.other_side(tx.date, tx.amount, outgoing, account.id, exclude=taken)
     if other is None:
         return False
@@ -617,7 +608,7 @@ def _collect_rows(data: dict, account: Account | None) -> tuple[list, int, list[
             if _join_transfer(tx, base, index, account, taken):
                 linked += 1
                 continue
-            _assign_account(tx, base, account)
+            bank_import.assign_account(tx, base, account)
         created.append(tx)
     card_service.assign(created)  # F41: «CARTA *4821» in the bank text → that card
     return created, linked, invalid, skipped
@@ -674,11 +665,23 @@ def bank_confirm():
         return redirect(url_for("export.import_page"))
 
     upload_store.delete(request.form.get("preview_token", ""))  # the kept page of the preview: saved, not needed
+    _done_waiting(data)
     flash(_import_message(len(created), bank_name, account, skipped, linked), "success")
     if invalid:
         flash(_("Righe non salvate perché incomplete o non valide: %(value)s.", value=', '.join(map(str, invalid))), "warning")
     _save_preset(data.get("mapped"), account)
     return redirect(url_for("transactions.index"))
+
+
+def _done_waiting(data: dict) -> None:
+    """Movements of a bank connection confirmed in the preview: the saved ones, and the ones left unticked, stop
+    waiting on it (a later download does not bring back what is already saved)."""
+    link = db.session.get(BankAccountLink, data.get("psd2_link") or 0)
+    if link is None:
+        return
+    kept = form_ids("include")
+    dropped = {row["import_ref"] for i, row in enumerate(data["rows"]) if i not in kept and row.get("import_ref")}
+    open_banking.forget_saved(link, dropped)
 
 
 def _save_preset(mapped: dict | None, account: Account | None) -> None:

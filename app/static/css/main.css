@@ -2647,3 +2647,38 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .goal-row-pay .form-control { width: 110px; height: 30px; }
 .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
 @media (max-width: 768px) { .goal-row { flex-direction: column; align-items: stretch; } .goal-row-actions { justify-content: space-between; } }
+
+/* F107: Collegamenti bancari — the banks linked through PSD2, their accounts, the connect form */
+.bank-connection-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bank-connection-actions form { margin: 0; }
+.bank-alert { margin: 0 20px 12px; }
+.bank-iban { font-size: var(--font-size-xs); }
+.bank-link-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; }
+.bank-link-active, .bank-options label { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); }
+.bank-options { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; margin: 0; }
+.bank-country-form { display: flex; gap: 8px; align-items: center; margin: 0 0 12px; }
+.bank-country-form .form-label { margin: 0; }
+.bank-connect-form { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; gap: 16px; align-items: end; margin: 0; }
+.bank-connect-form .form-group { margin: 0; }
+.bank-redirect { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: var(--font-size-sm); }
+.bank-redirect code { font-family: var(--font-mono); word-break: break-all; }
+.bank-key-text { font-family: var(--font-mono); font-size: var(--font-size-xs); }
+tr.is-muted td { color: var(--clr-text-muted); }
+.bank-connect-form.with-archive { grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) minmax(0, 1fr) auto; }
+.bank-steps { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 0 0 12px; padding-left: 18px; font-size: var(--font-size-sm); color: var(--clr-text-secondary); }
+.bank-at-bank { margin: 0 20px 12px; font-size: var(--font-size-sm); }
+.bank-at-bank summary { cursor: pointer; color: var(--clr-text-secondary); }
+.bank-at-bank table { margin-top: 8px; width: 100%; }
+.bank-error { font-size: var(--font-size-xs); }
+.bank-paste-form { display: flex; gap: 8px; align-items: center; margin: 0; }
+.bank-paste-form .form-control { flex: 1; min-width: 0; }
+.bank-account-link { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 8px 0; }
+.bank-account-link + .bank-account-link { border-top: 1px solid var(--clr-border-light); }
+.bank-account-link-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-weight: 600; }
+.bank-free { margin-bottom: 16px; }
+.bank-free-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 6px 0; margin: 0; font-size: var(--font-size-sm); }
+.bank-free-or { margin-top: 8px; }
+.bank-choice { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--clr-border-light); cursor: pointer; }
+@media (max-width: 768px) {
+  .bank-connect-form, .bank-connect-form.with-archive { grid-template-columns: minmax(0, 1fr); }
+}

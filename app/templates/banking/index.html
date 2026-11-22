@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% from "partials/empty.html" import empty_state %}
+{% from "partials/info.html" import info %}
+{% from "partials/tabs.html" import tab_bar %}
+
+{% block title %}{{ _('Collegamenti bancari') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Collegamenti bancari') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ _('Collegamenti bancari') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost btn-sm"><i class="bi bi-upload"></i> {{ _('Importa da file') }}</a>
+  <a href="{{ url_for('banking.manage') }}" class="btn btn-ghost btn-sm"><i class="bi bi-sliders"></i> {{ _('Gestione PSD2') }}</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-tabs">{{ tab_bar([
+  ('overview', url_for('accounts.index'), _('Panoramica'), 'grid-1x2'),
+  ('accounts', url_for('accounts.index', tab='accounts'), _('Conti'), 'bank'),
+  ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),
+  ('reconcile', url_for('accounts.index', tab='reconcile'), _('Riconciliazioni'), 'check2-square'),
+  ('banking', url_for('banking.index'), _('Collegamenti bancari'), 'link-45deg'),
+], 'banking', _('Sezioni di conti e carte')) }}</div>
+
+{# ── The banks linked ─────────────────────────────────────────────────────────── #}
+{% for c in connections %}
+{% set days_left = ((c.valid_until - now_utc).days) if c.valid_until else none %}
+{% set expired = c.status != 'active' or (days_left is not none and days_left < 0) %}
+<div class="card mb-16 bank-connection" id="connection-{{ c.id }}">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-bank2"></i> {{ c.aspsp_name }}
+        {% if not expired %}
+          {% if days_left is not none and days_left <= notice_days %}<span class="badge badge-warning">{{ _('Consenso in scadenza') }}</span>
+          {% else %}<span class="badge badge-positive">{{ _('Attivo') }}</span>{% endif %}
+        {% else %}<span class="badge badge-negative">{{ _('Consenso scaduto') }}</span>{% endif %}
+      </div>
+      <div class="card-header-sub">
+        {% if c.valid_until %}{{ _('Consenso valido fino al %(day)s', day=c.valid_until.date()|it_date) }} · {% endif %}
+        {{ _('Download automatico') if c.auto_sync else _('Solo su richiesta') }}{% if c.auto_save %} · {{ _('salva da solo i movimenti nuovi') }}{% endif %}
+        · {{ _('letture automatiche oggi: %(count)s su 4', count=auto_today.get(c.id, 0)) }}
+      </div>
+    </div>
+    <div class="bank-connection-actions">
+      {% if not expired %}
+      <form method="POST" action="{{ url_for('banking.sync', connection_id=c.id) }}">
+        <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Aggiorna ora') }}</button>
+      </form>
+      {% endif %}
+      <form method="POST" action="{{ url_for('banking.renew', connection_id=c.id) }}">
+        <button type="submit" class="btn {{ 'btn-outline' if expired else 'btn-ghost' }} btn-sm"><i class="bi bi-shield-check"></i> {{ _('Rinnova consenso') }}</button>
+      </form>
+      <form method="POST" action="{{ url_for('banking.delete', connection_id=c.id) }}"
+            data-confirm="{{ _('Scollegare %(bank)s? Il consenso viene ritirato; i movimenti già salvati restano.', bank=c.aspsp_name) }}">
+        <button type="submit" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="{{ _('Scollega') }}" aria-label="{{ _('Scollega %(bank)s', bank=c.aspsp_name) }}"><i class="bi bi-trash3"></i></button>
+      </form>
+    </div>
+  </div>
+  {% if c.last_error %}<div class="alert alert-warning bank-alert">{{ c.last_error }}</div>{% endif %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr>
+        <th>{{ _('Conto della banca') }}</th><th>{{ _("Conto dell'app") }} {{ info(_('I movimenti di questo conto della banca vanno sul conto scelto. Senza conto restano da controllare.')) }}</th>
+        <th class="text-right">{{ _('Saldo in banca') }}</th><th>{{ _('Ultimo download') }}</th><th class="text-right">{{ _('Da controllare') }}</th>
+      </tr></thead>
+      <tbody>
+      {% for link in c.links %}
+        <tr{% if not link.active %} class="is-muted"{% endif %}>
+          <td><div>{{ link.name or _('Conto') }}</div>{% if link.iban %}<div class="text-muted bank-iban" title="{{ link.iban }}">{{ link.iban|masked }}</div>{% endif %}</td>
+          <td>
+            <form method="POST" action="{{ url_for('banking.link_account', link_id=link.id) }}" class="bank-link-form">
+              <select name="account_id" class="form-select form-select-sm" aria-label="{{ _("Conto dell'app") }}">
+                <option value="">{{ _('— nessuno —') }}</option>
+                {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == link.account_id }}>{{ a.name }}</option>{% endfor %}
+              </select>
+              <label class="bank-link-active"><input type="checkbox" name="active" value="1" {{ 'checked' if link.active }} /> {{ _('Leggi') }}</label>
+              <button type="submit" class="btn btn-ghost btn-sm">{{ _('Salva') }}</button>
+            </form>
+          </td>
+          <td class="text-right amount">{% if link.balance is not none %}{{ link.balance|money(None if link.currency == 'EUR' else link.currency) }}{% if link.balance_date %}<div class="text-muted">{{ link.balance_date|it_date }}</div>{% endif %}{% else %}—{% endif %}</td>
+          <td>{{ link.last_sync_at|it_date if link.last_sync_at else _('mai') }}</td>
+          <td class="text-right">
+            {% if link.pending %}<a href="{{ url_for('banking.review', link_id=link.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-eye"></i> {{ _('Controlla %(count)s', count=link.pending|length) }}</a>
+            {% else %}<span class="text-muted">0</span>{% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-muted">{{ _('La banca non ha indicato conti in questo consenso.') }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% set at_bank = at_bank_rows.get(c.id, []) %}
+  {% if at_bank %}
+  <details class="bank-at-bank">
+    <summary>{{ _('In attesa alla banca: %(count)s', count=at_bank|length) }} {{ info(_('Movimenti non ancora contabilizzati (pagamenti con carta, preautorizzazioni). Non vengono salvati: arrivano con un download successivo, quando la banca li contabilizza, a volte con un importo diverso.')) }}</summary>
+    <table class="table-compact">
+      <tbody>
+      {% for m in at_bank %}
+        <tr><td>{{ m.date|it_date if m.date else '—' }}</td><td>{{ m.description }}</td>
+          <td class="text-right amount">{% if m.amount is not none %}{{ m.amount|money(None if m.currency == 'EUR' else m.currency) }}{% else %}—{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </details>
+  {% endif %}
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('banking.options', connection_id=c.id) }}" class="bank-options">
+      <label><input type="checkbox" name="auto_sync" value="1" {{ 'checked' if c.auto_sync }} /> {{ _('Scarica da solo i movimenti') }}
+        {{ info(_("Fino a quattro volte al giorno, nelle ore in cui l'app si usa: una lettura per fascia, dalle %(slots)s (ora del computer), all'apertura dell'app e nel giro dell'app desktop. La PSD2 permette quattro letture al giorno senza di te.", slots=sync_slots|join(', '))) }}</label>
+      <label><input type="checkbox" name="auto_save" value="1" {{ 'checked' if c.auto_save }} /> {{ _('Salva da solo i movimenti nuovi') }}
+        {{ info(_('Solo quelli che non somigliano a niente di già salvato e hanno un conto scelto: gli altri (possibili doppioni, giroconti da collegare) restano da controllare.')) }}</label>
+      <button type="submit" class="btn btn-ghost btn-sm">{{ _('Salva impostazioni') }}</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+
+{# ── Linking starts from an account (F107): here only what is linked ───────────── #}
+{% if not connections %}
+{% call empty_state(text=_('Una banca si collega da un tuo conto: apri il conto in «Conti», poi «Modifica» → «Collega a Enable Banking». I movimenti arriveranno su quel conto.'), icon='bi-link-45deg', title=_('Nessuna banca collegata')) %}
+  <a href="{{ url_for('accounts.index', tab='accounts') }}" class="btn btn-outline btn-sm"><i class="bi bi-bank"></i> {{ _('Vai ai conti') }}</a>
+{% endcall %}
+{% else %}
+<p class="form-hint">{{ _('Per collegare un altro conto, aprilo in «Conti» → «Modifica» → «Collega a Enable Banking».') }}</p>
+{% endif %}
+{% endblock %}

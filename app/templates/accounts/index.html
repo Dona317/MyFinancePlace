@@ -33,6 +33,7 @@
   ('accounts', url_for('accounts.index', tab='accounts'), _('Conti'), 'bank'),
   ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),
   ('reconcile', url_for('accounts.index', tab='reconcile'), _('Riconciliazioni'), 'check2-square'),
+  ('banking', url_for('banking.index'), _('Collegamenti bancari'), 'link-45deg'),
 ], tab, _('Sezioni di conti e carte')) }}</div>
 
 {% if tab == 'overview' %}
