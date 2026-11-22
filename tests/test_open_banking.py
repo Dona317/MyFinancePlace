@@ -16,7 +16,7 @@ from app.models.bank_link import BankAccountLink, BankConnection
 from app.models.transaction import Transaction
 from app.services import field_crypto, open_banking
 from app.services.open_banking import client as eb
-from app.services.open_banking import credentials, sync
+from app.services.open_banking import credentials, store, sync
 from tests.form_helper import form_data
 
 IBAN = "IT60X0542811101000000123456"
@@ -99,12 +99,16 @@ def _account(name="Fineco", **values):
     return found
 
 
+def _state():
+    """The latest consent waiting for the bank's answer (kept in the studio database)."""
+    return list(sync.pending_states())[-1]
+
+
 def _connect(client, bank, aspsp="Fineco", account=None):
     account = account or _account()
     response = client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": aspsp, "country": "IT"})
     assert response.status_code == 302 and response.headers["Location"] == "https://bank.example/consent"
-    with client.session_transaction() as s:
-        state = next(iter(s[sync.STATE_KEY]))
+    state = _state()
     return client.get(f"/banking/callback?state={state}&code=c-1", follow_redirects=True)
 
 
@@ -300,7 +304,7 @@ def test_link_a_bank_end_to_end(client, db, bank):
     page = client.get(f"/accounts/{fineco.id}/edit").get_data(as_text=True)
     assert "Collega a Enable Banking" in page and "scegli la banca (2)" in page and '<option value="Fineco"' in page
     html = _connect(client, bank).get_data(as_text=True)
-    assert 'id="bank-link"' in html and "Collegato" in html  # back on the account's page, linked
+    assert "I movimenti arrivano sul conto «Fineco»" in html and "Puoi chiudere questa scheda" in html
     assert "Fineco collegata: 1 conti." in html and "0 movimenti salvati, 2 da controllare, 1 non ancora contabilizzati" in html
     connection = BankConnection.query.one()
     link = connection.links[0]
@@ -378,8 +382,7 @@ def test_accounts_matched_kept_and_chosen(client, db, bank):
                      {"uid": "acc-2b", "account_id": {}, "name": "Carta"}]
     response = client.post(f"/banking/connections/{connection.id}/renew")
     assert response.headers["Location"] == "https://bank.example/consent"
-    with client.session_transaction() as s:
-        state = next(iter(s[sync.STATE_KEY]))
+    state = _state()
     client.get(f"/banking/callback?state={state}&code=c-2")
     db.session.refresh(connection)
     assert BankConnection.query.count() == 1 and sorted(k.uid for k in connection.links) == ["acc-1b", "acc-2b"]
@@ -391,22 +394,18 @@ def test_callback_refusals(client, db, bank, app):
     response = client.get("/banking/callback?state=nope&code=x", follow_redirects=True)
     assert "non riconosciuto" in response.get_data(as_text=True)
     client.post(start, data={"aspsp": "Fineco", "country": "it"})
-    with client.session_transaction() as s:
-        state = next(iter(s[sync.STATE_KEY]))
+    state = _state()
     response = client.get(f"/banking/callback?state={state}&error=access_denied", follow_redirects=True)
     assert "non ha dato il consenso (access_denied)" in response.get_data(as_text=True)
     client.post(start, data={"aspsp": "Fineco"})
-    with client.session_transaction() as s:
-        state = next(iter(s[sync.STATE_KEY]))
-        waiting = s[sync.STATE_KEY]
-        waiting[state]["client"] = 999
-        s[sync.STATE_KEY] = waiting
-        s.modified = True
+    state = _state()
+    waiting = sync.pending_states()
+    waiting[state]["client"] = 999
+    store.put_json(sync.PENDING, waiting)
     response = client.get(f"/banking/callback?state={state}&code=x", follow_redirects=True)
     assert "altro archivio" in response.get_data(as_text=True)
     client.post(start, data={"aspsp": "Fineco"})
-    with client.session_transaction() as s:
-        state = next(iter(s[sync.STATE_KEY]))
+    state = _state()
     bank.fail["/sessions"] = eb.ProviderError("Invalid code", 400)
     response = client.get(f"/banking/callback?state={state}&code=x", follow_redirects=True)
     assert "Enable Banking: Invalid code" in response.get_data(as_text=True)
@@ -680,8 +679,7 @@ def test_manage_page_lists_every_archive_and_links_to_the_chosen_one(client, db,
     rossi = Client.query.filter_by(name="Mario Rossi").one()
     bank.movements = []
     _connect(client, bank, "Banca Sella", account=_account("Sella"))
-    with client.session_transaction() as s:
-        assert not s[sync.STATE_KEY]  # every consent used
+    assert not sync.pending_states()  # every consent used
 
     page = client.get("/banking/manage").get_data(as_text=True)
     assert "Collega a Enable Banking" in page and 'name="aspsp"' not in page  # linking starts from an account
@@ -783,7 +781,7 @@ def test_several_bank_accounts_ask_which_one(client, db, bank):
                      {"uid": "a2", "account_id": {"iban": "IT22B"}, "name": "Conto deposito"}]
     response = _connect(client, bank, account=mine)
     html = response.get_data(as_text=True)
-    assert "Quale conto della banca è «Conto di casa»?" in html and "Conto deposito" in html
+    assert "nessuno è riconoscibile come «Conto di casa»" in html  # chosen in the app, on the account
     connection = BankConnection.query.one()
     assert all(k.account_id is None and not k.active for k in connection.links)
     assert not [c for c in bank.calls if c[1].endswith("/transactions")]  # nothing read before the choice
@@ -838,10 +836,9 @@ def test_update_and_renew_from_the_account_page(client, db, bank):
     page = client.get(f"/accounts/{account.id}/edit").get_data(as_text=True)
     assert "Consenso in scadenza" in page and "Rinnova consenso" in page
     client.post(f"/banking/connections/{connection.id}/renew", data={"account_id": account.id})
-    with client.session_transaction() as s:
-        state = next(iter(s[sync.STATE_KEY]))
+    state = _state()
     response = client.get(f"/banking/callback?state={state}&code=c-5")
-    assert response.headers["Location"].endswith(here) and BankConnection.query.count() == 1
+    assert "I movimenti arrivano sul conto" in response.get_data(as_text=True) and BankConnection.query.count() == 1
     bank.fail["/auth"] = eb.ProviderError("Bank unavailable", 503)
     response = client.post(f"/banking/connections/{connection.id}/renew", data={"account_id": account.id})
     assert response.headers["Location"].endswith(here)
@@ -919,8 +916,7 @@ def test_the_https_way_back_is_saved_and_used(client, db, bank, pem):
 def test_a_pasted_address_completes_the_link(client, db, bank):
     account = _account()
     client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": "Fineco"})
-    with client.session_transaction() as s:
-        state = next(iter(s[sync.STATE_KEY]))
+    state = _state()
     pasted = f"https://nome.github.io/mfp-ritorno/?state={state}&code=c-7"
     response = client.post("/banking/callback/paste", data={"url": pasted})
     assert "/banking/callback?" in response.headers["Location"] and "code=c-7" in response.headers["Location"]
@@ -979,3 +975,65 @@ def test_nothing_in_the_panel_reloads_inside_the_pop_up(client, db, bank):
     panel = page[page.index('id="bank-link"'):]
     for tag in re.findall(r"<form [^>]*>", panel):
         assert 'target="_top"' in tag or 'target="_blank"' in tag, tag
+
+
+
+def test_the_way_back_works_in_a_browser_without_the_app(client, db, bank, app):
+    """The desktop app opens the system's browser: no session of the app there, the consent completes all the same."""
+    account = _account()
+    client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": "Fineco"})
+    state = _state()
+    app.config["LOGIN_DISABLED"] = False
+    other_browser = app.test_client()
+    response = other_browser.get(f"/banking/callback?state={state}&code=c-1")
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200 and "Fineco collegata" in html and "Puoi chiudere questa scheda" in html
+    assert 'class="sidebar' not in html  # a page of its own, not the app
+    assert BankConnection.query.count() == 1 and not sync.pending_states()
+    response = other_browser.get(f"/banking/callback?state={state}&code=c-1")  # used once
+    assert response.status_code == 400 and "non riconosciuto" in response.get_data(as_text=True)
+
+
+def test_stale_consents_are_forgotten(app, db, bank):
+    old = (sync._utcnow() - timedelta(hours=3)).isoformat()
+    store.put_json(sync.PENDING, {"s1": {"at": old}, "s2": {"at": sync._utcnow().isoformat()}, "s3": "junk"})
+    assert list(sync.pending_states()) == ["s2"] and sync.peek("s1") is None
+    store.put(sync.PENDING, "{not json")
+    assert sync.pending_states() == {}
+
+
+def test_a_bank_with_no_accounts_says_why(client, db, bank):
+    bank.accounts = []
+    html = _connect(client, bank).get_data(as_text=True)
+    assert "non ha indicato nessun conto" in html
+
+
+def test_the_consent_lands_in_its_own_archive(client, db, bank, office):
+    from app.models.client import Client
+    from app.services import studio
+
+    client.post("/clients/new", data={"name": "Mario Rossi", "color": "#16a34a"})  # now the open archive
+    rossi = Client.query.filter_by(name="Mario Rossi").one()
+    account = _account("Conto Rossi")
+    client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": "Fineco"})
+    state = _state()
+    client.post(f"/clients/{studio.primary().id}/open")  # meanwhile another archive is opened
+    client.get(f"/banking/callback?state={state}&code=c-1")
+    with studio.using(studio.primary()):
+        assert BankConnection.query.count() == 0  # not in the archive open meanwhile…
+    with studio.using(rossi):
+        assert BankConnection.query.count() == 1  # …in Rossi's, where it was started
+
+
+def test_a_failed_first_download_is_said_on_the_page(client, db, bank):
+    bank.fail["/accounts/acc-1/transactions"] = eb.ProviderError("Bank temporarily unavailable", 503)
+    html = _connect(client, bank).get_data(as_text=True)
+    assert "Fineco collegata" in html and "Bank temporarily unavailable" in html
+
+
+def test_an_update_by_hand_points_to_the_waiting_movements(client, db, bank):
+    _connect(client, bank)
+    connection = BankConnection.query.one()
+    bank.movements = [tx("w1", "8")]
+    html = client.post(f"/banking/connections/{connection.id}/sync", follow_redirects=True).get_data(as_text=True)
+    assert "Apri «Controlla» sui conti" in html

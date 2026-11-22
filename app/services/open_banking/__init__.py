@@ -28,6 +28,8 @@ from .sync import (  # noqa: F401
     needs_choice,
     overview,
     pasted_return,
+    peek,
+    pending_states,
     prepare,
     provider_ref,
     psu_headers,

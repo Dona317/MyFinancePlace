@@ -20,18 +20,17 @@ import os
 from pathlib import Path
 
 from flask import current_app
-from sqlalchemy import delete, insert, select, update
 
 from app.extensions import db
 from app.models.setting import AppSetting
 from app.services import field_crypto
 
+from . import store
 from .client import Credentials, load_private_key
 
 SETTING = "open_banking.credentials"
 LEGACY_FILE = "enable_banking.json"
 ENV_ID, ENV_KEY = "ENABLE_BANKING_APP_ID", "ENABLE_BANKING_KEY_FILE"
-TABLE = AppSetting.__table__
 
 
 def from_environment() -> bool:
@@ -39,19 +38,11 @@ def from_environment() -> bool:
 
 
 def _stored() -> str | None:
-    """The stored value, from the studio database (db.engine is always the studio's, not the open archive's)."""
-    with db.engine.connect() as connection:
-        return connection.execute(select(TABLE.c.value).where(TABLE.c.key == SETTING)).scalar()
+    return store.get(SETTING)
 
 
 def _write(value: str | None) -> None:
-    with db.engine.begin() as connection:
-        if value is None:
-            connection.execute(delete(TABLE).where(TABLE.c.key == SETTING))
-        elif connection.execute(select(TABLE.c.key).where(TABLE.c.key == SETTING)).first():
-            connection.execute(update(TABLE).where(TABLE.c.key == SETTING).values(value=value))
-        else:
-            connection.execute(insert(TABLE).values(key=SETTING, value=value))
+    store.put(SETTING, value)
 
 
 def _legacy_path() -> Path:

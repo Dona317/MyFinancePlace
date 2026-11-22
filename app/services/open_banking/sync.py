@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 
-from flask import current_app, request, session
+from flask import current_app, request
 from flask_babel import gettext as _
 
 from app.extensions import db
@@ -34,7 +34,7 @@ from app.services import accounts, bank_import, field_crypto, money, reversals, 
 from app.services import cards as card_service
 from app.services.parsing import clean_text, to_date
 
-from . import client, credentials
+from . import client, credentials, store
 
 INITIAL_DAYS = 90         # history read the first time (most banks give at least 90 days)
 OVERLAP_DAYS = 7          # read again from a week before the last booked movement: late bookings are not missed
@@ -42,7 +42,9 @@ SYNC_WINDOW = (8, 24)     # automatic downloads only between these local hours (
 READS_PER_DAY = 4         # …cut into this many slots, one read each (config BANK_SYNC_PER_DAY; PSD2: 4 at most)
 CONSENT_DAYS = 180        # the longest consent asked for; the bank's own maximum when lower
 EXPIRY_NOTICE_DAYS = 14   # the reminder to renew appears this many days before the end
-STATE_KEY = "psd2_auth"   # the session's pending consents (state → what to do on the way back)
+PENDING = "open_banking.pending"  # the consents waiting for the bank's answer (studio database): state → what to do
+PENDING_MINUTES = 60      # a consent not answered within this time is forgotten
+PENDING_KEPT = 20
 KEEP_SKIPPED = 1000       # movements left out in the preview remembered per account (the newest)
 BOOKED = "BOOK"
 BALANCE_TYPES = ("CLBD", "ITBD", "XPCD", "ITAV", "CLAV", "OTHR")  # preferred first
@@ -182,7 +184,7 @@ def _consent_end(aspsp: str, country: str, now: datetime) -> datetime:
 
 def start(aspsp: str, country: str, redirect_url: str, connection: BankConnection | None = None,
           psu_type: str = "personal", now: datetime | None = None, account: Account | None = None) -> str:
-    """The bank's page where the user gives the consent; what to do on the way back is kept in the session. A new
+    """The bank's page where the user gives the consent; what to do on the way back is kept in the studio database. A new
     connection always starts from an account of the app (`account`): the bank's account becomes that one's."""
     aspsp, country = (aspsp or "").strip(), (country or "IT").strip().upper()[:2]
     if not aspsp:
@@ -203,11 +205,25 @@ def start(aspsp: str, country: str, redirect_url: str, connection: BankConnectio
         raise BankingError(_message(exc)) from exc
     if not answer.get("url"):
         raise BankingError(_("Enable Banking non ha indicato la pagina della banca: riprova."))
-    waiting = dict(list(session.get(STATE_KEY, {}).items())[-4:])  # a few at most: abandoned attempts drop out
+    waiting = pending_states()
     waiting[state] = {"aspsp": aspsp, "country": country, "connection": connection.id if connection else None,
-                      "client": archive_id(), "account": account.id if account else None}
-    session[STATE_KEY] = waiting
+                      "client": archive_id(), "account": account.id if account else None, "at": now.isoformat()}
+    store.put_json(PENDING, dict(list(waiting.items())[-PENDING_KEPT:]))
     return answer["url"]
+
+
+def pending_states(now: datetime | None = None) -> dict:
+    """The consents waiting for the bank's answer, kept in the studio database (not in the browser's session: the
+    bank may send back to another browser, the one the desktop app opened), the stale ones left out."""
+    limit = (now or _utcnow()) - timedelta(minutes=PENDING_MINUTES)
+    found = store.get_json(PENDING, {})
+    return {k: v for k, v in (found.items() if isinstance(found, dict) else [])
+            if isinstance(v, dict) and (_parse_time(v.get("at")) or limit) >= limit}
+
+
+def peek(state: str | None) -> dict | None:
+    """What a consent waiting under `state` was started for (None: unknown or stale)."""
+    return pending_states().get(state or "")
 
 
 def new_state() -> str:
@@ -292,9 +308,9 @@ def _update_links(connection: BankConnection, items: list[dict]) -> None:
 def finish(state: str | None, code: str | None, error: str | None = None) -> tuple[BankConnection, Account | None]:
     """Back from the bank: the consent becomes a connection (new, or the one being renewed) with its accounts; also
     returns the account of the app the new consent was started from."""
-    waiting = session.get(STATE_KEY, {})
+    waiting = pending_states()
     pending = waiting.pop(state or "", None)
-    session[STATE_KEY] = waiting
+    store.put_json(PENDING, waiting)  # used once
     if pending is None:
         raise BankingError(_("Collegamento non riconosciuto o scaduto: ricomincia dal conto, con «Collega a Enable "
                              "Banking»."))

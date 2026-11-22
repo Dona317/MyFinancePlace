@@ -38,6 +38,15 @@ Pubblicarla gratis con GitHub Pages (una volta):
 Se il ritorno non si carica comunque, in Gestione PSD2 → «Bloccato al ritorno dalla banca?» si incolla l'indirizzo
 della pagina su cui si è rimasti (contiene `code=` e `state=`) e il collegamento si completa.
 
+## 1-ter. Il ritorno finisce nel browser (22 nov 2026)
+Pensato per l'app desktop, che apre la banca nel browser del sistema (Chrome…), dove l'app non ha una sessione: il
+consenso in attesa (`state`) è tenuto **nel database dello studio** (`open_banking.pending`, monouso, dimenticato dopo
+un'ora), e `/banking/callback` è **pubblica** (protetta dallo `state` casuale e dal codice della banca, inutile senza la
+chiave privata). Al ritorno: apre da sola l'archivio in cui il collegamento era partito, completa il consenso, scarica
+i movimenti e mostra una **pagina sua** — «collegata, N conti… Puoi chiudere questa scheda e tornare nell'app» — non le
+pagine dell'app. Se qualcosa non va, l'errore della banca è su quella pagina (e nel registro degli accessi); se la
+banca non indica conti, la pagina spiega la modalità ristretta.
+
 ## 2. Dove si fa cosa
 - **Si collega dal conto** (deciso il 22 nov 2026, UI-24): Conti e Carte → un conto → **Modifica** → riquadro
   «Collegamento bancario (PSD2)» → **Collega a Enable Banking**. Il conto dell'app esiste sempre prima del

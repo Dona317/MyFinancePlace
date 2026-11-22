@@ -20,7 +20,8 @@ from app.services import accounts, cash, sections, studio, users, year_close
 from app.services.ui_settings import current_settings, module_setting
 from app.version import __version__
 
-PUBLIC_ENDPOINTS = {"static", "auth.login", "auth.setup", "health", "desktop.show", "desktop.quit_app"}  # desktop.*: token-checked
+PUBLIC_ENDPOINTS = {"static", "auth.login", "auth.setup", "health", "desktop.show", "desktop.quit_app",  # desktop.*: token-checked
+                    "banking.callback"}  # back from the bank (F107): checked by its single-use state, in any browser
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
 

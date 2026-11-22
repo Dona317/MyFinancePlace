@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 18:43+0000\n"
+"POT-Creation-Date: 2026-11-22 18:47+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -116,6 +116,10 @@ msgstr "%(amount)s on today's value"
 #, python-format
 msgid "%(bank)s aggiornata: %(summary)s"
 msgstr "%(bank)s updated: %(summary)s"
+
+#, python-format
+msgid "%(bank)s collegata"
+msgstr "%(bank)s linked"
 
 #, python-format
 msgid "%(bank)s collegata: %(count)s conti."
@@ -2843,6 +2847,9 @@ msgstr "Connections of this archive"
 msgid "Collegamento"
 msgstr "Connection"
 
+msgid "Collegamento bancario"
+msgstr "Bank connection"
+
 msgid "Collegamento bancario (PSD2)"
 msgstr "Bank connection (PSD2)"
 
@@ -2859,6 +2866,9 @@ msgid ""
 msgstr ""
 "Connection not recognised or expired: start again from the account, with "
 "«Link to Enable Banking»."
+
+msgid "Collegamento non riuscito"
+msgstr "Connection failed"
 
 msgid ""
 "Collegati, i due movimenti restano nel saldo del conto ma non contano nei"
@@ -5729,6 +5739,10 @@ msgstr ""
 msgid "I metodi"
 msgstr "The methods"
 
+#, python-format
+msgid "I movimenti arrivano sul conto «%(name)s»."
+msgstr "The transactions arrive on the account «%(name)s»."
+
 msgid ""
 "I movimenti di questo conto arrivano da soli dalla banca, tramite Enable "
 "Banking: dai il consenso sul sito della banca (fino a 180 giorni). "
@@ -7301,11 +7315,25 @@ msgstr ""
 "them from another account."
 
 #, python-format
+msgid ""
+"La banca ha autorizzato più conti e nessuno è riconoscibile come "
+"«%(name)s»: nell'app apri «%(name)s» → Modifica e scegli il suo con «È "
+"questo conto»."
+msgstr "The bank authorised several accounts and none is recognisable as «%(name)s»: in the app open «%(name)s» → Edit and choose its own with «It is this account»."
+
+#, python-format
 msgid "La banca non ha dato il consenso (%(detail)s)."
 msgstr "The bank did not give the consent (%(detail)s)."
 
 msgid "La banca non ha indicato conti in questo consenso."
 msgstr "The bank listed no accounts in this consent."
+
+msgid ""
+"La banca non ha indicato nessun conto. In modalità ristretta Enable "
+"Banking legge solo i conti collegati nel suo pannello, per questa "
+"applicazione: collega lì la stessa banca, con lo stesso tipo d'uso "
+"(Personal), e riprova."
+msgstr "The bank listed no account. In restricted mode Enable Banking reads only the accounts linked in its panel, for this application: link the same bank there, with the same usage type (Personal), and try again."
 
 #, python-format
 msgid "La categoria «%(name)s» esiste già: aggiornata."
@@ -8692,6 +8720,9 @@ msgstr ""
 
 msgid "Nel tempo"
 msgstr "Over time"
+
+msgid "Nell'app, sul conto, «Controlla» apre i movimenti in attesa per salvarli."
+msgstr "In the app, on the account, «Review» opens the waiting transactions to save them."
 
 msgid "Nella sua valuta"
 msgstr "In its currency"
@@ -11341,6 +11372,9 @@ msgstr "Cautious: mostly bonds, some equities."
 #, python-format
 msgid "Punti %%"
 msgstr "%% points"
+
+msgid "Puoi chiudere questa scheda e tornare nell'app."
+msgstr "You can close this tab and go back to the app."
 
 #, python-format
 msgid ""
@@ -14249,6 +14283,12 @@ msgstr "Back to be collected"
 
 msgid "Torna indietro"
 msgstr "Back"
+
+msgid ""
+"Torna nell'app e riprova dal conto, con «Collega a Enable Banking». Se "
+"l'errore si ripete, il registro degli accessi in Gestione PSD2 tiene "
+"traccia di ogni tentativo."
+msgstr "Go back to the app and try again from the account, with «Link to Enable Banking». If the error comes back, the access log in PSD2 management keeps track of every attempt."
 
 msgid "Torna su"
 msgstr "Back to the top"

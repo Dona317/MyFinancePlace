@@ -14,6 +14,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.bank_link import BankAccountLink, BankConnection
+from app.models.client import Client
 from app.routes.helpers import safe_next, uploaded_file
 from app.services import accounts, open_banking, studio
 from app.services.open_banking import credentials
@@ -266,18 +267,28 @@ def paste_return():
 
 @banking_bp.route("/callback")
 def callback():
-    """Back from the bank: the connection is saved and its movements downloaded straight away."""
+    """Back from the bank, in whatever browser the bank sent back to (the desktop app opens the system's): the
+    consent is completed here, in the archive it was started for, the movements are downloaded, and a page of its
+    own says how it went — «you can close this tab and go back to the app». No sign-in needed: the `state` is a
+    random, single-use token kept on the server, and the bank's code is useless without the app's private key."""
+    pending = open_banking.peek(request.args.get("state"))
+    if pending:
+        studio.activate(db.session.get(Client, pending.get("client") or 0) or studio.current())
     error = request.args.get("error_description") or request.args.get("error")
     try:
         connection, account = open_banking.finish(request.args.get("state"), request.args.get("code"), error)
     except open_banking.BankingError as exc:
-        flash(str(exc), "error")
-        return _back()
-    flash(_("%(bank)s collegata: %(count)s conti.", bank=connection.aspsp_name, count=len(connection.links)), "success")
-    if open_banking.needs_choice(connection, account):
-        return redirect(url_for("banking.choose", connection_id=connection.id, account_id=account.id))
-    _download(connection)
-    return _account_page(account) if account is not None else _back()
+        return render_template("banking/done.html", error=str(exc)), 400
+    choose = open_banking.needs_choice(connection, account)
+    results, download_error = [], None
+    if not choose:
+        try:
+            results = open_banking.sync_connection(connection, psu=open_banking.psu_headers())
+        except open_banking.BankingError as exc:
+            download_error = str(exc)
+    return render_template("banking/done.html", connection=connection, account=account, choose=choose,
+                           summary=open_banking.summary(results) if results else None, download_error=download_error,
+                           waiting=sum(r.waiting for r in results))
 
 
 def _download(connection: BankConnection) -> None:

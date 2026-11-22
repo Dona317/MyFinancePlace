@@ -2689,3 +2689,11 @@ tr.is-muted td { color: var(--clr-text-muted); }
 .reversal-actions form { margin: 0; }
 .reversal-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0; }
 .reversal-form .form-select { flex: 1; min-width: 0; }
+
+/* F107: the end of a consent, a page of its own in the browser the bank sent back to */
+.bank-done-page { background: var(--clr-bg-app); color: var(--clr-text-primary); font-family: var(--font-body); margin: 0; }
+.bank-done { max-width: 560px; margin: 64px auto; padding: 0 16px; }
+.bank-done h1 { font-size: var(--font-size-xl); font-weight: 600; margin: 8px 0 12px; }
+.bank-done-icon { font-size: var(--font-size-3xl); color: var(--clr-positive); }
+.bank-done-icon.is-error { color: var(--clr-negative); }
+.bank-done-close { margin-top: 16px; }
