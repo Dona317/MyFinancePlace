@@ -2,7 +2,7 @@
 {% import "partials/fields.html" as f %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Nuova operazione') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Operazione') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Operazione') }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">

@@ -4,7 +4,7 @@
 
 {% block title %}{{ dossier.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ dossier.name }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.portfolios_page') }}">{{ _('Portafogli e conti titoli') }}</a></li><li>{{ dossier.name }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li><a href="{{ url_for('portfolio.portfolios_page') }}">{{ _('Portafogli e conti titoli') }}</a></li><li>{{ dossier.name }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.dossier_edit', dossier_id=dossier.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>

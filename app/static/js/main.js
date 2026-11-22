@@ -240,11 +240,73 @@ function initSidebar() {
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeSidebar(); });
 }
 
+/* UI-34: the page search at the top of the menu — every page by macro section, section and its tabs; typing keeps
+   the pages whose name (or the section's, the macro section's) holds every word, with the headings above them;
+   arrows and Enter open one; Ctrl+K (⌘K) opens it from anywhere */
+function initPageFind() {
+  const button = document.getElementById("page-find-btn"), panel = document.getElementById("page-find-panel");
+  if (!button || !panel) return;
+  const input = document.getElementById("page-find-input"), list = document.getElementById("page-find-list");
+  const items = [...list.querySelectorAll(".page-find-item")], empty = list.querySelector(".page-find-empty");
+  const plain = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  let active = -1;
+  const visible = () => items.filter(a => !a.hidden && !a.classList.contains("is-context"));  // context rows: not picked
+  const mark = () => visible().forEach((a, i) => { a.classList.toggle("active", i === active); if (i === active) a.scrollIntoView({ block: "nearest" }); });
+  const filter = () => {
+    const words = plain(input.value).split(/\s+/).filter(Boolean);
+    items.forEach(a => {
+      a.classList.remove("is-context");
+      a.hidden = words.length > 0 && !words.every(w => plain(a.dataset.find).includes(w));
+    });
+    // a heading stays when one of its pages does; a section stays (as context) when one of its tabs does
+    let macro = null, section = null;
+    [...list.children].forEach(row => {
+      if (row.classList.contains("page-find-macro")) { macro = row; row.hidden = true; return; }
+      if (row.classList.contains("page-find-l1")) section = row;
+      if (!row.hidden && row.classList.contains("page-find-item")) {
+        if (macro) macro.hidden = false;
+        if (row.classList.contains("page-find-l2") && section && section.hidden) { section.hidden = false; section.classList.add("is-context"); }
+      }
+    });
+    empty.hidden = visible().length > 0;
+    active = words.length ? 0 : -1;
+    mark();
+  };
+  const place = () => {
+    const box = button.getBoundingClientRect();
+    panel.style.top = `${box.top}px`;
+    panel.style.left = `${box.left}px`;
+  };
+  const open = (on) => {
+    if (on) place();
+    panel.hidden = !on;
+    button.setAttribute("aria-expanded", String(on));
+    if (on) { input.value = ""; filter(); input.focus(); }
+  };
+  button.addEventListener("click", e => { e.stopPropagation(); open(panel.hidden); });
+  input.addEventListener("input", filter);
+  input.addEventListener("keydown", e => {
+    const shown = visible();
+    if (e.key === "ArrowDown") { active = Math.min(active + 1, shown.length - 1); mark(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); mark(); e.preventDefault(); }
+    else if (e.key === "Enter") { const target = shown[Math.max(active, 0)]; if (target) window.location.assign(target.href); e.preventDefault(); }
+    else if (e.key === "Escape") { open(false); button.focus(); }
+  });
+  document.addEventListener("click", e => { if (!panel.hidden && !panel.contains(e.target) && e.target !== button) open(false); });
+  document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); open(panel.hidden); }
+  });
+  window.addEventListener("resize", () => { if (!panel.hidden) place(); });
+}
+
 /* Collapsible sections of the menu, remembered in this browser */
 function initNavSections() {
   const saveCollapsed = () => {
     const closed = [...document.querySelectorAll(".nav-section.collapsed")].map(s => s.dataset.section);
     store.set("mfp-nav-collapsed", JSON.stringify(closed));
+    // the sections that start closed («Da smistare»): remembered when opened
+    const opened = [...document.querySelectorAll('.nav-section[data-default="closed"]:not(.collapsed)')].map(s => s.dataset.section);
+    store.set("mfp-nav-opened", JSON.stringify(opened));
   };
   document.querySelectorAll(".nav-section-title").forEach(title => {
     title.addEventListener("click", () => {
@@ -1135,6 +1197,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initBack();
   initCopy();
   initPopups();
+  initPageFind();
   initTooltips();
   initInfoTips();
   initCombos();

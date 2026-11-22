@@ -5,7 +5,7 @@
 
 {% block title %}{{ _('Portafogli e conti titoli') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Portafogli e conti titoli') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Portafogli e conti titoli') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li>{{ _('Portafogli e conti titoli') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.dossier_new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo conto titoli') }}</a>

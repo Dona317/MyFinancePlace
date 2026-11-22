@@ -2,7 +2,7 @@
 {% from "partials/info.html" import info %}
 {% import "partials/fields.html" as f %}
 {% block page_title %}{{ _('Ordini del ribilanciamento') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount, portfolio=folio_id) }}">{{ _('Ribilanciamento') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li><a href="{{ url_for('portfolio.rebalance', mode=mode, amount=amount, portfolio=folio_id) }}">{{ _('Ribilanciamento') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
 
 {% block content %}
 <form method="POST" id="orders-form">

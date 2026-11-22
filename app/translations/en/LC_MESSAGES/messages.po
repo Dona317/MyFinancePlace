@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 22:02+0000\n"
+"POT-Creation-Date: 2026-11-22 22:19+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2615,8 +2615,20 @@ msgstr "Search the list…"
 msgid "Cerca per nome o note..."
 msgstr "Search by name or notes..."
 
+msgid "Cerca una pagina"
+msgstr "Search a page"
+
+msgid "Cerca una pagina (Ctrl+K)"
+msgstr "Search a page (Ctrl+K)"
+
+msgid "Cerca una pagina o una scheda…"
+msgstr "Search a page or a tab…"
+
 msgid "Cerca: descrizione, controparte, tag o note (es. auto)"
 msgstr "Search: description, counterparty, tags or notes (e.g. car)"
+
+msgid "Cerca…"
+msgstr "Search…"
 
 msgid "Che cosa"
 msgstr "What"
@@ -2701,6 +2713,9 @@ msgstr "Closing of the current month"
 
 msgid "Chiusure"
 msgstr "Closes"
+
+msgid "Chiusure d’anno"
+msgstr "Year closes"
 
 msgid "Ciambella"
 msgstr "Doughnut"
@@ -3790,6 +3805,9 @@ msgstr ""
 msgid "Crediti verso persone"
 msgstr "Owed to me by people"
 
+msgid "Crescita"
+msgstr "Growth"
+
 msgid "Crescita del patrimonio"
 msgstr "Net worth growth"
 
@@ -3956,6 +3974,9 @@ msgstr "To reconcile"
 
 msgid "Da sistemare"
 msgstr "To fix"
+
+msgid "Da smistare"
+msgstr "To sort"
 
 msgid "Da tutte le istantanee"
 msgstr "From all snapshots"
@@ -4523,6 +4544,9 @@ msgstr "Lists"
 
 msgid "Elenco Transazioni"
 msgstr "Transaction List"
+
+msgid "Elenco dei debiti"
+msgstr "List of debts"
 
 msgid "Elettrodomestico (lavatrice, frigo)"
 msgstr "Appliance (washing machine, fridge)"
@@ -5758,6 +5782,9 @@ msgstr "I understand: a full backup"
 
 msgid "Ho prestato o anticipato"
 msgstr "I lent or paid in advance"
+
+msgid "Holdings"
+msgstr "Holdings"
 
 msgid "Home"
 msgstr "Home"
@@ -9217,6 +9244,9 @@ msgstr ""
 "No operations: add purchases, sales, dividends and coupons with «New "
 "operation»."
 
+msgid "Nessuna pagina trovata."
+msgstr "No page found."
+
 msgid "Nessuna polizza attiva."
 msgstr "No active policies."
 
@@ -10787,9 +10817,6 @@ msgstr "Weight of a holding above (percent)"
 msgid "Piani d'accumulo (PAC)"
 msgstr "Investment plans (PAC)"
 
-msgid "Pianificazione"
-msgstr "Planning"
-
 msgid "Piano d'accumulo (PAC)"
 msgstr "Investment plan (PAC)"
 
@@ -11987,6 +12014,9 @@ msgstr "Category Rules"
 
 msgid "Regole di categoria"
 msgstr "Category rules"
+
+msgid "Regole di categorizzazione"
+msgstr "Categorisation rules"
 
 msgid "Regole e PAC"
 msgstr "Rules and PAC"
@@ -13976,11 +14006,11 @@ msgstr ""
 "Reversal: cancelled by another transaction of the same amount; it does "
 "not count in the totals"
 
-msgid "Strategia"
-msgstr "Strategy"
-
 msgid "Strumenti"
 msgstr "Tools"
+
+msgid "Strumenti dei debiti"
+msgstr "Debt tools"
 
 msgid "Strumento"
 msgstr "Instrument"
@@ -15740,9 +15770,6 @@ msgstr "classification"
 
 msgid "claude-haiku-4-5"
 msgstr "claude-haiku-4-5"
-
-msgid "clic per le transazioni"
-msgstr "click for the transactions"
 
 msgid "clic per vedere i movimenti"
 msgstr "click to see the movements"

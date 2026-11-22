@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "partials/empty.html" as e %}
 {% block page_title %}{{ _('Collega movimenti del conto') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Collega movimenti') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Holdings') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Collega movimenti') }}</li>{% endblock %}
 
 {% block content %}
 <div class="card">

@@ -75,8 +75,13 @@ def test_pages_have_balanced_divs(client, sample_data, url):
 
 def test_sidebar_sections_are_collapsible(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
-    sections = re.findall(r'<div class="nav-section" data-section="(\w+)">', html)
-    assert sections == ["panoramica", "contabilita", "stiledivita", "gestione", "strumenti"]
+    # UI-34: Dashboard, Transazioni, Holdings, Obiettivi on top; the rest in «Da smistare», closed at first
+    sections = re.findall(r'<div class="nav-section(?: collapsed)?" data-section="(\w+)"', html)
+    assert sections == ["altro"]
+    top = html.split('<div class="nav-top">')[1].split("</div>")[0]
+    assert [label for label in re.findall(r'<span class="nav-label"[^>]*>([^<]+)</span>', top)] == [
+        "Dashboard", "Transazioni", "Holdings", "Obiettivi"]
+    assert 'id="page-find-btn"' in html and 'class="page-find-macro"' in html
     for key in sections:
         # each title is a button controlling its own group of links
         assert f'aria-controls="nav-{key}"' in html and f'<div class="nav-section-items" id="nav-{key}">' in html
@@ -88,11 +93,9 @@ def test_sidebar_sections_are_collapsible(client, app):
     assert 'id="sidebar-toggle"' in sidebar and 'class="sidebar-toggle-btn"' in sidebar
     assert 'id="sidebar-open"' in html and 'id="sidebar-open"' not in sidebar
     # every link keeps its label in a span, so the icons-only mode can hide it and show it as a tooltip
-    # (section titles and subtitles have one too)
+    # (the section title and the search box have one too)
     links = len(re.findall(r'class="nav-item', html))
-    subtitles = len(re.findall(r'class="nav-subtitle"', html))  # Strategia and Pianificazione have a label too
-    assert subtitles == 2
-    assert links == len(re.findall(r'<span class="nav-label"[ >]', html)) - len(sections) - subtitles
+    assert links == len(re.findall(r'<span class="nav-label"[ >]', html)) - len(sections) - 1
     assert 'href="/transactions/add"' not in sidebar and 'class="add-bubble"' in html  # the round + out of the menu
 
 
