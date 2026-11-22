@@ -2,7 +2,8 @@
 {% from "partials/period_box.html" import period_box %}
 {% from "partials/info.html" import info %}
 {% import "partials/blocks.html" as blocks with context %}
-{% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
+{% block chart_scripts %}{% include "partials/charts.html" %}
+<script src="{{ url_for('static', filename='js/sankey.js') }}" defer></script>{% endblock %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/tabs.html" import tab_bar %}
@@ -322,39 +323,14 @@
       <div class="card-header-title">{{ _('Flusso del denaro — %(month)s', month=sankey_month) }} {{ info(_('Il mese in corso, fino a oggi, qualunque periodo sia scelto nella barra in alto.')) }}</div>
       <div class="card-header-sub">{{ _('Dalle categorie di entrata alle categorie di uscita; la differenza è il risparmio. Clic su una categoria per le sue transazioni.') }}</div>
     </div></div>
-    <div class="card-body">
+    <div class="card-body sankey-body">
       {% if sankey %}
-      {% set s = sankey %}
-      <svg class="sankey" viewBox="-180 -34 {{ s.width + 360 }} {{ s.height + 44 }}" role="img"
-           aria-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=s.total_in|money, expenses=s.total_out|money) }}">
-        {% for b in s.bands %}
-        {% set band_linked = tx_ok and b.category %}
-        {% if band_linked %}<a href="{{ url_for('transactions.index', category=b.category, type=b.kind, start=sankey_start.isoformat(), end=sankey_last.isoformat()) }}" class="sankey-link">{% endif %}
-        <path d="{{ b.d }}" class="sankey-band" style="fill:var(--{{ 'clr-' if b.color in ('positive', 'primary') else '' }}{{ b.color }});">
-          <title>{{ b.label|tr }} → {{ b.to|tr }}: {{ b.amount|money }}{{ ' — ' ~ _('clic per le transazioni') if band_linked }}</title></path>
-        {% if band_linked %}</a>{% endif %}
-        {% endfor %}
-        {% for n in s.nodes %}
-        {% set linked = tx_ok and n.category %}
-        {% if linked %}<a href="{{ url_for('transactions.index', category=n.category, type=n.kind, start=sankey_start.isoformat(), end=sankey_last.isoformat()) }}" class="sankey-link">{% endif %}
-        <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ s.node_width }}" height="{{ n.h }}" rx="3"
-              style="fill:var(--{{ 'clr-' if n.color in ('positive', 'primary') else '' }}{{ n.color }});">
-          <title>{{ n.label|tr }}: {{ n.amount|money }}{{ ' — ' ~ _('clic per le transazioni') if linked }}</title></rect>
-        {% set right = n.kind == 'expense' %}
-        {% set middle = n.kind == 'total' %}
-        {% set tx = n.x + s.node_width / 2 if middle else (n.x + s.node_width + 8 if right else n.x - 8) %}
-        {% if middle %}
-        <text x="{{ tx }}" y="{{ n.y - 12 }}" text-anchor="middle" class="sankey-label">
-          <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" dx="6">{{ n.amount|money }}</tspan></text>
-        {% else %}
-        {# the name, and the amount under it #}
-        <text x="{{ tx }}" y="{{ n.y + n.h / 2 - 8 }}" text-anchor="{{ 'start' if right else 'end' }}" dominant-baseline="middle"
-              class="sankey-label{{ ' sankey-special' if n.special }}">
-          <tspan>{{ n.label|tr }}</tspan><tspan class="sankey-amount" x="{{ tx }}" dy="17">{{ n.amount|money }}</tspan></text>
-        {% endif %}
-        {% if linked %}</a>{% endif %}
-        {% endfor %}
-      </svg>
+      {# UI-33: drawn by static/js/sankey.js on the block's real size, again when it changes #}
+      <div class="sankey-box" data-label="{{ _('Entrate %(income)s, uscite %(expenses)s', income=sankey.total_in|money, expenses=sankey.total_out|money) }}"
+           {% if tx_ok %}data-tx="{{ url_for('transactions.index') }}"{% endif %} data-start="{{ sankey_start.isoformat() }}" data-end="{{ sankey_last.isoformat() }}">
+        <script type="application/json">{{ sankey|tojson }}</script>
+      </div>
+      <ul class="sankey-legend" hidden></ul>
       {% else %}
       {{ empty_state(text=_('Nessun movimento in questo mese.'), compact=True) }}
       {% endif %}

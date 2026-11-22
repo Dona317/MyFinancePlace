@@ -22,32 +22,33 @@ def test_sankey_flows_from_income_to_expenses_and_savings(app, db):
     _year(db)
     with app.test_request_context():
         flow = sankey.flow(*YEAR)
-    names = [(n["label"], n["amount"], n["kind"]) for n in flow["nodes"]]
-    assert names == [("Stipendio", 2000.0, "income"), ("Freelance", 500.0, "income"), ("Entrate", 2500.0, "total"),
-                     ("Casa", 800.0, "expense"), ("Alimentari", 300.0, "expense"), ("Risparmio", 1400.0, "expense")]
-    assert len(flow["bands"]) == 5 and all(b["d"].startswith("M") and b["d"].endswith("Z") for b in flow["bands"])
-    left = [n for n in flow["nodes"] if n["kind"] == "income"]
-    right = [n for n in flow["nodes"] if n["kind"] == "expense"]
-    assert abs(sum(n["h"] for n in left) - sum(n["h"] for n in right)) < 1  # both sides carry the same total
-    assert right[-1]["special"] and right[-1]["color"] == "positive"
+    assert [(n["label"], n["amount"]) for n in flow["incomes"]] == [("Stipendio", 2000.0), ("Freelance", 500.0)]
+    assert [(n["label"], n["amount"]) for n in flow["expenses"]] == [("Casa", 800.0), ("Alimentari", 300.0),
+                                                                     ("Risparmio", 1400.0)]
+    assert flow["middle"] == {"label": "Entrate", "amount": 2500.0} and flow["other"] == "Altre"
+    assert flow["expenses"][-1]["special"] and flow["expenses"][-1]["category"] is None
+    assert flow["expenses"][0]["category"] == "Casa"  # a click opens its transactions
 
 
 def test_sankey_when_spending_more_than_earning(app, db):
     _year(db, spend_more=True)
     with app.test_request_context():
         flow = sankey.flow(*YEAR)
-    assert ("Dai risparmi", 1300.0) in [(n["label"], n["amount"]) for n in flow["nodes"] if n["kind"] == "income"]
-    assert "Risparmio" not in [n["label"] for n in flow["nodes"]]
+    assert ("Dai risparmi", 1300.0) in [(n["label"], n["amount"]) for n in flow["incomes"]]
+    assert "Risparmio" not in [n["label"] for n in flow["expenses"]]
+    assert flow["middle"] == {"label": "Uscite", "amount": 3800.0}  # what passes through: the expenses
 
 
-def test_sankey_groups_the_smallest_categories(app, db):
+def test_sankey_groups_the_smallest_categories(app, db, monkeypatch):
+    monkeypatch.setattr(sankey, "SIDE", 7)  # the page groups further, on its width
     db.session.add(make_tx(date=date(2026, 3, 1), category="Stipendio", type="income", amount=10000))
     db.session.add_all([make_tx(date=date(2026, 3, 2), category=f"Cat {i}", amount=100 + i) for i in range(10)])
     db.session.commit()
     with app.test_request_context():
         flow = sankey.flow(*YEAR)
-    right = [n["label"] for n in flow["nodes"] if n["kind"] == "expense"]
-    assert len(right) == sankey.SIDE + 2 and right[-2:] == ["Altre", "Risparmio"]
+    right = [n["label"] for n in flow["expenses"]]
+    assert len(right) == 7 + 2 and right[-2:] == ["Altre", "Risparmio"]
+    assert flow["expenses"][-2]["category"] is None
 
 
 def test_nothing_to_draw(app, db):
@@ -63,12 +64,12 @@ def test_dashboard_shows_the_new_charts_and_they_can_be_hidden(client, db):
                         make_tx(date=date.today(), category="Casa", amount=700)])
     db.session.commit()
     html = client.get("/dashboard?year=2026&view=month").get_data(as_text=True)
-    assert 'class="sankey"' in html and "Dove va il denaro" in html and "Risparmio" in html
+    assert 'class="sankey-box"' in html and "Dove va il denaro" in html and "Risparmio" in html
     # the year's totals stay; «Netto mese per mese» was dropped (the cash-flow chart shows the monthly savings)
     assert 'id="yearChart"' in html and 'id="netChart"' not in html
     client.post("/settings/save", data={})  # every checkbox unticked
     html = client.get("/dashboard?year=2026&view=month").get_data(as_text=True)
-    assert 'class="sankey"' not in html and 'id="yearChart"' not in html
+    assert 'class="sankey-box"' not in html and 'id="yearChart"' not in html
 
 
 def test_savings_rate_of_every_year(app, db):

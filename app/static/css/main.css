@@ -1383,10 +1383,17 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 .sankey-band:hover { opacity: .6; }
 .sankey-label { font-size: 15px; font-weight: 500; fill: var(--clr-text-primary); }
 .sankey-amount { fill: var(--clr-text-muted); font-size: 13px; font-weight: 400; }
-/* in its block the drawing fills the card: centred in what the card's height leaves */
-.fc-widget[data-widget="sankey"] > .card { display: flex; flex-direction: column; }
-.fc-widget[data-widget="sankey"] > .card > .card-body { flex: 1; display: flex; align-items: center; }
-.fc-widget[data-widget="sankey"] .sankey { max-height: 100%; }
+/* UI-33: drawn on the box's size by sankey.js — the box takes the card's width, the drawing its own height */
+.sankey-box { width: 100%; min-width: 0; }
+.sankey-box .sankey { width: 100%; height: auto; overflow: visible; }
+.sankey-legend { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; font-size: var(--font-size-sm); }
+.sankey-legend li { display: flex; align-items: center; gap: 8px; }
+.sankey-legend li strong { margin-left: auto; font-variant-numeric: tabular-nums; }
+.sankey-legend li[data-kind="expense"]:first-of-type, .sankey-legend li[data-kind="income"] + li[data-kind="expense"] { margin-top: 6px; }
+.sankey-legend-head { font-weight: 600; }
+.sankey-legend[hidden] { display: none; }
+.sankey-dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.sankey-special-text { color: var(--clr-positive-text, var(--clr-positive)); font-weight: 600; }
 .sankey-special { font-weight: 600; fill: var(--clr-positive-text, var(--clr-positive)); }
 
 /* ── Summary table (Report → Riepilogo): category × month, cells shaded by --heat (0–1) ─────────────── */
