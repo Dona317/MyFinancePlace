@@ -82,3 +82,24 @@ def test_conti_e_carte_opens_on_the_accounts_without_an_overview(client, db):
     page = client.get("/accounts/").get_data(as_text=True)
     assert "I saldi per tipo di conto" not in page and "bi-grid-1x2" not in page
     assert client.get("/accounts/?tab=overview").status_code == 200  # an old link lands on the accounts
+
+
+def test_the_debt_and_investment_blocks_show_their_rates(client, db):
+    from datetime import date as day
+
+    from app.models.wealth import Debt, Holding
+    db.session.add(Holding(name="ETF", isin="IE00BK5BQT80", asset_class="ETF", quantity=10, avg_price=100,
+                           opening_quantity=10, opening_price=100))
+    db.session.add(Debt(name="Mutuo", type="Mutuo", principal=100000, annual_rate=3, term_months=240,
+                        start_date=day(2024, 1, 1)))
+    db.session.commit()
+    saved = [dict(w, visible=True) if w["id"] in ("debt_summary", "investments") else w
+             for w in dashboard_prefs.default_layout()]
+    dashboard_prefs.save_layout(saved)  # arranged on the current page: no upgrade over it
+    page = client.get("/dashboard").get_data(as_text=True)
+    assert 'data-widget="debt_summary"' in page and "TAN medio" in page
+
+
+def test_the_budget_history_tab(client, db):
+    page = client.get("/lifestyle/budget?month=2026-06&tab=history")
+    assert page.status_code == 200
