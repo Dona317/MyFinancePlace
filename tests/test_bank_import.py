@@ -366,7 +366,7 @@ def test_transfers_are_shown_without_sign(client, db):
     db.session.add(Transaction(date=date(2026, 6, 20), description="Giroconto verso deposito", amount=200,
                                currency="EUR", type="transfer", category="Giroconto", tags=[]))
     db.session.commit()
-    for url in ("/transactions/", "/dashboard"):
+    for url in ("/transactions/",):  # the dashboard lists no movements since its redesign (UI-20)
         html = client.get(url).get_data(as_text=True)
         assert "⇄ € 200,00" in html
 
