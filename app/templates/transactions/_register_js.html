@@ -224,7 +224,7 @@ const bulkBoxes = document.querySelectorAll('.bulk-select');
 const bulkButton = document.getElementById('bulk-delete');
 // Elimina, Assegna, Conferma and «Metti nell'evento» send the selection: the ticked rows or the whole search.
 // The delete form's own checkboxes (form="bulk-form") are dropped for the whole search: the filters say it all.
-['bulk-form', 'assign-form', 'confirm-form', 'event-form'].map(id => document.getElementById(id)).filter(Boolean).forEach(form => {
+['bulk-form', 'assign-form', 'confirm-form', 'event-form', 'invest-form'].map(id => document.getElementById(id)).filter(Boolean).forEach(form => {
   form.addEventListener('submit', () => {
     fillSelection(form);
     bulkBoxes.forEach(box => { box.disabled = form.id === 'bulk-form' && wholeSearch(); });
@@ -243,7 +243,7 @@ const refreshBulk = () => {
       ? fmt({{ _('Eliminare definitivamente tutte le %(count)s transazioni della ricerca (tutte le pagine)?', count='%(count)s')|tojson }}, { count })
       : {{ _('Eliminare definitivamente le transazioni selezionate?')|tojson }};
   }
-  ['bulk-assign', 'bulk-confirm', 'bulk-event'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = count === 0; });
+  ['bulk-assign', 'bulk-confirm', 'bulk-event', 'bulk-invest'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = count === 0; });
   if (classifyButton) {
     const unclassified = Number(classifyButton.dataset.unclassified);
     document.getElementById('ai-classify-label').textContent = count

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 22:19+0000\n"
+"POT-Creation-Date: 2026-11-22 22:41+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -570,6 +570,12 @@ msgid "%(num)d movimento sembra già presente"
 msgid_plural "%(num)d movimenti sembrano già presenti"
 msgstr[0] "%(num)d movement seems to be already there"
 msgstr[1] "%(num)d movements seem to be already there"
+
+#, python-format
+msgid "%(num)d movimento spostato negli investimenti."
+msgid_plural "%(num)d movimenti spostati negli investimenti."
+msgstr[0] ""
+msgstr[1] ""
 
 #, python-format
 msgid "%(num)d movimento tra i tuoi conti è già stato importato dall'altro conto"
@@ -3950,6 +3956,9 @@ msgstr "Year to date"
 msgid "Da mettere da parte"
 msgstr "To put aside"
 
+msgid "Da movimento del conto a operazione su titoli"
+msgstr "From account movement to securities trade"
+
 #, python-format
 msgid "Da ora le transazioni di «%(counterparty)s» andranno in «%(category)s»."
 msgstr ""
@@ -4931,6 +4940,11 @@ msgstr "By %(day)s"
 
 msgid "Entro il 31/12 per dedurli nella dichiarazione del prossimo anno."
 msgstr "By 31/12 to deduct them in next year's tax return."
+
+msgid ""
+"Erano acquisti o vendite di titoli: quote, prezzo e commissione, e vanno "
+"nella scheda Investimenti"
+msgstr "They were purchases or sales of securities: units, price and commission, and they go to the Investments tab"
 
 msgid "Erogazioni liberali a enti del terzo settore"
 msgstr "Donations to third-sector organisations"
@@ -7031,6 +7045,9 @@ msgstr "Enter the total commissions (zero if there are none)."
 msgid "Indica le quote o il prezzo per i movimenti del %(days)s."
 msgstr "Enter the units or the price for the movements of %(days)s."
 
+msgid "Indica le quote o il prezzo."
+msgstr "Give the units or the price."
+
 msgid ""
 "Indica quanto vuoi investire: verrà diviso tra le parti più sotto il loro"
 " obiettivo."
@@ -7511,6 +7528,9 @@ msgid ""
 msgstr ""
 "The commission is recorded only with a new operation; the holding's "
 "quantity and average price are recomputed when you edit this one too."
+
+msgid "La commissione supera l'importo."
+msgstr "The commission is bigger than the amount."
 
 msgid "La data dei prezzi non può essere nel futuro."
 msgstr "The date of the prices cannot be in the future."
@@ -10622,6 +10642,14 @@ msgstr ""
 "you can save the columns as a preset, applied automatically to the next "
 "files with the same columns."
 
+msgid ""
+"Per ogni movimento: il titolo (uno del portafoglio, o uno nuovo "
+"scrivendone il nome, l'ISIN o il ticker), le quote e il prezzo (basta uno"
+" dei due: l'altro viene dall'importo) e la commissione, se c'è. La "
+"commissione è compresa nell'importo del movimento: l'acquisto vale "
+"l'importo meno la commissione."
+msgstr "For each movement: the security (one of the portfolio, or a new one by its name, ISIN or ticker), the units and the price (one of the two is enough: the other comes from the amount) and the commission, if any. The commission is part of the movement's amount: the purchase is worth the amount minus the commission."
+
 #, python-format
 msgid ""
 "Per ogni parte: la barra è il peso di oggi, il trattino verticale "
@@ -11770,6 +11798,13 @@ msgid ""
 msgstr ""
 "Here you find expiring policies, recurring expenses and installments of "
 "the next 7 days, budgets almost used up and goals behind schedule."
+
+msgid ""
+"Qui gli acquisti e le vendite di titoli, con quote, prezzo e commissione:"
+" non sono nell'elenco delle transazioni. Un movimento del conto che era "
+"un acquisto (un bonifico al broker) si sposta qui dall'elenco: "
+"selezionalo e scegli «Sposta negli investimenti»."
+msgstr "Here the purchases and sales of securities, with units, price and commission: they are not in the list of transactions. A movement of the account that was a purchase (a transfer to the broker) is moved here from the list: select it and choose «Move to investments»."
 
 msgid "Quota"
 msgstr "Share"
@@ -13185,6 +13220,9 @@ msgstr ""
 msgid "Scrivi il simbolo (es. VWCE.MI) e scegli il file delle chiusure."
 msgstr "Enter the symbol (e.g. VWCE.MI) and choose the file of the closes."
 
+msgid "Scrivi il titolo (nome, ISIN o ticker)."
+msgstr "Write the security (name, ISIN or ticker)."
+
 msgid "Scrivi la data del lavoro."
 msgstr "Write the date of the job."
 
@@ -13317,6 +13355,9 @@ msgstr "Are you sure?"
 
 msgid "Seleziona"
 msgstr "Select"
+
+msgid "Seleziona dall'elenco i movimenti da spostare negli investimenti."
+msgstr "Select in the list the movements to move to investments."
 
 msgid ""
 "Seleziona il conto a cui associare queste transazioni; il predefinito è "
@@ -13808,8 +13849,14 @@ msgstr "Spent this month"
 msgid "Spiegati da transazioni"
 msgstr "Explained by transactions"
 
+msgid "Sposta"
+msgstr "Move"
+
 msgid "Sposta dopo"
 msgstr "Move down"
+
+msgid "Sposta negli investimenti"
+msgstr "Move to investments"
 
 msgid "Sposta prima"
 msgstr "Move up"
@@ -15229,6 +15276,9 @@ msgstr "Expenses a year before"
 msgid "Uscite cumulate"
 msgstr "Cumulative expenses"
 
+msgid "Uscite dal conto = acquisti, entrate = vendite."
+msgstr "Money out of the account = purchases, money in = sales."
+
 #, python-format
 msgid "Uscite del %(year)s"
 msgstr "Expenses of %(year)s"
@@ -16106,6 +16156,9 @@ msgstr "e.g. Studio Bianchi, Mrs Rossi"
 
 msgid "es. Titoli Directa"
 msgstr "e.g. Directa securities"
+
+msgid "es. VWCE o IE00BK5BQT80"
+msgstr "e.g. VWCE or IE00BK5BQT80"
 
 msgid "es. VWCE.DE, ENEL.MI, BTC"
 msgstr "e.g. VWCE.DE, ENEL.MI, BTC"
@@ -17291,6 +17344,9 @@ msgstr "· exceeded"
 #, python-format
 msgid "È disponibile la versione %(version)s."
 msgstr "Version %(version)s is available."
+
+msgid "È già un'operazione su titoli."
+msgstr "It is already a securities trade."
 
 msgid "È il momento di controllare il ribilanciamento"
 msgstr "Time to check the rebalancing"

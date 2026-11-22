@@ -45,7 +45,8 @@ def _tree() -> list[tuple[str, list[Entry]]]:
         (_l("Panoramica"), [
             Entry("transactions", _l("Transazioni"), "list-ul", P(_l("Transazioni"), "transactions.index"), (
                 P(_l("Entrate"), "reports.income"), P(_l("Uscite"), "reports.spending"),
-                P(_l("Entrate e uscite ricorrenti"), "subscriptions.index"), P(_l("Flussi"), "transactions.flows_page"),
+                P(_l("Entrate e uscite ricorrenti"), "subscriptions.index"), P(_l("Investimenti"), "transactions.investments_page"),
+                P(_l("Flussi"), "transactions.flows_page"),
                 P(_l("Storni"), "transactions.reversals_page")), tbd=False),
             Entry("accounts", _l("Conti e Carte"), "bank", P(_l("Conti e Carte"), "accounts.index"), (
                 P(_l("Carte"), "accounts.index", {"tab": "cards"}),

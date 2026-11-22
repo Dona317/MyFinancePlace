@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "transactions/_tabs.html" import transactions_tabs with context %}
+{% from "partials/info.html" import info %}
+
+{% block title %}{{ _('Investimenti') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Transazioni') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Investimenti') }}</li>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('transactions.investments_page', format='csv', **request.args) }}" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> CSV</a>
+  <a href="{{ url_for('transactions.investments_page', format='xlsx', **request.args) }}" class="btn btn-ghost btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+{% endblock %}
+
+{% block content %}
+{# 22 Nov 2026: the trades of securities out of the ordinary list — units, price and commission of each #}
+{{ transactions_tabs('investments') }}
+<div class="alert alert-info mb-16" style="display:block;">
+  <i class="bi bi-info-circle"></i>
+  {{ _('Qui gli acquisti e le vendite di titoli, con quote, prezzo e commissione: non sono nell\'elenco delle transazioni. Un movimento del conto che era un acquisto (un bonifico al broker) si sposta qui dall\'elenco: selezionalo e scegli «Sposta negli investimenti».') }}
+</div>
+{% include "portfolio/_orders_body.html" %}
+{% endblock %}

@@ -29,6 +29,7 @@ from app.services import (
     display,
     duplicates,
     family,
+    investment_moves,
     merchant,
     portfolio_ops,
     register_views,
@@ -61,8 +62,9 @@ PAGE_SIZE = 100  # rows per page of the list: the whole history at once made pag
 
 
 def _filtered_query(filters: dict):
-    """Apply the filter-bar values (q, type, category, month=YYYY-MM, recurring) to the transactions query."""
-    query = Transaction.query
+    """Apply the filter-bar values (q, type, category, month=YYYY-MM, recurring) to the transactions query. The
+    trades of securities and their commissions are not in it: they have the Investimenti tab."""
+    query = Transaction.query.filter(investment_moves.ordinary())
     if filters["q"]:
         pattern = f"%{filters['q']}%"
         query = query.filter(or_(
@@ -649,6 +651,53 @@ def duplicates_keep():
         db.session.commit()
         flash(_("Tenuta 1 transazione, eliminati %(count)s duplicati.", count=len(others)), "success")
     return back_to("transactions.duplicates_page")
+
+
+# ── Investimenti (22 Nov 2026): the trades of securities, out of the ordinary list ──
+
+@transactions_bp.route("/investments")
+def investments_page():
+    """The purchases and sales of securities with units, price and commission (the order register), as a tab of
+    Transazioni; ?format=csv|xlsx downloads it."""
+    from app.routes.portfolio_securities import orders_response
+    return orders_response("transactions/investments.html")
+
+
+@transactions_bp.route("/investments/move", methods=["POST"])
+def investments_move():
+    """Movements of the list that were trades (−5.000 € to the broker for VWCE): for each, the security (one of the
+    portfolio, or a new one by its name or ISIN), the units, the price and the commission; «save» moves them."""
+    ids = selected_ids()
+    rows = (Transaction.query.filter(Transaction.id.in_(ids), investment_moves.ordinary())
+            .order_by(Transaction.date.desc(), Transaction.id.desc()).all())
+    if not rows:
+        flash(_("Seleziona dall'elenco i movimenti da spostare negli investimenti."), "warning")
+        return redirect(url_for("transactions.index"))
+    errors = {}
+    if request.form.get("save"):
+        for tx in rows:
+            name = request.form.get(f"holding-{tx.id}", "").strip()
+            units, price = to_decimal(request.form.get(f"units-{tx.id}")), to_decimal(request.form.get(f"price-{tx.id}"))
+            fee = to_decimal(request.form.get(f"fee-{tx.id}"))
+            try:
+                if not name:
+                    raise ValueError(_("Scrivi il titolo (nome, ISIN o ticker)."))
+                investment_moves.move(tx, investment_moves.holding_named(name), units, price, fee)
+            except ValueError as exc:
+                text = str(exc)
+                errors[tx.id] = text if " " in text else {
+                    "fee": _("La commissione supera l'importo."), "already": _("È già un'operazione su titoli."),
+                }.get(text, _("Indica le quote o il prezzo."))
+        if not errors:
+            db.session.commit()
+            flash(ngettext("%(num)d movimento spostato negli investimenti.",
+                           "%(num)d movimenti spostati negli investimenti.", len(rows)), "success")
+            return redirect(url_for("transactions.investments_page"))
+        db.session.rollback()
+        rows = Transaction.query.filter(Transaction.id.in_([tx.id for tx in rows])).order_by(
+            Transaction.date.desc(), Transaction.id.desc()).all()
+    return render_template("transactions/investments_move.html", rows=rows, errors=errors, form=request.form,
+                           holdings=Holding.query.order_by(Holding.name).all())
 
 
 # ── Reversals (storni, F108): an expense and an income that cancel each other ───

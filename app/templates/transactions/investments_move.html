@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "partials/info.html" import info %}
+
+{% block title %}{{ _('Sposta negli investimenti') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Sposta negli investimenti') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li><a href="{{ url_for('transactions.investments_page') }}">{{ _('Investimenti') }}</a></li><li>{{ _('Sposta') }}</li>{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('transactions.investments_move') }}">
+  <input type="hidden" name="save" value="1" />
+  {% for tx in rows %}<input type="hidden" name="ids" value="{{ tx.id }}" />{% endfor %}
+  <div class="card">
+    <div class="card-header"><div>
+      <div class="card-header-title">{{ _('Da movimento del conto a operazione su titoli') }} {{ info(_('Per ogni movimento: il titolo (uno del portafoglio, o uno nuovo scrivendone il nome, l\'ISIN o il ticker), le quote e il prezzo (basta uno dei due: l\'altro viene dall\'importo) e la commissione, se c\'è. La commissione è compresa nell\'importo del movimento: l\'acquisto vale l\'importo meno la commissione.')) }}</div>
+      <div class="card-header-sub">{{ _('Uscite dal conto = acquisti, entrate = vendite.') }}</div>
+    </div></div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr>
+          <th>{{ _('Data') }}</th><th>{{ _('Movimento') }}</th><th class="text-right">{{ _('Importo') }}</th>
+          <th style="min-width:220px;">{{ _('Titolo') }}</th><th style="width:110px;">{{ _('# quote') }}</th>
+          <th style="width:120px;">{{ _('Prezzo €') }}</th><th style="width:110px;">{{ _('Commissione €') }}</th>
+        </tr></thead>
+        <tbody>
+          {% for tx in rows %}
+          <tr>
+            <td class="nowrap">{{ tx.date|it_date }}</td>
+            <td>{{ tx.description }}<div class="text-xs text-muted">{{ _('Vendita') if tx.type == 'income' else _('Acquisto') }}{% if tx.account %} · {{ tx.account.name }}{% endif %}</div>
+              {% if errors.get(tx.id) %}<div class="text-xs text-negative">{{ errors[tx.id] }}</div>{% endif %}</td>
+            <td class="amount text-right nowrap">{{ tx.signed_amount|money }}</td>
+            <td><input type="text" name="holding-{{ tx.id }}" class="form-control" list="move-holdings" required
+                       value="{{ form.get('holding-' ~ tx.id, '') }}" placeholder="{{ _('es. VWCE o IE00BK5BQT80') }}" aria-label="{{ _('Titolo') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="units-{{ tx.id }}" class="form-control" value="{{ form.get('units-' ~ tx.id, '') }}" aria-label="{{ _('Quote') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="price-{{ tx.id }}" class="form-control" value="{{ form.get('price-' ~ tx.id, '') }}" aria-label="{{ _('Prezzo') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="fee-{{ tx.id }}" class="form-control" value="{{ form.get('fee-' ~ tx.id, '') }}" aria-label="{{ _('Commissione') }}" /></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <datalist id="move-holdings">{% for h in holdings %}<option value="{{ h.name }}">{{ h.isin or h.ticker or '' }}</option>{% endfor %}</datalist>
+    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+      <a href="{{ url_for('transactions.index') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-briefcase"></i> {{ _('Sposta negli investimenti') }}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

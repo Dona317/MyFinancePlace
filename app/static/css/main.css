@@ -2757,3 +2757,8 @@ tr.is-muted td { color: var(--clr-text-muted); }
   html.sidebar-mini .page-find-btn { justify-content: center; padding: 8px 0; }
   html.sidebar-mini .page-find-btn kbd { display: none; }
 }
+
+/* the order register's header: the title on its line, the filters wrapping after it at their own width */
+.orders-head { flex-wrap: wrap; gap: 12px; }
+.orders-head .card-header-title { white-space: nowrap; }
+.orders-head .inline-filter > * { width: auto; flex: 0 1 auto; }

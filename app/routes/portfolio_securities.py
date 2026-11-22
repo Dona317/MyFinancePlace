@@ -155,6 +155,11 @@ def dossier_page(dossier_id):
 @portfolio_bp.route("/orders")
 def orders_page():
     """Every operation of every holding, filtered, with its totals; ?format=csv downloads it."""
+    return orders_response("portfolio/orders.html", nav_active="orders")
+
+
+def orders_response(template: str, **extra):
+    """The order register drawn in `template` (Holdings → Ordini, Transazioni → Investimenti), or its file."""
     args = request.args
     filters = order_register.Filters(
         portfolio_id=args.get("portfolio", type=int), securities_account_id=args.get("dossier", type=int),
@@ -165,9 +170,8 @@ def orders_page():
              "dossiers": {d.id: d.name for d in securities.accounts(active_only=False)}}
     if args.get("format") in ("csv", "xlsx"):
         return export_file(order_register.to_csv(found, names), "ordini")
-    return render_template("portfolio/orders.html", register=found, filters=filters, names=names,
-                           kinds=portfolio_ops.KINDS, nav_active="orders",
-                           holdings=Holding.query.order_by(Holding.name).all())
+    return render_template(template, register=found, filters=filters, names=names, kinds=portfolio_ops.KINDS,
+                           holdings=Holding.query.order_by(Holding.name).all(), **extra)
 
 
 # ── The overview (F48) ─────────────────────────────────────────────────────────
