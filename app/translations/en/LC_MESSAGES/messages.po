@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 19:53+0000\n"
+"POT-Creation-Date: 2026-11-22 19:56+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4792,6 +4792,18 @@ msgstr "Income and expenses by month"
 
 msgid "Entrate e uscite ricorrenti"
 msgstr "Recurring income and expenses"
+
+#, python-format
+msgid ""
+"Entrate e uscite ricorrenti (%(recurring)s) + variabili (%(method)s, "
+"%(n)s mesi)"
+msgstr "Recurring income and expenses (%(recurring)s) + variable (%(method)s, %(n)s months)"
+
+msgid "Entrate e uscite ricorrenti al mese"
+msgstr "Recurring income and expenses a month"
+
+msgid "Entrate e uscite ricorrenti programmate + variabili stimate"
+msgstr "Scheduled recurring income and expenses + estimated variable"
 
 #, python-format
 msgid "Entrate e uscite — %(period)s"
@@ -12139,19 +12151,6 @@ msgstr "Recurring"
 
 msgid "Ricorrente pianificata"
 msgstr "Planned recurring"
-
-msgid "Ricorrenti"
-msgstr "Recurring"
-
-#, python-format
-msgid "Ricorrenti (%(recurring)s) + variabili (%(method)s, %(n)s mesi)"
-msgstr "Recurring (%(recurring)s) + variable (%(method)s, %(n)s months)"
-
-msgid "Ricorrenti al mese"
-msgstr "Recurring per month"
-
-msgid "Ricorrenti programmate + variabili stimate"
-msgstr "Scheduled recurring + estimated variable"
 
 msgid "Ridisponi"
 msgstr "Rearrange"

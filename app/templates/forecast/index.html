@@ -38,7 +38,7 @@
    'sub': _('entrate %(income)s · uscite %(expenses)s', income=nxt.income|money, expenses=nxt.expenses|money)} if nxt else None,
   {'label': _('Saldo tra %(n)s mesi', n=fc.horizon), 'value': fc.final_balance|money, 'cls': 'positive' if fc.final_balance >= 0 else 'negative',
    'sub': _('Oggi %(amount)s', amount=fc.balance_now|money)},
-  {'label': _('Ricorrenti al mese'), 'value': fc.recurring_monthly|money, 'href': url_for('forecast.index', tab='recurring'),
+  {'label': _('Entrate e uscite ricorrenti al mese'), 'value': fc.recurring_monthly|money, 'href': url_for('forecast.index', tab='recurring'),
    'sub': _('%(count)s programmate', count=fc.scheduled|length) ~ ((' · ' ~ _('%(count)s da confermare', count=fc.candidates|length)) if fc.candidates else '')},
 ], _('Previsioni in breve')) }}
 {% endif %}
@@ -119,7 +119,7 @@
     {{ kpi('arrow-up-circle', _('Uscite %(month)s', month=nxt.label), amount=nxt.expenses, cls='kpi-negative', sub=(_('di cui ricorrenti %(amount)s', amount=nxt.scheduled_expenses|money))) }}
     {% endif %}
     {{ kpi('wallet2', _('Saldo tra %(n)s mesi', n=fc.horizon), amount=fc.final_balance, sub=(_('Oggi %(amount)s', amount=fc.balance_now|money))) }}
-    {% call kpi('arrow-repeat', _('Ricorrenti al mese'), amount=fc.recurring_monthly, cls='kpi-neutral') %}{{ _('%(count)s programmate', count=fc.scheduled|length) }}{% if fc.candidates %} · {{ _('%(count)s da confermare', count=fc.candidates|length) }}{% endif %}{% endcall %}
+    {% call kpi('arrow-repeat', _('Entrate e uscite ricorrenti al mese'), amount=fc.recurring_monthly, cls='kpi-neutral') %}{{ _('%(count)s programmate', count=fc.scheduled|length) }}{% if fc.candidates %} · {{ _('%(count)s da confermare', count=fc.candidates|length) }}{% endif %}{% endcall %}
   </div>
   {% elif w.id == 'net' %}
     <div class="card">
@@ -177,7 +177,7 @@
       <div class="card-header">
         <div>
           <div class="card-header-title"><i class="bi bi-arrow-down-circle"></i> {{ _('Entrate: storico e previsione') }}</div>
-          <div class="card-header-sub">{{ _('Ricorrenti (%(recurring)s) + variabili (%(method)s, %(n)s mesi)', recurring=recurring_amounts[prefs.recurring][0]|lower, method=fc.method_label|lower, n=fc.window) }}</div>
+          <div class="card-header-sub">{{ _('Entrate e uscite ricorrenti (%(recurring)s) + variabili (%(method)s, %(n)s mesi)', recurring=recurring_amounts[prefs.recurring][0]|lower, method=fc.method_label|lower, n=fc.window) }}</div>
         </div>
       </div>
       <div class="card-body">
@@ -189,7 +189,7 @@
       <div class="card-header">
         <div>
           <div class="card-header-title"><i class="bi bi-arrow-up-circle"></i> {{ _('Uscite: storico e previsione') }}</div>
-          <div class="card-header-sub">{{ _('Ricorrenti (%(recurring)s) + variabili (%(method)s, %(n)s mesi)', recurring=recurring_amounts[prefs.recurring][0]|lower, method=fc.method_label|lower, n=fc.window) }}</div>
+          <div class="card-header-sub">{{ _('Entrate e uscite ricorrenti (%(recurring)s) + variabili (%(method)s, %(n)s mesi)', recurring=recurring_amounts[prefs.recurring][0]|lower, method=fc.method_label|lower, n=fc.window) }}</div>
         </div>
       </div>
       <div class="card-body">
@@ -213,7 +213,7 @@
       <div class="card-header">
         <div>
           <div class="card-header-title">{{ _('Mese per mese') }}</div>
-          <div class="card-header-sub">{{ _('Ricorrenti programmate + variabili stimate') }}</div>
+          <div class="card-header-sub">{{ _('Entrate e uscite ricorrenti programmate + variabili stimate') }}</div>
         </div>
       </div>
       <div class="table-wrapper" style="max-height:340px;overflow-y:auto;">
@@ -243,7 +243,7 @@
       </div>
       <div class="table-wrapper">
         <table class="table-compact">
-          <thead><tr><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Media') }}</th><th class="col-optional text-right">{{ _('Ricorrenti') }}</th><th class="col-optional text-right">{{ _('Variabili') }}</th><th class="text-right">{{ _('Previsto') }}</th></tr></thead>
+          <thead><tr><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Media') }}</th><th class="col-optional text-right">{{ _('Entrate e uscite ricorrenti') }}</th><th class="col-optional text-right">{{ _('Variabili') }}</th><th class="text-right">{{ _('Previsto') }}</th></tr></thead>
           <tbody>
             {% for c in fc.categories %}
             {% set sign = -1 if c.type == 'expense' else 1 %}
@@ -367,7 +367,7 @@
       <div class="card-body forecast-help">
         <p>{{ _('Ogni mese previsto è la somma di due parti:') }}</p>
         <ul>
-          <li><strong>{{ _('Ricorrenti') }}</strong>{{ _(': le transazioni segnate come ricorrenti, proiettate nelle loro date con la loro frequenza, fino alla data di fine.') }}
+          <li><strong>{{ _('Entrate e uscite ricorrenti') }}</strong>{{ _(': le transazioni segnate come ricorrenti, proiettate nelle loro date con la loro frequenza, fino alla data di fine.') }}
             {{ _('Importo:') }} {{ recurring_amounts[prefs.recurring][1]|replace(_('N mesi'), fc.window ~ _(' mesi'))|lower }}</li>
           <li><strong>{{ _('Variabili') }}</strong>{{ _(': tutto il resto, categoria per categoria, stimato dagli ultimi') }} <strong>{{ fc.window }}</strong> {{ _('mesi completi (la finestra mobile) con il metodo scelto.') }}</li>
         </ul>

@@ -4,7 +4,7 @@
 <div class="page-tabs">{{ tab_bar([
   ('next12', url_for('forecast.index'), _('Prossimi 12 mesi'), 'graph-up-arrow'),
   ('months', url_for('forecast.index', tab='months'), _('Mese per mese'), 'table'),
-  ('recurring', url_for('forecast.index', tab='recurring'), _('Ricorrenti'), 'arrow-repeat'),
+  ('recurring', url_for('forecast.index', tab='recurring'), _('Entrate e uscite ricorrenti'), 'arrow-repeat'),
   ('methods', url_for('forecast.index', tab='methods'), _('Metodi'), 'sliders'),
   ('retirement', url_for('forecast.retirement'), _('Pensione e FIRE'), 'hourglass-split'),
 ], active, _('Sezioni delle previsioni')) }}</div>
