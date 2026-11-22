@@ -200,3 +200,11 @@ docs/Transaction samples/Estratto conto*.pdf
 
 # Data folder of the demo server (scripts/demo_server.py)
 instance_demo/
+
+### MyFinancePlace: secrets never go in the repository ###
+# private keys (the Enable Banking application's .pem is saved encrypted in the app, Gestione PSD2)
+*.pem
+*.key
+# the data key and the old file of the Enable Banking credentials (instance folder)
+data.key
+enable_banking.json
