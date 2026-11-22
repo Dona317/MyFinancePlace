@@ -245,7 +245,9 @@ function initSidebar() {
    arrows and Enter open one; Ctrl+K (⌘K) opens it from anywhere */
 function initPageFind() {
   const button = document.getElementById("page-find-btn"), panel = document.getElementById("page-find-panel");
-  if (!button || !panel) return;
+  const overlay = document.getElementById("page-find-overlay");
+  if (!button || !panel || !overlay) return;
+  document.body.appendChild(overlay);  // out of the side menu: over the whole page
   const input = document.getElementById("page-find-input"), list = document.getElementById("page-find-list");
   const items = [...list.querySelectorAll(".page-find-item")], empty = list.querySelector(".page-find-empty");
   const plain = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -272,31 +274,28 @@ function initPageFind() {
     active = words.length ? 0 : -1;
     mark();
   };
-  const place = () => {
-    const box = button.getBoundingClientRect();
-    panel.style.top = `${box.top}px`;
-    panel.style.left = `${box.left}px`;
-  };
+  // a modal window: the page behind dimmed and still until it closes
   const open = (on) => {
-    if (on) place();
-    panel.hidden = !on;
+    overlay.hidden = !on;
+    document.documentElement.classList.toggle("no-scroll", on);
     button.setAttribute("aria-expanded", String(on));
-    if (on) { input.value = ""; filter(); input.focus(); }
+    if (on) { input.value = ""; filter(); input.focus(); } else { button.focus(); }
   };
-  button.addEventListener("click", e => { e.stopPropagation(); open(panel.hidden); });
+  const isOpen = () => !overlay.hidden;
+  button.addEventListener("click", e => { e.stopPropagation(); open(!isOpen()); });
+  overlay.addEventListener("click", e => { if (e.target === overlay) open(false); });  // a click outside the window
   input.addEventListener("input", filter);
   input.addEventListener("keydown", e => {
     const shown = visible();
     if (e.key === "ArrowDown") { active = Math.min(active + 1, shown.length - 1); mark(); e.preventDefault(); }
     else if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); mark(); e.preventDefault(); }
     else if (e.key === "Enter") { const target = shown[Math.max(active, 0)]; if (target) window.location.assign(target.href); e.preventDefault(); }
-    else if (e.key === "Escape") { open(false); button.focus(); }
+    else if (e.key === "Escape") { e.stopPropagation(); open(false); }
   });
-  document.addEventListener("click", e => { if (!panel.hidden && !panel.contains(e.target) && e.target !== button) open(false); });
   document.addEventListener("keydown", e => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); open(panel.hidden); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); open(!isOpen()); }
+    else if (e.key === "Escape" && isOpen()) open(false);
   });
-  window.addEventListener("resize", () => { if (!panel.hidden) place(); });
 }
 
 /* Collapsible sections of the menu, remembered in this browser */

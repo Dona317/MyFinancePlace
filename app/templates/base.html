@@ -120,7 +120,9 @@
         <i class="bi bi-search" aria-hidden="true"></i><span class="nav-label">{{ _('Cerca…') }}</span>
         <kbd class="nav-label">Ctrl K</kbd>
       </button>
-      <div class="page-find-panel" id="page-find-panel" hidden role="dialog" aria-label="{{ _('Cerca una pagina') }}">
+      {# a window in the middle of the screen, the page behind it dimmed and still (moved under <body> by main.js) #}
+      <div class="page-find-overlay" id="page-find-overlay" hidden>
+      <div class="page-find-panel" id="page-find-panel" role="dialog" aria-modal="true" aria-label="{{ _('Cerca una pagina') }}">
         <input type="search" class="form-control page-find-input" id="page-find-input" autocomplete="off"
                placeholder="{{ _('Cerca una pagina o una scheda…') }}" aria-label="{{ _('Cerca una pagina') }}">
         <div class="page-find-list" id="page-find-list" role="listbox">
@@ -131,6 +133,8 @@
           {% endfor %}
           <div class="page-find-empty" hidden>{{ _('Nessuna pagina trovata.') }}</div>
         </div>
+        <div class="page-find-keys text-xs text-muted"><kbd>↑</kbd><kbd>↓</kbd> {{ _('per scegliere') }} · <kbd>Invio</kbd> {{ _('per aprire') }} · <kbd>Esc</kbd> {{ _('per chiudere') }}</div>
+      </div>
       </div>
     </div>
 
