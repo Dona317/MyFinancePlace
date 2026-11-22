@@ -2635,3 +2635,15 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .event-new-form .form-group:first-child { flex: 1; min-width: 220px; }
 .event-new-budget { width: 140px; }
 .budget-mini-bar > span.is-debt { background: var(--chart-5); }
+/* Obiettivi (UI-21): the goals as rows of a list, not cards */
+.goal-list { list-style: none; margin: 0; padding: 0; }
+.goal-row { display: flex; gap: 16px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--clr-border-light); }
+.goal-row:last-child { border-bottom: 0; }
+.goal-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.goal-row-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.goal-row-sub { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.goal-row-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.goal-row-pay { display: flex; gap: 6px; margin: 0; }
+.goal-row-pay .form-control { width: 110px; height: 30px; }
+.suggestion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+@media (max-width: 768px) { .goal-row { flex-direction: column; align-items: stretch; } .goal-row-actions { justify-content: space-between; } }

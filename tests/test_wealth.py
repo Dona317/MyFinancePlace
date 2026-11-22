@@ -322,3 +322,15 @@ def test_the_debts_page_is_in_tabs(client, db):
     assert 'id="debtYearsChart"' in years and "Interessi ancora da pagare" in years and str(date.today().year + 1) in years
     assert "In arrivo" in client.get("/debt/?tab=tools").get_data(as_text=True)
     assert 'class="report-tab active"' in client.get("/debt/?tab=nope").get_data(as_text=True)  # unknown: the overview
+
+
+def test_the_goals_page_is_in_tabs(client, db):
+    # UI-21: the goals as a list in tabs; the emergency fund and the suggestions have a tab each
+    db.session.add_all([Goal(name="Casa", target_amount=Decimal("1000"), saved_amount=Decimal("250")),
+                        Goal(name="Bici", target_amount=Decimal("300"), saved_amount=Decimal("300"))])  # reached: saved = target
+    db.session.commit()
+    page = client.get("/lifestyle/goals").get_data(as_text=True)
+    assert 'class="goal-row"' in page and "Casa" in page and "Bici" not in page.split('class="goal-list"')[1]
+    assert "Bici" in client.get("/lifestyle/goals?tab=done").get_data(as_text=True)
+    assert "Fondo d’emergenza" in client.get("/lifestyle/goals?tab=emergency").get_data(as_text=True)
+    assert 'class="suggestion"' in client.get("/lifestyle/goals?tab=suggested").get_data(as_text=True)

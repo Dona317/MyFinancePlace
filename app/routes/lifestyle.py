@@ -10,8 +10,9 @@ from app.models.account import Account
 from app.models.budget import Budget
 from app.models.wealth import Goal
 from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form
-from app.services import accounts, analytics, budgets, categories, display, planning, shared_period
+from app.services import accounts, analytics, budgets, categories, display, planning, shared_period, wealth
 from app.services.periods import add_months
+from app.services.ui_settings import autonomy_target
 
 lifestyle_bp = APIBlueprint(
     "lifestyle",
@@ -168,9 +169,12 @@ def goals():
     planning.sync(all_goals)  # a goal linked to an account has what the account holds
     db.session.commit()
     active = [g for g in all_goals if not g.completed]
+    # UI-21: the page in tabs — the goals under way, the reached ones, the emergency fund, the suggestions
+    tab = request.args.get("tab", "goals")
+    tab = tab if tab in GOAL_TABS else "goals"
     return render_template(
         "lifestyle/goals.html",
-        goals=all_goals,
+        goals=all_goals, tab=tab, emergency=_emergency(all_goals),
         active_count=len(active),
         completed_count=len(all_goals) - len(active),
         saved_total=sum(float(g.saved_amount) for g in all_goals),
@@ -180,6 +184,22 @@ def goals():
         plans={g.id: planning.goal_plan(g) for g in active},
         today=date.today(),
     )
+
+
+GOAL_TABS = ("goals", "done", "emergency", "suggested")
+
+
+def _emergency(goals) -> dict:
+    """The emergency fund: the months of spending the liquid money covers against the months chosen in Settings,
+    what is missing, and the goal already made for it (a name with «emergenza»)."""
+    trailing = analytics.last_12_months()
+    avg = sum(trailing["expenses"]) / 12
+    liquid = float(wealth.balance_sheet()["cash"])
+    target_months = autonomy_target()
+    target = round(avg * target_months, -2) if avg else 0.0
+    return {"avg_expenses": round(avg, 2), "liquid": round(liquid, 2), "target_months": target_months,
+            "months": round(liquid / avg, 1) if avg else None, "target": target, "gap": round(target - liquid, 2),
+            "goal": next((g for g in goals if "emergenz" in (g.name or "").lower()), None)}
 
 
 @lifestyle_bp.route("/goals/new", methods=["GET", "POST"])

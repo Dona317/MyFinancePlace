@@ -16492,3 +16492,103 @@ msgstr "Refinancing and variable rate"
 #: app/templates/debt/index.html
 msgid "Da costruire: l’offerta di un’altra banca con il punto di pareggio, e la rata con l’Euribor più alto di 1 o 2 punti."
 msgstr "To be built: another bank's offer with its break-even point, and the instalment with the Euribor 1 or 2 points higher."
+
+#: app/templates/lifestyle/goals.html
+msgid "Messo da parte"
+msgstr "Put aside"
+
+#: app/templates/lifestyle/goals.html
+msgid "Da mettere da parte"
+msgstr "To put aside"
+
+#: app/templates/lifestyle/goals.html
+msgid "Obiettivi attivi"
+msgstr "Active goals"
+
+#: app/templates/lifestyle/goals.html
+msgid "%(count)s raggiunti"
+msgstr "%(count)s reached"
+
+#: app/templates/lifestyle/goals.html
+msgid "In ritardo"
+msgstr "Late"
+
+#: app/templates/lifestyle/goals.html
+msgid "nessuno"
+msgstr "none"
+
+#: app/templates/lifestyle/goals.html
+msgid "Fondo d’emergenza"
+msgstr "Emergency fund"
+
+#: app/templates/lifestyle/goals.html
+msgid "obiettivo %(n)s mesi"
+msgstr "goal %(n)s months"
+
+#: app/templates/lifestyle/goals.html
+msgid "Obiettivi in breve"
+msgstr "Goals at a glance"
+
+#: app/templates/lifestyle/goals.html
+msgid "Raggiunti"
+msgstr "Reached"
+
+#: app/templates/lifestyle/goals.html
+msgid "Suggeriti"
+msgstr "Suggested"
+
+#: app/templates/lifestyle/goals.html
+msgid "Sezioni degli obiettivi"
+msgstr "Goal sections"
+
+#: app/templates/lifestyle/goals.html
+msgid "Crea il tuo primo obiettivo finanziario, oppure parti da uno dei suggerimenti."
+msgstr "Create your first financial goal, or start from one of the suggestions."
+
+#: app/templates/lifestyle/goals.html
+msgid "Nessun obiettivo in corso"
+msgstr "No goal under way"
+
+#: app/templates/lifestyle/goals.html
+msgid "Crea obiettivo"
+msgstr "Create goal"
+
+#: app/templates/lifestyle/goals.html
+msgid "Vedi i suggeriti"
+msgstr "See the suggestions"
+
+#: app/templates/lifestyle/goals.html
+msgid "Nessun obiettivo raggiunto, per ora."
+msgstr "No goal reached, for now."
+
+#: app/templates/lifestyle/goals.html
+msgid "Quanti mesi di spese copre la liquidità che hai sui conti, senza stipendio. L’obiettivo di mesi si sceglie in Impostazioni → Dashboard."
+msgstr "How many months of spending the liquid money on your accounts covers without a salary. The goal in months is chosen in Settings → Dashboard."
+
+#: app/templates/lifestyle/goals.html
+msgid "Spesa media degli ultimi 12 mesi: %(amount)s al mese"
+msgstr "Average spending of the last 12 months: %(amount)s a month"
+
+#: app/templates/lifestyle/goals.html
+msgid "Liquidità %(amount)s"
+msgstr "Liquid money %(amount)s"
+
+#: app/templates/lifestyle/goals.html
+msgid "Per arrivare a %(n)s mesi mancano %(amount)s."
+msgstr "To reach %(n)s months, %(amount)s are missing."
+
+#: app/templates/lifestyle/goals.html
+msgid "La liquidità copre già i %(n)s mesi che hai scelto."
+msgstr "The liquid money already covers the %(n)s months you chose."
+
+#: app/templates/lifestyle/goals.html
+msgid "Crea l’obiettivo da %(amount)s"
+msgstr "Create the %(amount)s goal"
+
+#: app/templates/lifestyle/goals.html
+msgid "Servono le spese di qualche mese per sapere quanto deve essere grande il fondo."
+msgstr "A few months of spending are needed to know how big the fund should be."
+
+#: app/templates/lifestyle/goals.html
+msgid "Obiettivi suggeriti"
+msgstr "Suggested goals"

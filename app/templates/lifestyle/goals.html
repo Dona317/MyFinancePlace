@@ -1,100 +1,129 @@
 {% extends "base.html" %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
-{% from "partials/kpi.html" import kpi %}
+{% from "partials/stat_row.html" import stat_row %}
+{% from "partials/tabs.html" import tab_bar %}
+{% from "partials/info.html" import info %}
 
 {% block title %}{{ _('Obiettivi') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Obiettivi Personali') }}{% endblock %}
+{% block page_title %}{{ _('Obiettivi') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di Vita') }}</a></li><li>{{ _('Obiettivi') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> {{ _('Nuovo Obiettivo') }}
+    <i class="bi bi-plus-lg"></i> {{ _('Nuovo obiettivo') }}
   </a>
 {% endblock %}
 
-{% block content %}
-
-<!-- Riepilogo obiettivi ─────────────────────────────────────────────── -->
-<div class="kpi-grid mb-24">
-  {{ kpi('trophy', _('Obiettivi Attivi'), value=active_count, cls='kpi-primary', sub=(_('%(count)s completati', count=completed_count))) }}
-  {{ kpi('wallet2', _('Totale Risparmiato'), value=saved_total|money, cls='kpi-positive', value_class='text-positive', sub=(_('su %(amount)s di obiettivi', amount=target_total|money))) }}
-  {{ kpi('calendar2-week', _('Da Mettere da Parte'), value=monthly_total|money, cls='kpi-warning', sub=(_('al mese, per rispettare le date'))) }}
-  {{ kpi('flag', _('Mancano'), value=([target_total - saved_total, 0]|max|money), sub=(_('per completarli tutti'))) }}
-</div>
-
-<!-- Griglia obiettivi ───────────────────────────────────────────────── -->
-{% if goals %}
-<div class="cards-grid">
-  {% for goal in goals %}
-  {% set monthly = goal.monthly_needed(today) %}
-  <div class="card goal-card">
-    <div class="card-body">
-      <div class="goal-head">
-        <div>
-          <div class="cell-title">{{ goal.name }}</div>
-          <div class="text-xs text-muted">
-            {% if goal.target_date %}{{ _('Entro il %(day)s', day=goal.target_date|it_date) }}{% if goal.target_date < today and not goal.completed %} · <span class="text-negative">{{ _('scaduto') }}</span>{% endif %}
-            {% else %}{{ _('Senza scadenza') }}{% endif %}
-          </div>
-        </div>
-        <span class="badge badge-{{ 'positive' if goal.completed else 'neutral' }}">
-          {{ _('Raggiunto') if goal.completed else goal.progress|number(1) ~ '%' }}
-        </span>
-      </div>
-      <div class="goal-amounts">
-        <span class="amount positive">{{ goal.saved_amount|money }}</span>
-        <span class="amount text-muted">/ {{ goal.target_amount|money }}</span>
-      </div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill {{ 'positive' if goal.completed }}" style="width:{{ goal.progress }}%;"></div>
-      </div>
-      {% set plan = plans.get(goal.id) %}
-      {% if plan and plan.needed is not none and (plan.yearly_return or plan.monthly) %}
-      <div class="text-xs text-muted mt-8">{{ _('%(amount)s al mese per arrivarci in tempo, al %(rate)s %% all\'anno', amount=plan.needed|money, rate=plan.yearly_return|number(1)) }}</div>
-      {% elif monthly %}<div class="text-xs text-muted mt-8">{{ _('%(amount)s al mese per arrivarci in tempo', amount=monthly|money) }}</div>{% endif %}
+{# one goal as a row of the list: name and date, the bar, the amounts, the plan, «Versa», the actions #}
+{% macro goal_row(goal) -%}
+{% set monthly = goal.monthly_needed(today) %}
+{% set plan = plans.get(goal.id) %}
+<li class="goal-row">
+  <div class="goal-row-main">
+    <div class="goal-row-head">
+      <span class="cell-title">{{ goal.name }}</span>
+      <span class="text-xs text-muted">
+        {% if goal.target_date %}{{ _('Entro il %(day)s', day=goal.target_date|it_date) }}{% if goal.target_date < today and not goal.completed %} · <span class="text-negative">{{ _('scaduto') }}</span>{% endif %}
+        {% else %}{{ _('Senza scadenza') }}{% endif %}
+        {% if goal.account_id %} · <i class="bi bi-link"></i> {{ _('Segue il saldo del conto') }}{% endif %}
+      </span>
+    </div>
+    <div class="budget-mini-bar"><span class="is-{{ 'ok' if goal.completed or goal.progress >= 50 else 'warning' }}" style="width: {{ [goal.progress, 100]|min }}%"></span></div>
+    <div class="goal-row-sub text-xs text-muted">
+      <span><strong class="text-positive">{{ goal.saved_amount|money }}</strong> / {{ goal.target_amount|money }} · {{ goal.progress|number(0) }}%</span>
+      {% if plan and plan.needed is not none and (plan.yearly_return or plan.monthly) %}<span>{{ _('%(amount)s al mese per arrivarci in tempo, al %(rate)s %% all\'anno', amount=plan.needed|money, rate=plan.yearly_return|number(1)) }}</span>
+      {% elif monthly %}<span>{{ _('%(amount)s al mese per arrivarci in tempo', amount=monthly|money) }}</span>{% endif %}
       {% if plan and plan.monthly %}
-      <div class="text-xs mt-8">
-        {% if plan.reached_on %}{{ _('Con %(amount)s al mese lo raggiungi a %(month)s', amount=plan.monthly|money, month=plan.reached_on.strftime('%m/%Y')) }}
-        {% else %}<span class="text-negative">{{ _('Con %(amount)s al mese non lo raggiungi in 50 anni', amount=plan.monthly|money) }}</span>{% endif %}
-        <span class="text-muted">({% for rate, day in plan.scenarios %}{{ rate|number(1) }} %: {{ day.strftime('%m/%Y') if day else '—' }}{{ ' · ' if not loop.last }}{% endfor %})</span>
-      </div>
+      <span>{% if plan.reached_on %}{{ _('Con %(amount)s al mese lo raggiungi a %(month)s', amount=plan.monthly|money, month=plan.reached_on.strftime('%m/%Y')) }}
+        {% else %}<span class="text-negative">{{ _('Con %(amount)s al mese non lo raggiungi in 50 anni', amount=plan.monthly|money) }}</span>{% endif %}</span>
       {% endif %}
-      {% if goal.account_id %}<div class="text-xs text-muted mt-8"><i class="bi bi-link"></i> {{ _('Segue il saldo del conto') }}</div>{% endif %}
-      {% if goal.notes %}<div class="text-xs text-muted mt-8">{{ goal.notes }}</div>{% endif %}
-      <div class="goal-foot">
-        <form method="POST" action="{{ url_for('lifestyle.goal_contribute', goal_id=goal.id) }}">
-          <input type="text" inputmode="decimal" name="amount" class="form-control" placeholder="{{ _('+ importo') }}"
-                 aria-label="{{ _('Importo da aggiungere a %(name)s', name=goal.name) }}" autocomplete="off" required />
-          <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Aggiungi (usa il meno per togliere)') }}"><i class="bi bi-plus-lg"></i> {{ _('Versa') }}</button>
-        </form>
-        <div class="cell-actions">
-          {{ icon_link(url_for('lifestyle.goal_edit', goal_id=goal.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=goal.name)) }}
-          {{ delete_button(url_for('lifestyle.goal_delete', goal_id=goal.id), _("Eliminare l'obiettivo «%(name)s»?", name=goal.name), _('Elimina %(name)s', name=goal.name)) }}
-        </div>
-      </div>
+      {% if goal.notes %}<span>{{ goal.notes }}</span>{% endif %}
     </div>
   </div>
-  {% endfor %}
-</div>
-{% else %}
-<div class="card">
-  {% call empty_state(text=_('Crea il tuo primo obiettivo finanziario, oppure parti da uno dei suggerimenti qui sotto.'), icon='bi-trophy', title=_('Nessun obiettivo ancora')) %}
-    <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea Obiettivo') }}</a>
-  {% endcall %}
-</div>
-{% endif %}
+  <div class="goal-row-actions">
+    {% if not goal.completed %}
+    <form method="POST" action="{{ url_for('lifestyle.goal_contribute', goal_id=goal.id) }}" class="goal-row-pay">
+      <input type="text" inputmode="decimal" name="amount" class="form-control" placeholder="{{ _('+ importo') }}"
+             aria-label="{{ _('Importo da aggiungere a %(name)s', name=goal.name) }}" autocomplete="off" required />
+      <button type="submit" class="btn btn-ghost btn-sm" title="{{ _('Aggiungi (usa il meno per togliere)') }}"><i class="bi bi-plus-lg"></i> {{ _('Versa') }}</button>
+    </form>
+    {% endif %}
+    <div class="cell-actions">
+      {{ icon_link(url_for('lifestyle.goal_edit', goal_id=goal.id), 'bi-pencil', _('Modifica'), _('Modifica %(name)s', name=goal.name)) }}
+      {{ delete_button(url_for('lifestyle.goal_delete', goal_id=goal.id), _("Eliminare l'obiettivo «%(name)s»?", name=goal.name), _('Elimina %(name)s', name=goal.name)) }}
+    </div>
+  </div>
+</li>
+{%- endmacro %}
 
-<!-- Suggerimenti ─────────────────────────────────────────────────────── -->
-<div class="card mt-24">
-  <div class="card-header">
-    <div>
-      <div class="card-header-title">{{ _('Obiettivi Suggeriti') }}</div>
-      <div class="card-header-sub">{{ _('Clicca per partire da un modello: potrai cambiare nome e importo') }}</div>
-    </div>
-  </div>
+{% block content %}
+{# UI-21: «come sto» in one row, then the tabs #}
+{% set late = goals|rejectattr('completed')|selectattr('target_date')|selectattr('target_date', 'lt', today)|list %}
+{{ stat_row([
+  {'label': _('Messo da parte'), 'value': saved_total|money, 'cls': 'positive', 'sub': _('su %(amount)s di obiettivi', amount=target_total|money),
+   'meter': (saved_total / target_total * 100) if target_total else none},
+  {'label': _('Da mettere da parte'), 'value': monthly_total|money, 'sub': _('al mese, per rispettare le date')},
+  {'label': _('Obiettivi attivi'), 'value': active_count, 'sub': _('%(count)s raggiunti', count=completed_count)},
+  {'label': _('In ritardo'), 'value': late|length, 'cls': 'negative' if late else 'positive', 'sub': (late|map(attribute='name')|join(', ')) if late else _('nessuno')},
+  {'label': _('Fondo d’emergenza'), 'value': _('%(n)s mesi', n=emergency.months|number(1)) if emergency.months is not none else '—',
+   'cls': 'positive' if emergency.months is not none and emergency.months >= emergency.target_months else 'warning',
+   'href': url_for('lifestyle.goals', tab='emergency'), 'sub': _('obiettivo %(n)s mesi', n=emergency.target_months)},
+], _('Obiettivi in breve')) }}
+<div class="page-tabs">{{ tab_bar([
+  ('goals', url_for('lifestyle.goals'), _('Obiettivi'), 'trophy'),
+  ('done', url_for('lifestyle.goals', tab='done'), _('Raggiunti'), 'check2-circle'),
+  ('emergency', url_for('lifestyle.goals', tab='emergency'), _('Fondo d’emergenza'), 'shield-check'),
+  ('suggested', url_for('lifestyle.goals', tab='suggested'), _('Suggeriti'), 'lightbulb'),
+], tab, _('Sezioni degli obiettivi')) }}</div>
+
+{% if tab in ('goals', 'done') %}
+{% set shown_goals = goals|rejectattr('completed')|list if tab == 'goals' else goals|selectattr('completed')|list %}
+<div class="card">
+  {% if shown_goals %}
+  <ul class="goal-list">{% for goal in shown_goals %}{{ goal_row(goal) }}{% endfor %}</ul>
+  {% elif tab == 'goals' %}
+  {% call empty_state(text=_('Crea il tuo primo obiettivo finanziario, oppure parti da uno dei suggerimenti.'), icon='bi-trophy', title=_('Nessun obiettivo in corso')) %}
+    <a href="{{ url_for('lifestyle.goal_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea obiettivo') }}</a>
+    <a href="{{ url_for('lifestyle.goals', tab='suggested') }}" class="btn btn-ghost">{{ _('Vedi i suggeriti') }}</a>
+  {% endcall %}
+  {% else %}
+  <div class="card-body">{{ empty_state(text=_('Nessun obiettivo raggiunto, per ora.'), icon='bi-check2-circle', compact=True) }}</div>
+  {% endif %}
+</div>
+
+{% elif tab == 'emergency' %}
+<div class="card">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Fondo d’emergenza') }} {{ info(_('Quanti mesi di spese copre la liquidità che hai sui conti, senza stipendio. L’obiettivo di mesi si sceglie in Impostazioni → Dashboard.')) }}</div>
+    <div class="card-header-sub">{{ _('Spesa media degli ultimi 12 mesi: %(amount)s al mese', amount=emergency.avg_expenses|money) }}</div>
+  </div></div>
   <div class="card-body">
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+    {% if emergency.months is not none %}
+    <div class="budget-mini">
+      <div class="budget-mini-head"><span>{{ _('Liquidità %(amount)s', amount=emergency.liquid|money) }}</span>
+        <span>{{ _('%(n)s mesi su %(target)s', n=emergency.months|number(1), target=emergency.target_months) }}</span></div>
+      <div class="budget-mini-bar"><span class="is-{{ 'ok' if emergency.months >= emergency.target_months else 'warning' }}" style="width: {{ [emergency.months / emergency.target_months * 100, 100]|min }}%"></span></div>
+    </div>
+    <p class="text-sm mt-16">
+      {% if emergency.gap > 0 %}{{ _('Per arrivare a %(n)s mesi mancano %(amount)s.', n=emergency.target_months, amount=emergency.gap|money) }}
+      {% else %}{{ _('La liquidità copre già i %(n)s mesi che hai scelto.', n=emergency.target_months) }}{% endif %}
+    </p>
+    {% if emergency.gap > 0 and not emergency.goal %}
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('lifestyle.goal_new', name=_('Fondo d\'emergenza'), target_amount='%d'|format(emergency.target)) }}"><i class="bi bi-plus-lg"></i> {{ _('Crea l’obiettivo da %(amount)s', amount=emergency.target|money) }}</a>
+    {% endif %}
+    {% else %}{{ empty_state(text=_('Servono le spese di qualche mese per sapere quanto deve essere grande il fondo.'), compact=True) }}{% endif %}
+  </div>
+</div>
+
+{% elif tab == 'suggested' %}
+<div class="card">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Obiettivi suggeriti') }}</div>
+    <div class="card-header-sub">{{ _('Clicca per partire da un modello: potrai cambiare nome e importo') }}</div>
+  </div></div>
+  <div class="card-body">
+    <div class="suggestion-grid">
       {% for s in suggestions %}
       <a class="suggestion" href="{{ url_for('lifestyle.goal_new', name=s.name, target_amount='%d'|format(s.target)) }}">
         <i class="bi {{ s.icon }}"></i>
@@ -105,5 +134,5 @@
     </div>
   </div>
 </div>
-
+{% endif %}
 {% endblock %}
