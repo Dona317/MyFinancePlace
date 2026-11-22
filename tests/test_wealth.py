@@ -309,3 +309,16 @@ def test_numbers_survive_an_edit_round_trip(client, db, instance):
                                                        "quantity": "1500", "avg_price": "1,234"})
     db.session.expire_all()
     assert Holding.query.one().avg_price == Decimal("1.234")
+
+
+def test_the_debts_page_is_in_tabs(client, db):
+    # UI-21: «come sto» on top, then Panoramica · Debiti · Ammortamento · Strumenti
+    db.session.add(mortgage())
+    db.session.commit()
+    overview = client.get("/debt/").get_data(as_text=True)
+    assert 'class="stat-row"' in overview and "Debito residuo" in overview and 'id="debtAmortChart"' in overview
+    assert "Mutuo" in client.get("/debt/?tab=debts").get_data(as_text=True)
+    years = client.get("/debt/?tab=amortization").get_data(as_text=True)
+    assert 'id="debtYearsChart"' in years and "Interessi ancora da pagare" in years and str(date.today().year + 1) in years
+    assert "In arrivo" in client.get("/debt/?tab=tools").get_data(as_text=True)
+    assert 'class="report-tab active"' in client.get("/debt/?tab=nope").get_data(as_text=True)  # unknown: the overview

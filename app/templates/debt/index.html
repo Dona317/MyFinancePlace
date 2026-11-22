@@ -2,10 +2,12 @@
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
-{% from "partials/kpi.html" import kpi %}
+{% from "partials/stat_row.html" import stat_row %}
+{% from "partials/tabs.html" import tab_bar %}
+{% from "partials/info.html" import info %}
 
 {% block title %}{{ _('Debiti') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Gestione Debiti') }}{% endblock %}
+{% block page_title %}{{ _('Debiti') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Debiti') }}</li>{% endblock %}
 
 {% block topbar_actions %}
@@ -16,18 +18,24 @@
 
 {% block content %}
 
-<!-- KPI ──────────────────────────────────────────────────────────────── -->
-<div class="kpi-grid mb-24">
-  {{ kpi('credit-card-2-back', _('Debito Residuo'), value=total_balance|money, cls='kpi-purple', sub=(ngettext('%(num)d debito', '%(num)d debiti', summaries|length))) }}
-  {{ kpi('calendar-check', _('Rate Mensili'), value=monthly_total|money, cls='kpi-warning', sub=(_('somma delle rate in corso'))) }}
-  {{ kpi('percent', _('Interessi (anno)'), value=interest_ytd|money, sub=(_('dal piano di ammortamento'))) }}
-  {% call kpi('speedometer2', _('Rate / Reddito'), value=(debt_to_income|number(1) ~ '%') if debt_to_income is not none else '—',
-            cls=('kpi-negative' if debt_to_income and debt_to_income > 35 else 'kpi-positive')) %}
-    {% if debt_to_income is none %}{{ _('servono le entrate degli ultimi 12 mesi') }}
-    {% else %}{{ _('su %(amount)s di entrate medie al mese', amount=average_income|money) }}{% if debt_to_income > 35 %} {{ _('· oltre il 35%% consigliato') }}{% endif %}{% endif %}
-  {% endcall %}
-</div>
+{# UI-21: «come sto» in one row, then the tabs #}
+{{ stat_row([
+  {'label': _('Debito residuo'), 'value': total_balance|money, 'cls': 'purple', 'sub': ngettext('%(num)d debito', '%(num)d debiti', summaries|length)},
+  {'label': _('Rate mensili'), 'value': monthly_total|money, 'sub': _('somma delle rate in corso')},
+  {'label': _('Rate / reddito'), 'value': (debt_to_income|number(1) ~ '%') if debt_to_income is not none else '—',
+   'cls': 'negative' if debt_to_income and debt_to_income > 35 else 'positive' if debt_to_income is not none else None,
+   'sub': _('su %(amount)s di entrate medie al mese', amount=average_income|money) if debt_to_income is not none else _('servono le entrate degli ultimi 12 mesi')},
+  {'label': _('Interessi nell’anno'), 'value': interest_ytd|money, 'sub': _('dal piano di ammortamento')},
+  {'label': _('Ultima rata'), 'value': last_end|it_date if last_end else '—', 'sub': _('quando finisci, ai piani di oggi')},
+], _('Debiti in breve')) }}
+<div class="page-tabs">{{ tab_bar([
+  ('overview', url_for('debt.index'), _('Panoramica'), 'graph-down'),
+  ('debts', url_for('debt.index', tab='debts'), _('Debiti'), 'list-ul'),
+  ('amortization', url_for('debt.index', tab='amortization'), _('Ammortamento'), 'table'),
+  ('tools', url_for('debt.index', tab='tools'), _('Strumenti'), 'tools'),
+], tab, _('Sezioni dei debiti')) }}</div>
 
+{% if tab == 'overview' %}
 <!-- Grafici ──────────────────────────────────────────────────────────── -->
 <div class="row-2-1">
   <div class="card">
@@ -55,7 +63,7 @@
   </div>
 </div>
 
-<!-- Tabella debiti ────────────────────────────────────────────────────── -->
+{% elif tab == 'debts' %}
 <div class="card">
   <div class="card-header"><div class="card-header-title">{{ _('Debiti') }}</div></div>
 
@@ -115,14 +123,54 @@
   {% endif %}
 </div>
 
+{% elif tab == 'amortization' %}
+<div class="card">
+  <div class="card-header"><div>
+    <div class="card-header-title">{{ _('Quota capitale e interessi, anno per anno') }} {{ info(_('Dalle rate che restano dei piani di ammortamento di tutti i debiti.')) }}</div>
+    {% if interest_left is not none %}<div class="card-header-sub">{{ _('Interessi ancora da pagare: %(amount)s', amount=interest_left|money) }}</div>{% endif %}
+  </div></div>
+  {% if amortization %}
+  <div class="card-body"><div class="chart-container chart-h-md"><canvas id="debtYearsChart"></canvas></div></div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>{{ _('Anno') }}</th><th class="text-right">{{ _('Quota capitale') }}</th><th class="text-right">{{ _('Interessi') }}</th><th class="text-right">{{ _('Totale rate') }}</th></tr></thead>
+      <tbody>{% for y in amortization %}<tr><td>{{ y.year }}</td><td class="amount text-right">{{ y.principal|money }}</td><td class="amount text-right">{{ y.interest|money }}</td><td class="amount text-right">{{ (y.principal + y.interest)|money }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  {% else %}<div class="card-body">{{ empty_state(text=_('Nessuna rata da pagare.'), compact=True) }}</div>{% endif %}
+</div>
+
+{% elif tab == 'tools' %}
+<div class="dash-grid fc-grid">
+  {% for title, reason in [
+    (_('Se verso di più ogni mese'), _('Da costruire: quanto prima finisci e quanti interessi risparmi versando una cifra in più, contro investirla.')),
+    (_('Valanga o palla di neve'), _('Da costruire: in che ordine estinguere i debiti — prima il tasso più alto o il debito più piccolo — con le date e il risparmio di ciascuna strada.')),
+    (_('Surroga e tasso variabile'), _('Da costruire: l’offerta di un’altra banca con il punto di pareggio, e la rata con l’Euribor più alto di 1 o 2 punti.')),
+  ] %}
+  <section class="fc-widget" data-span="1">
+    <div class="card ghost-card">
+      <div class="card-header"><div class="card-header-title">{{ title }} {{ info(reason) }}</div><span class="badge badge-muted">{{ _('In arrivo') }}</span></div>
+      <div class="card-body"><p class="ghost-note text-xs text-muted">{{ reason }}</p></div>
+    </div>
+  </section>
+  {% endfor %}
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-{% if projection.datasets %}
+{% if tab == 'amortization' and amortization %}
+makeBarChart('debtYearsChart', {{ amortization|map(attribute='year')|list|tojson }}, [
+  { label: {{ _('Quota capitale')|tojson }}, data: {{ amortization|map(attribute='principal')|list|tojson }}, color: 'purple', stack: 'r' },
+  { label: {{ _('Interessi')|tojson }}, data: {{ amortization|map(attribute='interest')|list|tojson }}, color: 'textMuted', stack: 'r' },
+], { stacked: true, legend: true });
+{% endif %}
+{% if tab == 'overview' and projection.datasets %}
 makeLineChart('debtAmortChart', {{ projection.labels | tojson }}, {{ projection.datasets | tojson }});
 {% endif %}
-{% if by_type %}
+{% if tab == 'overview' and by_type %}
 makeDoughnutChart('debtPieChart', {{ by_type | map(attribute=0) | list | tojson }}, {{ by_type | map(attribute=1) | list | tojson }});
 {% endif %}
 </script>

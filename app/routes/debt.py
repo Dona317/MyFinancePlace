@@ -66,9 +66,25 @@ def index():
         by_type[s["debt"].type] += s["balance"]
     monthly_total = sum(s["installment"] or 0 for s in summaries if s["balance"] > 0)
     income = wealth.monthly_average_income(today)
+    # UI-21: the page in tabs — overview, the debts, the amortization by year, the tools
+    tab = request.args.get("tab", "overview")
+    tab = tab if tab in DEBT_TABS else "overview"
+    by_year: dict[int, dict] = {}
+    if tab == "amortization":
+        for s in summaries:
+            for row in wealth.schedule(s["debt"]):
+                if row.due < today:
+                    continue
+                year = by_year.setdefault(row.due.year, {"year": row.due.year, "principal": 0.0, "interest": 0.0})
+                year["principal"] += row.principal
+                year["interest"] += row.interest
+    ends = [s["end_date"] for s in summaries if s["balance"] > 0 and s.get("end_date") and not s.get("never_ends")]
     return render_template(
         "debt/index.html",
-        summaries=summaries,
+        summaries=summaries, tab=tab, last_end=max(ends) if ends else None,
+        amortization=[{**y, "principal": round(y["principal"], 2), "interest": round(y["interest"], 2)}
+                      for _year, y in sorted(by_year.items())],
+        interest_left=round(sum(y["interest"] for y in by_year.values()), 2) if by_year else None,
         total_balance=sum(s["balance"] for s in summaries),
         monthly_total=monthly_total,
         interest_ytd=sum(s["interest_ytd"] for s in summaries),
@@ -77,6 +93,9 @@ def index():
         projection=wealth.debts_projection([s["debt"] for s in summaries if s["balance"] > 0], today),
         by_type=sorted(((t, round(v, 2)) for t, v in by_type.items() if v > 0), key=lambda i: i[1], reverse=True),
     )
+
+
+DEBT_TABS = ("overview", "debts", "amortization", "tools")
 
 
 @debt_bp.route("/<int:debt_id>")

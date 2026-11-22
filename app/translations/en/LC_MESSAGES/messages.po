@@ -16412,3 +16412,83 @@ msgstr "Last reconciliation"
 #: app/templates/accounts/index.html
 msgid "%(days)s giorni fa"
 msgstr "%(days)s days ago"
+
+#: app/templates/debt/index.html
+msgid "Debito residuo"
+msgstr "Remaining debt"
+
+#: app/templates/debt/index.html
+msgid "Rate mensili"
+msgstr "Monthly instalments"
+
+#: app/templates/debt/index.html
+msgid "Rate / reddito"
+msgstr "Instalments / income"
+
+#: app/templates/debt/index.html
+msgid "Interessi nell’anno"
+msgstr "Interest this year"
+
+#: app/templates/debt/index.html
+msgid "quando finisci, ai piani di oggi"
+msgstr "when you finish, on today's plans"
+
+#: app/templates/debt/index.html
+msgid "Debiti in breve"
+msgstr "Debts at a glance"
+
+#: app/templates/debt/index.html
+msgid "Ammortamento"
+msgstr "Amortization"
+
+#: app/templates/debt/index.html
+msgid "Sezioni dei debiti"
+msgstr "Debt sections"
+
+#: app/templates/debt/index.html
+msgid "Quota capitale e interessi, anno per anno"
+msgstr "Principal and interest, year by year"
+
+#: app/templates/debt/index.html
+msgid "Dalle rate che restano dei piani di ammortamento di tutti i debiti."
+msgstr "From the remaining instalments of every debt's amortization plan."
+
+#: app/templates/debt/index.html
+msgid "Interessi ancora da pagare: %(amount)s"
+msgstr "Interest still to pay: %(amount)s"
+
+#: app/templates/debt/index.html
+msgid "Quota capitale"
+msgstr "Principal"
+
+#: app/templates/debt/index.html
+msgid "Totale rate"
+msgstr "Total instalments"
+
+#: app/templates/debt/index.html
+msgid "Nessuna rata da pagare."
+msgstr "No instalment to pay."
+
+#: app/templates/debt/index.html
+msgid "Se verso di più ogni mese"
+msgstr "If I pay more each month"
+
+#: app/templates/debt/index.html
+msgid "Da costruire: quanto prima finisci e quanti interessi risparmi versando una cifra in più, contro investirla."
+msgstr "To be built: how much sooner you finish and how much interest you save by paying an extra amount, against investing it."
+
+#: app/templates/debt/index.html
+msgid "Valanga o palla di neve"
+msgstr "Avalanche or snowball"
+
+#: app/templates/debt/index.html
+msgid "Da costruire: in che ordine estinguere i debiti — prima il tasso più alto o il debito più piccolo — con le date e il risparmio di ciascuna strada."
+msgstr "To be built: in which order to pay off the debts — highest rate or smallest debt first — with the dates and the saving of each way."
+
+#: app/templates/debt/index.html
+msgid "Surroga e tasso variabile"
+msgstr "Refinancing and variable rate"
+
+#: app/templates/debt/index.html
+msgid "Da costruire: l’offerta di un’altra banca con il punto di pareggio, e la rata con l’Euribor più alto di 1 o 2 punti."
+msgstr "To be built: another bank's offer with its break-even point, and the instalment with the Euribor 1 or 2 points higher."
