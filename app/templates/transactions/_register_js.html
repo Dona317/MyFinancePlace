@@ -192,6 +192,16 @@ historyButton?.addEventListener('click', () => { render(); openHistory(historyPo
 ['focus', 'click'].forEach(type => searchBox?.addEventListener(type, () => { render(); openHistory(true); }));
 searchBox?.addEventListener('input', () => { render(); openHistory(true); });
 searchBox?.addEventListener('keydown', e => { if (e.key === 'Escape') openHistory(false); });
+// Enter starts the search (UI-17: no «Cerca» button). The form has several text fields and no submit button of its
+// own, and in that case the browser does not send it on Enter: it is sent here, from the box and the amount fields.
+document.querySelectorAll('#filter-form input[type="search"], #filter-form input[type="text"]:not([form])').forEach(field => {
+  field.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.isComposing) return;
+    e.preventDefault();
+    openHistory(false);
+    field.form.requestSubmit();
+  });
+});
 document.addEventListener('click', e => { if (!e.target.closest('#search-history') && e.target.isConnected) openHistory(false); });
 render();
 }

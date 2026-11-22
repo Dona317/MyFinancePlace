@@ -296,3 +296,14 @@ def test_the_round_plus_opens_a_small_window_and_the_form_in_a_pop_up(client, db
     assert response.headers["Location"].endswith("/transactions/embed-done")
     done = client.get("/transactions/embed-done").get_data(as_text=True)
     assert '"tx-done"' in done and "Transazione aggiunta." in done  # the message goes to the page under the pop-up
+
+
+def test_enter_in_the_search_box_sends_the_search(client, db):
+    """UI-17 took the «Cerca» button away: the filter form has several text fields and no submit button, so the browser
+    does not send it on Enter by itself — the page's script does (checked in a browser on 22 Nov 2026)."""
+    html = client.get("/transactions/").get_data(as_text=True)
+    assert 'id="register-q"' in html and "field.form.requestSubmit()" in html
+    db.session.add_all([make_tx(description="Canone mensile conto"), make_tx(description="Spesa Esselunga")])
+    db.session.commit()
+    found = client.get("/transactions/?q=Canone+mensile").get_data(as_text=True)
+    assert "Canone mensile conto" in found and "Spesa Esselunga" not in found
