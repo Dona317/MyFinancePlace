@@ -37,7 +37,8 @@ def test_the_overview_shows_portfolio_and_debts(client, db):
 def test_the_portfolio_has_fewer_tabs_with_a_switch_inside(client, db):
     page = client.get("/portfolio/").get_data(as_text=True)
     assert "Panoramica e posizioni" in page and 'aria-current="page">Posizioni' in page and "Riepilogo" in page
-    assert "Importa dal broker</a>" not in page and ">Ordini teorici<" not in page
+    tabs = page.split('class="portfolio-tabs')[1].split("</nav>")[0]  # the row of tabs (the page search lists them all)
+    assert "Importa dal broker" not in tabs and "Ordini teorici" not in tabs
     orders = client.get("/portfolio/planned").get_data(as_text=True)
     assert 'aria-current="page">Teorici' in orders and "Eseguiti" in orders
     perf = client.get("/portfolio/performance").get_data(as_text=True)

@@ -130,7 +130,17 @@ def _url(page: Page) -> str | None:
 
 
 def _visible(entry: Entry) -> bool:
+    if entry.key == "groups" and not _studio():  # groups of archives: only where there are several archives
+        return False
     return entry.key is None or sections.in_menu(entry.key)
+
+
+def _studio() -> bool:
+    from app.services import studio
+    try:
+        return studio.is_studio()
+    except Exception:  # noqa: BLE001 - the menu never breaks a page
+        return False
 
 
 def search_rows() -> list[dict]:

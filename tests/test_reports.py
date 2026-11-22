@@ -84,7 +84,7 @@ def test_csv_has_the_listed_transactions(client, db):
 
 
 def test_sidebar_link(client, db):
-    html = client.get("/reports/").get_data(as_text=True)
+    html = client.get("/reports/").get_data(as_text=True).split('class="sidebar-nav"')[1]  # the menu, not the search
     assert 'href="/reports/"' in html and "nav-item active" in html.split('href="/reports/"')[1][:80]
 
 
