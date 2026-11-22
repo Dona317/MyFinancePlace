@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 19:41+0000\n"
+"POT-Creation-Date: 2026-11-22 19:53+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4789,6 +4789,9 @@ msgstr "Income and expenses of the period"
 
 msgid "Entrate e uscite per mese"
 msgstr "Income and expenses by month"
+
+msgid "Entrate e uscite ricorrenti"
+msgstr "Recurring income and expenses"
 
 #, python-format
 msgid "Entrate e uscite — %(period)s"

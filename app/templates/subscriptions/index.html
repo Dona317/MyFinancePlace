@@ -4,8 +4,8 @@
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
-{% block page_title %}{{ _('Ricorrenti') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Ricorrenti') }}</li>{% endblock %}
+{% block page_title %}{{ _('Entrate e uscite ricorrenti') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Entrate e uscite ricorrenti') }}</li>{% endblock %}
 
 {% macro signed(tx, value) %}{{ (-value if tx.type == 'expense' else value)|money }}{% endmacro %}
 
