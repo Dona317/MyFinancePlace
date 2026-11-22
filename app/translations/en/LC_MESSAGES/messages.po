@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-22 21:01+0000\n"
+"POT-Creation-Date: 2026-11-22 21:21+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4975,6 +4975,9 @@ msgstr ""
 msgid "Esegui ora"
 msgstr "Run now"
 
+msgid "Eseguiti"
+msgstr "Executed"
+
 msgid "Eseguito"
 msgstr "Executed"
 
@@ -5899,9 +5902,6 @@ msgstr ""
 "The first %(count)s make %(pct)s%% of the portfolio (%(total)s holdings "
 "in all)."
 
-msgid "I saldi per tipo di conto"
-msgstr "Balances by kind of account"
-
 msgid ""
 "I soldi messi nel conto titoli dall'inizio, meno quelli ritirati. Con il "
 "versato il calcolo ricava le commissioni e i costi già pagati: versato − "
@@ -6298,7 +6298,9 @@ msgstr "The current month"
 msgid ""
 "Il mese in corso, fino a oggi, qualunque periodo sia scelto nella barra "
 "in alto."
-msgstr "The month under way, up to today, whatever period is chosen in the bar at the top."
+msgstr ""
+"The month under way, up to today, whatever period is chosen in the bar at"
+" the top."
 
 msgid ""
 "Il mese in corso, fino a oggi; sotto ogni cifra il mese scorso e la media"
@@ -10249,6 +10251,9 @@ msgstr "Financial overview"
 msgid "Panoramica Finanziaria — Sotto-sezioni"
 msgstr "Financial overview — Sub-sections"
 
+msgid "Panoramica e posizioni"
+msgstr "Overview and positions"
+
 msgid "Panoramica investimenti"
 msgstr "Investments overview"
 
@@ -10892,6 +10897,9 @@ msgstr "Portfolios"
 msgid "Portafogli e conti titoli"
 msgstr "Portfolios and securities accounts"
 
+msgid "Portafogli e rendimenti"
+msgstr "Portfolios and returns"
+
 msgid "Portafogli modello"
 msgstr "Model portfolios"
 
@@ -10970,8 +10978,9 @@ msgid ""
 "registrate: qui solo quelle nuove o con quote diverse (la differenza). "
 "%(count)s posizioni coincidono già."
 msgstr ""
-"Positions on %(day)s read from the file, compared with the recorded ones: only the new ones or those with "
-"different units are here (the difference). %(count)s positions already match."
+"Positions on %(day)s read from the file, compared with the recorded ones:"
+" only the new ones or those with different units are here (the "
+"difference). %(count)s positions already match."
 
 #, python-format
 msgid "Posizioni di %(name)s"
@@ -14199,6 +14208,9 @@ msgstr "Keep the selected transaction and delete the other %(count)s?"
 msgid "Tenuta 1 transazione, eliminati %(count)s duplicati."
 msgstr "Kept 1 transaction, deleted %(count)s duplicates."
 
+msgid "Teorici"
+msgstr "Planned"
+
 #, python-format
 msgid "Terminati (%(count)s)"
 msgstr "Ended (%(count)s)"
@@ -15466,6 +15478,9 @@ msgstr "Travel"
 
 msgid "Viola e rosa"
 msgstr "Purples and pinks"
+
+msgid "Vista"
+msgstr "View"
 
 msgid "Vista sconosciuta."
 msgstr "Unknown view."

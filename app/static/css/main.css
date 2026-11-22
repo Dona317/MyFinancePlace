@@ -1277,6 +1277,7 @@ td.amount { white-space: nowrap; }
 .view-switch { display: flex; gap: 2px; background: var(--clr-bg-input); border: 1px solid var(--clr-border);
                border-radius: var(--border-radius-sm); padding: 2px; }
 .view-switch .btn[aria-pressed="true"] { background: var(--clr-bg-card); color: var(--clr-primary); box-shadow: var(--shadow-sm); }
+.portfolio-subtabs { display: inline-flex; margin-top: 10px; }  /* UI-31: the pages that share a portfolio tab */
 .report-split { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 32px; align-items: center; }
 .report-chart { position: relative; height: 260px; }
 .report-chart.bars { height: 320px; }

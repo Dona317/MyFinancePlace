@@ -1,20 +1,33 @@
-{# The portfolio's pages, as a row of tabs under the top bar (`nav_active`: the current one) #}
+{# The portfolio's pages, as a row of tabs under the top bar (`nav_active`: the current one). 22 Nov 2026 (UI-31):
+   fewer tabs — pages that belong together share one tab, with a switch between them under the row; «Importa dal
+   broker» is not a tab any more (the round + adds positions, one or from a file). #}
 {% from "partials/tabs.html" import tab_bar %}
+{% set groups = {
+  'overview': [('overview', url_for('portfolio.overview_page'), _('Riepilogo')), ('holdings', url_for('portfolio.index'), _('Posizioni'))],
+  'portfolios': [('portfolios', url_for('portfolio.portfolios_page'), _('Portafogli e conti titoli')), ('performance', url_for('portfolio.performance_page'), _('Rendimenti'))],
+  'orders': [('orders', url_for('portfolio.orders_page'), _('Eseguiti')), ('planned', url_for('portfolio.planned_page'), _('Teorici'))],
+} %}
+{% set group_of = {'overview': 'overview', 'holdings': 'overview', 'portfolios': 'portfolios', 'performance': 'portfolios',
+                   'orders': 'orders', 'planned': 'orders'} %}
+{% set current = group_of.get(nav_active, nav_active) %}
 <div class="portfolio-tabs mb-16">
 {{ tab_bar([
-  ('overview', url_for('portfolio.overview_page'), _('Panoramica')),
-  ('holdings', url_for('portfolio.index'), _('Posizioni')),
-  ('portfolios', url_for('portfolio.portfolios_page'), _('Portafogli e conti titoli')),
+  ('overview', url_for('portfolio.overview_page'), _('Panoramica e posizioni')),
+  ('portfolios', url_for('portfolio.portfolios_page'), _('Portafogli e rendimenti')),
   ('orders', url_for('portfolio.orders_page'), _('Ordini')),
-  ('planned', url_for('portfolio.planned_page'), _('Ordini teorici')),
   ('fees', url_for('portfolio.fees_page'), _('Calcolo commissioni')),
   ('highlights', url_for('portfolio.highlights_page'), _('In evidenza')),
-  ('performance', url_for('portfolio.performance_page'), _('Rendimenti')),
   ('income', url_for('portfolio.income'), _('Rendite')),
   ('composition', url_for('portfolio.composition_page'), _('Composizione')),
   ('model', url_for('portfolio.rebalance'), _('Portafoglio modello')),
   ('backtest', url_for('portfolio.backtest_page'), _('Backtest') ~ ' · TBD'),
   ('rules', url_for('portfolio.rules'), _('Regole e PAC')),
-  ('import', url_for('portfolio.broker_upload'), _('Importa dal broker')),
-], nav_active, _('Sezioni del portafoglio')) }}
+], current, _('Sezioni del portafoglio')) }}
+{% if current in groups %}
+<div class="view-switch portfolio-subtabs" role="group" aria-label="{{ _('Vista') }}">
+  {% for key, url, text in groups[current] %}
+  <a href="{{ url }}" class="btn btn-ghost btn-sm" aria-pressed="{{ 'true' if key == nav_active else 'false' }}"{% if key == nav_active %} aria-current="page"{% endif %}>{{ text }}</a>
+  {% endfor %}
+</div>
+{% endif %}
 </div>

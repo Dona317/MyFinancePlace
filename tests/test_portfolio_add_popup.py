@@ -32,3 +32,13 @@ def test_the_file_import_in_the_popup_has_no_section_backup(client, db):
 def test_the_overview_shows_portfolio_and_debts(client, db):
     page = client.get("/dashboard").get_data(as_text=True)
     assert "Portafoglio e debiti" in page and "Nessun debito" in page
+
+
+def test_the_portfolio_has_fewer_tabs_with_a_switch_inside(client, db):
+    page = client.get("/portfolio/").get_data(as_text=True)
+    assert "Panoramica e posizioni" in page and 'aria-current="page">Posizioni' in page and "Riepilogo" in page
+    assert "Importa dal broker</a>" not in page and ">Ordini teorici<" not in page
+    orders = client.get("/portfolio/planned").get_data(as_text=True)
+    assert 'aria-current="page">Teorici' in orders and "Eseguiti" in orders
+    perf = client.get("/portfolio/performance").get_data(as_text=True)
+    assert 'aria-current="page">Rendimenti' in perf and "Portafogli e conti titoli" in perf
