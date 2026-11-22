@@ -1,9 +1,10 @@
 """Collegamenti bancari (F107): link a bank through PSD2 (Enable Banking), tie its accounts to the app's, download the
 movements by hand or by themselves, and look at the ones waiting (in the usual import preview).
 
-Two pages: «Collegamenti bancari» (a tab of Conti e Carte) for the archive open now, and «Gestione PSD2» for the whole
-app — the Enable Banking credentials, every connection of every archive, the log of the accesses, and «Collega una
-banca» with the archive the new consent belongs to (an archive can hold several)."""
+A bank is linked from one of the user's accounts (Conti e Carte → modifica conto → «Collega a Enable Banking»): the
+bank's account becomes that one, so nothing is ever linked to an account not made yet. Two pages then manage what is
+linked: «Collegamenti bancari» (a tab of Conti e Carte) for the archive open now, and «Gestione PSD2» for the whole
+app — the Enable Banking credentials, every connection of every archive, the log of the accesses."""
 from datetime import date, datetime, timezone
 
 from apiflask import APIBlueprint
@@ -13,7 +14,7 @@ from flask_babel import gettext as _
 from app.extensions import db
 from app.models.account import Account
 from app.models.bank_link import BankAccountLink, BankConnection
-from app.routes.helpers import uploaded_file
+from app.routes.helpers import safe_next, uploaded_file
 from app.services import accounts, open_banking, studio
 from app.services.open_banking import credentials
 from app.services.parsing import to_date, to_decimal
@@ -41,7 +42,7 @@ def _manage():
 
 
 def _bank_choices() -> dict:
-    """The country asked for and its banks, for the «Collega una banca» form."""
+    """The country asked for and its banks, for the «Collega a Enable Banking» form of an account."""
     country = (request.args.get("country") or "IT").upper()
     country = country if country in COUNTRIES else "IT"
     banks, error = [], None
@@ -50,8 +51,23 @@ def _bank_choices() -> dict:
             banks = open_banking.banks(country)
         except open_banking.BankingError as exc:
             error = str(exc)
-    return {"countries": COUNTRIES, "country": country, "banks": banks, "banks_error": error,
-            "status": credentials.status()}
+    return {"countries": COUNTRIES, "country": country, "banks": banks, "banks_error": error}
+
+
+def account_panel(account: Account | None) -> dict | None:
+    """What the account's edit page shows about its bank connection (None: an account a bank cannot be linked to)."""
+    if not open_banking.linkable(account):
+        return None
+    links = open_banking.links_of(account)
+    panel = {"configured": open_banking.configured(), "links": links, "free": [], "can_manage": studio.sees_archives(),
+             "now_utc": _now(), "notice_days": open_banking.EXPIRY_NOTICE_DAYS}
+    if panel["configured"] and not links:
+        panel.update(free=open_banking.free_links(), **_bank_choices())
+    return panel
+
+
+def _account_page(account: Account):
+    return redirect(url_for("accounts.edit", account_id=account.id) + "#bank-link")
 
 
 def _now():
@@ -67,7 +83,7 @@ def index():
         notice_days=open_banking.EXPIRY_NOTICE_DAYS, now_utc=_now(), today=_now().date(),
         sync_slots=open_banking.slots(),
         auto_today={c.id: open_banking.unattended_today(c) for c in connections},
-        at_bank_rows={c.id: _at_bank(c) for c in connections}, **_bank_choices(),
+        at_bank_rows={c.id: _at_bank(c) for c in connections},
     )
 
 
@@ -85,11 +101,10 @@ def _at_bank(connection: BankConnection) -> list[dict]:
 def manage():
     """Gestione PSD2: the application's credentials, every archive's connections, the accesses."""
     connections, accesses = open_banking.overview()
-    archives = open_banking.archives_shown()
     return render_template(
-        "banking/manage.html", connections=connections, accesses=accesses, archives=archives,
-        current_archive=open_banking.archive_id(), redirect_url=_redirect_url(), notice_days=open_banking.EXPIRY_NOTICE_DAYS,
-        now_utc=_now(), **_bank_choices(),
+        "banking/manage.html", connections=connections, accesses=accesses, archives=open_banking.archives_shown(),
+        redirect_url=_redirect_url(), notice_days=open_banking.EXPIRY_NOTICE_DAYS, now_utc=_now(),
+        status=credentials.status(),
     )
 
 
@@ -136,33 +151,76 @@ def delete_credentials():
     return _manage()
 
 
-@banking_bp.route("/connect", methods=["POST"])
-def connect():
-    """«Vai alla banca»: off to the bank's page to give the consent, for the archive chosen (Gestione PSD2) or the
-    open one; the chosen archive becomes the open one, so the way back lands in it."""
-    client_id = request.form.get("client_id", type=int)
-    if client_id and client_id != open_banking.archive_id():
-        target = _shown_archive(client_id)
-        if target is None:
-            return _manage()
-        studio.choose(target)
+@banking_bp.route("/accounts/<int:account_id>/connect", methods=["POST"])
+def connect(account_id):
+    """«Collega a Enable Banking» on an account: off to the bank's page to give the consent; on the way back the
+    bank's account becomes this one."""
+    account = db.get_or_404(Account, account_id)
     try:
         url = open_banking.start(request.form.get("aspsp", ""), request.form.get("country", "IT"), _redirect_url(),
-                                 psu_type=request.form.get("psu_type") or "personal")
+                                 psu_type=request.form.get("psu_type") or "personal", account=account)
     except open_banking.BankingError as exc:
         flash(str(exc), "error")
-        return _manage() if request.form.get("from") == "manage" else _back()
+        return _account_page(account)
     return redirect(url)
+
+
+@banking_bp.route("/accounts/<int:account_id>/use/<int:link_id>", methods=["POST"])
+def use_link(account_id, link_id):
+    """A bank account already authorised (in a consent given for another account) becomes this one: no new consent."""
+    account = db.get_or_404(Account, account_id)
+    link = db.get_or_404(BankAccountLink, link_id)
+    if link.account_id is not None or not open_banking.linkable(account):
+        flash(_("Questo conto della banca è già collegato a un altro conto."), "error")
+        return _account_page(account)
+    open_banking.attach(link, account)
+    db.session.commit()
+    flash(_("«%(bank_account)s» di %(bank)s ora è il conto «%(name)s».", bank_account=link.name or link.iban or link.uid,
+            bank=link.connection.aspsp_name, name=account.name), "success")
+    _download(link.connection)
+    return _account_page(account)
+
+
+@banking_bp.route("/accounts/<int:account_id>/detach", methods=["POST"])
+def detach(account_id):
+    """The bank account stops being this account's (and being read); the consent stays, for the other accounts."""
+    account = db.get_or_404(Account, account_id)
+    open_banking.detach(account)
+    flash(_("«%(name)s» non è più collegato alla banca: i movimenti già salvati restano.", name=account.name), "success")
+    return _account_page(account)
+
+
+@banking_bp.route("/connections/<int:connection_id>/choose/<int:account_id>", methods=["GET", "POST"])
+def choose(connection_id, account_id):
+    """Back from the bank with several accounts: which one is the account the link was started from."""
+    connection = _connection(connection_id)
+    account = db.get_or_404(Account, account_id)
+    if request.method == "POST":
+        link = next((k for k in connection.links if k.id == request.form.get("link_id", type=int)), None)
+        if link is None:
+            flash(_("Scegli il conto della banca che corrisponde a «%(name)s».", name=account.name), "error")
+        else:
+            for other in connection.links:
+                if other.account_id == account.id and other is not link:
+                    other.account_id, other.active = None, False
+            open_banking.attach(link, account)
+            db.session.commit()
+            _download(connection)
+            return _account_page(account)
+    return render_template("banking/choose.html", connection=connection, account=account)
 
 
 @banking_bp.route("/connections/<int:connection_id>/renew", methods=["POST"])
 def renew(connection_id):
+    """A new consent for the same bank; asked from an account's page, the way back lands there."""
     connection = _connection(connection_id)
+    account = db.session.get(Account, request.form.get("account_id", type=int) or 0)
     try:
-        url = open_banking.start(connection.aspsp_name, connection.aspsp_country, _redirect_url(), connection)
+        url = open_banking.start(connection.aspsp_name, connection.aspsp_country, _redirect_url(), connection,
+                                 account=account)
     except open_banking.BankingError as exc:
         flash(str(exc), "error")
-        return _back()
+        return _account_page(account) if account is not None else _back()
     return redirect(url)
 
 
@@ -171,13 +229,15 @@ def callback():
     """Back from the bank: the connection is saved and its movements downloaded straight away."""
     error = request.args.get("error_description") or request.args.get("error")
     try:
-        connection = open_banking.finish(request.args.get("state"), request.args.get("code"), error)
+        connection, account = open_banking.finish(request.args.get("state"), request.args.get("code"), error)
     except open_banking.BankingError as exc:
         flash(str(exc), "error")
         return _back()
     flash(_("%(bank)s collegata: %(count)s conti.", bank=connection.aspsp_name, count=len(connection.links)), "success")
+    if open_banking.needs_choice(connection, account):
+        return redirect(url_for("banking.choose", connection_id=connection.id, account_id=account.id))
     _download(connection)
-    return _back()
+    return _account_page(account) if account is not None else _back()
 
 
 def _download(connection: BankConnection) -> None:
@@ -195,7 +255,7 @@ def _download(connection: BankConnection) -> None:
 @banking_bp.route("/connections/<int:connection_id>/sync", methods=["POST"])
 def sync(connection_id):
     _download(_connection(connection_id))
-    return _back()
+    return redirect(safe_next() or url_for("banking.index"))
 
 
 @banking_bp.route("/connections/<int:connection_id>/options", methods=["POST"])

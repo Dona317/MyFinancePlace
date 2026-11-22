@@ -2658,6 +2658,13 @@ tr.is-muted td { color: var(--clr-text-muted); }
 .bank-at-bank summary { cursor: pointer; color: var(--clr-text-secondary); }
 .bank-at-bank table { margin-top: 8px; width: 100%; }
 .bank-error { font-size: var(--font-size-xs); }
+.bank-account-link { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 8px 0; }
+.bank-account-link + .bank-account-link { border-top: 1px solid var(--clr-border-light); }
+.bank-account-link-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-weight: 600; }
+.bank-free { margin-bottom: 16px; }
+.bank-free-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 6px 0; margin: 0; font-size: var(--font-size-sm); }
+.bank-free-or { margin-top: 8px; }
+.bank-choice { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--clr-border-light); cursor: pointer; }
 @media (max-width: 768px) {
   .bank-connect-form, .bank-connect-form.with-archive { grid-template-columns: minmax(0, 1fr); }
 }

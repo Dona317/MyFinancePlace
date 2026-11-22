@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-21 08:08+0000\n"
+"POT-Creation-Date: 2026-11-22 14:21+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -156,10 +156,6 @@ msgstr "%(count)s PAC purchases recorded."
 #, python-format
 msgid "%(count)s aumenti di prezzo"
 msgstr "%(count)s price increases"
-
-#, python-format
-msgid "%(count)s banche disponibili."
-msgstr "%(count)s banks available."
 
 #, python-format
 msgid "%(count)s collegamenti in %(archives)s archivi"
@@ -1620,9 +1616,6 @@ msgstr "Open"
 msgid "Apri Debiti"
 msgstr "Open Debts"
 
-msgid "Apri Gestione PSD2"
-msgstr "Open PSD2 management"
-
 msgid "Apri Obiettivi"
 msgstr "Open Goals"
 
@@ -2613,6 +2606,9 @@ msgstr ""
 msgid "Chiedi"
 msgstr "Ask"
 
+msgid "Chiedi a un amministratore dell'app di configurarlo."
+msgstr "Ask an administrator of the app to set it up."
+
 msgid "Chiedi ai tuoi dati"
 msgstr "Ask your data"
 
@@ -2756,6 +2752,13 @@ msgstr "Joint"
 msgid "Collega"
 msgstr "Link"
 
+msgid "Collega a Enable Banking"
+msgstr "Link to Enable Banking"
+
+#, python-format
+msgid "Collega a «%(name)s»"
+msgstr "Link to «%(name)s»"
+
 #, python-format
 msgid "Collega al giroconto: %(tx)s"
 msgstr "Link to the transfer: %(tx)s"
@@ -2780,8 +2783,9 @@ msgstr "Link movements"
 msgid "Collega movimenti del conto"
 msgstr "Link account movements"
 
-msgid "Collega una banca"
-msgstr "Link a bank"
+#, python-format
+msgid "Collega «%(name)s» alla sua banca per scaricare i movimenti senza file"
+msgstr "Link «%(name)s» to its bank to download the transactions without files"
 
 msgid "Collegamenti"
 msgstr "Connections"
@@ -2792,6 +2796,12 @@ msgstr "Bank connections"
 msgid "Collegamenti di questo archivio"
 msgstr "Connections of this archive"
 
+msgid "Collegamento"
+msgstr "Connection"
+
+msgid "Collegamento bancario (PSD2)"
+msgstr "Bank connection (PSD2)"
+
 msgid ""
 "Collegamento bancario non configurato: inserisci l'ID dell'applicazione "
 "Enable Banking e la sua chiave privata."
@@ -2800,9 +2810,12 @@ msgstr ""
 "its private key."
 
 msgid ""
-"Collegamento non riconosciuto o scaduto: ricomincia da «Collega una "
-"banca»."
-msgstr "Connection not recognised or expired: start again from «Link a bank»."
+"Collegamento non riconosciuto o scaduto: ricomincia dal conto, con "
+"«Collega a Enable Banking»."
+msgstr "Connection not recognised or expired: start again from the account, with «Link to Enable Banking»."
+
+msgid "Collegato"
+msgstr "Linked"
 
 msgid "Colonna Categoria"
 msgstr "Category column"
@@ -3160,6 +3173,9 @@ msgstr "Confidence"
 msgid "Configura i modelli AI"
 msgstr "Set up the AI models"
 
+msgid "Configura in Gestione PSD2"
+msgstr "Set up in PSD2 management"
+
 msgid "Configura un modello AI"
 msgstr "Set up an AI model"
 
@@ -3282,6 +3298,11 @@ msgstr "Cash spent without knowing on what: a line of its own, not a category"
 
 msgid "Conti"
 msgstr "Accounts"
+
+msgid ""
+"Conti compresi in un consenso dato per un altro conto e non ancora "
+"collegati: puoi usarne uno senza tornare sul sito della banca."
+msgstr "Accounts covered by a consent given for another account and not linked yet: you can use one without going back to the bank's site."
 
 msgid ""
 "Conti correnti: 34,20 € se la giacenza media supera 5.000 €. Conti "
@@ -5084,7 +5105,10 @@ msgid ""
 "lettura per fascia, dalle %(slots)s (ora del computer), all'apertura "
 "dell'app e nel giro dell'app desktop. La PSD2 permette quattro letture al"
 " giorno senza di te."
-msgstr "Up to four times a day, in the hours the app is used: one read per slot, from %(slots)s (computer time), when the app is opened and in the desktop app round. PSD2 allows four reads a day without you."
+msgstr ""
+"Up to four times a day, in the hours the app is used: one read per slot, "
+"from %(slots)s (computer time), when the app is opened and in the desktop"
+" app round. PSD2 allows four reads a day without you."
 
 msgid "Fino al"
 msgstr "Until"
@@ -5386,6 +5410,9 @@ msgstr "Transfer with «%(name)s»"
 msgid "Giu"
 msgstr "Jun"
 
+msgid "Già autorizzato dalla banca"
+msgstr "Already authorised by the bank"
+
 msgid "Già importate o possibili duplicati"
 msgstr "Already imported or possible duplicates"
 
@@ -5593,6 +5620,12 @@ msgstr ""
 
 msgid "I metodi"
 msgstr "The methods"
+
+msgid ""
+"I movimenti di questo conto arrivano da soli dalla banca, tramite Enable "
+"Banking: dai il consenso sul sito della banca (fino a 180 giorni). "
+"MyFinancePlace legge soltanto, non può disporre pagamenti."
+msgstr "This account's transactions arrive by themselves from the bank, through Enable Banking: you give the consent on the bank's site (up to 180 days). MyFinancePlace only reads, it cannot make payments."
 
 msgid ""
 "I movimenti di questo conto della banca vanno sul conto scelto. Senza "
@@ -5862,12 +5895,9 @@ msgid "Il codice ISIN del titolo: il modo più sicuro di riconoscerlo."
 msgstr "The holding's ISIN code: the surest way to recognise it."
 
 msgid ""
-"Il collegamento appartiene a questo archivio e i movimenti finiscono nei "
-"suoi conti. Un archivio può avere più collegamenti, anche alla stessa "
-"banca."
-msgstr ""
-"The connection belongs to this archive and its transactions go to its "
-"accounts. An archive can have several connections, even to the same bank."
+"Il collegamento bancario non è ancora configurato: servono le credenziali"
+" dell'applicazione Enable Banking, una volta sola per tutta l'app."
+msgstr "The bank connection is not set up yet: the Enable Banking application credentials are needed, once for the whole app."
 
 msgid ""
 "Il collegamento era stato avviato in un altro archivio: aprilo e "
@@ -7109,6 +7139,13 @@ msgstr ""
 "with «Update now» do not count."
 
 #, python-format
+msgid ""
+"La banca ha autorizzato %(count)s conti: scegli quello che corrisponde a "
+"«%(name)s». Gli altri restano autorizzati ma non vengono letti finché non"
+" li colleghi da un altro conto."
+msgstr "The bank authorised %(count)s accounts: choose the one that is «%(name)s». The others stay authorised but are not read until you link them from another account."
+
+#, python-format
 msgid "La banca non ha dato il consenso (%(detail)s)."
 msgstr "The bank did not give the consent (%(detail)s)."
 
@@ -7744,15 +7781,6 @@ msgstr "Read with AI"
 
 msgid "Lettura con l'intelligenza artificiale"
 msgstr "Reading with artificial intelligence"
-
-msgid ""
-"Lettura dei movimenti tramite PSD2: dai il consenso sul sito della tua "
-"banca, che dura fino a 180 giorni. MyFinancePlace legge soltanto, non può"
-" disporre pagamenti."
-msgstr ""
-"Reading transactions through PSD2: you give the consent on your bank's "
-"site, valid up to 180 days. MyFinancePlace only reads, it cannot make "
-"payments."
 
 msgid "Lettura delle colonne…"
 msgstr "Reading the columns…"
@@ -8760,12 +8788,8 @@ msgstr "No limits: add the pension fund or a PIR below."
 msgid "Nessun titolo collegato allo storico: si usano i prezzi registrati."
 msgstr "No holding linked to the history: the recorded prices are used."
 
-msgid ""
-"Nessuna banca collegata a questo archivio. Collegane una qui sotto: i "
-"movimenti arriveranno da soli."
-msgstr ""
-"No bank linked to this archive. Link one below: the transactions will "
-"arrive by themselves."
+msgid "Nessuna banca collegata"
+msgstr "No bank linked"
 
 msgid "Nessuna banca collegata in nessun archivio."
 msgstr "No bank linked in any archive."
@@ -10139,6 +10163,11 @@ msgstr "For those filing the Redditi return or owing tax with the 730"
 msgid "Per classe di attivo"
 msgstr "By asset class"
 
+msgid ""
+"Per collegare un altro conto, aprilo in «Conti» → «Modifica» → «Collega a"
+" Enable Banking»."
+msgstr "To link another account, open it in «Accounts» → «Edit» → «Link to Enable Banking»."
+
 msgid "Per committente"
 msgstr "By client"
 
@@ -10458,6 +10487,9 @@ msgstr ""
 "The darker the cell, the higher the expense (or income) compared with the"
 " other months of the same category. Click an amount to see its "
 "transactions."
+
+msgid "Più tardi"
+msgstr "Later"
 
 msgid "Plafond"
 msgstr "Limit"
@@ -10907,13 +10939,6 @@ msgstr ""
 "Before every restore the app saves the data about to be replaced. The "
 "last 10 are kept."
 
-msgid ""
-"Prima inserisci le credenziali della tua applicazione Enable Banking (una"
-" volta sola, valgono per tutti gli archivi)."
-msgstr ""
-"First enter the credentials of your Enable Banking application (once: "
-"they apply to every archive)."
-
 msgid "Prima rata dell'IMU sulle case diverse dall'abitazione principale"
 msgstr "First IMU instalment on homes other than the main residence"
 
@@ -11109,6 +11134,13 @@ msgstr "Quadro E — year %(year)s"
 msgid "Quadro RT (sezione II, 26%%) — riepilogo"
 msgstr "Quadro RT (section II, 26%%) — summary"
 
+#, python-format
+msgid "Quale conto della banca è «%(name)s»?"
+msgstr "Which bank account is «%(name)s»?"
+
+msgid "Quale conto?"
+msgstr "Which account?"
+
 msgid "Quali"
 msgstr "Which"
 
@@ -11288,6 +11320,9 @@ msgstr ""
 
 msgid "Questo Mese"
 msgstr "This Month"
+
+msgid "Questo conto della banca è già collegato a un altro conto."
+msgstr "This bank account is already linked to another account."
 
 msgid "Questo mese"
 msgstr "This month"
@@ -12478,9 +12513,6 @@ msgstr "Choose at least one user to export."
 msgid "Scegli almeno una modifica."
 msgstr "Choose at least one change."
 
-msgid "Scegli archivio, paese e banca"
-msgstr "Choose archive, country and bank"
-
 msgid ""
 "Scegli come dirle: ordine per ordine; un totale, diviso sugli ordini in "
 "proporzione al controvalore; oppure la liquidità che ti resta sul conto "
@@ -12514,6 +12546,10 @@ msgstr "Choose the account the statement comes from: upload the file again."
 #, python-format
 msgid "Scegli il conto dell'app per %(name)s"
 msgstr "Choose the account in the app for %(name)s"
+
+#, python-format
+msgid "Scegli il conto della banca che corrisponde a «%(name)s»."
+msgstr "Choose the bank account that is «%(name)s»."
 
 msgid ""
 "Scegli il conto di liquidità del conto titoli: ogni conto titoli ne ha "
@@ -12610,6 +12646,9 @@ msgstr "Unlink"
 msgid "Scollega %(bank)s"
 msgstr "Unlink %(bank)s"
 
+msgid "Scollega questo conto"
+msgstr "Unlink this account"
+
 #, python-format
 msgid ""
 "Scollegare %(bank)s? Il consenso viene ritirato; i movimenti già salvati "
@@ -12617,6 +12656,12 @@ msgid ""
 msgstr ""
 "Unlink %(bank)s? The consent is withdrawn; the transactions already saved"
 " stay."
+
+#, python-format
+msgid ""
+"Scollegare «%(name)s» dalla banca? I movimenti già salvati restano; il "
+"consenso resta per gli altri conti (si ritira da Collegamenti bancari)."
+msgstr "Unlink «%(name)s» from the bank? The transactions already saved stay; the consent stays for the other accounts (it is withdrawn from Bank connections)."
 
 msgid ""
 "Scontrini e fatture con «garanzia fino al»: un promemoria arriva 30 "
@@ -13019,6 +13064,11 @@ msgstr "Over budget"
 
 msgid "Si chiudono solo gli anni passati."
 msgstr "Only past years can be closed."
+
+msgid ""
+"Si collega a partire da un conto: apri il conto in Conti e Carte, poi "
+"«Collega a Enable Banking»."
+msgstr "A bank is linked from an account: open the account in Accounts and Cards, then «Link to Enable Banking»."
 
 msgid "Si collega solo un'entrata."
 msgstr "Only an income can be linked."
@@ -13862,8 +13912,9 @@ msgstr "Back"
 msgid "Torna su"
 msgstr "Back to the top"
 
-msgid "Torni qui: abbini i conti e controlli i movimenti"
-msgstr "Back here: match the accounts and review the transactions"
+#, python-format
+msgid "Torni qui: i movimenti arrivano su «%(name)s»"
+msgstr "Back here: the transactions arrive on «%(name)s»"
 
 msgid "Torta con la distribuzione delle entrate: anno, semestre o trimestre"
 msgstr "Pie of the income: year, half or quarter"
@@ -13958,13 +14009,6 @@ msgstr "Tracking of financial goals with progress bars"
 
 msgid "Tramite"
 msgstr "Through"
-
-msgid ""
-"Tramite Enable Banking, aggregatore autorizzato: i movimenti arrivano "
-"categorizzati come in un import, i doppioni vengono riconosciuti"
-msgstr ""
-"Through Enable Banking, a licensed aggregator: transactions arrive "
-"categorised as in an import, duplicates are recognised"
 
 msgid "Transazione"
 msgstr "Transaction"
@@ -14157,6 +14201,9 @@ msgstr "All years"
 
 msgid "Tutti gli investimenti"
 msgstr "All the investments"
+
+msgid "Tutti i collegamenti"
+msgstr "All connections"
 
 msgid "Tutti i conti"
 msgstr "All accounts"
@@ -14462,6 +14509,12 @@ msgstr ""
 " to follow how your wealth changes and compare two moments."
 
 msgid ""
+"Una banca si collega da un tuo conto: apri il conto in «Conti», poi "
+"«Modifica» → «Collega a Enable Banking». I movimenti arriveranno su quel "
+"conto."
+msgstr "A bank is linked from one of your accounts: open the account in «Accounts», then «Edit» → «Link to Enable Banking». The transactions will arrive on that account."
+
+msgid ""
 "Una bolletta in PDF o in foto caricata in Documenti: il modello AI "
 "propone periodo, consumo e importo, che controlli prima di salvare."
 msgstr ""
@@ -14671,8 +14724,8 @@ msgstr "Holiday"
 msgid "Vai a promemoria"
 msgstr "Go to reminders"
 
-msgid "Vai alla banca"
-msgstr "Go to the bank"
+msgid "Vai ai conti"
+msgstr "Go to the accounts"
 
 msgid "Vai alla lista transazioni"
 msgstr "Go to the transactions"
@@ -15561,6 +15614,10 @@ msgstr "day %(day)s"
 msgid "già accantonato"
 msgstr "already set aside"
 
+#, python-format
+msgid "già di «%(name)s»"
+msgstr "already «%(name)s»"
+
 msgid "già versate dai committenti"
 msgstr "already paid by the clients"
 
@@ -15725,6 +15782,9 @@ msgstr "never updated"
 #, python-format
 msgid "mai o da più di %(days)s giorni"
 msgstr "never or for more than %(days)s days"
+
+msgid "mai scaricato"
+msgstr "never downloaded"
 
 msgid "massimali cumulati"
 msgstr "combined coverage limits"
@@ -16085,6 +16145,10 @@ msgstr "balance at year end"
 msgid "saldo del conto di regolamento"
 msgstr "balance of the settlement account"
 
+#, python-format
+msgid "saldo in banca %(amount)s"
+msgstr "bank balance %(amount)s"
+
 msgid "saldo inserito da te"
 msgstr "balance entered by you"
 
@@ -16137,6 +16201,11 @@ msgstr "12 months needed"
 
 msgid "servono le entrate degli ultimi 12 mesi"
 msgstr "the income of the last 12 months is needed"
+
+msgid ""
+"si collega una banca dalla pagina di un conto («Modifica» → «Collega a "
+"Enable Banking»)"
+msgstr "a bank is linked from an account's page («Edit» → «Link to Enable Banking»)"
 
 msgid "solo a mano"
 msgstr "by hand only"
@@ -16311,6 +16380,10 @@ msgstr "last 300"
 msgid "ultimo accesso"
 msgstr "last sign-in"
 
+#, python-format
+msgid "ultimo download %(day)s"
+msgstr "last download %(day)s"
+
 msgid "ultimo download non riuscito"
 msgstr "last download failed"
 
@@ -16383,6 +16456,10 @@ msgid ""
 msgstr ""
 "{ISIN} and {TICKER} become the holding's codes, {DATA} today's date "
 "(YYYY-MM-DD)."
+
+#, python-format
+msgid "«%(bank_account)s» di %(bank)s ora è il conto «%(name)s»."
+msgstr "«%(bank_account)s» at %(bank)s is now the account «%(name)s»."
 
 #, python-format
 msgid "«%(description)s» aggiunta in %(category)s."
@@ -16465,6 +16542,12 @@ msgstr ""
 #, python-format
 msgid "«%(name)s» messo nel portafoglio modello: %(parts)s."
 msgstr "“%(name)s” added to the model portfolio: %(parts)s."
+
+#, python-format
+msgid ""
+"«%(name)s» non è più collegato alla banca: i movimenti già salvati "
+"restano."
+msgstr "«%(name)s» is no longer linked to the bank: the transactions already saved stay."
 
 #, python-format
 msgid ""
@@ -16608,6 +16691,9 @@ msgstr ""
 msgid "È la più recente (controllato il %(day)s)."
 msgstr "It is the latest (checked on %(day)s)."
 
+msgid "È questo conto"
+msgstr "It is this account"
+
 msgid ""
 "È un PDF scansionato: contiene solo immagini delle pagine, senza testo "
 "leggibile."
@@ -16720,6 +16806,10 @@ msgstr "— the model's —"
 msgid "— scegli il conto —"
 msgstr "— choose the account —"
 
+#, python-format
+msgid "— scegli la banca (%(count)s) —"
+msgstr "— choose the bank (%(count)s) —"
+
 msgid "— stimata dal nome —"
 msgstr "— estimated from the name —"
 
@@ -16741,6 +16831,9 @@ msgstr ""
 "• Fixed: every month (rent, bills)\n"
 "• Non-monthly: a few times a year (taxes, insurance)\n"
 "• Variable: the part you can cut"
+
+msgid "…oppure collega una banca:"
+msgstr "…or link a bank:"
 
 msgid "…oppure incolla la chiave"
 msgstr "…or paste the key"

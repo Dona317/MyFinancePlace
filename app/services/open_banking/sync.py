@@ -147,11 +147,15 @@ def _consent_end(aspsp: str, country: str, now: datetime) -> datetime:
 # ── Giving (and renewing) the consent ─────────────────────────────────────────
 
 def start(aspsp: str, country: str, redirect_url: str, connection: BankConnection | None = None,
-          psu_type: str = "personal", now: datetime | None = None) -> str:
-    """The bank's page where the user gives the consent; what to do on the way back is kept in the session."""
+          psu_type: str = "personal", now: datetime | None = None, account: Account | None = None) -> str:
+    """The bank's page where the user gives the consent; what to do on the way back is kept in the session. A new
+    connection always starts from an account of the app (`account`): the bank's account becomes that one's."""
     aspsp, country = (aspsp or "").strip(), (country or "IT").strip().upper()[:2]
     if not aspsp:
         raise BankingError(_("Scegli la banca da collegare."))
+    if connection is None and not linkable(account):
+        raise BankingError(_("Si collega a partire da un conto: apri il conto in Conti e Carte, poi «Collega a Enable "
+                             "Banking»."))
     now = now or _utcnow()
     state = secrets.token_urlsafe(24)
     try:
@@ -163,7 +167,7 @@ def start(aspsp: str, country: str, redirect_url: str, connection: BankConnectio
         raise BankingError(_("Enable Banking non ha indicato la pagina della banca: riprova."))
     waiting = dict(list(session.get(STATE_KEY, {}).items())[-4:])  # a few at most: abandoned attempts drop out
     waiting[state] = {"aspsp": aspsp, "country": country, "connection": connection.id if connection else None,
-                      "client": archive_id()}
+                      "client": archive_id(), "account": account.id if account else None}
     session[STATE_KEY] = waiting
     return answer["url"]
 
@@ -211,7 +215,8 @@ def _account_fields(item: dict) -> dict:
 
 def _update_links(connection: BankConnection, items: list[dict]) -> None:
     """The accounts of a new session: the links already there keep their account (matched by IBAN, else by name),
-    the new ones are matched to an account of the app by IBAN."""
+    the new ones are matched to an account of the app by IBAN; the others are kept, not read, until the user ties
+    them to one of their accounts."""
     old = list(connection.links)
     seen = set()
     for item in items:
@@ -220,22 +225,24 @@ def _update_links(connection: BankConnection, items: list[dict]) -> None:
             continue
         link = next((k for k in old if k.id not in seen and values["iban"] and k.iban == values["iban"]), None) or \
             next((k for k in old if k.id not in seen and not values["iban"] and k.name == values["name"]), None)
-        if link is None:
+        if link is None:  # read only when it is one of the app's accounts: no movements for an account not made yet
             found = match_account(values["iban"])
-            link = BankAccountLink(active=True, account_id=found.id if found else None)
+            link = BankAccountLink(active=found is not None, account_id=found.id if found else None)
             connection.links.append(link)
         else:
             seen.add(link.id)
         link.uid, link.iban, link.name, link.currency = values["uid"], values["iban"], values["name"], values["currency"]
 
 
-def finish(state: str | None, code: str | None, error: str | None = None) -> BankConnection:
-    """Back from the bank: the consent becomes a connection (new, or the one being renewed) with its accounts."""
+def finish(state: str | None, code: str | None, error: str | None = None) -> tuple[BankConnection, Account | None]:
+    """Back from the bank: the consent becomes a connection (new, or the one being renewed) with its accounts; also
+    returns the account of the app the new consent was started from."""
     waiting = session.get(STATE_KEY, {})
     pending = waiting.pop(state or "", None)
     session[STATE_KEY] = waiting
     if pending is None:
-        raise BankingError(_("Collegamento non riconosciuto o scaduto: ricomincia da «Collega una banca»."))
+        raise BankingError(_("Collegamento non riconosciuto o scaduto: ricomincia dal conto, con «Collega a Enable "
+                             "Banking»."))
     if pending.get("client") != archive_id():
         raise BankingError(_("Il collegamento era stato avviato in un altro archivio: aprilo e ricomincia."))
     if error or not code:
@@ -256,9 +263,57 @@ def finish(state: str | None, code: str | None, error: str | None = None) -> Ban
     connection.status, connection.last_error = "active", None
     _update_links(connection, list(answer.get("accounts") or []))
     db.session.flush()
+    account = db.session.get(Account, pending.get("account") or 0)
+    _attach_new(connection, account)
     log(connection, "consent")
     db.session.commit()
-    return connection
+    return connection, account
+
+
+# ── The account of the app a bank account belongs to ─────────────────────────
+
+def linkable(account: Account | None) -> bool:
+    """An account a bank can be linked to: an active one of the user's (not Contanti, not Debiti)."""
+    return account is not None and account.active and not account.fixed and account.kind not in ("cash", "debt")
+
+
+def links_of(account: Account) -> list[BankAccountLink]:
+    return BankAccountLink.query.filter_by(account_id=account.id).order_by(BankAccountLink.id).all()
+
+
+def free_links() -> list[BankAccountLink]:
+    """Bank accounts already authorised in a consent and tied to no account of the app: one of them can become an
+    account's without asking the bank again."""
+    return [k for k in BankAccountLink.query.filter(BankAccountLink.account_id.is_(None)).order_by(BankAccountLink.id)
+            if k.connection.status == "active"]
+
+
+def attach(link: BankAccountLink, account: Account) -> None:
+    """The bank's account `link` is `account`: its movements go there, and it is read."""
+    link.account_id, link.active = account.id, True
+
+
+def detach(account: Account) -> int:
+    """The bank accounts tied to `account` stop being read (the consent stays: other accounts may use it)."""
+    found = links_of(account)
+    for link in found:
+        link.account_id, link.active = None, False
+    db.session.commit()
+    return len(found)
+
+
+def needs_choice(connection: BankConnection, account: Account | None) -> bool:
+    """Back from the bank with several accounts and none recognised as `account`: the user says which one it is."""
+    return account is not None and not any(k.account_id == account.id for k in connection.links)
+
+
+def _attach_new(connection: BankConnection, account: Account | None) -> None:
+    """The consent started from `account`: the only account of the bank, or the one with its IBAN, is that one."""
+    if account is None or any(k.account_id == account.id for k in connection.links):
+        return
+    unmatched = [k for k in connection.links if k.account_id is None]
+    if len(connection.links) == 1 and unmatched:
+        attach(unmatched[0], account)
 
 
 def session_id(connection: BankConnection) -> str | None:

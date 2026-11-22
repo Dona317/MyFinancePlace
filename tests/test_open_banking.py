@@ -87,8 +87,21 @@ def bank(monkeypatch, app, pem):
     return fake
 
 
-def _connect(client, bank, aspsp="Fineco"):
-    response = client.post("/banking/connect", data={"aspsp": aspsp, "country": "IT"})
+def _account(name="Fineco", **values):
+    """The app's account a bank is linked from (made the first time)."""
+    from app.extensions import db as _db
+
+    found = Account.query.filter_by(name=name).first()
+    if found is None:
+        found = Account(name=name, kind=values.pop("kind", "current"), **values)
+        _db.session.add(found)
+        _db.session.commit()
+    return found
+
+
+def _connect(client, bank, aspsp="Fineco", account=None):
+    account = account or _account()
+    response = client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": aspsp, "country": "IT"})
     assert response.status_code == 302 and response.headers["Location"] == "https://bank.example/consent"
     with client.session_transaction() as s:
         state = next(iter(s[sync.STATE_KEY]))
@@ -96,10 +109,7 @@ def _connect(client, bank, aspsp="Fineco"):
 
 
 def _fineco(db):
-    account = Account(name="Fineco", kind="current", iban=IBAN)
-    db.session.add(account)
-    db.session.commit()
-    return account
+    return _account("Fineco", iban=IBAN)
 
 
 # ── The API client ───────────────────────────────────────────────────────────
@@ -266,7 +276,7 @@ def test_credentials_from_the_environment(app, monkeypatch, pem, tmp_path):
 def test_credentials_page(client, db, pem, monkeypatch):
     html = client.get("/banking/manage").get_data(as_text=True)
     assert "Da configurare" in html and "/banking/callback" in html
-    assert "Apri Gestione PSD2" in client.get("/banking/").get_data(as_text=True)
+    assert "Nessuna banca collegata" in client.get("/banking/").get_data(as_text=True)
     response = client.post("/banking/credentials", data={"app_id": "app-9", "key_text": "nope"}, follow_redirects=True)
     assert "Servono l&#39;ID" in response.get_data(as_text=True)
     client.post("/banking/credentials", data={"app_id": "app-9", "file": (io.BytesIO(pem.encode()), "key.pem")},
@@ -287,9 +297,10 @@ def test_link_a_bank_end_to_end(client, db, bank):
     bank.movements = [tx("e1", "42.10"), tx("e2", "1500", indicator="CRDT", text="STIPENDIO NOVEMBRE",
                                              debtor={"name": "ACME SPA"}),
                       tx("e3", "9.99", status="PDNG")]
-    page = client.get("/banking/").get_data(as_text=True)
-    assert "Fineco" in page and "2 banche disponibili" in page
+    page = client.get(f"/accounts/{fineco.id}/edit").get_data(as_text=True)
+    assert "Collega a Enable Banking" in page and "scegli la banca (2)" in page and '<option value="Fineco"' in page
     html = _connect(client, bank).get_data(as_text=True)
+    assert 'id="bank-link"' in html and "Collegato" in html  # back on the account's page, linked
     assert "Fineco collegata: 1 conti." in html and "0 movimenti salvati, 2 da controllare, 1 non ancora contabilizzati" in html
     connection = BankConnection.query.one()
     link = connection.links[0]
@@ -351,7 +362,7 @@ def test_accounts_matched_kept_and_chosen(client, db, bank):
     _connect(client, bank)
     connection = BankConnection.query.one()
     card = next(k for k in connection.links if k.name == "Carta")
-    assert len(connection.links) == 2 and card.account_id is None
+    assert len(connection.links) == 2 and card.account_id is None and not card.active  # not read: no account yet
     other = Account(name="Altro", kind="current")
     db.session.add(other)
     db.session.commit()
@@ -376,14 +387,15 @@ def test_accounts_matched_kept_and_chosen(client, db, bank):
 
 
 def test_callback_refusals(client, db, bank, app):
+    start = f"/banking/accounts/{_account().id}/connect"
     response = client.get("/banking/callback?state=nope&code=x", follow_redirects=True)
     assert "non riconosciuto" in response.get_data(as_text=True)
-    client.post("/banking/connect", data={"aspsp": "Fineco", "country": "it"})
+    client.post(start, data={"aspsp": "Fineco", "country": "it"})
     with client.session_transaction() as s:
         state = next(iter(s[sync.STATE_KEY]))
     response = client.get(f"/banking/callback?state={state}&error=access_denied", follow_redirects=True)
     assert "non ha dato il consenso (access_denied)" in response.get_data(as_text=True)
-    client.post("/banking/connect", data={"aspsp": "Fineco"})
+    client.post(start, data={"aspsp": "Fineco"})
     with client.session_transaction() as s:
         state = next(iter(s[sync.STATE_KEY]))
         waiting = s[sync.STATE_KEY]
@@ -392,7 +404,7 @@ def test_callback_refusals(client, db, bank, app):
         s.modified = True
     response = client.get(f"/banking/callback?state={state}&code=x", follow_redirects=True)
     assert "altro archivio" in response.get_data(as_text=True)
-    client.post("/banking/connect", data={"aspsp": "Fineco"})
+    client.post(start, data={"aspsp": "Fineco"})
     with client.session_transaction() as s:
         state = next(iter(s[sync.STATE_KEY]))
     bank.fail["/sessions"] = eb.ProviderError("Invalid code", 400)
@@ -402,15 +414,17 @@ def test_callback_refusals(client, db, bank, app):
 
 
 def test_connect_refusals(client, db, bank):
-    response = client.post("/banking/connect", data={"aspsp": " "}, follow_redirects=True)
+    account = _account()
+    start = f"/banking/accounts/{account.id}/connect"
+    response = client.post(start, data={"aspsp": " "}, follow_redirects=True)
     assert "Scegli la banca" in response.get_data(as_text=True)
     bank.fail["/auth"] = eb.ProviderError("down", 0)
-    response = client.post("/banking/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
+    response = client.post(start, data={"aspsp": "Fineco"}, follow_redirects=True)
     assert "non raggiungibile" in response.get_data(as_text=True)
     del bank.fail["/auth"]
     bank.fail["/aspsps"] = eb.ProviderError("Unauthorized", 401)
     sync._banks_kept.clear()
-    html = client.get("/banking/?country=XX").get_data(as_text=True)
+    html = client.get(f"/accounts/{account.id}/edit?country=XX").get_data(as_text=True)
     assert "rifiutato le credenziali" in html
     original = bank.__call__
 
@@ -419,12 +433,21 @@ def test_connect_refusals(client, db, bank):
             return {} if args[2] == "/auth" else original(*args, **kwargs)
 
     sync.client.request = NoUrl()
-    response = client.post("/banking/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
+    response = client.post(start, data={"aspsp": "Fineco"}, follow_redirects=True)
     assert "non ha indicato la pagina" in response.get_data(as_text=True)
 
 
+    cash = _account("Contanti", kind="cash")
+    response = client.post(f"/banking/accounts/{cash.id}/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
+    assert "Si collega a partire da un conto" in response.get_data(as_text=True)
+    assert 'id="bank-link"' not in client.get(f"/accounts/{cash.id}/edit").get_data(as_text=True)
+
+
 def test_nothing_works_without_credentials(client, db):
-    response = client.post("/banking/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
+    account = _account()
+    page = client.get(f"/accounts/{account.id}/edit").get_data(as_text=True)
+    assert "non è ancora configurato" in page and "Configura in Gestione PSD2" in page
+    response = client.post(f"/banking/accounts/{account.id}/connect", data={"aspsp": "Fineco"}, follow_redirects=True)
     assert "non configurato" in response.get_data(as_text=True)
     assert open_banking.sync_due() == 0
 
@@ -651,27 +674,21 @@ def test_manage_page_lists_every_archive_and_links_to_the_chosen_one(client, db,
 
     bank.movements = [tx("e1", "5"), tx("p1", "80", status="PDNG", text="HOTEL PREAUTORIZZAZIONE")]
     _connect(client, bank)  # the primary archive
-    client.post("/clients/new", data={"name": "Mario Rossi", "color": "#16a34a"})
-    rossi = Client.query.filter_by(name="Mario Rossi").one()
-    page = client.get("/banking/manage").get_data(as_text=True)
-    assert f'<option value="{rossi.id}" selected>Mario Rossi</option>' in page  # the open archive is proposed
-
+    _connect(client, bank, account=_account("Fineco cointestato"))  # a second consent in the same archive
     primary = next(c for c in open_banking.archives_shown() if c.database is None)
-    client.post("/banking/connect", data={"aspsp": "Fineco", "client_id": primary.id, "from": "manage"})
+    client.post("/clients/new", data={"name": "Mario Rossi", "color": "#16a34a"})  # now the open archive
+    rossi = Client.query.filter_by(name="Mario Rossi").one()
+    bank.movements = []
+    _connect(client, bank, "Banca Sella", account=_account("Sella"))
     with client.session_transaction() as s:
-        state = list(s[sync.STATE_KEY])[-1]
-        assert s[sync.STATE_KEY][state]["client"] == primary.id
-    client.get(f"/banking/callback?state={state}&code=c-9")  # a second consent in the same archive
-    client.post("/banking/connect", data={"aspsp": "Banca Sella", "client_id": rossi.id, "from": "manage"})
-    with client.session_transaction() as s:
-        state = list(s[sync.STATE_KEY])[-1]
-    client.get(f"/banking/callback?state={state}&code=c-10")  # the open archive is now Rossi's
+        assert not s[sync.STATE_KEY]  # every consent used
 
     page = client.get("/banking/manage").get_data(as_text=True)
+    assert "Collega a Enable Banking" in page and 'name="aspsp"' not in page  # linking starts from an account
     connections, accesses = open_banking.overview()
     assert [(c["archive"].name, c["bank"]) for c in connections] == [
-        (primary.name, "Fineco"), (primary.name, "Fineco"), ("Mario Rossi", "Banca Sella")]
-    assert connections[0]["at_bank"] == 1 and connections[0]["mapped"] == 0
+        (primary.name, "Fineco"), (primary.name, "Fineco"), (rossi.name, "Banca Sella")]
+    assert connections[0]["at_bank"] == 1 and connections[0]["mapped"] == 1
     assert {a["kind"] for a in accesses} == {"consent", "manual"} and len(accesses) == 6
     assert "Registro degli accessi" in page and "Mario Rossi" in page and "Consenso" in page
 
@@ -679,10 +696,8 @@ def test_manage_page_lists_every_archive_and_links_to_the_chosen_one(client, db,
     assert response.headers["Location"].endswith(f"/banking/#connection-{connections[0]['id']}")
     html = client.get("/banking/").get_data(as_text=True)
     assert "In attesa alla banca: 1" in html and "HOTEL PREAUTORIZZAZIONE" in html
-    assert "letture automatiche oggi: 0 su 4" in html
+    assert "letture automatiche oggi: 0 su 4" in html and "Per collegare un altro conto" in html
     response = client.post("/banking/manage/open/999", follow_redirects=True)
-    assert "Archivio non disponibile" in response.get_data(as_text=True)
-    response = client.post("/banking/connect", data={"aspsp": "Fineco", "client_id": 999}, follow_redirects=True)
     assert "Archivio non disponibile" in response.get_data(as_text=True)
 
 
@@ -758,3 +773,87 @@ def test_automatic_reads_fall_in_four_slots_between_8_and_24(app, db, bank, clie
     assert open_banking.unattended_today(connection, at(16, 5)) == 4
     app.config["BANK_SYNC_PER_DAY"] = 9  # never more than PSD2's four
     assert open_banking.slots() == ["8:00", "12:00", "16:00", "20:00"]
+
+
+# ── Linking from the account (the bank's account becomes that one) ───────────
+
+def test_several_bank_accounts_ask_which_one(client, db, bank):
+    mine = _account("Conto di casa")  # no IBAN: the bank's accounts cannot be recognised
+    bank.accounts = [{"uid": "a1", "account_id": {"iban": "IT11A"}, "name": "Conto principale"},
+                     {"uid": "a2", "account_id": {"iban": "IT22B"}, "name": "Conto deposito"}]
+    response = _connect(client, bank, account=mine)
+    html = response.get_data(as_text=True)
+    assert "Quale conto della banca è «Conto di casa»?" in html and "Conto deposito" in html
+    connection = BankConnection.query.one()
+    assert all(k.account_id is None and not k.active for k in connection.links)
+    assert not [c for c in bank.calls if c[1].endswith("/transactions")]  # nothing read before the choice
+    url = f"/banking/connections/{connection.id}/choose/{mine.id}"
+    assert "Scegli il conto della banca" in client.post(url, follow_redirects=True).get_data(as_text=True)
+    deposit = next(k for k in connection.links if k.name == "Conto deposito")
+    response = client.post(url, data={"link_id": deposit.id})
+    assert response.headers["Location"].endswith(f"/accounts/{mine.id}/edit#bank-link")
+    db.session.refresh(deposit)
+    assert deposit.account_id == mine.id and deposit.active
+    other = next(k for k in connection.links if k.name == "Conto principale")
+    assert other.account_id is None and not other.active
+    assert client.get(url).status_code == 200
+
+    # the other bank account, already authorised, becomes another account without a new consent
+    savings = _account("Risparmi")
+    page = client.get(f"/accounts/{savings.id}/edit").get_data(as_text=True)
+    assert "Già autorizzato dalla banca" in page and "Conto principale" in page
+    auths = sum(1 for c in bank.calls if c[1] == "/auth")
+    client.post(f"/banking/accounts/{savings.id}/use/{other.id}")
+    db.session.refresh(other)
+    assert other.account_id == savings.id and other.active and sum(1 for c in bank.calls if c[1] == "/auth") == auths
+    response = client.post(f"/banking/accounts/{mine.id}/use/{other.id}", follow_redirects=True)
+    assert "già collegato a un altro conto" in response.get_data(as_text=True)
+
+    # choosing again moves the account to the bank account picked
+    client.post(url, data={"link_id": other.id})
+    db.session.refresh(deposit)
+    assert deposit.account_id is None and not deposit.active
+
+
+def test_unlink_one_account_keeps_the_consent(client, db, bank):
+    account = _account()
+    _connect(client, bank, account=account)
+    page = client.get(f"/accounts/{account.id}/edit").get_data(as_text=True)
+    assert "Scollega questo conto" in page and "Aggiorna ora" in page
+    response = client.post(f"/banking/accounts/{account.id}/detach", follow_redirects=True)
+    assert "non è più collegato alla banca" in response.get_data(as_text=True)
+    link = BankAccountLink.query.one()
+    assert link.account_id is None and not link.active and BankConnection.query.count() == 1
+
+
+def test_update_and_renew_from_the_account_page(client, db, bank):
+    account = _account()
+    _connect(client, bank, account=account)
+    connection = BankConnection.query.one()
+    here = f"/accounts/{account.id}/edit#bank-link"
+    response = client.post(f"/banking/connections/{connection.id}/sync", data={"next": here})
+    assert response.headers["Location"].endswith(here)
+    connection.valid_until = sync._utcnow() + timedelta(days=3)
+    db.session.commit()
+    page = client.get(f"/accounts/{account.id}/edit").get_data(as_text=True)
+    assert "Consenso in scadenza" in page and "Rinnova consenso" in page
+    client.post(f"/banking/connections/{connection.id}/renew", data={"account_id": account.id})
+    with client.session_transaction() as s:
+        state = next(iter(s[sync.STATE_KEY]))
+    response = client.get(f"/banking/callback?state={state}&code=c-5")
+    assert response.headers["Location"].endswith(here) and BankConnection.query.count() == 1
+    bank.fail["/auth"] = eb.ProviderError("Bank unavailable", 503)
+    response = client.post(f"/banking/connections/{connection.id}/renew", data={"account_id": account.id})
+    assert response.headers["Location"].endswith(here)
+    connection.status = "expired"
+    db.session.commit()
+    page = client.get(f"/accounts/{account.id}/edit").get_data(as_text=True)
+    assert "Consenso scaduto" in page
+
+
+def test_a_user_who_is_not_administrator_sees_only_their_archive(app, db, monkeypatch):
+    from app.services import studio
+
+    monkeypatch.setattr(studio, "sees_archives", lambda: False)
+    with app.test_request_context("/"):
+        assert open_banking.archives_shown() == [studio.primary()]

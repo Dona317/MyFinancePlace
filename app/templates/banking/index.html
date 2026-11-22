@@ -115,9 +115,12 @@
 </div>
 {% endfor %}
 
-{# ── Link a bank (to this archive) ────────────────────────────────────────────── #}
+{# ── Linking starts from an account (F107): here only what is linked ───────────── #}
 {% if not connections %}
-{{ empty_state(text=_('Nessuna banca collegata a questo archivio. Collegane una qui sotto: i movimenti arriveranno da soli.'), icon='bi-link-45deg', title=_('Collegamenti bancari')) }}
+{% call empty_state(text=_('Una banca si collega da un tuo conto: apri il conto in «Conti», poi «Modifica» → «Collega a Enable Banking». I movimenti arriveranno su quel conto.'), icon='bi-link-45deg', title=_('Nessuna banca collegata')) %}
+  <a href="{{ url_for('accounts.index', tab='accounts') }}" class="btn btn-outline btn-sm"><i class="bi bi-bank"></i> {{ _('Vai ai conti') }}</a>
+{% endcall %}
+{% else %}
+<p class="form-hint">{{ _('Per collegare un altro conto, aprilo in «Conti» → «Modifica» → «Collega a Enable Banking».') }}</p>
 {% endif %}
-{% include "banking/_connect.html" %}
 {% endblock %}

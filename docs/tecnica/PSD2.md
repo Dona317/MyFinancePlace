@@ -18,15 +18,20 @@ doppioni vengono riconosciuti.
    registrazione). Per leggere **i conti dei clienti dello studio** serve la produzione piena, con un contratto
    (prezzi su preventivo): è la parte di D16 ancora da decidere.
 
-## 2. Le due pagine
-- **Gestione PSD2** (Impostazioni → Gestione PSD2, o il pulsante in alto in Collegamenti bancari), per tutta l'app:
-  le credenziali di Enable Banking, **tutti i collegamenti di tutti gli archivi** (archivio, banca, scadenza del
-  consenso, conti abbinati, movimenti da controllare e in attesa alla banca, letture automatiche del giorno su 4),
-  «Collega una banca» con la **scelta dell'archivio**, e il **registro degli accessi** (ogni consenso e ogni download,
-  a mano o automatico, con esito e numeri, nell'archivio per cui è stato fatto). Chi non è amministratore vede solo il
-  proprio archivio.
-- **Collegamenti bancari** (scheda di Conti e Carte): i collegamenti dell'archivio aperto, con i conti da abbinare,
-  «Aggiorna ora», «Rinnova consenso», «Scollega», le impostazioni e i movimenti in attesa alla banca.
+## 2. Dove si fa cosa
+- **Si collega dal conto** (deciso il 22 nov 2026, UI-24): Conti e Carte → un conto → **Modifica** → riquadro
+  «Collegamento bancario (PSD2)» → **Collega a Enable Banking**. Il conto dell'app esiste sempre prima del
+  collegamento, e il conto della banca diventa proprio quello: nessun movimento finisce su un conto non ancora creato.
+  Nello stesso riquadro: stato del consenso, ultimo download, saldo della banca, «Controlla N», «Aggiorna ora»,
+  «Rinnova consenso» (quando scade) e «Scollega questo conto».
+- **Collegamenti bancari** (scheda di Conti e Carte): **solo gestione** dei collegamenti dell'archivio aperto — conti
+  abbinati, «Aggiorna ora», «Rinnova consenso», «Scollega» (ritira il consenso), impostazioni, movimenti in attesa
+  alla banca. Da qui non si avvia un collegamento.
+- **Gestione PSD2** (Impostazioni → Gestione PSD2): per tutta l'app, le credenziali di Enable Banking, **tutti i
+  collegamenti di tutti gli archivi** (archivio, banca, scadenza, conti abbinati, da controllare, in attesa alla
+  banca, letture automatiche del giorno su 4) e il **registro degli accessi** (ogni consenso e ogni download, a mano o
+  automatico, con esito e numeri, nell'archivio per cui è stato fatto). Chi non è amministratore vede solo il proprio
+  archivio.
 
 Ogni collegamento (un consenso) appartiene a **un archivio**: sta nel database di quell'archivio, finisce nel suo
 backup, e i movimenti vanno nei suoi conti. Un archivio può avere **più collegamenti**, anche alla stessa banca
@@ -49,14 +54,25 @@ backup, e i movimenti vanno nei suoi conti. Un archivio può avere **più colleg
 - Una versione precedente teneva le credenziali nel file `enable_banking.json`: alla prima lettura passano nel
   database e il file viene cancellato.
 
-## 4. Collegare una banca
-«Collega una banca» → paese e banca (elenco di Enable Banking) → **Vai alla banca**: l'utente accede all'home banking
-e dà il consenso alla sola lettura, valido fino a 180 giorni (meno se la banca lo limita). Al ritorno l'app:
+## 4. Collegare una banca (dal conto)
+Nella pagina di modifica del conto: paese e banca (elenco a tendina di Enable Banking) → **Collega a Enable
+Banking**: l'utente accede all'home banking e dà il consenso alla sola lettura, valido fino a 180 giorni (meno se la
+banca lo limita). Al ritorno l'app:
 - salva il collegamento (`bank_connections`, con l'id della sessione cifrato) e i conti che copre
   (`bank_account_links`);
-- abbina ogni conto della banca a un conto dell'app **per IBAN** (o numero di conto); quelli senza abbinamento si
-  scelgono dalla tabella;
-- scarica subito i movimenti degli ultimi 90 giorni.
+- se la banca ha autorizzato **un solo conto**, o uno con l'IBAN del conto dell'app, quello diventa il conto da cui
+  si è partiti; se ne ha autorizzati **più d'uno** e nessuno si riconosce, una pagina chiede «Quale conto della banca è
+  «…»?»;
+- gli altri conti del consenso restano **autorizzati ma non letti**: dalla pagina di un altro conto compaiono sotto
+  «Già autorizzato dalla banca» e si usano con un clic («È questo conto»), senza tornare in banca; quelli con l'IBAN di
+  un conto dell'app già esistente vengono abbinati e letti subito;
+- scarica subito i movimenti degli ultimi 90 giorni del conto collegato e torna sulla pagina del conto.
+
+**Prova con la sandbox vera di Enable Banking (22 nov 2026): riuscita.** Applicazione Sandbox, banca «Mock ASPSP»
+con i dati di esempio caricati dal pannello (scheda Mock ASPSP → Upload): consenso, ritorno su
+`http://localhost:5000/banking/callback` (l'indirizzo `http://localhost` è accettato in sandbox), conto e saldo
+letti, movimenti scaricati, rivisti e salvati con i tag `importato` e `psd2`. In sviluppo (`python run.py`) gli archivi
+dei clienti si aggiornano a mano: `flask --app run db upgrade` e `flask --app run clients migrate`.
 
 ## 5. Come funziona il download
 1. Si chiedono i movimenti da una settimana prima dell'ultimo contabilizzato (così non si perdono le contabilizzazioni
@@ -106,8 +122,10 @@ Configurazione: `ENABLE_BANKING_API_URL` (default `https://api.enablebanking.com
 `BANK_SYNC_WINDOW`, `BANK_SYNC_PER_DAY`, `BANK_SYNC_INLINE` (test: download dentro la richiesta).
 
 ## 8. Limiti noti
-- Provato solo contro un'API finta: **va provato con la sandbox di Enable Banking e con una banca vera** prima di
-  contarci.
+- Provato con la sandbox di Enable Banking (22 nov 2026); **manca la prova con una banca vera** (applicazione
+  Production in modalità ristretta, con i propri conti collegati dal pannello).
+- L'app desktop parte su una porta che cambia: per l'indirizzo di ritorno serve una porta fissa o
+  `ENABLE_BANKING_REDIRECT_URL`.
 - Le carte di credito sono lette solo se la banca le espone come conto PSD2 (in Italia Enable Banking ha esteso
   l'accesso ai conti carta nel 2026).
 - Un consenso rinnovato riabbina i conti per IBAN (o per nome se la banca non dà l'IBAN).

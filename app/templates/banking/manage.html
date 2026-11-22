@@ -16,7 +16,7 @@
   <div class="card-header">
     <div>
       <div class="card-header-title"><i class="bi bi-bank2"></i> {{ _('Collegamenti') }} {{ info(_('Ogni collegamento (un consenso dato a una banca) appartiene a un archivio; un archivio può averne più di uno.')) }}</div>
-      <div class="card-header-sub">{{ _('%(count)s collegamenti in %(archives)s archivi', count=connections|length, archives=archives|length) }}</div>
+      <div class="card-header-sub">{{ _('%(count)s collegamenti in %(archives)s archivi', count=connections|length, archives=archives|length) }} · {{ _('si collega una banca dalla pagina di un conto («Modifica» → «Collega a Enable Banking»)') }}</div>
     </div>
   </div>
   {% if connections %}
@@ -59,8 +59,6 @@
   <div class="card-body">{{ empty_state(text=_('Nessuna banca collegata in nessun archivio.'), compact=True) }}</div>
   {% endif %}
 </div>
-
-{% include "banking/_connect.html" %}
 
 {# ── The accesses ───────────────────────────────────────────────────────────── #}
 <div class="card mb-16" id="accesses">

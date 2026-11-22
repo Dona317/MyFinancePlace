@@ -325,3 +325,61 @@ partenza sono nella sezione 16 di DESIGN.md.
 - **Dipende da:** T47 (le variabili da usare nelle classi).
 - **Origine:** DESIGN.md 12, 16.
 - **Fatto quando:** meno di 50 `style="…"` in tutti i template, solo per valori calcolati (larghezze di barre, colori presi dai dati).
+
+---
+
+## Giro PSD2 — Dopo la prova in sandbox (22 nov 2026)
+
+La lettura via PSD2 (F107, D16) funziona con la sandbox vera di Enable Banking. Queste card portano ai conti veri e
+all'uso da parte di amici, senza costi né licenze commerciali.
+
+**Card T49 — Cambio vero per i conti in valuta (oggi DKK = EUR 1:1)**
+- **Area:** Dati e qualità · **Giro:** PSD2 · **Priorità:** Alta · **Sforzo:** M
+- **Problema (visto nella prova sandbox):** i movimenti in corone danesi del conto di prova sono stati contati in euro
+  1:1 (+DKK 2,70 mostrato come +€ 2,70). La causa è in `app/services/currency.py`, `to_base()`: quando manca il cambio
+  del giorno usa `rate_on(...) or Decimal(1)`, cioè **1:1 senza dirlo**. I cambi BCE si scaricano solo a mano
+  (Impostazioni → Valute → BCE, `download_ecb`), quindi una valuta nuova arrivata da un import o dal PSD2 non ha cambi.
+- **Descrizione:**
+  1. niente più 1:1 silenzioso: senza cambio, `amount_base` resta **vuoto** e il movimento è segnato «cambio mancante»
+     (Salute dei dati e promemoria), invece di un numero falso nei totali;
+  2. quando entra una valuta nuova (import da file, PSD2, inserimento a mano) i cambi BCE si scaricano da soli,
+     in background, dal primo giorno che serve, e poi `recompute(valuta)`;
+  3. PSD2: se la banca manda `exchange_rate` sul movimento, si usa quello (è il cambio applicato davvero), e
+     `account_amount` per i conti in valuta;
+  4. il conto in valuta mostra il saldo nella sua valuta e sotto «≈ €» (DESIGN 8).
+- **Dipende da:** niente (la rete verso la BCE c'è già, `download_ecb`).
+- **Origine:** prova sandbox PSD2 del 22 nov 2026 (conto «Ida Jensen», DKK).
+- **Fatto quando:** un conto DKK importato senza cambi scarica i cambi BCE da solo e i totali in euro tornano
+  (13.066,20 DKK ≈ 1.750 €, non 13.066 €); senza rete il movimento dice «cambio mancante» e non entra nei totali come 1:1.
+
+**Card T50 — Prova con un conto vero (Production in modalità ristretta)**
+- **Area:** PSD2 · **Giro:** PSD2 · **Priorità:** Alta · **Sforzo:** S
+- **Descrizione:** su Enable Banking un'applicazione **Production**, attivata con «Activate by linking accounts»
+  collegando il proprio conto dal pannello (gratuita, senza contratto, legge solo i conti collegati lì). Credenziali
+  in Gestione PSD2 al posto di quelle sandbox, prova in un archivio di prova («prova1234») per non mescolare dati.
+  Da verificare: se Production accetta `http://localhost:5000/banking/callback` come la sandbox, quanto dura il
+  collegamento fatto dal pannello e se va rinnovato insieme al consenso dell'app, cosa manda davvero la banca italiana
+  (causali, controparti, MCC, id dei movimenti).
+- **Dipende da:** la tua registrazione dell'applicazione Production.
+- **Origine:** F107, D16; prova sandbox del 22 nov.
+- **Fatto quando:** i movimenti degli ultimi 90 giorni del tuo conto arrivano, si rivedono e si salvano; i risultati
+  sono in `docs/tecnica/PSD2.md`.
+
+**Card T51 — Attivazione guidata per chi scarica l'app (amici)**
+- **Area:** PSD2 · **Giro:** PSD2 · **Priorità:** Media · **Sforzo:** M
+- **Descrizione:** in modalità ristretta ognuno legge **solo i conti collegati alla propria applicazione**: chi usa
+  l'app (un amico) crea la sua applicazione Enable Banking gratuita, non usa la tua (la tua chiave darebbe accesso
+  anche ai tuoi conti). Per renderlo semplice, una procedura guidata in Gestione PSD2:
+  1. cosa serve e perché (2 righe), link alla registrazione di Enable Banking;
+  2. i valori da copiare nel modulo di Enable Banking, ognuno con il pulsante «copia»: nome, indirizzo di ritorno
+     esatto, privacy/termini;
+  3. caricamento di ID e `.pem` con **controllo immediato** (`GET /application`): nome, ambiente, attiva o no,
+     indirizzi di ritorno registrati — con l'avviso «l'indirizzo dell'app non è tra quelli registrati» o «applicazione
+     non attiva: collega i tuoi conti nel pannello (Activate by linking accounts)»;
+  4. «Ora apri un conto e premi Collega a Enable Banking».
+  App desktop: **porta fissa** del server locale (o `ENABLE_BANKING_REDIRECT_URL`), così l'indirizzo di ritorno non
+  cambia a ogni avvio.
+- **Dipende da:** T50 (sapere cosa chiede davvero Production) e D17.
+- **Origine:** richiesta del 22 nov 2026 («chiunque scarichi l'app deve poterlo fare in autonomia, senza costi»).
+- **Fatto quando:** una persona che non conosce Enable Banking collega il suo conto seguendo solo le schermate
+  dell'app, in meno di 15 minuti.

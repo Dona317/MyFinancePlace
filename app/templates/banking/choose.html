@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Quale conto?') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Quale conto della banca è «%(name)s»?', name=account.name) }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li><a href="{{ url_for('accounts.edit', account_id=account.id) }}">{{ account.name }}</a></li><li>{{ _('Collegamento') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title"><i class="bi bi-bank2"></i> {{ connection.aspsp_name }}</div>
+        <div class="card-header-sub">{{ _('La banca ha autorizzato %(count)s conti: scegli quello che corrisponde a «%(name)s». Gli altri restano autorizzati ma non vengono letti finché non li colleghi da un altro conto.', count=connection.links|length, name=account.name) }}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        {% for link in connection.links %}
+        <label class="bank-choice">
+          <input type="radio" name="link_id" value="{{ link.id }}" {{ 'checked' if loop.first and not link.account_id }} {{ 'disabled' if link.account_id and link.account_id != account.id }} />
+          <span><strong>{{ link.name or _('Conto') }}</strong> {% if link.iban %}<span class="text-muted">{{ link.iban }}</span>{% endif %} <span class="text-muted">{{ link.currency }}</span>
+            {% if link.account_id and link.account_id != account.id %}<span class="badge badge-muted">{{ _('già di «%(name)s»', name=link.account.name) }}</span>{% endif %}</span>
+        </label>
+        {% endfor %}
+        <div class="form-actions">
+          <a href="{{ url_for('accounts.edit', account_id=account.id) }}#bank-link" class="btn btn-ghost">{{ _('Più tardi') }}</a>
+          <button type="submit" class="btn btn-primary">{{ _('Collega a «%(name)s»', name=account.name) }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
