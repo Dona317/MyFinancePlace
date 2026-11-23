@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 11:04+0000\n"
+"POT-Creation-Date: 2026-11-23 16:37+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1068,6 +1068,11 @@ msgstr "= average"
 
 msgid "A"
 msgstr "To"
+
+msgid ""
+"A chi sono intestati i conti e cosa vuoi seguire. Accendi solo le aree "
+"che ti servono: il menu resta più semplice e le riaccendi quando vuoi."
+msgstr "Whom the accounts belong to and what you want to follow. Turn on only the areas you need: the menu stays simpler and you can turn them on again whenever you like."
 
 msgid "A mano"
 msgstr "By hand"
@@ -2694,14 +2699,6 @@ msgstr "Search…"
 
 msgid "Che cosa"
 msgstr "What"
-
-msgid ""
-"Chi c'è in casa e cosa vuoi seguire. Accendi solo le aree che ti servono:"
-" il menu resta più semplice e le riaccendi quando vuoi."
-msgstr ""
-"Who lives in the house and what you want to follow. Turn on only the "
-"areas you need: the menu stays simpler and you can turn them on again "
-"whenever you like."
 
 msgid "Chi l’ha fatto"
 msgstr "Who did it"
@@ -8059,8 +8056,13 @@ msgstr ""
 "Images are not supported: download the PDF, Excel or CSV of the movements"
 " from online banking."
 
-msgid "Le persone (facoltativo)"
-msgstr "The people (optional)"
+msgid ""
+"Le persone a cui sono intestati i conti di questo archivio: non creano "
+"archivi separati. Servono a dire di chi è ogni conto (o se è "
+"cointestato), a dividere il patrimonio per persona e a riconoscere come "
+"giroconti i bonifici tra voi. Per questo servono nome e cognome: con il "
+"solo nome, un bonifico a un altro «Marco» sembrerebbe un giroconto."
+msgstr "The people the accounts of this archive belong to: they do not make separate archives. They say whose each account is (or if it is joint), split the net worth by person and recognise transfers between you as giroconti. That is why first and last name are needed: with the first name only, a transfer to another «Marco» would look like a giroconto."
 
 msgid "Le più vecchie si cancellano da sole."
 msgstr "The oldest are deleted automatically."
@@ -11063,9 +11065,6 @@ msgstr "Customize the page."
 msgid "Personalizzato"
 msgstr "Custom"
 
-msgid "Persone e aree"
-msgstr "People and areas"
-
 #, python-format
 msgid "Pesa %(weight)s %% contro un obiettivo del %(target)s %%"
 msgstr "It weighs %(weight)s %% against a %(target)s %% target"
@@ -13279,6 +13278,9 @@ msgstr ""
 msgid "Scegli due movimenti diversi."
 msgstr "Choose two different transactions."
 
+msgid "Scegli i titolari dei conti e le aree da seguire"
+msgstr "Choose the account holders and the areas to follow"
+
 msgid "Scegli il conto da cui paghi la rata."
 msgstr "Choose the account you pay the installment from."
 
@@ -13329,9 +13331,6 @@ msgstr "Choose the folder to save the backups to."
 
 msgid "Scegli le colonne"
 msgstr "Choose the columns"
-
-msgid "Scegli le persone e le aree da seguire"
-msgstr "Choose the people and the areas to follow"
 
 msgid ""
 "Scegli le sezioni da vedere nel tuo menu: le altre spariscono solo per "
@@ -14692,6 +14691,12 @@ msgstr "Holder"
 msgid "Titolari"
 msgstr "Holders"
 
+msgid "Titolari dei conti"
+msgstr "Account holders"
+
+msgid "Titolari dei conti (facoltativo)"
+msgstr "Account holders (optional)"
+
 msgid "Titolari e IBAN"
 msgstr "Holders and IBANs"
 
@@ -14701,6 +14706,9 @@ msgid ""
 msgstr ""
 "Holders and IBANs saved: bank transfers between your accounts will be "
 "imported as transfers between accounts."
+
+msgid "Titolari e aree"
+msgstr "Holders and areas"
 
 msgid "Titoli"
 msgstr "Holdings"

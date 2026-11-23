@@ -1,10 +1,12 @@
 {% extends "onboarding/_layout.html" %}
 {% from "onboarding/_macros.html" import actions with context %}
-{% block intro %}<p class="text-muted">{{ _('Chi c\'è in casa e cosa vuoi seguire. Accendi solo le aree che ti servono: il menu resta più semplice e le riaccendi quando vuoi.') }}</p>{% endblock %}
+{% from "partials/info.html" import info %}
+{% block intro %}<p class="text-muted">{{ _('A chi sono intestati i conti e cosa vuoi seguire. Accendi solo le aree che ti servono: il menu resta più semplice e le riaccendi quando vuoi.') }}</p>{% endblock %}
 {% block body %}
 <form method="POST" id="onb-form" class="onb-form">
   <div class="form-group">
-    <label class="form-label">{{ _('Le persone (facoltativo)') }}</label>
+    <label class="form-label">{{ _('Titolari dei conti (facoltativo)') }}
+      {{ info(_('Le persone a cui sono intestati i conti di questo archivio: non creano archivi separati. Servono a dire di chi è ogni conto (o se è cointestato), a dividere il patrimonio per persona e a riconoscere come giroconti i bonifici tra voi. Per questo servono nome e cognome: con il solo nome, un bonifico a un altro «Marco» sembrerebbe un giroconto.'), _('Titolari dei conti')) }}</label>
     {# one row per person, first and last name apart; «+» adds one, up to max_people #}
     <div class="onb-people" id="onb-people" data-max="{{ max_people }}">
       {% for first, last in (people or [('', '')]) %}

@@ -26,7 +26,7 @@ STATE = "onboarding"
 NEW = ("preferenze", "aspetto", "persone", "conti", "movimenti", "fine")
 EXISTING = ("importa", "fine")
 TITLES = {"benvenuto": _l("Benvenuto"), "scelta": _l("Da dove parti"), "preferenze": _l("Lingua e valuta"),
-          "aspetto": _l("Aspetto"), "persone": _l("Persone e aree"), "conti": _l("I tuoi conti"),
+          "aspetto": _l("Aspetto"), "persone": _l("Titolari e aree"), "conti": _l("I tuoi conti"),
           "movimenti": _l("I movimenti"), "importa": _l("Il tuo archivio"), "fine": _l("Tutto pronto")}
 CURRENCIES = ("EUR", "USD", "GBP", "CHF", "DKK", "SEK", "NOK", "PLN", "CZK", "JPY", "CAD", "AUD")
 LOCALES = {"it-IT": "1.234,56 · 31/12/2026", "en-GB": "1,234.56 · 31/12/2026", "en-US": "1,234.56 · 12/31/2026",
@@ -194,5 +194,5 @@ def left_to_do() -> list[dict]:
     if current_settings().get("module_portfolio", True) and not Holding.query.first():
         todo.append({"label": _l("Aggiungi le posizioni del portafoglio"), "endpoint": "portfolio.index", "icon": "briefcase"})
     if "persone" in skipped:
-        todo.append({"label": _l("Scegli le persone e le aree da seguire"), "endpoint": "settings.index", "icon": "people"})
+        todo.append({"label": _l("Scegli i titolari dei conti e le aree da seguire"), "endpoint": "settings.index", "icon": "people"})
     return todo
