@@ -208,3 +208,4 @@ instance_demo/
 # the data key and the old file of the Enable Banking credentials (instance folder)
 data.key
 enable_banking.json
+data/market_seed/build/

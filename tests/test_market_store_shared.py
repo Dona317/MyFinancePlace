@@ -156,3 +156,57 @@ def test_the_page_export_and_import(client, db, store):
     skipped = client.post("/dati/prezzi/importa", data={"file": (io.BytesIO(odd.getvalue()), "p.zip")},
                           content_type="multipart/form-data", follow_redirects=True).get_data(as_text=True)
     assert "1 righe non leggibili saltate" in skipped
+
+
+def _seed(tmp_path):
+    raw = io.BytesIO()
+    with zipfile.ZipFile(raw, "w") as archive:
+        archive.writestr("instruments.csv", "symbol,isin,name,currency,exchange,link\nENEL.MI,IT0003128367,Enel,EUR,,\n")
+        archive.writestr("closes.csv", "symbol,day,close,adj_close,source\nENEL.MI,2000-01-03,5.1,,yahoo\n"
+                                       "ENEL.MI,2000-01-04,5.2,,yahoo\n")
+    path = tmp_path / "seed.zip"
+    path.write_bytes(raw.getvalue())
+    return path
+
+
+def test_an_empty_store_starts_from_the_shipped_one(app, store, monkeypatch):
+    assert market_data.seed_path() is None  # tests: off
+    app.config["MARKET_SEED"] = True
+    try:
+        monkeypatch.setattr(market_data, "SEED", store / "missing.zip")
+        assert market_data.seed_path() is None and market_data.seed_if_empty() is None
+        monkeypatch.setattr(market_data, "SEED", _seed(store))
+        done = market_data.seed_if_empty()
+        assert (done.instruments, done.closes) == (1, 2)
+        assert market_data.seed_if_empty() is None  # not empty any more
+        assert market_data.symbol_for_isin("IT0003128367") == "ENEL.MI"
+    finally:
+        app.config["MARKET_SEED"] = False
+
+
+def test_the_filler_seeds_first_and_the_button(client, db, store, monkeypatch):
+    from app.services import history_filler
+    app = client.application
+    assert "Questa installazione non ha il database di partenza" in client.post(
+        "/dati/prezzi/partenza", follow_redirects=True).get_data(as_text=True)
+    app.config["MARKET_SEED"] = True
+    try:
+        monkeypatch.setattr(market_data, "SEED", _seed(store))
+        page = client.get("/dati/prezzi").get_data(as_text=True)
+        assert "Importa il database di partenza" in page
+        done = client.post("/dati/prezzi/partenza", follow_redirects=True).get_data(as_text=True)
+        assert "Database di partenza importato: 1 titoli nuovi, 2 chiusure nuove" in done
+        other = store / "fresh"
+        other.mkdir()
+        app.instance_path = str(other)
+        with app.app_context():
+            history_filler.run(date(2026, 11, 20), sources=(), fetch=lambda address: b"x")
+            assert market_data.totals()["closes"] == 2
+
+            def broken(raw):
+                raise ValueError("bad")
+            monkeypatch.setattr(market_data, "import_zip", broken)
+            app.instance_path = str(store / "third")
+            history_filler.run(date(2026, 11, 20), sources=(), fetch=lambda address: b"x")  # goes on all the same
+    finally:
+        app.config["MARKET_SEED"] = False

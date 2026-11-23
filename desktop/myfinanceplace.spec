@@ -20,6 +20,7 @@ datas = [
     (str(ROOT / "migrations"), "migrations"),
     (str(PGSQL), "pgsql"),
     (str(ROOT / "desktop" / "assets"), "assets"),  # the icon: tray, notifications
+    (str(ROOT / "data" / "market_seed" / "database_di_partenza.zip"), "data/market_seed"),  # F114: prices since 2000
 ]
 for package in ("apiflask", "fpdf", "flask_migrate", "pdfminer", "docx", "rapidocr"):
     datas += collect_data_files(package)  # rapidocr: its ONNX models and settings (the light OCR, offline)

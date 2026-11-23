@@ -334,6 +334,11 @@ def run(today: date | None = None, sources=None, fetch=None, progress=None) -> R
     """Every instrument held, then the exchange rates; `progress(done, total, what)` told at each step."""
     today = today or date.today()
     tell = progress or (lambda done, total, what: None)
+    tell(0, 0, "database di partenza")
+    try:
+        market_data.seed_if_empty()  # F114: an empty store starts from the one shipped with the app
+    except (OSError, ValueError):
+        pass
     errors: list[Filled] = []
     wanted = targets(today, errors)
     total = len(wanted) + 1  # the instruments, then the rates

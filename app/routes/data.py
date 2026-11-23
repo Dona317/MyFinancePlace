@@ -50,7 +50,7 @@ def prices():
     """The past closes of the holdings: from when they are needed, coverage, holes, sources."""
     return render_template("data/prezzi.html", coverage=history_filler.coverage(),
                            online=current_settings()["prices_online"], links=history_links.links(),
-                           store=market_data.totals(),
+                           store=market_data.totals(), seed=market_data.seed_path() is not None,
                            market=market_data.overview() if market_data.available() else [])
 
 
@@ -115,6 +115,21 @@ def prices_import():
           "success")
     if done.skipped:
         flash(_("%(count)s righe non leggibili saltate.", count=done.skipped), "warning")
+    return back
+
+
+@data_bp.route("/prezzi/partenza", methods=["POST"])
+def prices_seed():
+    """F114: the starting price database shipped with the app added to the store (what is there is kept)."""
+    back = redirect(url_for("data.prices") + "#store")
+    path = market_data.seed_path()
+    if path is None:
+        flash(_("Questa installazione non ha il database di partenza."), "error")
+        return back
+    done = market_data.import_zip(path.read_bytes())
+    flash(_("Database di partenza importato: %(instruments)s titoli nuovi, %(closes)s chiusure nuove, %(kept)s già "
+            "presenti lasciate come erano.", instruments=done.instruments, closes=done.closes, kept=done.kept),
+          "success")
     return back
 
 

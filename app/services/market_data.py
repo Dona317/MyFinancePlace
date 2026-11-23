@@ -364,6 +364,26 @@ def export_zip() -> bytes:
     return out.getvalue()
 
 
+SEED = Path("data") / "market_seed" / "database_di_partenza.zip"
+
+
+def seed_path() -> Path | None:
+    """The starting price database shipped with the app (scripts/build_market_seed.py), when there is one."""
+    if not current_app.config.get("MARKET_SEED", True):
+        return None
+    path = Path(current_app.root_path).parent / SEED
+    return path if path.is_file() else None
+
+
+def seed_if_empty() -> Imported | None:
+    """F114: a store with no close yet starts from the database shipped with the app — prices of the main
+    instruments since 2000 even with no connection; None when there is nothing to do."""
+    path = seed_path()
+    if path is None or totals()["closes"]:
+        return None
+    return import_zip(path.read_bytes())
+
+
 @dataclass
 class Imported:
     instruments: int = 0     # new listings
