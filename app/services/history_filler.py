@@ -8,9 +8,10 @@ instruments not quoted in euro count too.
         └─▶ the range wanted: from the first operation (a month before) to today
               └─▶ what is missing in the store: everything (first time), the start, the holes of 3+ trading days,
                   the last week (late corrections)
-                    └─▶ each piece read from Yahoo, else from Stooq (a Milan listing: its Xetra twin, in euro)
+                    └─▶ each piece read from Yahoo, else from Stooq (a Milan listing: its Xetra twin, in euro),
+                        else from justETF by the ISIN (the one of the link pasted, history_links)
 
-Only the tickers are sent. It runs with «Prezzi da internet» on: once a day in the background (on the first visit
+Only the tickers are sent (and the ISIN to justETF). It runs with «Prezzi da internet» on: once a day in the background (on the first visit
 to the dashboard or the portfolio), or from the «Riempi i buchi» button.
 """
 from __future__ import annotations
@@ -190,8 +191,10 @@ SOURCES = (("yahoo", market_data.read_yahoo), ("stooq", read_stooq))
 
 def fill(target: Target, today: date | None = None, sources=None) -> Filled:
     """Read what the store misses of one instrument, piece by piece, from the first source that answers."""
+    from app.services import history_links
+
     today = today or date.today()
-    sources = sources or SOURCES
+    sources = sources or (*SOURCES, *history_links.sources_for(target))
     result = Filled(target.symbol, target.name)
     have = set(market_data.days(target.symbol))
     wanted = missing(have, target.start, today)

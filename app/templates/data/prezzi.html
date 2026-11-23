@@ -1,9 +1,54 @@
 {% extends "base.html" %}
+{% from "partials/info.html" import info %}
 {% block title %}{{ _('Prezzi storici') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Dati') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('data.index') }}">{{ _('Dati') }}</a></li><li>{{ _('Prezzi storici') }}</li>{% endblock %}
 {% block content %}
 {% set active = 'prices' %}{% include "data/_tabs.html" %}
 {% include "data/_coverage.html" %}
+{# F112: «Incolla il link» — the page of a holding on justETF, Borsa Italiana, Morningstar…, read by its ISIN #}
+<div class="card" id="paste-link" style="margin-top:16px;">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-link-45deg"></i> {{ _('Incolla il link') }}
+      {{ info(_('Per un titolo che Yahoo e Stooq non trovano, o con dei buchi: incolla il link della sua pagina su justETF, Borsa Italiana o un altro sito con l\'ISIN nell\'indirizzo. L\'app non apre il link: ne prende l\'ISIN e legge da justETF le chiusure dalla prima operazione a oggi. Il link resta salvato con il titolo e l\'aggiornamento di ogni giorno lo rilegge. Per investing.com scarica il CSV dei «Dati storici» e caricalo con «Carica lo storico».'), _('Incolla il link')) }}</div>
+    <div class="card-header-sub">{{ _('Lo storico di un titolo dalla sua pagina su justETF o Borsa Italiana.') }}</div>
+  </div></div>
+  <div class="card-body">
+    {% if coverage %}
+    <form method="POST" action="{{ url_for('data.price_link') }}" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="link-symbol">{{ _('Titolo') }}</label>
+        <select class="form-control" id="link-symbol" name="symbol" required>
+          {% for c in coverage %}<option value="{{ c.symbol }}">{{ c.symbol }} · {{ c.name }}</option>{% endfor %}
+        </select></div>
+      <div class="form-group" style="flex:1;min-width:240px;margin-bottom:0;"><label class="form-label" for="link-url">{{ _('Link della pagina') }}</label>
+        <input class="form-control" id="link-url" name="url" type="url" required placeholder="https://www.justetf.com/it/etf-profile.html?isin=IE00BK5BQT80"></div>
+      <button type="submit" class="btn btn-primary" {% if not online %}disabled title="{{ _('Accendi i prezzi da internet in Impostazioni') }}"{% endif %}><i class="bi bi-download"></i> {{ _('Leggi lo storico') }}</button>
+    </form>
+    {% else %}
+    <p class="text-sm text-muted">{{ _('Nessun titolo quotato in portafoglio.') }}</p>
+    {% endif %}
+    {% if links %}
+    <div class="table-wrapper mt-16">
+      <table class="table-compact">
+        <thead><tr><th>{{ _('Titolo') }}</th><th>{{ _('Link salvato') }}</th><th></th></tr></thead>
+        <tbody>
+          {% for symbol, url in links|dictsort %}
+          <tr>
+            <td class="font-mono">{{ symbol }}</td>
+            <td class="text-sm" style="word-break:break-all;"><a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ url }}</a></td>
+            <td class="text-right">
+              <form method="POST" action="{{ url_for('data.price_link_forget') }}">
+                <input type="hidden" name="symbol" value="{{ symbol }}">
+                <button type="submit" class="btn btn-ghost btn-sm" title="{{ _('Togli il link') }}" aria-label="{{ _('Togli il link') }}"><i class="bi bi-x-lg"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
 <p class="text-sm text-muted mt-16"><a href="{{ url_for('portfolio.prices') }}#market">{{ _('Tutto lo storico salvato, e il caricamento da un file CSV') }} <i class="bi bi-arrow-right"></i></a></p>
 {% endblock %}

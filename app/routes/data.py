@@ -3,11 +3,11 @@ holdings (Prezzi storici) — with what is missing, and the state of the update 
 from __future__ import annotations
 
 from apiflask import APIBlueprint
-from flask import flash, jsonify, redirect, render_template, url_for
+from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.routes.helpers import safe_next
-from app.services import currency, fx_status, history_filler, market_data
+from app.services import currency, fx_status, history_filler, history_links, market_data
 from app.services.ui_settings import current_settings
 
 data_bp = APIBlueprint("data", __name__, url_prefix="/dati", tag="Data")
@@ -46,8 +46,40 @@ def rates_download():
 def prices():
     """The past closes of the holdings: from when they are needed, coverage, holes, sources."""
     return render_template("data/prezzi.html", coverage=history_filler.coverage(),
-                           online=current_settings()["prices_online"],
+                           online=current_settings()["prices_online"], links=history_links.links(),
                            market=market_data.overview() if market_data.available() else [])
+
+
+@data_bp.route("/prezzi/link", methods=["POST"])
+def price_link():
+    """«Incolla il link»: the page of an instrument on justETF, Borsa Italiana, Morningstar…; its history read now
+    from justETF by the ISIN, and the link saved with the instrument for the daily update."""
+    back = redirect(url_for("data.prices") + "#paste-link")
+    if not current_settings()["prices_online"]:
+        flash(_("I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."), "warning")
+        return back
+    symbol = request.form.get("symbol", "").strip().upper()
+    try:
+        done = history_links.apply(symbol, request.form.get("url", ""))
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return back
+    except OSError as exc:
+        flash(_("Storico non letto da justETF: %(error)s", error=str(exc)[:200]), "error")
+        return back
+    via = "" if done.link.direct else _(" (link di %(site)s, letto da justETF con l'ISIN %(isin)s)",
+                                          site=done.link.name, isin=done.link.isin)
+    flash(_("%(symbol)s: %(count)s chiusure lette, dal %(first)s al %(last)s%(via)s. Il link resta salvato: "
+            "l'aggiornamento di ogni giorno lo rilegge.", symbol=symbol, count=done.added,
+            first=done.first.strftime("%d/%m/%Y"), last=done.last.strftime("%d/%m/%Y"), via=via), "success")
+    return back
+
+
+@data_bp.route("/prezzi/link/togli", methods=["POST"])
+def price_link_forget():
+    history_links.forget(request.form.get("symbol", "").strip().upper())
+    flash(_("Link tolto: lo storico già letto resta."), "info")
+    return redirect(url_for("data.prices") + "#paste-link")
 
 
 @data_bp.route("/aggiorna", methods=["POST"])

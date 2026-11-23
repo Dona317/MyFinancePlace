@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 18:34+0000\n"
+"POT-Creation-Date: 2026-11-23 18:57+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -25,6 +25,10 @@ msgstr " %(skipped)s could not be applied."
 
 msgid " (Anthropic, fuori dal tuo computer)"
 msgstr " (Anthropic, outside your computer)"
+
+#, python-format
+msgid " (link di %(site)s, letto da justETF con l'ISIN %(isin)s)"
+msgstr " (%(site)s link, read from justETF by ISIN %(isin)s)"
 
 msgid " (superato)"
 msgstr " (exceeded)"
@@ -834,6 +838,22 @@ msgid "%(size)s KB"
 msgstr "%(size)s KB"
 
 #, python-format
+msgid ""
+"%(symbol)s è quotato in pence (GBp): justETF non lo dà in questa valuta, "
+"caricane lo storico da un file CSV."
+msgstr ""
+"%(symbol)s is quoted in pence (GBp): justETF does not give it in this "
+"currency, load its history from a CSV file."
+
+#, python-format
+msgid ""
+"%(symbol)s: %(count)s chiusure lette, dal %(first)s al %(last)s%(via)s. "
+"Il link resta salvato: l'aggiornamento di ogni giorno lo rilegge."
+msgstr ""
+"%(symbol)s: %(count)s closes read, from %(first)s to %(last)s%(via)s. The"
+" link stays saved: the daily update reads it again."
+
+#, python-format
 msgid "%(units)s quote"
 msgstr "%(units)s units"
 
@@ -1186,6 +1206,9 @@ msgstr "Sign in"
 
 msgid "Accedi al tuo pannello finanziario personale."
 msgstr "Sign in to your personal finance dashboard."
+
+msgid "Accendi i prezzi da internet in Impostazioni"
+msgstr "Turn on online prices in Settings"
 
 msgid "Accendi i prezzi da internet in Impostazioni per scaricarlo."
 msgstr "Turn on prices from the internet in Settings to download it."
@@ -6628,6 +6651,14 @@ msgstr "The job is back to be collected."
 msgid "Il lavoro è già incassato."
 msgstr "The job is already collected."
 
+#, python-format
+msgid ""
+"Il link è dell'ISIN %(link)s, ma %(symbol)s ha ISIN %(own)s: controlla di"
+" aver aperto la pagina giusta."
+msgstr ""
+"The link is for ISIN %(link)s, but %(symbol)s has ISIN %(own)s: check you"
+" opened the right page."
+
 msgid "Il mese in breve"
 msgstr "The month at a glance"
 
@@ -7318,6 +7349,9 @@ msgstr "Collected: %(amount)s."
 msgid "Incasso netto"
 msgstr "Net proceeds"
 
+msgid "Incolla il link"
+msgstr "Paste a link"
+
 msgid "Incolla la chiave dell'altro computer"
 msgstr "Paste the other computer's key"
 
@@ -7578,6 +7612,15 @@ msgid ""
 msgstr ""
 "Investment: a trade of securities (or its commission). It is in the "
 "Investments tab too and counts as an investment, not as spending"
+
+msgid ""
+"Investing.com non si legge da un link: nella pagina «Dati storici» del "
+"titolo scarica il CSV e caricalo con «Carica lo storico» (Portfolio → "
+"Prezzi)."
+msgstr ""
+"Investing.com cannot be read from a link: on the instrument's «Historical"
+" data» page download the CSV and load it with «Load the history» "
+"(Portfolio → Prices)."
 
 msgid "Investito"
 msgstr "Invested"
@@ -8448,6 +8491,9 @@ msgstr "Read with AI"
 msgid "Leggi e salva la chiave"
 msgstr "Read and save the key"
 
+msgid "Leggi lo storico"
+msgstr "Read the history"
+
 msgid "Leggi un documento con l'AI"
 msgstr "Read a document with AI"
 
@@ -8515,6 +8561,15 @@ msgstr "Language"
 
 msgid "Lingua e valuta"
 msgstr "Language and currency"
+
+msgid "Link della pagina"
+msgstr "Page link"
+
+msgid "Link salvato"
+msgstr "Saved link"
+
+msgid "Link tolto: lo storico già letto resta."
+msgstr "Link removed: the history already read stays."
 
 msgid "Liquidità"
 msgstr "Cash"
@@ -8586,6 +8641,9 @@ msgid "Lo stesso titolo in più archivi (stesso ISIN o ticker) è una riga sola.
 msgstr ""
 "The same security in several archives (same ISIN or ticker) is a single "
 "row."
+
+msgid "Lo storico di un titolo dalla sua pagina su justETF o Borsa Italiana."
+msgstr "An instrument's history from its page on justETF or Borsa Italiana."
 
 #, python-format
 msgid "Lo storico parte tardi: servirebbe dal %(day)s"
@@ -9249,6 +9307,16 @@ msgstr ""
 "On the chosen day a reminder appears: you confirm the purchases, split as"
 " the model portfolio says, at the day's prices."
 
+#, python-format
+msgid ""
+"Nel link di %(site)s non trovo un codice ISIN: apri la pagina del titolo "
+"(quella con l'ISIN nell'indirizzo, come su justETF o Borsa Italiana) e "
+"incolla quel link."
+msgstr ""
+"No ISIN found in the %(site)s link: open the instrument's page (the one "
+"with the ISIN in its address, as on justETF or Borsa Italiana) and paste "
+"that link."
+
 msgid "Nel tempo"
 msgstr "Over time"
 
@@ -9556,6 +9624,9 @@ msgid ""
 "Nessun titolo quotato in portafoglio (ETF, azioni, fondi, obbligazioni) "
 "con ticker o ISIN."
 msgstr "No listed holding (ETFs, shares, funds, bonds) with a ticker or ISIN."
+
+msgid "Nessun titolo quotato in portafoglio."
+msgstr "No listed instrument in the portfolio."
 
 msgid "Nessuna banca collegata"
 msgstr "No bank linked"
@@ -10016,6 +10087,13 @@ msgstr "Failed"
 
 msgid "Non salvata: controlla i campi."
 msgstr "Not saved: check the fields."
+
+msgid ""
+"Non sembra un link: incolla l'indirizzo della pagina del titolo "
+"(https://…)."
+msgstr ""
+"This does not look like a link: paste the address of the instrument's "
+"page (https://…)."
 
 #, python-format
 msgid ""
@@ -11186,6 +11264,23 @@ msgstr ""
 
 msgid "Per un patrimonio netto corretto, tieni aggiornate queste tre fonti"
 msgstr "For a correct net worth, keep these three sources up to date"
+
+msgid ""
+"Per un titolo che Yahoo e Stooq non trovano, o con dei buchi: incolla il "
+"link della sua pagina su justETF, Borsa Italiana o un altro sito con "
+"l'ISIN nell'indirizzo. L'app non apre il link: ne prende l'ISIN e legge "
+"da justETF le chiusure dalla prima operazione a oggi. Il link resta "
+"salvato con il titolo e l'aggiornamento di ogni giorno lo rilegge. Per "
+"investing.com scarica il CSV dei «Dati storici» e caricalo con «Carica lo"
+" storico»."
+msgstr ""
+"For an instrument Yahoo and Stooq do not find, or with holes: paste the "
+"link of its page on justETF, Borsa Italiana or another site with the ISIN"
+" in the address. The app does not open the link: it takes the ISIN and "
+"reads the closes from justETF, from the first operation to today. The "
+"link stays saved with the instrument and the daily update reads it again."
+" For investing.com download the «Historical data» CSV and load it with "
+"«Load the history»."
 
 msgid ""
 "Per un’auto, un telefono, un computer: la percentuale di valore persa "
@@ -14218,17 +14313,18 @@ msgid ""
 "prima). Ogni giorno, con i prezzi da internet accesi, l'app scarica le "
 "chiusure che mancano e riempie i buchi (3 o più giorni di borsa senza "
 "chiusura): da Yahoo Finance, altrimenti da Stooq (per i titoli di Milano,"
-" lo stesso titolo quotato a Xetra, in euro). Insieme scarica i cambi BCE "
-"delle valute che usi, così contano anche i titoli in dollari o sterline. "
-"Si inviano solo i ticker."
+" lo stesso titolo quotato a Xetra, in euro), altrimenti da justETF con "
+"l'ISIN. Insieme scarica i cambi BCE delle valute che usi, così contano "
+"anche i titoli in dollari o sterline. Si inviano solo i ticker e, a "
+"justETF, l'ISIN."
 msgstr ""
 "Only the instruments you hold, from the first operation (a month before)."
 " Every day, with online prices on, the app downloads the missing closes "
 "and fills the holes (3 or more trading days without a close): from Yahoo "
 "Finance, else from Stooq (for Milan listings, the same instrument on "
-"Xetra, in euro). It also downloads the ECB rates of the currencies you "
-"use, so instruments in dollars or pounds count too. Only the tickers are "
-"sent."
+"Xetra, in euro), else from justETF by ISIN. It also downloads the ECB "
+"rates of the currencies you use, so instruments in dollars or pounds "
+"count too. Only the tickers are sent, and the ISIN to justETF."
 
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
@@ -14556,6 +14652,10 @@ msgstr "History available: %(n)s full months."
 
 msgid "Storico insufficiente: usa la media mobile"
 msgstr "Not enough history: use the moving average"
+
+#, python-format
+msgid "Storico non letto da justETF: %(error)s"
+msgstr "History not read from justETF: %(error)s"
 
 msgid "Storico prezzi"
 msgstr "Price history"
@@ -14992,6 +15092,9 @@ msgstr "Take the selected ones out of the event"
 
 msgid "Togli dalla cronologia"
 msgstr "Remove from history"
+
+msgid "Togli il link"
+msgstr "Remove the link"
 
 msgid "Togli il tag"
 msgstr "Remove the tag"
@@ -17924,6 +18027,10 @@ msgstr "“%(path)s” not found in the page"
 #, python-format
 msgid "«%(path)s» non trovato nella risposta"
 msgstr "“%(path)s” not found in the answer"
+
+#, python-format
+msgid "«%(symbol)s» non è tra i titoli in portafoglio."
+msgstr "«%(symbol)s» is not among the portfolio's instruments."
 
 #, python-format
 msgid "«%(ticker)s» non trovato su Stooq"
