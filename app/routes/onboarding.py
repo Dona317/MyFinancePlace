@@ -40,7 +40,8 @@ def step(name):
         position=(shown.index(name) + 1) if name in shown else None, count=len(shown),
         back=onboarding.previous_of(name), settings=current_settings(), languages=LANGUAGES, fonts=FONTS,
         currencies=onboarding.CURRENCIES, locales=onboarding.LOCALES, modules=onboarding.MODULES,
-        holders=owners.holders(), kinds={k: accounts.KINDS[k] for k in onboarding.ACCOUNT_KINDS},
+        people=[tuple(name.split(" ", 1)) if " " in name else (name, "") for name in owners.holders()],
+        max_people=onboarding.MAX_PEOPLE, kinds={k: accounts.KINDS[k] for k in onboarding.ACCOUNT_KINDS},
         icons=accounts.ICONS, made=onboarding.made_accounts() if name == "movimenti" else [],
         owner_choices=family.choices(), todo=onboarding.left_to_do() if name == "fine" else [],
         cash=Account.query.filter_by(fixed="cash").first(),
@@ -55,8 +56,13 @@ def _save(name: str) -> str | None:
     elif name == "aspetto":
         onboarding.look(form.get("font", "inter"))
     elif name == "persone":
+        people = list(zip(form.getlist("first"), form.getlist("last")))[:onboarding.MAX_PEOPLE]
+        half = next((f"{first} {last}".strip() for first, last in people if bool(first.strip()) != bool(last.strip())), None)
+        if half:
+            return _("«%(name)s»: scrivi sia il nome sia il cognome.", name=half)
         try:
-            onboarding.people_and_areas(form.get("holders", "").splitlines(), set(form.getlist("modules")))
+            onboarding.people_and_areas([f"{first.strip()} {last.strip()}" for first, last in people if first.strip()],
+                                        set(form.getlist("modules")))
         except ValueError as exc:  # a holder needs name and surname (owners.set_holders)
             return str(exc)
     elif name == "conti":

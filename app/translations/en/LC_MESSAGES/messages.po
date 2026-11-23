@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 11:00+0000\n"
+"POT-Creation-Date: 2026-11-23 11:04+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1319,6 +1319,9 @@ msgstr "Add a source"
 msgid "Aggiungi una parte"
 msgstr "Add a part"
 
+msgid "Aggiungi una persona"
+msgstr "Add a person"
+
 msgid "Aggiungi una posizione per vedere come è ripartito il patrimonio."
 msgstr "Add a holding to see how your wealth is split."
 
@@ -1383,6 +1386,10 @@ msgstr "At most %(count)s custom sources."
 #, python-format
 msgid "Al massimo %(count)s titolari."
 msgstr "At most %(count)s holders."
+
+#, python-format
+msgid "Al massimo %(n)s persone."
+msgstr "At most %(n)s people."
 
 msgid "Al mese"
 msgstr "A month"
@@ -2893,6 +2900,9 @@ msgstr "Clients"
 
 msgid "Codice della chiave: serve a riconoscerla senza mostrarla"
 msgstr "Code of the key: tells it apart without showing it"
+
+msgid "Cognome"
+msgstr "Last name"
 
 #, python-format
 msgid "CoinGecko non risponde (%(exc)s)"
@@ -8049,8 +8059,8 @@ msgstr ""
 "Images are not supported: download the PDF, Excel or CSV of the movements"
 " from online banking."
 
-msgid "Le persone, con nome e cognome (una per riga, facoltativo)"
-msgstr "The people, with first and last name (one per line, optional)"
+msgid "Le persone (facoltativo)"
+msgstr "The people (optional)"
 
 msgid "Le più vecchie si cancellano da sole."
 msgstr "The oldest are deleted automatically."
@@ -16423,8 +16433,8 @@ msgstr "e.g. Luca, Sara"
 msgid "es. MSCI World, FTSE All-World"
 msgstr "e.g. MSCI World, FTSE All-World"
 
-msgid "es. Marco Rossi"
-msgstr "e.g. Marco Rossi"
+msgid "es. Marco"
+msgstr "e.g. Marco"
 
 msgid "es. Mario Rossi"
 msgstr "e.g. John Smith"
@@ -16446,6 +16456,9 @@ msgstr "e.g. Retirement, House, Children"
 
 msgid "es. Rischio"
 msgstr "e.g. Risk"
+
+msgid "es. Rossi"
+msgstr "e.g. Rossi"
 
 msgid "es. Sito del mio fondo"
 msgstr "e.g. My fund's site"
@@ -17586,6 +17599,10 @@ msgid ""
 msgstr ""
 "«%(name)s»: write first and last name (a single word would match too many"
 " movements)."
+
+#, python-format
+msgid "«%(name)s»: scrivi sia il nome sia il cognome."
+msgstr "«%(name)s»: write both the first and the last name."
 
 #, python-format
 msgid "«%(name)s»: tolti %(amount)s."

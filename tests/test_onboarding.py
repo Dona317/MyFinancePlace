@@ -39,11 +39,18 @@ def test_the_new_users_path(client, db, on):
     assert current_settings()["locale"] == "de-DE" and current_settings()["date_format"] == "DD.MM.YYYY"
     client.post("/benvenuto/aspetto", data={"font": "plex"})
     assert current_settings()["font"] == "plex"
-    bad = client.post("/benvenuto/persone", data={"holders": "Marco"}, follow_redirects=True).get_data(as_text=True)
-    assert "nome e cognome" in bad  # one word would recognise too many movements
-    client.post("/benvenuto/persone", data={"holders": "Marco Rossi\nGiulia Rossi\n",
+    bad = client.post("/benvenuto/persone", data={"first": ["Marco"], "last": [""]}, follow_redirects=True)
+    assert "sia il nome sia il cognome" in bad.get_data(as_text=True)
+    client.post("/benvenuto/persone", data={"first": ["Marco", "Giulia", ""], "last": ["Rossi", "Rossi", ""],
                                             "modules": ["module_portfolio", "module_debt"]})
     assert owners.holders() == ["Marco Rossi", "Giulia Rossi"]
+    page = client.get("/benvenuto/persone").get_data(as_text=True)
+    assert 'value="Giulia"' in page and 'value="Rossi"' in page and 'data-max="10"' in page
+    many = {"first": [f"P{i}" for i in range(12)], "last": ["Rossi"] * 12}
+    client.post("/benvenuto/persone", data=many)
+    assert len(owners.holders()) == 10  # at most ten people
+    client.post("/benvenuto/persone", data={"first": ["Marco", "Giulia"], "last": ["Rossi", "Rossi"],
+                                            "modules": ["module_portfolio", "module_debt"]})
     assert current_settings()["module_debt"] and not current_settings()["module_insurance"]
     page = client.get("/benvenuto/conti").get_data(as_text=True)
     assert "Saldo di oggi" in page and "Passo 4 di 6" in page

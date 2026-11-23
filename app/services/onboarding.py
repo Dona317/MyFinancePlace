@@ -38,6 +38,7 @@ MODULES = (("module_portfolio", _l("Investimenti"), _l("Azioni, ETF, fondi, obbl
            ("module_insurance", _l("Assicurazioni"), _l("Polizze, premi e scadenze")),
            ("module_documents", _l("Documenti"), _l("Contratti, fatture e scontrini collegati ai movimenti")),
            ("module_tax", _l("Fisco"), _l("730, plusvalenze, bollo e IVAFE")))
+MAX_PEOPLE = 10  # the holders the step takes (first and last name each)
 ACCOUNT_KINDS = ("current", "card", "prepaid", "savings", "other")  # the ones a user opens (Contanti is always there)
 
 

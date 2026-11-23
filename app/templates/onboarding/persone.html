@@ -4,8 +4,19 @@
 {% block body %}
 <form method="POST" id="onb-form" class="onb-form">
   <div class="form-group">
-    <label class="form-label" for="onb-holders">{{ _('Le persone, con nome e cognome (una per riga, facoltativo)') }}</label>
-    <textarea name="holders" id="onb-holders" class="form-control" rows="3" placeholder="{{ _('es. Marco Rossi') }}">{{ holders|join('\n') }}</textarea>
+    <label class="form-label">{{ _('Le persone (facoltativo)') }}</label>
+    {# one row per person, first and last name apart; «+» adds one, up to max_people #}
+    <div class="onb-people" id="onb-people" data-max="{{ max_people }}">
+      {% for first, last in (people or [('', '')]) %}
+      <div class="onb-person">
+        <label class="onb-field"><span>{{ _('Nome') }}</span><input type="text" name="first" class="form-control" maxlength="40" value="{{ first }}" placeholder="{{ _('es. Marco') }}" /></label>
+        <label class="onb-field"><span>{{ _('Cognome') }}</span><input type="text" name="last" class="form-control" maxlength="40" value="{{ last }}" placeholder="{{ _('es. Rossi') }}" /></label>
+        <button type="button" class="btn btn-ghost btn-icon onb-person-remove" title="{{ _('Togli') }}" aria-label="{{ _('Togli') }}"><i class="bi bi-x-lg"></i></button>
+      </div>
+      {% endfor %}
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm onb-person-add" id="onb-person-add"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi una persona') }}</button>
+    <span class="text-xs text-muted" id="onb-people-full" hidden>{{ _('Al massimo %(n)s persone.', n=max_people) }}</span>
     <div class="form-hint">{{ _('Con due o più persone ogni conto può essere di una di loro o cointestato, e il patrimonio si divide per persona.') }}</div>
   </div>
   <div class="form-group">
@@ -23,4 +34,26 @@
 </form>
 <form method="POST" action="{{ url_for('onboarding.skip', name=step) }}" id="onb-skip"></form>
 {{ actions(form_id='onb-form') }}
+<script>
+(() => {
+  const box = document.getElementById('onb-people'), add = document.getElementById('onb-person-add');
+  const full = document.getElementById('onb-people-full'), max = Number(box.dataset.max);
+  const paint = () => {
+    const rows = box.querySelectorAll('.onb-person');
+    add.hidden = rows.length >= max; full.hidden = rows.length < max;
+    rows.forEach(row => { row.querySelector('.onb-person-remove').hidden = rows.length === 1; });
+  };
+  const wire = (row) => row.querySelector('.onb-person-remove').addEventListener('click', () => { row.remove(); paint(); });
+  box.querySelectorAll('.onb-person').forEach(wire);
+  add.addEventListener('click', () => {
+    const row = box.querySelector('.onb-person').cloneNode(true);
+    row.querySelectorAll('input').forEach(input => { input.value = ''; });
+    wire(row);
+    box.appendChild(row);
+    paint();
+    row.querySelector('input').focus();
+  });
+  paint();
+})();
+</script>
 {% endblock %}

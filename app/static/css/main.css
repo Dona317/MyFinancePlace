@@ -2841,3 +2841,6 @@ a.onb-way:hover { border-color: var(--clr-primary); text-decoration: none; color
   .onb-row { flex-wrap: wrap; }
   .onb-field { flex: 1 1 140px; }
 }
+.onb-people { display: grid; gap: 8px; margin-bottom: 8px; }
+.onb-person { display: flex; align-items: flex-end; gap: 10px; }
+.onb-person .onb-person-remove { flex: none; }
