@@ -237,15 +237,36 @@ def checklist() -> list[dict]:
          "detail": (_("%(n)s conti collegati alla banca", n=linked) + " · " if linked else "")
          + (_("%(n)s movimenti", n=movements) if movements else "")},
     ]
+    skipped = set(state().get("skipped_items") or [])
     if settings.get("module_portfolio", True):
         items.append({"key": "investimenti", "label": _("Investimenti"), "icon": "briefcase",
                       "endpoint": "portfolio.index",
                       "hint": _("Le posizioni del broker: una per una o dal file delle posizioni."),
                       "done": holdings > 0, "detail": _("%(n)s posizioni", n=holdings) if holdings else ""})
+    for item in items:
+        item["skipped"] = item["key"] in skipped and not item["done"]
     return items
 
 
 def progress() -> tuple[int, int]:
-    """(done, total) of the checklist."""
+    """(done, total) of the checklist (an item skipped counts as done)."""
     items = checklist()
-    return sum(1 for item in items if item["done"]), len(items)
+    return sum(1 for item in items if item["done"] or item["skipped"]), len(items)
+
+
+def skip_item(key: str) -> None:
+    """«Salta» on an item of «Primi passi»: left out, counted as done (it can still be opened)."""
+    _save(skipped_items=sorted(set(state().get("skipped_items") or []) | {key}))
+
+
+def hide_checklist(hidden: bool = True) -> None:
+    """«Salta i primi passi»: out of the menu (still in the search and in Impostazioni)."""
+    _save(checklist_hidden=hidden)
+
+
+def in_menu() -> bool:
+    """«Primi passi» in the menu: not put aside and something still to do."""
+    if state().get("checklist_hidden"):
+        return False
+    done, total = progress()
+    return done < total

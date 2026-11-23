@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 18:00+0000\n"
+"POT-Creation-Date: 2026-11-23 18:03+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2964,7 +2964,9 @@ msgid "Collega la banca"
 msgstr "Connect the bank"
 
 msgid "Collega la banca o carica un estratto conto: i movimenti arrivano da soli."
-msgstr "Connect the bank or upload a statement: the movements come in by themselves."
+msgstr ""
+"Connect the bank or upload a statement: the movements come in by "
+"themselves."
 
 msgid ""
 "Collega la loro categoria a una voce qui sotto, oppure cambia la "
@@ -3418,7 +3420,9 @@ msgstr "Set up"
 msgid ""
 "Configurazione rimandata: la riprendi quando vuoi da «Primi passi» nel "
 "menu."
-msgstr "Set-up postponed: pick it up whenever you like from «First steps» in the menu."
+msgstr ""
+"Set-up postponed: pick it up whenever you like from «First steps» in the "
+"menu."
 
 msgid "Configuriamo insieme preferenze e conti, in pochi minuti."
 msgstr "We set up preferences and accounts together, in a few minutes."
@@ -3569,7 +3573,9 @@ msgstr "Accounts and Cards"
 msgid ""
 "Conti e carte con il saldo di oggi: il punto di partenza di liquidità e "
 "patrimonio."
-msgstr "Accounts and cards with today's balance: the starting point of cash and net worth."
+msgstr ""
+"Accounts and cards with today's balance: the starting point of cash and "
+"net worth."
 
 msgid "Conti e investimenti"
 msgstr "Accounts and investments"
@@ -12718,6 +12724,9 @@ msgstr "Redemption at maturity (%% of nominal)"
 msgid "Rimborso a scadenza: una percentuale del nominale, di solito 100."
 msgstr "Redemption at maturity: a percentage of the nominal, usually 100."
 
+msgid "Rimetti nel menu"
+msgstr "Put back in the menu"
+
 #, python-format
 msgid "Rimuovere il modello %(name)s (~%(size)s GB)?"
 msgstr "Remove the model %(name)s (~%(size)s GB)?"
@@ -13052,8 +13061,17 @@ msgstr "Balance in %(n)s months"
 msgid "Salta"
 msgstr "Skip"
 
+msgid "Salta i primi passi"
+msgstr "Skip the first steps"
+
+msgid "Salta questa voce: conta come fatta"
+msgstr "Skip this item: it counts as done"
+
 msgid "Salta questo passo"
 msgstr "Skip this step"
+
+msgid "Saltato · apri"
+msgstr "Skipped · open"
 
 msgid "Salute"
 msgstr "Health"
@@ -14826,6 +14844,9 @@ msgstr "Remove this part"
 
 msgid "Togli ricerca e filtri"
 msgstr "Clear search and filters"
+
+msgid "Toglie «Primi passi» dal menu: lo ritrovi in Impostazioni o cercandolo"
+msgstr "Removes «First steps» from the menu: find it in Settings or by searching"
 
 #, python-format
 msgid "Togliere il tag «%(name)s» da %(count)s transazioni?"
@@ -17731,6 +17752,11 @@ msgid ""
 msgstr ""
 "«Every month» applies to all months; «only %(month)s» replaces it for "
 "this month."
+
+msgid ""
+"«Primi passi» tolto dal menu: lo ritrovi in Impostazioni o cercandolo con"
+" Ctrl+K."
+msgstr "«First steps» removed from the menu: find it in Settings or with Ctrl+K."
 
 msgid "± 1 giorno"
 msgstr "± 1 day"

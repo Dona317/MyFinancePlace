@@ -125,3 +125,18 @@ def test_primi_passi_lists_what_to_prepare_and_comes_back_to_it(client, db):
     db.session.commit()
     assert onboarding.progress() == (6, 6)
     assert 'href="/benvenuto/primi-passi"' not in client.get("/transactions/").get_data(as_text=True).split('class="sidebar-nav"')[1]
+
+
+def test_primi_passi_can_be_skipped_item_by_item_or_all(client, db):
+    client.post("/benvenuto/primi-passi/salta", data={"key": "aspetto"})
+    aspetto = next(i for i in onboarding.checklist() if i["key"] == "aspetto")
+    assert aspetto["skipped"] and onboarding.progress()[0] == 1  # skipped counts as done
+    page = client.get("/benvenuto/primi-passi").get_data(as_text=True)
+    assert "Saltato · apri" in page and "Salta i primi passi" in page
+    assert onboarding.in_menu()
+    done = client.post("/benvenuto/primi-passi/salta", data={"all": "1"}, follow_redirects=True).get_data(as_text=True)
+    assert "tolto dal menu" in done and not onboarding.in_menu()
+    assert 'href="/benvenuto/primi-passi"' not in client.get("/transactions/").get_data(as_text=True).split('class="sidebar-nav"')[1]
+    assert "Rimetti nel menu" in client.get("/benvenuto/primi-passi").get_data(as_text=True)  # still reachable
+    client.post("/benvenuto/primi-passi/salta", data={"show": "1"})
+    assert onboarding.in_menu()

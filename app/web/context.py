@@ -100,12 +100,13 @@ def register_context(app: Flask) -> None:
     app.jinja_env.globals.update(owner_choices=family.choices, owner_label=family.label)
 
     def first_steps():
-        """«Primi passi» in the menu: (done, total); never breaks a page."""
+        """«Primi passi» in the menu: (done, total, shown); never breaks a page."""
         try:
-            return onboarding.progress()
+            done, total = onboarding.progress()
+            return done, total, onboarding.in_menu()
         except Exception:  # noqa: BLE001 - an archive not upgraded yet, a database down
             db.session.rollback()
-            return 0, 0
+            return 0, 0, False
 
     @app.context_processor
     def inject_settings():

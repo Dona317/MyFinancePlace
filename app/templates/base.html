@@ -155,8 +155,8 @@
       </div>
 
       {# «Primi passi»: while something is still to prepare, with how much is done #}
-      {% set fp_done, fp_total = first_steps() %}
-      {% if fp_done < fp_total or request.endpoint == 'onboarding.checklist' %}
+      {% set fp_done, fp_total, fp_shown = first_steps() %}
+      {% if fp_shown or request.endpoint == 'onboarding.checklist' %}
       <div class="nav-first-steps">
         <a href="{{ url_for('onboarding.checklist') }}" class="nav-item{{ ' active' if request.endpoint == 'onboarding.checklist' }}">
           <i class="bi bi-flag"></i> <span class="nav-label" title="{{ _('Primi passi') }}">{{ _('Primi passi') }}</span>

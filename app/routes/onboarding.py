@@ -88,7 +88,22 @@ def _save(name: str) -> str | None:
 def checklist():
     """«Primi passi»: what to prepare before using the app, with what is done; each opens its step."""
     done, total = onboarding.progress()
-    return render_template("onboarding/primi_passi.html", items=onboarding.checklist(), done=done, total=total)
+    return render_template("onboarding/primi_passi.html", items=onboarding.checklist(), done=done, total=total,
+                           hidden=bool(onboarding.state().get("checklist_hidden")))
+
+
+@onboarding_bp.route("/primi-passi/salta", methods=["POST"])
+def checklist_skip():
+    """«Salta» on one item (key=…), or «Salta i primi passi» (all=1): the section out of the menu."""
+    if request.form.get("all"):
+        onboarding.hide_checklist(True)
+        flash(_("«Primi passi» tolto dal menu: lo ritrovi in Impostazioni o cercandolo con Ctrl+K."), "info")
+        return redirect(url_for("dashboard.dashboard"))
+    if request.form.get("show"):
+        onboarding.hide_checklist(False)
+    elif request.form.get("key"):
+        onboarding.skip_item(request.form["key"])
+    return redirect(url_for("onboarding.checklist"))
 
 
 @onboarding_bp.route("/<name>/salta", methods=["POST"])

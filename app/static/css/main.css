@@ -2859,3 +2859,8 @@ a.onb-way:hover { border-color: var(--clr-primary); text-decoration: none; color
 .first-step-go { flex: none; color: var(--clr-primary); font-weight: 600; font-size: var(--font-size-sm); }
 .first-step.is-done .first-step-go { color: var(--clr-text-muted); font-weight: 500; }
 .first-steps-foot { border-top: 1px solid var(--clr-border-light); }
+.first-step { display: flex; align-items: center; gap: 4px; }
+.first-step > a { flex: 1; min-width: 0; }
+.first-step-skip { flex: none; margin: 0; }
+.first-step.is-skipped .first-step-check { border-style: dashed; }
+.first-step.is-skipped .first-step-go { color: var(--clr-text-muted); font-weight: 500; }
