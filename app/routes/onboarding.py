@@ -28,6 +28,10 @@ def step(name):
     if request.method == "POST":
         error = _save(name)
         if error is None:
+            onboarding.mark(name)
+            if request.args.get("da") == "lista" and name != "scelta":  # opened from «Primi passi»: back there
+                flash(_("Salvato."), "success")
+                return redirect(url_for("onboarding.checklist"))
             if name == "scelta":
                 return redirect(url_for("onboarding.step", name=onboarding.choose(request.form.get("path", "new"))))
             return redirect(url_for("onboarding.step", name=onboarding.go(onboarding.next_of(name))))
@@ -80,6 +84,13 @@ def _save(name: str) -> str | None:
     return None
 
 
+@onboarding_bp.route("/primi-passi")
+def checklist():
+    """«Primi passi»: what to prepare before using the app, with what is done; each opens its step."""
+    done, total = onboarding.progress()
+    return render_template("onboarding/primi_passi.html", items=onboarding.checklist(), done=done, total=total)
+
+
 @onboarding_bp.route("/<name>/salta", methods=["POST"])
 def skip(name):
     """«Salta questo passo»: left for the list at the end."""
@@ -95,7 +106,7 @@ def finish():
     """«Apri la Dashboard» (or «Configura più tardi»): the tutorial does not open by itself any more."""
     onboarding.finish()
     if request.form.get("later"):
-        flash(_("Configurazione rimandata: la riprendi da Impostazioni → «Rifai la configurazione iniziale»."), "info")
+        flash(_("Configurazione rimandata: la riprendi quando vuoi da «Primi passi» nel menu."), "info")
     return redirect(url_for("dashboard.dashboard"))
 
 

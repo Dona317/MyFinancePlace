@@ -115,6 +115,10 @@ def _tree() -> list[tuple[str, list[Entry]]]:
             Entry("groups", _l("Gruppi e famiglia"), "house-heart", P(_l("Gruppi e famiglia"), "groups.index")),
         ]),
         (_l("Impostazioni"), [
+            Entry(None, _l("Primi passi"), "flag", P(_l("Primi passi"), "onboarding.checklist"), (
+                P(_l("Lingua e valuta"), "onboarding.step", {"name": "preferenze"}),
+                P(_l("I tuoi conti"), "onboarding.step", {"name": "conti"}),
+                P(_l("Ripristina un backup"), "onboarding.step", {"name": "importa"})), tbd=False),
             Entry(None, _l("Impostazioni"), "gear", P(_l("Impostazioni"), "settings.index"), (
                 P(_l("Categorie"), "settings.categories_page"), P(_l("Regole di categorizzazione"), "settings.rules_page"),
                 P(_l("Valute e cambi"), "settings.currencies_page"), P(_l("Modelli AI"), "settings.ai_models_page"),

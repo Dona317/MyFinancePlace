@@ -14,6 +14,8 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
+from flask_babel import gettext as _
+
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
@@ -196,3 +198,54 @@ def left_to_do() -> list[dict]:
     if "persone" in skipped:
         todo.append({"label": _l("Scegli i titolari dei conti e le aree da seguire"), "endpoint": "settings.index", "icon": "people"})
     return todo
+
+
+# ── «Primi passi» (23 Nov 2026): the same steps as a section to come back to ─────
+
+def mark(step: str) -> None:
+    """A step saved at least once (its form sent)."""
+    _save(saved=sorted(set(state().get("saved") or []) | {step}))
+
+
+def checklist() -> list[dict]:
+    """The things to prepare before using the app, each {key, label, hint, icon, done, detail, step | endpoint}: done
+    by what the archive holds (accounts, movements, a bank connection, holdings…) or by the step saved."""
+    from app.models.bank_link import BankAccountLink  # here: bank_link imports services that import this module
+
+    saved = set(state().get("saved") or [])
+    settings = current_settings()
+    own = Account.query.filter(Account.fixed.is_(None), Account.active.is_(True)).count()
+    movements = Transaction.query.count()
+    linked = BankAccountLink.query.filter(BankAccountLink.account_id.isnot(None)).count()
+    holdings = Holding.query.count()
+    items = [
+        {"key": "preferenze", "label": _("Lingua e valuta"), "icon": "translate", "step": "preferenze",
+         "hint": _("La lingua, la valuta dei totali, come scrivere numeri e date."), "done": "preferenze" in saved,
+         "detail": f"{LANGUAGES.get(settings.get('language'), '')} · {settings.get('currency')}"},
+        {"key": "aspetto", "label": _("Aspetto"), "icon": "palette", "step": "aspetto",
+         "hint": _("Chiaro o scuro e il carattere dei testi."), "done": "aspetto" in saved, "detail": ""},
+        {"key": "persone", "label": _("Titolari e aree"), "icon": "people", "step": "persone",
+         "hint": _("A chi sono intestati i conti e quali aree seguire."),
+         "done": "persone" in saved or bool(owners.holders()),
+         "detail": ", ".join(owners.holders()[:3]) + ("…" if len(owners.holders()) > 3 else "")},
+        {"key": "conti", "label": _("I tuoi conti"), "icon": "bank", "step": "conti",
+         "hint": _("Conti e carte con il saldo di oggi: il punto di partenza di liquidità e patrimonio."),
+         "done": own > 0, "detail": _("%(n)s conti", n=own) if own else ""},
+        {"key": "movimenti", "label": _("I movimenti"), "icon": "arrow-left-right", "step": "movimenti",
+         "hint": _("Collega la banca o carica un estratto conto: i movimenti arrivano da soli."),
+         "done": movements > 0 or linked > 0,
+         "detail": (_("%(n)s conti collegati alla banca", n=linked) + " · " if linked else "")
+         + (_("%(n)s movimenti", n=movements) if movements else "")},
+    ]
+    if settings.get("module_portfolio", True):
+        items.append({"key": "investimenti", "label": _("Investimenti"), "icon": "briefcase",
+                      "endpoint": "portfolio.index",
+                      "hint": _("Le posizioni del broker: una per una o dal file delle posizioni."),
+                      "done": holdings > 0, "detail": _("%(n)s posizioni", n=holdings) if holdings else ""})
+    return items
+
+
+def progress() -> tuple[int, int]:
+    """(done, total) of the checklist."""
+    items = checklist()
+    return sum(1 for item in items if item["done"]), len(items)

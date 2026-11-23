@@ -2844,3 +2844,18 @@ a.onb-way:hover { border-color: var(--clr-primary); text-decoration: none; color
 .onb-people { display: grid; gap: 8px; margin-bottom: 8px; }
 .onb-person { display: flex; align-items: flex-end; gap: 10px; }
 .onb-person .onb-person-remove { flex: none; }
+/* «Primi passi»: the checklist of what to prepare, each line opening its step */
+.onb-progress-inline { margin: 0 24px 4px; }
+.first-steps { list-style: none; margin: 0; padding: 8px 12px 4px; }
+.first-step a { display: flex; align-items: center; gap: 14px; padding: 14px 12px; border-radius: var(--border-radius-sm);
+  color: var(--clr-text-primary); text-decoration: none; }
+.first-step a:hover { background: var(--clr-bg-input); text-decoration: none; color: var(--clr-text-primary); }
+.first-step + .first-step { border-top: 1px solid var(--clr-border-light); }
+.first-step-check { flex: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--clr-border); color: var(--clr-text-muted); font-size: 16px; }
+.first-step.is-done .first-step-check { border-color: var(--clr-positive); background: var(--clr-positive); color: #fff; }
+.first-step-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.first-step-detail { color: var(--clr-text-secondary); }
+.first-step-go { flex: none; color: var(--clr-primary); font-weight: 600; font-size: var(--font-size-sm); }
+.first-step.is-done .first-step-go { color: var(--clr-text-muted); font-weight: 500; }
+.first-steps-foot { border-top: 1px solid var(--clr-border-light); }

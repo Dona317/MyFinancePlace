@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 16:37+0000\n"
+"POT-Creation-Date: 2026-11-23 18:00+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -382,6 +382,10 @@ msgid "%(deleted)s transazioni eliminate."
 msgstr "%(deleted)s transactions deleted."
 
 #, python-format
+msgid "%(done)s di %(total)s"
+msgstr "%(done)s of %(total)s"
+
+#, python-format
 msgid "%(done)s suggerimenti applicati."
 msgstr "%(done)s suggestions applied."
 
@@ -466,12 +470,28 @@ msgid "%(months)s mesi"
 msgstr "%(months)s months"
 
 #, python-format
+msgid "%(n)s conti"
+msgstr "%(n)s accounts"
+
+#, python-format
+msgid "%(n)s conti collegati alla banca"
+msgstr "%(n)s accounts connected to the bank"
+
+#, python-format
 msgid "%(n)s mesi"
 msgstr "%(n)s months"
 
 #, python-format
 msgid "%(n)s mesi su %(target)s"
 msgstr "%(n)s months out of %(target)s"
+
+#, python-format
+msgid "%(n)s movimenti"
+msgstr "%(n)s movements"
+
+#, python-format
+msgid "%(n)s posizioni"
+msgstr "%(n)s positions"
 
 #, python-format
 msgid "%(name)s esclusa dalle analisi"
@@ -1072,7 +1092,13 @@ msgstr "To"
 msgid ""
 "A chi sono intestati i conti e cosa vuoi seguire. Accendi solo le aree "
 "che ti servono: il menu resta più semplice e le riaccendi quando vuoi."
-msgstr "Whom the accounts belong to and what you want to follow. Turn on only the areas you need: the menu stays simpler and you can turn them on again whenever you like."
+msgstr ""
+"Whom the accounts belong to and what you want to follow. Turn on only the"
+" areas you need: the menu stays simpler and you can turn them on again "
+"whenever you like."
+
+msgid "A chi sono intestati i conti e quali aree seguire."
+msgstr "Whom the accounts belong to and which areas to follow."
 
 msgid "A mano"
 msgstr "By hand"
@@ -2716,6 +2742,9 @@ msgstr ""
 msgid "Chiaro"
 msgstr "Light"
 
+msgid "Chiaro o scuro e il carattere dei testi."
+msgstr "Light or dark and the font of the texts."
+
 msgid "Chiaro o scuro e il carattere dei testi: li vedi cambiare subito."
 msgstr "Light or dark and the font of the texts: you see them change at once."
 
@@ -2933,6 +2962,9 @@ msgstr "Link the holdings"
 
 msgid "Collega la banca"
 msgstr "Connect the bank"
+
+msgid "Collega la banca o carica un estratto conto: i movimenti arrivano da soli."
+msgstr "Connect the bank or upload a statement: the movements come in by themselves."
 
 msgid ""
 "Collega la loro categoria a una voce qui sotto, oppure cambia la "
@@ -3384,9 +3416,9 @@ msgid "Configurata"
 msgstr "Set up"
 
 msgid ""
-"Configurazione rimandata: la riprendi da Impostazioni → «Rifai la "
-"configurazione iniziale»."
-msgstr "Set-up postponed: pick it up from Settings → «Redo the initial set-up»."
+"Configurazione rimandata: la riprendi quando vuoi da «Primi passi» nel "
+"menu."
+msgstr "Set-up postponed: pick it up whenever you like from «First steps» in the menu."
 
 msgid "Configuriamo insieme preferenze e conti, in pochi minuti."
 msgstr "We set up preferences and accounts together, in a few minutes."
@@ -3533,6 +3565,11 @@ msgstr "Savings and deposit accounts"
 
 msgid "Conti e Carte"
 msgstr "Accounts and Cards"
+
+msgid ""
+"Conti e carte con il saldo di oggi: il punto di partenza di liquidità e "
+"patrimonio."
+msgstr "Accounts and cards with today's balance: the starting point of cash and net worth."
 
 msgid "Conti e investimenti"
 msgstr "Accounts and investments"
@@ -5908,6 +5945,9 @@ msgstr ""
 "You changed %(year)s transactions after it was closed: the saved "
 "statements no longer match the data."
 
+msgid "Hai già un archivio di MyFinancePlace?"
+msgstr "Do you already have a MyFinancePlace archive?"
+
 msgid "Hai già usato MyFinancePlace?"
 msgstr "Have you used MyFinancePlace before?"
 
@@ -7288,6 +7328,9 @@ msgstr "Information"
 msgid "Infortuni"
 msgstr "Accident"
 
+msgid "Inizia"
+msgstr "Start"
+
 msgid "Inizio"
 msgstr "Start"
 
@@ -7789,6 +7832,9 @@ msgstr ""
 "The language of the app, the currency of the totals and how numbers and "
 "dates are written. You can change them anytime in Settings."
 
+msgid "La lingua, la valuta dei totali, come scrivere numeri e date."
+msgstr "The language, the currency of the totals, how to write numbers and dates."
+
 #, python-format
 msgid "La liquidità copre già i %(n)s mesi che hai scelto."
 msgstr "The liquid money already covers the %(n)s months you chose."
@@ -8019,6 +8065,9 @@ msgid ""
 "sistemano."
 msgstr "The things that need a look: a click opens the page where they are fixed."
 
+msgid "Le cose da sistemare prima di usarla: in qualsiasi ordine, quando vuoi."
+msgstr "What to set up before using it: in any order, whenever you like."
+
 msgid ""
 "Le credenziali sono impostate dal server (ENABLE_BANKING_APP_ID): si "
 "cambiano lì."
@@ -8062,7 +8111,12 @@ msgid ""
 "cointestato), a dividere il patrimonio per persona e a riconoscere come "
 "giroconti i bonifici tra voi. Per questo servono nome e cognome: con il "
 "solo nome, un bonifico a un altro «Marco» sembrerebbe un giroconto."
-msgstr "The people the accounts of this archive belong to: they do not make separate archives. They say whose each account is (or if it is joint), split the net worth by person and recognise transfers between you as giroconti. That is why first and last name are needed: with the first name only, a transfer to another «Marco» would look like a giroconto."
+msgstr ""
+"The people the accounts of this archive belong to: they do not make "
+"separate archives. They say whose each account is (or if it is joint), "
+"split the net worth by person and recognise transfers between you as "
+"giroconti. That is why first and last name are needed: with the first "
+"name only, a transfer to another «Marco» would look like a giroconto."
 
 msgid "Le più vecchie si cancellano da sole."
 msgstr "The oldest are deleted automatically."
@@ -8090,6 +8144,9 @@ msgstr ""
 "The Portfolio holdings (also savings accounts, pension funds and "
 "property), at the latest price: for past dates only those already bought "
 "count."
+
+msgid "Le posizioni del broker: una per una o dal file delle posizioni."
+msgstr "The broker's positions: one by one or from the positions file."
 
 #, python-format
 msgid ""
@@ -11345,6 +11402,9 @@ msgstr "Premium per installment (€)"
 msgid "Prepara gli ordini"
 msgstr "Prepare the orders"
 
+msgid "Prepara l'app"
+msgstr "Prepare the app"
+
 msgid "Preset"
 msgstr "Preset"
 
@@ -11652,6 +11712,9 @@ msgstr ""
 "Top 10 sectors, then «Others». Without a composition the sector of the "
 "holding's page applies, or its asset class for bonds, cash, gold and the "
 "like."
+
+msgid "Primi passi"
+msgstr "First steps"
 
 msgid "Primo avvio"
 msgstr "First start"
@@ -12592,9 +12655,6 @@ msgstr "Summary"
 msgid "Riepilogo %(year)s"
 msgstr "Summary %(year)s"
 
-msgid "Rifai la configurazione iniziale"
-msgstr "Redo the initial set-up"
-
 msgid "Rifiuti (TARI)"
 msgstr "Waste (TARI)"
 
@@ -12747,11 +12807,17 @@ msgstr "Restore Defaults"
 msgid "Ripristina gli investimenti"
 msgstr "Restore the investments"
 
+msgid "Ripristina il backup"
+msgstr "Restore the backup"
+
 msgid "Ripristina l'archivio"
 msgstr "Restore the archive"
 
 msgid "Ripristina predefinito"
 msgstr "Restore default"
+
+msgid "Ripristina un backup"
+msgstr "Restore a backup"
 
 msgid ""
 "Ripristinare questo file? Gli investimenti attuali saranno sostituiti "
@@ -12872,6 +12938,9 @@ msgstr "Ideal pace"
 
 msgid "Riuscito"
 msgstr "Succeeded"
+
+msgid "Rivedi"
+msgstr "Review"
 
 msgid "Rossi"
 msgstr "Reds"
@@ -13083,6 +13152,9 @@ msgid ""
 msgstr ""
 "Kept whole, shown as its last digits: it recognises the account in the "
 "statements."
+
+msgid "Salvato."
+msgstr "Saved."
 
 msgid "Sandbox (banche di prova)"
 msgstr "Sandbox (test banks)"

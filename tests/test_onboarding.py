@@ -100,3 +100,28 @@ def test_names_already_taken_get_a_number(app, db):
     assert [a.name for a in made] == ["Conto corrente 2", "Altro"] and made[1].kind == "current"
     settings_store.set_json(onboarding.STATE, {})
     assert onboarding.made_accounts()  # none made in the tutorial: every account of the user's
+
+
+def test_primi_passi_lists_what_to_prepare_and_comes_back_to_it(client, db):
+    page = client.get("/benvenuto/primi-passi").get_data(as_text=True)
+    assert "Prepara l'app" in page and "0 di 6" in page and "I tuoi conti" in page and "Investimenti" in page
+    menu = client.get("/transactions/").get_data(as_text=True)
+    assert 'href="/benvenuto/primi-passi"' in menu.split('class="sidebar-nav"')[1] and "0/6" in menu
+    # a step opened from the list goes back to it, marked done
+    back = client.post("/benvenuto/conti?da=lista", data={"kind": ["current"], "name": ["Fineco"], "bank": [""],
+                                                         "balance": ["100"]})
+    assert back.headers["Location"].endswith("/benvenuto/primi-passi")
+    client.post("/benvenuto/preferenze?da=lista", data={"language": "it", "currency": "EUR", "locale": "it-IT"})
+    items = {item["key"]: item for item in onboarding.checklist()}
+    assert items["conti"]["done"] and items["preferenze"]["done"] and not items["movimenti"]["done"]
+    assert onboarding.progress() == (2, 6)
+    # all done: the menu entry goes away
+    db.session.add(make_tx())
+    db.session.commit()
+    for step in ("aspetto", "persone"):
+        onboarding.mark(step)
+    from app.models.wealth import Holding
+    db.session.add(Holding(name="ETF", asset_class="ETF", quantity=1, avg_price=1))
+    db.session.commit()
+    assert onboarding.progress() == (6, 6)
+    assert 'href="/benvenuto/primi-passi"' not in client.get("/transactions/").get_data(as_text=True).split('class="sidebar-nav"')[1]

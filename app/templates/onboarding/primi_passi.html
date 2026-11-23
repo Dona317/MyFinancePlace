@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{# «Primi passi» (23 Nov 2026): what to prepare before using the app, with what is already done; each line opens
+   its step of the guided set-up (or the page that does it) #}
+{% block title %}{{ _('Primi passi') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Primi passi') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Primi passi') }}</li>{% endblock %}
+
+{% block content %}
+<div class="page-form">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">{{ _('Prepara l\'app') }}</div>
+        <div class="card-header-sub">{{ _('Le cose da sistemare prima di usarla: in qualsiasi ordine, quando vuoi.') }}</div>
+      </div>
+      <span class="badge {{ 'badge-positive' if done == total else 'badge-muted' }}">{{ _('%(done)s di %(total)s', done=done, total=total) }}</span>
+    </div>
+    <div class="onb-progress onb-progress-inline" role="progressbar" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ done }}">
+      <span style="width: {{ (done / total * 100)|round if total else 0 }}%"></span>
+    </div>
+    <ul class="first-steps">
+      {% for item in items %}
+      <li class="first-step{{ ' is-done' if item.done }}">
+        <a href="{{ url_for('onboarding.step', name=item.step, da='lista') if item.step else url_for(item.endpoint) }}">
+          <span class="first-step-check" aria-hidden="true"><i class="bi bi-{{ 'check-lg' if item.done else item.icon }}"></i></span>
+          <span class="first-step-text">
+            <strong>{{ item.label }}</strong>
+            <span class="text-sm text-muted">{{ item.hint }}</span>
+            {% if item.detail %}<span class="text-xs first-step-detail">{{ item.detail }}</span>{% endif %}
+          </span>
+          <span class="first-step-go">{{ _('Rivedi') if item.done else _('Inizia') }} <i class="bi bi-arrow-right"></i></span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    <div class="card-body first-steps-foot text-sm text-muted">
+      <i class="bi bi-archive"></i> {{ _('Hai già un archivio di MyFinancePlace?') }}
+      <a href="{{ url_for('onboarding.step', name='importa') }}">{{ _('Ripristina il backup') }}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

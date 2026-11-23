@@ -6,9 +6,7 @@
 
 {% block topbar_actions %}
   {# F109: the guided first set-up again (preferences and accounts; nothing is deleted) #}
-  <form method="POST" action="{{ url_for('onboarding.restart') }}" style="display:inline;">
-    <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-magic"></i> {{ _('Rifai la configurazione iniziale') }}</button>
-  </form>
+  <a href="{{ url_for('onboarding.checklist') }}" class="btn btn-ghost btn-sm"><i class="bi bi-flag"></i> {{ _('Primi passi') }}</a>
   <form method="POST" action="{{ url_for('settings.reset') }}" style="display:inline;"
         data-confirm="{{ _('Ripristinare tutte le impostazioni predefinite?') }}">
     <button type="submit" class="btn btn-ghost btn-sm">
