@@ -95,7 +95,7 @@ def test_export_and_import_keep_everything(app, store):
     raw = market_data.export_zip()
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         assert set(archive.namelist()) == {"instruments.csv", "closes.csv", "meta.json"}
-        assert "VWCE.MI,2026-11-03,101" in archive.read("closes.csv").decode()
+        assert "VWCE.MI,2026-11-03,101," in archive.read("closes.csv").decode()
         assert "https://www.justetf.com/x" in archive.read("instruments.csv").decode()
 
     # another computer: one close of its own (kept), a different link (kept), the rest added
@@ -125,11 +125,18 @@ def test_import_rejects_and_skips(app, store):
     odd = io.BytesIO()
     with zipfile.ZipFile(odd, "w") as archive:
         archive.writestr("instruments.csv", "symbol,isin,name,currency,exchange,link\n,,,,,\nNEW.MI,,,EUR,,\n")
-        archive.writestr("closes.csv", "symbol,day,close,adj_close,source\nNEW.MI,2026-11-02,10,9.5,\n"
-                                       "NEW.MI,bad,1,,x\nNEW.MI,2026-11-03,0,,x\nLOOSE.MI,2026-11-02,5,,stooq\n")
+        archive.writestr("closes.csv", "symbol,day,close,adj_close,source\nNEW.MI,2026-11-02,10,9.5,\nNEW.MI,2026-11-04,12,=,\n"
+                                       "NEW.MI,bad,1,,x\nNEW.MI,2026-11-03,0,,x\nLOOSE.MI,2026-11-02,5,,stooq\n"
+                                       "CL.F,2020-04-20,-37.63,,yahoo\n")
     done = market_data.import_zip(odd.getvalue())
-    assert (done.instruments, done.closes, done.skipped) == (2, 2, 3)
+    assert (done.instruments, done.closes, done.skipped) == (3, 4, 2)
     assert market_data.sources_of("NEW.MI") == ["file"] and market_data.sources_of("LOOSE.MI") == ["stooq"]
+    assert market_data.history("CL.F") == [(date(2020, 4, 20), Decimal("-37.63"))]  # oil below zero: a real close
+    assert market_data.history("NEW.MI")[-1] == (date(2026, 11, 4), Decimal("12"))
+    small = market_data.export_zip(smallest=True)
+    with zipfile.ZipFile(io.BytesIO(small)) as archive:
+        assert archive.getinfo("closes.csv").compress_type == zipfile.ZIP_LZMA
+        assert "NEW.MI,2026-11-04,12,=," in archive.read("closes.csv").decode()
 
 
 def test_the_page_export_and_import(client, db, store):

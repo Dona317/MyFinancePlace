@@ -338,12 +338,20 @@ def totals() -> dict:
     return {"instruments": listed, "closes": count, "first": first, "last": last, "where": where}
 
 
-def export_zip() -> bytes:
-    """The whole store: instruments.csv (one row a listing) and closes.csv (one row a close), with the schema."""
+def _plain(value) -> str:
+    """A number as short as it can be written: 12.500000 → 12.5."""
+    text = format(Decimal(value).normalize(), "f")
+    return text
+
+
+def export_zip(smallest: bool = False) -> bytes:
+    """The whole store: instruments.csv (one row a listing) and closes.csv (one row a close), with the schema.
+    `smallest`: LZMA, a third smaller but slower and not opened by every unzip tool (the starting database, F114)."""
     import zipfile
 
     out = io.BytesIO()
-    with engine().connect() as conn, zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
+    method = zipfile.ZIP_LZMA if smallest else zipfile.ZIP_DEFLATED
+    with engine().connect() as conn, zipfile.ZipFile(out, "w", method) as archive:
         listed = io.StringIO()
         writer = csv.writer(listed)
         writer.writerow(EXPORT_INSTRUMENTS)
@@ -356,8 +364,9 @@ def export_zip() -> bytes:
         query = (select(instruments.c.symbol, closes.c.day, closes.c.close, closes.c.adj_close, closes.c.source)
                  .join(instruments, instruments.c.id == closes.c.instrument_id)
                  .order_by(instruments.c.symbol, closes.c.day))
-        for symbol, day, close, adj, source in conn.execute(query):
-            writer.writerow([symbol, day.isoformat(), close, "" if adj is None else adj, source])
+        for symbol, day, close, adj, source in conn.execute(query):  # «=»: adjusted as the close (smaller file)
+            writer.writerow([symbol, day.isoformat(), _plain(close),
+                             "" if adj is None else ("=" if adj == close else _plain(adj)), source])
         archive.writestr("closes.csv", days.getvalue())
         archive.writestr("meta.json", json.dumps({"app": "MyFinancePlace", "store": "market", "schema": SCHEMA,
                                                   "exported": datetime.now(timezone.utc).isoformat()}))
@@ -431,7 +440,8 @@ def import_zip(raw: bytes) -> Imported:
             symbol = (row.get("symbol") or "").strip().upper()
             try:
                 day, close = date.fromisoformat(row["day"].strip()), Decimal(row["close"].strip())
-                adj = Decimal(row["adj_close"].strip()) if (row.get("adj_close") or "").strip() else None
+                adj_text = (row.get("adj_close") or "").strip()
+                adj = close if adj_text == "=" else (Decimal(adj_text) if adj_text else None)
             except (KeyError, AttributeError, ValueError, ArithmeticError):
                 result.skipped += 1
                 continue
@@ -442,9 +452,9 @@ def import_zip(raw: bytes) -> Imported:
             key = ids[symbol]
             if key not in have:
                 have[key] = set(conn.execute(select(closes.c.day).where(closes.c.instrument_id == key)).scalars())
-            if day in have[key] or close <= 0:
+            if day in have[key] or close == 0:  # below zero is real (WTI oil, 20 Apr 2020); zero is not a close
                 result.kept += day in have[key]
-                result.skipped += close <= 0
+                result.skipped += close == 0
                 continue
             have[key].add(day)
             batch.append({"instrument_id": key, "day": day, "close": close, "adj_close": adj,

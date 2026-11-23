@@ -77,7 +77,7 @@ def main() -> int:
                 market_data.remember_listing(symbol, isin, name)
                 print(f"[{n}/{len(wanted)}] {symbol}: NON LETTO — {'; '.join(errors)}", flush=True)
             time.sleep(args.pause)
-        OUT.write_bytes(market_data.export_zip())
+        OUT.write_bytes(market_data.export_zip(smallest=True))
         totals = market_data.totals()
     print(f"\n{OUT}: {totals['instruments']} titoli, {totals['closes']} chiusure, "
           f"{totals['first']} → {totals['last']}, {OUT.stat().st_size / 1e6:.1f} MB")
