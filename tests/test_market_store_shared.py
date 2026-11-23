@@ -129,7 +129,7 @@ def test_import_rejects_and_skips(app, store):
                                        "NEW.MI,bad,1,,x\nNEW.MI,2026-11-03,0,,x\nLOOSE.MI,2026-11-02,5,,stooq\n"
                                        "CL.F,2020-04-20,-37.63,,yahoo\n")
     done = market_data.import_zip(odd.getvalue())
-    assert (done.instruments, done.closes, done.skipped) == (3, 4, 2)
+    assert (done.instruments, done.closes, done.skipped) == (3, 4, 3)  # the empty listing, the bad day, the zero
     assert market_data.sources_of("NEW.MI") == ["file"] and market_data.sources_of("LOOSE.MI") == ["stooq"]
     assert market_data.history("CL.F") == [(date(2020, 4, 20), Decimal("-37.63"))]  # oil below zero: a real close
     assert market_data.history("NEW.MI")[-1] == (date(2026, 11, 4), Decimal("12"))
