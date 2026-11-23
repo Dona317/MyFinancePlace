@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 18:03+0000\n"
+"POT-Creation-Date: 2026-11-23 18:25+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -468,6 +468,10 @@ msgstr "%(months)s / %(target)s months"
 #, python-format
 msgid "%(months)s mesi"
 msgstr "%(months)s months"
+
+#, python-format
+msgid "%(n)s chiusure, dal %(first)s al %(last)s"
+msgstr "%(n)s closes, from %(first)s to %(last)s"
 
 #, python-format
 msgid "%(n)s conti"
@@ -2199,6 +2203,9 @@ msgstr "Broker"
 msgid "Broker, conto titoli, note facoltative..."
 msgstr "Broker, securities account, optional notes..."
 
+msgid "Buchi"
+msgstr "Holes"
+
 msgid "Budget"
 msgstr "Budget"
 
@@ -2301,6 +2308,14 @@ msgstr "Maximum drawdown"
 
 msgid "Calo massimo dal picco"
 msgstr "Largest fall from the peak"
+
+#, python-format
+msgid "Cambi BCE di %(codes)s: %(count)s nuovi."
+msgstr "ECB rates of %(codes)s: %(count)s new."
+
+#, python-format
+msgid "Cambi BCE non letti: %(error)s"
+msgstr "ECB rates not read: %(error)s"
 
 msgid "Cambi presenti"
 msgstr "Rates available"
@@ -3800,6 +3815,9 @@ msgstr "Value in the totals currency at the rate of the day"
 msgid "Coperta fino al %(day)s"
 msgstr "Covered until %(day)s"
 
+msgid "Copertura"
+msgstr "Coverage"
+
 msgid "Copertura Totale"
 msgstr "Total Coverage"
 
@@ -4224,6 +4242,11 @@ msgstr "Since the start"
 
 msgid "Dalla liquidità rimasta"
 msgstr "From the cash left"
+
+msgid ""
+"Dalla prima operazione a oggi, i buchi riempiti da soli una volta al "
+"giorno."
+msgstr "From the first operation to today, holes filled by themselves once a day."
 
 msgid ""
 "Dalla scheda del fondo (factsheet o KID): il nome del paese in italiano o"
@@ -9189,6 +9212,9 @@ msgstr ""
 msgid "Nessun backup ancora."
 msgstr "No backup yet."
 
+msgid "Nessun buco"
+msgstr "No holes"
+
 msgid "Nessun budget per questo mese."
 msgstr "No budget for this month."
 
@@ -9434,6 +9460,11 @@ msgstr "No limits: add the pension fund or a PIR below."
 
 msgid "Nessun titolo collegato allo storico: si usano i prezzi registrati."
 msgstr "No holding linked to the history: the recorded prices are used."
+
+msgid ""
+"Nessun titolo quotato in portafoglio (ETF, azioni, fondi, obbligazioni) "
+"con ticker o ISIN."
+msgstr "No listed holding (ETFs, shares, funds, bonds) with a ticker or ISIN."
 
 msgid "Nessuna banca collegata"
 msgstr "No bank linked"
@@ -12654,6 +12685,9 @@ msgstr "Rearrange the nodes"
 msgid "Riduci il menu"
 msgstr "Shrink the menu"
 
+msgid "Riempi i buchi ora"
+msgstr "Fill the holes now"
+
 msgid "Riepilogo"
 msgstr "Summary"
 
@@ -13825,6 +13859,9 @@ msgstr "At least one more snapshot is needed to draw the trend."
 msgid "Serve almeno uno fra ISIN, ticker e nome."
 msgstr "At least one of ISIN, ticker and name is needed."
 
+msgid "Serve dal"
+msgstr "Needed from"
+
 msgid ""
 "Serve lo storico dei prezzi giornaliero (database dei prezzi, F69): i "
 "risultati passati non garantiscono quelli futuri."
@@ -14072,6 +14109,16 @@ msgstr ""
 
 msgid "Solo gli investimenti: esporta e ripristina"
 msgstr "Investments only: export and restore"
+
+msgid ""
+"Solo i titoli che hai in portafoglio, dalla prima operazione (un mese "
+"prima). Ogni giorno, con i prezzi da internet accesi, l'app scarica le "
+"chiusure che mancano e riempie i buchi (3 o più giorni di borsa senza "
+"chiusura): da Yahoo Finance, altrimenti da Stooq (per i titoli di Milano,"
+" lo stesso titolo quotato a Xetra, in euro). Insieme scarica i cambi BCE "
+"delle valute che usi, così contano anche i titoli in dollari o sterline. "
+"Si inviano solo i ticker."
+msgstr "Only the instruments you hold, from the first operation (a month before). Every day, with online prices on, the app downloads the missing closes and fills the holes (3 or more trading days without a close): from Yahoo Finance, else from Stooq (for Milan listings, the same instrument on Xetra, in euro). It also downloads the ECB rates of the currencies you use, so instruments in dollars or pounds count too. Only the tickers are sent."
 
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
@@ -14381,6 +14428,15 @@ msgstr "History updated: %(count)s instruments, %(closes)s new closes."
 
 msgid "Storico dei prezzi"
 msgstr "Price history"
+
+msgid "Storico dei tuoi titoli"
+msgstr "History of your holdings"
+
+#, python-format
+msgid ""
+"Storico dei tuoi titoli: %(count)s titoli, %(closes)s chiusure lette, "
+"%(holes)s buchi rimasti."
+msgstr "History of your holdings: %(count)s instruments, %(closes)s closes read, %(holes)s holes left."
 
 #, python-format
 msgid "Storico di %(symbol)s: %(count)s chiusure dal %(first)s al %(last)s."
@@ -16137,6 +16193,9 @@ msgstr "still to set aside"
 
 msgid "ancora deducibili"
 msgstr "still deductible"
+
+msgid "ancora niente"
+msgstr "nothing yet"
 
 msgid "anno"
 msgstr "year"

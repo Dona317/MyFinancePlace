@@ -334,6 +334,10 @@ La lettura via PSD2 (F107, D16) funziona con la sandbox vera di Enable Banking. 
 all'uso da parte di amici, senza costi né licenze commerciali.
 
 **Card T49 — Cambi aggiornati da soli, solo per le valute in uso (e niente più 1:1 nascosto)**
+- **Stato (23 nov):** 🟡 punto 2 fatto con F110 — una volta al giorno (prezzi da internet accesi) e con «Riempi i
+  buchi ora» si scaricano i cambi BCE **solo delle valute in uso** (conti, movimenti, titoli e loro quotazioni), con lo
+  **storico intero dal primo giorno che serve** (file storico della BCE), poi gli ultimi 90 giorni (`services/history_filler.fill_rates`).
+  **Resta** il punto 1: il cambio 1:1 silenzioso quando un cambio manca.
 - **Area:** Dati e qualità · **Giro:** PSD2 · **Priorità:** Alta · **Sforzo:** M
 - **Problema (visto nella prova sandbox del 22 nov):** i movimenti del conto di prova in corone danesi sono stati
   contati in euro 1:1 (+2,70 DKK mostrati come +€ 2,70; il saldo 13.066 DKK vale circa 1.750 €, non 13.066 €).

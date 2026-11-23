@@ -30,6 +30,7 @@ from app.services import (
     family,
     fund_facts,
     fx_effect,
+    history_filler,
     lookthrough,
     market_data,
     performance,
@@ -188,6 +189,7 @@ def _render_form(holding, values):
 def index():
     valuations.refresh_daily()  # the depreciation of the cars and the like, once a day
     price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
+    history_filler.run_in_background()  # F110: the past closes of the holdings and the ECB rates, once a day
     selected = request.args.get("asset_class", "")
     person = request.args.get("person", "")
     holdings = family.holdings_of(person, wealth.holdings_on())
@@ -340,6 +342,7 @@ def prices():
     return render_template("portfolio/prices.html", holdings=holdings, values={}, today=date.today(),
                            online=current_settings()["prices_online"], supported=price_feed.supported,
                            market=market_data.overview() if market_data.available() else [],
+                           coverage=history_filler.coverage(),
                            links=[(h, *market_data.link(h)) for h in holdings
                                   if h.asset_class in price_feed.MARKET_CLASSES])
 
@@ -362,6 +365,29 @@ def market_sync():
         flash(_("Non letti: %(list)s", list=", ".join(f"{f.symbol} ({f.error[:60]})" for f in found if f.error)[:600]),
               "warning")
     return redirect(url_for("portfolio.prices") + "#market")
+
+
+@portfolio_bp.route("/market/fill", methods=["POST"])
+def market_fill():
+    """F110: «Riempi i buchi» — the past closes of the instruments held, from their first operation, holes filled
+    (Yahoo, else Stooq), and the ECB rates of the currencies in use."""
+    if not current_settings()["prices_online"]:
+        flash(_("I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."), "warning")
+        return redirect(url_for("portfolio.prices") + "#history")
+    done = history_filler.run()
+    good = [f for f in done.filled if not f.error]
+    flash(_("Storico dei tuoi titoli: %(count)s titoli, %(closes)s chiusure lette, %(holes)s buchi rimasti.",
+            count=len(good), closes=sum(f.added for f in good), holes=sum(f.holes for f in good)),
+          "success" if good or not done.filled else "warning")
+    bad = [f for f in done.filled if f.error]
+    if bad:
+        flash(_("Non letti: %(list)s", list=", ".join(f"{f.symbol} ({f.error[:60]})" for f in bad)[:600]), "warning")
+    if done.rates and done.rates["currencies"]:
+        flash(_("Cambi BCE di %(codes)s: %(count)s nuovi.", codes=", ".join(done.rates["currencies"]),
+                count=done.rates["added"]), "success")
+    if done.rates_error:
+        flash(_("Cambi BCE non letti: %(error)s", error=done.rates_error), "warning")
+    return redirect(url_for("portfolio.prices") + "#history")
 
 
 @portfolio_bp.route("/market/import", methods=["POST"])

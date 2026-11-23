@@ -237,6 +237,34 @@ def store(symbol: str, daily: Daily, isin: str | None = None, name: str | None =
     return len(daily.points)
 
 
+def days(symbol: str) -> list[date]:
+    """The days with a close stored, oldest first."""
+    query = (select(closes.c.day).join(instruments, instruments.c.id == closes.c.instrument_id)
+             .where(instruments.c.symbol == symbol.strip().upper()).order_by(closes.c.day))
+    with engine().connect() as conn:
+        return [day for (day,) in conn.execute(query)]
+
+
+def sources_of(symbol: str) -> list[str]:
+    """Where the closes stored of an instrument came from (yahoo, stooq, file), the most used first."""
+    query = (select(closes.c.source, func.count()).join(instruments, instruments.c.id == closes.c.instrument_id)
+             .where(instruments.c.symbol == symbol.strip().upper()).group_by(closes.c.source)
+             .order_by(func.count().desc()))
+    with engine().connect() as conn:
+        return [source for source, _n in conn.execute(query)]
+
+
+def plain_currency(code: str | None) -> str | None:
+    """A quote currency as an ISO code: London's pence (GBp, GBX) are pounds (the closes are then divided by 100)."""
+    if not code:
+        return code
+    return "GBP" if code in ("GBp", "GBX", "GBx") else code.upper()
+
+
+def remember_error(symbol: str, message: str, isin: str | None = None, name: str | None = None) -> None:
+    _remember_error(symbol, message, isin, name)
+
+
 def _remember_error(symbol: str, message: str, isin: str | None = None, name: str | None = None) -> None:
     with engine().begin() as conn:
         row = _instrument(conn, symbol, isin, name)
@@ -386,18 +414,49 @@ def link(holding) -> tuple[str | None, str]:
         symbol, how = by_isin[holding.isin.strip().upper()], "isin"
     else:
         return None, "missing"
-    if (holding.currency or "EUR").upper() != "EUR" or (by_symbol[symbol]["currency"] or "EUR").upper() != "EUR":
+    # F110: a close in another currency counts too, turned into euro with the day's rate (ECB) — when there are rates
+    code = plain_currency(by_symbol[symbol]["currency"]) or "EUR"
+    if code != "EUR" and not _rates(code)[0]:
         return None, "currency"
     return symbol, how
 
 
+def _rates(code: str) -> tuple[list[date], list[float]]:
+    """The archive's rates of a currency (euro value of one unit), oldest first, once per request."""
+    from app.extensions import db
+    from app.models.currency import ExchangeRate
+    from app.services import request_cache
+
+    store_cache = request_cache.cache().setdefault("market_rates", {})
+    if code not in store_cache:
+        rows = db.session.query(ExchangeRate.on, ExchangeRate.rate).filter(ExchangeRate.currency == code).order_by(
+            ExchangeRate.on).all()
+        store_cache[code] = ([d for d, _r in rows], [float(r) for _d, r in rows])
+    return store_cache[code]
+
+
 def _series(symbol: str) -> tuple[list[date], list[float]]:
+    """The closes of an instrument in euro, oldest first: one quoted in another currency is turned into euro with
+    the rate of its day (or the last before); London's pence are pounds / 100; a day before any rate is left out."""
     from app.services import request_cache
 
     store_cache = request_cache.cache().setdefault("market_series", {})
     if symbol not in store_cache:
         points = history(symbol)
-        store_cache[symbol] = ([d for d, _c in points], [float(c) for _d, c in points])
+        raw = (_catalog()[0].get(symbol.strip().upper()) or {}).get("currency") if available() else None
+        code = plain_currency(raw) or "EUR"
+        scale = 0.01 if raw in ("GBp", "GBX", "GBx") else 1.0
+        if code == "EUR":
+            store_cache[symbol] = ([d for d, _c in points], [float(c) * scale for _d, c in points])
+        else:
+            rate_days, rate_values = _rates(code)
+            days_out, values_out = [], []
+            for day, close in points:
+                at = bisect.bisect_right(rate_days, day)
+                if at:
+                    days_out.append(day)
+                    values_out.append(float(close) * scale * rate_values[at - 1])
+            store_cache[symbol] = (days_out, values_out)
     return store_cache[symbol]
 
 

@@ -70,6 +70,49 @@
   {% endcall %}
   {% endif %}
 
+  {# F110: the past closes of the instruments held, filled by themselves once a day (Yahoo, else Stooq) #}
+  <div class="card" id="history" style="margin-top:16px;">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title"><i class="bi bi-clock-history"></i> {{ _('Storico dei tuoi titoli') }}
+          {{ info(_('Solo i titoli che hai in portafoglio, dalla prima operazione (un mese prima). Ogni giorno, con i prezzi da internet accesi, l\'app scarica le chiusure che mancano e riempie i buchi (3 o più giorni di borsa senza chiusura): da Yahoo Finance, altrimenti da Stooq (per i titoli di Milano, lo stesso titolo quotato a Xetra, in euro). Insieme scarica i cambi BCE delle valute che usi, così contano anche i titoli in dollari o sterline. Si inviano solo i ticker.'), _('Storico dei tuoi titoli')) }}</div>
+        <div class="card-header-sub">{{ _('Dalla prima operazione a oggi, i buchi riempiti da soli una volta al giorno.') }}</div>
+      </div>
+      {% if online %}
+      <form method="POST" action="{{ url_for('portfolio.market_fill') }}">
+        <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Riempi i buchi ora') }}</button>
+      </form>
+      {% endif %}
+    </div>
+    {% if coverage %}
+    <div class="table-wrapper">
+      <table class="table-compact">
+        <thead><tr><th>{{ _('Titolo') }}</th><th>{{ _('Serve dal') }}</th><th>{{ _('Copertura') }}</th><th class="text-right">{{ _('Buchi') }}</th><th>{{ _('Fonte') }}</th></tr></thead>
+        <tbody>
+          {% for c in coverage %}
+          <tr>
+            <td><span class="font-mono">{{ c.symbol }}</span><div class="text-xs text-muted">{{ c.name }}{% if c.currency and c.currency != 'EUR' %} · {{ c.currency }}{% endif %}</div></td>
+            <td class="nowrap">{{ c.start|it_date }}</td>
+            <td style="min-width:180px;">
+              {% if c.count %}
+              <div class="coverage-bar" title="{{ _('%(n)s chiusure, dal %(first)s al %(last)s', n=c.count, first=c.first|it_date, last=c.last|it_date) }}"><span style="width: {{ c.share }}%"></span></div>
+              <div class="text-xs text-muted">{{ c.share }}% · {{ c.first|it_date }} → {{ c.last|it_date }}</div>
+              {% else %}<span class="text-xs text-muted">{{ _('ancora niente') }}</span>{% endif %}
+            </td>
+            <td class="text-right">{% if c.holes %}<span class="badge badge-warning">{{ c.holes }}</span>{% elif c.count %}<i class="bi bi-check-lg text-positive" title="{{ _('Nessun buco') }}"></i>{% endif %}</td>
+            <td class="text-sm">{{ c.sources|map('capitalize')|join(', ') or '—' }}
+              {% if c.error %}<span class="badge badge-negative" title="{{ c.error }}">{{ _('non letto') }}</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body text-sm text-muted">{{ _('Nessun titolo quotato in portafoglio (ETF, azioni, fondi, obbligazioni) con ticker o ISIN.') }}</div>
+    {% endif %}
+    {% if not online %}<div class="card-body text-sm text-muted">{{ _('Accendi i prezzi da internet in Impostazioni per scaricarlo.') }}</div>{% endif %}
+  </div>
+
   <div class="card" id="market" style="margin-top:16px;">
     <div class="card-header">
       <div>
