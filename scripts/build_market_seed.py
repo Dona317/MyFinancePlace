@@ -1,7 +1,7 @@
 """
 The starting price database (F114): the daily closes of the instruments in data/market_seed/strumenti.csv — the
 main ETFs of Borsa Italiana, the FTSE MIB, the large European and US shares, the indices, gold, oil and crypto —
-read from Yahoo Finance (else Stooq, else justETF by the ISIN) from 2000, into a market store of its own, then
+read from Yahoo Finance (else Stooq, else justETF by the ISIN) from 2000, with the ECB rates since 1999, into a market store of its own, then
 exported as the zip that «Importa il database di partenza» adds to the user's store.
 
     python scripts/build_market_seed.py                  # data/market_seed/database_di_partenza.zip
@@ -54,6 +54,7 @@ def main() -> int:
         wanted = instruments(set(args.only.split(",")) if args.only else None)
         for n, row in enumerate(wanted, 1):
             symbol, isin, name = row["symbol"].strip().upper(), row["isin"].strip() or None, row["name"].strip()
+            code = (row.get("currency") or "").strip() or None  # for a source that does not say it (MSCI World)
             have = market_data.days(symbol)
             begin = max(start, max(have) - market_data.OVERLAP) if have else start
             readers = [("yahoo", market_data.read_yahoo), ("stooq", history_filler.read_stooq)]
@@ -68,6 +69,8 @@ def main() -> int:
                     time.sleep(args.pause)
                     continue
                 if daily.points:
+                    if code and not daily.currency:
+                        daily = market_data.Daily(code, daily.exchange, daily.name, daily.points)
                     added = market_data.store(symbol, daily, isin, name, source=source)
                     print(f"[{n}/{len(wanted)}] {symbol}: {added} chiusure da {source} "
                           f"({daily.points[0][0]} → {daily.points[-1][0]})", flush=True)
@@ -77,6 +80,12 @@ def main() -> int:
                 market_data.remember_listing(symbol, isin, name)
                 print(f"[{n}/{len(wanted)}] {symbol}: NON LETTO — {'; '.join(errors)}", flush=True)
             time.sleep(args.pause)
+        # the ECB rates since 1999: the closes in other currencies turned into euro day by day
+        try:
+            print(f"Cambi BCE: {history_filler.store_ecb_history(history_filler._bytes(history_filler.ECB_HISTORY))} chiusure",
+                  flush=True)
+        except Exception as exc:  # noqa: BLE001 - the rest is saved all the same
+            print(f"Cambi BCE NON LETTI: {exc}", flush=True)
         OUT.write_bytes(market_data.export_zip(smallest=True))
         totals = market_data.totals()
     print(f"\n{OUT}: {totals['instruments']} titoli, {totals['closes']} chiusure, "
