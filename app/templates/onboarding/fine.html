@@ -1,0 +1,17 @@
+{% extends "onboarding/_layout.html" %}
+{% block heading %}{{ _('Tutto pronto') }}{% endblock %}
+{% block body %}
+<p>{{ _('L\'archivio è configurato. Lo trovi tutto nel menu a sinistra; con Ctrl+K cerchi qualsiasi pagina.') }}</p>
+{% if todo %}
+<div class="onb-todo">
+  <div class="form-label">{{ _('Da fare quando vuoi') }}</div>
+  <ul>
+    {% for item in todo %}<li><a href="{{ url_for(item.endpoint) }}"><i class="bi bi-{{ item.icon }}" aria-hidden="true"></i> {{ item.label }}</a></li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+<form method="POST" action="{{ url_for('onboarding.finish') }}" class="onb-actions">
+  {% if back %}<a href="{{ url_for('onboarding.step', name=back) }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> {{ _('Indietro') }}</a>{% else %}<span></span>{% endif %}
+  <button type="submit" class="btn btn-primary"><i class="bi bi-speedometer2"></i> {{ _('Apri la Dashboard') }}</button>
+</form>
+{% endblock %}

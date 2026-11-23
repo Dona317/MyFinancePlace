@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.account import Account
 from app.models.bank_link import BankAccountLink
-from app.routes.helpers import download, export_file, export_name, form_ids, uploaded_file, year_arg
+from app.routes.helpers import download, export_file, export_name, form_ids, safe_next, uploaded_file, year_arg
 from app.services import (
     accounts,
     ai_classification,
@@ -137,10 +137,11 @@ def download_encrypted_backup():
 
 @export_bp.route("/restore", methods=["POST"])
 def restore():
+    """A backup (or a JSON export) put back; from the first set-up (F109) it goes back there (`next`)."""
     upload = uploaded_file()
     if upload is None:
         flash(_("Scegli il file di backup da ripristinare."), "error")
-        return redirect(url_for("export.index") + "#backup")
+        return _after_restore()
     try:
         raw = upload.read()
         carried = None
@@ -151,15 +152,15 @@ def restore():
         if not backup.is_full_backup(data):
             added, skipped = backup.import_transactions(data)
             flash(_("Export JSON importato: %(added)s transazioni aggiunte, %(skipped)s già presenti ignorate.", added=added, skipped=skipped), "success")
-            return redirect(url_for("transactions.index"))
+            return redirect(safe_next() or url_for("transactions.index"))
         if not request.form.get("confirm"):
             flash(_("Per ripristinare un backup completo conferma che i dati attuali verranno sostituiti."), "error")
-            return redirect(url_for("export.index") + "#backup")
+            return _after_restore()
         safety = backup.save_safety_copy()
         restored = backup.restore(data, files)
     except backup.BackupError as exc:
         flash(str(exc), "error")
-        return redirect(url_for("export.index") + "#backup")
+        return _after_restore()
     if carried and not field_crypto.from_environment() and field_crypto.unreadable(_encrypted_fields()):
         try:
             field_crypto.replace_key(carried, _encrypted_fields())
@@ -175,7 +176,12 @@ def restore():
         _("Backup ripristinato: %(transactions)s transazioni, %(holdings)s posizioni, %(debts)s debiti, %(policies)s polizze, %(goals)s obiettivi, %(documents)s documenti, %(snapshots)s istantanee. I dati di prima sono salvati in «%(safety)s» (vedi Copie prima dei ripristini).", transactions=restored['transactions'], holdings=restored['holdings'], debts=restored['debts'], policies=restored['insurance_policies'], goals=restored['goals'], documents=restored['documents'], snapshots=restored['snapshots'], safety=safety),
         "success",
     )
-    return redirect(url_for("export.index") + "#backup")
+    return _after_restore()
+
+
+def _after_restore():
+    """Back to the page that sent the backup: the first set-up (`next`), else Esporta → Backup."""
+    return redirect(safe_next() or url_for("export.index") + "#backup")
 
 
 @export_bp.route("/backup/encrypted", methods=["POST"])

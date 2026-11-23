@@ -1,0 +1,30 @@
+{% extends "onboarding/_layout.html" %}
+{% from "onboarding/_macros.html" import actions with context %}
+{% block intro %}<p class="text-muted">{{ _('Per ogni conto, come vuoi far arrivare i movimenti. Si apre in una nuova scheda: quando hai finito torni qui.') }}</p>{% endblock %}
+{% block body %}
+{% if made %}
+<div class="onb-accounts">
+  {% for a in made %}
+  <div class="onb-account">
+    <div class="onb-account-name"><i class="bi bi-{{ icons.get(a.kind, 'wallet2') }}" aria-hidden="true"></i> <strong>{{ a.name }}</strong>{% if a.bank %} <span class="text-muted text-sm">· {{ a.bank }}</span>{% endif %}</div>
+    <div class="onb-account-ways">
+      <a class="onb-way" href="{{ url_for('accounts.edit', account_id=a.id) }}#bank-link" target="_blank" rel="noopener">
+        <i class="bi bi-link-45deg" aria-hidden="true"></i><strong>{{ _('Collega la banca') }}</strong>
+        <span>{{ _('I movimenti arrivano da soli (PSD2) e il saldo si allinea a quello della banca.') }}</span></a>
+      <a class="onb-way" href="{{ url_for('export.import_page') }}" target="_blank" rel="noopener">
+        <i class="bi bi-file-earmark-arrow-up" aria-hidden="true"></i><strong>{{ _('Carica un estratto conto') }}</strong>
+        <span>{{ _('Excel, CSV o PDF scaricato dall\'home banking.') }}</span></a>
+      <div class="onb-way onb-way-plain">
+        <i class="bi bi-pencil" aria-hidden="true"></i><strong>{{ _('A mano') }}</strong>
+        <span>{{ _('Con il «+» in basso, quando spendi o incassi.') }}</span></div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p>{{ _('Non hai ancora aggiunto conti: puoi farlo tornando indietro, o più tardi da Conti e Carte.') }}</p>
+{% endif %}
+<form method="POST" id="onb-form"></form>
+<form method="POST" action="{{ url_for('onboarding.skip', name=step) }}" id="onb-skip"></form>
+{{ actions(form_id='onb-form') }}
+{% endblock %}

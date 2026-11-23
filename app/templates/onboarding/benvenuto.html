@@ -1,0 +1,40 @@
+{% extends "onboarding/_layout.html" %}
+{% block heading %}{{ _('Benvenuto in MyFinancePlace') }}{% endblock %}
+{% block body %}
+{# three short slides, then the choice; «Salta» goes straight to it #}
+<div class="onb-slides" id="onb-slides">
+  <section class="onb-slide">
+    <i class="bi bi-wallet2 onb-slide-icon" aria-hidden="true"></i>
+    <h2>{{ _('Tutti i tuoi soldi in un posto') }}</h2>
+    <p>{{ _('Conti, carte, investimenti, debiti e obiettivi: dove vanno i soldi, quanto risparmi, come cresce il patrimonio.') }}</p>
+  </section>
+  <section class="onb-slide" hidden>
+    <i class="bi bi-shield-lock onb-slide-icon" aria-hidden="true"></i>
+    <h2>{{ _('I dati restano tuoi') }}</h2>
+    <p>{{ _('L\'archivio sta sul tuo computer: niente account in un cloud. I numeri delle carte sono cifrati e puoi farne un backup quando vuoi.') }}</p>
+  </section>
+  <section class="onb-slide" hidden>
+    <i class="bi bi-magic onb-slide-icon" aria-hidden="true"></i>
+    <h2>{{ _('Pronto in pochi minuti') }}</h2>
+    <p>{{ _('Ti guidiamo passo passo: le preferenze, i tuoi conti con il saldo di oggi e come far arrivare i movimenti. Ogni passo si può saltare e rifare.') }}</p>
+  </section>
+  <div class="onb-dots" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
+</div>
+<form method="POST" action="{{ url_for('onboarding.skip', name='benvenuto') }}" id="onb-skip"></form>
+<div class="onb-actions">
+  <button type="submit" form="onb-skip" class="btn btn-ghost">{{ _('Salta') }}</button>
+  <button type="button" class="btn btn-primary" id="onb-next">{{ _('Avanti') }} <i class="bi bi-arrow-right"></i></button>
+</div>
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('.onb-slide')], dots = [...document.querySelectorAll('.onb-dots span')];
+  let at = 0;
+  document.getElementById('onb-next').addEventListener('click', () => {
+    if (at === slides.length - 1) { document.getElementById('onb-skip').requestSubmit(); return; }  // the last: on to the choice
+    slides[at].hidden = true; dots[at].classList.remove('on');
+    at += 1;
+    slides[at].hidden = false; dots[at].classList.add('on');
+  });
+})();
+</script>
+{% endblock %}

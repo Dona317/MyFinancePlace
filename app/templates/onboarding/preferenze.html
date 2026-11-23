@@ -1,0 +1,30 @@
+{% extends "onboarding/_layout.html" %}
+{% from "onboarding/_macros.html" import actions with context %}
+{% block intro %}<p class="text-muted">{{ _('La lingua dell\'app, la valuta in cui vedi i totali e come scrivere numeri e date. Si cambiano quando vuoi in Impostazioni.') }}</p>{% endblock %}
+{% block body %}
+<form method="POST" id="onb-form" class="onb-form">
+  <div class="form-group">
+    <label class="form-label" for="onb-language">{{ _('Lingua') }}</label>
+    <select name="language" id="onb-language" class="form-select" data-no-search>
+      {% for code, name in languages.items() %}<option value="{{ code }}" {{ 'selected' if settings.language == code }}>{{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="onb-currency">{{ _('Valuta dei totali') }}</label>
+    <select name="currency" id="onb-currency" class="form-select" data-no-search>
+      {% for code in currencies %}<option value="{{ code }}" {{ 'selected' if settings.currency == code }}>{{ code }}</option>{% endfor %}
+    </select>
+    <div class="form-hint">{{ _('I conti in altre valute restano nella loro: i totali vengono convertiti con i cambi.') }}</div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">{{ _('Numeri e date') }}</label>
+    <div class="onb-options">
+      {% for code, sample in locales.items() %}
+      <label class="onb-option"><input type="radio" name="locale" value="{{ code }}" {{ 'checked' if settings.locale == code }} /> <span class="font-mono">{{ sample }}</span></label>
+      {% endfor %}
+    </div>
+  </div>
+</form>
+<form method="POST" action="{{ url_for('onboarding.skip', name=step) }}" id="onb-skip"></form>
+{{ actions(form_id='onb-form') }}
+{% endblock %}

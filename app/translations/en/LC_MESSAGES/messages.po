@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 06:29+0000\n"
+"POT-Creation-Date: 2026-11-23 11:00+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -173,6 +173,10 @@ msgid ""
 "%(count)s colonne trovate (intestazione alla riga %(line)s), %(rows)s "
 "righe."
 msgstr "%(count)s columns found (header on row %(line)s), %(rows)s rows."
+
+#, python-format
+msgid "%(count)s conti creati."
+msgstr "%(count)s accounts created."
 
 #, python-format
 msgid "%(count)s controlli hanno trovato qualcosa da sistemare."
@@ -1268,8 +1272,14 @@ msgstr ""
 " balance, import statements into the right account and reconcile them "
 "with the bank."
 
+msgid "Aggiungi i tuoi conti"
+msgstr "Add your accounts"
+
 msgid "Aggiungi la tua prima transazione oppure importa da Excel."
 msgstr "Add your first transaction or import from Excel."
+
+msgid "Aggiungi le posizioni del portafoglio"
+msgstr "Add the positions of the portfolio"
 
 msgid "Aggiungi le selezionate"
 msgstr "Add the selected ones"
@@ -1701,6 +1711,9 @@ msgstr "Open the cash flow"
 msgid "Apri il portafoglio"
 msgstr "Open the portfolio"
 
+msgid "Apri la Dashboard"
+msgstr "Open the Dashboard"
+
 msgid "Apri le previsioni"
 msgstr "Open the forecast"
 
@@ -1769,6 +1782,9 @@ msgstr "Asia-Pacific"
 
 msgid "Asilo nido"
 msgstr "Nursery school"
+
+msgid "Aspetto"
+msgstr "Look"
 
 msgid "Assegna"
 msgstr "Assign"
@@ -1860,6 +1876,9 @@ msgstr ""
 msgid "Autunno"
 msgstr "Autumn"
 
+msgid "Avanti"
+msgstr "Next"
+
 msgid ""
 "Average buying price: il prezzo medio di carico di una quota, dalle "
 "operazioni registrate."
@@ -1932,6 +1951,9 @@ msgstr "Actions on the selection"
 
 msgid "Azioni, ETF, criptovalute, obbligazioni, conti risparmio"
 msgstr "Stocks, ETFs, crypto, bonds, savings accounts"
+
+msgid "Azioni, ETF, fondi, obbligazioni, cripto e conti titoli"
+msgstr "Shares, ETFs, funds, bonds, crypto and securities accounts"
 
 msgid "Azzera"
 msgstr "Reset"
@@ -2067,6 +2089,12 @@ msgstr "Consumer discretionary"
 
 msgid "Bentornato"
 msgstr "Welcome back"
+
+msgid "Benvenuto"
+msgstr "Welcome"
+
+msgid "Benvenuto in MyFinancePlace"
+msgstr "Welcome to MyFinancePlace"
 
 msgid "Benvenuto! Il tuo account amministratore è pronto."
 msgstr "Welcome! Your administrator account is ready."
@@ -2345,6 +2373,24 @@ msgstr ""
 "hand, linked to transactions and sorted by tax year. They are included in"
 " the backup."
 
+msgid ""
+"Carica il backup (.zip) o l'export: ritrovi conti, movimenti, "
+"investimenti e impostazioni."
+msgstr ""
+"Upload the backup (.zip) or the export: you get your accounts, movements,"
+" investments and settings back."
+
+msgid ""
+"Carica il backup completo (.zip, anche cifrato) fatto da Esporta → Backup"
+" su questo o su un altro computer: ritrovi conti, movimenti, "
+"investimenti, debiti, documenti e impostazioni. Va bene anche un export "
+"JSON delle transazioni."
+msgstr ""
+"Upload the full backup (.zip, encrypted too) made from Export → Backup on"
+" this or another computer: you get accounts, movements, investments, "
+"debts, documents and settings back. A JSON export of the transactions "
+"works too."
+
 msgid "Carica il file"
 msgstr "Upload the file"
 
@@ -2370,6 +2416,9 @@ msgstr "Load the history"
 
 msgid "Carica prima la bolletta in Documenti."
 msgstr "Upload the bill to Documents first."
+
+msgid "Carica un estratto conto"
+msgstr "Upload a bank statement"
 
 msgid "Carica un file"
 msgstr "Upload a file"
@@ -2639,6 +2688,14 @@ msgstr "Search…"
 msgid "Che cosa"
 msgstr "What"
 
+msgid ""
+"Chi c'è in casa e cosa vuoi seguire. Accendi solo le aree che ti servono:"
+" il menu resta più semplice e le riaccendi quando vuoi."
+msgstr ""
+"Who lives in the house and what you want to follow. Turn on only the "
+"areas you need: the menu stays simpler and you can turn them on again "
+"whenever you like."
+
 msgid "Chi l’ha fatto"
 msgstr "Who did it"
 
@@ -2651,6 +2708,12 @@ msgid ""
 msgstr ""
 "Who holds or co-holds the accounts. Also recognized with first and last "
 "name swapped, as many banks write them («ROSSI MARIO»)."
+
+msgid "Chiaro"
+msgstr "Light"
+
+msgid "Chiaro o scuro e il carattere dei testi: li vedi cambiare subito."
+msgstr "Light or dark and the font of the texts: you see them change at once."
 
 msgid "Chiave API Anthropic mancante o non valida (ANTHROPIC_API_KEY)."
 msgstr "Anthropic API key missing or invalid (ANTHROPIC_API_KEY)."
@@ -2861,6 +2924,9 @@ msgstr "Link the selected movements"
 msgid "Collega i titoli"
 msgstr "Link the holdings"
 
+msgid "Collega la banca"
+msgstr "Connect the bank"
+
 msgid ""
 "Collega la loro categoria a una voce qui sotto, oppure cambia la "
 "categoria della spesa."
@@ -3010,6 +3076,9 @@ msgid ""
 msgstr ""
 "How you already categorized similar transactions: the AI model was not "
 "asked"
+
+msgid "Come il computer"
+msgstr "Like the computer"
 
 msgid ""
 "Come lo Sharpe, ma conta solo i mesi andati sotto il tasso senza rischio:"
@@ -3183,6 +3252,13 @@ msgstr "With whom (separated by commas)"
 msgid "Con copertura del cambio (EUR hedged)"
 msgstr "Currency hedged (EUR hedged)"
 
+msgid ""
+"Con due o più persone ogni conto può essere di una di loro o cointestato,"
+" e il patrimonio si divide per persona."
+msgstr ""
+"With two or more people each account can belong to one of them or be "
+"joint, and the net worth is split by person."
+
 msgid "Con e senza passaggio alle obbligazioni"
 msgstr "With and without the shift to bonds"
 
@@ -3192,6 +3268,9 @@ msgid ""
 msgstr ""
 "With the exchange suffix: .MI Milan, .DE Xetra, .L London; none for the "
 "US."
+
+msgid "Con il «+» in basso, quando spendi o incassi."
+msgstr "With the «+» at the bottom, when you spend or receive."
 
 msgid ""
 "Con le categorie ampie il dettaglio è un tag: quello che la categoria "
@@ -3288,11 +3367,22 @@ msgstr "Set up the AI models"
 msgid "Configura in Gestione PSD2"
 msgstr "Set up in PSD2 management"
 
+msgid "Configura più tardi"
+msgstr "Set up later"
+
 msgid "Configura un modello AI"
 msgstr "Set up an AI model"
 
 msgid "Configurata"
 msgstr "Set up"
+
+msgid ""
+"Configurazione rimandata: la riprendi da Impostazioni → «Rifai la "
+"configurazione iniziale»."
+msgstr "Set-up postponed: pick it up from Settings → «Redo the initial set-up»."
+
+msgid "Configuriamo insieme preferenze e conti, in pochi minuti."
+msgstr "We set up preferences and accounts together, in a few minutes."
 
 msgid "Confronta"
 msgstr "Compare"
@@ -3402,6 +3492,9 @@ msgstr "Cash in other currencies (at the start)"
 msgid "Contanti in negativo"
 msgstr "Cash below zero"
 
+msgid "Contanti nel portafoglio (facoltativo)"
+msgstr "Cash in the wallet (optional)"
+
 msgid "Contanti per valuta"
 msgstr "Cash by currency"
 
@@ -3445,6 +3538,13 @@ msgstr "Accounts the payments arrive on"
 
 msgid "Conti titoli"
 msgstr "Securities accounts"
+
+msgid ""
+"Conti, carte, investimenti, debiti e obiettivi: dove vanno i soldi, "
+"quanto risparmi, come cresce il patrimonio."
+msgstr ""
+"Accounts, cards, investments, debts and goals: where the money goes, how "
+"much you save, how your net worth grows."
 
 msgid "Conto"
 msgstr "Account"
@@ -3566,6 +3666,9 @@ msgstr "Account «%(name)s» added."
 #, python-format
 msgid "Conto «%(name)s» eliminato: le sue transazioni restano, senza conto."
 msgstr "Account «%(name)s» deleted: its transactions remain, without an account."
+
+msgid "Contratti, fatture e scontrini collegati ai movimenti"
+msgstr "Contracts, invoices and receipts linked to the movements"
 
 msgid "Contratto"
 msgstr "Contract"
@@ -3704,6 +3807,9 @@ msgstr ""
 
 msgid "Cosa scade"
 msgstr "What is due"
+
+msgid "Cosa vuoi seguire"
+msgstr "What you want to follow"
 
 #, python-format
 msgid "Cosa è cambiato a %(month)s"
@@ -3931,6 +4037,9 @@ msgstr ""
 "Where income comes from and where it goes: income categories → expenses "
 "and savings"
 
+msgid "Da dove parti"
+msgstr "Where you start"
+
 msgid "Da dove vengono i numeri"
 msgstr "Where the numbers come from"
 
@@ -3939,6 +4048,9 @@ msgstr "Where the change comes from"
 
 msgid "Da dove viene ogni mese"
 msgstr "Where each month comes from"
+
+msgid "Da fare quando vuoi"
+msgstr "To do whenever you like"
 
 msgid "Da importare"
 msgstr "To import"
@@ -4163,6 +4275,9 @@ msgstr "Data read from the bill: check it and save."
 
 msgid "Debiti"
 msgstr "Debts"
+
+msgid "Debiti e mutui"
+msgstr "Debts and mortgages"
 
 msgid "Debiti in breve"
 msgstr "Debts at a glance"
@@ -4928,6 +5043,9 @@ msgstr ""
 "Forecast income, expenses and savings, when there are at least 3 months "
 "of history. A click opens the Forecast."
 
+msgid "Entrate, uscite, conti, budget e obiettivi ci sono sempre."
+msgstr "Income, expenses, accounts, budgets and goals are always there."
+
 msgid "Entrate: storico e previsione"
 msgstr "Income: history and forecast"
 
@@ -5141,6 +5259,9 @@ msgstr "Event for the selected ones"
 
 msgid "Evento salvato."
 msgstr "Event saved."
+
+msgid "Excel, CSV o PDF scaricato dall'home banking."
+msgstr "Excel, CSV or PDF downloaded from online banking."
 
 msgid ""
 "Excel, CSV, PDF, OFX, QIF, CAMT.053, TXT, Word o LibreOffice scaricato "
@@ -5780,6 +5901,9 @@ msgstr ""
 "You changed %(year)s transactions after it was closed: the saved "
 "statements no longer match the data."
 
+msgid "Hai già usato MyFinancePlace?"
+msgstr "Have you used MyFinancePlace before?"
+
 msgid ""
 "Hanno la precedenza sulle regole predefinite. «Imparata» = nata quando "
 "hai corretto la categoria di una transazione"
@@ -5796,6 +5920,9 @@ msgstr "I understand: it replaces the current investments"
 msgid "Ho capito: un backup completo"
 msgstr "I understand: a full backup"
 
+msgid "Ho già un archivio"
+msgstr "I already have an archive"
+
 msgid "Ho prestato o anticipato"
 msgstr "I lent or paid in advance"
 
@@ -5810,6 +5937,22 @@ msgstr ""
 "stay with the family."
 
 msgid ""
+"I conti e le carte che usi, con il saldo che leggi oggi in banca: è il "
+"punto di partenza giusto per la liquidità e il patrimonio. I movimenti li"
+" porti nel passo dopo."
+msgstr ""
+"The accounts and cards you use, with the balance you read at the bank "
+"today: the right starting point for cash and net worth. The movements "
+"come in the next step."
+
+msgid ""
+"I conti in altre valute restano nella loro: i totali vengono convertiti "
+"con i cambi."
+msgstr ""
+"Accounts in other currencies keep theirs: the totals are converted with "
+"the exchange rates."
+
+msgid ""
 "I controlli guardano tutto l'archivio: titoli, movimenti, conti e cambi. "
 "Si aggiornano ogni volta che apri la pagina."
 msgstr ""
@@ -5822,6 +5965,9 @@ msgid ""
 msgstr ""
 "A year's costs times the years, with the portfolio staying at today's "
 "value."
+
+msgid "I dati restano tuoi"
+msgstr "Your data stays yours"
 
 msgid ""
 "I guadagni di ETF e fondi esteri vanno nel quadro RM; le cripto in una "
@@ -5839,6 +5985,16 @@ msgstr ""
 
 msgid "I metodi"
 msgstr "The methods"
+
+msgid "I movimenti"
+msgstr "The movements"
+
+msgid ""
+"I movimenti arrivano da soli (PSD2) e il saldo si allinea a quello della "
+"banca."
+msgstr ""
+"The movements arrive by themselves (PSD2) and the balance follows the "
+"bank's."
 
 #, python-format
 msgid "I movimenti arrivano sul conto «%(name)s»."
@@ -5967,6 +6123,9 @@ msgstr ""
 "The securities sit in the securities account, the money on this account: "
 "purchases go out from here, sales and coupons come in here. In Portfolio "
 "the securities account is shown on its own."
+
+msgid "I tuoi conti"
+msgstr "Your accounts"
 
 msgid "I tuoi modelli"
 msgstr "Your models"
@@ -6656,6 +6815,9 @@ msgstr "The total limit cannot be lower than the yearly one."
 msgid "Il tuo account"
 msgstr "Your account"
 
+msgid "Il tuo archivio"
+msgstr "Your archive"
+
 msgid "Il tuo menu è aggiornato."
 msgstr "Your menu is updated."
 
@@ -7270,7 +7432,9 @@ msgstr "Investment booked as an expense"
 msgid ""
 "Investimento: operazione su titoli (o la sua commissione). È anche nella "
 "scheda Investimenti e conta come investimento, non come spesa"
-msgstr "Investment: a trade of securities (or its commission). It is in the Investments tab too and counts as an investment, not as spending"
+msgstr ""
+"Investment: a trade of securities (or its commission). It is in the "
+"Investments tab too and counts as an investment, not as spending"
 
 msgid "Investito"
 msgstr "Invested"
@@ -7372,6 +7536,20 @@ msgstr ""
 
 msgid "L'archivio principale non si può eliminare."
 msgstr "The main archive cannot be deleted."
+
+msgid ""
+"L'archivio sta sul tuo computer: niente account in un cloud. I numeri "
+"delle carte sono cifrati e puoi farne un backup quando vuoi."
+msgstr ""
+"The archive lives on your computer: no account in a cloud. Card numbers "
+"are encrypted and you can back it up whenever you like."
+
+msgid ""
+"L'archivio è configurato. Lo trovi tutto nel menu a sinistra; con Ctrl+K "
+"cerchi qualsiasi pagina."
+msgstr ""
+"The archive is set up. Everything is in the menu on the left; Ctrl+K "
+"finds any page."
 
 msgid ""
 "L'assistente risponde da un riassunto dei tuoi numeri (saldi, spese per "
@@ -7596,6 +7774,13 @@ msgid ""
 "La linea tratteggiata grigia sono le uscite degli stessi mesi dell’anno "
 "prima."
 msgstr "The dashed grey line is the expenses of the same months a year before."
+
+msgid ""
+"La lingua dell'app, la valuta in cui vedi i totali e come scrivere numeri"
+" e date. Si cambiano quando vuoi in Impostazioni."
+msgstr ""
+"The language of the app, the currency of the totals and how numbers and "
+"dates are written. You can change them anytime in Settings."
 
 #, python-format
 msgid "La liquidità copre già i %(n)s mesi che hai scelto."
@@ -7863,6 +8048,9 @@ msgid ""
 msgstr ""
 "Images are not supported: download the PDF, Excel or CSV of the movements"
 " from online banking."
+
+msgid "Le persone, con nome e cognome (una per riga, facoltativo)"
+msgstr "The people, with first and last name (one per line, optional)"
 
 msgid "Le più vecchie si cancellano da sole."
 msgstr "The oldest are deleted automatically."
@@ -8145,6 +8333,9 @@ msgstr "Month-by-month lines for each income and expense category"
 
 msgid "Lingua"
 msgstr "Language"
+
+msgid "Lingua e valuta"
+msgstr "Language and currency"
 
 msgid "Liquidità"
 msgstr "Cash"
@@ -8796,6 +8987,9 @@ msgstr "Mortgages"
 
 msgid "Mutui, prestiti e scadenze"
 msgstr "Mortgages, loans and due dates"
+
+msgid "Mutui, prestiti, rate e piani di ammortamento"
+msgstr "Mortgages, loans, instalments and amortisation plans"
 
 msgid "Mutuo"
 msgstr "Mortgage"
@@ -9566,6 +9760,13 @@ msgstr "You have no access to this section."
 msgid "Non hai accesso a «%(name)s»"
 msgstr "You have no access to «%(name)s»"
 
+msgid ""
+"Non hai ancora aggiunto conti: puoi farlo tornando indietro, o più tardi "
+"da Conti e Carte."
+msgstr ""
+"You have not added accounts yet: go back to do it, or later from Accounts"
+" and Cards."
+
 msgid "Non hai ancora nessun conto."
 msgstr "You have no account yet."
 
@@ -9697,6 +9898,9 @@ msgstr "Notifications"
 
 msgid "Nov"
 msgstr "Nov"
+
+msgid "Numeri e date"
+msgstr "Numbers and dates"
 
 msgid "Numero con segno: −50,00 è un’uscita."
 msgstr "Signed number: −50.00 is an expense."
@@ -10384,6 +10588,10 @@ msgstr "Long-term liabilities"
 msgid "Passività correnti (entro 12 mesi)"
 msgstr "Current liabilities (within 12 months)"
 
+#, python-format
+msgid "Passo %(n)s di %(count)s"
+msgstr "Step %(n)s of %(count)s"
+
 msgid "Password"
 msgstr "Password"
 
@@ -10636,6 +10844,13 @@ msgstr ""
 "positions with. Without it, the comparison is with all the positions."
 
 msgid ""
+"Per ogni conto, come vuoi far arrivare i movimenti. Si apre in una nuova "
+"scheda: quando hai finito torni qui."
+msgstr ""
+"For each account, how you want the movements to come in. It opens in a "
+"new tab: when you are done, come back here."
+
+msgid ""
 "Per ogni dato dell’operazione scegli la colonna del file che lo contiene;"
 " i dati che il file non ha restano su «non presente». Dopo l’anteprima "
 "puoi salvare le colonne come preset, applicato da solo ai prossimi file "
@@ -10838,6 +11053,9 @@ msgstr "Customize the page."
 msgid "Personalizzato"
 msgstr "Custom"
 
+msgid "Persone e aree"
+msgstr "People and areas"
+
 #, python-format
 msgid "Pesa %(weight)s %% contro un obiettivo del %(target)s %%"
 msgstr "It weighs %(weight)s %% against a %(target)s %% target"
@@ -10963,6 +11181,12 @@ msgstr ""
 "of every client archive. The unread ones of the days the app was closed "
 "arrive as soon as it starts; each is repeated once a day until you mark "
 "it as seen in Notifications."
+
+msgid "Polizze, premi e scadenze"
+msgstr "Policies, premiums and due dates"
+
+msgid "Porta i movimenti: collega la banca o carica un estratto conto"
+msgstr "Bring in the movements: connect the bank or upload a statement"
 
 msgid "Portafogli"
 msgstr "Portfolios"
@@ -11468,6 +11692,9 @@ msgstr "Reminders to see"
 msgid "Pronti {count} file"
 msgstr "{count} files ready"
 
+msgid "Pronto in pochi minuti"
+msgstr "Ready in a few minutes"
+
 #, python-brace-format
 msgid "Pronto: {name}"
 msgstr "Ready: {name}"
@@ -11817,7 +12044,12 @@ msgid ""
 "«investimento»). Contano come investimenti, non come spese. Un movimento "
 "del conto che era un acquisto (un bonifico al broker) si aggiunge qui "
 "dall'elenco: selezionalo e scegli «Sposta negli investimenti»."
-msgstr "Here the purchases and sales of securities, with units, price and commission (they stay in the list of transactions too, marked «investment»). They count as investments, not as spending. A movement of the account that was a purchase (a transfer to the broker) is added here from the list: select it and choose «Move to investments»."
+msgstr ""
+"Here the purchases and sales of securities, with units, price and "
+"commission (they stay in the list of transactions too, marked "
+"«investment»). They count as investments, not as spending. A movement of "
+"the account that was a purchase (a transfer to the broker) is added here "
+"from the list: select it and choose «Move to investments»."
 
 msgid "Quota"
 msgstr "Share"
@@ -12351,6 +12583,9 @@ msgstr "Summary"
 msgid "Riepilogo %(year)s"
 msgstr "Summary %(year)s"
 
+msgid "Rifai la configurazione iniziale"
+msgstr "Redo the initial set-up"
+
 msgid "Rifiuti (TARI)"
 msgstr "Waste (TARI)"
 
@@ -12502,6 +12737,9 @@ msgstr "Restore Defaults"
 
 msgid "Ripristina gli investimenti"
 msgstr "Restore the investments"
+
+msgid "Ripristina l'archivio"
+msgstr "Restore the archive"
 
 msgid "Ripristina predefinito"
 msgstr "Restore default"
@@ -12675,6 +12913,9 @@ msgstr "Statement balance"
 msgid "Saldo di cassa previsto"
 msgstr "Expected cash balance"
 
+msgid "Saldo di oggi"
+msgstr "Today's balance"
+
 msgid "Saldo di oggi più il netto previsto di ogni mese"
 msgstr "Today's balance plus the expected net of each month"
 
@@ -12729,6 +12970,12 @@ msgstr "Remaining balance today (€)"
 #, python-format
 msgid "Saldo tra %(n)s mesi"
 msgstr "Balance in %(n)s months"
+
+msgid "Salta"
+msgstr "Skip"
+
+msgid "Salta questo passo"
+msgstr "Skip this step"
 
 msgid "Salute"
 msgstr "Health"
@@ -13073,6 +13320,9 @@ msgstr "Choose the folder to save the backups to."
 msgid "Scegli le colonne"
 msgstr "Choose the columns"
 
+msgid "Scegli le persone e le aree da seguire"
+msgstr "Choose the people and the areas to follow"
+
 msgid ""
 "Scegli le sezioni da vedere nel tuo menu: le altre spariscono solo per "
 "te, i dati restano e le riattivi qui quando vuoi. Dashboard e "
@@ -13093,6 +13343,9 @@ msgstr "Choose country and bank"
 
 msgid "Scegli quale transazione tenere."
 msgstr "Choose which transaction to keep."
+
+msgid "Scegli sopra il tipo di conto da aggiungere: ne puoi mettere quanti vuoi."
+msgstr "Choose above the kind of account to add: as many as you like."
 
 msgid "Scegli un altro modello"
 msgstr "Choose another model"
@@ -13291,6 +13544,9 @@ msgstr "Type a tag."
 msgid "Scrivi una domanda."
 msgstr "Write a question."
 
+msgid "Scuro"
+msgstr "Dark"
+
 msgid ""
 "Se dopo il consenso il browser resta su una pagina che non si carica, "
 "copia il suo indirizzo (contiene «code=» e «state=») e incollalo qui: il "
@@ -13299,6 +13555,13 @@ msgstr ""
 "If after the consent the browser stays on a page that does not load, copy"
 " its address (it contains «code=» and «state=») and paste it here: the "
 "link is completed."
+
+msgid ""
+"Se hai già un archivio (un backup, o i dati di un altro computer) lo "
+"riprendiamo; altrimenti partiamo da zero."
+msgstr ""
+"If you already have an archive (a backup, or the data of another "
+"computer) we take it back; otherwise we start from scratch."
 
 msgid "Se il formato del tuo file non viene riconosciuto"
 msgstr "If your file's format is not recognised"
@@ -13747,6 +14010,9 @@ msgid ""
 msgstr ""
 "Read-only sum of the group's archives, each with its own accounts, "
 "securities and debts. To correct a figure open the person's archive."
+
+msgid "Sono nuovo"
+msgstr "I'm new"
 
 msgid "Sospendi"
 msgstr "Pause"
@@ -14296,6 +14562,9 @@ msgstr "Risk-free rate saved."
 msgid "Tecnologia"
 msgstr "Technology"
 
+msgid "Tema"
+msgstr "Theme"
+
 msgid "Tema scuro per l'intera interfaccia — disponibile prossimamente"
 msgstr "Dark theme for the whole interface — coming soon"
 
@@ -14343,6 +14612,14 @@ msgstr "Three-fund portfolio"
 
 msgid "Ti devono"
 msgstr "Owed to you"
+
+msgid ""
+"Ti guidiamo passo passo: le preferenze, i tuoi conti con il saldo di oggi"
+" e come far arrivare i movimenti. Ogni passo si può saltare e rifare."
+msgstr ""
+"We guide you step by step: the preferences, your accounts with today's "
+"balance and how the movements come in. Every step can be skipped and "
+"redone."
 
 msgid "Ticker"
 msgstr "Ticker"
@@ -14828,6 +15105,9 @@ msgstr "All instrument types"
 msgid "Tutti i titoli"
 msgstr "All holdings"
 
+msgid "Tutti i tuoi soldi in un posto"
+msgstr "All your money in one place"
+
 msgid "Tutto assegnato"
 msgstr "All assigned"
 
@@ -14848,6 +15128,9 @@ msgstr "All in order."
 
 msgid "Tutto l’anno"
 msgstr "The whole year"
+
+msgid "Tutto pronto"
+msgstr "All set"
 
 #, python-format
 msgid "Tutto torna: al %(date)s il saldo dell'app è %(amount)s, come l'estratto."
@@ -16140,6 +16423,9 @@ msgstr "e.g. Luca, Sara"
 msgid "es. MSCI World, FTSE All-World"
 msgstr "e.g. MSCI World, FTSE All-World"
 
+msgid "es. Marco Rossi"
+msgstr "e.g. Marco Rossi"
+
 msgid "es. Mario Rossi"
 msgstr "e.g. John Smith"
 
@@ -17332,6 +17618,10 @@ msgstr "“%(path)s” not found in the answer"
 #, python-format
 msgid "«%(ticker)s» non trovato su Stooq"
 msgstr "«%(ticker)s» not found on Stooq"
+
+#, python-format
+msgid "«%(value)s» non è un importo: scrivi il saldo come 1.234,56."
+msgstr "«%(value)s» is not an amount: write the balance as 1,234.56."
 
 #, python-format
 msgid "«%(value)s» non è un prezzo"

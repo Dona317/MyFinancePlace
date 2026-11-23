@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from apiflask import APIBlueprint
-from flask import jsonify, redirect, render_template, request, url_for
+from flask import current_app, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from app.models.wealth import Debt, Holding
@@ -13,6 +13,7 @@ from app.services import (
     encrypted_backup,
     forecast,
     i18n,
+    onboarding,
     open_banking,
     performance,
     portfolio_overview,
@@ -169,6 +170,9 @@ def index():
 
 @dashboard_bp.route("/dashboard")
 def dashboard():
+    # F109: an empty archive never set up starts with the tutorial (the tests turn it on where they need it)
+    if (not current_app.testing or current_app.config.get("ONBOARDING")) and onboarding.needed():
+        return redirect(url_for("onboarding.index"))
     valuations.refresh_daily()  # the depreciation of the cars and the like, once a day
     price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
     encrypted_backup.run_in_background()  # the automatic encrypted backup, when due

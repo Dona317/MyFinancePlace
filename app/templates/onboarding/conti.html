@@ -1,0 +1,54 @@
+{% extends "onboarding/_layout.html" %}
+{% from "onboarding/_macros.html" import actions with context %}
+{% block intro %}<p class="text-muted">{{ _('I conti e le carte che usi, con il saldo che leggi oggi in banca: è il punto di partenza giusto per la liquidità e il patrimonio. I movimenti li porti nel passo dopo.') }}</p>{% endblock %}
+{% block body %}
+<form method="POST" id="onb-form" class="onb-form">
+  <div class="onb-kinds" role="group" aria-label="{{ _('Aggiungi un conto') }}">
+    {% for key, label in kinds.items() %}
+    <button type="button" class="onb-kind" data-kind="{{ key }}" data-label="{{ label }}"><i class="bi bi-{{ icons.get(key, 'wallet2') }}" aria-hidden="true"></i> {{ label }}</button>
+    {% endfor %}
+  </div>
+  <div class="onb-rows" id="onb-rows"></div>
+  <p class="onb-empty text-muted text-sm" id="onb-empty">{{ _('Scegli sopra il tipo di conto da aggiungere: ne puoi mettere quanti vuoi.') }}</p>
+  <template id="onb-row">
+    <div class="onb-row">
+      <i class="bi onb-row-icon" aria-hidden="true"></i>
+      <input type="hidden" name="kind" />
+      <label class="onb-field"><span>{{ _('Nome') }}</span><input type="text" name="name" class="form-control" maxlength="80" required /></label>
+      <label class="onb-field"><span>{{ _('Banca') }}</span><input type="text" name="bank" class="form-control" maxlength="80" placeholder="{{ _('es. Fineco') }}" /></label>
+      <label class="onb-field onb-field-amount"><span>{{ _('Saldo di oggi') }}</span><input type="text" inputmode="decimal" name="balance" class="form-control" placeholder="0,00" /></label>
+      {% if owner_choices %}<label class="onb-field"><span>{{ _('Di chi') }}</span><select name="owner" class="form-select" data-no-search><option value="">{{ _('Famiglia') }}</option>{% for v, l in owner_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></label>{% endif %}
+      <button type="button" class="btn btn-ghost btn-icon onb-row-remove" title="{{ _('Togli') }}" aria-label="{{ _('Togli') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+  </template>
+  <div class="form-group onb-cash">
+    <label class="form-label" for="onb-cash"><i class="bi bi-cash-coin" aria-hidden="true"></i> {{ _('Contanti nel portafoglio (facoltativo)') }}</label>
+    <input type="text" inputmode="decimal" name="cash" id="onb-cash" class="form-control" placeholder="0,00"
+           value="{{ cash.opening_balance|number(2) if cash and cash.opening_balance else '' }}" />
+  </div>
+</form>
+<form method="POST" action="{{ url_for('onboarding.skip', name=step) }}" id="onb-skip"></form>
+{{ actions(form_id='onb-form') }}
+<script>
+(() => {
+  const rows = document.getElementById('onb-rows'), template = document.getElementById('onb-row');
+  const empty = document.getElementById('onb-empty');
+  const icons = {{ icons|tojson }};
+  const count = {};
+  const paint = () => { empty.hidden = rows.children.length > 0; };
+  document.querySelectorAll('.onb-kind').forEach(button => button.addEventListener('click', () => {
+    const row = template.content.firstElementChild.cloneNode(true);
+    const kind = button.dataset.kind;
+    count[kind] = (count[kind] || 0) + 1;
+    row.querySelector('[name=kind]').value = kind;
+    row.querySelector('.onb-row-icon').classList.add('bi-' + (icons[kind] || 'wallet2'));
+    row.querySelector('[name=name]').value = button.dataset.label + (count[kind] > 1 ? ' ' + count[kind] : '');
+    row.querySelector('.onb-row-remove').addEventListener('click', () => { row.remove(); paint(); });
+    rows.appendChild(row);
+    paint();
+    row.querySelector('[name=bank]').focus();
+  }));
+  paint();
+})();
+</script>
+{% endblock %}

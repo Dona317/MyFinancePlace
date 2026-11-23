@@ -1,0 +1,42 @@
+{% extends "onboarding/_layout.html" %}
+{% from "onboarding/_macros.html" import actions with context %}
+{% block intro %}<p class="text-muted">{{ _('Chiaro o scuro e il carattere dei testi: li vedi cambiare subito.') }}</p>{% endblock %}
+{% block body %}
+<form method="POST" id="onb-form" class="onb-form">
+  <div class="form-group">
+    <label class="form-label">{{ _('Tema') }}</label>
+    <div class="onb-options onb-themes">
+      {% for value, label, icon in [('light', _('Chiaro'), 'sun'), ('dark', _('Scuro'), 'moon-stars'), ('auto', _('Come il computer'), 'circle-half')] %}
+      <label class="onb-option onb-theme"><input type="radio" name="theme" value="{{ value }}" data-theme-choice /> <i class="bi bi-{{ icon }}" aria-hidden="true"></i> {{ label }}</label>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">{{ _('Carattere') }}</label>
+    <div class="onb-options">
+      {% for key, (name, family) in fonts.items() %}
+      <label class="onb-option"><input type="radio" name="font" value="{{ key }}" {{ 'checked' if settings.font == key }} data-font-choice /> <span style="font-family: {{ family }}, sans-serif;">{{ name }} — 1.234,56 €</span></label>
+      {% endfor %}
+    </div>
+  </div>
+</form>
+<form method="POST" action="{{ url_for('onboarding.skip', name=step) }}" id="onb-skip"></form>
+{{ actions(form_id='onb-form') }}
+<script>
+(() => {
+  // the theme is this browser's choice (as the ☀/☾ button of the menu): applied and remembered at once
+  const saved = (() => { try { return localStorage.getItem('mfp-theme'); } catch (e) { return null; } })() || 'auto';
+  document.querySelectorAll('[data-theme-choice]').forEach(input => {
+    input.checked = input.value === saved;
+    input.addEventListener('change', () => {
+      const dark = input.value === 'dark' || (input.value === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      try { if (input.value === 'auto') localStorage.removeItem('mfp-theme'); else localStorage.setItem('mfp-theme', input.value); } catch (e) { /* private mode */ }
+    });
+  });
+  document.querySelectorAll('[data-font-choice]').forEach(input => input.addEventListener('change', () => {
+    document.documentElement.dataset.font = input.value;
+  }));
+})();
+</script>
+{% endblock %}

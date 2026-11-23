@@ -1,0 +1,19 @@
+{% extends "onboarding/_layout.html" %}
+{% from "onboarding/_macros.html" import actions with context %}
+{% block intro %}<p class="text-muted">{{ _('Carica il backup completo (.zip, anche cifrato) fatto da Esporta → Backup su questo o su un altro computer: ritrovi conti, movimenti, investimenti, debiti, documenti e impostazioni. Va bene anche un export JSON delle transazioni.') }}</p>{% endblock %}
+{% block body %}
+<form method="POST" action="{{ url_for('export.restore') }}" enctype="multipart/form-data" id="onb-form" class="onb-form">
+  <input type="hidden" name="next" value="{{ url_for('onboarding.step', name='fine') }}" />
+  <input type="hidden" name="confirm" value="1" />
+  <div class="form-group">
+    <label class="form-label" for="onb-backup">{{ _('File di backup') }}</label>
+    <input type="file" name="file" id="onb-backup" class="form-control" accept=".zip,.json,.mfpbackup" required />
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="onb-password">{{ _('Password (solo per un backup cifrato)') }}</label>
+    <input type="password" name="password" id="onb-password" class="form-control" autocomplete="off" />
+  </div>
+</form>
+<form method="POST" action="{{ url_for('onboarding.skip', name=step) }}" id="onb-skip"></form>
+{{ actions(next_label=_('Ripristina l\'archivio'), form_id='onb-form') }}
+{% endblock %}

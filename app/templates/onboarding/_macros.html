@@ -1,0 +1,10 @@
+{# The buttons under a step of the first set-up (F109) #}
+{% macro actions(next_label=none, skippable=true, form_id=none) %}
+<div class="onb-actions">
+  {% if back %}<a href="{{ url_for('onboarding.step', name=back) }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> {{ _('Indietro') }}</a>{% else %}<span></span>{% endif %}
+  <div class="onb-actions-right">
+    {% if skippable %}<button type="submit" form="onb-skip" class="btn btn-ghost">{{ _('Salta questo passo') }}</button>{% endif %}
+    <button type="submit" class="btn btn-primary"{% if form_id %} form="{{ form_id }}"{% endif %}>{{ next_label or _('Avanti') }} <i class="bi bi-arrow-right"></i></button>
+  </div>
+</div>
+{% endmacro %}

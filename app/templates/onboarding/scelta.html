@@ -1,0 +1,18 @@
+{% extends "onboarding/_layout.html" %}
+{% block heading %}{{ _('Hai già usato MyFinancePlace?') }}{% endblock %}
+{% block body %}
+<p class="text-muted">{{ _('Se hai già un archivio (un backup, o i dati di un altro computer) lo riprendiamo; altrimenti partiamo da zero.') }}</p>
+<form method="POST" class="onb-choices">
+  <button type="submit" name="path" value="new" class="onb-choice">
+    <i class="bi bi-stars" aria-hidden="true"></i>
+    <strong>{{ _('Sono nuovo') }}</strong>
+    <span>{{ _('Configuriamo insieme preferenze e conti, in pochi minuti.') }}</span>
+  </button>
+  <button type="submit" name="path" value="existing" class="onb-choice">
+    <i class="bi bi-archive" aria-hidden="true"></i>
+    <strong>{{ _('Ho già un archivio') }}</strong>
+    <span>{{ _('Carica il backup (.zip) o l\'export: ritrovi conti, movimenti, investimenti e impostazioni.') }}</span>
+  </button>
+</form>
+{% if back %}<div class="onb-actions"><a href="{{ url_for('onboarding.step', name=back) }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> {{ _('Indietro') }}</a><span></span></div>{% endif %}
+{% endblock %}

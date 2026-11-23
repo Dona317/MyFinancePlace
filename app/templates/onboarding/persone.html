@@ -1,0 +1,26 @@
+{% extends "onboarding/_layout.html" %}
+{% from "onboarding/_macros.html" import actions with context %}
+{% block intro %}<p class="text-muted">{{ _('Chi c\'è in casa e cosa vuoi seguire. Accendi solo le aree che ti servono: il menu resta più semplice e le riaccendi quando vuoi.') }}</p>{% endblock %}
+{% block body %}
+<form method="POST" id="onb-form" class="onb-form">
+  <div class="form-group">
+    <label class="form-label" for="onb-holders">{{ _('Le persone, con nome e cognome (una per riga, facoltativo)') }}</label>
+    <textarea name="holders" id="onb-holders" class="form-control" rows="3" placeholder="{{ _('es. Marco Rossi') }}">{{ holders|join('\n') }}</textarea>
+    <div class="form-hint">{{ _('Con due o più persone ogni conto può essere di una di loro o cointestato, e il patrimonio si divide per persona.') }}</div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">{{ _('Cosa vuoi seguire') }}</label>
+    <div class="onb-areas">
+      {% for key, label, hint in modules %}
+      <label class="onb-area">
+        <input type="checkbox" name="modules" value="{{ key }}" {{ 'checked' if settings[key] }} />
+        <span><strong>{{ label }}</strong><span class="text-xs text-muted">{{ hint }}</span></span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="form-hint">{{ _('Entrate, uscite, conti, budget e obiettivi ci sono sempre.') }}</div>
+  </div>
+</form>
+<form method="POST" action="{{ url_for('onboarding.skip', name=step) }}" id="onb-skip"></form>
+{{ actions(form_id='onb-form') }}
+{% endblock %}

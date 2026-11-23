@@ -1,0 +1,33 @@
+{# F109: a step of the first set-up — full page, no menu; a bar with the step reached; one primary action (Avanti),
+   «Salta questo passo» and «Indietro» light; «Configura più tardi» leaves it for Impostazioni. #}
+{% extends "base.html" %}
+{% block title %}{{ title }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="onb">
+  <div class="onb-top">
+    <span class="onb-brand"><i class="bi bi-stars" aria-hidden="true"></i> MyFinancePlace</span>
+    {% if step != 'fine' %}
+    <form method="POST" action="{{ url_for('onboarding.finish') }}">
+      <input type="hidden" name="later" value="1" />
+      <button type="submit" class="btn btn-ghost btn-sm">{{ _('Configura più tardi') }}</button>
+    </form>
+    {% endif %}
+  </div>
+  {% if position %}
+  <div class="onb-progress" role="progressbar" aria-valuemin="1" aria-valuemax="{{ count }}" aria-valuenow="{{ position }}"
+       aria-label="{{ _('Passo %(n)s di %(count)s', n=position, count=count) }}">
+    <span style="width: {{ (position / count * 100)|round }}%"></span>
+  </div>
+  <div class="onb-step text-xs text-muted">{{ _('Passo %(n)s di %(count)s', n=position, count=count) }}</div>
+  {% endif %}
+  <div class="card onb-card">
+    <div class="card-body">
+      <h1 class="onb-title">{% block heading %}{{ title }}{% endblock %}</h1>
+      {% block intro %}{% endblock %}
+      {% block body %}{% endblock %}
+    </div>
+  </div>
+  {% block after %}{% endblock %}
+</div>
+{% endblock %}
