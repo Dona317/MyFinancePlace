@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "partials/info.html" import info %}
+{% from "partials/empty.html" import empty_state %}
+{% block title %}{{ _('Cambi') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Dati') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('data.index') }}">{{ _('Dati') }}</a></li><li>{{ _('Cambi') }}</li>{% endblock %}
+{% block topbar_actions %}
+  <form method="POST" action="{{ url_for('data.rates_download') }}">
+    <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-cloud-download"></i> {{ _('Scarica i cambi BCE') }}</button>
+  </form>
+{% endblock %}
+{% block content %}
+{% set active = 'rates' %}{% include "data/_tabs.html" %}
+{# 23 Nov 2026: the currencies in use and where their rates are missing — a movement without a rate is counted 1:1 #}
+{% if problems %}
+<div class="alert alert-warning mb-16" style="display:block;">
+  <i class="bi bi-exclamation-triangle"></i>
+  {{ ngettext('%(num)d valuta ha cambi mancanti o vecchi: i totali in %(base)s possono essere sbagliati.', '%(num)d valute hanno cambi mancanti o vecchi: i totali in %(base)s possono essere sbagliati.', problems, base=base) }}
+</div>
+{% endif %}
+<div class="card">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-currency-exchange"></i> {{ _('Le valute che usi') }}
+      {{ info(_('Le valute diverse da quella dei totali che compaiono nei conti, nei movimenti o nei titoli. I cambi arrivano dalla BCE (una volta al giorno con i dati da internet accesi, o con «Scarica i cambi BCE»): la prima volta tutto lo storico che serve, poi gli ultimi giorni. Un movimento datato prima del primo cambio conta 1:1, cioè come se la valuta valesse un euro: va sistemato.'), _('Cambi')) }}</div>
+    <div class="card-header-sub">{{ _('Da quando servono, cosa c\'è e cosa manca.') }}</div>
+  </div></div>
+  {% if rows %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Valuta') }}</th><th>{{ _('Serve dal') }}</th><th>{{ _('Cambi presenti') }}</th><th>{{ _('Cosa manca') }}</th><th>{{ _('Fonte') }}</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><span class="fx-status fx-{{ r.status }}" title="{{ {'ok': _('Tutto a posto'), 'warning': _('Da guardare'), 'missing': _('Mancano cambi')}[r.status] }}"></span>
+            <strong class="font-mono">{{ r.code }}</strong></td>
+          <td class="nowrap">{{ r.needed_from|it_date }}</td>
+          <td class="nowrap">{% if r.count %}{{ r.first|it_date }} → {{ r.last|it_date }}<div class="text-xs text-muted">{{ _('%(n)s giorni', n=r.count) }}</div>{% else %}<span class="text-negative">{{ _('nessuno') }}</span>{% endif %}</td>
+          <td class="text-sm">
+            {% if r.uncovered %}<div class="text-negative"><i class="bi bi-exclamation-circle"></i> {{ ngettext('%(num)d movimento prima del primo cambio: contato 1:1', '%(num)d movimenti prima del primo cambio: contati 1:1', r.uncovered) }}</div>{% endif %}
+            {% if r.late_start %}<div>{{ _('Lo storico parte tardi: servirebbe dal %(day)s', day=r.needed_from|it_date) }}</div>{% endif %}
+            {% if r.holes %}<div>{{ ngettext('%(num)d buco', '%(num)d buchi', r.holes|length) }}: {% for a, b in r.holes[:3] %}{{ a|it_date }}–{{ b|it_date }}{{ ', ' if not loop.last }}{% endfor %}{{ '…' if r.holes|length > 3 }}</div>{% endif %}
+            {% if r.stale %}<div>{{ _('Ultimo cambio vecchio (%(day)s)', day=r.last|it_date) }}</div>{% endif %}
+            {% if r.status == 'ok' %}<span class="text-positive"><i class="bi bi-check-lg"></i> {{ _('niente') }}</span>{% endif %}
+          </td>
+          <td class="text-sm">{{ r.sources|map('upper')|join(', ') or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body">{{ empty_state(text=_('Usi solo %(base)s: non servono cambi.', base=base), icon='bi-currency-exchange', compact=True) }}</div>
+  {% endif %}
+  <div class="card-body text-sm text-muted" style="border-top:1px solid var(--clr-border-light);">
+    {{ _('Un cambio a mano (per una valuta che la BCE non pubblica):') }} <a href="{{ url_for('settings.currencies_page') }}">{{ _('Impostazioni → Valute') }}</a>
+  </div>
+</div>
+{% endblock %}

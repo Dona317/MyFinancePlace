@@ -158,8 +158,14 @@ def test_the_button_and_the_prices_page(client, db, store, monkeypatch):
     settings_store.set_json("ui.settings", {"prices_online": True})
     monkeypatch.setattr(history_filler, "SOURCES", (("yahoo", lambda s, a, b: daily(history_filler.trading_days(a, b))),))
     monkeypatch.setattr(history_filler, "_bytes", lambda address: b"x")
-    done = client.post("/portfolio/market/fill", follow_redirects=True).get_data(as_text=True)
-    assert "Storico dei tuoi titoli: 1 titoli" in done and "Riempi i buchi ora" in done
+    app = client.application
+    app.config["PRICES_SYNC"] = True
+    try:
+        done = client.post("/portfolio/market/fill", follow_redirects=True).get_data(as_text=True)
+    finally:
+        app.config["PRICES_SYNC"] = False
+    assert "Aggiornamento dei dati avviato" in done and "Riempi i buchi ora" in done
+    assert history_filler.status()["summary"]["instruments"] == 1
 
 
 def test_the_network_readers(app, monkeypatch):
@@ -194,15 +200,16 @@ def test_pence_and_currencies_without_rates(app, db, store):
 
 def test_the_background_thread(app, db, store, monkeypatch):
     calls = []
-    monkeypatch.setattr(history_filler, "run", lambda: calls.append("run"))
+    monkeypatch.setattr(history_filler, "run", lambda progress=None: calls.append("run") or history_filler.Run([]))
     history_filler._running.add("k")
     history_filler._thread(app, None, "k")
     assert calls == ["run"] and "k" not in history_filler._running
 
-    def boom():
+    def boom(progress=None):
         raise RuntimeError("x")
     monkeypatch.setattr(history_filler, "run", boom)
     history_filler._thread(app, None, "k")  # logged, never raised
+    assert history_filler._status["k"]["summary"]["errors"] == ["errore imprevisto"]
 
 
 def test_an_isin_gets_its_ticker_and_a_second_run_reads_only_the_last_rates(app, db, store, monkeypatch):

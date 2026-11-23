@@ -77,7 +77,7 @@ def test_sidebar_sections_are_collapsible(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
     # UI-34: Dashboard, Transazioni, Portfolio, Obiettivi on top; the rest in «Da smistare», closed at first
     sections = re.findall(r'<div class="nav-section(?: collapsed)?" data-section="(\w+)"', html)
-    assert sections == ["altro"]
+    assert sections == ["dati", "altro"]  # Dati (Cambi, Prezzi storici), then «Da smistare»
     top = html.split('<div class="nav-top">')[1].split("</div>")[0]
     assert [label for label in re.findall(r'<span class="nav-label"[^>]*>([^<]+)</span>', top)] == [
         "Dashboard", "Transazioni", "Portfolio", "Obiettivi"]

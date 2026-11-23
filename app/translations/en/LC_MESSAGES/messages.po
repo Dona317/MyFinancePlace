@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 18:25+0000\n"
+"POT-Creation-Date: 2026-11-23 18:34+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -482,6 +482,10 @@ msgid "%(n)s conti collegati alla banca"
 msgstr "%(n)s accounts connected to the bank"
 
 #, python-format
+msgid "%(n)s giorni"
+msgstr "%(n)s days"
+
+#, python-format
 msgid "%(n)s mesi"
 msgstr "%(n)s months"
 
@@ -554,6 +558,12 @@ msgid "%(name)s: versato"
 msgstr "%(name)s: paid in"
 
 #, python-format
+msgid "%(num)d buco"
+msgid_plural "%(num)d buchi"
+msgstr[0] "%(num)d hole"
+msgstr[1] "%(num)d holes"
+
+#, python-format
 msgid "%(num)d categoria confermata."
 msgid_plural "%(num)d categorie confermate."
 msgstr[0] "%(num)d category confirmed."
@@ -592,6 +602,12 @@ msgid "%(num)d movimento"
 msgid_plural "%(num)d movimenti"
 msgstr[0] "%(num)d movement"
 msgstr[1] "%(num)d movements"
+
+#, python-format
+msgid "%(num)d movimento prima del primo cambio: contato 1:1"
+msgid_plural "%(num)d movimenti prima del primo cambio: contati 1:1"
+msgstr[0] "%(num)d movement before the first rate: counted 1:1"
+msgstr[1] "%(num)d movements before the first rate: counted 1:1"
 
 #, python-format
 msgid "%(num)d movimento sembra già presente"
@@ -668,6 +684,20 @@ msgstr[0] ""
 msgstr[1] ""
 "%(num)d encrypted values cannot be read with this key (they come from "
 "another computer): paste that computer's key below."
+
+#, python-format
+msgid ""
+"%(num)d valuta ha cambi mancanti o vecchi: i totali in %(base)s possono "
+"essere sbagliati."
+msgid_plural ""
+"%(num)d valute hanno cambi mancanti o vecchi: i totali in %(base)s "
+"possono essere sbagliati."
+msgstr[0] ""
+"%(num)d currency has missing or old rates: the totals in %(base)s may be "
+"wrong."
+msgstr[1] ""
+"%(num)d currencies have missing or old rates: the totals in %(base)s may "
+"be wrong."
 
 #, python-format
 msgid "%(num)s bloccata"
@@ -1253,6 +1283,18 @@ msgid ""
 msgstr ""
 "Update it whenever you like (also all at once from «Update prices»): "
 "empty = worth what you paid."
+
+#, python-format
+msgid "Aggiornamento dati: %(done)s di %(total)s"
+msgstr "Updating data: %(done)s of %(total)s"
+
+msgid "Aggiornamento dati: cambi BCE"
+msgstr "Updating data: ECB rates"
+
+msgid ""
+"Aggiornamento dei dati avviato: lo segui in basso, puoi continuare a "
+"usare l'app."
+msgstr "Data update started: follow it at the bottom, you can keep using the app."
 
 msgid "Aggiornato"
 msgstr "Updated"
@@ -2308,6 +2350,9 @@ msgstr "Maximum drawdown"
 
 msgid "Calo massimo dal picco"
 msgstr "Largest fall from the peak"
+
+msgid "Cambi"
+msgstr "Exchange rates"
 
 #, python-format
 msgid "Cambi BCE di %(codes)s: %(count)s nuovi."
@@ -3873,6 +3918,9 @@ msgstr ""
 "by holding, of the value times these weights; without this data the "
 "holding counts with the region and sector of its page."
 
+msgid "Cosa manca"
+msgstr "What is missing"
+
 msgid "Cosa scade"
 msgstr "What is due"
 
@@ -4120,6 +4168,9 @@ msgstr "Where each month comes from"
 msgid "Da fare quando vuoi"
 msgstr "To do whenever you like"
 
+msgid "Da guardare"
+msgstr "To check"
+
 msgid "Da importare"
 msgstr "To import"
 
@@ -4154,6 +4205,9 @@ msgstr "From several holdings (%(count)s): see the orders"
 
 msgid "Da quando conta nello stato patrimoniale dei mesi passati."
 msgstr "From when it counts in the balance sheet of past months."
+
+msgid "Da quando servono, cosa c'è e cosa manca."
+msgstr "From when they are needed, what is there and what is missing."
 
 msgid "Da restituire entro (facoltativo)"
 msgstr "To be given back by (optional)"
@@ -4332,6 +4386,13 @@ msgstr "Expiry date"
 
 msgid "Data obiettivo"
 msgstr "Target date"
+
+msgid "Dati"
+msgstr "Data"
+
+#, python-format
+msgid "Dati aggiornati: %(closes)s chiusure, %(holes)s buchi rimasti"
+msgstr "Data updated: %(closes)s closes, %(holes)s holes left"
 
 msgid "Dati al"
 msgstr "Data as of"
@@ -7151,6 +7212,9 @@ msgstr "Settings reset to the defaults."
 msgid "Impostazioni salvate con successo."
 msgstr "Settings saved successfully."
 
+msgid "Impostazioni → Valute"
+msgstr "Settings → Currencies"
+
 msgid "Imposte"
 msgstr "Taxes"
 
@@ -8326,6 +8390,23 @@ msgstr ""
 msgid "Le uscite per gruppo di spesa e, dentro, per categoria."
 msgstr "Expenses by spending group and, inside, by category."
 
+msgid "Le valute che usi"
+msgstr "The currencies you use"
+
+msgid ""
+"Le valute diverse da quella dei totali che compaiono nei conti, nei "
+"movimenti o nei titoli. I cambi arrivano dalla BCE (una volta al giorno "
+"con i dati da internet accesi, o con «Scarica i cambi BCE»): la prima "
+"volta tutto lo storico che serve, poi gli ultimi giorni. Un movimento "
+"datato prima del primo cambio conta 1:1, cioè come se la valuta valesse "
+"un euro: va sistemato."
+msgstr ""
+"The currencies other than the totals' one used in accounts, movements or "
+"holdings. Rates come from the ECB (once a day with online data on, or "
+"with «Download ECB rates»): the first time the whole history needed, then"
+" the last days. A movement dated before the first rate counts 1:1, as if "
+"the currency were worth one euro: it needs fixing."
+
 msgid "Legge"
 msgstr "Reads"
 
@@ -8506,6 +8587,10 @@ msgstr ""
 "The same security in several archives (same ISIN or ticker) is a single "
 "row."
 
+#, python-format
+msgid "Lo storico parte tardi: servirebbe dal %(day)s"
+msgstr "The history starts late: it is needed from %(day)s"
+
 msgid "Locale (Ollama) — i dati restano sul computer"
 msgstr "Local (Ollama) — the data stays on the computer"
 
@@ -8565,6 +8650,9 @@ msgstr "%(amount)s to go (%(progress)s%% reached)"
 #, python-format
 msgid "Mancano %(amount)s; sposta la data o aggiungi un versamento"
 msgstr "%(amount)s to go; move the date or add a deposit"
+
+msgid "Mancano cambi"
+msgstr "Rates missing"
 
 msgid "Manuale"
 msgstr "Manual"
@@ -9100,6 +9188,9 @@ msgstr "No."
 
 msgid "Nascondi"
 msgstr "Hide"
+
+msgid "Nascondi (l'aggiornamento continua)"
+msgstr "Hide (the update goes on)"
 
 msgid "Nascondi gli importi"
 msgstr "Hide the amounts"
@@ -9717,6 +9808,9 @@ msgstr "No transactions selected."
 
 msgid "Nessuna uscita"
 msgstr "No expenses"
+
+msgid "Nessuna valuta diversa dall'euro in uso: non servono cambi."
+msgstr "No currency other than the euro in use: no rates needed."
 
 msgid "Nessuna vendita in questo anno."
 msgstr "No sales this year."
@@ -11588,6 +11682,9 @@ msgstr "Recorded prices (%(count)s)"
 msgid "Prezzi salvati: %(count)s."
 msgstr "Prices saved: %(count)s."
 
+msgid "Prezzi storici"
+msgstr "Past prices"
+
 msgid "Prezzi vecchi"
 msgstr "Stale prices"
 
@@ -13318,6 +13415,9 @@ msgstr "Download again"
 msgid "Scarica e installa Ollama da"
 msgstr "Download and install Ollama from"
 
+msgid "Scarica i cambi BCE"
+msgstr "Download ECB rates"
+
 msgid ""
 "Scarica i tassi di riferimento della Banca Centrale Europea degli ultimi "
 "90 giorni (serve internet). I cambi inseriti a mano non vengono "
@@ -13961,6 +14061,9 @@ msgstr "Sections"
 msgid "Sezioni degli obiettivi"
 msgstr "Goal sections"
 
+msgid "Sezioni dei dati"
+msgstr "Data sections"
+
 msgid "Sezioni dei debiti"
 msgstr "Debt sections"
 
@@ -14118,7 +14221,14 @@ msgid ""
 " lo stesso titolo quotato a Xetra, in euro). Insieme scarica i cambi BCE "
 "delle valute che usi, così contano anche i titoli in dollari o sterline. "
 "Si inviano solo i ticker."
-msgstr "Only the instruments you hold, from the first operation (a month before). Every day, with online prices on, the app downloads the missing closes and fills the holes (3 or more trading days without a close): from Yahoo Finance, else from Stooq (for Milan listings, the same instrument on Xetra, in euro). It also downloads the ECB rates of the currencies you use, so instruments in dollars or pounds count too. Only the tickers are sent."
+msgstr ""
+"Only the instruments you hold, from the first operation (a month before)."
+" Every day, with online prices on, the app downloads the missing closes "
+"and fills the holes (3 or more trading days without a close): from Yahoo "
+"Finance, else from Stooq (for Milan listings, the same instrument on "
+"Xetra, in euro). It also downloads the ECB rates of the currencies you "
+"use, so instruments in dollars or pounds count too. Only the tickers are "
+"sent."
 
 msgid "Solo le transazioni senza categoria o in «Altro»"
 msgstr "Only transactions without a category or in «Other»"
@@ -14431,12 +14541,6 @@ msgstr "Price history"
 
 msgid "Storico dei tuoi titoli"
 msgstr "History of your holdings"
-
-#, python-format
-msgid ""
-"Storico dei tuoi titoli: %(count)s titoli, %(closes)s chiusure lette, "
-"%(holes)s buchi rimasti."
-msgstr "History of your holdings: %(count)s instruments, %(closes)s closes read, %(holes)s holes left."
 
 #, python-format
 msgid "Storico di %(symbol)s: %(count)s chiusure dal %(first)s al %(last)s."
@@ -15275,6 +15379,9 @@ msgstr "All holdings"
 msgid "Tutti i tuoi soldi in un posto"
 msgstr "All your money in one place"
 
+msgid "Tutto a posto"
+msgstr "All fine"
+
 msgid "Tutto assegnato"
 msgstr "All assigned"
 
@@ -15292,6 +15399,9 @@ msgstr ""
 
 msgid "Tutto in ordine."
 msgstr "All in order."
+
+msgid "Tutto lo storico salvato, e il caricamento da un file CSV"
+msgstr "All the stored history, and loading from a CSV file"
 
 msgid "Tutto l’anno"
 msgstr "The whole year"
@@ -15375,6 +15485,10 @@ msgstr "Last sign-in"
 msgid "Ultimo backup riuscito: %(day)s alle %(time)s, «%(file)s»."
 msgstr "Last successful backup: %(day)s at %(time)s, «%(file)s»."
 
+#, python-format
+msgid "Ultimo cambio vecchio (%(day)s)"
+msgstr "Last rate old (%(day)s)"
+
 msgid "Ultimo download"
 msgstr "Last download"
 
@@ -15404,6 +15518,9 @@ msgstr ""
 "transactions. The operations read, or derived from the current state, go "
 "to the same preview: nothing is saved before you confirm."
 
+msgid "Un aggiornamento è già in corso."
+msgstr "An update is already running."
+
 #, python-format
 msgid "Un altro promemoria"
 msgid_plural "Altri %(num)s promemoria"
@@ -15428,6 +15545,9 @@ msgstr ""
 "when you load only one statement. With the IBAN it also knows the other "
 "account. When you then import the other account's statement, the two "
 "movements are linked without duplicates."
+
+msgid "Un cambio a mano (per una valuta che la BCE non pubblica):"
+msgstr "A rate by hand (for a currency the ECB does not publish):"
 
 msgid ""
 "Un clic su un nome nasconde o mostra il suo pallino; un doppio clic su un"
@@ -15773,6 +15893,10 @@ msgstr "Past expenses"
 msgid "Uscite: storico e previsione"
 msgstr "Expenses: history and forecast"
 
+#, python-format
+msgid "Usi solo %(base)s: non servono cambi."
+msgstr "You only use %(base)s: no rates needed."
+
 msgid "Utente"
 msgstr "User"
 
@@ -15908,6 +16032,9 @@ msgstr "Valuations"
 msgid "Valute"
 msgstr "Currencies"
 
+msgid "Valute con cambi mancanti"
+msgstr "Currencies with missing rates"
+
 msgid "Valute e Cambi"
 msgstr "Currencies and Rates"
 
@@ -15946,6 +16073,9 @@ msgstr "Price change; the gain uses today's units."
 
 msgid "Variazione netta cassa (A+B+C)"
 msgstr "Net change in cash (A+B+C)"
+
+msgid "Vedi"
+msgstr "See"
 
 msgid "Vedi gli ordini teorici"
 msgstr "See the theoretical orders"
@@ -17035,6 +17165,9 @@ msgstr "net, received"
 #, python-format
 msgid "netto %(amount)s"
 msgstr "net %(amount)s"
+
+msgid "niente"
+msgstr "nothing"
 
 msgid "niente in arrivo"
 msgstr "nothing coming"

@@ -2867,3 +2867,12 @@ a.onb-way:hover { border-color: var(--clr-primary); text-decoration: none; color
 /* F110: how much of the wanted range of an instrument has closes */
 .coverage-bar { height: 6px; border-radius: 999px; background: var(--clr-bg-input); overflow: hidden; margin-bottom: 3px; }
 .coverage-bar span { display: block; height: 100%; background: var(--clr-positive); border-radius: 999px; }
+/* Dati → Cambi: the state of a currency's rates */
+.fx-status { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.fx-ok { background: var(--clr-positive); }
+.fx-warning { background: var(--clr-warning, #d97706); }
+.fx-missing { background: var(--clr-negative); }
+/* the market data pill sits above the AI one when both are there */
+.data-pill { bottom: 24px; }
+.ai-pill:not([hidden]) ~ .data-pill { bottom: 96px; }
+.nav-badge-warn { color: var(--clr-warning, #d97706); border-color: currentColor; opacity: 1; }

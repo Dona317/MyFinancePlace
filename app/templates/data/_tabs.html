@@ -1,0 +1,6 @@
+{# The pages of Dati (23 Nov 2026) #}
+{% from "partials/tabs.html" import tab_bar %}
+<div class="section-tabs mb-16">{{ tab_bar([
+  ('rates', url_for('data.rates'), _('Cambi'), 'currency-exchange'),
+  ('prices', url_for('data.prices'), _('Prezzi storici'), 'clock-history'),
+], active, _('Sezioni dei dati')) }}</div>

@@ -56,6 +56,7 @@ SECTIONS = [
     Section("export", _l("Esporta e importa"), "box-arrow-up", _l("Strumenti"), ("export.",), "module_export"),
     Section("assistant", _l("Assistente"), "stars", _l("Strumenti"), ("assistant.",)),
     Section("health", _l("Salute dei dati"), "clipboard-check", _l("Strumenti"), ("health.",)),
+    Section("data", _l("Dati"), "database", _l("Dati"), ("data.",)),
     Section("clients", _l("Clienti"), "people", _l("Strumenti"), ("clients.",)),
     Section("groups", _l("Gruppi e famiglia"), "house-heart", _l("Strumenti"), ("groups.",)),
     Section("notifications", _l("Notifiche"), "bell", _l("Strumenti"), ("notifications.",)),

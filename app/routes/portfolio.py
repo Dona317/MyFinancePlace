@@ -369,25 +369,8 @@ def market_sync():
 
 @portfolio_bp.route("/market/fill", methods=["POST"])
 def market_fill():
-    """F110: «Riempi i buchi» — the past closes of the instruments held, from their first operation, holes filled
-    (Yahoo, else Stooq), and the ECB rates of the currencies in use."""
-    if not current_settings()["prices_online"]:
-        flash(_("I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."), "warning")
-        return redirect(url_for("portfolio.prices") + "#history")
-    done = history_filler.run()
-    good = [f for f in done.filled if not f.error]
-    flash(_("Storico dei tuoi titoli: %(count)s titoli, %(closes)s chiusure lette, %(holes)s buchi rimasti.",
-            count=len(good), closes=sum(f.added for f in good), holes=sum(f.holes for f in good)),
-          "success" if good or not done.filled else "warning")
-    bad = [f for f in done.filled if f.error]
-    if bad:
-        flash(_("Non letti: %(list)s", list=", ".join(f"{f.symbol} ({f.error[:60]})" for f in bad)[:600]), "warning")
-    if done.rates and done.rates["currencies"]:
-        flash(_("Cambi BCE di %(codes)s: %(count)s nuovi.", codes=", ".join(done.rates["currencies"]),
-                count=done.rates["added"]), "success")
-    if done.rates_error:
-        flash(_("Cambi BCE non letti: %(error)s", error=done.rates_error), "warning")
-    return redirect(url_for("portfolio.prices") + "#history")
+    """F110: «Riempi i buchi ora» — the same as Dati → «Aggiorna ora», back to the prices."""
+    return redirect(url_for("data.update", next=url_for("portfolio.prices") + "#history"), code=307)
 
 
 @portfolio_bp.route("/market/import", methods=["POST"])

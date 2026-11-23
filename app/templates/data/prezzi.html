@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Prezzi storici') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Dati') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('data.index') }}">{{ _('Dati') }}</a></li><li>{{ _('Prezzi storici') }}</li>{% endblock %}
+{% block content %}
+{% set active = 'prices' %}{% include "data/_tabs.html" %}
+{% include "data/_coverage.html" %}
+<p class="text-sm text-muted mt-16"><a href="{{ url_for('portfolio.prices') }}#market">{{ _('Tutto lo storico salvato, e il caricamento da un file CSV') }} <i class="bi bi-arrow-right"></i></a></p>
+{% endblock %}

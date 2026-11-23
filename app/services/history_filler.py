@@ -327,18 +327,56 @@ class Run:
     rates_error: str | None = None
 
 
-def run(today: date | None = None, sources=None, fetch=None) -> Run:
-    """Every instrument held, then the exchange rates."""
+def run(today: date | None = None, sources=None, fetch=None, progress=None) -> Run:
+    """Every instrument held, then the exchange rates; `progress(done, total, what)` told at each step."""
     today = today or date.today()
+    tell = progress or (lambda done, total, what: None)
     errors: list[Filled] = []
-    found = [fill(target, today, sources) for target in targets(today, errors)] + errors
+    wanted = targets(today, errors)
+    total = len(wanted) + 1  # the instruments, then the rates
+    found = []
+    for done, target in enumerate(wanted):
+        tell(done, total, target.symbol)
+        found.append(fill(target, today, sources))
+    found += errors
+    tell(len(wanted), total, "BCE")
     rates, rates_error = None, None
     try:
         rates = fill_rates(today, fetch)
     except (OSError, ValueError, zipfile.BadZipFile) as exc:
         db.session.rollback()
         rates_error = str(exc)[:200]
+    tell(total, total, "")
     return Run(found, rates, rates_error)
+
+
+# ── The state of a run, for the pill at the bottom of the page (like the AI classification) ──
+
+_status: dict = {}
+
+
+def _key():
+    client = studio.current()
+    return client.id if client is not None else None
+
+
+def status() -> dict | None:
+    """The run of this archive: {"id", "state": "running" | "done", "done", "total", "what", "summary"}; None when
+    none ran since the app started."""
+    return _status.get(_key())
+
+
+def _set(key, **values) -> None:
+    with _lock:
+        _status[key] = {**_status.get(key, {}), **values}
+
+
+def _summary(result: Run) -> dict:
+    good = [f for f in result.filled if not f.error]
+    return {"instruments": len(good), "closes": sum(f.added for f in good), "holes": sum(f.holes for f in good),
+            "errors": [f"{f.symbol}: {f.error[:60]}" for f in result.filled if f.error][:5],
+            "rates": (result.rates or {}).get("added", 0), "currencies": (result.rates or {}).get("currencies", []),
+            "rates_error": result.rates_error}
 
 
 def due(today: date | None = None) -> bool:
@@ -350,31 +388,46 @@ _lock = threading.Lock()
 _running: set = set()
 
 
-def run_in_background() -> None:
-    """Once a day, on a page visit: the filling in a thread, so the page does not wait for the internet."""
-    if not due():
-        return
+def run_in_background(force: bool = False) -> bool:
+    """Once a day on a page visit (or now, `force`: «Riempi i buchi ora»): the filling in a thread, so the page does
+    not wait for the internet; its progress in status(). False when one is already running."""
+    if not force and not due():
+        return False
     settings_store.set(LAST_RUN, date.today().isoformat())  # first: a second visit meanwhile does not start it again
     db.session.commit()
-    if current_app.config.get("PRICES_SYNC"):
-        run()
-        return
     client = studio.current()
     key = client.id if client is not None else None
     with _lock:
         if key in _running:
-            return
+            return False
         _running.add(key)
+    _set(key, id=f"{date.today().isoformat()}-{len(_status)}-{threading.get_ident()}", state="running", done=0,
+         total=0, what="", summary=None)
+    if current_app.config.get("PRICES_SYNC"):
+        _work(key)
+        return True
     app = current_app._get_current_object()
     threading.Thread(target=_thread, args=(app, client, key), daemon=True, name="history-filler").start()
+    return True
+
+
+def _work(key) -> None:
+    try:
+        result = run(progress=lambda done, total, what: _set(key, done=done, total=total, what=what))
+        _set(key, state="done", summary=_summary(result))
+    finally:
+        with _lock:
+            _running.discard(key)
 
 
 def _thread(app, client, key) -> None:
     try:
         with app.app_context():
             studio.activate(client)
-            run()
+            _work(key)
     except Exception:  # noqa: BLE001 - a background job never breaks the app; the next day tries again
+        _set(key, state="done", summary={"instruments": 0, "closes": 0, "holes": 0, "errors": ["errore imprevisto"],
+                                          "rates": 0, "currencies": [], "rates_error": None})
         with app.app_context():
             app.logger.exception("history filler failed")
     finally:

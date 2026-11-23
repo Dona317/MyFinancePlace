@@ -106,6 +106,10 @@ def _tree() -> list[tuple[str, list[Entry]]]:
                 P(_l("Tetti di versamento"), "tax.limits", {"year": year}),
                 P(_l("Lavori occasionali"), "tax.gigs_page", {"year": year}))),
         ]),
+        (_l("Dati"), [
+            Entry("data", _l("Cambi"), "currency-exchange", P(_l("Cambi"), "data.rates"), tbd=False),
+            Entry("data", _l("Prezzi storici"), "clock-history", P(_l("Prezzi storici"), "data.prices"), tbd=False),
+        ]),
         (_l("Strumenti"), [
             Entry("export", _l("Importa"), "box-arrow-in-down", P(_l("Importa"), "export.import_page")),
             Entry("export", _l("Esporta e backup"), "box-arrow-up", P(_l("Esporta e backup"), "export.index")),
@@ -176,7 +180,7 @@ def menu() -> tuple[list[dict], list[dict]]:
     others = []
     for _macro, entries in _tree():
         for entry in entries:
-            if entry.key is None or not _visible(entry):
+            if entry.key in (None, "data") or not _visible(entry):  # Dati has a section of its own in the menu
                 continue
             url = _url(entry.page)
             if not url:

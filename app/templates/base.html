@@ -165,6 +165,26 @@
       </div>
       {% endif %}
 
+      {# Dati (23 Nov 2026): what the app collects from the internet — exchange rates, past prices #}
+      {% if shown('data') %}
+      {% set in_data = request.endpoint and request.endpoint.startswith('data.') %}
+      <div class="nav-section" data-section="dati">
+        <button type="button" class="nav-section-title" aria-expanded="true" aria-controls="nav-dati">
+          <span class="nav-label">{{ _('Dati') }}</span><i class="bi bi-chevron-down nav-chevron"></i>
+        </button>
+        <div class="nav-section-items" id="nav-dati"><div>
+          {% set fx_problems = rate_problems() %}
+          <a href="{{ url_for('data.rates') }}" class="nav-item{{ ' active' if request.endpoint in ('data.rates', 'data.index') }}">
+            <i class="bi bi-currency-exchange"></i> <span class="nav-label" title="{{ _('Cambi') }}">{{ _('Cambi') }}</span>
+            {% if fx_problems %}<span class="nav-badge nav-badge-warn" title="{{ _('Valute con cambi mancanti') }}">{{ fx_problems }}</span>{% endif %}
+          </a>
+          <a href="{{ url_for('data.prices') }}" class="nav-item{{ ' active' if request.endpoint == 'data.prices' }}">
+            <i class="bi bi-clock-history"></i> <span class="nav-label" title="{{ _('Prezzi storici') }}">{{ _('Prezzi storici') }}</span>
+          </a>
+        </div></div>
+      </div>
+      {% endif %}
+
       {% if other_items %}
       {% set other_open = other_items|selectattr('active')|list %}
       <div class="nav-section{{ '' if other_open else ' collapsed' }}" data-section="altro" data-default="closed">
@@ -439,6 +459,67 @@
 <!-- F102: the AI classification pill and its job: in every page, so a classification goes on from page to page -->
 {{ ai_progress_window() }}
 <script>{{ ai_progress_script() }}</script>
+{% if not embedded and shown('data') and request.endpoint not in ('auth.login', 'auth.setup') %}
+{# 23 Nov 2026: the update of the market data under way (prices and ECB rates), like the AI classification's pill:
+   the server works, the page asks every 2 s how far it is; the X hides it for this run and does not stop it #}
+<div class="ai-pill data-pill" id="data-progress" role="status" aria-live="polite" hidden data-state="{{ url_for('data.state') }}">
+  <div class="ai-pill-row">
+    <i class="bi bi-cloud-download"></i>
+    <span class="ai-pill-text" id="data-progress-text"></span>
+    <span class="ai-pill-meta text-xs text-muted" id="data-progress-meta"></span>
+    <a class="btn btn-ghost btn-sm ai-pill-go" id="data-progress-go" href="{{ url_for('data.prices') }}" hidden>{{ _('Vedi') }}</a>
+    <button type="button" class="ai-pill-x" id="data-progress-x" aria-label="{{ _('Nascondi (l\'aggiornamento continua)') }}" title="{{ _('Nascondi (l\'aggiornamento continua)') }}"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="ai-pill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="data-progress-fill"></span></div>
+</div>
+<script>
+(() => {
+  const pill = document.getElementById('data-progress');
+  const $ = (id) => document.getElementById(id);
+  const KEY = 'mfp-data-pill-hidden';
+  const hiddenFor = () => { try { return sessionStorage.getItem(KEY); } catch (e) { return null; } };
+  const words = {
+    running: {{ _('Aggiornamento dati: %(done)s di %(total)s', done='%(done)s', total='%(total)s')|tojson }},
+    rates: {{ _('Aggiornamento dati: cambi BCE')|tojson }},
+    done: {{ _('Dati aggiornati: %(closes)s chiusure, %(holes)s buchi rimasti', closes='%(closes)s', holes='%(holes)s')|tojson }},
+  };
+  const fmt = (text, values) => text.replace(/%\((\w+)\)s/g, (_m, k) => values[k] ?? '');
+  let timer = null;
+  const show = (state) => {
+    if (!state || state.state === 'idle' || hiddenFor() === state.id) { pill.hidden = true; return; }
+    const total = state.total || 0, done = state.state === 'done' ? total : (state.done || 0);
+    const pct = total ? Math.round(done / total * 100) : 5;
+    $('data-progress-fill').style.width = `${state.state === 'done' ? 100 : pct}%`;
+    if (state.state === 'done') {
+      const s = state.summary || {};
+      $('data-progress-text').textContent = fmt(words.done, { closes: s.closes || 0, holes: s.holes || 0 });
+      $('data-progress-meta').textContent = (s.errors || []).length ? '⚠ ' + s.errors.length : '';
+      $('data-progress-go').hidden = false;
+    } else {
+      $('data-progress-text').textContent = state.what === 'BCE' ? words.rates : fmt(words.running, { done: done + 1 > total ? total : done + 1, total });
+      $('data-progress-meta').textContent = state.what && state.what !== 'BCE' ? state.what : '';
+      $('data-progress-go').hidden = true;
+    }
+    pill.hidden = false;
+    pill.dataset.run = state.id;
+  };
+  const poll = async (first) => {
+    let state = null;
+    try { state = await fetch(pill.dataset.state, { headers: { Accept: 'application/json' } }).then(r => r.json()); } catch (e) { return; }
+    if (first && state.state === 'done') return;  // a run that ended before this page opened: nothing to follow
+    show(state);
+    if (state.state === 'running') timer = setTimeout(() => poll(false), 2000);
+    else if (state.state === 'done') setTimeout(() => { pill.hidden = true; }, 12000);
+  };
+  // the X: hidden for this run (the update goes on; a new run shows the pill again)
+  $('data-progress-x').addEventListener('click', () => {
+    try { sessionStorage.setItem(KEY, pill.dataset.run || ''); } catch (e) { /* private mode */ }
+    pill.hidden = true;
+  });
+  poll(true);
+})();
+</script>
+{% endif %}
 <!-- Chart.js and its helpers: only on the pages with charts -->
 {% block chart_scripts %}{% endblock %}
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
