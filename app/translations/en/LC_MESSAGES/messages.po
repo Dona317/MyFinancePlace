@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 18:57+0000\n"
+"POT-Creation-Date: 2026-11-23 19:04+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -340,6 +340,10 @@ msgstr "%(count)s rows with an invalid date or amount were discarded."
 #, python-format
 msgid "%(count)s righe ignorate (versamenti, dividendi o righe illeggibili)"
 msgstr "%(count)s rows skipped (deposits, dividends or unreadable rows)"
+
+#, python-format
+msgid "%(count)s righe non leggibili saltate."
+msgstr "%(count)s unreadable rows skipped."
 
 #, python-format
 msgid "%(count)s suggerimenti"
@@ -3453,6 +3457,9 @@ msgstr ""
 msgid "Con un’altra offerta"
 msgstr "With another offer"
 
+msgid "Condiviso da tutti gli archivi: titoli, chiusure e link."
+msgstr "Shared by every archive: instruments, closes and links."
+
 msgid "Condizioni particolari, franchigie, esclusioni..."
 msgstr "Special conditions, deductibles, exclusions..."
 
@@ -4356,6 +4363,9 @@ msgstr ""
 msgid "Dalle rate che restano dei piani di ammortamento di tutti i debiti."
 msgstr "From the remaining instalments of every debt's amortization plan."
 
+msgid "Dal… al…"
+msgstr "From… to…"
+
 msgid "Dashboard"
 msgstr "Dashboard"
 
@@ -4409,6 +4419,20 @@ msgstr "Expiry date"
 
 msgid "Data obiettivo"
 msgstr "Target date"
+
+msgid "Database dei prezzi"
+msgstr "Price database"
+
+#, python-format
+msgid ""
+"Database dei prezzi importato: %(instruments)s titoli nuovi, %(closes)s "
+"chiusure nuove, %(kept)s già presenti lasciate come erano."
+msgstr ""
+"Price database imported: %(instruments)s new instruments, %(closes)s new "
+"closes, %(kept)s already there left as they were."
+
+msgid "Database esportato (.zip)"
+msgstr "Exported database (.zip)"
 
 msgid "Dati"
 msgstr "Data"
@@ -5356,6 +5380,9 @@ msgstr "Export the investments"
 
 msgid "Esporta i selezionati"
 msgstr "Export the selected"
+
+msgid "Esporta il database"
+msgstr "Export the database"
 
 msgid "Esportazione Fiscale per Anno"
 msgstr "Tax Export by Year"
@@ -6469,6 +6496,9 @@ msgstr ""
 
 msgid "Il controllo periodico va ogni 1, 3, 6 o 12 mesi."
 msgstr "The periodic check goes every 1, 3, 6 or 12 months."
+
+msgid "Il database dei prezzi è ancora vuoto: non c'è niente da esportare."
+msgstr "The price database is still empty: there is nothing to export."
 
 #, python-format
 msgid "Il database ha rifiutato il backup: %(value)s"
@@ -8186,6 +8216,20 @@ msgstr ""
 "Every day's closes, in a database of their own: shared by every archive, "
 "kept when a backup is restored and from one app version to the next. They"
 " feed value over time, returns and backtests."
+
+msgid ""
+"Le chiusure, i ticker trovati per ISIN e i link incollati stanno in un "
+"database solo, condiviso da tutti gli archivi: quello che un archivio "
+"scarica serve anche agli altri e non si scarica due volte. Non si "
+"cancella mai niente. Esportalo per portarlo su un altro computer o "
+"tenerne una copia; importandolo si aggiungono solo i titoli e i giorni "
+"che mancano."
+msgstr ""
+"The closes, the tickers found by ISIN and the links pasted are in one "
+"database, shared by every archive: what one archive downloads serves the "
+"others too and is not downloaded twice. Nothing is ever deleted. Export "
+"it to take it to another computer or keep a copy; importing it only adds "
+"the instruments and days that are missing."
 
 msgid "Le commissioni e i costi dell’operazione."
 msgstr "The operation's fees and costs."
@@ -13627,6 +13671,9 @@ msgstr "Choose the broker's document to read."
 msgid "Scegli il file"
 msgstr "Choose the file"
 
+msgid "Scegli il file .zip esportato da «Esporta il database»."
+msgstr "Choose the .zip file exported with «Export the database»."
+
 msgid "Scegli il file degli investimenti da ripristinare."
 msgstr "Choose the investments file to restore."
 
@@ -14190,6 +14237,13 @@ msgstr "Sections of «%(name)s» updated."
 
 msgid "Sforate"
 msgstr "Over budget"
+
+msgid ""
+"Si aggiungono solo i titoli e i giorni che mancano: niente di quello che "
+"c'è già viene cambiato."
+msgstr ""
+"Only the missing instruments and days are added: nothing already there is"
+" changed."
 
 msgid "Si annulla con:"
 msgstr "Cancelled by:"

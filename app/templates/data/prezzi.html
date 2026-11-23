@@ -50,5 +50,32 @@
     {% endif %}
   </div>
 </div>
+{# F113: the price database, shared by every archive — how much it holds, out and back as a zip #}
+<div class="card" id="store" style="margin-top:16px;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title"><i class="bi bi-database"></i> {{ _('Database dei prezzi') }}
+        {{ info(_('Le chiusure, i ticker trovati per ISIN e i link incollati stanno in un database solo, condiviso da tutti gli archivi: quello che un archivio scarica serve anche agli altri e non si scarica due volte. Non si cancella mai niente. Esportalo per portarlo su un altro computer o tenerne una copia; importandolo si aggiungono solo i titoli e i giorni che mancano.'), _('Database dei prezzi')) }}</div>
+      <div class="card-header-sub">{{ _('Condiviso da tutti gli archivi: titoli, chiusure e link.') }}</div>
+    </div>
+    {% if store.instruments %}
+    <a href="{{ url_for('data.prices_export') }}" class="btn btn-outline btn-sm"><i class="bi bi-box-arrow-up"></i> {{ _('Esporta il database') }}</a>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <div style="display:flex;gap:32px;flex-wrap:wrap;">
+      <div><div class="text-xs text-muted">{{ _('Titoli') }}</div><div class="font-semibold">{{ store.instruments }}</div></div>
+      <div><div class="text-xs text-muted">{{ _('Chiusure') }}</div><div class="font-semibold">{{ '{:,}'.format(store.closes).replace(',', '.') }}</div></div>
+      {% if store.first %}<div><div class="text-xs text-muted">{{ _('Dal… al…') }}</div><div class="font-semibold">{{ store.first|it_date }} → {{ store.last|it_date }}</div></div>{% endif %}
+    </div>
+    {% if store.where %}<div class="text-xs text-muted mt-8" style="word-break:break-all;">{{ store.where }}</div>{% endif %}
+    <form method="POST" action="{{ url_for('data.prices_import') }}" enctype="multipart/form-data" class="mt-16" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="store-file">{{ _('Database esportato (.zip)') }}</label>
+        <input class="form-control" type="file" id="store-file" name="file" accept=".zip" required></div>
+      <button type="submit" class="btn btn-outline"><i class="bi bi-box-arrow-in-down"></i> {{ _('Importa') }}</button>
+    </form>
+    <div class="form-hint">{{ _('Si aggiungono solo i titoli e i giorni che mancano: niente di quello che c\'è già viene cambiato.') }}</div>
+  </div>
+</div>
 <p class="text-sm text-muted mt-16"><a href="{{ url_for('portfolio.prices') }}#market">{{ _('Tutto lo storico salvato, e il caricamento da un file CSV') }} <i class="bi bi-arrow-right"></i></a></p>
 {% endblock %}

@@ -183,14 +183,25 @@ def lookup(text: str) -> list[Candidate]:
 
 
 def _resolve_ticker(holding: Holding) -> None:
-    """A holding with only its ISIN: the ticker of its first listing (Milan if there is one)."""
+    """A holding with only its ISIN: the ticker of its first listing (Milan if there is one) — the one another
+    archive already found when the market data store knows it (F113), else looked up and kept there."""
     if holding.ticker or not holding.isin:
+        return
+    from app.services import market_data
+
+    known = market_data.symbol_for_isin(holding.isin)
+    if known:
+        holding.ticker = known
         return
     candidates = [c for c in lookup(holding.isin) if c.symbol]
     if not candidates:
         raise ValueError(_("ISIN %(isin)s non trovato: scrivi il ticker con il suffisso di borsa (es. SWDA.MI)",
                            isin=holding.isin))
     holding.ticker, holding.exchange = candidates[0].symbol, holding.exchange or candidates[0].exchange
+    try:
+        market_data.remember_listing(holding.ticker, holding.isin, holding.name)
+    except Exception:  # noqa: BLE001 - the store is a help: the ticker is found all the same
+        pass
 
 
 # ── Reading a price ────────────────────────────────────────────────────────────

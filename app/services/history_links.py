@@ -1,6 +1,7 @@
 """
 «Incolla il link» (23 Nov 2026, F112): the past closes of an instrument read from the page of a site the user pastes,
-saved with the instrument so the daily update reads it again; and justETF as the third automatic source of the
+saved with the instrument in the market data store — shared by every archive, like the closes — so the daily update
+reads it again; and justETF as the third automatic source of the
 filler (after Yahoo and Stooq) for the instruments with an ISIN.
 
     a link ──▶ the site and the ISIN in it
@@ -93,7 +94,7 @@ def parse_justetf(data: dict, code: str = "EUR") -> market_data.Daily:
             continue
         if day.weekday() < 5 and value > 0:
             points[day] = (day, value, None)
-    return market_data.Daily(code, "justETF", None, [points[d] for d in sorted(points)])
+    return market_data.Daily(code, None, None, [points[d] for d in sorted(points)])  # no exchange: justETF's own price
 
 
 def _json(address: str) -> dict:
@@ -122,8 +123,14 @@ def quoted_in(symbol: str) -> str | None:
 # ── The links saved with the instruments ───────────────────────────────────────
 
 def links() -> dict[str, str]:
-    """{symbol: link pasted}."""
-    return settings_store.get_json(KEY, {}, expect=dict)
+    """{symbol: link pasted}, of every archive (the market data store); the links an archive kept in its own
+    settings before (23 Nov 2026) moved there the first time."""
+    legacy = settings_store.get_json(KEY, {}, expect=dict)
+    if legacy:
+        for symbol, url in legacy.items():
+            market_data.set_link(symbol, url)
+        settings_store.set_json(KEY, {})
+    return market_data.links()
 
 
 def isin_of(symbol: str) -> str | None:
@@ -132,9 +139,8 @@ def isin_of(symbol: str) -> str | None:
 
 
 def forget(symbol: str) -> None:
-    saved = links()
-    if saved.pop(symbol, None) is not None:
-        settings_store.set_json(KEY, saved)
+    if symbol in links():
+        market_data.set_link(symbol, None)
 
 
 def sources_for(target) -> list[tuple[str, object]]:
@@ -176,8 +182,6 @@ def apply(symbol: str, url: str, today: date | None = None, fetch=None) -> Appli
                            "storico da un file CSV.", symbol=symbol))
     daily = read_justetf(link.isin, target.start - timedelta(days=7), today, code, fetch=fetch)
     added = market_data.store(symbol, daily, link.isin, target.name, source="justetf")
-    saved = links()
-    saved[symbol] = link.url
-    settings_store.set_json(KEY, saved)
+    market_data.set_link(symbol, link.url)
     days = [p[0] for p in daily.points]
     return Applied(link, added, min(days), max(days))

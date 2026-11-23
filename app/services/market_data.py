@@ -15,6 +15,11 @@ Tables:
   conversion to euro happens when it is used, with the day's rate) and the adjusted close (dividends and splits);
 - meta: the schema version.
 
+Schema 2 (23 Nov 2026, F113): instruments.link — the page pasted for its history («Incolla il link»), shared by every
+archive like the closes; the ISIN → symbol of every listing found is kept too, so an archive does not look up again
+on the internet what another one already found. The whole store goes out and comes back as a zip of two CSV files
+(`export_zip`, `import_zip`): an import only adds — the days and instruments already there are kept.
+
 Reading: Yahoo Finance's public chart endpoint, daily, from a start date (the first time: from 2000 or the first
 trading day) and then from the last close stored minus a week (late corrections). Only the symbol is sent. Or a
 CSV file of closes (Yahoo's own download, justETF, investing.com, a spreadsheet): date and close columns.
@@ -54,7 +59,9 @@ from sqlalchemy import (
     create_engine,
     func,
     insert,
+    inspect,
     select,
+    text,
     update,
 )
 from sqlalchemy.engine import Engine
@@ -66,7 +73,7 @@ YAHOO_DAILY = ("https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?perio
 FIRST_DAY = date(2000, 1, 1)
 OVERLAP = timedelta(days=7)
 TIMEOUT = 20
-SCHEMA = 1
+SCHEMA = 2
 
 # The main funds and ETFs whose history is worth having from the start (Borsa Italiana listings, in euro), and the
 # indices used as benchmarks: what «Scarica i fondi principali» reads
@@ -107,6 +114,7 @@ instruments = Table(
     Column("last_day", Date),
     Column("synced_at", DateTime),
     Column("error", Text),
+    Column("link", Text),  # schema 2: the page pasted for its history (history_links)
 )
 closes = Table(
     "closes", metadata,
@@ -145,7 +153,9 @@ def _upgrade(made: Engine) -> None:
     with made.begin() as conn:
         row = conn.execute(select(meta_table.c.value).where(meta_table.c.key == "schema")).first()
         version = int(row[0]) if row else 0
-        # future steps go here: `if version < 2: conn.execute(text("ALTER TABLE …"))`
+        if version < 2 and "link" not in {c["name"] for c in inspect(conn).get_columns("instruments")}:
+            conn.execute(text("ALTER TABLE instruments ADD COLUMN link TEXT"))
+        # future steps go here: `if version < 3: conn.execute(text("ALTER TABLE …"))`
         if version != SCHEMA:
             if row:
                 conn.execute(update(meta_table).where(meta_table.c.key == "schema").values(value=str(SCHEMA)))
@@ -270,6 +280,163 @@ def _remember_error(symbol: str, message: str, isin: str | None = None, name: st
         row = _instrument(conn, symbol, isin, name)
         conn.execute(update(instruments).where(instruments.c.id == row["id"])
                      .values(error=message[:300], synced_at=datetime.utcnow()))
+
+
+# ── Shared by every archive: the listings found and the links pasted (schema 2) ─
+
+def remember_listing(symbol: str, isin: str | None = None, name: str | None = None) -> None:
+    """A listing found on the internet (an ISIN looked up): kept, so no archive looks it up again."""
+    with engine().begin() as conn:
+        _instrument(conn, symbol.strip().upper(), (isin or "").strip().upper() or None, name)
+
+
+def symbol_for_isin(isin: str | None) -> str | None:
+    """The listing of an ISIN already known to the store: the one with most closes, Milan first when equal."""
+    isin = (isin or "").strip().upper()
+    if not isin or not available():
+        return None
+    query = (select(instruments.c.symbol, func.count(closes.c.day))
+             .join(closes, closes.c.instrument_id == instruments.c.id, isouter=True)
+             .where(instruments.c.isin == isin).group_by(instruments.c.symbol))
+    with engine().connect() as conn:
+        rows = list(conn.execute(query))
+    if not rows:
+        return None
+    return max(rows, key=lambda r: (r[1], r[0].endswith(".MI"), r[0]))[0]
+
+
+def set_link(symbol: str, url: str | None, isin: str | None = None, name: str | None = None) -> None:
+    with engine().begin() as conn:
+        row = _instrument(conn, symbol.strip().upper(), isin, name)
+        conn.execute(update(instruments).where(instruments.c.id == row["id"]).values(link=url or None))
+
+
+def links() -> dict[str, str]:
+    """{symbol: page pasted} of every instrument of the store."""
+    if not available():
+        return {}
+    with engine().connect() as conn:
+        return {symbol: link for symbol, link in conn.execute(
+            select(instruments.c.symbol, instruments.c.link).where(instruments.c.link.isnot(None)))}
+
+
+# ── The whole store out and back (zip of two CSV files) ────────────────────────
+
+EXPORT_INSTRUMENTS = ("symbol", "isin", "name", "currency", "exchange", "link")
+EXPORT_CLOSES = ("symbol", "day", "close", "adj_close", "source")
+
+
+def totals() -> dict:
+    """How much the store holds: instruments, closes, from and to, and where it is."""
+    if not available():
+        return {"instruments": 0, "closes": 0, "first": None, "last": None, "where": None}
+    with engine().connect() as conn:
+        count, first, last = conn.execute(select(func.count(), func.min(closes.c.day), func.max(closes.c.day))).one()
+        listed = conn.execute(select(func.count()).select_from(instruments)).scalar_one()
+    address = url()
+    where = address.removeprefix("sqlite:///") if address.startswith("sqlite:///") else "PostgreSQL"
+    return {"instruments": listed, "closes": count, "first": first, "last": last, "where": where}
+
+
+def export_zip() -> bytes:
+    """The whole store: instruments.csv (one row a listing) and closes.csv (one row a close), with the schema."""
+    import zipfile
+
+    out = io.BytesIO()
+    with engine().connect() as conn, zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
+        listed = io.StringIO()
+        writer = csv.writer(listed)
+        writer.writerow(EXPORT_INSTRUMENTS)
+        for row in conn.execute(select(*(instruments.c[k] for k in EXPORT_INSTRUMENTS)).order_by(instruments.c.symbol)):
+            writer.writerow(["" if v is None else v for v in row])
+        archive.writestr("instruments.csv", listed.getvalue())
+        days = io.StringIO()
+        writer = csv.writer(days)
+        writer.writerow(EXPORT_CLOSES)
+        query = (select(instruments.c.symbol, closes.c.day, closes.c.close, closes.c.adj_close, closes.c.source)
+                 .join(instruments, instruments.c.id == closes.c.instrument_id)
+                 .order_by(instruments.c.symbol, closes.c.day))
+        for symbol, day, close, adj, source in conn.execute(query):
+            writer.writerow([symbol, day.isoformat(), close, "" if adj is None else adj, source])
+        archive.writestr("closes.csv", days.getvalue())
+        archive.writestr("meta.json", json.dumps({"app": "MyFinancePlace", "store": "market", "schema": SCHEMA,
+                                                  "exported": datetime.now(timezone.utc).isoformat()}))
+    return out.getvalue()
+
+
+@dataclass
+class Imported:
+    instruments: int = 0     # new listings
+    closes: int = 0          # new closes
+    kept: int = 0            # closes already there, left as they were
+    skipped: int = 0         # rows not readable
+
+
+def import_zip(raw: bytes) -> Imported:
+    """A store exported (here or on another computer) added to this one: new listings and days added, what is
+    already there kept (its close, its link, its details); nothing removed."""
+    import zipfile
+
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(raw))
+        names = set(archive.namelist())
+        if not {"instruments.csv", "closes.csv"} <= names:
+            raise ValueError("instruments.csv e closes.csv mancanti")
+        listed = list(csv.DictReader(io.StringIO(archive.read("instruments.csv").decode("utf-8-sig"))))
+        days = csv.DictReader(io.StringIO(archive.read("closes.csv").decode("utf-8-sig")))
+    except (zipfile.BadZipFile, KeyError, UnicodeDecodeError) as exc:
+        raise ValueError(str(exc) or "zip non leggibile") from None
+    result = Imported()
+    with engine().begin() as conn:
+        ids = {}
+        for row in listed:
+            symbol = (row.get("symbol") or "").strip().upper()
+            if not symbol:
+                result.skipped += 1
+                continue
+            found = conn.execute(select(instruments).where(instruments.c.symbol == symbol)).mappings().first()
+            values = {k: (row.get(k) or "").strip() or None for k in EXPORT_INSTRUMENTS if k != "symbol"}
+            if found is None:
+                conn.execute(insert(instruments).values(symbol=symbol, **values))
+                result.instruments += 1
+                found = conn.execute(select(instruments).where(instruments.c.symbol == symbol)).mappings().first()
+            else:  # only what is missing here
+                missing = {k: v for k, v in values.items() if v and not found[k]}
+                if missing:
+                    conn.execute(update(instruments).where(instruments.c.id == found["id"]).values(**missing))
+            ids[symbol] = found["id"]
+        have: dict[int, set[date]] = {}
+        batch = []
+        for row in days:
+            symbol = (row.get("symbol") or "").strip().upper()
+            try:
+                day, close = date.fromisoformat(row["day"].strip()), Decimal(row["close"].strip())
+                adj = Decimal(row["adj_close"].strip()) if (row.get("adj_close") or "").strip() else None
+            except (KeyError, AttributeError, ValueError, ArithmeticError):
+                result.skipped += 1
+                continue
+            if symbol not in ids:
+                conn.execute(insert(instruments).values(symbol=symbol))
+                ids[symbol] = conn.execute(select(instruments.c.id).where(instruments.c.symbol == symbol)).scalar_one()
+                result.instruments += 1
+            key = ids[symbol]
+            if key not in have:
+                have[key] = set(conn.execute(select(closes.c.day).where(closes.c.instrument_id == key)).scalars())
+            if day in have[key] or close <= 0:
+                result.kept += day in have[key]
+                result.skipped += close <= 0
+                continue
+            have[key].add(day)
+            batch.append({"instrument_id": key, "day": day, "close": close, "adj_close": adj,
+                          "source": ((row.get("source") or "").strip() or "file")[:20]})
+            result.closes += 1
+        if batch:
+            conn.execute(insert(closes), batch)
+        for key in ids.values():
+            first, last = conn.execute(select(func.min(closes.c.day), func.max(closes.c.day))
+                                       .where(closes.c.instrument_id == key)).one()
+            conn.execute(update(instruments).where(instruments.c.id == key).values(first_day=first, last_day=last))
+    return result
 
 
 @dataclass
