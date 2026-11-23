@@ -178,6 +178,7 @@ def test_the_daily_reading_runs_in_a_thread(client, app, db, web, monkeypatch): 
         client.get("/portfolio/")  # a second visit while the first one is still reading: no second thread
     finally:
         app.config["PRICES_SYNC"] = True
+    started = [s for s in started if s[0] is price_feed._refresh_thread]  # the past closes (F110) have a thread too
     assert len(started) == 1 and not calls  # the page did not wait
     target, args = started[0]
     target(*args)  # what the thread does: the prices of the archive that was open

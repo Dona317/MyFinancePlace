@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 19:04+0000\n"
+"POT-Creation-Date: 2026-11-23 19:29+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4431,6 +4431,14 @@ msgstr ""
 "Price database imported: %(instruments)s new instruments, %(closes)s new "
 "closes, %(kept)s already there left as they were."
 
+#, python-format
+msgid ""
+"Database di partenza importato: %(instruments)s titoli nuovi, %(closes)s "
+"chiusure nuove, %(kept)s già presenti lasciate come erano."
+msgstr ""
+"Starting database imported: %(instruments)s new instruments, %(closes)s "
+"new closes, %(kept)s already there left as they were."
+
 msgid "Database esportato (.zip)"
 msgstr "Exported database (.zip)"
 
@@ -7086,6 +7094,9 @@ msgstr "Import from file"
 msgid "Importa dal broker"
 msgstr "Import from broker"
 
+msgid "Importa il database di partenza"
+msgstr "Import the starting database"
+
 msgid "Importa in Google Calendar"
 msgstr "Import into Google Calendar"
 
@@ -8207,6 +8218,15 @@ msgid ""
 msgstr ""
 "The descriptions will be sent to Anthropic (cloud) for classification. "
 "Continue?"
+
+msgid ""
+"Le chiusure dal 2000 di circa 200 strumenti (ETF di Borsa Italiana, FTSE "
+"MIB, grandi titoli europei e americani, indici, oro, petrolio, cripto), "
+"già nell'app: servono anche senza internet."
+msgstr ""
+"The closes since 2000 of about 200 instruments (Borsa Italiana ETFs, FTSE"
+" MIB, large European and US shares, indices, gold, oil, crypto), already "
+"in the app: they work without internet too."
 
 msgid ""
 "Le chiusure di ogni giorno, in un database a parte: valgono per tutti gli"
@@ -12329,6 +12349,9 @@ msgstr ""
 
 msgid "Quest'anno"
 msgstr "This year"
+
+msgid "Questa installazione non ha il database di partenza."
+msgstr "This installation has no starting database."
 
 msgid ""
 "Questa non è una chiave di MyFinancePlace: incolla tutto il testo della "
