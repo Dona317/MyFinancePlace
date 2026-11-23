@@ -26,6 +26,7 @@
         <span><i class="flows-key flows-key-income"></i> {{ _('Entrate') }}</span>
         <span><i class="flows-key flows-key-expense"></i> {{ _('Uscite') }}</span>
         <span><i class="flows-key flows-key-transfer"></i> {{ _('Giroconti') }}</span>
+        <span><i class="flows-key flows-key-investment"></i> {{ _('Investimenti') }}</span>
       </div>
     </div>
     <button type="button" class="btn btn-ghost btn-sm" id="flows-reset" title="{{ _('Ridisponi i pallini') }}"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ridisponi') }}</button>
@@ -51,7 +52,7 @@
 (() => {
   const data = {{ data|tojson }};
   const words = {
-    income: {{ _('Entrate')|tojson }}, expense: {{ _('Uscite')|tojson }}, transfer: {{ _('Giroconti')|tojson }},
+    income: {{ _('Entrate')|tojson }}, expense: {{ _('Uscite')|tojson }}, transfer: {{ _('Giroconti')|tojson }}, investment: {{ _('Investimenti')|tojson }},
     movements: {{ _('movimenti')|tojson }}, open: {{ _('clic per vedere i movimenti, doppio clic per isolarlo')|tojson }},
     openEdge: {{ _('clic per vedere i movimenti')|tojson }},
   };
@@ -63,6 +64,7 @@
   const COLORS = {
     income: color('--clr-positive', '#16a34a'), expense: color('--clr-negative', '#dc2626'),
     transfer: color('--chart-3', '#2563eb'), outside: color('--clr-text-muted', '#888'),
+    investment: color('--chart-5', '#7c3aed'), invested: color('--chart-5', '#7c3aed'),
     cash: color('--clr-positive', '#16a34a'), debt: color('--chart-5', '#7c3aed'), node: color('--clr-primary', '#f97316'),
     text: color('--clr-text-primary', '#eee'), card: color('--clr-bg-card', '#1b1b1f'),
   };
@@ -117,7 +119,7 @@
 
   // the drawing: arrow heads per kind (of a fixed size), then the arrows, then the nodes on top
   const defs = el('defs');
-  for (const kind of ['income', 'expense', 'transfer']) {
+  for (const kind of ['income', 'expense', 'transfer', 'investment']) {
     const marker = el('marker', { id: `flows-head-${kind}`, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '11',
                                   markerHeight: '11', markerUnits: 'userSpaceOnUse', orient: 'auto-start-reverse' }, defs);
     el('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: COLORS[kind] }, marker);
@@ -136,7 +138,7 @@
     e.g.addEventListener('keydown', ev => { if (ev.key === 'Enter') go(e.url); });
   }
   for (const n of nodes) {
-    n.fill = n.kind === 'outside' ? COLORS.outside : n.kind === 'cash' ? COLORS.cash : n.kind === 'debt' ? COLORS.debt : COLORS.node;
+    n.fill = n.kind === 'outside' ? COLORS.outside : n.kind === 'invested' ? COLORS.invested : n.kind === 'cash' ? COLORS.cash : n.kind === 'debt' ? COLORS.debt : COLORS.node;
     n.g = el('g', { class: `flows-node${n.url ? ' is-link' : ''}`, tabindex: '0' }, nodeLayer);
     el('title', {}, n.g).textContent = `${n.label}: ${money(n.value)} — ${words.open}`;
     n.circle = el('circle', { r: n.r, fill: n.fill, 'fill-opacity': n.kind === 'outside' ? '0.35' : '0.9', stroke: COLORS.card, 'stroke-width': '3' }, n.g);

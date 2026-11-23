@@ -63,8 +63,8 @@ PAGE_SIZE = 100  # rows per page of the list: the whole history at once made pag
 
 def _filtered_query(filters: dict):
     """Apply the filter-bar values (q, type, category, month=YYYY-MM, recurring) to the transactions query. The
-    trades of securities and their commissions are not in it: they have the Investimenti tab."""
-    query = Transaction.query.filter(investment_moves.ordinary())
+    trades of securities and their commissions stay in it (23 Nov 2026), marked; the Investimenti tab shows them too."""
+    query = Transaction.query
     if filters["q"]:
         pattern = f"%{filters['q']}%"
         query = query.filter(or_(

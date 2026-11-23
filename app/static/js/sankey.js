@@ -23,7 +23,8 @@
     return node;
   };
   const money = (value) => (window.formatMoney ? window.formatMoney(value) : value.toFixed(2));
-  const colour = (node, index) => node.special ? "var(--clr-positive)" : `var(--chart-${index % 8 + 1})`;
+  const colour = (node, index) => node.kind === "invest" ? "var(--chart-5)"
+    : node.special ? "var(--clr-positive)" : `var(--chart-${index % 8 + 1})`;
 
   // the biggest `limit` categories of a side; the others (and an «Altre» already there) in one «Altre»; the special
   // line (savings) stays last
@@ -172,7 +173,7 @@
       const x = right ? n.x + NODE + 8 : n.x - 8;
       const centre = n.y + n.h / 2;
       const text = el("text", { x, y: centre - (lines - 1) * lineHeight / 2, "text-anchor": right ? "start" : "end",
-                                "dominant-baseline": "middle", class: "sankey-label" + (n.special ? " sankey-special" : "") });
+                                "dominant-baseline": "middle", class: "sankey-label" + (n.special && n.kind !== "invest" ? " sankey-special" : "") });
       text.appendChild(el("tspan", {}, cut(n.label, "sankey-label", (right ? roomR : roomL) - 12)));
       if (showAmount) text.appendChild(el("tspan", { x, dy: lineHeight, class: "sankey-amount" }, amountText(n)));
       const title = el("title", {}, `${n.label}: ${money(n.amount)}${share(n)}`);
@@ -236,7 +237,7 @@
       } else {
         const dot = Object.assign(document.createElement("span"), { className: "sankey-dot" });
         dot.style.background = n.colour;
-        li.append(dot, Object.assign(document.createElement("span"), { textContent: n.label, className: n.special ? "sankey-special-text" : "" }),
+        li.append(dot, Object.assign(document.createElement("span"), { textContent: n.label, className: n.special && n.kind !== "invest" ? "sankey-special-text" : "" }),
                   Object.assign(document.createElement("strong"), { textContent: money(n.amount) }));
         li.dataset.kind = kind;
       }

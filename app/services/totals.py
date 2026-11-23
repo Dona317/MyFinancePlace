@@ -23,11 +23,13 @@ LINE_VALUE = case(
 
 def analysed(column=Transaction.category):
     """The condition that keeps out of the analyses the categories excluded from them (an uncategorized movement
-    stays) and the reversals (F108: an expense and an income that cancel each other, services.reversals)."""
+    stays), the reversals (F108: an expense and an income that cancel each other, services.reversals) and the
+    commissions of the trades of securities (counted with the investment)."""
     from app.services import categories  # here: categories imports this module
 
     names = categories.excluded_names()
-    not_reversed = Transaction.reversal_id.is_(None)
+    # 23 Nov 2026: the commission of a trade of securities is part of the investment, not a spending
+    not_reversed = and_(Transaction.reversal_id.is_(None), Transaction.fee_for_id.is_(None))
     return and_(not_reversed, or_(column.is_(None), column.notin_(names))) if names else not_reversed
 
 

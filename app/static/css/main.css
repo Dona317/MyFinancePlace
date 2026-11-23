@@ -2624,6 +2624,7 @@ html.privacy .privacy-peek { background: var(--clr-warning-bg); border-radius: 4
 .flows-key-income { background: var(--clr-positive); }
 .flows-key-expense { background: var(--clr-negative); }
 .flows-key-transfer { background: var(--chart-3); }
+.flows-key-investment { background: var(--chart-5); }
 .flows-edge { cursor: pointer; }
 .flows-edge:hover path:not([stroke="transparent"]), .flows-edge:focus-visible path:not([stroke="transparent"]) { opacity: 1; filter: brightness(1.2); }
 .flows-edge-label { font-size: 11px; font-weight: 600; paint-order: stroke; stroke: var(--clr-bg-card); stroke-width: 3px; pointer-events: none; }
@@ -2768,3 +2769,7 @@ tr.is-muted td { color: var(--clr-text-muted); }
 .orders-head { flex-wrap: wrap; gap: 12px; }
 .orders-head .card-header-title { white-space: nowrap; }
 .orders-head .inline-filter > * { width: auto; flex: 0 1 auto; }
+
+/* an investment operation in the list (23 Nov 2026): a small briefcase before the description, never cut */
+.tx-invest-mark { color: var(--chart-5); margin-right: 2px; }
+.tx-invest-mark:hover { color: var(--chart-5); filter: brightness(1.2); text-decoration: none; }

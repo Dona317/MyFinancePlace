@@ -98,3 +98,23 @@ def test_savings_rate_card_lets_you_choose_the_years(client, db):
     client.post("/settings/save", data={"dashboard_net": "on"})
     html = client.get("/dashboard?year=2026").get_data(as_text=True)
     assert 'id="savingsChart"' not in html and 'id="yearChart"' in html
+
+
+def test_sankey_shows_the_money_put_into_securities(app, db):
+    from app.models.wealth import Holding
+    _year(db)  # 2.500 in, 1.100 out
+    etf = Holding(name="ETF", asset_class="ETF", quantity=10, avg_price=100, opening_quantity=0, opening_price=0)
+    db.session.add(etf)
+    db.session.flush()
+    buy = make_tx(date=date(2026, 3, 1), type="transfer", category="Investimenti", amount=1000, holding_id=etf.id,
+                  units=10, unit_price=100)
+    db.session.add(buy)
+    db.session.flush()
+    db.session.add(make_tx(date=date(2026, 3, 1), category="Commissioni", amount=5, fee_for_id=buy.id))
+    db.session.commit()
+    with app.test_request_context():
+        flow = sankey.flow(*YEAR)
+    right = [(n["label"], n["amount"]) for n in flow["expenses"]]
+    assert right == [("Casa", 800.0), ("Alimentari", 300.0), ("Investimenti", 1005.0), ("Risparmio", 395.0)]
+    assert flow["expenses"][2]["kind"] == "invest"
+    assert sankey.invested(*YEAR) == 1005.0

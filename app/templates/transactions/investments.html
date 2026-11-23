@@ -16,7 +16,7 @@
 {{ transactions_tabs('investments') }}
 <div class="alert alert-info mb-16" style="display:block;">
   <i class="bi bi-info-circle"></i>
-  {{ _('Qui gli acquisti e le vendite di titoli, con quote, prezzo e commissione: non sono nell\'elenco delle transazioni. Un movimento del conto che era un acquisto (un bonifico al broker) si sposta qui dall\'elenco: selezionalo e scegli «Sposta negli investimenti».') }}
+  {{ _('Qui gli acquisti e le vendite di titoli, con quote, prezzo e commissione (restano anche nell\'elenco delle transazioni, con l\'etichetta «investimento»). Contano come investimenti, non come spese. Un movimento del conto che era un acquisto (un bonifico al broker) si aggiunge qui dall\'elenco: selezionalo e scegli «Sposta negli investimenti».') }}
 </div>
 {% include "portfolio/_orders_body.html" %}
 {% endblock %}

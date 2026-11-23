@@ -1,6 +1,7 @@
 """
 Transazioni → Investimenti (22 Nov 2026): the purchases and sales of securities (and their commissions) have a tab of
-their own in Transazioni, out of the ordinary list; a movement of the current account that was one (−5.000 € to the
+their own in Transazioni (23 Nov: they stay in the ordinary list too, marked, and count as investments, not spending);
+a movement of the current account that was one (−5.000 € to the
 broker for VWCE) is moved there by saying the security, the units, the price and the commission.
 """
 from __future__ import annotations
@@ -15,13 +16,13 @@ from app.models.transaction import Transaction
 from app.models.wealth import Holding
 from app.services import broker, broker_import, money, portfolio_ops
 
-# a trade of a security, or the commission of one: in the Investimenti tab, not in the ordinary list
+# a trade of a security, or the commission of one: shown in the Investimenti tab too, counted as an investment
 INVESTMENT = or_(and_(Transaction.holding_id.isnot(None), Transaction.units.isnot(None)),
                  Transaction.fee_for_id.isnot(None))
 
 
 def ordinary():
-    """The condition of the ordinary list of Transazioni: everything but the investment operations."""
+    """The movements that are not investment operations yet (the ones that can be moved there)."""
     return ~INVESTMENT
 
 

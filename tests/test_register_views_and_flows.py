@@ -127,3 +127,27 @@ def test_the_flows_keep_the_giroconti_though_left_out_of_the_analyses(app, db):
     # one read from a single bank (an expense «Giroconto»): drawn as a transfer out of the account
     assert edges[(f"a{bank.id}", account_flows.OUTSIDE, "transfer")] == 7
     assert not any(kind == "expense" for _s, _t, kind in edges)
+
+
+def test_the_flows_draw_the_securities_as_investments(app, db):
+    from app.models.wealth import Holding
+    bank = Account(name="Banca", kind="checking")
+    etf = Holding(name="ETF", asset_class="ETF", quantity=10, avg_price=100, opening_quantity=0, opening_price=0)
+    db.session.add_all([bank, etf])
+    db.session.commit()
+    buy = make_tx(amount=1000, type="transfer", category="Investimenti", account_id=bank.id, holding_id=etf.id,
+                  units=10, unit_price=100, date=date(2026, 6, 3))
+    sell = make_tx(amount=300, type="transfer", category="Investimenti", counter_account_id=bank.id, holding_id=etf.id,
+                   units=-3, unit_price=100, date=date(2026, 7, 3))
+    db.session.add_all([buy, sell])
+    db.session.flush()
+    db.session.add(make_tx(amount=5, type="expense", category="Commissioni", account_id=bank.id, fee_for_id=buy.id,
+                           date=date(2026, 6, 3)))
+    db.session.commit()
+    with app.test_request_context():
+        data = account_flows.flows(date(2026, 1, 1), date(2027, 1, 1))
+    edges = {(e["source"], e["target"], e["kind"]): e["value"] for e in data["edges"]}
+    here = f"a{bank.id}"
+    assert edges[(here, account_flows.INVESTED, "investment")] == 1005  # the purchase and its commission
+    assert edges[(account_flows.INVESTED, here, "investment")] == 300  # the sale back to the account
+    assert any(n["id"] == account_flows.INVESTED and n["label"] == "Investimenti" for n in data["nodes"])

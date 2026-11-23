@@ -33,9 +33,9 @@ def test_a_purchase_moved_keeps_the_cash_and_records_units_price_and_fee(app, db
     assert fee.amount == Decimal("2.95") and fee.account_id == fineco.id
     assert wealth.cash_balance() == pytest.approx(before)  # 5.000 € left the account: 4.997,05 + 2,95
     assert float(db.session.get(Holding, vwce.id).quantity) == 40
-    # the ordinary list leaves out the trade and its commission; the Investimenti tab shows them
-    ordinary = Transaction.query.filter(investment_moves.ordinary()).all()
-    assert tx not in ordinary and fee not in ordinary
+    # an investment, not a spending: the commission is not in the month's expenses
+    from app.services import analytics
+    assert analytics.totals(date(2026, 6, 1), date(2026, 7, 1))["expenses"] == 0
 
 
 def test_a_sale_and_the_checks(app, db):
@@ -74,7 +74,8 @@ def test_the_tab_and_the_move_from_the_register(client, db):
     tab = client.get("/transactions/investments").get_data(as_text=True)
     assert "VWCE" in tab and "Investimenti" in tab
     register = client.get("/transactions/").get_data(as_text=True)
-    assert "Acquisto VWCE" not in register and "Spesa" in register
+    assert "Acquisto VWCE" in register and "Spesa" in register  # it stays in the list, marked
+    assert register.count('class="tx-invest-mark"') == 2  # the trade and its commission, marked
     # a row without units nor price is shown again with the error, nothing saved
     other = make_tx(description="Bonifico broker", amount=Decimal("100"), account_id=fineco.id)
     db.session.add(other)
