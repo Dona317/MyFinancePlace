@@ -2,9 +2,9 @@
 
 ## Versione attuale
 - **La versione attuale dell'app è il ramo `test-Cloud`** (PR #8, in bozza verso `main`).
-  Ultima verifica: 18 nov 2026 — suite 1309 test (1308 ok; fallisce solo `test_a_tilted_photo_is_straightened`,
-  che dipende dal motore OCR locale), copertura 97,24 %, 0 funzioni non testate, CI verde su GitHub. Test live non
-  rifatti dopo il 14 nov (273/273 allora): su Windows non girano (gunicorn, Playwright).
+  Ultima verifica: 24 nov 2026 — suite 1473 test tutti verdi, copertura 97,47 %, 0 funzioni non testate.
+  Il test `test_a_tilted_photo_is_straightened` dipende dal motore OCR locale (qui passa, può fallire altrove).
+  Test live nel browser non rifatti dopo il 14 nov (273/273 allora): su Windows non girano (gunicorn, Playwright).
 - Pagine da provare a schermo senza la password vera: `python scripts/demo_server.py` (porta 5055, database
   `…_demo` con i dati finti a 3 anni, utente «demo»). Il database locale gira in Docker (`docker compose up -d db`).
 - `main` è indietro (lo scheletro iniziale) finché la PR #8 non viene unita: decisione D1, rimandata a
@@ -20,6 +20,13 @@
   da leggere prima di toccare template o CSS; ogni nuova decisione di design va nel suo registro
 - Dati demo: `docs/Transaction samples/dati_fittizi/` (investimenti: `docs/Transaction samples/dati_fittizi/investimenti/`, generati da `genera_investimenti.py`)
 - Stato dei lavori (SAL) e decisioni aperte: sezione 0 di `docs/piano/PIANO_E_TODO.md` (riaperta dal promemoria delle 13:30)
+- **Database dei prezzi** (condiviso da tutti gli archivi, `market.sqlite` nella cartella dati): servizi `market_data`,
+  `history_filler` (riempitore giornaliero, tutto il database ogni settimana), `history_links` (justETF, «Incolla il link»),
+  `fx_store` (cambi «FX.*»). Database di partenza in `data/market_seed/` (lista `strumenti.csv`, zip spedito con l'app):
+  si rigenera con `python scripts/build_market_seed.py` (serve internet; il lavoro intermedio in `data/market_seed/build/`)
+- Fonti dei prezzi escluse e perché: Borsa Italiana diretta (API con token nella pagina: serve un'autorizzazione esplicita
+  dell'utente), investing.com (403 anti-bot: solo CSV), Morningstar (sfida anti-bot AWS WAF, ritirato il 24 nov), Alpha
+  Vantage (scartata dall'utente). I muri anti-bot non si aggirano (F69)
 
 ## Come verificare
 - Test: `TEST_DATABASE_URL=postgresql://… python -m pytest -q --cov=app --cov-report=json:cov.json --cov-fail-under=94`,

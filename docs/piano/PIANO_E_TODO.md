@@ -3,8 +3,8 @@
 Unico punto di controllo di cosa fare dopo. Complementa (non sostituisce) [ROADMAP](ROADMAP.md) (stato
 delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMPETITOR](../strategia_e_business/ANALISI_COMPETITOR.md).
 
-**Ultimo aggiornamento**: 11 novembre 2026 (sera) · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
-**MVP**: completo · **Test**: 732, copertura 96,6% · **Migrazioni**: 24
+**Ultimo aggiornamento**: 24 novembre 2026 · **Ramo**: `test-Cloud` (PR #8, in bozza) ·
+**MVP**: completo · **Test**: 1473, copertura 97,47% · **Migrazioni**: 74
 
 | Stato | Significato |
 |---|---|
@@ -18,9 +18,9 @@ delle sezioni), [NEXT_STEPS](NEXT_STEPS.md) (cronologia tecnica) e [ANALISI_COMP
 
 ## 0. Stato avanzamento lavori (SAL) — da aprire a ogni promemoria delle 13:30
 
-> Aggiornato il 13 novembre 2026, 13:30. Ogni giorno alle 13:30 il promemoria riapre questo file: si parte da qui
+> Aggiornato il 24 novembre 2026 (sezione Dati e database dei prezzi, F110–F118); prima il 13 novembre 2026, 13:30. Ogni giorno alle 13:30 il promemoria riapre questo file: si parte da qui
 > per il recap e si decide come proseguire. Si aggiorna a ogni giro di lavoro. Ultima verifica: `test-Cloud` @
-> `2f39175`, 1279 test, copertura 97,49 %, test live tutti verdi.
+> `f6cd136`, 1473 test, copertura 97,47 % (test live: ultimi il 14 nov, tutti verdi).
 
 ### Fatto finora (in breve)
 - **MVP completo** su `test-Cloud`: transazioni, import di 8 banche + generico (CSV, Excel, PDF, OFX, CAMT, QIF,
