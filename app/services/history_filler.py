@@ -34,7 +34,7 @@ from app.models.account import Account
 from app.models.currency import ExchangeRate
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import currency, market_data, price_feed, settings_store, studio
+from app.services import currency, fx_store, market_data, price_feed, settings_store, studio
 from app.services.ui_settings import current_settings
 
 STOOQ_DAILY = "https://stooq.com/q/d/l/?s={symbol}&d1={start}&d2={end}&i=d"
@@ -282,39 +282,6 @@ def parse_ecb_history(raw: bytes, wanted: set[str], since: date) -> list[tuple[d
     return rates
 
 
-ECB_STORE = ("USD", "GBP", "CHF", "JPY", "CAD", "AUD", "HKD", "CNY", "SEK", "NOK", "DKK", "PLN", "INR")
-
-
-def store_ecb_history(raw: bytes, codes=ECB_STORE) -> int:
-    """F114: the ECB's whole history into the shared price database, one instrument a currency («ECB.USD»: units of
-    it for one euro, every day since 1999), so the closes in other currencies can be turned into euro day by day
-    by every archive, also with no connection; how many closes."""
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-        text = archive.read(archive.namelist()[0]).decode("utf-8-sig", errors="replace")
-    reader = csv.reader(io.StringIO(text))
-    header = [cell.strip() for cell in next(reader)]
-    columns = {code: i for i, code in enumerate(header) if code in codes}
-    points: dict[str, dict] = {code: {} for code in columns}
-    for row in reader:
-        try:
-            day = date.fromisoformat(row[0].strip())
-        except (ValueError, IndexError):
-            continue
-        for code, i in columns.items():
-            try:
-                value = Decimal(row[i].strip())
-            except (InvalidOperation, IndexError):
-                continue
-            if value > 0:
-                points[code][day] = (day, value, None)
-    added = 0
-    for code, days in points.items():
-        if days:
-            daily = market_data.Daily(code, "BCE", None, [days[d] for d in sorted(days)])
-            added += market_data.store(f"ECB.{code}", daily, None, f"Cambio BCE: {code} per 1 euro", source="ecb")
-    return added
-
-
 def fill_rates(today: date | None = None, fetch=None) -> dict:
     """The ECB rates of the currencies in use: the whole history needed once (from the first day they are used),
     then the last 90 days. Rates typed by hand are kept. {"currencies", "added"}."""
@@ -382,6 +349,10 @@ def run(today: date | None = None, sources=None, fetch=None, progress=None) -> R
     found += errors
     tell(len(wanted), total, "BCE")
     rates, rates_error = None, None
+    try:
+        fx_store.refresh(today, fetch)  # F116: the rates of the shared price database too
+    except (OSError, ValueError, zipfile.BadZipFile):
+        pass
     try:
         rates = fill_rates(today, fetch)
     except (OSError, ValueError, zipfile.BadZipFile) as exc:

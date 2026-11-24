@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 19:29+0000\n"
+"POT-Creation-Date: 2026-11-24 08:12+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -159,6 +159,16 @@ msgstr "%(changed)s transactions changed."
 #, python-format
 msgid "%(client)s: %(job)s"
 msgstr "%(client)s: %(job)s"
+
+#, python-format
+msgid "%(code)s aggiunta: %(count)s cambi BCE, li aggiorna l'app ogni giorno."
+msgstr ""
+"%(code)s added: %(count)s ECB rates, the app brings them up to date every"
+" day."
+
+#, python-format
+msgid "%(code)s: %(count)s cambi dal %(first)s al %(last)s."
+msgstr "%(code)s: %(count)s rates from %(first)s to %(last)s."
 
 #, python-format
 msgid "%(count)s acquisti del PAC registrati."
@@ -1429,6 +1439,9 @@ msgstr "Add a person"
 msgid "Aggiungi una posizione per vedere come è ripartito il patrimonio."
 msgstr "Add a holding to see how your wealth is split."
 
+msgid "Aggiungi una valuta dalla BCE"
+msgstr "Add a currency from the ECB"
+
 #, python-format
 msgid "Aggiungi «%(title)s» a Google Calendar"
 msgstr "Add «%(title)s» to Google Calendar"
@@ -1605,6 +1618,13 @@ msgstr ""
 
 msgid "Ancora disponibile"
 msgstr "Still available"
+
+msgid ""
+"Ancora nessun cambio: importa il database di partenza (Prezzi storici) o "
+"aggiungi una valuta qui sotto."
+msgstr ""
+"No rate yet: import the starting database (Past prices) or add a currency"
+" below."
 
 msgid "Ancora nessun giorno da mostrare."
 msgstr "No days to show yet."
@@ -2388,6 +2408,13 @@ msgstr "ECB rates of %(codes)s: %(count)s new."
 #, python-format
 msgid "Cambi BCE non letti: %(error)s"
 msgstr "ECB rates not read: %(error)s"
+
+#, python-format
+msgid "Cambi di %(code)s non letti dalla BCE: %(error)s"
+msgstr "%(code)s rates not read from the ECB: %(error)s"
+
+msgid "Cambi nel database dei prezzi"
+msgstr "Rates in the price database"
 
 msgid "Cambi presenti"
 msgstr "Rates available"
@@ -3456,6 +3483,9 @@ msgstr ""
 
 msgid "Con un’altra offerta"
 msgstr "With another offer"
+
+msgid "Condivisi da tutti gli archivi, per i prezzi in altre valute."
+msgstr "Shared by every archive, for prices in other currencies."
 
 msgid "Condiviso da tutti gli archivi: titoli, chiusure e link."
 msgstr "Shared by every archive: instruments, closes and links."
@@ -5541,6 +5571,9 @@ msgstr "Feb"
 msgid "File"
 msgstr "File"
 
+msgid "File CSV dei cambi"
+msgstr "CSV file of the rates"
+
 msgid "File CSV delle chiusure"
 msgstr "CSV file of the closes"
 
@@ -5911,6 +5944,9 @@ msgstr "Manage the archives"
 msgid "Gio"
 msgstr "Thu"
 
+msgid "Giorni"
+msgstr "Days"
+
 msgid "Giorni con spese"
 msgstr "Days with spending"
 
@@ -5928,6 +5964,23 @@ msgstr "Day of the month"
 
 msgid "Giorno di addebito"
 msgstr "Charge day"
+
+msgid ""
+"Giorno per giorno, quante unità di una valuta compra un euro: servono a "
+"portare in euro, giorno per giorno, i prezzi dei titoli e degli indici "
+"quotati in altre valute. Stanno nel database dei prezzi, condiviso da "
+"tutti gli archivi e disponibile anche senza internet. Le valute "
+"principali arrivano con il database di partenza; le altre le aggiungi "
+"qui: dalla BCE (tutto lo storico, poi aggiornate ogni giorno) o, se la "
+"BCE non le pubblica, da un file CSV con data e cambio."
+msgstr ""
+"Day by day, how many units of a currency one euro buys: they turn into "
+"euro, day by day, the prices of instruments and indices quoted in other "
+"currencies. They are in the price database, shared by every archive and "
+"there with no internet too. The main currencies come with the starting "
+"database; you add the others here: from the ECB (the whole history, then "
+"brought up to date every day) or, when the ECB does not publish them, "
+"from a CSV file with date and rate."
 
 msgid "Giroconti"
 msgstr "Transfers"
@@ -6280,6 +6333,13 @@ msgid ""
 msgstr ""
 "Prices from the internet are off: turn them on in Settings → Data from "
 "the internet, otherwise these sources are not used."
+
+msgid ""
+"I prezzi da internet sono spenti: accendili in Impostazioni → Dati da "
+"internet, o carica i cambi da un file CSV."
+msgstr ""
+"Online prices are off: turn them on in Settings → Data from the internet,"
+" or load the rates from a CSV file."
 
 msgid ""
 "I prezzi da internet sono spenti: accendili in Impostazioni → Dati da "
@@ -6642,6 +6702,13 @@ msgstr ""
 
 msgid "Il file è vuoto."
 msgstr "The file is empty."
+
+msgid ""
+"Il file: una colonna Data e una colonna con il cambio (unità della valuta"
+" per 1 euro), come un CSV di chiusure."
+msgstr ""
+"The file: a Date column and a column with the rate (units of the currency"
+" for 1 euro), like a CSV of closes."
 
 msgid "Il flusso di cassa da cui partono le previsioni"
 msgstr "The cash flow the forecast starts from"
@@ -10714,6 +10781,9 @@ msgstr ""
 "document's units and the recorded ones%(where)s. %(count)s positions "
 "already match."
 
+msgid "Oppure da un file CSV"
+msgstr "Or from a CSV file"
+
 msgid "Oppure incolla più righe «data;prezzo»"
 msgstr "Or paste several «date;price» lines"
 
@@ -13697,6 +13767,9 @@ msgstr "Choose the file"
 msgid "Scegli il file .zip esportato da «Esporta il database»."
 msgstr "Choose the .zip file exported with «Export the database»."
 
+msgid "Scegli il file CSV dei cambi."
+msgstr "Choose the CSV file of the rates."
+
 msgid "Scegli il file degli investimenti da ripristinare."
 msgstr "Choose the investments file to restore."
 
@@ -13838,6 +13911,9 @@ msgstr "Enter at least one country or sector with its weight."
 
 msgid "Scrivi cosa scade."
 msgstr "Write what is due."
+
+msgid "Scrivi il codice della valuta, tre lettere (es. TWD)."
+msgstr "Write the currency code, three letters (e.g. TWD)."
 
 #, python-format
 msgid "Scrivi il nome %(what)s."

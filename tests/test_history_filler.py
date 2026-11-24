@@ -233,11 +233,3 @@ def test_an_isin_gets_its_ticker_and_a_second_run_reads_only_the_last_rates(app,
     monkeypatch.setattr(currency, "download_ecb", lambda history=True: 61)
     assert history_filler.fill_rates(TODAY, fetch=lambda address: pytest.fail("no history needed")) == {
         "currencies": ["USD"], "added": 61}
-
-
-def test_the_ecb_history_goes_into_the_shared_price_database(app, store):
-    raw = _ecb_zip(["2026-11-03,1.25,160.1,0.85,", "2026-11-02,1.20,160.0,N/A,", "bad,1,1,1,"])
-    assert history_filler.store_ecb_history(raw, codes=("USD", "GBP")) == 3
-    assert market_data.history("ECB.USD") == [(date(2026, 11, 2), Decimal("1.2")), (date(2026, 11, 3), Decimal("1.25"))]
-    assert market_data.history("ECB.GBP") == [(date(2026, 11, 3), Decimal("0.85"))]
-    assert market_data.days("ECB.JPY") == []  # not asked

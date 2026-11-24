@@ -45,7 +45,7 @@ def main() -> int:
     os.environ["MARKET_DATABASE_URL"] = f"sqlite:///{STORE}"
     sys.path.insert(0, str(ROOT))
     from app import create_app
-    from app.services import history_filler, history_links, market_data
+    from app.services import fx_store, history_filler, history_links, market_data
 
     app = create_app("testing") if os.environ.get("TEST_DATABASE_URL") else create_app()
     start, today = date(args.since, 1, 1), date.today()
@@ -80,9 +80,9 @@ def main() -> int:
                 market_data.remember_listing(symbol, isin, name)
                 print(f"[{n}/{len(wanted)}] {symbol}: NON LETTO — {'; '.join(errors)}", flush=True)
             time.sleep(args.pause)
-        # the ECB rates since 1999: the closes in other currencies turned into euro day by day
+        # the ECB rates since 1999 of the main currencies (fx_store.MAIN); the others are added from Dati → Cambi
         try:
-            print(f"Cambi BCE: {history_filler.store_ecb_history(history_filler._bytes(history_filler.ECB_HISTORY))} chiusure",
+            print(f"Cambi BCE: {fx_store.store_ecb(history_filler._bytes(history_filler.ECB_HISTORY))} chiusure",
                   flush=True)
         except Exception as exc:  # noqa: BLE001 - the rest is saved all the same
             print(f"Cambi BCE NON LETTI: {exc}", flush=True)

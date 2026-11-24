@@ -55,4 +55,52 @@
     {{ _('Un cambio a mano (per una valuta che la BCE non pubblica):') }} <a href="{{ url_for('settings.currencies_page') }}">{{ _('Impostazioni → Valute') }}</a>
   </div>
 </div>
+
+{# F116: the rates in the shared price database — day by day, for the closes in other currencies; more can be added #}
+<div class="card" id="shared" style="margin-top:16px;">
+  <div class="card-header"><div>
+    <div class="card-header-title"><i class="bi bi-database"></i> {{ _('Cambi nel database dei prezzi') }}
+      {{ info(_('Giorno per giorno, quante unità di una valuta compra un euro: servono a portare in euro, giorno per giorno, i prezzi dei titoli e degli indici quotati in altre valute. Stanno nel database dei prezzi, condiviso da tutti gli archivi e disponibile anche senza internet. Le valute principali arrivano con il database di partenza; le altre le aggiungi qui: dalla BCE (tutto lo storico, poi aggiornate ogni giorno) o, se la BCE non le pubblica, da un file CSV con data e cambio.'), _('Cambi nel database dei prezzi')) }}</div>
+    <div class="card-header-sub">{{ _('Condivisi da tutti gli archivi, per i prezzi in altre valute.') }}</div>
+  </div></div>
+  {% if shared %}
+  <div class="table-wrapper">
+    <table class="table-compact">
+      <thead><tr><th>{{ _('Valuta') }}</th><th>{{ _('Dal… al…') }}</th><th class="text-right">{{ _('Giorni') }}</th><th>{{ _('Fonte') }}</th></tr></thead>
+      <tbody>
+        {% for f in shared %}
+        <tr>
+          <td><strong class="font-mono">{{ f.code }}</strong>{% if names.get(f.code) %} <span class="text-xs text-muted">{{ _(names[f.code][1]) }}</span>{% endif %}</td>
+          <td class="nowrap">{{ f.first|it_date }} → {{ f.last|it_date }}</td>
+          <td class="text-right">{{ f.count }}</td>
+          <td class="text-sm">{% for s in f.sources %}{{ {'ecb': 'BCE', 'file': 'CSV'}.get(s, s) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-sm text-muted">{{ _('Ancora nessun cambio: importa il database di partenza (Prezzi storici) o aggiungi una valuta qui sotto.') }}</div>
+  {% endif %}
+  <div class="card-body" style="border-top:1px solid var(--clr-border-light);">
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+      {% if addable %}
+      <form method="POST" action="{{ url_for('data.rates_add') }}" style="display:flex;gap:8px;align-items:flex-end;">
+        <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="fx-code">{{ _('Aggiungi una valuta dalla BCE') }}</label>
+          <select class="form-control" id="fx-code" name="code">
+            {% for code in addable %}<option value="{{ code }}">{{ code }}{% if names.get(code) %} · {{ _(names[code][1]) }}{% endif %}</option>{% endfor %}
+          </select></div>
+        <button type="submit" class="btn btn-outline" {% if not online %}disabled title="{{ _('Accendi i prezzi da internet in Impostazioni') }}"{% endif %}><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+      </form>
+      {% endif %}
+      <form method="POST" action="{{ url_for('data.rates_file') }}" enctype="multipart/form-data" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="fx-file-code">{{ _('Oppure da un file CSV') }}</label>
+          <input class="form-control" id="fx-file-code" name="code" maxlength="3" placeholder="TWD" required style="width:80px;text-transform:uppercase;"></div>
+        <div class="form-group" style="margin-bottom:0;"><input class="form-control" type="file" name="file" accept=".csv,.txt" required aria-label="{{ _('File CSV dei cambi') }}"></div>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-upload"></i> {{ _('Carica') }}</button>
+      </form>
+    </div>
+    <div class="form-hint">{{ _('Il file: una colonna Data e una colonna con il cambio (unità della valuta per 1 euro), come un CSV di chiusure.') }}</div>
+  </div>
+</div>
 {% endblock %}

@@ -3,6 +3,7 @@ holdings (Prezzi storici) — with what is missing, and the state of the update 
 from __future__ import annotations
 
 import io
+import zipfile
 from datetime import date
 
 from apiflask import APIBlueprint
@@ -10,7 +11,7 @@ from flask import flash, jsonify, redirect, render_template, request, send_file,
 from flask_babel import gettext as _
 
 from app.routes.helpers import safe_next, uploaded_file
-from app.services import currency, fx_status, history_filler, history_links, market_data
+from app.services import currency, fx_status, fx_store, history_filler, history_links, market_data
 from app.services.ui_settings import current_settings
 
 data_bp = APIBlueprint("data", __name__, url_prefix="/dati", tag="Data")
@@ -26,7 +27,46 @@ def rates():
     """The currencies in use, their rates and where they are missing."""
     rows = fx_status.report()
     return render_template("data/cambi.html", rows=rows, online=current_settings()["prices_online"],
-                           problems=sum(1 for r in rows if r["status"] != "ok"), base=currency.base())
+                           problems=sum(1 for r in rows if r["status"] != "ok"), base=currency.base(),
+                           shared=fx_store.listed(), addable=fx_store.addable(), names=currency.CURRENCIES)
+
+
+@data_bp.route("/cambi/aggiungi", methods=["POST"])
+def rates_add():
+    """F116: a currency the ECB publishes into the shared price database, its whole history read now."""
+    back = redirect(url_for("data.rates") + "#shared")
+    code = request.form.get("code", "").strip().upper()
+    if not current_settings()["prices_online"]:
+        flash(_("I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet, o carica i cambi "
+                "da un file CSV."), "warning")
+        return back
+    try:
+        added = fx_store.add_from_ecb(code)
+    except (OSError, ValueError, zipfile.BadZipFile) as exc:
+        flash(_("Cambi di %(code)s non letti dalla BCE: %(error)s", code=code or "—", error=str(exc)[:200]), "error")
+        return back
+    flash(_("%(code)s aggiunta: %(count)s cambi BCE, li aggiorna l'app ogni giorno.", code=code, count=added), "success")
+    return back
+
+
+@data_bp.route("/cambi/file", methods=["POST"])
+def rates_file():
+    """F116: a currency's rates from a CSV file (a date column and a rate column: units for one euro)."""
+    back = redirect(url_for("data.rates") + "#shared")
+    code = request.form.get("code", "").strip().upper()
+    upload = uploaded_file()
+    if upload is None:
+        flash(_("Scegli il file CSV dei cambi."), "error")
+        return back
+    try:
+        daily = fx_store.add_from_csv(code, upload.read())
+    except ValueError as exc:
+        flash(_("File non letto: %(error)s", error=str(exc)[:200]) if code and len(code) == 3 and code != "EUR"
+              else _("Scrivi il codice della valuta, tre lettere (es. TWD)."), "error")
+        return back
+    flash(_("%(code)s: %(count)s cambi dal %(first)s al %(last)s.", code=code, count=len(daily.points),
+            first=daily.points[0][0].strftime("%d/%m/%Y"), last=daily.points[-1][0].strftime("%d/%m/%Y")), "success")
+    return back
 
 
 @data_bp.route("/cambi/bce", methods=["POST"])

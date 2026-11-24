@@ -531,7 +531,7 @@ def overview() -> list[dict]:
 # ── Closes from a file ─────────────────────────────────────────────────────────
 
 DATE_HEADERS = ("date", "data", "day", "giorno")
-CLOSE_HEADERS = ("close", "chiusura", "price", "prezzo", "ultimo", "last", "nav")
+CLOSE_HEADERS = ("close", "chiusura", "price", "prezzo", "ultimo", "last", "nav", "cambio", "rate", "tasso")  # the last: FX files
 ADJ_HEADERS = ("adj close", "adj_close", "adjusted close", "chiusura rettificata")
 
 
