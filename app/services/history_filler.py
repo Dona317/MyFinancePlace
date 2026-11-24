@@ -19,6 +19,7 @@ from __future__ import annotations
 import csv
 import io
 import threading
+import time
 import urllib.parse
 import urllib.request
 import zipfile
@@ -43,6 +44,9 @@ MIN_GAP = 3                  # trading days missing in a row that make a hole (s
 BEFORE_FIRST = timedelta(days=31)
 DEFAULT_YEARS = 1            # a holding with no operation dated: its last year
 LAST_RUN = "history_filler.last_run"
+ALL_EVERY = timedelta(days=7)     # the instruments of the price database not held: brought up to date once a week
+ALL_KEY = "all_updated"           # when, in the store's own meta table (shared by every archive)
+ALL_PAUSE = 0.3                   # seconds between two of them (kind to the sources)
 TIMEOUT = 25
 CLASSES = ("ETF", "Azione", "Fondo comune", "Obbligazione")
 
@@ -105,11 +109,35 @@ def targets(today: date | None = None, errors: list | None = None, resolve: bool
 
 # ── Holes ──────────────────────────────────────────────────────────────────────
 
+def easter(year: int) -> date:
+    """Easter Sunday (the Gregorian computus, Meeus)."""
+    a, b, c = year % 19, year // 100, year % 100
+    d, e = b // 4, b % 4
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7  # noqa: E741 - the name of the formula
+    m = (a + 11 * h + 22 * l) // 451
+    month, day = divmod(h + l - 7 * m + 114, 31)
+    return date(year, month, day + 1)
+
+
+def holidays(year: int) -> set[date]:
+    """The days the European exchanges (Borsa Italiana, Xetra) and the ECB are closed on a weekday: New Year, Good
+    Friday, Easter Monday, Labour Day, Christmas Eve and the two Christmas days, New Year's Eve."""
+    sunday = easter(year)
+    return {date(year, 1, 1), sunday - timedelta(days=2), sunday + timedelta(days=1), date(year, 5, 1),
+            date(year, 12, 24), date(year, 12, 25), date(year, 12, 26), date(year, 12, 31)}
+
+
 def trading_days(start: date, end: date) -> list[date]:
-    """Monday to Friday between two days (holidays are told apart by MIN_GAP)."""
+    """Monday to Friday between two days, without the European exchange holidays (the other markets' holidays are
+    told apart by MIN_GAP)."""
+    closed = set().union(*(holidays(y) for y in range(start.year, end.year + 1))) if start <= end else set()
     days, day = [], start
     while day <= end:
-        if day.weekday() < 5:
+        if day.weekday() < 5 and day not in closed:
             days.append(day)
         day += timedelta(days=1)
     return days
@@ -194,7 +222,7 @@ def fill(target: Target, today: date | None = None, sources=None) -> Filled:
     from app.services import history_links
 
     today = today or date.today()
-    sources = sources or (*SOURCES, *history_links.sources_for(target))
+    sources = (*SOURCES, *history_links.sources_for(target)) if sources is None else sources
     result = Filled(target.symbol, target.name)
     have = set(market_data.days(target.symbol))
     wanted = missing(have, target.start, today)
@@ -330,8 +358,30 @@ class Run:
     rates_error: str | None = None
 
 
-def run(today: date | None = None, sources=None, fetch=None, progress=None) -> Run:
-    """Every instrument held, then the exchange rates; `progress(done, total, what)` told at each step."""
+def others(held: set[str]) -> list[Target]:
+    """F116: the instruments of the price database not held in this archive (the starting database, the ones
+    another archive holds…), from their first close: the rates (FX.*) have their own update."""
+    if not market_data.available():
+        return []
+    return [Target(row["symbol"], row["isin"], row["name"] or row["symbol"], row["first_day"])
+            for row in market_data.overview()
+            if row["count"] and row["first_day"] and row["symbol"] not in held
+            and not row["symbol"].startswith(fx_store.PREFIX)]
+
+
+def all_due(today: date | None = None) -> bool:
+    """Everything in the price database was brought up to date more than a week ago (or never)."""
+    today = today or date.today()
+    if not market_data.available():
+        return False
+    last = market_data.meta_get(ALL_KEY)
+    return last is None or date.fromisoformat(last) <= today - ALL_EVERY
+
+
+def run(today: date | None = None, sources=None, fetch=None, progress=None, everything: bool | None = None,
+        pause: float = 0.0) -> Run:
+    """Every instrument held, then (once a week, or `everything`) the other instruments of the price database,
+    then the exchange rates; `progress(done, total, what)` told at each step."""
     today = today or date.today()
     tell = progress or (lambda done, total, what: None)
     tell(0, 0, "database di partenza")
@@ -341,11 +391,20 @@ def run(today: date | None = None, sources=None, fetch=None, progress=None) -> R
         pass
     errors: list[Filled] = []
     wanted = targets(today, errors)
-    total = len(wanted) + 1  # the instruments, then the rates
+    if everything is None:
+        everything = all_due(today)
+    rest = others({t.symbol for t in wanted}) if everything else []
+    total = len(wanted) + len(rest) + 1  # the instruments, the others, then the rates
     found = []
     for done, target in enumerate(wanted):
         tell(done, total, target.symbol)
         found.append(fill(target, today, sources))
+    for done, target in enumerate(rest, len(wanted)):
+        tell(done, total, target.symbol)
+        found.append(fill(target, today, sources))
+        time.sleep(pause)
+    if everything and market_data.available():
+        market_data.meta_set(ALL_KEY, today.isoformat())
     found += errors
     tell(len(wanted), total, "BCE")
     rates, rates_error = None, None
@@ -400,7 +459,7 @@ _lock = threading.Lock()
 _running: set = set()
 
 
-def run_in_background(force: bool = False) -> bool:
+def run_in_background(force: bool = False, everything: bool | None = None) -> bool:
     """Once a day on a page visit (or now, `force`: «Riempi i buchi ora»): the filling in a thread, so the page does
     not wait for the internet; its progress in status(). False when one is already running."""
     if not force and not due():
@@ -416,27 +475,28 @@ def run_in_background(force: bool = False) -> bool:
     _set(key, id=f"{date.today().isoformat()}-{len(_status)}-{threading.get_ident()}", state="running", done=0,
          total=0, what="", summary=None)
     if current_app.config.get("PRICES_SYNC"):
-        _work(key)
+        _work(key, everything)
         return True
     app = current_app._get_current_object()
-    threading.Thread(target=_thread, args=(app, client, key), daemon=True, name="history-filler").start()
+    threading.Thread(target=_thread, args=(app, client, key, everything), daemon=True, name="history-filler").start()
     return True
 
 
-def _work(key) -> None:
+def _work(key, everything: bool | None = None) -> None:
     try:
-        result = run(progress=lambda done, total, what: _set(key, done=done, total=total, what=what))
+        result = run(progress=lambda done, total, what: _set(key, done=done, total=total, what=what),
+                     everything=everything, pause=ALL_PAUSE)
         _set(key, state="done", summary=_summary(result))
     finally:
         with _lock:
             _running.discard(key)
 
 
-def _thread(app, client, key) -> None:
+def _thread(app, client, key, everything: bool | None = None) -> None:
     try:
         with app.app_context():
             studio.activate(client)
-            _work(key)
+            _work(key, everything)
     except Exception:  # noqa: BLE001 - a background job never breaks the app; the next day tries again
         _set(key, state="done", summary={"instruments": 0, "closes": 0, "holes": 0, "errors": ["errore imprevisto"],
                                           "rates": 0, "currencies": [], "rates_error": None})

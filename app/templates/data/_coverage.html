@@ -4,7 +4,7 @@
     <div class="card-header">
       <div>
         <div class="card-header-title"><i class="bi bi-clock-history"></i> {{ _('Storico dei tuoi titoli') }}
-          {{ info(_('Solo i titoli che hai in portafoglio, dalla prima operazione (un mese prima). Ogni giorno, con i prezzi da internet accesi, l\'app scarica le chiusure che mancano e riempie i buchi (3 o più giorni di borsa senza chiusura): da Yahoo Finance, altrimenti da Stooq (per i titoli di Milano, lo stesso titolo quotato a Xetra, in euro), altrimenti da justETF con l\'ISIN. Insieme scarica i cambi BCE delle valute che usi, così contano anche i titoli in dollari o sterline. Si inviano solo i ticker e, a justETF, l\'ISIN.'), _('Storico dei tuoi titoli')) }}</div>
+          {{ info(_('Solo i titoli che hai in portafoglio, dalla prima operazione (un mese prima). Ogni giorno, con i prezzi da internet accesi, l\'app scarica le chiusure che mancano e riempie i buchi (3 o più giorni di borsa senza chiusura; le festività di borsa non contano): da Yahoo Finance, altrimenti da Stooq (per i titoli di Milano, lo stesso titolo quotato a Xetra, in euro), altrimenti da justETF con l\'ISIN. Insieme scarica i cambi BCE delle valute che usi, così contano anche i titoli in dollari o sterline. Si inviano solo i ticker e, a justETF, l\'ISIN.'), _('Storico dei tuoi titoli')) }}</div>
         <div class="card-header-sub">{{ _('Dalla prima operazione a oggi, i buchi riempiti da soli una volta al giorno.') }}</div>
       </div>
       {% if online %}

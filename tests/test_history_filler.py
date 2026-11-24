@@ -200,12 +200,12 @@ def test_pence_and_currencies_without_rates(app, db, store):
 
 def test_the_background_thread(app, db, store, monkeypatch):
     calls = []
-    monkeypatch.setattr(history_filler, "run", lambda progress=None: calls.append("run") or history_filler.Run([]))
+    monkeypatch.setattr(history_filler, "run", lambda progress=None, **kw: calls.append("run") or history_filler.Run([]))
     history_filler._running.add("k")
     history_filler._thread(app, None, "k")
     assert calls == ["run"] and "k" not in history_filler._running
 
-    def boom(progress=None):
+    def boom(progress=None, **kw):
         raise RuntimeError("x")
     monkeypatch.setattr(history_filler, "run", boom)
     history_filler._thread(app, None, "k")  # logged, never raised
@@ -233,3 +233,59 @@ def test_an_isin_gets_its_ticker_and_a_second_run_reads_only_the_last_rates(app,
     monkeypatch.setattr(currency, "download_ecb", lambda history=True: 61)
     assert history_filler.fill_rates(TODAY, fetch=lambda address: pytest.fail("no history needed")) == {
         "currencies": ["USD"], "added": 61}
+
+
+def test_exchange_holidays_are_not_holes(app):
+    assert [history_filler.easter(y) for y in (2024, 2025, 2026)] == [date(2024, 3, 31), date(2025, 4, 20), date(2026, 4, 5)]
+    assert {date(2026, 4, 3), date(2026, 4, 6), date(2026, 5, 1), date(2026, 12, 24)} <= history_filler.holidays(2026)
+    days = history_filler.trading_days(date(2025, 12, 22), date(2026, 1, 9))
+    assert date(2025, 12, 24) not in days and date(2025, 12, 31) not in days and date(2026, 1, 1) not in days
+    assert date(2025, 12, 23) in days and date(2026, 1, 2) in days
+    # Christmas 2025 (24, 25, 26 on weekdays) used to look like a hole of three days: not any more
+    have = set(days)
+    assert history_filler.holes(have, date(2025, 12, 22), date(2026, 1, 9)) == 0
+    assert history_filler.trading_days(date(2026, 1, 2), date(2026, 1, 1)) == []
+
+
+def test_the_whole_price_database_once_a_week(app, db, store, monkeypatch):
+    from app.services import fx_store
+    _etf(db, first=date(2026, 11, 2))
+    market_data.store("ENEL.MI", daily([date(2026, 10, 30)]), "IT0003128367", "Enel")  # not held
+    market_data.store("FX.USD", daily([date(2026, 10, 30)], code="USD"))  # a rate: its own update
+    market_data.store("EMPTY.MI", market_data.Daily("EUR", None, None, []))  # a listing with no close
+    assert [t.symbol for t in history_filler.others({"VWCE.MI"})] == ["ENEL.MI"]
+    assert history_filler.all_due(TODAY)
+    read = []
+
+    def yahoo(symbol, start, end):
+        read.append(symbol)
+        return daily(history_filler.trading_days(start, end))
+    monkeypatch.setattr(fx_store, "refresh", lambda today=None, fetch=None: 0)
+    done = history_filler.run(TODAY, sources=(("yahoo", yahoo),), fetch=lambda address: b"x")
+    assert set(read) == {"VWCE.MI", "ENEL.MI"} and len(done.filled) == 2
+    assert market_data.days("ENEL.MI")[-1] == TODAY and market_data.meta_get(history_filler.ALL_KEY) == TODAY.isoformat()
+    assert not history_filler.all_due(TODAY) and not history_filler.all_due(TODAY + timedelta(days=6))
+    assert history_filler.all_due(TODAY + timedelta(days=7))
+    read.clear()
+    history_filler.run(TODAY, sources=(("yahoo", yahoo),), fetch=lambda address: b"x")  # the week not over: held only
+    assert read == ["VWCE.MI"]
+    read.clear()
+    history_filler.run(TODAY, sources=(("yahoo", yahoo),), fetch=lambda address: b"x", everything=True)  # the button
+    assert set(read) == {"VWCE.MI", "ENEL.MI"}
+
+
+def test_the_update_all_button(client, db, store, monkeypatch):
+    market_data.store("ENEL.MI", daily([date(2026, 10, 30)]), None, "Enel")
+    page = client.get("/dati/prezzi").get_data(as_text=True)
+    assert "Aggiorna tutto il database" not in page and "si aggiorna da solo una volta a settimana" in page  # offline
+    settings_store.set_json("ui.settings", {"prices_online": True})
+    asked = []
+    monkeypatch.setattr(history_filler, "run_in_background", lambda force=False, everything=None:
+                        asked.append((force, everything)) or True)
+    assert "Aggiorna tutto il database" in client.get("/dati/prezzi").get_data(as_text=True)
+    client.post("/dati/aggiorna", data={"all": "1"})
+    client.post("/dati/aggiorna")
+    assert asked == [(True, True), (True, None)]
+    market_data.meta_set(history_filler.ALL_KEY, "2026-11-20")
+    market_data.meta_set(history_filler.ALL_KEY, "2026-11-21")
+    assert "aggiornato il 21/11/2026" in client.get("/dati/prezzi").get_data(as_text=True)

@@ -163,6 +163,20 @@ def _upgrade(made: Engine) -> None:
                 conn.execute(insert(meta_table).values(key="schema", value=str(SCHEMA)))
 
 
+def meta_get(key: str) -> str | None:
+    """A value kept in the store itself (shared by every archive), e.g. when everything was last brought up to date."""
+    with engine().connect() as conn:
+        return conn.execute(select(meta_table.c.value).where(meta_table.c.key == key)).scalar()
+
+
+def meta_set(key: str, value: str) -> None:
+    with engine().begin() as conn:
+        if conn.execute(select(meta_table.c.key).where(meta_table.c.key == key)).first():
+            conn.execute(update(meta_table).where(meta_table.c.key == key).values(value=value))
+        else:
+            conn.execute(insert(meta_table).values(key=key, value=value))
+
+
 def schema_version() -> int:
     with engine().connect() as conn:
         return int(conn.execute(select(meta_table.c.value).where(meta_table.c.key == "schema")).scalar_one())

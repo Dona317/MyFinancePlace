@@ -59,7 +59,15 @@
       <div class="card-header-sub">{{ _('Condiviso da tutti gli archivi: titoli, chiusure e link.') }}</div>
     </div>
     {% if store.instruments %}
-    <a href="{{ url_for('data.prices_export') }}" class="btn btn-outline btn-sm"><i class="bi bi-box-arrow-up"></i> {{ _('Esporta il database') }}</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if online %}
+      <form method="POST" action="{{ url_for('data.update', next=request.path ~ '#store') }}">
+        <input type="hidden" name="all" value="1">
+        <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Tutti i titoli, gli indici e i cambi del database, non solo quelli in portafoglio. Lo fa da solo una volta a settimana.') }}"><i class="bi bi-arrow-repeat"></i> {{ _('Aggiorna tutto il database') }}</button>
+      </form>
+      {% endif %}
+      <a href="{{ url_for('data.prices_export') }}" class="btn btn-outline btn-sm"><i class="bi bi-box-arrow-up"></i> {{ _('Esporta il database') }}</a>
+    </div>
     {% endif %}
   </div>
   <div class="card-body">
@@ -69,6 +77,7 @@
       {% if store.first %}<div><div class="text-xs text-muted">{{ _('Dal… al…') }}</div><div class="font-semibold">{{ store.first|it_date }} → {{ store.last|it_date }}</div></div>{% endif %}
     </div>
     {% if store.where %}<div class="text-xs text-muted mt-8" style="word-break:break-all;">{{ store.where }}</div>{% endif %}
+    {% if store.instruments %}<div class="text-xs text-muted">{% if all_updated %}{{ _('Tutto il database aggiornato il %(day)s; lo rifà da solo ogni settimana.', day=all_updated|it_date) }}{% else %}{{ _('Tutto il database: si aggiorna da solo una volta a settimana, con i prezzi da internet accesi.') }}{% endif %}</div>{% endif %}
     {% if seed %}
     <form method="POST" action="{{ url_for('data.prices_seed') }}" class="mt-16">
       <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-database-down"></i> {{ _('Importa il database di partenza') }}</button>

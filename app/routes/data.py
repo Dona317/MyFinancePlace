@@ -91,7 +91,14 @@ def prices():
     return render_template("data/prezzi.html", coverage=history_filler.coverage(),
                            online=current_settings()["prices_online"], links=history_links.links(),
                            store=market_data.totals(), seed=market_data.seed_path() is not None,
+                           all_updated=_all_updated(),
                            market=market_data.overview() if market_data.available() else [])
+
+
+def _all_updated() -> date | None:
+    """When every instrument of the price database was last brought up to date (F116)."""
+    value = market_data.meta_get(history_filler.ALL_KEY) if market_data.available() else None
+    return date.fromisoformat(value) if value else None
 
 
 @data_bp.route("/prezzi/link", methods=["POST"])
@@ -175,10 +182,11 @@ def prices_seed():
 
 @data_bp.route("/aggiorna", methods=["POST"])
 def update():
-    """«Aggiorna ora»: prices and rates in the background; the pill at the bottom follows it."""
+    """«Aggiorna ora»: prices and rates in the background; the pill at the bottom follows it. With all=1 («Aggiorna
+    tutto il database», F116) every instrument of the price database, not only those held."""
     if not current_settings()["prices_online"]:
         flash(_("I prezzi da internet sono spenti: accendili in Impostazioni → Dati da internet."), "warning")
-    elif history_filler.run_in_background(force=True):
+    elif history_filler.run_in_background(force=True, everything=True if request.form.get("all") else None):
         flash(_("Aggiornamento dei dati avviato: lo segui in basso, puoi continuare a usare l'app."), "info")
     else:
         flash(_("Un aggiornamento è già in corso."), "info")
