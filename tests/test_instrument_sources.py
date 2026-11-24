@@ -1,6 +1,6 @@
 """
-F19a-bis: ISINs looked up and prices read on five preset sites (Yahoo, OpenFIGI, justETF, Borsa Italiana, Morningstar),
-chosen and ordered in Settings. The pages in tests/fixtures/instrument_sources are written by hand with the structure of
+F19a-bis: ISINs looked up and prices read on four preset sites (Yahoo, OpenFIGI, justETF, Borsa Italiana), chosen and
+ordered in Settings; Morningstar retired on 24 Nov 2026 (an anti-bot wall). The pages in tests/fixtures/instrument_sources are written by hand with the structure of
 the real ones; the network is canned.
 """
 import json
@@ -13,7 +13,7 @@ import pytest
 from app.models.wealth import Holding
 from app.services import instrument_sources as sources
 from app.services import price_feed, settings_store
-from app.services.instrument_sources import base, borsaitaliana, justetf, morningstar, openfigi
+from app.services.instrument_sources import base, borsaitaliana, justetf, openfigi
 from tests.test_price_feed import _yahoo, web  # noqa: F401 - web is a fixture
 
 PAGES = Path(__file__).parent / "fixtures" / "instrument_sources"
@@ -35,16 +35,18 @@ def sites(web):  # noqa: F811
         f"scheda/{BTP}.html": page("borsaitaliana_btp.html"),
         f"risultati.html?q={ETF}": page("borsaitaliana_search_etf.html"),
         f"etf/scheda/{ETF}.html": page("borsaitaliana_etf.html"),
-        f"SecuritySearch.ashx?q={FUND}": page("morningstar_search.txt"),
-        "snapshot.aspx?id=F00000XYZ1": page("morningstar_fund.html"),
+        # a mutual fund on Yahoo, by its ISIN (its Morningstar id as the symbol)
+        f"search?q={FUND}": {"quotes": [{"symbol": "0P0000ABCD.F", "longname": "Fondo Esempio Azionario Europa A Acc",
+                                         "quoteType": "MUTUALFUND", "exchange": "FRA", "exchDisp": "Frankfurt"}]},
+        "chart/0P0000ABCD.F": _yahoo(12.345),
     })
     return answers, calls
 
 
 def _json_answers(answers):
     """The canned JSON answers reach the adapters as text, like the real network."""
-    for key, value in list(answers.items()):
-        if isinstance(value, (dict, list)):
+    for key, value in list(answers.items()):  # Yahoo's (search, chart) are read as JSON already
+        if isinstance(value, (dict, list)) and not key.startswith(("search?q=", "chart/")):
             answers[key] = json.dumps(value)
 
 
@@ -116,23 +118,17 @@ def test_borsa_italiana(app, sites):
             borsaitaliana.quote(BTP)
 
 
-def test_morningstar(app, sites):
+def test_morningstar_is_retired_and_a_fund_is_priced_by_yahoo(app, db, sites):
     answers, _ = sites
+    settings_store.set_json(sources.SETTING, {"order": ["morningstar", "yahoo"], "enabled": ["morningstar", "yahoo"]})
+    fund = Holding(name="Fondo", isin=FUND, asset_class="Fondo comune", quantity=100, avg_price=10,
+                   price_source="morningstar")  # chosen before it was retired: priced by its class's order
+    db.session.add(fund)
+    db.session.commit()
     with app.test_request_context():
-        found = morningstar.find(FUND)
-        assert [(c.name, c.asset_class, c.price_source) for c in found][0] == (
-            "Fondo Esempio Azionario Europa A Acc", "Fondo comune", "morningstar")
-        quote = morningstar.quote(FUND)
-        assert (quote.price, quote.on, quote.currency) == (Decimal("12.345"), date(2026, 10, 9), "EUR")
-        answers["snapshot.aspx?id=F00000XYZ1"] = "<html>NAV non disponibile</html>"
-        with pytest.raises(base.Broken):
-            morningstar.quote(FUND)
-        answers[f"SecuritySearch.ashx?q={FUND}"] = ""
-        with pytest.raises(base.NotFound):
-            morningstar.find(FUND)
-        answers[f"SecuritySearch.ashx?q={FUND}"] = "Fondo|{not json|x"
-        with pytest.raises(base.Broken):
-            morningstar.find(FUND)
+        assert sources.chosen() == ["yahoo"] and "morningstar" not in sources.NAMES
+        (result,) = price_feed.update_all([fund])
+    assert (result.source, result.price) == ("yahoo", Decimal("12.345000")) and fund.ticker == "0P0000ABCD.F"
 
 
 # ── Search on every site switched on ───────────────────────────────────────────
@@ -140,15 +136,13 @@ def test_morningstar(app, sites):
 def test_search_by_isin_on_every_site_with_a_month_of_memory(app, db, sites):
     answers, calls = sites
     _json_answers(answers)
-    answers[f"SecuritySearch.ashx?q={ETF}"] = ""
     answers[f"search?q={ETF}"] = {"quotes": [{"symbol": "VWCE.MI", "longname": "Vanguard", "quoteType": "ETF",
                                               "exchange": "MIL", "exchDisp": "Milan"}]}
     with app.test_request_context():
         found, errors = price_feed.search(ETF, date(2026, 10, 10))
         assert [(c.symbol, c.source) for c in found] == [
             ("VWCE.MI", "yahoo"), ("VWCE.DE", "openfigi"), ("VWCE", "justetf"), ("", "borsaitaliana")]
-        assert errors == []  # Morningstar does not know it: no result, not an error
-        assert any("morningstar" in url for url in calls)
+        assert errors == []
         asked = len(calls)
         assert price_feed.search(ETF.lower(), date(2026, 10, 20))[0][0].symbol == "VWCE.MI" and len(calls) == asked
         price_feed.search(ETF, date(2026, 11, 20))  # more than a month: asked again
@@ -179,16 +173,16 @@ def test_choosing_and_ordering_the_sites(client, app, db, sites):
     assert "OpenFIGI" in page_html and "I prezzi da internet sono spenti" in page_html
     assert "/settings/price-sources" in client.get("/settings/").get_data(as_text=True)
     with app.test_request_context():
-        assert sources.chosen() == ["yahoo", "openfigi", "justetf", "borsaitaliana", "morningstar"]  # all on at first
-    client.post("/settings/price-sources", data={"on-morningstar": "1", "order-morningstar": "1", "on-borsaitaliana": "1",
+        assert sources.chosen() == ["yahoo", "openfigi", "justetf", "borsaitaliana"]  # all on at first
+    client.post("/settings/price-sources", data={"on-justetf": "1", "order-justetf": "1", "on-borsaitaliana": "1",
                                                  "order-borsaitaliana": "2", "order-yahoo": "9", "order-openfigi": "x"})
     with app.test_request_context():
-        assert sources.chosen() == ["morningstar", "borsaitaliana"]
-        found, _errors = price_feed.search(FUND)
-    assert [c.source for c in found] == ["morningstar", "morningstar"]
+        assert sources.chosen() == ["justetf", "borsaitaliana"]
+        found, _errors = price_feed.search(ETF)
+    assert [c.source for c in found] == ["justetf", "borsaitaliana"]
     assert not any("yahoo" in url or "openfigi" in url for url in calls)
     rows = {r["key"]: r for r in sources.settings_rows()}
-    assert rows["morningstar"]["position"] == 1 and not rows["yahoo"]["on"]
+    assert rows["justetf"]["position"] == 1 and not rows["yahoo"]["on"]
 
 
 # ── Prices from the sites ──────────────────────────────────────────────────────
@@ -205,20 +199,8 @@ def test_bonds_funds_and_etfs_priced_by_their_sites(app, db, sites):
         results = {r.holding.name: r for r in price_feed.update_all([btp, fund, etf])}
     assert (results["BTP 2031"].source, results["BTP 2031"].price) == ("borsaitaliana", Decimal("0.854700"))
     assert btp.value == 8547.0  # 10.000 € of face value at 85,47
-    assert (results["Fondo"].source, results["Fondo"].price) == ("morningstar", Decimal("12.345000"))
+    assert (results["Fondo"].source, results["Fondo"].price) == ("yahoo", Decimal("12.345000"))
     assert (results["All-World"].source, results["All-World"].price) == ("justetf", Decimal("131.420000"))  # Yahoo down
-
-
-def test_morningstar_is_a_reserve_for_etfs(app, db, sites):
-    answers, _ = sites
-    answers[f"SecuritySearch.ashx?q={ETF}"] = page("morningstar_search.txt")
-    answers.pop(f"api/etfs/{ETF}/quote")  # justETF does not answer either
-    etf = Holding(name="All-World", ticker="VWCE.DE", isin=ETF, asset_class="ETF", quantity=1, avg_price=100)
-    db.session.add(etf)
-    db.session.commit()
-    with app.test_request_context():
-        (result,) = price_feed.update_all([etf])
-    assert (result.source, result.price) == ("morningstar", Decimal("12.345000"))
 
 
 def test_a_chosen_site_and_what_goes_wrong(app, db, sites):
@@ -243,7 +225,7 @@ def test_the_search_route_says_where_each_result_comes_from(client, db, sites):
     assert data["results"][0]["source_name"] == "Borsa Italiana" and data["results"][0]["price_source"] == "borsaitaliana"
     assert any(e.startswith("Yahoo Finance:") for e in data["errors"])
     form = client.get("/portfolio/new").get_data(as_text=True)
-    assert "Borsa Italiana" in form and 'value="morningstar"' in form
+    assert "Borsa Italiana" in form and 'value="morningstar"' not in form
 
 
 # ── The shared helpers ─────────────────────────────────────────────────────────

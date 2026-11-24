@@ -40,7 +40,7 @@ STOOQ = "https://stooq.com/q/l/?s={symbol}&f=sd2t2ohlcv&h&e=csv"
 COINGECKO = "https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=eur&include_last_updated_at=true"
 CRYPTO_CLASSES = ("Criptovaluta",)
 MARKET_CLASSES = ("ETF", "Azione", "Obbligazione", "Fondo comune", "Derivato")  # priced on an exchange; the rest by hand
-SOURCES = ("auto", "yahoo", "stooq", "coingecko", "justetf", "borsaitaliana", "morningstar", "manual")
+SOURCES = ("auto", "yahoo", "stooq", "coingecko", "justetf", "borsaitaliana", "manual")
 COINGECKO_IDS = {"BTC": "bitcoin", "ETH": "ethereum", "SOL": "solana", "ADA": "cardano", "XRP": "ripple",
                  "DOT": "polkadot", "DOGE": "dogecoin", "LTC": "litecoin", "BNB": "binancecoin", "USDT": "tether",
                  "USDC": "usd-coin", "MATIC": "matic-network", "AVAX": "avalanche-2", "LINK": "chainlink"}
@@ -334,10 +334,10 @@ def _wants_history(holding: Holding) -> bool:
 
 def _price_order(holding: Holding) -> list[str]:
     """Where its price is read, in order: the source chosen for it, or by its class among the sites switched on."""
-    if (holding.price_source or "auto") != "auto":
+    if (holding.price_source or "auto") not in ("auto", *sources.RETIRED):
         return [holding.price_source]  # also «custom:<name>», a source of the user's own (F22)
-    by_class = {"Obbligazione": ["borsaitaliana", "yahoo"], "Fondo comune": ["morningstar", "yahoo"],
-                "ETF": ["yahoo", "justetf", "morningstar", "stooq"]}
+    by_class = {"Obbligazione": ["borsaitaliana", "yahoo"], "Fondo comune": ["yahoo"],
+                "ETF": ["yahoo", "justetf", "stooq"]}
     on = set(sources.chosen())
     return [s for s in by_class.get(holding.asset_class, ["yahoo", "stooq"]) if s == "stooq" or s in on]
 
@@ -358,8 +358,8 @@ def _from_site(holding: Holding, site: str) -> tuple[Decimal, date, list, tuple 
 
 
 def _market(holding: Holding) -> Result:
-    """The sources of its class in order (Yahoo, then justETF, Morningstar or Stooq; Borsa Italiana for bonds,
-    Morningstar for funds) until one answers; what each one said when none does."""
+    """The sources of its class in order (Yahoo, then justETF or Stooq; Borsa Italiana for bonds, Yahoo for funds)
+    until one answers; what each one said when none does."""
     order = _price_order(holding)
     errors = []
     for source in order:

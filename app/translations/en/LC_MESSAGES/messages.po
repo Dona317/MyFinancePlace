@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-24 16:34+0000\n"
+"POT-Creation-Date: 2026-11-24 16:37+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -17116,9 +17116,6 @@ msgstr "until retirement"
 
 msgid "fiscale"
 msgstr "tax"
-
-msgid "fondi comuni ed ETF: il NAV e la sua data"
-msgstr "mutual funds and ETFs: the NAV and its date"
 
 msgid "formato Degiro"
 msgstr "Degiro format"

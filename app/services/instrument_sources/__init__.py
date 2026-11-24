@@ -8,24 +8,25 @@ from __future__ import annotations
 from app.services import settings_store
 from app.services.i18n import _l
 
-from . import borsaitaliana, justetf, morningstar, openfigi
+from . import borsaitaliana, justetf, openfigi
 from .base import Broken, Candidate, NotFound, Quote  # noqa: F401
 
 SETTING = "prices.sources"
-NAMES = {"yahoo": "Yahoo Finance", "openfigi": "OpenFIGI", "justetf": "justETF", "borsaitaliana": "Borsa Italiana",
-         "morningstar": "Morningstar"}
+NAMES = {"yahoo": "Yahoo Finance", "openfigi": "OpenFIGI", "justetf": "justETF", "borsaitaliana": "Borsa Italiana"}
+# 24 Nov 2026: sites no longer read — Morningstar answers automated requests with an anti-bot challenge (AWS WAF) since
+# morningstar.it moved to global.morningstar.com; walls like that are not worked around (F69). A holding that had it
+# chosen is priced by its class's order (price_feed._price_order).
+RETIRED = {"morningstar": "Morningstar"}
 DESCRIPTIONS = {
     "yahoo": _l("azioni, ETF, fondi e derivati di molte borse: ricerca, prezzo e storico"),
     "openfigi": _l("da ISIN a ticker e borsa (Bloomberg), per azioni, ETF, obbligazioni e derivati"),
     "justetf": _l("ETF europei: nome e prezzo in euro"),
     "borsaitaliana": _l("BTP e obbligazioni del MOT, ETF, azioni e certificati di Milano: anche il prezzo"),
-    "morningstar": _l("fondi comuni ed ETF: il NAV e la sua data"),
 }
-DEFAULT_ORDER = ["yahoo", "openfigi", "justetf", "borsaitaliana", "morningstar"]
+DEFAULT_ORDER = ["yahoo", "openfigi", "justetf", "borsaitaliana"]
 DEFAULT_OFF: set[str] = set()  # every site on at first; each one can be switched off
-FINDERS = {"openfigi": openfigi.find, "justetf": justetf.find, "borsaitaliana": borsaitaliana.find,
-           "morningstar": morningstar.find}
-QUOTES = {"justetf": justetf.quote, "borsaitaliana": borsaitaliana.quote, "morningstar": morningstar.quote}
+FINDERS = {"openfigi": openfigi.find, "justetf": justetf.find, "borsaitaliana": borsaitaliana.find}
+QUOTES = {"justetf": justetf.quote, "borsaitaliana": borsaitaliana.quote}
 
 
 def chosen() -> list[str]:

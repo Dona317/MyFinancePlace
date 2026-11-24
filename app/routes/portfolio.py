@@ -58,8 +58,7 @@ portfolio_bp = APIBlueprint(
 
 
 SOURCE_LABELS = {"auto": _l("Automatica"), "yahoo": "Yahoo Finance", "stooq": "Stooq", "coingecko": "CoinGecko",
-                 "justetf": "justETF", "borsaitaliana": "Borsa Italiana", "morningstar": "Morningstar",
-                 "manual": _l("Solo a mano")}
+                 "justetf": "justETF", "borsaitaliana": "Borsa Italiana", "manual": _l("Solo a mano")}
 
 
 def source_labels() -> dict:
