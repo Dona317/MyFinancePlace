@@ -8,8 +8,8 @@ instruments not quoted in euro count too.
         └─▶ the range wanted: from the first operation (a month before) to today
               └─▶ what is missing in the store: everything (first time), the start, the holes of 3+ trading days,
                   the last week (late corrections)
-                    └─▶ each piece read from Yahoo, else from Stooq (a Milan listing: its Xetra twin, in euro),
-                        else from justETF by the ISIN (the one of the link pasted, history_links)
+                    └─▶ each piece read from Yahoo, else from Yahoo through yfinance (F119), else from Stooq (a Milan
+                        listing: its Xetra twin, in euro), else from justETF by the ISIN (the link pasted, history_links)
 
 Only the tickers are sent (and the ISIN to justETF). It runs with «Prezzi da internet» on: once a day in the background (on the first visit
 to the dashboard or the portfolio), or from the «Riempi i buchi» button.
@@ -35,7 +35,7 @@ from app.models.account import Account
 from app.models.currency import ExchangeRate
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import currency, fx_store, market_data, price_feed, settings_store, studio
+from app.services import currency, fx_store, market_data, price_feed, settings_store, studio, yf_source
 from app.services.ui_settings import current_settings
 
 STOOQ_DAILY = "https://stooq.com/q/d/l/?s={symbol}&d1={start}&d2={end}&i=d"
@@ -214,7 +214,7 @@ def read_stooq(symbol: str, start: date, end: date) -> market_data.Daily:
                                                 end=end.strftime("%Y%m%d"))), code)
 
 
-SOURCES = (("yahoo", market_data.read_yahoo), ("stooq", read_stooq))
+SOURCES = (("yahoo", market_data.read_yahoo), ("yfinance", yf_source.read_if_on), ("stooq", read_stooq))
 
 
 def fill(target: Target, today: date | None = None, sources=None) -> Filled:

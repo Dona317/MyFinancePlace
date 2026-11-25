@@ -1,7 +1,7 @@
 """
 The starting price database (F114): the daily closes of the instruments in data/market_seed/strumenti.csv — the
 main ETFs of Borsa Italiana, the FTSE MIB, the large European and US shares, the indices, gold, oil and crypto —
-read from Yahoo Finance (else Stooq, else justETF by the ISIN) from 2000, with the ECB rates since 1999, into a market store of its own, then
+read from Yahoo Finance (else yfinance, else Stooq, else justETF by the ISIN) from 2000, with the ECB rates since 1999, into a market store of its own, then
 exported as the zip that «Importa il database di partenza» adds to the user's store.
 
     python scripts/build_market_seed.py                  # data/market_seed/database_di_partenza.zip
@@ -45,7 +45,7 @@ def main() -> int:
     os.environ["MARKET_DATABASE_URL"] = f"sqlite:///{STORE}"
     sys.path.insert(0, str(ROOT))
     from app import create_app
-    from app.services import fx_store, history_filler, history_links, market_data
+    from app.services import fx_store, history_filler, history_links, market_data, yf_source
 
     app = create_app("testing") if os.environ.get("TEST_DATABASE_URL") else create_app()
     start, today = date(args.since, 1, 1), date.today()
@@ -57,7 +57,8 @@ def main() -> int:
             code = (row.get("currency") or "").strip() or None  # for a source that does not say it (MSCI World)
             have = market_data.days(symbol)
             begin = max(start, max(have) - market_data.OVERLAP) if have else start
-            readers = [("yahoo", market_data.read_yahoo), ("stooq", history_filler.read_stooq)]
+            readers = [("yahoo", market_data.read_yahoo), ("yfinance", yf_source.read_if_on),
+                       ("stooq", history_filler.read_stooq)]
             if isin:
                 readers.append(("justetf", lambda _s, a, b, isin=isin: history_links.read_justetf(isin, a, b)))
             errors = []

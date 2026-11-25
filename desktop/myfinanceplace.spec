@@ -28,6 +28,7 @@ for package in ("apiflask", "fpdf", "flask_migrate", "pdfminer", "docx", "rapido
 
 hiddenimports = collect_submodules("app") + collect_submodules("apiflask") + collect_submodules("rapidocr") + ["psycopg2", "waitress", "sqlalchemy.dialects.postgresql.psycopg2",
                                              "logging.config"]
+hiddenimports += collect_submodules("yfinance")  # F119: imported only when it is used (yf_source._library)
 if sys.platform.startswith("win"):
     hiddenimports += ["pystray._win32"]  # the icon next to the clock (F14)
 # the light OCR (rapidocr + onnxruntime + OpenCV headless) is included: scans and photos are read offline, the AI is

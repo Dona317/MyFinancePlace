@@ -95,6 +95,7 @@ class TestingConfig(Config):
     AI_JOBS_SYNC = True  # tests of the background thread turn it off explicitly
     PRICES_SYNC = True  # the daily prices are read inside the request (no background thread)
     MARKET_SEED = False  # F114: a test's empty price store does not start from the shipped one (unless it asks)
+    YFINANCE = False  # F119: no real Yahoo through the library in the tests (they turn it on with a fake one)
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL") or "postgresql://sa:Pa55w0rd@localhost:5332/myfinanceplace_test"
     LOGIN_DISABLED = True  # the pages are tested without signing in; tests/test_auth.py turns it back on
 

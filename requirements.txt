@@ -17,6 +17,7 @@ fpdf2==2.8.8         # downloadable PDF report (pure Python)
 rapidocr==3.10.0  # light OCR of scans and photos (ONNX models bundled, offline, CPU; Python 3.8–3.13)
 onnxruntime==1.29.0  # the engine rapidocr runs on
 anthropic==1.8.0     # optional AI reading of scans/photos (LLM_PROVIDER=anthropic)
+yfinance==1.8.0      # F119: Yahoo Finance through the library, second source of the daily closes (pulls pandas)
 cryptography>=41.0  # the automatic encrypted backup (AES-256-GCM, scrypt, X25519)
 gunicorn==23.0.0     # production server (wsgi.py, gunicorn.conf.py)
 pytest

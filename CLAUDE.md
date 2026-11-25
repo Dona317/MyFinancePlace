@@ -26,7 +26,8 @@
   si rigenera con `python scripts/build_market_seed.py` (serve internet; il lavoro intermedio in `data/market_seed/build/`)
 - Fonti dei prezzi escluse e perché: Borsa Italiana diretta (API con token nella pagina: serve un'autorizzazione esplicita
   dell'utente), investing.com (403 anti-bot: solo CSV), Morningstar (sfida anti-bot AWS WAF, ritirato il 24 nov), Alpha
-  Vantage (scartata dall'utente). I muri anti-bot non si aggirano (F69)
+  Vantage (scartata dall'utente). I muri anti-bot non si aggirano (F69), con **una sola eccezione voluta dall'utente**:
+  la libreria yfinance (F119, 25 nov), seconda fonte dopo la lettura diretta di Yahoo
 
 ## Come verificare
 - Test: `TEST_DATABASE_URL=postgresql://… python -m pytest -q --cov=app --cov-report=json:cov.json --cov-fail-under=94`,
