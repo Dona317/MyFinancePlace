@@ -293,7 +293,7 @@ class Position:
 
     @property
     def avg_price(self) -> Decimal:
-        return money.price(self.cost_basis / self.quantity) if self.quantity > 0 else Decimal(0)
+        return money.price(self.cost_basis / self.quantity) if self.quantity != 0 else Decimal(0)
 
     @property
     def _multiplier(self) -> float:
@@ -337,7 +337,7 @@ def positions(holdings: list[Holding] | None = None, portfolio_id: int | None = 
     default_id = default_portfolio().id
     for holding in holdings:
         quantity = Decimal(holding.opening_quantity or 0)
-        if quantity > 0:
+        if quantity > 0 or (quantity < 0 and holding.is_option):  # an option written before the records here
             price = holding.opening_price if holding.opening_price is not None else holding.avg_price
             position = slot(holding, holding.opening_account_id, holding.opening_portfolio_id or default_id)
             position.quantity += quantity
@@ -352,16 +352,27 @@ def positions(holdings: list[Holding] | None = None, portfolio_id: int | None = 
         for trade_id, total in rows:
             fees[trade_id] = Decimal(total)
         for trade in trades:
-            position = slot(by_id[trade.holding_id], trade.securities_account_id, trade.portfolio_id or default_id)
+            holding = by_id[trade.holding_id]
+            position = slot(holding, trade.securities_account_id, trade.portfolio_id or default_id)
             units, price = Decimal(trade.units), Decimal(trade.unit_price)
+            fee = fees[trade.id] / Decimal(holding.multiplier or 1)  # the cost is per unit of the underlying
+            if units > 0 and position.quantity < 0:  # buying back a sold option (F120)
+                covered = min(units, -position.quantity)
+                position.cost_basis += position.cost_basis / position.quantity * covered
+                position.quantity += covered
+                units, fee = units - covered, Decimal(0)
             if units > 0:
-                position.cost_basis += units * price + fees[trade.id]
+                position.cost_basis += units * price + fee
                 position.quantity += units
-            elif position.quantity > 0:
+            elif units < 0 and position.quantity > 0:
                 sold = min(-units, position.quantity)
                 position.cost_basis -= position.cost_basis / position.quantity * sold
                 position.quantity -= sold
-            else:  # sold from a position that holds nothing here: kept visible, so the mismatch can be fixed
+                units = units + sold if holding.is_option else Decimal(0)  # only an option goes on below zero
+            if units < 0:
+                if holding.is_option:  # an option written: the premium cashed in (net of the commission)
+                    position.cost_basis += units * price + fee
+                # otherwise sold from a position that holds nothing here: kept visible, so the mismatch can be fixed
                 position.quantity += units
     out = [p for p in found.values()
            if (portfolio_id is None or p.portfolio_id == portfolio_id)

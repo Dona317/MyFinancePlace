@@ -39,6 +39,15 @@ class Holding(db.Model):
     redemption        = db.Column(db.Numeric(7, 3))  # paid back at maturity, % of the nominal; empty = 100
     first_coupon_date = db.Column(db.Date)           # empty = every date of the grid back from the maturity
     issue_price       = db.Column(db.Numeric(9, 4))  # % of the nominal
+    # An option's terms (F120, services.options): a «Derivato» with option_kind set is an option; the quantity is the
+    # contracts (negative when sold: the premium was cashed in), the price is per unit of the underlying, the
+    # multiplier the units a contract is on (100 for most share options)
+    option_kind    = db.Column(db.String(4))       # "call" | "put"
+    strike         = db.Column(db.Numeric(18, 6))  # in the currency of the underlying
+    option_expiry  = db.Column(db.Date)
+    underlying     = db.Column(db.Text)            # the underlying's ticker (AAPL, ENEL.MI, FTSEMIB.MI) or name
+    exercise_style = db.Column(db.String(10))      # "american" | "european"
+    settlement     = db.Column(db.String(10))      # "physical" (the shares change hands) | "cash"
     quantity      = db.Column(db.Numeric(38, 8), nullable=False)
     avg_price     = db.Column(db.Numeric(38, 6), nullable=False)   # average purchase price per unit
     current_price = db.Column(db.Numeric(38, 6))                  # empty = still worth the purchase price
@@ -72,6 +81,15 @@ class Holding(db.Model):
     @property
     def price(self) -> float:
         return _number(self.current_price if self.current_price is not None else self.avg_price)
+
+    @property
+    def is_option(self) -> bool:
+        return bool(self.option_kind)
+
+    @property
+    def is_short(self) -> bool:
+        """Sold without holding it (an option written): the premium cashed in, the position worth less than zero."""
+        return _number(self.quantity) < 0
 
     @property
     def units(self) -> float:

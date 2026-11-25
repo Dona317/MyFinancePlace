@@ -76,17 +76,31 @@ def recompute(holding: Holding) -> None:
     cost = quantity * Decimal(holding.opening_price if holding.opening_price is not None else holding.avg_price or 0)
     found = trades(holding)
     fees = _fees_by_trade([t.id for t in found])
+    size = Decimal(holding.multiplier or 1)  # the price is per unit of the underlying, a contract is `size` of them
     for trade in found:
         units, price = Decimal(trade.units), Decimal(trade.unit_price)
+        fee = fees.get(trade.id, Decimal(0)) / size
         if units > 0:
-            cost += units * price + fees.get(trade.id, Decimal(0))
-            quantity += units
-        elif quantity > 0:
-            sold = min(-units, quantity)
-            cost -= cost / quantity * sold
-            quantity -= sold
+            if quantity < 0:  # buying back a sold option (F120): the short position gets smaller
+                covered = min(units, -quantity)
+                cost += cost / quantity * covered  # what the covered contracts had cashed in
+                quantity += covered
+                units -= covered
+                fee = Decimal(0)
+            if units > 0:
+                cost += units * price + fee
+                quantity += units
+        else:
+            if quantity > 0:
+                sold = min(-units, quantity)
+                cost -= cost / quantity * sold
+                quantity -= sold
+                units += sold
+            if units < 0 and holding.is_option:  # selling an option not held: written, the premium cashed in
+                cost += units * price + fee
+                quantity += units
     holding.quantity = quantity
-    if quantity > 0:
+    if quantity != 0:
         holding.avg_price = money.price(cost / quantity)
 
 
@@ -163,10 +177,11 @@ def record(holding: Holding, op: Operation) -> list[Transaction]:
     if op.kind in ("buy", "sell"):
         if not op.units or op.units <= 0 or not op.price or op.price <= 0:
             raise ValueError(_("Indica quote e prezzo per quota, entrambi maggiori di zero."))
-        if op.kind == "sell" and op.units > Decimal(holding.quantity or 0):
+        if op.kind == "sell" and op.units > Decimal(holding.quantity or 0) and not holding.is_option:
             raise ValueError(_("Non puoi vendere più quote di quelle che hai (%(units)s).",
                                units=display.plain(holding.quantity)))
-        if op.kind == "sell" and (op.securities_account is not None or op.portfolio is not None or op.exact_place):
+        if op.kind == "sell" and not holding.is_option and (
+                op.securities_account is not None or op.portfolio is not None or op.exact_place):
             place = op.place()
             folio = op.portfolio or securities.default_portfolio()
             held = sum((p.quantity for p in securities.positions([holding])
@@ -178,7 +193,8 @@ def record(holding: Holding, op: Operation) -> list[Transaction]:
                                    units=display.plain(held)))
         units = op.units if op.kind == "buy" else -op.units
         account_id = op.account.id if op.account else None
-        trade = Transaction(date=op.on, description=_description(holding, op), amount=money.cents(op.units * op.price),
+        size = Decimal(holding.multiplier if holding.multiplier is not None else 1)  # a contract on 100 shares
+        trade = Transaction(date=op.on, description=_description(holding, op), amount=money.cents(op.units * op.price * size),
                             currency="EUR", type="transfer", category="Investimenti", holding_id=holding.id,
                             units=units, unit_price=op.price, notes=op.notes, tags=[], import_ref=op.import_ref,
                             account_id=account_id if units > 0 else None,

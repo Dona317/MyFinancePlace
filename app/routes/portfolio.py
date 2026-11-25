@@ -33,6 +33,7 @@ from app.services import (
     history_filler,
     lookthrough,
     market_data,
+    options,
     performance,
     planned_orders,
     portfolio_charts,
@@ -129,6 +130,27 @@ def _bond_terms_from_form(holding: Holding) -> None:
         raise ValueError(_("Prezzo di emissione: una percentuale del nominale, es. 99,5."))
 
 
+def _option_terms_from_form(holding: Holding) -> None:
+    """An option's terms (F120, all optional): call or put, strike, expiry, underlying, style, settlement. A US
+    option gets its OCC symbol as ticker (Yahoo quotes it); a ticker that is an OCC symbol fills in the terms."""
+    kind = request.form.get("option_kind") or None
+    holding.option_kind = form_choice("option_kind", _("Tipo di opzione"), options.KINDS) if kind else None
+    holding.strike = form_decimal("strike", _("Strike"))
+    holding.option_expiry = form_date("option_expiry", _("Scadenza dell'opzione"))
+    holding.underlying = (form_text("underlying", _("Sottostante")) or "").strip().upper() or None
+    style, settlement = request.form.get("exercise_style") or None, request.form.get("settlement") or None
+    holding.exercise_style = form_choice("exercise_style", _("Stile"), options.STYLES) if style else None
+    holding.settlement = form_choice("settlement", _("Regolamento"), options.SETTLEMENTS) if settlement else None
+    terms = options.parse_occ(holding.ticker) if not holding.option_kind else None
+    if terms:  # the ticker of a US option says it all
+        for field, value in terms.items():
+            setattr(holding, field, value)
+    options.validate(holding)
+    if holding.option_kind and not holding.ticker and options.is_us(holding.underlying):
+        holding.ticker = options.occ_symbol(holding.underlying, holding.option_expiry, holding.option_kind,
+                                            holding.strike)
+
+
 def _holding_from_form(holding: Holding) -> Holding:
     holding.name = form_text("name", _("Nome"), required=True)
     holding.ticker = form_text("ticker", _("Ticker"))
@@ -139,7 +161,10 @@ def _holding_from_form(holding: Holding) -> Holding:
     _instrument_from_form(holding)
     _fund_facts_from_form(holding)
     _bond_terms_from_form(holding)
+    _option_terms_from_form(holding)
     holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
+    if holding.quantity is not None and holding.quantity < 0 and not holding.is_option:
+        raise ValueError(_("Quantità: sotto zero solo per un'opzione venduta."))
     holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
     price = form_decimal("current_price", _("Prezzo attuale"))
     if price is not None and price != holding.current_price and holding.id is not None:
@@ -176,6 +201,8 @@ def _render_form(holding, values):
                            allocation_classes=asset_classes.CLASSES, distribution=fund_facts.DISTRIBUTION,
                            replication=fund_facts.REPLICATION,
                            bond_types=bonds.BOND_TYPES, frequencies=bonds.FREQUENCIES,
+                           option_kinds=options.KINDS, option_styles=options.STYLES,
+                           option_settlements=options.SETTLEMENTS,
                            domicile_hint=fund_facts.domicile_code(holding) if holding is not None else None,
                            estimated=asset_classes.estimate(holding.asset_class, holding.name, holding.ticker)
                            if holding is not None else None,
@@ -246,6 +273,9 @@ def detail(holding_id):
                            kind_of=portfolio_ops.kind_of, domicile=fund_facts.domicile_name(holding),
                            distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
                            asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
+                           option_label=options.label(holding) if holding.is_option else None,
+                           option_days=options.days_left(holding), option_kinds=options.KINDS,
+                           option_styles=options.STYLES, option_settlements=options.SETTLEMENTS,
                            chart=portfolio_charts.price_chart(holding, points),  # G40: with the operations
                            fx=fx_effect.of_holding(holding),  # F43: what the currency did
                            look=lookthrough.summary(holding), manual_rows=lookthrough.MANUAL_ROWS,
