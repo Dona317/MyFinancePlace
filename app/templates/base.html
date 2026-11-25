@@ -154,17 +154,6 @@
         {% endfor %}
       </div>
 
-      {# «Primi passi»: while something is still to prepare, with how much is done #}
-      {% set fp_done, fp_total, fp_shown = first_steps() %}
-      {% if fp_shown or request.endpoint == 'onboarding.checklist' %}
-      <div class="nav-first-steps">
-        <a href="{{ url_for('onboarding.checklist') }}" class="nav-item{{ ' active' if request.endpoint == 'onboarding.checklist' }}">
-          <i class="bi bi-flag"></i> <span class="nav-label" title="{{ _('Primi passi') }}">{{ _('Primi passi') }}</span>
-          <span class="nav-badge">{{ fp_done }}/{{ fp_total }}</span>
-        </a>
-      </div>
-      {% endif %}
-
       {# Dati (23 Nov 2026): what the app collects from the internet — exchange rates, past prices #}
       {% if shown('data') %}
       {% set in_data = request.endpoint and request.endpoint.startswith('data.') %}
@@ -305,6 +294,18 @@
     </header>
     {% endif %}
 
+    {# UI-47: «Primi passi» — a small pill at the top, in the middle of the page; a click opens the window below #}
+    {% set fp_done, fp_total, fp_shown = first_steps() %}
+    {% if fp_shown and not embedded and request.endpoint != 'onboarding.checklist' %}
+    <div class="fs-pill-wrap"><button type="button" class="fs-pill" id="fs-pill" aria-haspopup="dialog" aria-controls="first-steps-peek"
+        data-peek="{{ url_for('onboarding.checklist_peek') }}" data-page="{{ url_for('onboarding.checklist') }}"
+        title="{{ _('Primi passi: le cose da sistemare prima di usare l\'app') }}">
+  <span class="fs-pill-row"><i class="bi bi-flag"></i> <span class="fs-pill-text">{{ _('Primi passi') }}</span>
+    <span class="fs-pill-count" id="fs-pill-count">{{ fp_done }}/{{ fp_total }}</span></span>
+  <span class="fs-pill-bar" aria-hidden="true"><span id="fs-pill-fill" style="width: {{ (fp_done / fp_total * 100)|round if fp_total else 0 }}%"></span></span>
+</button></div>
+    {% endif %}
+
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -344,6 +345,57 @@
     </div>
   </div>
 </div>
+{% endif %}
+
+{# UI-47: «Primi passi» — while something is still to prepare, a small pill above the round + with how much is done;
+   a click opens the list in a window over the page (the page behind dimmed and still), like the + #}
+{% if fp_shown and not embedded and request.endpoint != 'onboarding.checklist' %}
+<div class="modal-overlay" id="first-steps-peek" onclick="if (event.target === this) closeModal('first-steps-peek')">
+  <div class="modal first-steps-peek" role="dialog" aria-modal="true" aria-labelledby="first-steps-peek-title">
+    <div class="modal-header">
+      <h3 class="modal-title" id="first-steps-peek-title"><i class="bi bi-flag"></i> {{ _('Primi passi') }}</h3>
+      <button type="button" class="modal-close" onclick="closeModal('first-steps-peek')" aria-label="{{ _('Chiudi') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body" id="first-steps-peek-body"><p class="text-sm text-muted mb-0">{{ _('Caricamento…') }}</p></div>
+    <div class="modal-footer">
+      <form method="POST" action="{{ url_for('onboarding.checklist_skip') }}">
+        <button type="submit" name="all" value="1" class="btn btn-ghost btn-sm" title="{{ _('Nasconde il riquadro «Primi passi»: lo ritrovi in Impostazioni o cercandolo') }}"><i class="bi bi-skip-forward"></i> {{ _('Salta i primi passi') }}</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  const pill = document.getElementById('fs-pill');
+  const body = document.getElementById('first-steps-peek-body');
+  // the list in the window; the pill follows it (an item skipped there counts as done)
+  const load = () => fetch(pill.dataset.peek, { credentials: 'same-origin' })
+    .then(response => { if (!response.ok) throw new Error(response.status); return response.text(); })
+    .then(html => {
+      body.innerHTML = html;
+      const box = body.querySelector('[data-total]');
+      if (!box) return;
+      const done = Number(box.dataset.done), total = Number(box.dataset.total);
+      document.getElementById('fs-pill-count').textContent = `${done}/${total}`;
+      document.getElementById('fs-pill-fill').style.width = `${total ? Math.round(done / total * 100) : 0}%`;
+    });
+  pill.addEventListener('click', () => {
+    openModal('first-steps-peek');
+    load().catch(() => { window.location.href = pill.dataset.page; });  // the window cannot load: the page instead
+  });
+  // «Salta» on an item: done without leaving the window, the list reloads in place
+  body.addEventListener('submit', event => {
+    const form = event.target.closest('form');
+    if (!form) return;
+    event.preventDefault();
+    const data = new FormData(form);
+    if (event.submitter?.name) data.set(event.submitter.name, event.submitter.value);
+    fetch(form.action, { method: 'POST', body: data, credentials: 'same-origin', headers: { 'X-Requested-With': 'fetch' } })
+      .then(response => { if (!response.ok) throw new Error(response.status); return load(); })
+      .catch(() => form.submit());  // something went wrong: the usual way, with the page
+  });
+})();
+</script>
 {% endif %}
 
 {# F97: no account of the user's yet — a dark yellow notice at the bottom, closed with the X for this session #}

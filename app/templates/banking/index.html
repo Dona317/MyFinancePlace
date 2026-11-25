@@ -2,10 +2,11 @@
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/info.html" import info %}
 {% from "partials/tabs.html" import tab_bar %}
+{% from "transactions/_tabs.html" import transactions_tabs with context %}
 
 {% block title %}{{ _('Collegamenti bancari') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Collegamenti bancari') }} {{ info(_('Per collegare un altro conto, aprilo in «Conti» → «Modifica» → «Collega a Enable Banking».')) }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ _('Collegamenti bancari') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ _('Collegamenti bancari') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('export.import_page') }}" class="btn btn-ghost btn-sm"><i class="bi bi-upload"></i> {{ _('Importa da file') }}</a>
@@ -13,6 +14,7 @@
 {% endblock %}
 
 {% block content %}
+{{ transactions_tabs('accounts') }}  {# UI-48: a tab of Conti e Carte, itself a tab of Transazioni #}
 <div class="page-tabs">{{ tab_bar([
   ('accounts', url_for('accounts.index'), _('Conti'), 'bank'),
   ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),

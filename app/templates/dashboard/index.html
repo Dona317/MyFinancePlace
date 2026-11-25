@@ -226,7 +226,9 @@
 {% set ns.band = band_of[w.id] %}
 {% if ns.band != 'now' %}
 <details class="dash-band" data-band="{{ ns.band }}"{{ ' open' if bands[ns.band][2] }}>
-  <summary class="dash-band-head"><i class="bi bi-chevron-right dash-band-chevron" aria-hidden="true"></i> {{ bands[ns.band][0] }}</summary>
+  <summary class="dash-band-head"><i class="bi bi-chevron-right dash-band-chevron" aria-hidden="true"></i> {{ bands[ns.band][0] }}
+    {% if view == 'overview' and band_views.get(ns.band) %}{# UI-49: all the band's charts are in its tab #}
+    <a href="{{ url_for('dashboard.dashboard', view=band_views[ns.band]) }}" class="dash-band-more">{{ _('Tutti i grafici') }} <i class="bi bi-arrow-right"></i></a>{% endif %}</summary>
 {% endif %}
 <div class="fc-grid dash-grid" id="fc-grid-{{ ns.band }}">
 {% endif %}

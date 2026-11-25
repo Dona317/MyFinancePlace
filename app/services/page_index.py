@@ -18,6 +18,8 @@ from app.services import sections
 from app.services.i18n import _l
 
 MAIN = ("transactions", "portfolio", "goals")  # after the Dashboard, in this order
+# UI-48: sections that are a tab of Transazioni — not in the menu, Transazioni lit on their pages; still searchable
+TRANSACTIONS_TABS = ("accounts",)
 
 
 @dataclass(frozen=True)
@@ -180,7 +182,8 @@ def menu() -> tuple[list[dict], list[dict]]:
     others = []
     for _macro, entries in _tree():
         for entry in entries:
-            if entry.key in (None, "data") or not _visible(entry):  # Dati has a section of its own in the menu
+            # Dati has a section of its own in the menu; Conti e Carte is a tab of Transazioni
+            if entry.key in (None, "data", *TRANSACTIONS_TABS) or not _visible(entry):
                 continue
             url = _url(entry.page)
             if not url:
@@ -207,7 +210,8 @@ def _active(entry: Entry, current: str | None) -> bool:
         return endpoint == entry.page.endpoint or (entry.page.endpoint == "export.import_page"
                                                    and endpoint.startswith("export.") and endpoint != "export.index")
     if entry.key == "transactions":
-        return current in ("transactions", "subscriptions") or endpoint in ("reports.income", "reports.spending")
+        return (current in ("transactions", "subscriptions", *TRANSACTIONS_TABS)
+                or endpoint in ("reports.income", "reports.spending"))
     if entry.key == "reports":
         return current == "reports" and endpoint not in ("reports.income", "reports.spending")
     if entry.key == "deadlines":

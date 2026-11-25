@@ -1,0 +1,25 @@
+{# «Primi passi»: the list of what to prepare — on its page and in the window the pill opens (UI-47) #}
+<ul class="first-steps">
+  {% for item in items %}
+  <li class="first-step{{ ' is-done' if item.done }}{{ ' is-skipped' if item.skipped }}">
+    <a href="{{ url_for('onboarding.step', name=item.step, da='lista') if item.step else url_for(item.endpoint) }}">
+      <span class="first-step-check" aria-hidden="true"><i class="bi bi-{{ 'check-lg' if item.done else ('skip-forward' if item.skipped else item.icon) }}"></i></span>
+      <span class="first-step-text">
+        <strong>{{ item.label }}</strong>
+        <span class="text-sm text-muted">{{ item.hint }}</span>
+        {% if item.detail %}<span class="text-xs first-step-detail">{{ item.detail }}</span>{% endif %}
+      </span>
+      <span class="first-step-go">{{ _('Rivedi') if item.done else (_('Saltato · apri') if item.skipped else _('Inizia')) }} <i class="bi bi-arrow-right"></i></span>
+    </a>
+    {% if not item.done and not item.skipped %}
+    <form method="POST" action="{{ url_for('onboarding.checklist_skip') }}" class="first-step-skip">
+      <button type="submit" name="key" value="{{ item.key }}" class="btn btn-ghost btn-sm" title="{{ _('Salta questa voce: conta come fatta') }}">{{ _('Salta') }}</button>
+    </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+<div class="card-body first-steps-foot text-sm text-muted">
+  <i class="bi bi-archive"></i> {{ _('Hai già un archivio di MyFinancePlace?') }}
+  <a href="{{ url_for('onboarding.step', name='importa') }}">{{ _('Ripristina il backup') }}</a>
+</div>

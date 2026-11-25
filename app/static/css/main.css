@@ -1595,6 +1595,9 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
   font-size: var(--font-size-sm); font-weight: 600; color: var(--clr-text-secondary); }
 .dash-band-head::-webkit-details-marker { display: none; }
 .dash-band-head:hover { color: var(--clr-text-primary); }
+/* UI-49: «Tutti i grafici» — the band's tab, at the right of its title */
+.dash-band-more { margin-left: auto; font-size: var(--font-size-sm); font-weight: 500; color: var(--clr-primary); text-decoration: none; }
+.dash-band-more:hover { text-decoration: underline; }
 .dash-band-chevron { font-size: 12px; transition: transform var(--transition); }
 .dash-band[open] .dash-band-chevron { transform: rotate(90deg); }
 #fc-grid-now { margin-bottom: 8px; }
@@ -2143,6 +2146,25 @@ body:has(.ask-bubble) .to-bottom { right: 27px; bottom: 68px; width: 30px; heigh
 .add-bubble:hover { transform: scale(1.06); color: var(--clr-on-primary); text-decoration: none; }
 @media (max-width: 992px) { .add-bubble { left: 16px; } }
 .focus .add-bubble { display: none; }  /* the full-screen form has its own way out */
+/* UI-47: «Primi passi» — a small pill at the top, in the middle of the page (under the topbar, in the flow: it covers
+   nothing), the look of the AI classification's; a click opens the list in a window */
+.fs-pill-wrap { display: flex; justify-content: center; padding: 12px 28px 0; }
+.fs-pill { width: 220px; padding: 7px 12px 9px; border: 1px solid var(--clr-border); border-radius: var(--border-radius);
+  background: var(--clr-bg-card); box-shadow: var(--shadow-md); color: var(--clr-text-primary); font: inherit; text-align: left;
+  cursor: pointer; transition: border-color .15s ease; }
+.fs-pill:hover, .fs-pill:focus-visible { border-color: var(--clr-primary); }
+.fs-pill-row { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm); font-weight: 600; }
+.fs-pill-row > .bi { color: var(--clr-primary); }
+.fs-pill-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fs-pill-count { color: var(--clr-text-muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+.fs-pill-bar { display: block; height: 4px; margin-top: 7px; border-radius: 999px; background: var(--clr-bg-input); overflow: hidden; }
+.fs-pill-bar > span { display: block; height: 100%; background: var(--clr-primary); border-radius: inherit; transition: width .3s ease; }
+.first-steps-peek { max-width: 600px; }
+.first-steps-peek .modal-title .bi { color: var(--clr-primary); margin-right: 4px; }
+.first-steps-peek .modal-body { padding: 16px 8px 0; }
+.first-steps-peek-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 12px 10px; }
+.first-steps-peek-body > .onb-progress { margin: 0 12px; }
+.first-steps-peek .first-steps { padding: 8px 4px 4px; }
 
 /* Sidebar footer: the user, then the reminders, light/dark and the settings; reduced to icons, the user at the bottom */
 .sidebar-footer { grid-template-columns: minmax(0, 1fr); }  /* the user's name gives way: the icons stay inside */

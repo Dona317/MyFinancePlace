@@ -94,12 +94,19 @@ def checklist():
                            hidden=bool(onboarding.state().get("checklist_hidden")))
 
 
+@onboarding_bp.route("/primi-passi/finestra")
+def checklist_peek():
+    """The list alone, for the window the «Primi passi» pill opens over any page (UI-47)."""
+    done, total = onboarding.progress()
+    return render_template("onboarding/_first_steps_peek.html", items=onboarding.checklist(), done=done, total=total)
+
+
 @onboarding_bp.route("/primi-passi/salta", methods=["POST"])
 def checklist_skip():
     """«Salta» on one item (key=…), or «Salta i primi passi» (all=1): the section out of the menu."""
     if request.form.get("all"):
         onboarding.hide_checklist(True)
-        flash(_("«Primi passi» tolto dal menu: lo ritrovi in Impostazioni o cercandolo con Ctrl+K."), "info")
+        flash(_("«Primi passi» nascosto: lo ritrovi in Impostazioni o cercandolo con Ctrl+K."), "info")
         return redirect(url_for("dashboard.dashboard"))
     if request.form.get("show"):
         onboarding.hide_checklist(False)
@@ -123,7 +130,7 @@ def finish():
     """«Apri la Dashboard» (or «Configura più tardi»): the tutorial does not open by itself any more."""
     onboarding.finish()
     if request.form.get("later"):
-        flash(_("Configurazione rimandata: la riprendi quando vuoi da «Primi passi» nel menu."), "info")
+        flash(_("Configurazione rimandata: la riprendi quando vuoi da «Primi passi», in alto al centro."), "info")
     return redirect(url_for("dashboard.dashboard"))
 
 

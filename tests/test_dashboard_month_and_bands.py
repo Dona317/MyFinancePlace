@@ -42,7 +42,7 @@ def test_blocks_hidden_before_are_shown_once(client, db):
              for w in dashboard_prefs.default_layout()]
     settings_store.set_json(dashboard_prefs.LAYOUT_SETTING, saved)
     settings_store.set_json(dashboard_prefs.PRESETS_SETTING, {"active": 1, "items": [{"name": "P", "layout": saved}]})
-    assert dashboard_prefs.reveal() == ["period_totals", "cashflow", "sankey", "sankey-2x2"]
+    assert dashboard_prefs.reveal() == ["period_totals", "cashflow", "sankey", "sankey-2x2", "tabs-ui49"]
     shown = {w["id"]: w["visible"] for w in dashboard_prefs.layout()}
     assert shown["period_totals"] and shown["cashflow"] and shown["sankey"] and not shown["expense_pie"]
     preset = settings_store.get_json(dashboard_prefs.PRESETS_SETTING)["items"][0]["layout"]
@@ -53,8 +53,27 @@ def test_blocks_hidden_before_are_shown_once(client, db):
     assert not {w["id"]: w["visible"] for w in dashboard_prefs.layout()}["cashflow"]
 
 
+def test_panoramica_keeps_come_sto_and_a_chart_a_band_the_rest_in_tabs(client, db):
+    """UI-49: an arrangement saved before shows, once, only the key charts; each band links to its tab."""
+    settings_store.set_json(dashboard_prefs.LAYOUT_SETTING, [dict(w, visible=True) for w in dashboard_prefs.default_layout()])
+    settings_store.set_json(dashboard_prefs.REVEALED_SETTING, ["period_totals", "cashflow", "sankey", "sankey-2x2"])
+    assert dashboard_prefs.reveal() == ["tabs-ui49"]
+    shown = {w["id"] for w in dashboard_prefs.layout() if w["visible"]}
+    assert shown == {"period_totals", "health", "to_fix", "sankey", "cashflow", "future_balance"}
+    page = client.get("/dashboard").get_data(as_text=True)
+    import re
+    hidden = set(re.findall(r'data-widget="(\w+)"[^>]*hidden>', page))  # there for Modifica, not shown
+    assert {"pace", "future_net_worth", "net_worth"} <= hidden and not {"sankey", "cashflow", "future_balance"} & hidden
+    assert page.count("Tutti i grafici") == 3 and "/dashboard?view=time" in page and "/dashboard?view=future" in page
+    time = client.get("/dashboard?view=time").get_data(as_text=True)
+    assert 'data-widget="net_worth"' in time and 'data-widget="savings_trend"' in time
+    future = client.get("/dashboard?view=future").get_data(as_text=True)
+    assert 'data-widget="future_net_worth"' in future and 'data-widget="goals_eta"' in future
+    assert "Tutti i grafici" not in future
+
+
 def test_reveal_with_nothing_saved(db):
-    assert dashboard_prefs.reveal() == ["period_totals", "cashflow", "sankey", "sankey-2x2"]
+    assert dashboard_prefs.reveal() == ["period_totals", "cashflow", "sankey", "sankey-2x2", "tabs-ui49"]
 
 
 def test_the_flow_of_money_is_in_questo_mese_2x2_and_shown_again_once(client, db):
@@ -64,7 +83,7 @@ def test_the_flow_of_money_is_in_questo_mese_2x2_and_shown_again_once(client, db
     settings_store.set_json(dashboard_prefs.LAYOUT_SETTING, saved)
     settings_store.set_json("ui.settings", {"dashboard_sankey": False})
     settings_store.set_json(dashboard_prefs.REVEALED_SETTING, ["cashflow", "period_totals"])
-    assert dashboard_prefs.reveal() == ["sankey", "sankey-2x2"]
+    assert dashboard_prefs.reveal() == ["sankey", "sankey-2x2", "tabs-ui49"]
     block = next(w for w in dashboard_prefs.layout() if w["id"] == "sankey")
     assert block["visible"] and (block["span"], block["height"]) == (2, 2)
     assert settings_store.get_json("ui.settings", expect=dict)["dashboard_sankey"] is True
@@ -102,6 +121,11 @@ def test_conti_e_carte_opens_on_the_accounts_without_an_overview(client, db):
     page = client.get("/accounts/").get_data(as_text=True)
     assert "I saldi per tipo di conto" not in page and "bi-grid-1x2" not in page
     assert client.get("/accounts/?tab=overview").status_code == 200  # an old link lands on the accounts
+    # UI-48: the second tab of Transazioni, with its own tabs below; no longer in the side menu
+    tabs = page.split('aria-label="Transazioni"')[1]
+    assert tabs.index("/transactions/") < tabs.index("/accounts/") and "Sezioni di conti e carte" in page
+    assert 'href="/accounts/"' not in page.split('class="sidebar-nav"')[1].split("</nav>")[0]
+    assert 'aria-label="Transazioni"' in client.get("/banking/").get_data(as_text=True)
 
 
 def test_the_debt_and_investment_blocks_show_their_rates(client, db):

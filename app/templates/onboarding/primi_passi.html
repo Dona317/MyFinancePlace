@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {# «Primi passi» (23 Nov 2026): what to prepare before using the app, with what is already done; each line opens
-   its step of the guided set-up (or the page that does it) #}
+   its step of the guided set-up (or the page that does it). The same list opens in a window from the pill (UI-47). #}
 {% block title %}{{ _('Primi passi') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Primi passi') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Primi passi') }}</li>{% endblock %}
@@ -16,38 +16,15 @@
       <div class="d-flex align-center gap-8">
         <span class="badge {{ 'badge-positive' if done == total else 'badge-muted' }}">{{ _('%(done)s di %(total)s', done=done, total=total) }}</span>
         <form method="POST" action="{{ url_for('onboarding.checklist_skip') }}">
-          {% if hidden %}<button type="submit" name="show" value="1" class="btn btn-ghost btn-sm"><i class="bi bi-eye"></i> {{ _('Rimetti nel menu') }}</button>
-          {% else %}<button type="submit" name="all" value="1" class="btn btn-ghost btn-sm" title="{{ _('Toglie «Primi passi» dal menu: lo ritrovi in Impostazioni o cercandolo') }}"><i class="bi bi-skip-forward"></i> {{ _('Salta i primi passi') }}</button>{% endif %}
+          {% if hidden %}<button type="submit" name="show" value="1" class="btn btn-ghost btn-sm"><i class="bi bi-eye"></i> {{ _('Mostra di nuovo') }}</button>
+          {% else %}<button type="submit" name="all" value="1" class="btn btn-ghost btn-sm" title="{{ _('Nasconde il riquadro «Primi passi»: lo ritrovi in Impostazioni o cercandolo') }}"><i class="bi bi-skip-forward"></i> {{ _('Salta i primi passi') }}</button>{% endif %}
         </form>
       </div>
     </div>
     <div class="onb-progress onb-progress-inline" role="progressbar" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ done }}">
       <span style="width: {{ (done / total * 100)|round if total else 0 }}%"></span>
     </div>
-    <ul class="first-steps">
-      {% for item in items %}
-      <li class="first-step{{ ' is-done' if item.done }}{{ ' is-skipped' if item.skipped }}">
-        <a href="{{ url_for('onboarding.step', name=item.step, da='lista') if item.step else url_for(item.endpoint) }}">
-          <span class="first-step-check" aria-hidden="true"><i class="bi bi-{{ 'check-lg' if item.done else ('skip-forward' if item.skipped else item.icon) }}"></i></span>
-          <span class="first-step-text">
-            <strong>{{ item.label }}</strong>
-            <span class="text-sm text-muted">{{ item.hint }}</span>
-            {% if item.detail %}<span class="text-xs first-step-detail">{{ item.detail }}</span>{% endif %}
-          </span>
-          <span class="first-step-go">{{ _('Rivedi') if item.done else (_('Saltato · apri') if item.skipped else _('Inizia')) }} <i class="bi bi-arrow-right"></i></span>
-        </a>
-        {% if not item.done and not item.skipped %}
-        <form method="POST" action="{{ url_for('onboarding.checklist_skip') }}" class="first-step-skip">
-          <button type="submit" name="key" value="{{ item.key }}" class="btn btn-ghost btn-sm" title="{{ _('Salta questa voce: conta come fatta') }}">{{ _('Salta') }}</button>
-        </form>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-    <div class="card-body first-steps-foot text-sm text-muted">
-      <i class="bi bi-archive"></i> {{ _('Hai già un archivio di MyFinancePlace?') }}
-      <a href="{{ url_for('onboarding.step', name='importa') }}">{{ _('Ripristina il backup') }}</a>
-    </div>
+    {% include "onboarding/_first_steps_list.html" %}
   </div>
 </div>
 {% endblock %}

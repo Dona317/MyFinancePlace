@@ -3,6 +3,8 @@
 {% from "partials/tabs.html" import tab_bar %}
 {% macro transactions_tabs(active) -%}
 {% set items = [('register', url_for('transactions.index'), _('Transazioni'), 'list-ul')] %}
+{# UI-48: Conti e Carte is the second tab, its page as it was (with its own tabs below) #}
+{% if shown('accounts') %}{% set items = items + [('accounts', url_for('accounts.index'), _('Conti e Carte'), 'bank')] %}{% endif %}
 {% if shown('reports') %}
 {% set items = items + [('income', url_for('reports.income'), _('Entrate'), 'arrow-down-circle'),
                         ('spending', url_for('reports.spending'), _('Uscite'), 'arrow-up-circle')] %}

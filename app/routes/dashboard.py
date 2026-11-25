@@ -251,7 +251,10 @@ def dashboard():
         "future_balance": dashboard_charts.future_balance,
         "big_expenses": dashboard_charts.big_expenses,
     }
-    extra = {key: compute(today) if key in shown else None for key, compute in new_blocks.items()}
+    # computed for the blocks on the page, hidden ones too: Modifica shows a hidden block without a reload (UI-49:
+    # most of them start hidden in «Panoramica»)
+    on_page = {w["id"] for w in layout}
+    extra = {key: compute(today) if key in on_page else None for key, compute in new_blocks.items()}
     # «Come sto»: the cards on top (and the «Da sistemare» block, when shown)
     kpi_shown = {k["id"] for k in dashboard_prefs.kpi_layout() if k["visible"]} if view == "overview" else set()
     extra["to_fix"] = dashboard_charts.to_fix(today) if {"to_fix"} & (shown | kpi_shown) else []
@@ -284,7 +287,7 @@ def dashboard():
         year_start=pie_start, year_last=pie_end - timedelta(days=1),
         net_worth_trend=_net_worth_trend(chart_months, today) if "net_worth" in shown and chart_months else None,
         extra=extra,
-        bands=dashboard_prefs.BANDS, band_of=band_of, view=view,
+        bands=dashboard_prefs.BANDS, band_of=band_of, view=view, band_views=dashboard_prefs.BAND_VIEW,
         view_tabs=[(key, url_for("dashboard.dashboard", view=None if key == "overview" else key), title, icon)
                    for key, (title, icon, _blocks) in dashboard_prefs.VIEWS.items()],
         health=_health(kpis, last_12),

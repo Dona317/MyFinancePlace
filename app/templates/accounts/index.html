@@ -4,15 +4,17 @@
 {% from "partials/stat_row.html" import stat_row %}
 {% from "partials/tabs.html" import tab_bar %}
 {% from "partials/info.html" import info %}
+{% from "transactions/_tabs.html" import transactions_tabs with context %}
 {% block page_title %}{{ _('Conti e Carte') }}{% endblock %}
-{% block breadcrumb %}<li>{{ _('Conti e Carte') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Conti e Carte') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm" data-popup="{{ url_for('accounts.new', embed=1, next=url_for('transactions.embed_done', reload=1)) }}" data-popup-size="wide" title="{{ _('Nuovo Conto') }}"><i class="bi bi-plus-lg"></i> {{ _('Nuovo Conto') }}</a>
 {% endblock %}
 
 {% block content %}
-{# UI-21: «come sto» in one row, then the tabs #}
+{# UI-48: a tab of Transazioni; then, as before (UI-21), «come sto» in one row and its own tabs #}
+{{ transactions_tabs('accounts') }}
 {# the cash in each currency, under its figure #}
 {% set cash_parts = namespace(text='') %}
 {% for code, value in currencies.items() %}{% set cash_parts.text = cash_parts.text ~ (' · ' if not loop.first else '') ~ value|money(code) %}{% endfor %}

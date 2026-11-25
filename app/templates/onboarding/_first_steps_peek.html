@@ -1,0 +1,11 @@
+{# «Primi passi» in the window the pill opens (UI-47): how much is done, then the list #}
+<div class="first-steps-peek-body" data-done="{{ done }}" data-total="{{ total }}">
+  <div class="first-steps-peek-head">
+    <span class="text-sm text-muted">{{ _('Le cose da sistemare prima di usarla: in qualsiasi ordine, quando vuoi.') }}</span>
+    <span class="badge {{ 'badge-positive' if done == total else 'badge-muted' }}">{{ _('%(done)s di %(total)s', done=done, total=total) }}</span>
+  </div>
+  <div class="onb-progress" role="progressbar" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ done }}">
+    <span style="width: {{ (done / total * 100)|round if total else 0 }}%"></span>
+  </div>
+  {% include "onboarding/_first_steps_list.html" %}
+</div>

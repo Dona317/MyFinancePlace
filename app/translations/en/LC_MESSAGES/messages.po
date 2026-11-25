@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-25 23:34+0100\n"
+"POT-Creation-Date: 2026-11-26 00:09+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -3568,11 +3568,11 @@ msgid "Configurata"
 msgstr "Set up"
 
 msgid ""
-"Configurazione rimandata: la riprendi quando vuoi da «Primi passi» nel "
-"menu."
+"Configurazione rimandata: la riprendi quando vuoi da «Primi passi», in "
+"alto al centro."
 msgstr ""
-"Set-up postponed: pick it up whenever you like from «First steps» in the "
-"menu."
+"Setup postponed: pick it up whenever you like from «First steps», at the "
+"top in the middle."
 
 msgid "Configuriamo insieme preferenze e conti, in pochi minuti."
 msgstr "We set up preferences and accounts together, in a few minutes."
@@ -9307,6 +9307,9 @@ msgstr ""
 "Also show the running totals lines (switched on and off from the chart "
 "legend)"
 
+msgid "Mostra di nuovo"
+msgstr "Show again"
+
 msgid "Mostra dove sono: conti titoli e portafogli"
 msgstr "Show where they are: securities accounts and portfolios"
 
@@ -9457,6 +9460,13 @@ msgstr "N months"
 
 msgid "N."
 msgstr "No."
+
+msgid ""
+"Nasconde il riquadro «Primi passi»: lo ritrovi in Impostazioni o "
+"cercandolo"
+msgstr ""
+"Hides the «First steps» box: you will find it in Settings or by searching"
+" for it"
 
 msgid "Nascondi"
 msgstr "Hide"
@@ -12210,6 +12220,9 @@ msgstr ""
 msgid "Primi passi"
 msgstr "First steps"
 
+msgid "Primi passi: le cose da sistemare prima di usare l'app"
+msgstr "First steps: what to set up before using the app"
+
 msgid "Primo avvio"
 msgstr "First start"
 
@@ -13233,9 +13246,6 @@ msgstr "Redemption at maturity (%% of nominal)"
 
 msgid "Rimborso a scadenza: una percentuale del nominale, di solito 100."
 msgstr "Redemption at maturity: a percentage of the nominal, usually 100."
-
-msgid "Rimetti nel menu"
-msgstr "Put back in the menu"
 
 #, python-format
 msgid "Rimuovere il modello %(name)s (~%(size)s GB)?"
@@ -15476,9 +15486,6 @@ msgstr "Remove this part"
 msgid "Togli ricerca e filtri"
 msgstr "Clear search and filters"
 
-msgid "Toglie «Primi passi» dal menu: lo ritrovi in Impostazioni o cercandolo"
-msgstr "Removes «First steps» from the menu: find it in Settings or by searching"
-
 #, python-format
 msgid "Togliere il tag «%(name)s» da %(count)s transazioni?"
 msgstr "Remove the tag «%(name)s» from %(count)s transactions?"
@@ -15828,6 +15835,9 @@ msgid ""
 msgstr ""
 "All the app data in one file: transactions, portfolio, debts, policies, "
 "goals, snapshots, settings and the files of the document archive"
+
+msgid "Tutti i grafici"
+msgstr "All charts"
 
 msgid "Tutti i portafogli"
 msgstr "All portfolios"
@@ -18460,9 +18470,11 @@ msgstr ""
 "this month."
 
 msgid ""
-"«Primi passi» tolto dal menu: lo ritrovi in Impostazioni o cercandolo con"
-" Ctrl+K."
-msgstr "«First steps» removed from the menu: find it in Settings or with Ctrl+K."
+"«Primi passi» nascosto: lo ritrovi in Impostazioni o cercandolo con "
+"Ctrl+K."
+msgstr ""
+"«First steps» hidden: you will find it in Settings or by searching with "
+"Ctrl+K."
 
 msgid "± 1 giorno"
 msgstr "± 1 day"

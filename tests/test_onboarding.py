@@ -111,7 +111,9 @@ def test_primi_passi_lists_what_to_prepare_and_comes_back_to_it(client, db):
     page = client.get("/benvenuto/primi-passi").get_data(as_text=True)
     assert "Prepara l'app" in page and "0 di 6" in page and "I tuoi conti" in page and "Investimenti" in page
     menu = client.get("/transactions/").get_data(as_text=True)
-    assert 'href="/benvenuto/primi-passi"' in menu.split('class="sidebar-nav"')[1] and "0/6" in menu
+    assert 'id="fs-pill"' in menu and "0/6" in menu and 'href="/benvenuto/primi-passi"' not in menu.split('class="sidebar-nav"')[1]
+    peek = client.get("/benvenuto/primi-passi/finestra").get_data(as_text=True)  # the window the pill opens
+    assert 'data-done="0" data-total="6"' in peek and "I tuoi conti" in peek and "<html" not in peek
     # a step opened from the list goes back to it, marked done
     back = client.post("/benvenuto/conti?da=lista", data={"kind": ["current"], "name": ["Fineco"], "bank": [""],
                                                          "balance": ["100"]})
@@ -129,7 +131,7 @@ def test_primi_passi_lists_what_to_prepare_and_comes_back_to_it(client, db):
     db.session.add(Holding(name="ETF", asset_class="ETF", quantity=1, avg_price=1))
     db.session.commit()
     assert onboarding.progress() == (6, 6)
-    assert 'href="/benvenuto/primi-passi"' not in client.get("/transactions/").get_data(as_text=True).split('class="sidebar-nav"')[1]
+    assert 'id="fs-pill"' not in client.get("/transactions/").get_data(as_text=True)
 
 
 def test_primi_passi_can_be_skipped_item_by_item_or_all(client, db):
@@ -140,8 +142,8 @@ def test_primi_passi_can_be_skipped_item_by_item_or_all(client, db):
     assert "Saltato · apri" in page and "Salta i primi passi" in page
     assert onboarding.in_menu()
     done = client.post("/benvenuto/primi-passi/salta", data={"all": "1"}, follow_redirects=True).get_data(as_text=True)
-    assert "tolto dal menu" in done and not onboarding.in_menu()
-    assert 'href="/benvenuto/primi-passi"' not in client.get("/transactions/").get_data(as_text=True).split('class="sidebar-nav"')[1]
-    assert "Rimetti nel menu" in client.get("/benvenuto/primi-passi").get_data(as_text=True)  # still reachable
+    assert "«Primi passi» nascosto" in done and not onboarding.in_menu()
+    assert 'id="fs-pill"' not in client.get("/transactions/").get_data(as_text=True)
+    assert "Mostra di nuovo" in client.get("/benvenuto/primi-passi").get_data(as_text=True)  # still reachable
     client.post("/benvenuto/primi-passi/salta", data={"show": "1"})
     assert onboarding.in_menu()

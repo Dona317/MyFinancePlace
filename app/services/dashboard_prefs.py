@@ -101,6 +101,8 @@ BANDS = {
     "future": (_l("Futuro"), ("future_balance", "big_expenses", "future_net_worth", "fire", "goals_eta",
                                "debt_payoff", "future_income"), True),
 }
+# UI-49: the tab that holds all the charts of a band, linked from the band's title in «Panoramica»
+BAND_VIEW = {"month": "month", "time": "time", "future": "future"}
 BAND_OF = {widget: band for band, (_title, members, _open) in BANDS.items() for widget in members}
 
 LAYOUT_SETTING = "dashboard.layout"
@@ -110,13 +112,19 @@ HEIGHTS = (0, 1, 2, 3)  # 0: as tall as its content (and its row); 1–3: medium
 
 # Hidden at first (Modifica shows them again): what the sketch of 18 Nov leaves out of the page — «Come sto» is the
 # row of cards on top, the doughnuts and the older charts are a click away.
-DEFAULT_HIDDEN = {"health", "to_fix", "month_totals", "debt_summary", "expense_pie", "income_pie", "year_total",
-                  "expense_trend", "income_trend", "investments", "drawdown"}
+# UI-49 (26 Nov 2026): «Panoramica» keeps «Come sto» and one chart of each band (the money flow of the month, the cash
+# flow, the balance of the next 12 months); the others are in the tabs «Questo mese», «Nel tempo» and «Futuro»
+KEY_CHARTS = ("period_totals", "sankey", "cashflow", "future_balance")
+MOVED_TO_TABS = tuple(key for _title, members, _open in BANDS.values() for key in members
+                      if key not in KEY_CHARTS and key not in ("health", "to_fix"))
+DEFAULT_HIDDEN = {"health", "to_fix", *MOVED_TO_TABS}
 # Blocks shown again once on an arrangement saved before (22 Nov 2026: income and expenses of the period, and the
 # cash-flow chart, were hidden); hidden afterwards in Modifica, they stay hidden
-REVEALED = ("period_totals", "cashflow", "sankey", "sankey-2x2")
+REVEALED = ("period_totals", "cashflow", "sankey", "sankey-2x2", "tabs-ui49")
 # a step of REVEALED that also gives a block its size: «sankey-2x2» = the Sankey two columns wide and two rows tall
 REVEALED_SHAPES = {"sankey-2x2": ("sankey", {"span": 2, "height": 2})}
+# a step of REVEALED that hides blocks instead (they went to a tab of their own)
+HIDDEN_STEPS = {"tabs-ui49": MOVED_TO_TABS}
 DEFAULT_HEIGHTS = {"sankey": 2}
 REVEALED_SETTING = "dashboard.revealed"
 UI_SETTINGS_KEY = "ui.settings"  # ui_settings.SETTINGS_KEY (not imported: ui_settings reads this module)
@@ -212,6 +220,12 @@ VIEWS = {
     "month":       (_l("Questo mese"), "calendar-month", (("month_totals", 3), ("pace", 2), ("bridge", 1),
                     ("money_map", 1), ("budget_top", 1), ("next_days", 1), ("sankey", 2), ("expense_pie", 1), ("income_pie", 1),
                     ("year_total", 1), ("cashflow", 3), ("expense_trend", 3))),
+    # UI-49: the bands «Nel tempo» and «Futuro» of the overview, each a tab with all its charts
+    "time":        (_l("Nel tempo"), "graph-up", (("cashflow", 2), ("net_worth", 1), ("savings_trend", 1),
+                    ("net_worth_bridge", 1), ("investments_trend", 1), ("expense_trend", 2), ("income_trend", 2),
+                    ("investments", 1), ("debt_summary", 1), ("drawdown", 1))),
+    "future":      (_l("Futuro"), "hourglass-split", (("future_balance", 2), ("big_expenses", 1), ("future_net_worth", 2),
+                    ("fire", 1), ("goals_eta", 1), ("debt_payoff", 1), ("future_income", 1))),
     "wealth":      (_l("Patrimonio"), "bank", (("net_worth", 3), ("net_worth_bridge", 1), ("health", 1),
                     ("debt_summary", 1), ("debt_payoff", 1), ("future_net_worth", 2), ("big_expenses", 1))),
     "investments": (_l("Investimenti"), "briefcase", (("investments", 1), ("investments_trend", 2), ("drawdown", 1),
@@ -282,14 +296,18 @@ def upgrade() -> bool:
 
 
 def reveal() -> list[str]:
-    """The blocks of REVEALED shown once on an arrangement saved before them (the layout and the presets' layouts);
-    returns those made visible now. The ones the user hides afterwards stay hidden."""
+    """The blocks of REVEALED shown once on an arrangement saved before them (the layout and the presets' layouts),
+    or hidden once (HIDDEN_STEPS: moved to a tab); returns the steps done now. What the user changes afterwards stays."""
     done = set(settings_store.get_json(REVEALED_SETTING, [], expect=list))
     todo = [key for key in REVEALED if key not in done]
     if not todo:
         return []
     changes: dict[str, dict] = {}
     for key in todo:
+        if key in HIDDEN_STEPS:
+            for block in HIDDEN_STEPS[key]:
+                changes[block] = {"visible": False}
+            continue
         block, shape = REVEALED_SHAPES.get(key, (key, {}))
         changes.setdefault(block, {"visible": True}).update(shape)
 
