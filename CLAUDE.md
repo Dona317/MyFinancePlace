@@ -2,7 +2,8 @@
 
 ## Versione attuale
 - **La versione attuale dell'app è il ramo `test-Cloud`** (PR #8, in bozza verso `main`).
-  Ultima verifica: 24 nov 2026 — suite 1473 test tutti verdi, copertura 97,47 %, 0 funzioni non testate.
+  Ultima verifica: 25 nov 2026 — suite 1506 test tutti verdi, copertura 97,50 %, 0 funzioni non testate
+  (circa 30 minuti: il limite della CI è 40).
   Il test `test_a_tilted_photo_is_straightened` dipende dal motore OCR locale (qui passa, può fallire altrove).
   Test live nel browser non rifatti dopo il 14 nov (273/273 allora): su Windows non girano (gunicorn, Playwright).
 - Pagine da provare a schermo senza la password vera: `python scripts/demo_server.py` (porta 5055, database

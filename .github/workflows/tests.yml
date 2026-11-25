@@ -17,7 +17,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40  # 1506 tests on 25 Nov 2026 take about 25 minutes on a runner; 20 cut them off
 
     services:
       postgres:
