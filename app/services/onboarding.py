@@ -20,7 +20,7 @@ from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import accounts, currency, owners, settings_store
+from app.services import accounts, currency, display, owners, settings_store
 from app.services.i18n import _l
 from app.services.ui_settings import DEFAULT_SETTINGS, FONTS, LANGUAGES, SETTINGS_KEY, current_settings
 
@@ -31,10 +31,10 @@ TITLES = {"benvenuto": _l("Benvenuto"), "scelta": _l("Da dove parti"), "preferen
           "aspetto": _l("Aspetto"), "persone": _l("Titolari e aree"), "conti": _l("I tuoi conti"),
           "movimenti": _l("I movimenti"), "importa": _l("Il tuo archivio"), "fine": _l("Tutto pronto")}
 CURRENCIES = ("EUR", "USD", "GBP", "CHF", "DKK", "SEK", "NOK", "PLN", "CZK", "JPY", "CAD", "AUD")
-LOCALES = {"it-IT": "1.234,56 · 31/12/2026", "en-GB": "1,234.56 · 31/12/2026", "en-US": "1,234.56 · 12/31/2026",
-           "de-DE": "1.234,56 · 31.12.2026", "fr-FR": "1 234,56 · 31/12/2026"}
-DATE_FORMATS = {"it-IT": "DD/MM/YYYY", "en-GB": "DD/MM/YYYY", "en-US": "MM/DD/YYYY", "de-DE": "DD.MM.YYYY",
-                "fr-FR": "DD/MM/YYYY"}
+# 25 Nov 2026 (UI-46): numbers and dates chosen apart, among the formats the app shows (the ones of Impostazioni)
+NUMBER_FORMATS = {code: f"1{thousands}234{decimal}56" for code, (_label, thousands, decimal) in display.LOCALES.items()}
+SAMPLE_DAY = date(2026, 12, 31)
+DATE_CHOICES = {key: f"{SAMPLE_DAY.strftime(fmt)} ({key})" for key, fmt in display.DATE_FORMATS.items()}
 MODULES = (("module_portfolio", _l("Investimenti"), _l("Azioni, ETF, fondi, obbligazioni, cripto e conti titoli")),
            ("module_debt", _l("Debiti e mutui"), _l("Mutui, prestiti, rate e piani di ammortamento")),
            ("module_insurance", _l("Assicurazioni"), _l("Polizze, premi e scadenze")),
@@ -128,11 +128,11 @@ def save_settings(**values) -> None:
         currency.recompute()
 
 
-def preferences(language: str, base: str, locale: str) -> None:
+def preferences(language: str, base: str, locale: str, date_format: str) -> None:
     save_settings(language=language if language in LANGUAGES else "it",
                   currency=base if base in CURRENCIES else "EUR",
-                  locale=locale if locale in LOCALES else "it-IT",
-                  date_format=DATE_FORMATS.get(locale, "DD/MM/YYYY"))
+                  locale=locale if locale in NUMBER_FORMATS else "it-IT",
+                  date_format=date_format if date_format in DATE_CHOICES else "DD/MM/YYYY")
 
 
 def look(font: str) -> None:

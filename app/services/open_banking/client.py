@@ -46,6 +46,12 @@ class ProviderError(Exception):
         text = f"{self.code or ''} {self}".upper()
         return any(word in text for word in ("EXPIRED", "REVOKED", "CLOSED_SESSION", "INVALID_SESSION"))
 
+    @property
+    def wrong_period(self) -> bool:
+        """The bank refused the dates asked for (WRONG_TRANSACTIONS_PERIOD): further back than it allows now."""
+        text = f"{self.code or ''} {self}".upper().replace(" ", "_")
+        return "TRANSACTIONS_PERIOD" in text
+
 
 @dataclass(frozen=True)
 class Credentials:

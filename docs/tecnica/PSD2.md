@@ -106,6 +106,13 @@ dei clienti si aggiornano a mano: `flask --app run db upgrade` e `flask --app ru
 ## 5. Come funziona il download
 1. Si chiedono i movimenti da una settimana prima dell'ultimo contabilizzato (così non si perdono le contabilizzazioni
    in ritardo); la prima volta, degli ultimi 90 giorni.
+   Un conto che non ha mai avuto un movimento contabilizzato riparte da una settimana prima dell'ultimo download
+   riuscito, non di nuovo dai 90 giorni; mai più indietro di 90 giorni, mai da una data futura (25 nov 2026).
+   **Periodo rifiutato** (`WRONG_TRANSACTIONS_PERIOD`): subito dopo il consenso la banca dà tutto lo storico, poi
+   solo un periodo più corto (Intesa Sanpaolo, 22 nov 2026: 90 giorni rifiutati circa 40 minuti dopo il consenso).
+   L'app riprova da sola da 89 e poi da 30 giorni prima (`SHORTER_DAYS`).
+   **Un conto in errore non ferma gli altri** dello stesso consenso: l'errore resta sul collegamento col nome del
+   conto (quando sono più di uno) e gli altri si scaricano.
 2. Solo i movimenti **contabilizzati** (`BOOK`) diventano transazioni. Quelli **in attesa** (`PDNG`: pagamenti con
    carta non ancora addebitati, preautorizzazioni di hotel e distributori) si mostrano in «In attesa alla banca» e
    non si salvano: tornano contabilizzati a un download successivo, spesso con un altro id e a volte con un altro

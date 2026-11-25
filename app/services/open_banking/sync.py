@@ -39,6 +39,7 @@ from . import client, credentials, store
 
 INITIAL_DAYS = 90         # history read the first time (most banks give at least 90 days)
 OVERLAP_DAYS = 7          # read again from a week before the last booked movement: late bookings are not missed
+SHORTER_DAYS = (89, 30)   # the period refused by the bank (WRONG_TRANSACTIONS_PERIOD): asked again from these days back
 SYNC_WINDOW = (8, 24)     # automatic downloads only between these local hours (config BANK_SYNC_WINDOW)
 READS_PER_DAY = 4         # …cut into this many slots, one read each (config BANK_SYNC_PER_DAY; PSD2: 4 at most)
 CONSENT_DAYS = 180        # the longest consent asked for; the bank's own maximum when lower
@@ -620,13 +621,37 @@ def align(link: BankAccountLink) -> Decimal | None:
     return difference
 
 
+def _since(link: BankAccountLink, today: date) -> date:
+    """The first day asked to the bank: a week before the newest booking downloaded; for an account that never had
+    one, a week before the last download that worked (25 Nov 2026: not the whole INITIAL_DAYS again each time — once
+    the first minutes after the consent are over, a bank may refuse to go that far back); never after today."""
+    if link.last_booked:
+        start = link.last_booked - timedelta(days=OVERLAP_DAYS)
+    elif link.last_sync_at:
+        start = link.last_sync_at.date() - timedelta(days=OVERLAP_DAYS)
+    else:
+        start = today - timedelta(days=INITIAL_DAYS)
+    return min(max(start, today - timedelta(days=INITIAL_DAYS)), today)
+
+
+def _read(creds: client.Credentials, uid: str, since: date, today: date, psu: dict | None) -> list[dict]:
+    """The movements from `since`; when the bank refuses the period, again from a nearer day (SHORTER_DAYS)."""
+    starts = [since] + [d for d in (today - timedelta(days=n) for n in SHORTER_DAYS) if d > since]
+    for start in starts[:-1]:
+        try:
+            return client.transactions(creds, uid, start, psu=psu)
+        except client.ProviderError as exc:
+            if not exc.wrong_period:
+                raise
+    return client.transactions(creds, uid, starts[-1], psu=psu)
+
+
 def sync_link(link: BankAccountLink, creds: client.Credentials, today: date | None = None,
               psu: dict | None = None) -> SyncResult:
     """Download one account's new movements: saved (auto_save, account chosen) or kept waiting for the preview."""
     today = today or date.today()
     result = SyncResult(link)
-    since = (link.last_booked - timedelta(days=OVERLAP_DAYS)) if link.last_booked else today - timedelta(days=INITIAL_DAYS)
-    items = client.transactions(creds, link.uid, since, psu=psu)
+    items = _read(creds, link.uid, _since(link, today), today, psu)
     downloaded = to_rows(items, link.uid, link.currency)
     result.pending_at_bank = downloaded.pending
     link.at_bank = sorted(downloaded.at_bank, key=lambda item: item["date"], reverse=True) or None
@@ -656,7 +681,9 @@ def sync_link(link: BankAccountLink, creds: client.Credentials, today: date | No
 
 def sync_connection(connection: BankConnection, today: date | None = None, psu: dict | None = None,
                     now: datetime | None = None, kind: str | None = None) -> list[SyncResult]:
-    """Every active account of a connection; the consent's state and the last error are kept on it."""
+    """Every active account of a connection; the consent's state and the last error are kept on it. An account the
+    bank refuses does not stop the others (25 Nov 2026): its error is kept, named after it; BankingError when every
+    account failed or the consent is gone."""
     now = now or _utcnow()
     if connection.valid_until and connection.valid_until <= now:
         connection.status = "expired"
@@ -664,8 +691,9 @@ def sync_connection(connection: BankConnection, today: date | None = None, psu: 
         raise BankingError(_("Il consenso per %(bank)s è scaduto: rinnovalo.", bank=connection.aspsp_name))
     creds = _credentials()
     kind = kind or ("manual" if psu else "auto")
-    results = []
-    for link in [k for k in connection.links if k.active]:
+    results, errors = [], []
+    links = [k for k in connection.links if k.active]
+    for link in links:
         try:
             results.append(sync_link(link, creds, today, psu))
             db.session.commit()
@@ -673,18 +701,30 @@ def sync_connection(connection: BankConnection, today: date | None = None, psu: 
             db.session.rollback()
             if exc.consent_gone:
                 connection.status = "expired"
-            connection.last_error = _message(exc)
-            log(connection, kind, results, connection.last_error)
-            db.session.commit()
-            raise BankingError(connection.last_error) from exc
-    connection.last_error = None
-    log(connection, kind, results)
+                connection.last_error = _message(exc)
+                log(connection, kind, results, connection.last_error)
+                db.session.commit()
+                raise BankingError(connection.last_error) from exc
+            # named after its account when the consent has several
+            errors.append(_("%(account)s — %(error)s", account=_link_name(link), error=_message(exc))
+                          if len(links) > 1 else _message(exc))
+    connection.last_error = "; ".join(errors) or None
+    log(connection, kind, results, connection.last_error)
     db.session.commit()
     created = [tx.id for r in results for tx in r.created]
     if created:  # F108: what was saved by itself and cancels a movement already there (a causale says «storno»)
         reversals.auto_link(created)
         db.session.commit()
+    if errors and not results:
+        raise BankingError(connection.last_error)
     return results
+
+
+def _link_name(link: BankAccountLink) -> str:
+    """The account an error is about: the app's name for it, else the bank's, else the end of the IBAN."""
+    if link.account is not None:
+        return link.account.name
+    return link.name or (f"•••• {link.iban[-4:]}" if link.iban else link.uid)
 
 
 def log(connection: BankConnection, kind: str, results: list[SyncResult] = (), error: str | None = None) -> None:

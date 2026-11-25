@@ -71,11 +71,31 @@ def test_the_flow_of_money_is_in_questo_mese_2x2_and_shown_again_once(client, db
     assert dashboard_prefs.reveal() == []
 
 
-def test_the_flow_of_money_covers_the_month_whatever_the_period(client, db):
-    from datetime import date
-    page = client.get("/dashboard?period=year").get_data(as_text=True)
-    assert "Flusso del denaro — " in page and "Il mese in corso, fino a oggi" in page
-    assert date.today().replace(day=1).isoformat() in page or 'data-widget="sankey"' in page
+def test_the_flow_of_money_covers_the_current_month_unless_one_is_chosen(client, db):
+    today = date.today()
+    page = client.get(f"/dashboard?year={today.year}").get_data(as_text=True)
+    assert "Flusso del denaro — " in page and "Riferito al mese in corso, aggiornato a oggi" in page
+    assert f'data-start="{today.replace(day=1).isoformat()}"' in page or "Nessun movimento in questo mese." in page
+
+
+def test_the_flow_of_money_follows_a_single_month_chosen(client, db):
+    db.session.add_all([
+        make_tx(date=date(2024, 3, 1), description="Stipendio", amount=1000, type="income", category="Stipendio"),
+        make_tx(date=date(2024, 3, 10), description="Spesa", amount=50, category="Casa"),
+    ])
+    db.session.commit()
+    page = client.get("/dashboard?view=month&year=2024&part=M03").get_data(as_text=True)
+    assert 'data-start="2024-03-01"' in page and 'data-end="2024-03-31"' in page
+
+
+def test_the_flow_of_money_range():
+    from app.routes.dashboard import _sankey_range
+    from app.services.shared_period import Period
+    today = date(2026, 11, 25)
+    assert _sankey_range(Period(2026, 2026, "year"), today) == (date(2026, 11, 1), today)
+    assert _sankey_range(Period(2026, 2026, "M11"), today) == (date(2026, 11, 1), today)
+    assert _sankey_range(Period(2024, 2024, "M02"), today) == (date(2024, 2, 1), date(2024, 2, 29))
+    assert _sankey_range(Period(2026, 2026, "Q1"), today) == (date(2026, 11, 1), today)
 
 
 def test_conti_e_carte_opens_on_the_accounts_without_an_overview(client, db):

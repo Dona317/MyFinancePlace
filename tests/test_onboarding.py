@@ -35,8 +35,13 @@ def test_an_archive_in_use_is_never_interrupted(client, db, on):
 
 def test_the_new_users_path(client, db, on):
     assert client.post("/benvenuto/scelta", data={"path": "new"}).headers["Location"].endswith("/benvenuto/preferenze")
-    client.post("/benvenuto/preferenze", data={"language": "it", "currency": "EUR", "locale": "de-DE"})
-    assert current_settings()["locale"] == "de-DE" and current_settings()["date_format"] == "DD.MM.YYYY"
+    page = client.get("/benvenuto/preferenze").get_data(as_text=True)
+    assert 'name="locale"' in page and 'name="date_format"' in page and "1&#39;234.56" in page and "2026-12-31 (YYYY-MM-DD)" in page
+    client.post("/benvenuto/preferenze", data={"language": "it", "currency": "EUR", "locale": "de-CH", "date_format": "YYYY-MM-DD"})
+    assert current_settings()["locale"] == "de-CH" and current_settings()["date_format"] == "YYYY-MM-DD"
+    # a format the app does not show falls back to the Italian ones
+    client.post("/benvenuto/preferenze", data={"language": "it", "currency": "EUR", "locale": "de-DE", "date_format": "DD.MM.YYYY"})
+    assert current_settings()["locale"] == "it-IT" and current_settings()["date_format"] == "DD/MM/YYYY"
     client.post("/benvenuto/aspetto", data={"font": "plex"})
     assert current_settings()["font"] == "plex"
     bad = client.post("/benvenuto/persone", data={"first": ["Marco"], "last": [""]}, follow_redirects=True)

@@ -16,12 +16,19 @@
     </select>
     <div class="form-hint">{{ _('I conti in altre valute restano nella loro: i totali vengono convertiti con i cambi.') }}</div>
   </div>
-  <div class="form-group">
-    <label class="form-label">{{ _('Numeri e date') }}</label>
-    <div class="onb-options">
-      {% for code, sample in locales.items() %}
-      <label class="onb-option"><input type="radio" name="locale" value="{{ code }}" {{ 'checked' if settings.locale == code }} /> <span class="font-mono">{{ sample }}</span></label>
-      {% endfor %}
+  {# UI-46: numbers and dates apart, the same formats as Impostazioni → Visualizzazione #}
+  <div class="grid-2" style="gap:16px;">
+    <div class="form-group">
+      <label class="form-label" for="onb-locale">{{ _('Formato numeri') }}</label>
+      <select name="locale" id="onb-locale" class="form-select" data-no-search>
+        {% for code, sample in number_formats.items() %}<option value="{{ code }}" {{ 'selected' if settings.locale == code }}>{{ sample }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="onb-date">{{ _('Formato data') }}</label>
+      <select name="date_format" id="onb-date" class="form-select" data-no-search>
+        {% for key, sample in date_choices.items() %}<option value="{{ key }}" {{ 'selected' if settings.date_format == key }}>{{ sample }}</option>{% endfor %}
+      </select>
     </div>
   </div>
 </form>

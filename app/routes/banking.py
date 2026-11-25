@@ -284,6 +284,7 @@ def callback():
     if not choose:
         try:
             results = open_banking.sync_connection(connection, psu=open_banking.psu_headers())
+            download_error = connection.last_error  # an account refused while the others were read
         except open_banking.BankingError as exc:
             download_error = str(exc)
     return render_template("banking/done.html", connection=connection, account=account, choose=choose,
@@ -299,6 +300,8 @@ def _download(connection: BankConnection) -> None:
         return
     flash(_("%(bank)s aggiornata: %(summary)s", bank=connection.aspsp_name, summary=open_banking.summary(results)),
           "success")
+    if connection.last_error:  # an account refused while the others were read
+        flash(connection.last_error, "warning")
     if any(r.waiting for r in results):
         flash(_("Apri «Controlla» sui conti per vedere i movimenti in attesa e salvarli."), "info")
 

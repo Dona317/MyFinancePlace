@@ -1169,3 +1169,68 @@ def test_no_alignment_while_movements_wait_or_without_a_booked_balance(client, d
     monkeypatch.setattr(FakeBank, "__call__", available_only)
     results = open_banking.sync_connection(connection)
     assert results[0].aligned is None and link.account.opening_balance in (None, 0)  # with pending: not comparable
+
+
+# ── A period refused, an account refused (25 Nov 2026) ───────────────────────
+
+def test_the_first_day_asked_to_the_bank(app):
+    today = date(2026, 11, 25)
+    link = BankAccountLink(uid="x")
+    assert sync._since(link, today) == today - timedelta(days=sync.INITIAL_DAYS)  # never read
+    link.last_sync_at = datetime(2026, 11, 22, 18, 46)  # read, but nothing booked ever came
+    assert sync._since(link, today) == date(2026, 11, 15)
+    link.last_booked = date(2026, 11, 20)
+    assert sync._since(link, today) == date(2026, 11, 13)
+    link.last_booked = date(2026, 12, 15)  # a booking dated ahead: never a period in the future
+    assert sync._since(link, today) == today
+    link.last_booked = date(2025, 1, 1)  # a sleeping account: no further back than the first read
+    assert sync._since(link, today) == today - timedelta(days=sync.INITIAL_DAYS)
+
+
+def test_a_period_refused_is_asked_again_nearer(client, db, bank, monkeypatch):
+    _connect(client, bank)
+    link = BankAccountLink.query.one()
+    link.last_booked = link.last_sync_at = None
+    db.session.commit()
+    asked, refused = [], eb.ProviderError("Wrong transactions period requested", 422, "WRONG_TRANSACTIONS_PERIOD")
+    fake = eb.request
+
+    def picky(creds, method, path, params=None, body=None, psu=None):
+        if path.endswith("/transactions"):
+            asked.append(date.fromisoformat(params["date_from"]))
+            if asked[-1] < date.today() - timedelta(days=sync.SHORTER_DAYS[-1]):
+                raise refused
+        return fake(creds, method, path, params, body, psu)
+
+    monkeypatch.setattr(eb, "request", picky)
+    bank.movements = [tx("w1", "4", day=date.today().isoformat())]
+    results = open_banking.sync_connection(BankConnection.query.one())
+    assert [date.today() - d for d in asked] == [timedelta(days=n) for n in (sync.INITIAL_DAYS, *sync.SHORTER_DAYS)]
+    assert results[0].waiting == 1 and BankConnection.query.one().last_error is None
+    # another error is not asked again; nor is a period refused even from the nearest day
+    asked.clear()
+    link = BankAccountLink.query.one()
+    link.last_booked = link.last_sync_at = None
+    db.session.commit()
+    refused = eb.ProviderError("Wrong transactions period requested", 422, "WRONG_TRANSACTIONS_PERIOD")
+    monkeypatch.setattr(sync.client, "transactions", lambda *a, **k: (asked.append(1), (_ for _ in ()).throw(refused))[1])
+    with pytest.raises(open_banking.BankingError, match="Wrong transactions period"):
+        open_banking.sync_connection(BankConnection.query.one())
+    assert len(asked) == 1 + len(sync.SHORTER_DAYS)
+
+
+def test_an_account_refused_does_not_stop_the_others(client, db, bank):
+    _connect(client, bank, account=_fineco(db))
+    connection = BankConnection.query.one()
+    other = _account("Deposito Fineco")
+    db.session.add(BankAccountLink(connection=connection, uid="acc-2", name="Deposito", account=other, active=True))
+    db.session.commit()
+    bank.movements = [tx("d1", "8", day=date.today().isoformat())]
+    bank.fail["/accounts/acc-2/transactions"] = eb.ProviderError("boom", 500)
+    response = client.post(f"/banking/connections/{connection.id}/sync", follow_redirects=True)
+    html = response.get_data(as_text=True)
+    assert "Fineco aggiornata" in html and "Deposito Fineco — Enable Banking: boom" in html
+    first = BankAccountLink.query.filter_by(uid="acc-1").one()
+    assert first.pending and BankConnection.query.one().last_error == "Deposito Fineco — Enable Banking: boom"
+    assert sync._link_name(BankAccountLink(uid="u", iban="IT001234")) == "•••• 1234"
+    assert sync._link_name(BankAccountLink(uid="u")) == "u"

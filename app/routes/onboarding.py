@@ -43,7 +43,8 @@ def step(name):
         f"onboarding/{name}.html", step=name, focus_page=True, title=onboarding.TITLES[name],
         position=(shown.index(name) + 1) if name in shown else None, count=len(shown),
         back=onboarding.previous_of(name), settings=current_settings(), languages=LANGUAGES, fonts=FONTS,
-        currencies=onboarding.CURRENCIES, locales=onboarding.LOCALES, modules=onboarding.MODULES,
+        currencies=onboarding.CURRENCIES, number_formats=onboarding.NUMBER_FORMATS,
+        date_choices=onboarding.DATE_CHOICES, modules=onboarding.MODULES,
         people=[tuple(name.split(" ", 1)) if " " in name else (name, "") for name in owners.holders()],
         max_people=onboarding.MAX_PEOPLE, kinds={k: accounts.KINDS[k] for k in onboarding.ACCOUNT_KINDS},
         icons=accounts.ICONS, made=onboarding.made_accounts() if name == "movimenti" else [],
@@ -56,7 +57,8 @@ def _save(name: str) -> str | None:
     """What the step's form says, saved; a message when it cannot be."""
     form = request.form
     if name == "preferenze":
-        onboarding.preferences(form.get("language", "it"), form.get("currency", "EUR"), form.get("locale", "it-IT"))
+        onboarding.preferences(form.get("language", "it"), form.get("currency", "EUR"), form.get("locale", "it-IT"),
+                               form.get("date_format", "DD/MM/YYYY"))
     elif name == "aspetto":
         onboarding.look(form.get("font", "inter"))
     elif name == "persone":

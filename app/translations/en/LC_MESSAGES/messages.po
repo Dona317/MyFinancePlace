@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-25 16:50+0000\n"
+"POT-Creation-Date: 2026-11-25 23:34+0100\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -67,6 +67,10 @@ msgstr "%% of expenses"
 #, python-format
 msgid "%% · max 35%%"
 msgstr "%% · max 35%%"
+
+#, python-format
+msgid "%(account)s — %(error)s"
+msgstr "%(account)s — %(error)s"
 
 #, python-format
 msgid "%(account)s: %(fees)s € ricavati dalla liquidità"
@@ -6813,13 +6817,6 @@ msgid "Il mese in corso"
 msgstr "The current month"
 
 msgid ""
-"Il mese in corso, fino a oggi, qualunque periodo sia scelto nella barra "
-"in alto."
-msgstr ""
-"The month under way, up to today, whatever period is chosen in the bar at"
-" the top."
-
-msgid ""
 "Il mese in corso, fino a oggi; sotto ogni cifra il mese scorso e la media"
 " mensile dei 12 mesi prima. Riconciliazioni e storni non contano."
 msgstr ""
@@ -10398,9 +10395,6 @@ msgstr "Notifications"
 msgid "Nov"
 msgstr "Nov"
 
-msgid "Numeri e date"
-msgstr "Numbers and dates"
-
 msgid "Numero con segno: −50,00 è un’uscita."
 msgstr "Signed number: −50.00 is an expense."
 
@@ -13169,6 +13163,13 @@ msgstr "Summary"
 #, python-format
 msgid "Riepilogo %(year)s"
 msgstr "Summary %(year)s"
+
+msgid ""
+"Riferito al mese in corso, aggiornato a oggi. Se nel periodo in alto è "
+"selezionato un singolo mese, il grafico mostra quel mese."
+msgstr ""
+"The current month, up to today. When a single month is selected in the "
+"period above, the chart shows that month."
 
 msgid "Rifiuti (TARI)"
 msgstr "Waste (TARI)"

@@ -132,6 +132,14 @@ def part_label(year: int, part: str) -> str:
     return f"{number}{kind}{year % 100:02d} ({names[first]}–{names[first + 2]})"
 
 
+def _sankey_range(period: shared_period.Period, today: date) -> tuple[date, date]:
+    """The money flow's month: the month chosen in the period bar, else the current one; [first day, last day],
+    up to today for the month under way."""
+    first = date(period.year, int(period.part[1:]), 1) if period.part in shared_period.MONTHS else today.replace(day=1)
+    last = month_start(month_index(first) + 1) - timedelta(days=1)
+    return first, (today if first <= today <= last else last)
+
+
 def _chart_months(start: date, end: date, today: date) -> range:
     """The month indexes of the charts' period, up to the current month."""
     return range(month_index(start), min(month_index(end) - 1, month_index(today)) + 1)
@@ -249,6 +257,7 @@ def dashboard():
     extra["to_fix"] = dashboard_charts.to_fix(today) if {"to_fix"} & (shown | kpi_shown) else []
     extra["spark"] = dashboard_charts.net_worth_spark(today) if "net_worth" in kpi_shown else None
     extra["month_saving"] = dashboard_charts.month_saving(today, last_12) if "month_savings" in kpi_shown else None
+    sankey_start, sankey_last = _sankey_range(period, today)
     return render_template(
         "dashboard/index.html",
         kpis=kpis,
@@ -268,10 +277,10 @@ def dashboard():
         part_labels={p: part_label(year, p) for p in PIE_PARTS},
         period_label=period.label(),
         savings=analytics.savings_rates_by_year(today),
-        # 22 Nov 2026: the flow of the money of the month under way, in «Questo mese», whatever the period of the bar
-        sankey=sankey.flow(today.replace(day=1), today + timedelta(days=1)) if "sankey" in shown else None,
-        sankey_start=today.replace(day=1), sankey_last=today,
-        sankey_month=month_label(month_index(today)),
+        # 25 Nov 2026: the flow of the money of the month under way, or of the single month chosen in the bar (UI-45)
+        sankey=sankey.flow(sankey_start, sankey_last + timedelta(days=1)) if "sankey" in shown else None,
+        sankey_start=sankey_start, sankey_last=sankey_last,
+        sankey_month=month_label(month_index(sankey_start)),
         year_start=pie_start, year_last=pie_end - timedelta(days=1),
         net_worth_trend=_net_worth_trend(chart_months, today) if "net_worth" in shown and chart_months else None,
         extra=extra,
