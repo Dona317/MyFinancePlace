@@ -33,6 +33,7 @@ from app.services import (
     history_filler,
     lookthrough,
     market_data,
+    option_chains,
     options,
     performance,
     planned_orders,
@@ -482,6 +483,27 @@ def lookup():
         return jsonify({"error": _("Ricerca non riuscita: %(error)s", error=" · ".join(errors)), "results": []}), 502
     return jsonify({"results": [c.as_dict() | {"source_name": SOURCE_LABELS.get(c.source, c.source)} for c in found[:10]],
                     "errors": errors})
+
+
+@portfolio_bp.route("/opzioni/catena")
+def option_chain():
+    """F120.3: a US underlying's option expiries (u=AAPL), or the chain of one of them (&e=2026-12-18), through
+    yfinance; only with prices from the internet on."""
+    if not current_settings()["prices_online"]:
+        return jsonify({"error": _("La catena delle opzioni usa internet: accendila in Impostazioni → Dati da internet.")}), 403
+    underlying = (request.args.get("u") or "").strip().upper()[:12]
+    if not options.is_us(underlying):
+        return jsonify({"error": _("Le catene ci sono solo per le opzioni USA (es. AAPL, SPY): per IDEM ed Eurex "
+                                   "scrivi i dati del contratto.")}), 400
+    try:
+        if request.args.get("e"):
+            return jsonify(option_chains.chain(underlying, date.fromisoformat(request.args["e"])))
+        found = option_chains.expiries(underlying)
+    except Exception as exc:  # noqa: BLE001 - off, the network, an odd answer: said in the form, the page goes on
+        return jsonify({"error": _("Catena non letta: %(error)s", error=str(exc)[:160])}), 502
+    if not found:
+        return jsonify({"error": _("Nessuna opzione quotata per %(symbol)s su Yahoo.", symbol=underlying)}), 404
+    return jsonify({"underlying": underlying, "expiries": [d.isoformat() for d in found]})
 
 
 @portfolio_bp.route("/<int:holding_id>/classify", methods=["POST"])

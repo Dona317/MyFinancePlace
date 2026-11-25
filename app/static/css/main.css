@@ -1154,6 +1154,7 @@ tfoot td {
 .forecast-help dd { margin: 2px 0 0; color: var(--clr-text-muted); }
 .candidate-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .table-compact thead th { padding: 8px; }
+.chain-table thead th { position: sticky; top: 0; z-index: 1; }  /* F120.3: the strike and the price stay in view */
 .table-compact tbody td { padding: 9px 8px; }
 .table-compact, .table-compact .amount { font-size: 0.8125rem; }
 /* Two columns on a narrow screen: secondary columns (shown elsewhere on the page) give way */

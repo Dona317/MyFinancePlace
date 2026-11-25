@@ -217,3 +217,82 @@ def settle(holding, outcome: str, on: date, price: Decimal | None = None) -> lis
                 securities_account=place, exact_place=True, portfolio=db.session.get(Portfolio, position.portfolio_id)))
     portfolio_ops.recompute(holding)
     return created
+
+
+# ── An option in a broker's statement (F120.4) ─────────────────────────────────
+
+MONTHS = {"JAN": 1, "GEN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "MAG": 5, "JUN": 6, "GIU": 6, "JUL": 7, "LUG": 7,
+          "AUG": 8, "AGO": 8, "SEP": 9, "SET": 9, "OCT": 10, "OTT": 10, "NOV": 11, "DEC": 12, "DIC": 12}
+# an index option's name in a statement → (the index's ticker, the multiplier)
+INDICES = {"MIBO": ("FTSEMIB.MI", Decimal("2.5")), "FTSEMIB": ("FTSEMIB.MI", Decimal("2.5")),
+           "FTSE MIB": ("FTSEMIB.MI", Decimal("2.5")), "OESX": ("^STOXX50E", Decimal(10)),
+           "SX5E": ("^STOXX50E", Decimal(10)), "EURO STOXX 50": ("^STOXX50E", Decimal(10)),
+           "ESTX50": ("^STOXX50E", Decimal(10))}
+_OCC_IN_TEXT = re.compile(r"\b([A-Z]{1,6})\s*(\d{6})([CP])(\d{8})\b")
+_KIND = re.compile(r"\b(CALL|PUT|C|P)\b")
+_KIND_STRIKE = re.compile(r"\b([CP])(\d+(?:[.,]\d+)?)\b")  # Degiro: «C200.00»
+_DAY_MON_YY = re.compile(r"(?<![\d,.])\b(\d{1,2})\s?(" + "|".join(MONTHS) + r")\s?(\d{2}|\d{4})\b")
+_MON_YY = re.compile(r"\b(" + "|".join(MONTHS) + r")\s?(\d{2}|\d{4})\b")
+_DMY = re.compile(r"\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{2}|\d{4})\b")
+_STRIKE = re.compile(r"(?<![\d/.-])[CP]?(\d+(?:[.,]\d+)?)(?![\d/.-])")
+_WORDS = {"CALL", "PUT", "C", "P", "OPZ", "OPZIONE", "OPTION", "OPT", "SU", "ON", "IDEM", "EUREX"}
+
+
+def third_friday(year: int, month: int) -> date:
+    """The usual expiry when a statement gives only the month (IDEM, Eurex, US monthly options)."""
+    first = date(year, month, 1)
+    return date(year, month, 1 + (4 - first.weekday()) % 7 + 14)
+
+
+def _year(text: str) -> int:
+    return int(text) + (2000 if len(text) == 2 else 0)
+
+
+def from_description(text: str | None) -> dict | None:
+    """The terms of an option in a statement's description — the OCC symbol (IBKR: «AAPL  261218C00200000»),
+    «AAPL 18DEC26 200 C», «AAPL C200.00 18DEC26» (Degiro), «CALL ENEL 6,5 DIC26», «MIBO 34000 P 19/12/2026» — with
+    the usual multiplier (2,5 € a point on the FTSE MIB, 10 on the Euro Stoxx 50, 100 for shares); None when the
+    text is not an option."""
+    upper = (text or "").upper()
+    found = _OCC_IN_TEXT.search(upper)
+    if found:
+        terms = parse_occ("".join(found.groups()))
+        if terms:
+            return {**terms, "multiplier": Decimal(100)}
+    joined = _KIND_STRIKE.search(upper)
+    kind = _KIND.search(upper)
+    if not kind and not joined:
+        return None
+    kind_word = (kind or joined).group(1)
+    expiry, rest = None, upper
+    for pattern in (_DAY_MON_YY, _DMY, _MON_YY):
+        hit = pattern.search(rest)
+        if not hit:
+            continue
+        try:
+            if pattern is _DAY_MON_YY:
+                expiry = date(_year(hit.group(3)), MONTHS[hit.group(2)], int(hit.group(1)))
+            elif pattern is _DMY:
+                expiry = date(_year(hit.group(3)), int(hit.group(2)), int(hit.group(1)))
+            else:
+                expiry = third_friday(_year(hit.group(2)), MONTHS[hit.group(1)])
+        except ValueError:
+            continue
+        rest = rest[:hit.start()] + " " + rest[hit.end():]
+        break
+    if expiry is None:
+        return None
+    if joined and not kind:
+        strike_text = joined.group(2)
+    else:
+        strikes = [m for m in _STRIKE.finditer(rest) if m.group(1)]
+        if not strikes:
+            return None
+        strike_text = strikes[-1].group(1)
+    strike = Decimal(strike_text.replace(",", "."))
+    index = next((key for key in INDICES if key in upper), None)
+    words = [w.strip(".") for w in re.findall(r"[A-Z][A-Z0-9.&-]*", rest)]
+    words = [w for w in words if w and w not in _WORDS and not re.fullmatch(r"[CP]\d.*", w)]
+    underlying = INDICES[index][0] if index else (words[0] if words else None)
+    return {"option_kind": "call" if kind_word.startswith("C") else "put", "strike": strike, "option_expiry": expiry,
+            "underlying": underlying, "multiplier": INDICES[index][1] if index else Decimal(100)}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-25 15:53+0000\n"
+"POT-Creation-Date: 2026-11-25 16:50+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2780,6 +2780,10 @@ msgstr "Categories over budget"
 msgid "Categorie, gruppi e tag"
 msgstr "Categories, groups and tags"
 
+#, python-format
+msgid "Catena non letta: %(error)s"
+msgstr "Chain not read: %(error)s"
+
 msgid "Causale della banca"
 msgstr "Bank description"
 
@@ -3867,6 +3871,10 @@ msgstr "Contracts, invoices and receipts linked to the movements"
 
 msgid "Contratto"
 msgstr "Contract"
+
+#, python-format
+msgid "Contratto scelto: %(symbol)s."
+msgstr "Contract chosen: %(symbol)s."
 
 msgid "Contributi per colf e badanti"
 msgstr "Contributions for domestic workers and carers"
@@ -7998,6 +8006,13 @@ msgstr ""
 msgid "La categoria «%(name)s» esiste già: aggiornata."
 msgstr "The category «%(name)s» already exists: updated."
 
+msgid ""
+"La catena delle opzioni usa internet: accendila in Impostazioni → Dati da"
+" internet."
+msgstr ""
+"The option chain uses the internet: turn it on in Settings → Data from "
+"the internet."
+
 #, python-format
 msgid "La causale corrisponde alla categoria «%(category)s»."
 msgstr "The description matches the category «%(category)s»."
@@ -8320,6 +8335,13 @@ msgstr ""
 
 msgid "Le categorie, dalla più vicina al limite"
 msgstr "The categories, closest to the limit first"
+
+msgid ""
+"Le catene ci sono solo per le opzioni USA (es. AAPL, SPY): per IDEM ed "
+"Eurex scrivi i dati del contratto."
+msgstr ""
+"Chains are only there for US options (e.g. AAPL, SPY): for IDEM and Eurex"
+" write the contract terms."
 
 msgid ""
 "Le causali dei movimenti verranno inviate ad Anthropic (cloud) per la "
@@ -8679,6 +8701,12 @@ msgstr "Read a document with AI"
 
 msgid "Leggi una bolletta"
 msgstr "Read a bill"
+
+msgid "Leggo la catena…"
+msgstr "Reading the chain…"
+
+msgid "Leggo le scadenze…"
+msgstr "Reading the expiries…"
 
 msgid "Letta dal file: cambiala se è un'altra, o scrivi un nome"
 msgstr "Read from the file: change it if it is another one, or type a name"
@@ -9918,6 +9946,10 @@ msgid ""
 msgstr ""
 "No operations: add purchases, sales, dividends and coupons with «New "
 "operation»."
+
+#, python-format
+msgid "Nessuna opzione quotata per %(symbol)s su Yahoo."
+msgstr "No options listed for %(symbol)s on Yahoo."
 
 msgid "Nessuna pagina trovata."
 msgstr "No page found."
@@ -13861,6 +13893,9 @@ msgstr ""
 "Pick from the tags already used or type a new one and press Enter. The "
 "counterparty (e.g. the shop) goes in the tags."
 
+msgid "Scegli dalla catena (USA)"
+msgstr "Pick from the chain (US)"
+
 msgid "Scegli due movimenti diversi."
 msgstr "Choose two different transactions."
 
@@ -13920,6 +13955,9 @@ msgstr "Choose the bank to link."
 
 msgid "Scegli la cartella dove salvare i backup."
 msgstr "Choose the folder to save the backups to."
+
+msgid "Scegli la scadenza."
+msgstr "Choose the expiry."
 
 msgid "Scegli le colonne"
 msgstr "Choose the columns"
@@ -14095,6 +14133,13 @@ msgstr ""
 msgid "Scrivi il simbolo (es. VWCE.MI) e scegli il file delle chiusure."
 msgstr "Enter the symbol (e.g. VWCE.MI) and choose the file of the closes."
 
+msgid ""
+"Scrivi il sottostante (es. AAPL): l'app mostra scadenze e strike quotati,"
+" con prezzi e volatilità."
+msgstr ""
+"Write the underlying (e.g. AAPL): the app shows the listed expiries and "
+"strikes, with prices and volatility."
+
 msgid "Scrivi il titolo (nome, ISIN o ticker)."
 msgstr "Write the security (name, ISIN or ticker)."
 
@@ -14119,6 +14164,9 @@ msgstr ""
 "Write the offer's price per %(unit)s and monthly fixed fee (from its "
 "summary sheet): here is what you would have paid in the last 12 months "
 "with your consumption."
+
+msgid "Scrivi prima il sottostante (es. AAPL)."
+msgstr "Write the underlying first (e.g. AAPL)."
 
 msgid "Scrivi quanti contanti hai (zero o più)."
 msgstr "Write how much cash you have (zero or more)."
@@ -15397,6 +15445,11 @@ msgstr "Portfolio holding"
 
 msgid "Titolo nel file"
 msgstr "Instrument in the file"
+
+msgid ""
+"Tocca un prezzo per scegliere il contratto (ultimo prezzo, "
+"denaro–lettera)."
+msgstr "Tap a price to choose the contract (last price, bid–ask)."
 
 msgid "Togli"
 msgstr "Clear"
@@ -17458,6 +17511,9 @@ msgstr "cash on"
 
 msgid "llama3.2:3b"
 msgstr "llama3.2:3b"
+
+msgid "lo strike più vicino al prezzo"
+msgstr "the strike nearest the price"
 
 msgid "lorda di commissioni"
 msgstr "before commissions"

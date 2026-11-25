@@ -12,6 +12,9 @@ forward and the tax.
   dichiarativo* they all go into the return (quadro RT).
 - **Rates**: 26%; 12,5% for government bonds (set on the holding; a loss offsets them for 48,08% of its amount);
   crypto 26% until 2025, 33% from 2026.
+- **Options and other derivatives** (F120): redditi diversi; the money of each trade counts the multiplier (a
+  contract is on 100 shares). A written option realizes nothing when sold: its premium, net of the commission,
+  becomes the proceeds when it is bought back or closed at expiry (worthless: bought back at zero).
 """
 from __future__ import annotations
 
@@ -153,28 +156,55 @@ def realized(until: int | None = None) -> tuple[list[Sale], dict[str, Container]
                 else:
                     before = max(Decimal(holding.quantity or 0) - recorded[holding.id], Decimal(0))
                     price = Decimal(holding.avg_price or 0)
-            positions[key] = [before, before * price, before > 0]
+            positions[key] = [before, before * price * Decimal(holding.multiplier or 1), before != 0]
         quantity, cost, estimated = positions[key]
         units, price, fee = Decimal(tx.units), Decimal(tx.unit_price), fees.get(tx.id, Decimal(0))
+        size = Decimal(holding.multiplier or 1)  # F120: a contract is on `size` units of the underlying
         account = tx.account if tx.account is not None else tx.counter_account
+        rate = tax_rules.gain_rate(holding.asset_class, tx.date.year, holding.tax_rate)
+        if units > 0 and quantity < 0 and holding.is_option:
+            # buying back an option written: the premium cashed in (net of its commission) is the proceeds, what
+            # buying it back costs is the cost — realized now, a reddito diverso
+            covered = min(units, -quantity)
+            premium = cost / quantity * covered  # cost and quantity both below zero
+            sale = Sale(tx.date, holding, account, covered, premium.quantize(CENT),
+                        (covered * price * size + fee).quantize(CENT), rate, _kind(holding), estimated=estimated)
+            positions[key] = [quantity + covered, cost + premium, estimated]
+            quantity, cost, units, fee = quantity + covered, cost + premium, units - covered, Decimal(0)
+            _book(sale, account, containers)
+            sales.append(sale)
         if units > 0:
-            positions[key] = [quantity + units, cost + units * price + fee, estimated]
+            positions[key] = [quantity + units, cost + units * price * size + fee, estimated]
+            continue
+        if units == 0:
             continue
         sold = -units
-        oversold = sold > quantity
+        if quantity <= 0 and holding.is_option:  # written: the premium is realized when it is bought back or expires
+            positions[key] = [quantity - sold, cost - sold * price * size + fee, estimated]
+            continue
+        oversold = sold > quantity and not holding.is_option
         average = cost / quantity if quantity else Decimal(0)
-        sale_cost = average * min(sold, quantity)
-        sale = Sale(tx.date, holding, account, sold, sold * price - fee, sale_cost.quantize(CENT),
-                    tax_rules.gain_rate(holding.asset_class, tx.date.year, holding.tax_rate), _kind(holding),
-                    estimated=estimated, oversold=oversold)
+        closed = min(sold, quantity)
+        sale_cost = average * closed
+        sale = Sale(tx.date, holding, account, closed if holding.is_option else sold,
+                    (closed if holding.is_option else sold) * price * size - fee, sale_cost.quantize(CENT), rate,
+                    _kind(holding), estimated=estimated, oversold=oversold)
         positions[key] = [max(quantity - sold, Decimal(0)), cost - sale_cost, estimated]
-        box = _container(account, containers)
-        if sale.result < 0:
-            box.losses.append(Loss(tx.date.year, -sale.result, -sale.result, sale.kind == "cripto"))
-        elif sale.kind != "capitale":
-            _offset(sale, box)
+        if holding.is_option and sold > closed:  # sold more than held: the rest is written
+            rest = sold - closed
+            positions[key] = [-rest, -rest * price * size, estimated]
+        _book(sale, account, containers)
         sales.append(sale)
     return sales, containers
+
+
+def _book(sale: Sale, account, containers: dict) -> None:
+    """A sale's loss kept for later, or its gain offset by the losses still usable."""
+    box = _container(account, containers)
+    if sale.result < 0:
+        box.losses.append(Loss(sale.on.year, -sale.result, -sale.result, sale.kind == "cripto"))
+    elif sale.kind != "capitale":
+        _offset(sale, box)
 
 
 def year_summary(year: int) -> dict:

@@ -25,6 +25,7 @@ from app.services import (
     ai_extraction,
     broker_import,
     import_presets,
+    options,
     portfolio_models,
     portfolio_ops,
     portfolio_reading,
@@ -220,6 +221,13 @@ def _holding_for(row: dict, choice: str, created: dict) -> Holding:
         created[key] = Holding(name=row["name"][:200], isin=row["isin"], ticker=row["ticker"],
                                asset_class=broker_import.guess_class(row["name"]), quantity=0, avg_price=0,
                                opening_quantity=0, opening_price=0, purchase_date=date.fromisoformat(row["on"]))
+        terms = options.from_description(row["name"])  # F120: an option of the statement, with its terms
+        if terms:
+            for field, value in terms.items():
+                setattr(created[key], field, value)
+            if not created[key].ticker and options.is_us(terms["underlying"]):
+                created[key].ticker = options.occ_symbol(terms["underlying"], terms["option_expiry"],
+                                                         terms["option_kind"], terms["strike"])
         db.session.add(created[key])
         db.session.flush()
         # a new instrument joins the model's part of its asset class, instead of «outside the model»

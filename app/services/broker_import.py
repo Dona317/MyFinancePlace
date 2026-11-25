@@ -26,7 +26,7 @@ from flask_babel import gettext as _
 
 from app.models.transaction import Transaction
 from app.models.wealth import Holding
-from app.services import transfer
+from app.services import options, transfer
 from app.services.parsing import normalize, to_date, to_decimal
 
 ISIN = re.compile(r"\b([A-Z]{2}[A-Z0-9]{9}\d)\b")
@@ -166,8 +166,10 @@ def _row(record: dict, cols: dict, line: int) -> BrokerRow | None:
     if side is not None:
         units = abs(units) * side
     price, value = to_decimal(cell("price")), to_decimal(cell("value"))
+    terms = options.from_description(name)  # F120: an option, quoted per unit of the underlying
+    size = terms["multiplier"] if terms else Decimal(1)
     if value and units:  # the value in euro is the truth when the price is in another currency (Degiro)
-        euro = abs(value) / abs(units)
+        euro = abs(value) / abs(units) / size
         price = euro if price is None or abs(euro - price) / euro > Decimal("0.005") else price
     if price is None or price <= 0:
         return None
@@ -309,6 +311,8 @@ def finish(rows: list[BrokerRow], unread: list[int], layout: str, headers: list[
 
 
 def guess_class(name: str) -> str:
+    if options.from_description(name):
+        return "Derivato"
     text = normalize(name)
     if re.search(r"\b(etf|ucits|etc|etn|ishares|xtrackers|vanguard|amundi|spdr|lyxor)\b", text):
         return "ETF"

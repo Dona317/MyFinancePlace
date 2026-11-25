@@ -262,3 +262,205 @@ def test_the_reminder_and_the_page(client, app, db, store):
     assert "prezzo del sottostante" in bad
     done = client.post(f"/portfolio/{put.id}/scadenza", data={"outcome": "worthless"}, follow_redirects=True).get_data(as_text=True)
     assert "chiusa: scaduta senza valore" in done and db.session.get(Holding, put.id).quantity == 0
+
+
+# ── US chains through yfinance (F120.3) ────────────────────────────────────────
+
+class _Frame:
+    def __init__(self, rows):
+        self.rows = rows
+        self.columns = list(rows[0]) if rows else []
+        self.index = list(range(len(rows)))
+        self.empty = not rows
+
+    def __getitem__(self, column):
+        return [r.get(column) for r in self.rows]
+
+
+class _Chains:
+    """A fake yfinance: AAPL with two expiries, its chain of the first."""
+
+    def __init__(self):
+        outer = self
+
+        class Ticker:
+            def __init__(self, symbol):
+                self.options = ("2026-12-18", "2027-01-15") if symbol == "AAPL" else ()
+
+            def option_chain(self, expiry):
+                outer.asked = expiry
+                calls = _Frame([{"contractSymbol": "AAPL261218C00210000", "strike": 210.0, "lastPrice": 6.2, "bid": 6.1,
+                                 "ask": 6.4, "impliedVolatility": 0.25, "openInterest": 100, "volume": 5,
+                                 "inTheMoney": True, "contractSize": "REGULAR"},
+                                {"contractSymbol": "AAPL261218C00200000", "strike": 200.0, "lastPrice": float("nan"),
+                                 "bid": None, "ask": None, "impliedVolatility": 0.3, "openInterest": 1, "volume": 0,
+                                 "inTheMoney": True, "contractSize": "REGULAR"},
+                                {"contractSymbol": None, "strike": 190.0}])
+                puts = _Frame([{"contractSymbol": "AAPL261218P00210000", "strike": 210.0, "lastPrice": 3.0, "bid": 2.9,
+                                "ask": 3.1, "impliedVolatility": 0.27, "openInterest": 50, "volume": 2,
+                                "inTheMoney": False, "contractSize": "MINI"}])
+                return type("Chain", (), {"calls": calls, "puts": puts,
+                                          "underlying": {"regularMarketPrice": 214.5, "currency": "USD"}})()
+        self.Ticker = Ticker
+
+
+def test_the_chain_reader(app):
+    from app.services import option_chains
+    library = _Chains()
+    assert option_chains.expiries("aapl", library) == [date(2026, 12, 18), date(2027, 1, 15)]
+    assert option_chains.expiries("ENEL", library) == []
+    found = option_chains.chain("aapl", EXPIRY, library)
+    assert (found["underlying"], found["expiry"], found["price"], found["currency"]) == ("AAPL", "2026-12-18", 214.5, "USD")
+    assert [r["strike"] for r in found["calls"]] == [200.0, 210.0] and found["calls"][0]["last"] is None
+    assert found["calls"][1] == {"symbol": "AAPL261218C00210000", "strike": 210.0, "last": 6.2, "bid": 6.1, "ask": 6.4,
+                                 "iv": 0.25, "open_interest": 100.0, "volume": 5.0, "itm": True, "multiplier": 100}
+    assert found["puts"][0]["multiplier"] == 1 and library.asked == "2026-12-18"
+    empty = type("L", (), {"Ticker": lambda self, s: type("T", (), {"option_chain": lambda self, e: type("C", (), {
+        "calls": None, "puts": _Frame([]), "underlying": None})()})()})()
+    assert option_chains.chain("AAPL", EXPIRY, empty) == {"underlying": "AAPL", "expiry": "2026-12-18", "price": None,
+                                                         "currency": "USD", "calls": [], "puts": []}
+    with app.app_context():
+        with pytest.raises(ValueError, match="spento"):
+            option_chains.expiries("AAPL")  # the tests: yfinance off
+        app.config["YFINANCE"] = True
+        try:
+            from app.services import yf_source
+            real = yf_source.available
+            yf_source.available = lambda: False
+            with pytest.raises(ValueError, match="non installato"):
+                option_chains.expiries("AAPL")
+            yf_source.available = real
+            if real():
+                assert hasattr(option_chains._library(), "Ticker")
+        finally:
+            app.config["YFINANCE"] = False
+
+
+def test_the_chain_route(client, monkeypatch):
+    from app.services import option_chains, settings_store
+    assert client.get("/portfolio/opzioni/catena?u=AAPL").status_code == 403  # internet off
+    settings_store.set_json("ui.settings", {"prices_online": True})
+    monkeypatch.setattr(option_chains, "_library", lambda library=None: library or _Chains())
+    assert client.get("/portfolio/opzioni/catena?u=AAPL").get_json() == {"underlying": "AAPL",
+                                                                        "expiries": ["2026-12-18", "2027-01-15"]}
+    chain = client.get("/portfolio/opzioni/catena?u=aapl&e=2026-12-18").get_json()
+    assert chain["price"] == 214.5 and len(chain["calls"]) == 2
+    assert "solo per le opzioni USA" in client.get("/portfolio/opzioni/catena?u=ENEL.MI").get_json()["error"]
+    assert client.get("/portfolio/opzioni/catena?u=MSFT").status_code == 404  # no options listed
+    monkeypatch.setattr(option_chains, "_library", lambda library=None: (_ for _ in ()).throw(OSError("down")))
+    answer = client.get("/portfolio/opzioni/catena?u=AAPL")
+    assert answer.status_code == 502 and "down" in answer.get_json()["error"]
+    form = client.get("/portfolio/new").get_data(as_text=True)
+    assert "Scegli dalla catena (USA)" in form and 'id="chain-table"' in form
+
+
+# ── Taxes (F120.4): redditi diversi, with the multiplier; a written option realized when bought back ──
+
+def test_capital_gains_of_options(app, db, store):
+    from app.services import capital_gains
+    with app.test_request_context():
+        cash = Account(name="Broker", currency="EUR")
+        db.session.add(cash)
+        db.session.commit()
+        # bought at 2,50 and sold at 4: (4 − 2,50) × 2 × 100 − commissions
+        call = _option(db)
+        portfolio_ops.record(call, portfolio_ops.Operation("buy", date(2026, 3, 2), cash, units=Decimal(2),
+                                                           price=Decimal("2.50"), fee=Decimal(2)))
+        portfolio_ops.record(call, portfolio_ops.Operation("sell", date(2026, 3, 9), cash, units=Decimal(2),
+                                                           price=Decimal(4), fee=Decimal(2)))
+        # written at 1,20 (3 contracts), bought back at 0,40 for one, the rest expires worthless
+        put = _option(db, kind="put", strike="180")
+        portfolio_ops.record(put, portfolio_ops.Operation("sell", date(2026, 4, 1), cash, units=Decimal(3),
+                                                          price=Decimal("1.20"), fee=Decimal(3)))
+        portfolio_ops.record(put, portfolio_ops.Operation("buy", date(2026, 4, 10), cash, units=Decimal(1),
+                                                          price=Decimal("0.40"), fee=Decimal(1)))
+        db.session.commit()
+        options.settle(put, "worthless", date(2026, 4, 17))
+        db.session.commit()
+        # a call bought that expires worthless: its whole cost is a loss
+        lost = _option(db, strike="400")
+        portfolio_ops.record(lost, portfolio_ops.Operation("buy", date(2026, 5, 4), cash, units=Decimal(1),
+                                                           price=Decimal("1.10")))
+        db.session.commit()
+        options.settle(lost, "worthless", date(2026, 5, 15))
+        db.session.commit()
+        summary = capital_gains.year_summary(2026)
+    sales = summary["sales"]
+    by = [(s.on, s.units, s.proceeds, s.cost, s.kind) for s in sales]
+    assert by[0] == (date(2026, 3, 9), Decimal(2), Decimal("798.00"), Decimal("502.00"), "diversi")
+    # the written put: 360 cashed in less 3 of commission = 357 for 3 contracts, 119 each
+    assert by[1] == (date(2026, 4, 10), Decimal(1), Decimal("119.00"), Decimal("41.00"), "diversi")
+    assert by[2] == (date(2026, 4, 17), Decimal(2), Decimal("238.00"), Decimal("0.00"), "diversi")
+    assert by[3] == (date(2026, 5, 15), Decimal(1), Decimal("0"), Decimal("110.00"), "diversi")
+    assert sales[3].result == Decimal("-110.00")
+    assert sum(s.result for s in sales) == Decimal("296.00") + Decimal("78.00") + Decimal("238.00") - Decimal("110.00")
+    assert not any(s.oversold for s in sales)
+
+
+def test_a_written_option_opened_before_the_records(app, db, store):
+    from app.services import capital_gains
+    with app.test_request_context():
+        cash = Account(name="Broker", currency="EUR")
+        db.session.add(cash)
+        db.session.commit()
+        written = _option(db, kind="call", strike="250", quantity=-1, price="3")  # written before, at 3
+        portfolio_ops.record(written, portfolio_ops.Operation("buy", date(2026, 6, 1), cash, units=Decimal(1),
+                                                              price=Decimal(1)))
+        db.session.commit()
+        (sale,) = capital_gains.year_summary(2026)["sales"]
+    assert (sale.proceeds, sale.cost, sale.result, sale.estimated) == (Decimal("300.00"), Decimal("100.00"),
+                                                                      Decimal("200.00"), True)
+
+
+# ── Options in a broker's statement (F120.4) ───────────────────────────────────
+
+@pytest.mark.parametrize("text, terms", [
+    ("AAPL  261218C00200000", ("AAPL", "call", "200", date(2026, 12, 18), "100")),
+    ("AAPL 18DEC26 200 C", ("AAPL", "call", "200", date(2026, 12, 18), "100")),
+    ("AAPL C200.00 18DEC26", ("AAPL", "call", "200.00", date(2026, 12, 18), "100")),
+    ("CALL ENEL 6,5 DIC26", ("ENEL", "call", "6.5", date(2026, 12, 18), "100")),  # only the month: its third Friday
+    ("MIBO 34000 P 19/12/2026", ("FTSEMIB.MI", "put", "34000", date(2026, 12, 19), "2.5")),
+    ("Opz. Put FTSE MIB 34000 Dic 2026", ("FTSEMIB.MI", "put", "34000", date(2026, 12, 18), "2.5")),
+    ("OESX DEC26 5000 C", ("^STOXX50E", "call", "5000", date(2026, 12, 18), "10")),
+    ("Vanguard FTSE All-World", None), ("BTP 1AG31 0,6%", None), ("ENEL", None), ("Put C 2026", None),
+    ("CALL ENEL 31/02/2026 6", None), (None, None), ("CALL ENEL DIC26", None),
+])
+def test_options_read_from_a_statement(text, terms):
+    found = options.from_description(text)
+    if terms is None:
+        assert found is None
+    else:
+        assert (found["underlying"], found["option_kind"], str(found["strike"]), found["option_expiry"],
+                str(found["multiplier"])) == terms
+
+
+def test_third_friday():
+    assert [options.third_friday(2026, m) for m in (1, 5, 12)] == [date(2026, 1, 16), date(2026, 5, 15), date(2026, 12, 18)]
+
+
+def test_a_statement_with_options(client, db):
+    import io
+    import re
+
+    from tests.form_helper import form_data
+    csv = ("Data operazione;Segno;Titolo;ISIN;Ticker;Quantità;Prezzo;Controvalore;Commissioni\n"
+           "02/11/2026;A;AAPL 18DEC26 200 C;;;2;2,50;500;2\n"
+           "03/11/2026;V;MIBO 34000 P 19/12/2026;;;1;300;750;5\n"
+           "10/11/2026;A;MIBO 34000 P 19/12/2026;;;1;100;250;5\n").encode()
+    from app.services import broker_import
+    with client.application.test_request_context():
+        preview = broker_import.read("broker.csv", csv)
+    assert [(r.units, r.price) for r in preview.rows] == [(Decimal(2), Decimal("2.50")), (Decimal(-1), Decimal(300)),
+                                                         (Decimal(1), Decimal(100))]  # the value ÷ the multiplier
+    html = client.post("/portfolio/import", data={"file": (io.BytesIO(csv), "broker.csv")},
+                       content_type="multipart/form-data", follow_redirects=True).get_data(as_text=True)
+    data = form_data(html, "broker-form", include=re.findall(r'name="include" value="(\d+)"', html))
+    page = client.post("/portfolio/import/confirm", data=data, follow_redirects=True).get_data(as_text=True)
+    assert "3 operazioni importate." in page
+    call = Holding.query.filter_by(name="AAPL 18DEC26 200 C").one()
+    assert (call.asset_class, call.option_kind, call.strike, call.ticker, call.multiplier, call.quantity) == (
+        "Derivato", "call", Decimal(200), "AAPL261218C00200000", Decimal(100), Decimal(2))
+    mibo = Holding.query.filter_by(name="MIBO 34000 P 19/12/2026").one()
+    assert (mibo.underlying, mibo.multiplier, mibo.ticker, mibo.quantity) == ("FTSEMIB.MI", Decimal("2.5"), None, Decimal(0))
+    amounts = sorted(t.amount for t in Transaction.query.filter(Transaction.units.isnot(None)))
+    assert amounts == [Decimal("250.00"), Decimal("500.00"), Decimal("750.00")]  # the money: × the multiplier

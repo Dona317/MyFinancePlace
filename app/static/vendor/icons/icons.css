@@ -195,6 +195,7 @@
 .bi-link-45deg::before { content: "\f470"; }
 .bi-list::before { content: "\f479"; }
 .bi-list-check::before { content: "\f473"; }
+.bi-list-columns::before { content: "\f6a0"; }
 .bi-list-ul::before { content: "\f478"; }
 .bi-lock::before { content: "\f47b"; }
 .bi-magic::before { content: "\f675"; }

@@ -126,6 +126,15 @@
             {{ f.select(values, 'exercise_style', _('Stile'), option_styles.items()|list, h.exercise_style, blank=_('— non indicato —')) }}
             {{ f.select(values, 'settlement', _('Regolamento'), option_settlements.items()|list, h.settlement, blank=_('— non indicato —')) }}
           </div>
+          {% if online %}
+          {# F120.3: a US contract picked from its chain (yfinance) instead of typed #}
+          <div class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm" id="chain-open" data-url="{{ url_for('portfolio.option_chain') }}"><i class="bi bi-list-columns"></i> {{ _('Scegli dalla catena (USA)') }}</button>
+            <select class="form-select" id="chain-expiry" hidden aria-label="{{ _('Scadenza') }}" style="width:auto;"></select>
+            <span class="text-xs text-muted" id="chain-note">{{ _('Scrivi il sottostante (es. AAPL): l\'app mostra scadenze e strike quotati, con prezzi e volatilità.') }}</span>
+          </div>
+          <div class="table-wrapper mt-8 chain-table" id="chain-table" hidden style="max-height:320px;overflow:auto;"></div>
+          {% endif %}
         </fieldset>
         {{ f.owner(values, h.owner) }}
         {{ f.number(values, 'depreciation_rate', _('Svalutazione annua (%%)'), h.depreciation_rate, placeholder=(suggested_rates.get(h.asset_class)|string if h and suggested_rates.get(h.asset_class) else ''),
@@ -162,6 +171,60 @@
   const optionKind = document.getElementById('f-option_kind'), multiplier = document.getElementById('f-multiplier');
   optionKind?.addEventListener('change', () => {
     if (optionKind.value && multiplier && (!multiplier.value || multiplier.value === '1')) multiplier.value = '100';
+  });
+  // F120.3: the chain of a US underlying: expiries, then calls and puts; a row fills the contract's terms
+  const open = document.getElementById('chain-open');
+  if (!open) return;
+  const pick = document.getElementById('chain-expiry'), table = document.getElementById('chain-table');
+  const note = document.getElementById('chain-note'), field = name => document.getElementById('f-' + name);
+  const number = v => v == null ? '—' : v.toLocaleString(document.documentElement.lang || 'it', {maximumFractionDigits: 2});
+  const ask = async params => {
+    const answer = await fetch(open.dataset.url + '?' + new URLSearchParams(params), {headers: {Accept: 'application/json'}});
+    const data = await answer.json();
+    if (!answer.ok) throw new Error(data.error || answer.statusText);
+    return data;
+  };
+  const fill = (row, kind, data) => {
+    const set = (name, value) => { const el = field(name); if (el && value != null) el.value = value; };
+    set('option_kind', kind); set('strike', String(row.strike).replace('.', ','));
+    set('option_expiry', data.expiry); set('ticker', row.symbol); set('multiplier', row.multiplier);
+    set('currency', data.currency); set('exercise_style', 'american'); set('settlement', 'physical');
+    if (row.last != null) set('current_price', String(row.last).replace('.', ','));
+    if (field('name') && !field('name').value) field('name').value = `${data.underlying} ${kind} ${row.strike} ${data.expiry}`;
+    note.textContent = {{ _('Contratto scelto: %(symbol)s.', symbol='__SYMBOL__')|tojson }}.replace('__SYMBOL__', row.symbol);
+  };
+  const show = data => {
+    const strikes = [...new Set([...data.calls, ...data.puts].map(r => r.strike))].sort((a, b) => a - b);
+    const by = (rows, s) => rows.find(r => r.strike === s);
+    const cell = (row, kind) => row ? `<button type="button" class="btn btn-ghost btn-sm" data-kind="${kind}" data-symbol="${row.symbol}">${number(row.last)} <span class="text-xs text-muted">${number(row.bid)}–${number(row.ask)}</span></button>` : '—';
+    table.innerHTML = `<table class="table-compact"><thead><tr><th>${ {{ _('Call')|tojson }} }</th><th class="text-center">${ {{ _('Strike')|tojson }} } <span class="text-xs text-muted">(${number(data.price)} ${data.currency})</span></th><th>${ {{ _('Put')|tojson }} }</th></tr></thead><tbody>` +
+      strikes.map(s => `<tr${Math.abs(s - (data.price || 0)) === Math.min(...strikes.map(x => Math.abs(x - (data.price || 0)))) ? ' style="font-weight:600" title="' + {{ _('lo strike più vicino al prezzo')|tojson }} + '"' : ''}><td>${cell(by(data.calls, s), 'call')}</td><td class="text-center font-mono">${number(s)}</td><td>${cell(by(data.puts, s), 'put')}</td></tr>`).join('') + '</tbody></table>';
+    table.hidden = false;
+    const near = table.querySelector('tr[title]');  // the strike nearest the underlying's price, in the middle
+    if (near) table.scrollTop = near.offsetTop - table.clientHeight / 2;
+    table.querySelectorAll('button[data-symbol]').forEach(b => b.addEventListener('click', () => {
+      const rows = b.dataset.kind === 'call' ? data.calls : data.puts;
+      fill(rows.find(r => r.symbol === b.dataset.symbol), b.dataset.kind, data);
+    }));
+  };
+  open.addEventListener('click', async () => {
+    const underlying = (field('underlying')?.value || '').trim();
+    if (!underlying) { note.textContent = {{ _('Scrivi prima il sottostante (es. AAPL).')|tojson }}; field('underlying')?.focus(); return; }
+    note.textContent = {{ _('Leggo le scadenze…')|tojson }};
+    try {
+      const data = await ask({u: underlying});
+      pick.innerHTML = data.expiries.map(e => `<option value="${e}">${e.split('-').reverse().join('/')}</option>`).join('');
+      pick.hidden = false;
+      note.textContent = {{ _('Scegli la scadenza.')|tojson }};
+      pick.dispatchEvent(new Event('change'));
+    } catch (error) { note.textContent = error.message; pick.hidden = true; table.hidden = true; }
+  });
+  pick.addEventListener('change', async () => {
+    note.textContent = {{ _('Leggo la catena…')|tojson }};
+    try {
+      show(await ask({u: field('underlying').value.trim(), e: pick.value}));
+      note.textContent = {{ _('Tocca un prezzo per scegliere il contratto (ultimo prezzo, denaro–lettera).')|tojson }};
+    } catch (error) { note.textContent = error.message; table.hidden = true; }
   });
 })();
 </script>
