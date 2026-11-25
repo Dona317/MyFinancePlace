@@ -162,9 +162,8 @@ def _holding_from_form(holding: Holding) -> Holding:
     _fund_facts_from_form(holding)
     _bond_terms_from_form(holding)
     _option_terms_from_form(holding)
-    holding.quantity = form_decimal("quantity", _("Quantità"), required=True)
-    if holding.quantity is not None and holding.quantity < 0 and not holding.is_option:
-        raise ValueError(_("Quantità: sotto zero solo per un'opzione venduta."))
+    # below zero only for an option: written, the premium cashed in (F120)
+    holding.quantity = form_decimal("quantity", _("Quantità"), required=True, allow_negative=holding.is_option)
     holding.avg_price = form_decimal("avg_price", _("Prezzo medio di acquisto"), required=True)
     price = form_decimal("current_price", _("Prezzo attuale"))
     if price is not None and price != holding.current_price and holding.id is not None:

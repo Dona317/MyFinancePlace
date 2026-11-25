@@ -172,6 +172,7 @@
 .bi-grip-vertical::before { content: "\f3fe"; }
 .bi-hash::before { content: "\f40a"; }
 .bi-highlights::before { content: "\f8ee"; }
+.bi-hourglass-bottom::before { content: "\f41e"; }
 .bi-hourglass-split::before { content: "\f41f"; }
 .bi-house::before { content: "\f425"; }
 .bi-house-heart::before { content: "\f776"; }
@@ -226,6 +227,7 @@
 .bi-phone::before { content: "\f4e7"; }
 .bi-pie-chart::before { content: "\f4e9"; }
 .bi-piggy-bank::before { content: "\f64a"; }
+.bi-pip::before { content: "\f4ef"; }
 .bi-play::before { content: "\f4f5"; }
 .bi-play-circle::before { content: "\f4f3"; }
 .bi-plugin::before { content: "\f77d"; }

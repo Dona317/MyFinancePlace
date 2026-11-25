@@ -74,7 +74,7 @@ def test_the_form(client, db):
     assert "strike" in bad and Holding.query.filter_by(name="Senza strike").count() == 0
     short_etf = client.post("/portfolio/new", data={**base, "name": "ETF", "asset_class": "ETF",
                                                     "quantity": "-3"}).get_data(as_text=True)
-    assert "sotto zero solo per un" in short_etf
+    assert "non può essere negativo" in short_etf  # only an option is sold without being held
 
 
 def test_bought_sold_written_and_bought_back(app, db):
@@ -151,7 +151,7 @@ def store(app, tmp_path, monkeypatch):
 
 
 def _bought(db, app, holding, units="1", price="2.5"):
-    cash = Account(name="Broker", currency="EUR")
+    cash = Account.query.filter_by(name="Broker").first() or Account(name="Broker", currency="EUR")
     db.session.add(cash)
     db.session.commit()
     side = "buy" if Decimal(units) > 0 else "sell"

@@ -114,6 +114,19 @@
             {{ f.number(values, 'issue_price', _("Prezzo di emissione (%% del nominale)"), h.issue_price, placeholder='100') }}
           </div>
         </fieldset>
+        <fieldset class="fee-rules mb-16" id="option-terms">
+          <legend class="form-label">{{ _("Caratteristiche dell'opzione") }} {{ info(_("Per le opzioni (strumento «Derivato»): la quantità sono i contratti, sotto zero se l'hai venduta (scritta: il premio è incassato); il prezzo è per unità del sottostante; il moltiplicatore è quante unità vale un contratto (100 per le opzioni su azioni USA e IDEM, 2,5 € a punto per le opzioni sul FTSE MIB, 10 per quelle Eurex sull'Euro Stoxx 50). Per un'opzione USA il ticker si compone da solo (simbolo OCC, es. AAPL261218C00200000) e il prezzo arriva da Yahoo; IDEM ed Eurex: prezzo a mano o dal file del broker.")) }}</legend>
+          <div class="grid-3">
+            {{ f.select(values, 'option_kind', _('Tipo'), option_kinds.items()|list, h.option_kind, blank=_('— non è un\'opzione —')) }}
+            {{ f.number(values, 'strike', _('Strike'), h.strike, placeholder='200', hint=_("Il prezzo d'esercizio, nella valuta del sottostante.")) }}
+            {{ f.date(values, 'option_expiry', _('Scadenza'), h.option_expiry) }}
+          </div>
+          <div class="grid-3">
+            {{ f.text(values, 'underlying', _('Sottostante'), h.underlying, placeholder=_('es. AAPL, ENEL.MI, FTSEMIB.MI')) }}
+            {{ f.select(values, 'exercise_style', _('Stile'), option_styles.items()|list, h.exercise_style, blank=_('— non indicato —')) }}
+            {{ f.select(values, 'settlement', _('Regolamento'), option_settlements.items()|list, h.settlement, blank=_('— non indicato —')) }}
+          </div>
+        </fieldset>
         {{ f.owner(values, h.owner) }}
         {{ f.number(values, 'depreciation_rate', _('Svalutazione annua (%%)'), h.depreciation_rate, placeholder=(suggested_rates.get(h.asset_class)|string if h and suggested_rates.get(h.asset_class) else ''),
                     hint=_('Per un’auto, un telefono, un computer: la percentuale di valore persa ogni anno dall’ultima valutazione (un’auto circa 15). Vuoto: il valore cambia solo con i prezzi o le valutazioni.')) }}
@@ -139,6 +152,17 @@
   const toggle = () => { box.hidden = !filled && kind.value !== 'Obbligazione'; };
   kind.addEventListener('change', toggle);
   toggle();
+  // F120: the option's terms only for derivatives, unless some are already filled in; 100 as the usual multiplier
+  const option = document.getElementById('option-terms');
+  if (!option) return;
+  const optionFilled = Array.from(option.querySelectorAll('input, select')).some(el => el.value);
+  const showOption = () => { option.hidden = !optionFilled && kind.value !== 'Derivato'; };
+  kind.addEventListener('change', showOption);
+  showOption();
+  const optionKind = document.getElementById('f-option_kind'), multiplier = document.getElementById('f-multiplier');
+  optionKind?.addEventListener('change', () => {
+    if (optionKind.value && multiplier && (!multiplier.value || multiplier.value === '1')) multiplier.value = '100';
+  });
 })();
 </script>
 {% if online %}

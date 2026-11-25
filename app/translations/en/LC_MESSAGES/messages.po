@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyFinancePlace VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-25 15:31+0000\n"
+"POT-Creation-Date: 2026-11-25 15:53+0000\n"
 "PO-Revision-Date: 2026-09-30 10:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -498,6 +498,10 @@ msgstr "%(n)s accounts"
 #, python-format
 msgid "%(n)s conti collegati alla banca"
 msgstr "%(n)s accounts connected to the bank"
+
+#, python-format
+msgid "%(n)s contratti"
+msgstr "%(n)s contracts"
 
 #, python-format
 msgid "%(n)s giorni"
@@ -1596,6 +1600,9 @@ msgstr "Other (transfers, adjustments)"
 msgid "Altro modello Ollama"
 msgstr "Other Ollama model"
 
+msgid "Americana (esercitabile ogni giorno)"
+msgstr "American (exercisable any day)"
+
 msgid "Amministrato"
 msgstr "Managed (amministrato)"
 
@@ -2385,6 +2392,9 @@ msgstr "Month calendar"
 msgid "Calendario delle spese"
 msgstr "Spending calendar"
 
+msgid "Call"
+msgstr "Call"
+
 msgid "Calo dal massimo"
 msgstr "Fall from the peak"
 
@@ -2512,6 +2522,9 @@ msgstr "Fund characteristics"
 
 msgid "Caratteristiche dell'obbligazione"
 msgstr "Bond characteristics"
+
+msgid "Caratteristiche dell'opzione"
+msgstr "Option terms"
 
 msgid "Carica"
 msgstr "Upload"
@@ -2917,6 +2930,9 @@ msgstr "Ask the AI which columns are which"
 msgid "Chiudi"
 msgstr "Close"
 
+msgid "Chiudi l'opzione"
+msgstr "Close the option"
+
 msgid "Chiudi senza salvare"
 msgstr "Close without saving"
 
@@ -3252,6 +3268,9 @@ msgstr ""
 msgid "Come sarebbe andato nel passato"
 msgstr "How it would have gone in the past"
 
+msgid "Come si è chiusa"
+msgstr "How it ended"
+
 msgid "Come sto"
 msgstr "How I'm doing"
 
@@ -3580,6 +3599,9 @@ msgid ""
 "Confronto tra due modelli e tra ribilanciare o no (mensile, annuale, a "
 "bande)"
 msgstr "Two models compared, and rebalancing or not (monthly, yearly, with bands)"
+
+msgid "Consegna del sottostante"
+msgstr "Delivery of the underlying"
 
 msgid "Consenso"
 msgstr "Consent"
@@ -5372,6 +5394,12 @@ msgstr ""
 "Examples to copy and change, with ETFs listed in Milan. They are not "
 "investment advice: choose according to your goals and horizon."
 
+msgid "Esercitata o assegnata: consegna del sottostante"
+msgstr "Exercised or assigned: delivery of the underlying"
+
+msgid "Esercizio"
+msgstr "Exercise"
+
 #, python-format
 msgid "Esiste già un conto chiamato «%(name)s»."
 msgstr "An account called «%(name)s» already exists."
@@ -5463,6 +5491,9 @@ msgstr "Euro from the currency"
 
 msgid "Europa"
 msgstr "Europe"
+
+msgid "Europea (solo a scadenza)"
+msgstr "European (at expiry only)"
 
 msgid "Eventi"
 msgstr "Events"
@@ -6963,6 +6994,9 @@ msgid ""
 "ribilanciamento."
 msgstr "The portfolio may be out of its bands: check the rebalancing."
 
+msgid "Il prezzo d'esercizio, nella valuta del sottostante."
+msgstr "The exercise price, in the underlying's currency."
+
 msgid "Il prezzo deve essere maggiore di zero."
 msgstr "The price must be greater than zero."
 
@@ -7127,6 +7161,15 @@ msgstr ""
 
 msgid "Il valore nel tempo viene dalle istantanee: creane una ogni mese da"
 msgstr "The value over time comes from the snapshots: take one every month from"
+
+msgid ""
+"Il valore è contratti × moltiplicatore × prezzo: sotto zero per "
+"un'opzione venduta, perché è quanto costerebbe ricomprarla. Il guadagno "
+"di un'opzione venduta è il premio incassato meno quel costo."
+msgstr ""
+"The value is contracts × multiplier × price: below zero for a sold "
+"option, as it is what buying it back would cost. A sold option's gain is "
+"the premium cashed in less that cost."
 
 msgid "Il vision più leggero: buon compromesso"
 msgstr "The lightest vision model: a good compromise"
@@ -7896,6 +7939,9 @@ msgid ""
 msgstr ""
 "The redirect URL must start with https:// (Enable Banking accepts nothing"
 " else in Production)."
+
+msgid "L'opzione è arrivata a scadenza: chiudila come è andata."
+msgstr "The option has reached its expiry: close it the way it ended."
 
 #, python-format
 msgid "L'ultimo è del %(day)s."
@@ -8704,6 +8750,15 @@ msgstr "Saved link"
 
 msgid "Link tolto: lo storico già letto resta."
 msgstr "Link removed: the history already read stays."
+
+msgid "Liquidata in contanti"
+msgstr "Settled in cash"
+
+msgid "Liquidazione a scadenza"
+msgstr "Cash settlement at expiry"
+
+msgid "Liquidazione in contanti"
+msgstr "Cash settlement"
 
 msgid "Liquidità"
 msgstr "Cash"
@@ -10790,6 +10845,25 @@ msgstr "Or from a CSV file"
 msgid "Oppure incolla più righe «data;prezzo»"
 msgstr "Or paste several «date;price» lines"
 
+msgid "Opzione"
+msgstr "Option"
+
+#, python-format
+msgid "Opzione %(what)s chiusa: %(how)s."
+msgstr "Option %(what)s closed: %(how)s."
+
+msgid "Opzione: il tipo è call o put."
+msgstr "Option: the type is call or put."
+
+msgid "Opzione: scegli se è una call o una put."
+msgstr "Option: choose whether it is a call or a put."
+
+msgid "Opzione: scrivi la data di scadenza."
+msgstr "Option: write the expiry date."
+
+msgid "Opzione: scrivi lo strike, il prezzo d'esercizio, maggiore di zero."
+msgstr "Option: write the strike, the exercise price, above zero."
+
 msgid "Ora"
 msgstr "Now"
 
@@ -11234,8 +11308,30 @@ msgstr ""
 "euro) = (1 + return in its currency) × (1 + change of the exchange rate)."
 " The euro are what the exchange rate added to or took from today's value."
 
+msgid "Per l'esercizio serve il sottostante (il suo ticker)."
+msgstr "Exercise needs the underlying (its ticker)."
+
 msgid "Per la rata del PAC indica da 1 a 31 giorni."
 msgstr "For the PAC instalment enter 1 to 31 days."
+
+msgid ""
+"Per le opzioni (strumento «Derivato»): la quantità sono i contratti, "
+"sotto zero se l'hai venduta (scritta: il premio è incassato); il prezzo è"
+" per unità del sottostante; il moltiplicatore è quante unità vale un "
+"contratto (100 per le opzioni su azioni USA e IDEM, 2,5 € a punto per le "
+"opzioni sul FTSE MIB, 10 per quelle Eurex sull'Euro Stoxx 50). Per "
+"un'opzione USA il ticker si compone da solo (simbolo OCC, es. "
+"AAPL261218C00200000) e il prezzo arriva da Yahoo; IDEM ed Eurex: prezzo a"
+" mano o dal file del broker."
+msgstr ""
+"For options (instrument «Derivato»): the quantity is the contracts, below"
+" zero if you sold it (written: the premium is cashed in); the price is "
+"per unit of the underlying; the multiplier is how many units a contract "
+"is on (100 for US and IDEM share options, 2.5 € a point for the FTSE MIB "
+"options, 10 for the Eurex ones on the Euro Stoxx 50). For a US option the"
+" ticker is built by itself (OCC symbol, e.g. AAPL261218C00200000) and the"
+" price comes from Yahoo; IDEM and Eurex: price by hand or from the "
+"broker's file."
 
 msgid ""
 "Per le passività la differenza è mostrata dal punto di vista del "
@@ -11759,6 +11855,9 @@ msgstr "Total Yearly Premium"
 msgid "Premio annuo delle polizze attive"
 msgstr "Yearly premium of the active policies"
 
+msgid "Premio incassato"
+msgstr "Premium cashed in"
+
 msgid "Premio per rata (€)"
 msgstr "Premium per installment (€)"
 
@@ -11944,6 +12043,9 @@ msgstr "Current price (€)"
 
 msgid "Prezzo da internet"
 msgstr "Price from the internet"
+
+msgid "Prezzo del sottostante alla scadenza"
+msgstr "Underlying price at expiry"
 
 #, python-format
 msgid "Prezzo di %(name)s"
@@ -12239,6 +12341,9 @@ msgstr "%% points"
 msgid "Puoi chiudere questa scheda e tornare nell'app."
 msgstr "You can close this tab and go back to the app."
 
+msgid "Put"
+msgstr "Put"
+
 #, python-format
 msgid ""
 "Quadratura verificata: saldo iniziale %(opening)s + movimenti "
@@ -12430,6 +12535,9 @@ msgid ""
 "Questa non è una chiave di MyFinancePlace: incolla tutto il testo della "
 "chiave salvata."
 msgstr "This is not a MyFinancePlace key: paste the whole text of the saved key."
+
+msgid "Questa opzione non è più aperta."
+msgstr "This option is not open any more."
 
 msgid "Questa sezione è disattivata"
 msgstr "This section is turned off"
@@ -12722,6 +12830,9 @@ msgstr "Rule saved: «%(keyword)s» → %(category)s."
 #, python-format
 msgid "Regola «%(keyword)s» eliminata."
 msgstr "Rule «%(keyword)s» deleted."
+
+msgid "Regolamento"
+msgstr "Settlement"
 
 msgid "Regole"
 msgstr "Rules"
@@ -13551,6 +13662,10 @@ msgid "Scade il %(day)s"
 msgstr "Due on %(day)s"
 
 #, python-format
+msgid "Scade l'opzione %(what)s"
+msgstr "Option %(what)s expires"
+
+#, python-format
 msgid "Scade la carta %(name)s"
 msgstr "Card %(name)s expires"
 
@@ -13571,11 +13686,17 @@ msgstr "Expiry"
 msgid "Scadenza (MM/AA)"
 msgstr "Expiry (MM/YY)"
 
+msgid "Scadenza dell'opzione"
+msgstr "Option expiry"
+
 msgid "Scadenza eliminata."
 msgstr "Deadline deleted."
 
 msgid "Scadenza non valida: scrivila come MM/AA."
 msgstr "Invalid expiry: write it as MM/YY."
+
+msgid "Scadenza senza valore"
+msgstr "Expired worthless"
 
 #, python-format
 msgid "Scadenza «%(title)s» salvata."
@@ -13592,6 +13713,9 @@ msgstr "Deadlines in the next 7 days"
 
 msgid "Scaduta"
 msgstr "Expired"
+
+msgid "Scaduta senza valore"
+msgstr "Expired worthless"
 
 #, python-format
 msgid ""
@@ -13723,6 +13847,9 @@ msgstr ""
 
 msgid "Scegli come indicare le commissioni."
 msgstr "Choose how to enter the commissions."
+
+msgid "Scegli come si è chiusa l'opzione."
+msgstr "Choose how the option ended."
 
 msgid "Scegli cosa è successo."
 msgstr "Choose what happened."
@@ -13949,6 +14076,11 @@ msgstr ""
 
 msgid "Scrivi il periodo della bolletta (dal, al)."
 msgstr "Write the period of the bill (from, to)."
+
+msgid ""
+"Scrivi il prezzo del sottostante alla scadenza: serve per il valore "
+"intrinseco."
+msgstr "Write the underlying's price at expiry: it gives the intrinsic value."
 
 msgid "Scrivi il prezzo per unità (e la quota fissa al mese) dell'altra offerta."
 msgstr "Write the price per unit (and the monthly fixed fee) of the other offer."
@@ -14534,6 +14666,9 @@ msgstr "Paused"
 msgid "Sottocategoria di"
 msgstr "Subcategory of"
 
+msgid "Sottostante"
+msgstr "Underlying"
+
 msgid "Sovrapposizione"
 msgstr "Overlap"
 
@@ -14743,6 +14878,9 @@ msgstr ""
 msgid "Stesso tipo e importo, date vicine e descrizione simile."
 msgstr "Same type and amount, close dates and similar description."
 
+msgid "Stile"
+msgstr "Style"
+
 msgid "Stile di Vita"
 msgstr "Lifestyle"
 
@@ -14850,6 +14988,9 @@ msgstr ""
 "Reversal: cancelled by another transaction of the same amount; it does "
 "not count in the totals"
 
+msgid "Strike"
+msgstr "Strike"
+
 msgid "Strumenti"
 msgstr "Tools"
 
@@ -14907,6 +15048,17 @@ msgstr "Suggestion"
 
 msgid "Suggeriti"
 msgstr "Suggested"
+
+msgid ""
+"Suggerito dal prezzo del sottostante: fuori dal denaro scade senza "
+"valore; dentro, si liquida in contanti o si consegna il sottostante allo "
+"strike (una call comprata o una put venduta lo comprano, una put comprata"
+" o una call venduta lo vendono)."
+msgstr ""
+"Suggested from the underlying's price: out of the money it expires "
+"worthless; in the money, it is settled in cash or the underlying is "
+"delivered at the strike (a call bought or a put sold buy it, a put bought"
+" or a call sold sell it)."
 
 #, python-format
 msgid "Suggerito dall'AI (confidenza %(level)s)"
@@ -15178,6 +15330,9 @@ msgstr "Operation type"
 
 msgid "Tipo di operazione sconosciuto."
 msgstr "Unknown kind of operation."
+
+msgid "Tipo di opzione"
+msgstr "Option type"
 
 msgid "Tipo di polizza"
 msgstr "Policy type"
@@ -16401,6 +16556,10 @@ msgstr "Sales of securities"
 msgid "Vendite oltre le quote possedute"
 msgstr "Sales beyond the units held"
 
+#, python-format
+msgid "Venduta: %(n)s contratti"
+msgstr "Sold: %(n)s contracts"
+
 msgid "Verdi"
 msgstr "Greens"
 
@@ -16953,6 +17112,9 @@ msgstr "e.g. 50"
 
 msgid "es. 85"
 msgstr "e.g. 85"
+
+msgid "es. AAPL, ENEL.MI, FTSEMIB.MI"
+msgstr "e.g. AAPL, ENEL.MI, FTSEMIB.MI"
 
 msgid "es. Animali"
 msgstr "e.g. Pets"
@@ -17715,6 +17877,9 @@ msgstr "saves new transactions by itself"
 msgid "scade il %(day)s"
 msgstr "expires on %(day)s"
 
+msgid "scade oggi"
+msgstr "expires today"
+
 msgid "scadenza o rinnovo"
 msgstr "expiry or renewal"
 
@@ -17898,6 +18063,12 @@ msgid "totale %(amount)s"
 msgstr "total %(amount)s"
 
 #, python-format
+msgid "tra %(num)d giorno"
+msgid_plural "tra %(num)d giorni"
+msgstr[0] "in %(num)d day"
+msgstr[1] "in %(num)d days"
+
+#, python-format
 msgid "tra %(years)s anni"
 msgstr "in %(years)s years"
 
@@ -17993,6 +18164,9 @@ msgstr "sales at a gain in %(year)s"
 #, python-format
 msgid "vendite in perdita nel %(year)s"
 msgstr "sales at a loss in %(year)s"
+
+msgid "venduta"
+msgstr "sold"
 
 msgid "vicino alla soglia"
 msgstr "near the threshold"
@@ -18369,6 +18543,9 @@ msgstr "— not present —"
 
 msgid "— non registrare l’accredito —"
 msgstr "— do not record the money received —"
+
+msgid "— non è un'opzione —"
+msgstr "— not an option —"
 
 msgid "— quello attivo —"
 msgstr "— the active one —"
