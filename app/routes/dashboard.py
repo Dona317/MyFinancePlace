@@ -14,6 +14,7 @@ from app.services import (
     forecast,
     history_filler,
     i18n,
+    market_data,
     onboarding,
     open_banking,
     performance,
@@ -176,6 +177,7 @@ def dashboard():
         return redirect(url_for("onboarding.index"))
     valuations.refresh_daily()  # the depreciation of the cars and the like, once a day
     price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
+    market_data.seed_in_background()  # F114: an empty price database from the shipped one, internet or not
     history_filler.run_in_background()  # F110: the past closes of the holdings and the ECB rates, once a day
     encrypted_backup.run_in_background()  # the automatic encrypted backup, when due
     open_banking.run_in_background()  # F107: the bank connections due, downloaded in a thread

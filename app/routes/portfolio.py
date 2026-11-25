@@ -224,6 +224,7 @@ def _render_form(holding, values):
 def index():
     valuations.refresh_daily()  # the depreciation of the cars and the like, once a day
     price_feed.refresh_in_background()  # the day's prices, once a day (when turned on)
+    market_data.seed_in_background()  # F114: an empty price database from the shipped one, internet or not
     history_filler.run_in_background()  # F110: the past closes of the holdings and the ECB rates, once a day
     selected = request.args.get("asset_class", "")
     person = request.args.get("person", "")

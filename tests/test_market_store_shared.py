@@ -217,3 +217,42 @@ def test_the_filler_seeds_first_and_the_button(client, db, store, monkeypatch):
             history_filler.run(date(2026, 11, 20), sources=(), fetch=lambda address: b"x")  # goes on all the same
     finally:
         app.config["MARKET_SEED"] = False
+
+
+def test_an_empty_store_is_seeded_on_the_first_visit_with_or_without_internet(client, store, monkeypatch):
+    app = client.application
+    assert market_data.seed_in_background() is False  # the tests: no shipped database
+    app.config["MARKET_SEED"] = True
+    monkeypatch.setattr(market_data, "SEED", _seed(store))
+    monkeypatch.setattr(market_data, "_seeded", set())
+    try:
+        client.get("/dashboard")  # «Prezzi da internet» off: the shipped prices come all the same
+        assert market_data.totals()["closes"] == 2
+        assert market_data.seed_in_background() is False  # once per store and process
+        # another store, already filled: checked, nothing to do
+        other = store / "full"
+        other.mkdir()
+        app.instance_path = str(other)
+        market_data.store("X.MI", market_data.Daily("EUR", None, None, [(date(2026, 1, 2), Decimal(1), None)]))
+        with app.test_request_context():
+            assert market_data.seed_in_background() is False
+        # in a thread outside the tests; an error is logged, never raised
+        app.instance_path = str(store / "fresh")
+        app.config["PRICES_SYNC"] = False
+        started = []
+        monkeypatch.setattr("threading.Thread", lambda target, args, **kw: started.append((target, args)) or
+                            type("T", (), {"start": lambda self: None})())
+        with app.test_request_context():
+            assert market_data.seed_in_background() is True
+        target, args = started[0]
+        target(*args)
+        with app.app_context():
+            assert market_data.totals()["closes"] == 2
+
+        def broken():
+            raise OSError("disk full")
+        monkeypatch.setattr(market_data, "seed_if_empty", broken)
+        target(*args)  # logged
+    finally:
+        app.config["MARKET_SEED"] = False
+        app.config["PRICES_SYNC"] = True

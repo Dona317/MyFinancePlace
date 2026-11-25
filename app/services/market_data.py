@@ -407,6 +407,41 @@ def seed_if_empty() -> Imported | None:
     return import_zip(path.read_bytes())
 
 
+_seeded: set[str] = set()  # the stores already checked by this process
+
+
+def seed_in_background() -> bool:
+    """F114: on a page visit, an empty store filled from the database shipped with the app — in a thread (about
+    15 s for 1,4 million closes), with or without internet, once per store and process. Whether it started."""
+    import threading
+
+    path = seed_path()
+    if path is None:
+        return False
+    key = url()
+    if key in _seeded:
+        return False
+    _seeded.add(key)
+    if totals()["closes"]:
+        return False
+    if current_app.config.get("PRICES_SYNC"):  # the tests: inside the request
+        seed_if_empty()
+        return True
+    app = current_app._get_current_object()
+    threading.Thread(target=_seed_thread, args=(app, key), daemon=True, name="market-seed").start()
+    return True
+
+
+def _seed_thread(app, key: str) -> None:
+    try:
+        with app.app_context():
+            seed_if_empty()
+    except Exception:  # noqa: BLE001 - a background job never breaks the app; the next visit tries again
+        _seeded.discard(key)
+        with app.app_context():
+            app.logger.exception("starting price database not imported")
+
+
 @dataclass
 class Imported:
     instruments: int = 0     # new listings
