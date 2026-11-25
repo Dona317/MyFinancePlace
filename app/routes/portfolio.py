@@ -196,6 +196,15 @@ def _holding_from_form(holding: Holding) -> Holding:
     return holding
 
 
+def _settle_form(holding) -> dict | None:
+    """The expiry form of an option still open on or after its expiry: the underlying's price found and the outcome
+    it suggests."""
+    if not holding.is_option or not holding.quantity or not holding.option_expiry or holding.option_expiry > date.today():
+        return None
+    price = options.underlying_price(holding, holding.option_expiry)
+    return {"price": price, "suggested": options.suggested(holding, price), "outcomes": options.OUTCOMES}
+
+
 def _render_form(holding, values):
     return render_template("portfolio/form.html", holding=holding, asset_classes=wealth.ASSET_CLASSES, values=values,
                            allocation_classes=asset_classes.CLASSES, distribution=fund_facts.DISTRIBUTION,
@@ -261,6 +270,26 @@ def new():
     return _render_form(None, {})
 
 
+@portfolio_bp.route("/<int:holding_id>/scadenza", methods=["POST"])
+def option_settle(holding_id):
+    """F120: an expired option closed — worthless, in cash at its intrinsic value, or exercised (the underlying
+    bought or sold at the strike)."""
+    holding = db.get_or_404(Holding, holding_id)
+    back = redirect(url_for("portfolio.detail", holding_id=holding.id) + "#option-card")
+    price = to_decimal(request.form.get("underlying_price", "")) if request.form.get("underlying_price", "").strip() else None
+    on = holding.option_expiry or date.today()
+    try:
+        options.settle(holding, request.form.get("outcome", ""), on, price)
+        db.session.commit()
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return back
+    flash(_("Opzione %(what)s chiusa: %(how)s.", what=options.label(holding),
+            how=str(options.OUTCOMES[request.form["outcome"]]).lower()), "success")
+    return back
+
+
 @portfolio_bp.route("/<int:holding_id>")
 def detail(holding_id):
     """One holding: its value and returns, its price, its operations."""
@@ -274,6 +303,7 @@ def detail(holding_id):
                            distribution=fund_facts.DISTRIBUTION, replication=fund_facts.REPLICATION,
                            asset_class=asset_classes.of(holding), bond=bonds.summary(holding),
                            option_label=options.label(holding) if holding.is_option else None,
+                           option_settle=_settle_form(holding),
                            option_days=options.days_left(holding), option_kinds=options.KINDS,
                            option_styles=options.STYLES, option_settlements=options.SETTLEMENTS,
                            chart=portfolio_charts.price_chart(holding, points),  # G40: with the operations

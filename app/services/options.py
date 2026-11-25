@@ -98,3 +98,122 @@ def validate(holding) -> None:
         raise ValueError(_("Opzione: scrivi lo strike, il prezzo d'esercizio, maggiore di zero."))
     if not holding.option_expiry:
         raise ValueError(_("Opzione: scrivi la data di scadenza."))
+
+
+# ── Expiry and exercise (F120.2) ───────────────────────────────────────────────
+
+OUTCOMES = {"worthless": N_("Scaduta senza valore"), "cash": N_("Liquidata in contanti"),
+            "exercise": N_("Esercitata o assegnata: consegna del sottostante")}
+
+
+def open_options():
+    """The options still held (bought or written)."""
+    from app.models.wealth import Holding
+
+    return [h for h in Holding.query.filter(Holding.option_kind.isnot(None)).order_by(Holding.option_expiry, Holding.id)
+            if h.quantity and h.quantity != 0]
+
+
+def to_settle(today: date | None = None) -> list:
+    """Open options whose expiry has come: to be closed (worthless, in cash or by exercise)."""
+    today = today or date.today()
+    return [h for h in open_options() if h.option_expiry and h.option_expiry <= today]
+
+
+def underlying_price(holding, on: date) -> Decimal | None:
+    """The underlying's price on the expiry day, in its own currency: its close in the price database, else the
+    price of the underlying held in the archive (in euro, turned back into the option's currency)."""
+    from app.models.wealth import Holding
+    from app.services import currency, market_data
+
+    symbol = (holding.underlying or "").strip().upper()
+    if not symbol:
+        return None
+    if market_data.available():
+        found = market_data.close_on(symbol, on)
+        if found:
+            return Decimal(found[1])
+    held = Holding.query.filter(Holding.ticker.ilike(symbol), Holding.option_kind.is_(None)).first()
+    if held is not None and held.current_price is not None:
+        rate = currency.rate_on(holding.currency, on) or Decimal(1)
+        return Decimal(held.current_price) / rate
+    return None
+
+
+def suggested(holding, price: Decimal | None) -> str:
+    """What most likely happened: worthless when out of the money (or no price), otherwise its settlement."""
+    if price is None or intrinsic(holding, float(price)) <= 0:
+        return "worthless"
+    return "cash" if holding.settlement == "cash" else "exercise"
+
+
+def _euro(value: Decimal, holding, on: date) -> Decimal:
+    from app.services import currency
+
+    return currency.to_base(value, holding.currency, on, target="EUR") if holding.currency else Decimal(value)
+
+
+def _underlying_holding(holding):
+    """The underlying's holding in the archive (by ticker), made when it is not there yet."""
+    from app.extensions import db
+    from app.models.wealth import Holding
+
+    symbol = holding.underlying.strip().upper()
+    found = Holding.query.filter(Holding.ticker.ilike(symbol), Holding.option_kind.is_(None)).first()
+    if found is None:
+        found = Holding(name=symbol, ticker=symbol, asset_class="Azione", currency=holding.currency, quantity=0,
+                        avg_price=0, opening_quantity=0, opening_price=0)
+        db.session.add(found)
+        db.session.flush()
+    return found
+
+
+def settle(holding, outcome: str, on: date, price: Decimal | None = None) -> list:
+    """Close an expired option, each of its positions where it sits: «worthless» at zero, «cash» at its intrinsic
+    value (the underlying's price given or found), «exercise» at zero with the underlying bought or sold at the
+    strike — a call bought or a put written buy it, a put bought or a call written sell it. The transactions."""
+    from app.extensions import db
+    from app.models.securities import Portfolio, SecuritiesAccount
+    from app.models.transaction import Transaction
+    from app.services import money, portfolio_ops, securities
+
+    if outcome not in OUTCOMES:
+        raise ValueError(_("Scegli come si è chiusa l'opzione."))
+    if not holding.is_option or not holding.quantity:
+        raise ValueError(_("Questa opzione non è più aperta."))
+    if outcome in ("cash", "exercise") and price is None:
+        price = underlying_price(holding, on)
+    if outcome == "cash" and price is None:
+        raise ValueError(_("Scrivi il prezzo del sottostante alla scadenza: serve per il valore intrinseco."))
+    if outcome == "exercise" and not holding.underlying:
+        raise ValueError(_("Per l'esercizio serve il sottostante (il suo ticker)."))
+    per_unit = _euro(Decimal(str(intrinsic(holding, float(price)))), holding, on) if outcome == "cash" else Decimal(0)
+    size = Decimal(holding.multiplier or 1)
+    label_text = label(holding)
+    created = []
+    for position in securities.positions([holding]):
+        units = -position.quantity  # back to zero
+        if not units:
+            continue
+        place = db.session.get(SecuritiesAccount, position.securities_account_id) if position.securities_account_id else None
+        account = place.settlement_account if place is not None else None
+        title = {"worthless": _("Scadenza senza valore"), "cash": _("Liquidazione a scadenza"),
+                 "exercise": _("Esercizio")}[outcome]
+        trade = Transaction(date=on, description=f"{title} {label_text}", amount=money.cents(abs(units) * per_unit * size),
+                            currency="EUR", type="transfer", category="Investimenti", holding_id=holding.id, units=units,
+                            unit_price=per_unit, tags=[], account_id=account.id if account and units > 0 else None,
+                            counter_account_id=account.id if account and units < 0 else None)
+        db.session.add(trade)
+        db.session.flush()
+        securities.assign([trade], place, db.session.get(Portfolio, position.portfolio_id))
+        created.append(trade)
+        if outcome == "exercise":
+            # a call bought or a put written: the underlying is bought at the strike; the opposite: sold
+            buys = (holding.option_kind == "call") == (position.quantity > 0)
+            stock = _underlying_holding(holding)
+            created += portfolio_ops.record(stock, portfolio_ops.Operation(
+                "buy" if buys else "sell", on, account, units=abs(position.quantity) * size,
+                price=_euro(Decimal(holding.strike), holding, on), notes=f"{title} {label_text}",
+                securities_account=place, exact_place=True, portfolio=db.session.get(Portfolio, position.portfolio_id)))
+    portfolio_ops.recompute(holding)
+    return created

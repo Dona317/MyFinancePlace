@@ -1,6 +1,6 @@
 """F120: options as holdings — call or put, strike, expiry, underlying, style, settlement; bought (long) or sold
 (written: the premium cashed in, the position below zero); the multiplier in the money that moves."""
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -138,3 +138,127 @@ def test_the_holding_page(client, db):
     db.session.add(etf)
     db.session.commit()
     assert 'id="option-card"' not in client.get(f"/portfolio/{etf.id}").get_data(as_text=True)
+
+
+# ── Expiry and exercise (F120.2) ───────────────────────────────────────────────
+
+@pytest.fixture()
+def store(app, tmp_path, monkeypatch):
+    from app.services import market_data
+    monkeypatch.delenv(market_data.ENV, raising=False)
+    app.instance_path = str(tmp_path)
+    yield
+
+
+def _bought(db, app, holding, units="1", price="2.5"):
+    cash = Account(name="Broker", currency="EUR")
+    db.session.add(cash)
+    db.session.commit()
+    side = "buy" if Decimal(units) > 0 else "sell"
+    portfolio_ops.record(holding, portfolio_ops.Operation(side, date(2026, 11, 2), cash, units=abs(Decimal(units)),
+                                                         price=Decimal(price)))
+    db.session.commit()
+    return cash
+
+
+def test_what_is_suggested_and_where_the_underlying_price_comes_from(app, db, store):
+    from app.services import market_data
+    with app.test_request_context():
+        call = _option(db)
+        assert options.suggested(call, None) == "worthless" and options.suggested(call, Decimal(190)) == "worthless"
+        assert options.suggested(call, Decimal(215)) == "exercise"
+        call.settlement = "cash"
+        assert options.suggested(call, Decimal(215)) == "cash"
+        assert options.underlying_price(call, EXPIRY) is None
+        call.underlying = None
+        assert options.underlying_price(call, EXPIRY) is None
+        call.underlying = "AAPL"
+        held = Holding(name="Apple", ticker="aapl", asset_class="Azione", quantity=1, avg_price=1, current_price=Decimal(210))
+        db.session.add(held)
+        db.session.commit()
+        assert options.underlying_price(call, EXPIRY) == Decimal(210)  # the share held in the archive
+        market_data.store("AAPL", market_data.Daily("USD", None, None, [(EXPIRY, Decimal("214.5"), None)]))
+        assert options.underlying_price(call, EXPIRY) == Decimal("214.5")  # its close in the price database
+        assert options.open_options() == [] and options.to_settle(EXPIRY) == []  # nothing held yet
+        _bought(db, app, call)
+        assert options.open_options() == [call] and options.to_settle(EXPIRY) == [call]
+        assert options.to_settle(date(2026, 12, 17)) == []
+
+
+def test_worthless_in_cash_and_exercised(app, db, store):
+    with app.test_request_context():
+        # bought and out of the money: closed at zero
+        call = _option(db, strike="250")
+        _bought(db, app, call)
+        created = options.settle(call, "worthless", EXPIRY)
+        assert call.quantity == 0 and created[0].amount == 0 and created[0].description.startswith("Scadenza senza valore")
+        # an IDEM put on the FTSE MIB, settled in cash: (34.000 − 33.000) × 2,5 € a point
+        mibo = _option(db, kind="put", strike="34000", multiplier=Decimal("2.5"), underlying="FTSEMIB.MI")
+        mibo.settlement = "cash"
+        _bought(db, app, mibo, price="300")
+        with pytest.raises(ValueError, match="prezzo del sottostante"):
+            options.settle(mibo, "cash", EXPIRY)
+        (trade,) = options.settle(mibo, "cash", EXPIRY, Decimal(33000))
+        assert trade.amount == Decimal("2500.00") and mibo.quantity == 0
+        # a call bought and in the money, exercised: 100 shares bought at the strike
+        apple = _option(db, strike="200")
+        _bought(db, app, apple)
+        created = options.settle(apple, "exercise", EXPIRY, Decimal(215))
+        stock = Holding.query.filter_by(ticker="AAPL", option_kind=None).one()
+        assert apple.quantity == 0 and stock.quantity == 100 and stock.avg_price == Decimal(200)
+        assert len(created) == 2
+        # a put written and in the money, assigned: 100 more shares bought at its strike
+        put = _option(db, kind="put", strike="190")
+        _bought(db, app, put, units="-1", price="3")
+        options.settle(put, "exercise", EXPIRY, Decimal(180))
+        assert put.quantity == 0 and stock.quantity == 200 and stock.avg_price == Decimal(195)
+        # a call written and in the money, assigned: the shares sold at the strike
+        written = _option(db, strike="210")
+        _bought(db, app, written, units="-1", price="4")
+        options.settle(written, "exercise", EXPIRY, Decimal(220))
+        assert written.quantity == 0 and stock.quantity == 100
+        with pytest.raises(ValueError, match="non è più aperta"):
+            options.settle(written, "worthless", EXPIRY)
+        with pytest.raises(ValueError, match="come si è chiusa"):
+            options.settle(written, "swap", EXPIRY)
+        no_underlying = _option(db, underlying=None)
+        no_underlying.underlying = None
+        _bought(db, app, no_underlying)
+        with pytest.raises(ValueError, match="sottostante"):
+            options.settle(no_underlying, "exercise", EXPIRY, Decimal(215))
+
+
+def test_the_strike_in_dollars_is_turned_into_euro(app, db, store):
+    from app.models.currency import ExchangeRate
+    db.session.add(ExchangeRate(currency="USD", on=date(2026, 12, 1), rate=Decimal("0.9"), source="ecb"))
+    db.session.commit()
+    with app.test_request_context():
+        call = _option(db, strike="200")
+        call.currency = "USD"
+        _bought(db, app, call)
+        options.settle(call, "exercise", EXPIRY, Decimal(215))
+        stock = Holding.query.filter_by(ticker="AAPL", option_kind=None).one()
+        assert stock.avg_price == Decimal(180) and stock.currency == "USD"  # 200 $ at 0,9
+
+
+def test_the_reminder_and_the_page(client, app, db, store):
+    from app.services import deadlines
+    with app.test_request_context():
+        put = _option(db, kind="put", strike="180")
+        _bought(db, app, put, units="-2", price="1.5")
+        (item,) = deadlines._options(date(2026, 12, 1), date(2026, 12, 31))
+        assert item.title == "Scade l'opzione AAPL put 180 · 18/12/2026" and "Venduta: 2 contratti" in item.detail
+        assert item.icon == "hourglass-split"
+        call = _option(db, strike="300")
+        _bought(db, app, call)
+        assert len(deadlines._options(date(2026, 12, 1), date(2026, 12, 31))) == 2
+    assert "arrivata a scadenza" not in client.get(f"/portfolio/{put.id}").get_data(as_text=True)  # not yet
+    put = db.session.get(Holding, put.id)
+    put.option_expiry = date.today() - timedelta(days=1)
+    db.session.commit()
+    page = client.get(f"/portfolio/{put.id}").get_data(as_text=True)
+    assert "arrivata a scadenza" in page and 'value="worthless" checked' in page  # no underlying price: worthless
+    bad = client.post(f"/portfolio/{put.id}/scadenza", data={"outcome": "cash"}, follow_redirects=True).get_data(as_text=True)
+    assert "prezzo del sottostante" in bad
+    done = client.post(f"/portfolio/{put.id}/scadenza", data={"outcome": "worthless"}, follow_redirects=True).get_data(as_text=True)
+    assert "chiusa: scaduta senza valore" in done and db.session.get(Holding, put.id).quantity == 0

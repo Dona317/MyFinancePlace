@@ -23,6 +23,7 @@ from app.models.wealth import Debt, Document, Goal, InsurancePolicy
 from app.services import (
     cards,
     contribution_limits,
+    display,
     document_expiry,
     forecast,
     investment_plans,
@@ -108,7 +109,7 @@ GOOGLE_IMPORT = "https://calendar.google.com/calendar/r/settings/export"  # Impo
 ICONS = {"recurring": "arrow-repeat", "installment": "credit-card", "policy": "shield-check", "plan": "piggy-bank",
          "goal": "trophy", "loan": "arrow-left-right", "limit": "piggy-bank", "fiscal": "percent",
          "reminder": "calendar-check", "document": "file-earmark-text", "warranty": "shield-check",
-         "card": "credit-card"}
+         "card": "credit-card", "option": "hourglass-split"}
 
 
 def fiscal_on() -> bool:
@@ -327,6 +328,17 @@ def _cards(start: date, end: date) -> list[Deadline]:
     return found
 
 
+def _options(start: date, end: date) -> list[Deadline]:
+    """F120: the expiry of each option still held (bought or written)."""
+    from app.services import options
+
+    return [Deadline(h.option_expiry, "option", _("Scade l'opzione %(what)s", what=options.label(h)),
+                     _("Venduta: %(n)s contratti", n=display.plain(-h.quantity)) if h.is_short
+                     else _("%(n)s contratti", n=display.plain(h.quantity)),
+                     outgoing=False, url=url_for("portfolio.detail", holding_id=h.id), key=f"option{h.id}")
+            for h in options.open_options() if h.option_expiry and start <= h.option_expiry <= end]
+
+
 def _fiscal(start: date, end: date) -> list[Deadline]:
     if not fiscal_on():
         return []
@@ -356,7 +368,7 @@ def _reminders(start: date, end: date) -> list[Deadline]:
 # (as for the reminders); the fiscal dates and the hand-written ones belong to the page itself
 SOURCES = [(_recurring, "transactions"), (_installments, "debt"), (_policies, "insurance"), (_plans, "portfolio"),
            (_goals, "goals"), (_loans, "loans"), (_limits, "tax"), (_documents, "documents"), (_cards, "accounts"),
-           (_fiscal, None),
+           (_options, "portfolio"), (_fiscal, None),
            (_reminders, None)]
 
 
