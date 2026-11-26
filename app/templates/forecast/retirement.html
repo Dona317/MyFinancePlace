@@ -16,7 +16,7 @@
 {% block content %}
 {{ forecast_tabs('retirement') }}
 {% if result %}
-<div class="kpi-grid" style="margin-bottom:24px;">
+<div class="kpi-grid mb-24">
   {{ kpi('shield-check', _('Probabilità di successo'), value=result.success|number(1) ~ ' %',
          cls='kpi-positive' if result.success >= 85 else ('kpi-warning' if result.success >= 60 else 'kpi-negative'),
          sub=_('i soldi bastano fino a %(age)s anni in %(pct)s simulazioni su 100', age=plan.horizon, pct=result.success|number(0))) }}
@@ -28,7 +28,7 @@
          sub=_('quando il patrimonio mediano copre il fabbisogno (%(needed)s)', needed=result.needed|money)) }}
 </div>
 
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header"><div>
     <div class="card-header-title">{{ _('Il patrimonio negli anni') }}</div>
     <div class="card-header-sub">{{ _('%(runs)s simulazioni con rendimenti casuali: la linea centrale è il caso mediano, le altre il 10%% peggiore e il 10%% migliore.', runs=runs) }}</div>
@@ -36,7 +36,7 @@
   <div class="card-body"><div style="height:320px;"><canvas id="retirementChart"></canvas></div></div>
 </div>
 {% if result.without %}
-<div class="card" style="margin-bottom:24px;" id="glide">
+<div class="card mb-24" id="glide">
   <div class="card-header"><div>
     <div class="card-header-title">{{ _('Con e senza passaggio alle obbligazioni') }}</div>
     <div class="card-header-sub">{{ _('Stesse simulazioni: con il passaggio la probabilità di successo è %(with)s%%, senza %(without)s%%. Il caso del 10%% peggiore all’ultima età: %(p10)s con, %(p10_without)s senza.',

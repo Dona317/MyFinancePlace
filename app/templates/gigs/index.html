@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% macro gig_fields(prefix, g=none) -%}
-<div class="grid-3" style="gap:12px;">
+<div class="grid-3 gap-12">
   <div class="form-group"><label class="form-label" for="{{ prefix }}-client">{{ _('Per chi') }}</label>
     <input type="text" id="{{ prefix }}-client" name="client" class="form-control" list="gig-clients" required maxlength="120" value="{{ g.client if g else '' }}" placeholder="{{ _('es. Studio Bianchi, sig.ra Rossi') }}" /></div>
   <div class="form-group"><label class="form-label" for="{{ prefix }}-description">{{ _('Lavoro') }}</label>
@@ -58,7 +58,7 @@
       {% if data.over_threshold %}<span class="text-negative">{{ _('oltre di %(amount)s: sulla parte in più si versano i contributi alla Gestione separata', amount=data.over_threshold|money) }}</span>
       {% elif data.near_threshold %}<span class="text-warning">{{ _('vicino alla soglia') }}</span>{% endif %}
     </div>
-    <div class="progress-bar-wrap" style="height:8px;" role="progressbar" aria-valuenow="{{ data.threshold_pct|round|int }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ _('Soglia INPS') }}">
+    <div class="progress-bar-wrap h-8" role="progressbar" aria-valuenow="{{ data.threshold_pct|round|int }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ _('Soglia INPS') }}">
       <div class="progress-bar-fill {{ 'negative' if data.over_threshold else ('warning' if data.near_threshold else 'positive') }}" style="width:{{ data.threshold_pct }}%;"></div>
     </div>
     <p class="text-xs text-muted mt-8 mb-0">{{ _('Prestazioni occasionali: oltre 5.000 € lordi l’anno (tutti i committenti insieme) si paga la Gestione separata sulla parte eccedente. Per la dichiarazione vedi Fisco → Lavori occasionali.') }}</p>
@@ -88,16 +88,16 @@
             <div class="card-body">
               {% if not g.paid_on %}
               <form method="POST" action="{{ url_for('gigs.collect', gig_id=g.id) }}" class="d-flex gap-8 flex-wrap align-center mb-8">
-                <select name="account_id" class="form-select" style="max-width:200px;" aria-label="{{ _('Conto') }}">
+                <select name="account_id" class="form-select maxw-200" aria-label="{{ _('Conto') }}">
                   {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if (g.method == 'cash' and a.id == wallet_id) }}>{{ a.name }}</option>{% endfor %}
                 </select>
-                <input type="date" name="on" class="form-control" style="max-width:160px;" value="{{ today.isoformat() }}" aria-label="{{ _('Data') }}" />
-                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Segna incassato') }}</button>
+                <input type="date" name="on" class="form-control maxw-160" value="{{ today.isoformat() }}" aria-label="{{ _('Data') }}" />
+                <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-check-lg"></i> {{ _('Segna incassato') }}</button>
               </form>
               {% set found = gigs_service.candidates(g) %}
               {% if found %}
               <form method="POST" action="{{ url_for('gigs.collect', gig_id=g.id) }}" class="d-flex gap-8 flex-wrap align-center mb-8">
-                <select name="transaction_id" class="form-select" style="max-width:320px;" aria-label="{{ _('Entrata già registrata') }}">
+                <select name="transaction_id" class="form-select maxw-320" aria-label="{{ _('Entrata già registrata') }}">
                   {% for tx in found %}<option value="{{ tx.id }}">{{ tx.date|it_date }} · {{ tx.description }} · {{ tx.amount|money }}</option>{% endfor %}
                 </select>
                 <button type="submit" class="btn btn-ghost btn-sm">{{ _('Collega l’entrata') }}</button>
@@ -108,7 +108,7 @@
               {% endif %}
               <form method="POST" action="{{ url_for('gigs.edit', gig_id=g.id) }}" class="text-left">
                 {{ gig_fields('g' ~ g.id, g) }}
-                <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
+                <button type="submit" class="btn btn-outline btn-sm">{{ _('Salva') }}</button>
               </form>
               <form method="POST" action="{{ url_for('gigs.delete', gig_id=g.id) }}" class="mt-8"
                     data-confirm="{{ _("Eliminare il lavoro «%(job)s»?", job=g.description) }}">

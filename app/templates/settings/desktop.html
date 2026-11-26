@@ -18,7 +18,7 @@
 {% block content %}
 <form method="POST" action="{{ url_for('desktop.settings_save') }}" class="settings-section">
   <div class="settings-section-header">
-    <i class="bi bi-window" style="color:var(--clr-primary);"></i> {{ _('Avvio e notifiche') }}
+    <i class="bi bi-window text-accent"></i> {{ _('Avvio e notifiche') }}
   </div>
   <div class="settings-section-body">
     {{ toggle('autostart', _("Avvia all'accensione del computer"),
@@ -32,7 +32,7 @@
 
 <div class="settings-section" id="version">
   <div class="settings-section-header">
-    <i class="bi bi-arrow-up-circle" style="color:var(--clr-primary);"></i> {{ _('Versione') }}
+    <i class="bi bi-arrow-up-circle text-accent"></i> {{ _('Versione') }}
   </div>
   <div class="settings-section-body">
     <p class="mb-8">{{ _('Questa è la versione %(version)s.', version=version) }}

@@ -3,7 +3,7 @@
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block title %}{{ _('Storico prezzi') }} — {{ holding.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ holding.name }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Storico prezzi') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Storico prezzi') }}</li>{% endblock %}
 
 {% block content %}
 <div class="card mb-16">
@@ -17,7 +17,7 @@
   </div>
   <div class="card-body">
     {% if points|length >= 2 %}
-    <div class="chart-container" style="height:260px;"><canvas id="priceChart"></canvas></div>
+    <div class="chart-container h-260"><canvas id="priceChart"></canvas></div>
     {% else %}
     <p class="text-muted text-sm mb-0">{{ _('Servono almeno due prezzi per il grafico: aggiungili qui sotto.') }}</p>
     {% endif %}

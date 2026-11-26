@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/actions.html" import icon_link %}
 {% from "partials/empty.html" import empty_state %}
-{% block page_title %}{{ _('Archivio Documenti') }}{% endblock %}
+{% block page_title %}{{ _('Documenti') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('documents.index') }}">{{ _('Documenti') }}</a></li><li>{{ _('In scadenza') }}</li>{% endblock %}
 
 {% macro what(doc) -%}

@@ -6,7 +6,7 @@
 
 {% block title %}{{ _('Ordini') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Registro ordini') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Ordini') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.orders_page', format='csv', **request.args) }}" class="btn btn-ghost btn-sm"><i class="bi bi-download"></i> CSV</a>

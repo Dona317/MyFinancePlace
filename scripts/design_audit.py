@@ -23,7 +23,7 @@ RADII = {"var(--border-radius)", "var(--border-radius-sm)", "var(--border-radius
 def _title_case(title: str) -> bool:
     """«Conti e Carte», «Gestione Assicurazioni»: more than one word starting with a capital (proper names aside)."""
     words = [w for w in re.findall(r"[A-Za-zÀ-ÿ']+", title) if len(w) > 2]
-    return sum(w[0].isupper() for w in words[1:]) > 0
+    return sum(w[0].isupper() and not w.isupper() for w in words[1:]) > 0  # acronyms (AI, PAC, IVAFE) are fine
 
 
 def main(pages: bool) -> None:
@@ -36,9 +36,16 @@ def main(pages: bool) -> None:
     big_kpi = "kpi-card" in templates.get("partials/kpi.html", "")
     kpis = {name: text.count("kpi-card") + (text.count("kpi(") if big_kpi else 0) for name, text in templates.items()
             if not name.startswith(("dashboard/", "partials/"))}
-    primaries = {name: len(re.findall(r'btn btn-primary(?![\w-])', text)) for name, text in templates.items()}
+    # UI-10: a pop-up is a view of its own, and the button of an empty page may repeat the main action
+    def _primaries(text: str) -> int:
+        text = re.sub(r"{% call empty_state.*?{% endcall %}", "", text, flags=re.S)
+        text = re.sub(r'class="modal(-overlay)?[" ].*?modal-footer.*?</div>', "", text, flags=re.S)
+        return len(re.findall(r'class="btn btn-primary(?![\w-])', text))
+    primaries = {name: _primaries(text) for name, text in templates.items()}
     statement = {name: text.count("statement-tab") for name, text in templates.items()}
-    hand_tabs = {name: text.count('class="report-tab') for name, text in templates.items() if name != "partials/tabs.html"}
+    # links drawn as tabs outside tab_bar (buttons that switch panels inside a page, as in Categorie, are allowed)
+    hand_tabs = {name: len(re.findall(r'<a [^>]*class="report-tab', text)) for name, text in templates.items()
+                 if name != "partials/tabs.html"}
     titles = {name: m.group(1) for name, text in templates.items()
               if (m := re.search(r"{% block page_title %}{{ _\('([^']+)'\)", text))}
     weights = Counter(re.findall(r"font-weight:\s*(\d+)", everything))

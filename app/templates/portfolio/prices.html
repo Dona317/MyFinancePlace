@@ -2,8 +2,8 @@
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/info.html" import info %}
 {% block title %}{{ _('Aggiorna prezzi') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Aggiorna Prezzi') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Prezzi') }}</li>{% endblock %}
+{% block page_title %}{{ _('Aggiorna prezzi') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Prezzi') }}</li>{% endblock %}
 
 {% block content %}
 <div class="card">
@@ -23,7 +23,7 @@
   {% if holdings %}
   <form method="POST">
     <div class="card-body" style="padding-bottom:0;">
-      <div class="form-group" style="max-width:220px;">
+      <div class="form-group maxw-220">
         <label class="form-label" for="prices-on">{{ _('Data dei prezzi') }} {{ info(_('Una data passata aggiunge i prezzi allo storico senza cambiare quelli più recenti.'), _('Data dei prezzi')) }}</label>
         <input type="date" id="prices-on" name="on" class="form-control" value="{{ values.get('on') or today.isoformat() }}" max="{{ today.isoformat() }}" />
       </div>
@@ -48,7 +48,7 @@
             <td class="amount text-right">{{ h.price|money }}</td>
             <td class="text-xs text-muted nowrap">{{ h.price_date|it_date }}</td>
             <td class="text-right">
-              <input type="text" inputmode="decimal" name="{{ field }}" class="form-control" style="max-width:140px;margin-left:auto;"
+              <input type="text" inputmode="decimal" name="{{ field }}" class="form-control maxw-140 ml-auto"
                      value="{{ values[field] if field in values else '' }}" placeholder="{{ h.price|plain }}"
                      aria-label="{{ _('Nuovo prezzo di %(name)s', name=h.name) }}" autocomplete="off" />
             </td>
@@ -66,13 +66,13 @@
   </form>
   {% else %}
   {% call empty_state(text=_('Nessuna posizione da aggiornare.')) %}
-    <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}</a>
+    <a href="{{ url_for('portfolio.new') }}" class="btn btn-outline"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi posizione') }}</a>
   {% endcall %}
   {% endif %}
 
   {% include "data/_coverage.html" %}
 
-  <div class="card" id="market" style="margin-top:16px;">
+  <div class="card mt-16" id="market">
     <div class="card-header">
       <div>
         <div class="card-header-title"><i class="bi bi-database"></i> {{ _('Storico dei prezzi') }}</div>
@@ -103,11 +103,11 @@
     {% endif %}
     {# Fase 2: closes from a file, for a source other than Yahoo or a computer without internet #}
     <div class="card-body" style="border-top:1px solid var(--clr-border);">
-      <form method="POST" action="{{ url_for('portfolio.market_import') }}" enctype="multipart/form-data" class="form-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+      <form method="POST" action="{{ url_for('portfolio.market_import') }}" enctype="multipart/form-data" class="form-row d-flex gap-12 flex-wrap items-end">
         <div class="form-group"><label class="form-label" for="market-symbol">{{ _('Simbolo') }}</label>
-          <input class="form-control" id="market-symbol" name="symbol" placeholder="VWCE.MI" required style="width:130px;"></div>
+          <input class="form-control w-130" id="market-symbol" name="symbol" placeholder="VWCE.MI" required></div>
         <div class="form-group"><label class="form-label" for="market-isin">{{ _('ISIN') }}</label>
-          <input class="form-control" id="market-isin" name="isin" maxlength="12" style="width:150px;"></div>
+          <input class="form-control w-150" id="market-isin" name="isin" maxlength="12"></div>
         <div class="form-group"><label class="form-label" for="market-currency">{{ _('Valuta') }}</label>
           <input class="form-control" id="market-currency" name="currency" value="EUR" maxlength="3" style="width:70px;"></div>
         <div class="form-group"><label class="form-label" for="market-file">{{ _('File CSV delle chiusure') }}</label>
@@ -119,7 +119,7 @@
   </div>
 
   {% if links %}
-  <div class="card" id="links" style="margin-top:16px;">
+  <div class="card mt-16" id="links">
     <div class="card-header"><div>
       <div class="card-header-title"><i class="bi bi-link-45deg"></i> {{ _('I tuoi titoli e lo storico') }}</div>
       <div class="card-header-sub">{{ _('Un titolo usa le chiusure dello storico (valore nel tempo, rendimenti) se il suo ticker è il simbolo Yahoo (es. VWCE.MI) o se il suo ISIN è nello storico.') }}</div>

@@ -6,8 +6,8 @@
 {%- endmacro %}
 {% set cols = 5 if previous else 3 %}
 
-{% block page_title %}{{ _('Panoramica Finanziaria') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Conto Economico') }}</li>{% endblock %}
+{% block page_title %}{{ _('Panoramica finanziaria') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica finanziaria') }}</a></li><li>{{ _('Conto economico') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% include "partials/year_select.html" %}
@@ -21,10 +21,10 @@
 
 <!-- Summary KPIs ──────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
-  {{ kpi('arrow-down-circle', _('Totale Entrate'), value=report.summary.income|money, cls='kpi-positive', value_class='text-positive', sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.income|money) if previous else none)) }}
-  {{ kpi('arrow-up-circle', _('Totale Uscite'), value=report.summary.expenses|money, cls='kpi-negative', value_class='text-negative', sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.expenses|money) if previous else none)) }}
-  {{ kpi('piggy-bank', _('Risparmio Netto'), value=report.summary.net|money, cls='kpi-primary', value_class=('text-negative' if report.summary.net < 0 else ''), sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.net|money) if previous else none)) }}
-  {{ kpi('percent', _('Tasso di Risparmio'), value="%.1f"|format(report.summary.savings_rate) ~ '%') }}
+  {{ kpi('arrow-down-circle', _('Totale entrate'), value=report.summary.income|money, cls='kpi-positive', value_class='text-positive', sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.income|money) if previous else none)) }}
+  {{ kpi('arrow-up-circle', _('Totale uscite'), value=report.summary.expenses|money, cls='kpi-negative', value_class='text-negative', sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.expenses|money) if previous else none)) }}
+  {{ kpi('piggy-bank', _('Risparmio netto'), value=report.summary.net|money, cls='kpi-primary', value_class=('text-negative' if report.summary.net < 0 else ''), sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.net|money) if previous else none)) }}
+  {{ kpi('percent', _('Tasso di risparmio'), value="%.1f"|format(report.summary.savings_rate) ~ '%') }}
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
@@ -59,7 +59,7 @@
           <tr><td class="text-muted" colspan="{{ cols }}">{{ _('Nessuna entrata registrata') }}</td></tr>
           {% endfor %}
           <tr style="font-weight:600;background:var(--clr-bg-input);">
-            <td>{{ _('Totale Entrate') }}</td><td class="amount positive text-right">{{ report.summary.income|money }}</td><td class="text-right">{{ '100%' if report.summary.income else '—' }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.summary.income|money }}</td><td class="text-right">{{ change(report.summary.income, previous.summary.income) }}</td>{% endif %}
+            <td>{{ _('Totale entrate') }}</td><td class="amount positive text-right">{{ report.summary.income|money }}</td><td class="text-right">{{ '100%' if report.summary.income else '—' }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.summary.income|money }}</td><td class="text-right">{{ change(report.summary.income, previous.summary.income) }}</td>{% endif %}
           </tr>
 
           <tr style="height:8px;"><td colspan="{{ cols }}"></td></tr>
@@ -80,15 +80,15 @@
           <tr><td class="text-muted" colspan="{{ cols }}">{{ _('Nessuna spesa registrata') }}</td></tr>
           {% endfor %}
           <tr style="font-weight:600;background:var(--clr-bg-input);">
-            <td>{{ _('Totale Uscite') }}</td><td class="amount negative text-right">{{ report.summary.expenses|money }}</td>
+            <td>{{ _('Totale uscite') }}</td><td class="amount negative text-right">{{ report.summary.expenses|money }}</td>
             <td class="text-right">{{ "%.1f%%"|format(100 - report.summary.savings_rate) if report.summary.income else '—' }}</td>
             {% if previous %}<td class="amount text-right text-muted">{{ previous.summary.expenses|money }}</td><td class="text-right">{{ change(report.summary.expenses, previous.summary.expenses) }}</td>{% endif %}
           </tr>
         </tbody>
         <tfoot>
           <tr>
-            <td>{{ _('Risparmio Netto') }}</td>
-            <td class="amount" style="text-align:right;font-size:var(--font-size-lg);">{{ report.summary.net|money }}</td>
+            <td>{{ _('Risparmio netto') }}</td>
+            <td class="amount text-right text-lg">{{ report.summary.net|money }}</td>
             <td class="text-right">{{ "%.1f%%"|format(report.summary.savings_rate) if report.summary.income else '—' }}</td>
             {% if previous %}<td class="amount text-right text-muted">{{ previous.summary.net|money }}</td><td class="text-right">{{ change(report.summary.net, previous.summary.net) }}</td>{% endif %}
           </tr>
@@ -100,15 +100,15 @@
   <!-- Charts -->
   <div style="display:flex;flex-direction:column;gap:16px;">
     <div class="card">
-      <div class="card-header"><div class="card-header-title">{{ _('Andamento Mensile') }}</div></div>
+      <div class="card-header"><div class="card-header-title">{{ _('Andamento mensile') }}</div></div>
       <div class="card-body">
-        <div class="chart-container" style="height:200px;"><canvas id="isMonthlyChart"></canvas></div>
+        <div class="chart-container h-200"><canvas id="isMonthlyChart"></canvas></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-header"><div class="card-header-title">{{ _('Dettaglio Spese') }}</div></div>
+      <div class="card-header"><div class="card-header-title">{{ _('Dettaglio spese') }}</div></div>
       <div class="card-body">
-        <div class="chart-container" style="height:200px;"><canvas id="isExpenseChart"></canvas></div>
+        <div class="chart-container h-200"><canvas id="isExpenseChart"></canvas></div>
       </div>
     </div>
   </div>

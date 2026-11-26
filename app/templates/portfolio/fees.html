@@ -4,7 +4,7 @@
 
 {% block title %}{{ _('Calcolo commissioni') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Calcolo commissioni') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Calcolo commissioni') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Calcolo commissioni') }}</li>{% endblock %}
 
 {% block content %}
 {% include "portfolio/_nav.html" %}
@@ -21,7 +21,7 @@
   {{ kpi('calculator', _('Costi totali'), value=r.costs|money, cls='kpi-negative', sub=_('%(pct)s %% del valore all\'anno · %(total)s in %(years)s anni', pct=r.costs_pct|number(3), total=r.over_years|money, years=r.years)) }}
 </div>
 
-<form method="GET" class="inline-filter mb-16" style="flex-wrap:wrap;">
+<form method="GET" class="inline-filter mb-16 flex-wrap">
   <select name="portfolio" class="form-select" aria-label="{{ _('Portafoglio') }}">
     <option value="">{{ _('Tutti i portafogli') }}</option>
     {% for id, name in names.portfolios.items() %}<option value="{{ id }}" {{ 'selected' if id == portfolio_id }}>{{ name }}</option>{% endfor %}
@@ -40,7 +40,7 @@
     <div class="card-header">
       <div class="card-header-title">{{ _('Parametri') }} {{ info(_('La commissione si calcola sul valore di oggi: prezzo × quantità di ogni titolo più la liquidità. 1 punto base (pb) = 0,01 %%: 50 pb sono lo 0,50 %% all\'anno, 5 € ogni 1.000 €.')) }}</div>
     </div>
-    <div class="form-grid" style="padding:16px;">
+    <div class="form-grid p-16">
       <div class="form-group">
         <label class="form-label" for="f-bps">{{ _('Commissione (punti base all\'anno)') }} {{ info(_('La commissione annua del consulente, della gestione o del conto, in punti base sul totale: 100 pb = 1 %%.')) }}</label>
         <input id="f-bps" type="text" inputmode="decimal" name="bps" value="{{ r.bps|plain }}" class="form-control" />
@@ -87,11 +87,11 @@
           {% for i in range(count) %}
           {% set row = r.rows[i] if i < r.rows|length else none %}
           <tr>
-            <td><input type="text" name="name-{{ i }}" value="{{ row.name if row else '' }}" class="form-control" style="padding:6px 8px;" aria-label="{{ _('Titolo') }}" /></td>
-            <td><input type="text" inputmode="decimal" name="units-{{ i }}" value="{{ row.units|plain if row else '' }}" class="form-control text-right" style="padding:6px 8px;" aria-label="{{ _('Quantità') }}" /></td>
-            <td><input type="text" inputmode="decimal" name="price-{{ i }}" value="{{ row.price|plain if row else '' }}" class="form-control text-right" style="padding:6px 8px;" aria-label="{{ _('Prezzo') }}" /></td>
-            <td><input type="text" inputmode="decimal" name="abp-{{ i }}" value="{{ row.abp|plain if row and row.abp is not none else '' }}" class="form-control text-right" style="padding:6px 8px;" aria-label="{{ _('ABP') }}" /></td>
-            <td><input type="text" inputmode="decimal" name="ter-{{ i }}" value="{{ row.ter|plain if row and row.ter is not none else '' }}" class="form-control text-right" style="padding:6px 8px;width:80px;" aria-label="{{ _('TER %%') }}" /></td>
+            <td><input type="text" name="name-{{ i }}" value="{{ row.name if row else '' }}" class="form-control p-cell" aria-label="{{ _('Titolo') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="units-{{ i }}" value="{{ row.units|plain if row else '' }}" class="form-control text-right p-cell" aria-label="{{ _('Quantità') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="price-{{ i }}" value="{{ row.price|plain if row else '' }}" class="form-control text-right p-cell" aria-label="{{ _('Prezzo') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="abp-{{ i }}" value="{{ row.abp|plain if row and row.abp is not none else '' }}" class="form-control text-right p-cell" aria-label="{{ _('ABP') }}" /></td>
+            <td><input type="text" inputmode="decimal" name="ter-{{ i }}" value="{{ row.ter|plain if row and row.ter is not none else '' }}" class="form-control text-right p-cell w-80" aria-label="{{ _('TER %%') }}" /></td>
             <td class="text-right nowrap">{{ row.value|money if row else '' }}</td>
             <td class="text-right nowrap {{ 'text-positive' if row and row.gain >= 0 else 'text-negative' }}">{{ row.gain|money if row else '' }}</td>
             <td class="text-right nowrap">{{ (row.value * r.bps / 10000)|money if row else '' }}</td>

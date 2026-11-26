@@ -4,11 +4,11 @@
 {% from "partials/empty.html" import empty_state %}
 <div class="card mb-16">
     <div class="card-header">
-      <div class="card-header-title">{{ _('Andamento Mensile per Categoria') }}</div>
+      <div class="card-header-title">{{ _('Andamento mensile per categoria') }}</div>
       <div class="card-header-sub">{{ _('Anno %(year)s', year=year) }}</div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:280px;"><canvas id="categoryTrend"></canvas></div>
+      <div class="chart-container h-280"><canvas id="categoryTrend"></canvas></div>
     </div>
   </div>
 
@@ -83,7 +83,7 @@
 <!-- Tabella dettaglio categorie ─────────────────────────────────────── -->
 <div class="card">
   <div class="card-header">
-    <div class="card-header-title">{{ _('Dettaglio per Categoria') }}</div>
+    <div class="card-header-title">{{ _('Dettaglio per categoria') }}</div>
     <div class="card-header-sub">{{ _('%(month)s %(year)s vs mese precedente', month=report.reference_month, year=year) }}</div>
   </div>
   <div class="table-wrapper">
@@ -91,8 +91,8 @@
       <thead>
         <tr>
           <th>{{ _('Categoria') }}</th>
-          <th class="text-right">{{ _('Questo Mese') }}</th>
-          <th class="text-right">{{ _('Mese Scorso') }}</th>
+          <th class="text-right">{{ _('Questo mese') }}</th>
+          <th class="text-right">{{ _('Mese scorso') }}</th>
           <th class="text-right">{{ _('Variazione') }}</th>
           <th style="min-width:140px;">{{ _('%% sul Totale') }}</th>
         </tr>
@@ -109,7 +109,7 @@
             </div>
           </td>
           <td class="amount text-right">{{ row.this_month|money }}</td>
-          <td class="amount" style="text-align:right;color:var(--clr-text-muted);">{{ row.last_month|money }}</td>
+          <td class="amount text-right text-muted">{{ row.last_month|money }}</td>
           <td class="text-right">
             {% if row.change is none %}
               <span class="badge badge-muted">—</span>
@@ -121,7 +121,7 @@
           </td>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
-              <div class="progress-bar-wrap" style="flex:1;height:6px;">
+              <div class="progress-bar-wrap flex-1 h-6">
                 <div class="progress-bar-fill" style="width:{{ row.share }}%;"></div>
               </div>
               <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);width:40px;text-align:right;">{{ "%.0f"|format(row.share) }}%</span>

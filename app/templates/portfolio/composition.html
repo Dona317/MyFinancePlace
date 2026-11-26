@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block page_title %}{{ _('Composizione') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Composizione') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Composizione') }}</li>{% endblock %}
 
 {% block topbar_actions %}
 {% set people = owner_choices() %}
@@ -30,7 +30,7 @@
     <div class="card-body">
       {% if look[key] %}
       <div style="height:{{ 260 if key != 'currency' else 220 }}px;"><canvas id="chart-{{ key }}"></canvas></div>
-      <table class="table-compact" style="margin-top:12px;">
+      <table class="table-compact mt-12">
         <tbody>
           {% for row in look[key] %}
           <tr><td>{{ row.name }}{% if row.uncovered %} {{ info(_('Carica la composizione dei fondi, o indica area e settore, nella scheda del titolo.')) }}{% endif %}</td>
@@ -48,7 +48,7 @@
     <div class="card-body">
       {% if rows %}
       <div style="height:220px;"><canvas id="chart-t{{ t.id }}"></canvas></div>
-      <table class="table-compact" style="margin-top:12px;">
+      <table class="table-compact mt-12">
         <tbody>
           {% for name, value, pct in rows %}
           <tr><td>{{ name|tr if name == unset else name }}</td><td class="text-right nowrap">{{ value|money }}</td><td class="text-right nowrap">{{ pct|number(1) }} %</td></tr>

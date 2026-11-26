@@ -4,7 +4,7 @@
 {% from "partials/empty.html" import empty_state %}
 
 {% block title %}{{ _('Istantanee') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Istantanee Finanziarie') }}{% endblock %}
+{% block page_title %}{{ _('Istantanee') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Istantanee') }}</li>{% endblock %}
 
 {% block content %}
@@ -12,15 +12,15 @@
 <!-- Nuova istantanea ─────────────────────────────────────────────────── -->
 <div class="card mb-16">
   <div class="card-body">
-    <form method="POST" action="{{ url_for('snapshots.create') }}" class="d-flex align-center gap-12" style="flex-wrap:wrap;">
+    <form method="POST" action="{{ url_for('snapshots.create') }}" class="d-flex align-center gap-12 flex-wrap">
       <div style="flex:1 1 280px;">
         <div class="cell-title">{{ _('Patrimonio netto oggi: %(amount)s', amount=current.net_worth|money) }}</div>
         <div class="text-xs text-muted">
           {{ _("Un'istantanea fotografa liquidità, investimenti e debiti di oggi. Creane una al mese per seguire l'evoluzione del patrimonio e confrontare due momenti.") }}
         </div>
       </div>
-      <input type="text" name="label" class="form-control" style="max-width:240px;" placeholder="{{ _('Etichetta (es. Fine anno)') }}" aria-label="{{ _('Etichetta') }}" />
-      <button type="submit" class="btn btn-primary"><i class="bi bi-camera"></i> {{ _('Crea Istantanea') }}</button>
+      <input type="text" name="label" class="form-control maxw-240" placeholder="{{ _('Etichetta (es. Fine anno)') }}" aria-label="{{ _('Etichetta') }}" />
+      <button type="submit" class="btn btn-primary"><i class="bi bi-camera"></i> {{ _('Crea istantanea') }}</button>
     </form>
   </div>
 </div>
@@ -30,19 +30,19 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Andamento Patrimonio Netto') }}</div>
+        <div class="card-header-title">{{ _('Andamento del patrimonio netto') }}</div>
         <div class="card-header-sub">{{ _('Da tutte le istantanee') }}</div>
       </div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;">
+      <div class="chart-container h-220">
         {% if snapshots|length >= 2 %}<canvas id="snapshotTrend"></canvas>
         {% else %}<div class="chart-empty">{{ _("Serve almeno un'altra istantanea per disegnare l'andamento.") }}</div>{% endif %}
       </div>
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-header-title">{{ _('Confronta Istantanee') }}</div></div>
+    <div class="card-header"><div class="card-header-title">{{ _('Confronta istantanee') }}</div></div>
     <div class="card-body">
       <form method="GET" action="{{ url_for('snapshots.compare') }}">
         <div class="form-group">
@@ -62,7 +62,7 @@
             {% endfor %}
           </select>
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+        <button type="submit" class="btn btn-outline w-100 justify-center">
           <i class="bi bi-arrow-left-right"></i> {{ _('Confronta') }}
         </button>
       </form>
@@ -71,14 +71,14 @@
 </div>
 
 <div class="card">
-  <div class="card-header"><div class="card-header-title">{{ _('Tutte le Istantanee') }}</div></div>
+  <div class="card-header"><div class="card-header-title">{{ _('Tutte le istantanee') }}</div></div>
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
           <th>{{ _('Data') }}</th>
           <th>{{ _('Etichetta') }}</th>
-          <th class="text-right">{{ _('Patrimonio Netto') }}</th>
+          <th class="text-right">{{ _('Patrimonio netto') }}</th>
           <th class="text-right">{{ _('Attività') }}</th>
           <th class="text-right">{{ _('Passività') }}</th>
           <th class="text-right">{{ _('Investimenti') }}</th>
@@ -127,7 +127,7 @@
 <script>
 makeLineChart('snapshotTrend',
   {{ snapshots | map(attribute='taken_on') | map('it_date') | list | tojson }},
-  [{ label: {{ _('Patrimonio Netto')|tojson }}, data: {{ snapshots | map(attribute='net_worth') | map('float') | list | tojson }}, fill: true }]
+  [{ label: {{ _('Patrimonio netto')|tojson }}, data: {{ snapshots | map(attribute='net_worth') | map('float') | list | tojson }}, fill: true }]
 );
 </script>
 {% endif %}

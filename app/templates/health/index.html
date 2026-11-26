@@ -3,7 +3,7 @@
 {% block breadcrumb %}<li>{{ _('Salute dei dati') }}</li>{% endblock %}
 
 {% block content %}
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-body">
     {% if problems %}
     <strong class="text-negative"><i class="bi bi-exclamation-triangle"></i> {{ _('%(count)s controlli hanno trovato qualcosa da sistemare.', count=problems) }}</strong>
@@ -15,7 +15,7 @@
 </div>
 
 {% for check in checks %}
-<div class="card" style="margin-bottom:16px;">
+<div class="card mb-16">
   <div class="card-header">
     <div>
       <div class="card-header-title">

@@ -4,8 +4,8 @@
 {% from "partials/kpi.html" import kpi %}
 
 {% from "partials/financed.html" import financed_table %}
-{% block page_title %}{{ _('Panoramica Finanziaria') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Stato Patrimoniale') }}</li>{% endblock %}
+{% block page_title %}{{ _('Panoramica finanziaria') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica finanziaria') }}</a></li><li>{{ _('Stato patrimoniale') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {%- set date_options = [] -%}
@@ -30,9 +30,9 @@
 {% block statement %}
 
 <div class="kpi-grid mb-24">
-  {{ kpi('wallet2', _('Totale Attività'), value=sheet.total_assets|money, cls='kpi-positive', value_class='text-positive', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.total_assets|money) if previous else none)) }}
-  {{ kpi('exclamation-circle', _('Totale Passività'), value=sheet.total_liabilities|money, cls='kpi-negative', value_class='text-negative', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.total_liabilities|money) if previous else none)) }}
-  {{ kpi('bank', _('Patrimonio Netto'), value=sheet.net_worth|money, cls='kpi-primary', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.net_worth|money) if previous else _('al %(date)s', date=sheet.date|it_date))) }}
+  {{ kpi('wallet2', _('Totale attività'), value=sheet.total_assets|money, cls='kpi-positive', value_class='text-positive', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.total_assets|money) if previous else none)) }}
+  {{ kpi('exclamation-circle', _('Totale passività'), value=sheet.total_liabilities|money, cls='kpi-negative', value_class='text-negative', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.total_liabilities|money) if previous else none)) }}
+  {{ kpi('bank', _('Patrimonio netto'), value=sheet.net_worth|money, cls='kpi-primary', sub=(_('il %(date)s: %(value)s', date=previous.date|it_date, value=previous.net_worth|money) if previous else _('al %(date)s', date=sheet.date|it_date))) }}
 </div>
 
 <div class="row-2">
@@ -52,7 +52,7 @@
       {{ lines(sheet.other_assets) }}
     </div>
     <div class="card-footer">
-      <div class="statement-total"><span>{{ _('Totale Attività') }}</span><span class="amount positive">{{ sheet.total_assets|money }}</span></div>
+      <div class="statement-total"><span>{{ _('Totale attività') }}</span><span class="amount positive">{{ sheet.total_assets|money }}</span></div>
     </div>
   </div>
 
@@ -72,18 +72,18 @@
         {{ lines(sheet.long_liabilities) }}
       </div>
       <div class="card-footer">
-        <div class="statement-total"><span>{{ _('Totale Passività') }}</span><span class="amount negative">{{ sheet.total_liabilities|money }}</span></div>
+        <div class="statement-total"><span>{{ _('Totale passività') }}</span><span class="amount negative">{{ sheet.total_liabilities|money }}</span></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><div class="card-header-title">{{ _('Patrimonio Netto') }}</div></div>
+      <div class="card-header"><div class="card-header-title">{{ _('Patrimonio netto') }}</div></div>
       <div class="card-body">
         <div class="d-flex justify-between align-center">
-          <span class="text-sm text-muted">{{ _('Attività − Passività') }}</span>
+          <span class="text-sm text-muted">{{ _('Attività − passività') }}</span>
           <span class="amount {{ 'positive' if sheet.net_worth >= 0 else 'negative' }}" style="font-size:var(--font-size-xl);">{{ sheet.net_worth|money }}</span>
         </div>
-        <div class="chart-container mt-16" style="height:140px;"><canvas id="assetLiabChart"></canvas></div>
+        <div class="chart-container mt-16 h-140"><canvas id="assetLiabChart"></canvas></div>
       </div>
     </div>
   </div>
@@ -128,7 +128,7 @@
 
 {% block scripts %}
 <script>
-makeBarChart('assetLiabChart', [{{ _('Attività')|tojson }}, {{ _('Passività')|tojson }}, {{ _('Patrimonio Netto')|tojson }}], [
+makeBarChart('assetLiabChart', [{{ _('Attività')|tojson }}, {{ _('Passività')|tojson }}, {{ _('Patrimonio netto')|tojson }}], [
   { label: {{ _('Importo')|tojson }}, data: [{{ sheet.total_assets }}, {{ sheet.total_liabilities }}, {{ sheet.net_worth }}],
     colors: ['positive', 'negative', 'primary'] }
 ]);

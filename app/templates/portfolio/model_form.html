@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ template.name if template else _('Nuovo portafoglio modello') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li><a href="{{ url_for('portfolio.models_index') }}">{{ _('Portafogli modello') }}</a></li><li>{{ template.name if template else _('Nuovo') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.models_index') }}">{{ _('Portafogli modello') }}</a></li><li>{{ template.name if template else _('Nuovo') }}</li>{% endblock %}
 
 {% block content %}
 <form method="POST" id="model-form">
   <input type="hidden" name="rows" value="{{ rows|length }}" />
-  <div class="card" style="margin-bottom:24px;">
+  <div class="card mb-24">
     <div class="card-body">
       <div class="grid-2">
         <div class="form-group">
@@ -72,7 +72,7 @@
         </tbody>
       </table>
     </div>
-    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+    <div class="card-body d-flex gap-8 justify-end">
       <a href="{{ url_for('portfolio.models_index') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
       <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva modello') }}</button>
     </div>

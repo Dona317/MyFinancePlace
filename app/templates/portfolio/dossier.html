@@ -4,7 +4,7 @@
 
 {% block title %}{{ dossier.name }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ dossier.name }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li><a href="{{ url_for('portfolio.portfolios_page') }}">{{ _('Portafogli e conti titoli') }}</a></li><li>{{ dossier.name }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.portfolios_page') }}">{{ _('Portafogli e conti titoli') }}</a></li><li>{{ dossier.name }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.dossier_edit', dossier_id=dossier.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
@@ -35,8 +35,8 @@
           <th>{{ _('Strumento') }}</th>
           <th>{{ _('Portafoglio') }}</th>
           <th class="text-right">{{ _('Quantità') }}</th>
-          <th class="text-right">{{ _('Prezzo Medio') }}</th>
-          <th class="text-right">{{ _('Prezzo Attuale') }}</th>
+          <th class="text-right">{{ _('Prezzo medio') }}</th>
+          <th class="text-right">{{ _('Prezzo attuale') }}</th>
           <th class="text-right">{{ _('Valore') }}</th>
           <th class="text-right">G/P</th>
         </tr>

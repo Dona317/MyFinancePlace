@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% block page_title %}{{ _('Portafogli modello') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Portafogli modello') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Portafogli modello') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.models_new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo modello') }}</a>
@@ -9,7 +9,7 @@
 
 {% block content %}
 {% set nav_active = 'model' %}{% include "portfolio/_nav.html" %}
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header">
     <div>
       <div class="card-header-title">{{ _('I tuoi modelli') }}</div>

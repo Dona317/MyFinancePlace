@@ -1667,7 +1667,9 @@ a.stat:hover { background: color-mix(in srgb, var(--clr-bg-input) 50%, var(--clr
 .page-tabs { margin-bottom: var(--space-4); }
 .report-bar > .report-tabs { flex: 1; }
 /* UI-53: the second level of tabs — the same underlined bar, smaller, right under the first */
-.report-tabs.tabs-sub { margin-top: calc(-1 * var(--space-2)); border-bottom-color: var(--clr-border-light); }
+.report-tabs.tabs-sub { border-bottom-color: var(--clr-border-light); }
+/* a first row followed by its second row: no gap between the two */
+.page-tabs:has(+ .page-tabs > .tabs-sub) { margin-bottom: 0; }
 .report-tabs.tabs-sub .report-tab { padding: 7px 12px; font-size: var(--font-size-xs); }
 /* UI-19: a block waiting for its data — a grey sketch, the reason under it */
 .ghost-sketch { width: 100%; height: 110px; display: block; }
@@ -1769,15 +1771,11 @@ html.embedded .card { border: none; box-shadow: none; }
 .cluster-categories { padding: 0 0 12px; }
 
 /* ── Accounting overview: the statements as tabs that open and close ── */
-/* the tabs inside a page (Panoramica Finanziaria, Categorie): the same underlined tabs as everywhere (decided 15 Nov) */
-.statement-tabs { display: flex; flex-wrap: nowrap; gap: 4px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none;
-  border-bottom: 1px solid var(--clr-border); }
-.statement-tabs::-webkit-scrollbar { display: none; }
-.statement-tab { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; margin-bottom: -1px; flex-shrink: 0; white-space: nowrap;
-  border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--clr-text-muted);
-  font: inherit; font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; text-decoration: none; }
-.statement-tab:hover { color: var(--clr-text-primary); text-decoration: none; }
-.statement-tab[aria-selected="true"] { color: var(--clr-primary); border-bottom-color: var(--clr-primary); background: none; }
+/* the tabs inside a page that switch panels without leaving it (Impostazioni → Categorie): the same tab_bar look
+   (UI-53), as buttons */
+button.report-tab { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; font: inherit;
+  font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; }
+.report-tab[aria-selected="true"] { color: var(--clr-primary); border-bottom-color: var(--clr-primary); }
 .statement-panel[hidden] { display: none; }
 .statement-frame { display: block; width: 100%; min-height: 320px; border: 0; }
 
@@ -2075,7 +2073,6 @@ html.focus .page-content { padding: 24px 16px 40px; }
 .topbar:has(.dash-period-box) .topbar-title { flex: 0 1 auto; }
 .kpi-strip { grid-auto-columns: minmax(230px, 1fr); }
 /* Contabilità: the tabs are links, the one of the page is the selected one */
-.accounting-tabs .statement-tab { text-decoration: none; }
 
 /* ── Entrate / Uscite: the net of the period on top, with the way to the cash flow ── */
 
@@ -2153,10 +2150,14 @@ body:has(.ask-bubble) .to-bottom { right: 27px; bottom: 68px; width: 30px; heigh
 .add-bubble:hover { transform: scale(1.06); color: var(--clr-on-primary); text-decoration: none; }
 @media (max-width: 992px) { .add-bubble { left: 16px; } }
 .focus .add-bubble { display: none; }  /* the full-screen form has its own way out */
-/* UI-47: «Primi passi» — a small pill at the top, in the middle of the page (under the topbar, in the flow: it covers
-   nothing), the look of the AI classification's; a click opens the list in a window */
-.fs-pill-wrap { display: flex; justify-content: center; padding: 12px 28px 0; }
-.fs-pill { width: 220px; padding: 7px 12px 9px; border: 1px solid var(--clr-border); border-radius: var(--border-radius);
+/* UI-47, UI-55: «Primi passi» — a small pill floating at the bottom, in the middle of the page, like the other bubbles
+   (the + on the left, the assistant on the right): it takes no room of its own and covers neither the title nor the
+   tabs; the look of the AI classification's; a click opens the list in a window */
+.fs-pill-wrap { position: fixed; left: var(--sidebar-width); right: 0; bottom: 24px; z-index: 94; display: flex;
+  justify-content: center; pointer-events: none; }
+@media (max-width: 992px) { .fs-pill-wrap { left: 0; bottom: 76px; } }
+.fs-pill { pointer-events: auto;
+  width: 220px; padding: 7px 12px 9px; border: 1px solid var(--clr-border); border-radius: var(--border-radius);
   background: var(--clr-bg-card); box-shadow: var(--shadow-md); color: var(--clr-text-primary); font: inherit; text-align: left;
   cursor: pointer; transition: border-color .15s ease; }
 .fs-pill:hover, .fs-pill:focus-visible { border-color: var(--clr-primary); }
@@ -2906,3 +2907,71 @@ a.onb-way:hover { border-color: var(--clr-primary); text-decoration: none; color
 .data-pill { bottom: 24px; }
 .ai-pill:not([hidden]) ~ .data-pill { bottom: 96px; }
 .nav-badge-warn { color: var(--clr-warning, #d97706); border-color: currentColor; opacity: 1; }
+
+/* T48 (26 Nov 2026): the utility classes that took the place of the inline styles of the templates — with the precedence of the inline style they replace */
+.break-all { word-break: break-all !important; }
+.cursor-pointer { cursor: pointer !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+.flex-1 { flex: 1 !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.fw-normal { font-weight: 400 !important; }
+.gap-16 { gap: var(--space-4) !important; }
+.gap-6 { gap: 6px !important; }
+.h-140 { height: 140px !important; }
+.h-180 { height: 180px !important; }
+.h-200 { height: 200px !important; }
+.h-220 { height: 220px !important; }
+.h-240 { height: 240px !important; }
+.h-260 { height: 260px !important; }
+.h-280 { height: 280px !important; }
+.h-300 { height: 300px !important; }
+.h-320 { height: 320px !important; }
+.items-center { align-items: center !important; }
+.items-end { align-items: flex-end !important; }
+.items-start { align-items: flex-start !important; }
+.justify-center { justify-content: center !important; }
+.justify-end { justify-content: flex-end !important; }
+.m-0 { margin: 0 !important; }
+.maxw-160 { max-width: 160px !important; }
+.maxw-200 { max-width: 200px !important; }
+.maxw-220 { max-width: 220px !important; }
+.maxw-240 { max-width: 240px !important; }
+.maxw-320 { max-width: 320px !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.minw-120 { min-width: 120px !important; }
+.minw-200 { min-width: 200px !important; }
+.minw-240 { min-width: 240px !important; }
+.minw-260 { min-width: 260px !important; }
+.mt-12 { margin-top: var(--space-3) !important; }
+.p-cell { padding: 6px 8px !important; }
+.text-accent { color: var(--clr-primary) !important; }
+.text-strong { color: var(--clr-text-primary) !important; }
+.w-100 { width: 100% !important; }
+.w-130 { width: 130px !important; }
+.w-140 { width: 140px !important; }
+.w-150 { width: 150px !important; }
+.w-160 { width: 160px !important; }
+.w-80 { width: 80px !important; }
+.w-90 { width: 90px !important; }
+.w-auto { width: auto !important; }
+
+/* T48 (26 Nov 2026): the utility classes that took the place of the inline styles of the templates */
+.gap-14 { gap: 14px !important; }
+.h-6 { height: 6px !important; }
+.h-8 { height: 8px !important; }
+.maxw-140 { max-width: 140px !important; }
+.mb-4 { margin-bottom: var(--space-1) !important; }
+.ml-8 { margin-left: var(--space-2) !important; }
+.ml-auto { margin-left: auto !important; }
+.mt-6 { margin-top: 6px !important; }
+.overflow-x { overflow-x: auto !important; }
+.p-16 { padding: var(--space-4) !important; }
+.pb-12 { padding-bottom: var(--space-3) !important; }
+.pt-12 { padding-top: var(--space-3) !important; }
+.relative { position: relative !important; }
+.text-lg { font-size: var(--font-size-lg) !important; }
+.text-warning { color: var(--clr-warning) !important; }
+.tracking { letter-spacing: .06em !important; }
+.uppercase { text-transform: uppercase !important; }
+.ws-normal { white-space: normal !important; }

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "partials/empty.html" as e %}
 {% block page_title %}{{ _('Collega movimenti del conto') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Collega movimenti') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}">{{ holding.name }}</a></li><li>{{ _('Collega movimenti') }}</li>{% endblock %}
 
 {% block content %}
 <div class="card">
@@ -39,7 +39,7 @@
         </tbody>
       </table>
     </div>
-    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+    <div class="card-body d-flex gap-8 justify-end">
       <a href="{{ url_for('portfolio.detail', holding_id=holding.id) }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
       <button type="submit" class="btn btn-primary"><i class="bi bi-link"></i> {{ _('Collega i movimenti scelti') }}</button>
     </div>

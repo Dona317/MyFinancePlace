@@ -33,7 +33,7 @@
     </div>
     <div class="col-pop-actions">
       {% if on %}<a class="btn btn-ghost btn-sm" href="{{ without_url('min', 'max') }}">{{ _('Togli') }}</a>{% endif %}
-      <button type="submit" class="btn btn-primary btn-sm">{{ _('Filtra') }}</button>
+      <button type="submit" class="btn btn-outline btn-sm">{{ _('Filtra') }}</button>
     </div>
     {% endif %}
   </form>
@@ -132,7 +132,7 @@
           <div class="tx-view-save">
             <input type="text" name="view_name" form="view-save-form" class="form-control form-control-sm" maxlength="40"
                    placeholder="{{ _('Nome della vista') }}" aria-label="{{ _('Nome della vista') }}"{{ ' disabled' if not view_query }} />
-            <button type="submit" form="view-save-form" class="btn btn-primary btn-sm"{{ ' disabled' if not view_query }}
+            <button type="submit" form="view-save-form" class="btn btn-outline btn-sm"{{ ' disabled' if not view_query }}
                     title="{{ _('Salva la ricerca di adesso') if view_query else _('Fai prima una ricerca o scegli un filtro') }}"><i class="bi bi-save"></i> {{ _('Salva') }}</button>
           </div>
         </div>
@@ -270,7 +270,7 @@
             </select></label>
           <label class="tx-field"><span>{{ _('Data') }}</span>
             <input type="date" name="date_to" class="form-control" data-no-today /></label>
-          <div class="tx-field tx-apply"><button type="submit" class="btn btn-primary btn-sm bulk-apply"><i class="bi bi-check2"></i> {{ _('Applica') }}</button></div>
+          <div class="tx-field tx-apply"><button type="submit" class="btn btn-outline btn-sm bulk-apply"><i class="bi bi-check2"></i> {{ _('Applica') }}</button></div>
         </div>
       </form>
       <div class="tx-panel-title">{{ _('Azioni sulla selezione') }}</div>
@@ -326,7 +326,7 @@
           <th data-col="description" style="width:320px;"><span class="col-title">{{ sort_title('description', _('Descrizione')) }}</span></th>
           <th data-col="category" style="width:190px;"><span class="col-title">{{ sort_title('category', _('Categoria')) }}{{ col_filter('category') }}</span></th>
           <th data-col="tags" style="width:220px;"><span class="col-title">{{ _('Tag') }}</span></th>
-          <th data-col="amount" data-min="content" data-grip="off" class="text-right" style="width:150px;"><span class="col-title">{{ sort_title('amount', _('Importo')) }}{{ col_filter('amount') }}</span></th>
+          <th data-col="amount" data-min="content" data-grip="off" class="text-right w-150"><span class="col-title">{{ sort_title('amount', _('Importo')) }}{{ col_filter('amount') }}</span></th>
           <th data-col="actions" data-fixed class="text-center" style="width:96px;">{{ _('Azioni') }}</th>
         </tr>
       </thead>
@@ -430,7 +430,7 @@
           <span class="quick-error text-xs" role="alert"></span>
           <a class="btn btn-ghost btn-sm quick-full"><i class="bi bi-box-arrow-up-right"></i> {{ _('Modifica completa') }}</a>
           <button type="button" class="btn btn-ghost btn-sm quick-cancel">{{ _('Annulla') }}</button>
-          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+          <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
         </div>
       </form>
     </td></tr>

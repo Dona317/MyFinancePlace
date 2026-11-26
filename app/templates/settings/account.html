@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ _('Account e utenti') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Account e Utenti') }}{% endblock %}
+{% block page_title %}{{ _('Account e utenti') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Account') }}</li>{% endblock %}
 
 {% block content %}
@@ -23,7 +23,7 @@
           <label class="form-label" for="pw-current">{{ _('Password attuale') }}</label>
           <input type="password" id="pw-current" name="current" class="form-control" required autocomplete="current-password" />
         </div>
-        <div class="grid-2" style="gap:16px;">
+        <div class="grid-2 gap-16">
           <div class="form-group">
             <label class="form-label" for="pw-new">{{ _('Nuova password') }}</label>
             <input type="password" id="pw-new" name="password" class="form-control" required minlength="{{ min_password }}" autocomplete="new-password" />
@@ -44,7 +44,7 @@
     <div class="card-body">
       <p class="text-sm text-muted mb-16">{{ _('Ogni utente ha un archivio tutto suo: vede e modifica solo i suoi dati, nelle sezioni che può aprire. Gli amministratori vedono tutti gli archivi, gestiscono gli utenti e ne esportano i dati.') }}</p>
       <form method="POST" action="{{ url_for('settings.user_add') }}">
-        <div class="grid-2" style="gap:16px;">
+        <div class="grid-2 gap-16">
           <div class="form-group">
             <label class="form-label" for="u-name">{{ _('Nome utente') }}</label>
             <input type="text" id="u-name" name="username" class="form-control" required autocomplete="off" />
@@ -55,7 +55,7 @@
           </div>
         </div>
         <label class="d-flex align-center gap-8 text-sm mb-16"><input class="check" type="checkbox" name="is_admin" /> {{ _('Amministratore') }}</label>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Crea utente') }}</button>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-plus-lg"></i> {{ _('Crea utente') }}</button>
       </form>
     </div>
   </div>
@@ -99,8 +99,8 @@
           {% endif %}
           <td class="text-sm text-muted">{{ u.last_login.strftime('%d/%m/%Y %H:%M') if u.last_login else '—' }}</td>
           <td>
-            <form method="POST" action="{{ url_for('settings.user_reset_password', user_id=u.id) }}" class="d-flex gap-8" style="flex-wrap:wrap;">
-              <input type="password" name="password" class="form-control" style="max-width:200px;" placeholder="{{ _('nuova password') }}"
+            <form method="POST" action="{{ url_for('settings.user_reset_password', user_id=u.id) }}" class="d-flex gap-8 flex-wrap">
+              <input type="password" name="password" class="form-control maxw-200" placeholder="{{ _('nuova password') }}"
                      aria-label="{{ _('Nuova password per %(name)s', name=u.username) }}" required minlength="{{ min_password }}" autocomplete="new-password" />
               <button type="submit" class="btn btn-secondary btn-sm">{{ _('Imposta') }}</button>
             </form>
@@ -132,7 +132,7 @@
         {% endfor %}
       </div>
       <p class="form-hint">{{ _('Per ognuno tutto il suo archivio (transazioni, conti, documenti…), come il backup completo: si ripristina da Impostazioni → Backup.') }}</p>
-      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-download"></i> {{ _('Esporta i selezionati') }}</button>
+      <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-download"></i> {{ _('Esporta i selezionati') }}</button>
     </form>
   </div>
 </div>

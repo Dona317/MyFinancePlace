@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
-{% block title %}{{ _('Confronta Istantanee') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Confronto Istantanee') }}{% endblock %}
+{% block title %}{{ _('Confronta istantanee') }} — MyFinancePlace{% endblock %}
+{% block page_title %}{{ _('Confronto delle istantanee') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('snapshots.index') }}">{{ _('Istantanee') }}</a></li><li>{{ _('Confronto') }}</li>{% endblock %}
 
 {% macro diff(value) -%}
@@ -13,7 +13,7 @@
 {% if not left %}
 <div class="card">
   {% call empty_state(text=_("Crea almeno un'istantanea: potrai confrontarla con la situazione di oggi."), icon='bi-arrow-left-right', title=_('Nessuna istantanea da confrontare')) %}
-    <a href="{{ url_for('snapshots.index') }}" class="btn btn-primary"><i class="bi bi-arrow-left"></i> {{ _('Torna alle Istantanee') }}</a>
+    <a href="{{ url_for('snapshots.index') }}" class="btn btn-primary"><i class="bi bi-arrow-left"></i> {{ _('Torna alle istantanee') }}</a>
   {% endcall %}
 </div>
 {% else %}

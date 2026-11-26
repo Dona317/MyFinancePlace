@@ -8,8 +8,8 @@
 {% from "partials/info.html" import info %}
 
 {% block title %}{{ _('Portafoglio') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Portfolio') }}{% endblock %}
-{% block breadcrumb %}<li>{{ _('Portfolio') }}</li>{% endblock %}
+{% block page_title %}{{ _('Portafoglio') }}{% endblock %}
+{% block breadcrumb %}<li>{{ _('Portafoglio') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {% if summary.value or holdings %}
@@ -18,14 +18,14 @@
   </a>
   {% endif %}
   <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}
+    <i class="bi bi-plus-lg"></i> {{ _('Aggiungi posizione') }}
   </a>
 {% endblock %}
 
 {% block content %}
 {% set nav_active = 'holdings' %}{% include "portfolio/_nav.html" %}
 {% if planned %}
-<div class="alert alert-warning mb-16" role="status" style="display:block;">
+<div class="alert alert-warning mb-16 d-block" role="status">
   <i class="bi bi-hourglass-split"></i>
   {{ _('Hai %(count)s ordini teorici non ancora confermati: le posizioni qui sotto non li contano.', count=planned) }}
   <a href="{{ url_for('portfolio.planned_page') }}">{{ _('Vedi gli ordini teorici') }}</a>
@@ -34,7 +34,7 @@
 
 <!-- KPI ──────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24">
-  {{ kpi('briefcase', _('Valore Totale'), value=summary.value|money, cls='kpi-primary', sub=(_('ai prezzi più recenti'))) }}
+  {{ kpi('briefcase', _('Valore totale'), value=summary.value|money, cls='kpi-primary', sub=(_('ai prezzi più recenti'))) }}
   {{ kpi('graph-' ~ ('up' if summary.gain >= 0 else 'down') ~ '-arrow', _('Guadagno'), value=('+' if summary.gain > 0 else '') ~ summary.gain|money,
          cls=('kpi-positive' if summary.gain >= 0 else 'kpi-negative'), value_class=('text-positive' if summary.gain >= 0 else 'text-negative'),
          sub=('+' if summary.gain_pct > 0 else '') ~ _('%(pct)s%% sul capitale', pct=summary.gain_pct|number)) }}
@@ -49,7 +49,7 @@
       <div class="card-header-title">{{ _('Per classe di attivo') }} {{ info(_('Azionario, obbligazionario, oro…: a cosa sei esposto. Si sceglie sul titolo; finché non la scegli è stimata dal tipo di strumento e dal nome.')) }}</div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;">
+      <div class="chart-container h-220">
         {% if summary.classes %}<canvas id="assetClassChart"></canvas>
         {% else %}<div class="chart-empty">{{ _('Aggiungi una posizione per vedere come è ripartito il patrimonio.') }}</div>{% endif %}
       </div>
@@ -60,7 +60,7 @@
       <div class="card-header-title">{{ _('Per sede') }} {{ info(_('Il paese in cui ha sede il fondo (domicilio): conta per le tasse (es. fondi esteri) e per la ritenuta sui dividendi. Se non la indichi è il paese dell\'ISIN.')) }}</div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;">
+      <div class="chart-container h-220">
         {% if summary.domiciles %}<canvas id="domicileChart"></canvas>
         {% else %}<div class="chart-empty">{{ _('Aggiungi una posizione per vedere come è ripartito il patrimonio.') }}</div>{% endif %}
       </div>
@@ -71,7 +71,7 @@
       <div class="card-header-title">{{ _('Per tipo di strumento') }} {{ info(_('ETF, azioni, fondi, obbligazioni…: con che cosa investi.')) }}</div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;">
+      <div class="chart-container h-220">
         {% if summary.allocation %}<canvas id="allocationChart"></canvas>
         {% else %}<div class="chart-empty">{{ _('Aggiungi una posizione per vedere come è ripartito il patrimonio.') }}</div>{% endif %}
       </div>
@@ -83,12 +83,12 @@
         {% if series.value|length >= 2 %}
         <div class="card-header-title">{{ _('Valore e versato') }} {{ info(_('Il valore degli investimenti a fine mese, ai prezzi registrati fino a quel giorno, e quanto ci hai messo (acquisti con commissioni meno vendite): la distanza tra le due linee è il guadagno.')) }}</div>
         {% else %}
-        <div class="card-header-title">{{ _('Andamento del Portafoglio') }} {{ info(_('Dalle istantanee')) }}</div>
+        <div class="card-header-title">{{ _('Andamento del portafoglio') }} {{ info(_('Dalle istantanee')) }}</div>
         {% endif %}
       </div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;">
+      <div class="chart-container h-220">
         {% if series.value|length >= 2 %}<canvas id="valueInvestedChart"></canvas>
         {% elif trend.data|length >= 2 %}<canvas id="portfolioTrendChart"></canvas>
         {% else %}<div class="chart-empty">
@@ -106,7 +106,7 @@
     <div class="card-header-title">{{ _('Mappa dell\'allocazione') }} {{ info(_('Ogni riquadro è una posizione, raggruppata per classe di attivo: l\'area è proporzionale al valore. Mostra a colpo d\'occhio dove è concentrato il patrimonio, anche quando le posizioni sono tante.')) }}</div>
   </div>
   <div class="card-body">
-    <div class="chart-container" style="height:320px;"><canvas id="allocationTreemap" role="img" aria-label="{{ _('Mappa dell\'allocazione') }}"></canvas></div>
+    <div class="chart-container h-320"><canvas id="allocationTreemap" role="img" aria-label="{{ _('Mappa dell\'allocazione') }}"></canvas></div>
   </div>
 </div>
 {% endif %}
@@ -153,8 +153,8 @@
           <th>{{ _('Strumento') }}</th>
           <th>{{ _('Tipo e classe') }}</th>
           <th class="text-right">{{ _('Quantità') }}</th>
-          <th class="text-right">{{ _('Prezzo Medio') }}</th>
-          <th class="text-right">{{ _('Prezzo Attuale') }}</th>
+          <th class="text-right">{{ _('Prezzo medio') }}</th>
+          <th class="text-right">{{ _('Prezzo attuale') }}</th>
           <th class="text-right">{{ _('Valore') }}</th>
           <th class="text-right">G/P</th>
           <th class="text-right">G/P %</th>
@@ -235,7 +235,7 @@
   {% else %}
   {% call empty_state(text=_('Aggiungi azioni, ETF, fondi, obbligazioni, criptovalute, conti deposito, fondi pensione o immobili: entrano nel patrimonio netto e nello stato patrimoniale.'), icon='bi-briefcase', title=_('Nessuna posizione nel portafoglio')) %}
     <a href="{{ url_for('portfolio.new') }}" class="btn btn-primary">
-      <i class="bi bi-plus-lg"></i> {{ _('Aggiungi Posizione') }}
+      <i class="bi bi-plus-lg"></i> {{ _('Aggiungi posizione') }}
     </a>
   {% endcall %}
   {% endif %}

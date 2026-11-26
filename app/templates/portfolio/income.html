@@ -4,7 +4,7 @@
 {% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block page_title %}{{ _('Rendite') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Rendite') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Rendite') }}</li>{% endblock %}
 
 {% block topbar_actions %}
 {{ year_box(report.year, report.years) }}
@@ -12,13 +12,13 @@
 
 {% block content %}
 {% set nav_active = 'income' %}{% include "portfolio/_nav.html" %}
-<div class="kpi-grid" style="margin-bottom:24px;">
+<div class="kpi-grid mb-24">
   {{ kpi('cash-coin', _('Nel %(year)s', year=report.year), value=report.total|money, cls='kpi-primary') }}
   {{ kpi('calendar-month', _('Ultimi 12 mesi'), value=report.last_12|money, sub=_('%(amount)s al mese in media', amount=report.monthly_average|money)) }}
   {{ kpi('graph-up-arrow', _('Prossimi 12 mesi (stima)'), value=report.last_12|money, sub=_('se si ripetono quelle degli ultimi 12')) }}
 </div>
 
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header"><div class="card-header-title">{{ _('Mese per mese') }}</div></div>
   <div class="card-body"><div style="height:260px;"><canvas id="incomeChart"></canvas></div></div>
 </div>
@@ -58,7 +58,7 @@
 </div>
 
 {% if coupons.rows %}
-<div class="card" style="margin-top:24px;" id="bond-coupons">
+<div class="card mt-24" id="bond-coupons">
   <div class="card-header"><div class="card-header-title">{{ _('Cedole attese nei prossimi 12 mesi') }}
       {{ info(_("Dalle obbligazioni con cedola e scadenza indicate (Modifica posizione → Caratteristiche dell'obbligazione), sul nominale posseduto oggi. Lorde e nette dell'aliquota del titolo.")) }}</div>
     <div class="card-header-sub">{{ _('%(gross)s lorde · %(net)s nette', gross=coupons.gross|money, net=coupons.net|money) }}</div></div>

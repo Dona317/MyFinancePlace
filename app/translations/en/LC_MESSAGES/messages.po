@@ -18684,3 +18684,326 @@ msgstr "← Back to Export"
 msgid "🎉 Obiettivo «%(name)s» raggiunto!"
 msgstr "🎉 Goal «%(name)s» reached!"
 
+#: retitled
+msgid "A — Attività operative"
+msgstr "A — operating activities"
+
+#: retitled
+msgid "Account personale"
+msgstr "Personal account"
+
+#: retitled
+msgid "Aggiungi conto"
+msgstr "Add account"
+
+#: retitled
+msgid "Aggiungi debito"
+msgstr "Add debt"
+
+#: retitled
+msgid "Aggiungi polizza"
+msgstr "Add policy"
+
+#: retitled
+msgid "Aggiungi posizione"
+msgstr "Add holding"
+
+#: retitled
+msgid "Aggiungi posizione al portafoglio"
+msgstr "Add holding to portfolio"
+
+#: retitled
+msgid "Aggiungi al portafoglio"
+msgstr "Add to portfolio"
+
+#: retitled
+msgid "Andamento mensile"
+msgstr "Monthly trend"
+
+#: retitled
+msgid "Andamento mensile per categoria"
+msgstr "Monthly trend by category"
+
+#: retitled
+msgid "Andamento del patrimonio netto"
+msgstr "Net worth trend"
+
+#: retitled
+msgid "Andamento del portafoglio"
+msgstr "Portfolio trend"
+
+#: retitled
+msgid "Anteprima dell’importazione"
+msgstr "Import preview"
+
+#: retitled
+msgid "Apri lo stato patrimoniale"
+msgstr "Open the balance sheet"
+
+#: retitled
+msgid "Attività − passività"
+msgstr "Assets − liabilities"
+
+#: retitled
+msgid "B — Attività di investimento"
+msgstr "B — investing activities"
+
+#: retitled
+msgid "Backup completo e ripristino"
+msgstr "Full backup and restore"
+
+#: retitled
+msgid "C — Attività finanziarie"
+msgstr "C — financing activities"
+
+#: retitled
+msgid "Flusso finanziario"
+msgstr "Financing CF"
+
+#: retitled
+msgid "Flusso degli investimenti"
+msgstr "Investing CF"
+
+#: retitled
+msgid "Flusso operativo"
+msgstr "Operating CF"
+
+#: retitled
+msgid "Carica documenti"
+msgstr "Upload documents"
+
+#: retitled
+msgid "Colonna categoria"
+msgstr "Category column"
+
+#: retitled
+msgid "Colonna controparte (diventa un tag)"
+msgstr "Counterparty column (becomes a tag)"
+
+#: retitled
+msgid "Colonna data"
+msgstr "Date column"
+
+#: retitled
+msgid "Colonna descrizione"
+msgstr "Description column"
+
+#: retitled
+msgid "Colonna importo (con segno)"
+msgstr "Amount column (signed)"
+
+#: retitled
+msgid "Colonna tipo (income/expense/transfer)"
+msgstr "Type column (income/expense/transfer)"
+
+#: retitled
+msgid "Confronta istantanee"
+msgstr "Compare snapshots"
+
+#: retitled
+msgid "Confronto delle istantanee"
+msgstr "Snapshot comparison"
+
+#: retitled
+msgid "Conti e carte"
+msgstr "Accounts and cards"
+
+#: retitled
+msgid "Copertura totale"
+msgstr "Total coverage"
+
+#: retitled
+msgid "Crea istantanea"
+msgstr "Take snapshot"
+
+#: retitled
+msgid "Dashboard — previsioni delle schede"
+msgstr "Dashboard — card forecasts"
+
+#: retitled
+msgid "Dashboard — schede dei numeri"
+msgstr "Dashboard — KPI cards"
+
+#: retitled
+msgid "Dashboard — sezioni"
+msgstr "Dashboard — sections"
+
+#: retitled
+msgid "Debito residuo nei prossimi anni"
+msgstr "Remaining debt in the coming years"
+
+#: retitled
+msgid "Dettaglio spese"
+msgstr "Spending details"
+
+#: retitled
+msgid "Dettaglio per categoria"
+msgstr "Details by category"
+
+#: retitled
+msgid "Distribuzione per tipo"
+msgstr "Split by type"
+
+#: retitled
+msgid "Esportazione fiscale per anno"
+msgstr "Tax export by year"
+
+#: retitled
+msgid "Flusso finanziario netto"
+msgstr "Net financing flow"
+
+#: retitled
+msgid "Flusso operativo netto"
+msgstr "Net operating flow"
+
+#: retitled
+msgid "Flusso di cassa mensile"
+msgstr "Monthly cash flow"
+
+#: retitled
+msgid "Flusso di investimento netto"
+msgstr "Net investing flow"
+
+#: retitled
+msgid "Gestione delle finanze personali"
+msgstr "Personal finance management"
+
+#: retitled
+msgid "Grafico delle entrate per categoria"
+msgstr "Income by category chart"
+
+#: retitled
+msgid "Grafico delle spese per categoria"
+msgstr "Spending by category chart"
+
+#: retitled
+msgid "Importa l’estratto conto"
+msgstr "Import bank statement"
+
+#: retitled
+msgid "Importa transazioni"
+msgstr "Import transactions"
+
+#: retitled
+msgid "Nuovo debito"
+msgstr "Enter new debt"
+
+#: retitled
+msgid "Interessi ancora da pagare"
+msgstr "Interest still to pay"
+
+#: retitled
+msgid "Modalità scura"
+msgstr "Dark mode"
+
+#: retitled
+msgid "Modifica conto"
+msgstr "Edit account"
+
+#: retitled
+msgid "Modifica debito"
+msgstr "Edit debt"
+
+#: retitled
+msgid "Modifica documento"
+msgstr "Edit document"
+
+#: retitled
+msgid "Moduli — visibilità nel menu"
+msgstr "Modules — visibility in the navigation"
+
+#: retitled
+msgid "Nuovo conto"
+msgstr "New account"
+
+#: retitled
+msgid "Nuovo debito"
+msgstr "New debt"
+
+#: retitled
+msgid "Nuovo obiettivo di risparmio"
+msgstr "New savings goal"
+
+#: retitled
+msgid "Panoramica finanziaria"
+msgstr "Financial overview"
+
+#: retitled
+msgid "Panoramica finanziaria — sottosezioni"
+msgstr "Financial overview — sub-sections"
+
+#: retitled
+msgid "Polizze attive"
+msgstr "Active policies"
+
+#: retitled
+msgid "Premi per tipo"
+msgstr "Premiums by type"
+
+#: retitled
+msgid "Premio annuo totale"
+msgstr "Total yearly premium"
+
+#: retitled
+msgid "Prezzo medio"
+msgstr "Average price"
+
+#: retitled
+msgid "Prossima scadenza"
+msgstr "Next expiry"
+
+#: retitled
+msgid "Rendiconto finanziario"
+msgstr "Cash flow statement"
+
+#: retitled
+msgid "Residuo oggi"
+msgstr "Remaining today"
+
+#: retitled
+msgid "Ripristina i predefiniti"
+msgstr "Restore defaults"
+
+#: retitled
+msgid "Saldo cumulativo"
+msgstr "Cumulative balance"
+
+#: retitled
+msgid "Saldo oggi"
+msgstr "Balance today"
+
+#: retitled
+msgid "Salva modifiche"
+msgstr "Save changes"
+
+#: retitled
+msgid "Stile di vita"
+msgstr "Lifestyle"
+
+#: retitled
+msgid "Stile di vita — sottosezioni"
+msgstr "Lifestyle — sections"
+
+#: retitled
+msgid "Torna alle istantanee"
+msgstr "Back to snapshots"
+
+#: retitled
+msgid "Totale uscite"
+msgstr "Total expenses"
+
+#: retitled
+msgid "Tutte le istantanee"
+msgstr "All snapshots"
+
+#: retitled
+msgid "Vai alle impostazioni"
+msgstr "Go to settings"
+
+#: retitled
+msgid "Valore totale"
+msgstr "Total value"
+
+#: retitled
+msgid "Variazione netta della cassa"
+msgstr "Net change in cash"

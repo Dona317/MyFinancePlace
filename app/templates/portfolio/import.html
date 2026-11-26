@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Importa operazioni dal broker') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Importa dal broker') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Importa dal broker') }}</li>{% endblock %}
 
 {% block content %}
 {% if request.values.get('from') == 'add' %}
@@ -28,7 +28,7 @@
         </div>
         <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> {{ _('Analizza file') }}</button>
       </form>
-      <p class="text-xs text-muted" style="margin-top:12px;">
+      <p class="text-xs text-muted mt-12">
         <strong>{{ _('Modello da compilare') }}:</strong>
         <a href="{{ url_for('portfolio.broker_template', kind='xlsx') }}"><i class="bi bi-file-earmark-excel"></i> Excel</a> ·
         <a href="{{ url_for('portfolio.broker_template', kind='csv') }}"><i class="bi bi-filetype-csv"></i> CSV</a>
@@ -40,7 +40,7 @@
     </div>
   </div>
 
-  <div class="card" id="ai-reading" style="margin-top:16px;">
+  <div class="card mt-16" id="ai-reading">
     <div class="card-header">
       <div>
         <div class="card-header-title">{{ _('Leggi un documento con l\'AI') }} {{ info(_('Un PDF, una foto o un documento del broker letto dal modello AI, come per le transazioni. Le operazioni lette, o ricavate dallo stato attuale, vanno nella stessa anteprima: niente viene salvato prima della conferma.')) }}</div>
@@ -75,7 +75,7 @@
         <div class="form-group">
           <label class="checkbox-label"><input type="checkbox" name="complete" value="1" class="check" /> {{ _('Il documento mostra tutte le posizioni') }} {{ info(_('Un titolo registrato che nel documento non c\'è più viene venduto per intero, al suo ultimo prezzo.')) }}</label>
         </div>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-stars"></i> {{ _('Leggi con AI') }}</button>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-stars"></i> {{ _('Leggi con AI') }}</button>
       </form>
       {% else %}
       <p class="text-muted">{{ _('La lettura con AI non è configurata: scegli un modello in Impostazioni → Modelli AI.') }}</p>
@@ -84,7 +84,7 @@
   </div>
 
   {% if request.values.get('embed') != '1' %}{# the whole section's backup is not a way to add positions #}
-  <div class="card" id="archive" style="margin-top:16px;">
+  <div class="card mt-16" id="archive">
     <div class="card-header">
       <div>
         <div class="card-header-title"><i class="bi bi-box-seam"></i> {{ _('Solo gli investimenti: esporta e ripristina') }} {{ info(_('Un file con conti titoli, portafogli, titoli, prezzi, operazioni, modelli, PAC, regole e ordini teorici, e i movimenti della liquidità dei conti titoli. Il resto dell\'archivio (conti correnti, budget, polizze…) non cambia. I conti di liquidità si riconoscono dal nome.')) }}</div>
@@ -92,7 +92,7 @@
       </div>
     </div>
     <div class="card-body">
-      <a href="{{ url_for('portfolio.investments_export') }}" class="btn btn-primary mb-16"><i class="bi bi-download"></i> {{ _('Esporta gli investimenti') }}</a>
+      <a href="{{ url_for('portfolio.investments_export') }}" class="btn btn-outline mb-16"><i class="bi bi-download"></i> {{ _('Esporta gli investimenti') }}</a>
       <form method="POST" action="{{ url_for('portfolio.investments_restore') }}" enctype="multipart/form-data"
             data-confirm="{{ _('Ripristinare questo file? Gli investimenti attuali saranno sostituiti (prima viene salvata una copia di tutto l\'archivio).') }}">
         <div class="form-group">

@@ -14,7 +14,7 @@
 
 {% for p in people %}
 <details class="card mb-8" id="person-{{ loop.index }}" {{ 'open' if p.balance and loop.index <= 3 }}>
-  <summary class="card-body d-flex gap-8 align-center" style="cursor:pointer;">
+  <summary class="card-body d-flex gap-8 align-center cursor-pointer">
     <strong style="flex:1;">{{ p.name }}</strong>
     {% if p.balance > 0 %}<span class="text-positive nowrap">{{ _('ti deve %(amount)s', amount=p.balance|money) }}</span>
     {% elif p.balance < 0 %}<span class="text-negative nowrap">{{ _('gli devi %(amount)s', amount=(-p.balance)|money) }}</span>
@@ -41,7 +41,7 @@
     <div class="card-header"><div class="card-header-title"><i class="bi bi-plus-lg"></i> {{ _('Nuova voce') }}</div></div>
     <div class="card-body">
       <form method="POST" action="{{ url_for('loans.create') }}">
-        <div class="grid-2" style="gap:12px;">
+        <div class="grid-2 gap-12">
           <div class="form-group"><label class="form-label" for="l-person">{{ _('Persona') }}</label>
             <input type="text" id="l-person" name="person" class="form-control" list="loan-people" required maxlength="80" /></div>
           <div class="form-group"><label class="form-label" for="l-kind">{{ _('Cosa è successo') }}</label>
@@ -70,13 +70,13 @@
       <form method="POST" action="{{ url_for('loans.share') }}">
         <div class="form-group"><label class="form-label" for="s-tx">{{ _('Spesa') }}</label>
           <select id="s-tx" name="transaction_id" class="form-select">{% for tx in expenses %}<option value="{{ tx.id }}">{{ tx.date|it_date }} · {{ tx.description }} · {{ tx.magnitude|money }}</option>{% endfor %}</select></div>
-        <div class="grid-2" style="gap:12px;">
+        <div class="grid-2 gap-12">
           <div class="form-group"><label class="form-label" for="s-people">{{ _('Con chi (separati da virgole)') }}</label>
             <input type="text" id="s-people" name="people" class="form-control" required placeholder="{{ _('es. Luca, Sara') }}" /></div>
           <div class="form-group"><label class="form-label" for="s-each">{{ _('Quota di ognuno (€, facoltativa)') }}</label>
             <input type="text" inputmode="decimal" id="s-each" name="each" class="form-control" placeholder="{{ _('vuoto: in parti uguali con te') }}" /></div>
         </div>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-people"></i> {{ _('Dividi') }}</button>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-people"></i> {{ _('Dividi') }}</button>
       </form>
       {% else %}<p class="text-sm text-muted mb-0">{{ _('Nessuna spesa negli ultimi 60 giorni.') }}</p>{% endif %}
     </div>
@@ -94,7 +94,7 @@
           <select id="r-tx" name="transaction_id" class="form-select">{% for tx in incomes %}<option value="{{ tx.id }}">{{ tx.date|it_date }} · {{ tx.description }} · {{ tx.magnitude|money }}</option>{% endfor %}</select></div>
         <div class="form-group"><label class="form-label" for="r-person">{{ _('Da chi') }}</label>
           <input type="text" id="r-person" name="person" class="form-control" list="loan-people" required /></div>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Registra la restituzione') }}</button>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-check-lg"></i> {{ _('Registra la restituzione') }}</button>
       </form>
       {% else %}<p class="text-sm text-muted mb-0">{{ _('Nessuna entrata negli ultimi 60 giorni.') }}</p>{% endif %}
     </div>

@@ -1,8 +1,8 @@
 {% extends "accounting/base.html" %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/info.html" import info %}
-{% block page_title %}{{ _('Panoramica Finanziaria') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Bilanci annuali') }}</li>{% endblock %}
+{% block page_title %}{{ _('Panoramica finanziaria') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica finanziaria') }}</a></li><li>{{ _('Bilanci annuali') }}</li>{% endblock %}
 
 {% block statement %}
 {# The statements of each closed year: during the year they fill up; on 1 January the year before is saved as it

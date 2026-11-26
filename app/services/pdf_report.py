@@ -124,7 +124,7 @@ def build_report(year: int, statement: dict, cash_flow: dict, generated_at: date
         ("Tasso di risparmio", percent(summary["savings_rate"])),
     ])
 
-    _heading(pdf, "Conto Economico")
+    _heading(pdf, "Conto economico")
     rows, styles = [], {}
 
     def section(label: str, lines: list[dict], empty: str):
@@ -141,7 +141,7 @@ def build_report(year: int, statement: dict, cash_flow: dict, generated_at: date
     rows.append(("Risparmio netto", money(summary["net"]), percent(summary["savings_rate"]) if summary["income"] else "—"))
     _table(pdf, ["Voce", "Importo", "% Entrate"], rows, (100, 45, 35), styles)
 
-    _heading(pdf, "Andamento Mensile")
+    _heading(pdf, "Andamento mensile")
     monthly = statement["monthly"]
     rows = [
         (label, money(monthly["income"][i]), money(monthly["expenses"][i]), money(monthly["net"][i]))
@@ -149,7 +149,7 @@ def build_report(year: int, statement: dict, cash_flow: dict, generated_at: date
     ]
     _table(pdf, ["Mese", "Entrate", "Uscite", "Netto"], rows, (45, 45, 45, 45))
 
-    _heading(pdf, "Rendiconto Finanziario")
+    _heading(pdf, "Rendiconto finanziario")
     rows = [
         ("A — Flusso operativo", money(cash_flow["operating"])),
         ("B — Flusso di investimento", money(cash_flow["investing"])),

@@ -13,7 +13,7 @@
 {% set active = 'rates' %}{% include "data/_tabs.html" %}
 {# 23 Nov 2026: the currencies in use and where their rates are missing — a movement without a rate is counted 1:1 #}
 {% if problems %}
-<div class="alert alert-warning mb-16" style="display:block;">
+<div class="alert alert-warning mb-16 d-block">
   <i class="bi bi-exclamation-triangle"></i>
   {{ ngettext('%(num)d valuta ha cambi mancanti o vecchi: i totali in %(base)s possono essere sbagliati.', '%(num)d valute hanno cambi mancanti o vecchi: i totali in %(base)s possono essere sbagliati.', problems, base=base) }}
 </div>
@@ -57,7 +57,7 @@
 </div>
 
 {# F116: the rates in the shared price database — day by day, for the closes in other currencies; more can be added #}
-<div class="card" id="shared" style="margin-top:16px;">
+<div class="card mt-16" id="shared">
   <div class="card-header"><div>
     <div class="card-header-title"><i class="bi bi-database"></i> {{ _('Cambi nel database dei prezzi') }}
       {{ info(_('Giorno per giorno, quante unità di una valuta compra un euro: servono a portare in euro, giorno per giorno, i prezzi dei titoli e degli indici quotati in altre valute. Stanno nel database dei prezzi, condiviso da tutti gli archivi e disponibile anche senza internet. Le valute principali arrivano con il database di partenza; le altre le aggiungi qui: dalla BCE (tutto lo storico, poi aggiornate ogni giorno) o, se la BCE non le pubblica, da un file CSV con data e cambio.'), _('Cambi nel database dei prezzi')) }}</div>
@@ -85,18 +85,18 @@
   <div class="card-body" style="border-top:1px solid var(--clr-border-light);">
     <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
       {% if addable %}
-      <form method="POST" action="{{ url_for('data.rates_add') }}" style="display:flex;gap:8px;align-items:flex-end;">
-        <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="fx-code">{{ _('Aggiungi una valuta dalla BCE') }}</label>
+      <form method="POST" action="{{ url_for('data.rates_add') }}" class="d-flex gap-8 items-end">
+        <div class="form-group mb-0"><label class="form-label" for="fx-code">{{ _('Aggiungi una valuta dalla BCE') }}</label>
           <select class="form-control" id="fx-code" name="code">
             {% for code in addable %}<option value="{{ code }}">{{ code }}{% if names.get(code) %} · {{ _(names[code][1]) }}{% endif %}</option>{% endfor %}
           </select></div>
         <button type="submit" class="btn btn-outline" {% if not online %}disabled title="{{ _('Accendi i prezzi da internet in Impostazioni') }}"{% endif %}><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
       </form>
       {% endif %}
-      <form method="POST" action="{{ url_for('data.rates_file') }}" enctype="multipart/form-data" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
-        <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="fx-file-code">{{ _('Oppure da un file CSV') }}</label>
-          <input class="form-control" id="fx-file-code" name="code" maxlength="3" placeholder="TWD" required style="width:80px;text-transform:uppercase;"></div>
-        <div class="form-group" style="margin-bottom:0;"><input class="form-control" type="file" name="file" accept=".csv,.txt" required aria-label="{{ _('File CSV dei cambi') }}"></div>
+      <form method="POST" action="{{ url_for('data.rates_file') }}" enctype="multipart/form-data" class="d-flex gap-8 items-end flex-wrap">
+        <div class="form-group mb-0"><label class="form-label" for="fx-file-code">{{ _('Oppure da un file CSV') }}</label>
+          <input class="form-control w-80 uppercase" id="fx-file-code" name="code" maxlength="3" placeholder="TWD" required></div>
+        <div class="form-group mb-0"><input class="form-control" type="file" name="file" accept=".csv,.txt" required aria-label="{{ _('File CSV dei cambi') }}"></div>
         <button type="submit" class="btn btn-outline"><i class="bi bi-upload"></i> {{ _('Carica') }}</button>
       </form>
     </div>

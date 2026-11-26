@@ -50,40 +50,40 @@ def _tree() -> list[tuple[str, list[Entry]]]:
                 P(_l("Entrate e uscite ricorrenti"), "subscriptions.index"), P(_l("Investimenti"), "transactions.investments_page"),
                 P(_l("Flussi"), "transactions.flows_page"),
                 P(_l("Storni"), "transactions.reversals_page")), tbd=False),
-            Entry("accounts", _l("Conti e Carte"), "bank", P(_l("Conti e Carte"), "accounts.index"), (
+            Entry("accounts", _l("Conti e carte"), "bank", P(_l("Conti e carte"), "accounts.index"), (
                 P(_l("Carte"), "accounts.index", {"tab": "cards"}),
                 P(_l("Riconciliazioni"), "accounts.index", {"tab": "reconcile"}),
                 P(_l("Collegamenti bancari"), "banking.index")), tbd=False),
             Entry("reports", _l("Report"), "bar-chart-line", P(_l("Report"), "reports.index"), (
                 P(_l("Riepilogo"), "reports.summary"), P(_l("Ritmo"), "reports.rhythm"),
-                P(_l("Bilancio dell’anno"), "reports.year_review"))),
+                P(_l("Bilancio dell’anno"), "reports.year_review")), tbd=False),
         ]),
-        (_l("Panoramica Finanziaria"), [
-            Entry("accounting", _l("Panoramica Finanziaria"), "journal-text", P(_l("Panoramica Finanziaria"), "accounting.index"), (
+        (_l("Panoramica finanziaria"), [
+            Entry("accounting", _l("Panoramica finanziaria"), "journal-text", P(_l("Panoramica finanziaria"), "accounting.index"), (
                 P(_l("Stato patrimoniale"), "accounting.balance_sheet"), P(_l("Conto economico"), "accounting.income_statement"),
-                P(_l("Flusso di cassa"), "accounting.cash_flow"), P(_l("Crescita"), "accounting.growth"),
-                P(_l("Chiusure d’anno"), "accounting.closes"))),
+                P(_l("Flusso di cassa"), "accounting.cash_flow"), P(_l("Crescita del patrimonio"), "accounting.growth"),
+                P(_l("Bilanci annuali"), "accounting.closes")), tbd=False),
             Entry("forecast", _l("Previsioni"), "graph-up-arrow", P(_l("Previsioni"), "forecast.index"), (
                 P(_l("Mese per mese"), "forecast.index", {"tab": "months"}),
                 P(_l("Entrate e uscite ricorrenti"), "forecast.index", {"tab": "recurring"}),
-                P(_l("Metodi"), "forecast.index", {"tab": "methods"}), P(_l("Pensione e FIRE"), "forecast.retirement"))),
+                P(_l("Metodi"), "forecast.index", {"tab": "methods"}), P(_l("Pensione e FIRE"), "forecast.retirement")), tbd=False),
         ]),
-        (_l("Stile di Vita"), [
+        (_l("Stile di vita"), [
             Entry("goals", _l("Obiettivi"), "trophy", P(_l("Obiettivi"), "lifestyle.goals"), (
                 P(_l("Raggiunti"), "lifestyle.goals", {"tab": "done"}),
                 P(_l("Fondo d’emergenza"), "lifestyle.goals", {"tab": "emergency"}),
-                P(_l("Suggeriti"), "lifestyle.goals", {"tab": "suggested"}))),
+                P(_l("Suggeriti"), "lifestyle.goals", {"tab": "suggested"})), tbd=False),
             Entry("budget", _l("Budget"), "clipboard-check", P(_l("Budget"), "lifestyle.budget"), (
                 P(_l("Categorie"), "lifestyle.budget", {"tab": "categories"}),
                 P(_l("Accantonamenti"), "lifestyle.budget", {"tab": "set_asides"}),
-                P(_l("Storico"), "lifestyle.budget", {"tab": "history"}))),
-            Entry("events", _l("Eventi"), "airplane", P(_l("Eventi"), "events.index")),
+                P(_l("Storico"), "lifestyle.budget", {"tab": "history"})), tbd=False),
+            Entry("events", _l("Eventi"), "airplane", P(_l("Eventi"), "events.index"), tbd=False),
             Entry("deadlines", _l("Promemoria"), "bell", P(_l("Promemoria"), "deadlines.index"), (
                 P(_l("Calendario"), "deadlines.index", {"tab": "calendar"}),
-                P(_l("Le tue scadenze"), "deadlines.index", {"tab": "mine"}))),
+                P(_l("Le tue scadenze"), "deadlines.index", {"tab": "mine"})), tbd=False),
         ]),
         (_l("Gestione"), [
-            Entry("portfolio", _l("Portfolio"), "briefcase", P(_l("Portfolio"), "portfolio.index"), (
+            Entry("portfolio", _l("Portafoglio"), "briefcase", P(_l("Portafoglio"), "portfolio.index"), (
                 P(_l("Riepilogo"), "portfolio.overview_page"), P(_l("Portafogli e conti titoli"), "portfolio.portfolios_page"),
                 P(_l("Rendimenti"), "portfolio.performance_page"), P(_l("Ordini"), "portfolio.orders_page"),
                 P(_l("Ordini teorici"), "portfolio.planned_page"), P(_l("Calcolo commissioni"), "portfolio.fees_page"),
@@ -94,7 +94,7 @@ def _tree() -> list[tuple[str, list[Entry]]]:
             Entry("debt", _l("Debiti"), "credit-card", P(_l("Debiti"), "debt.index"), (
                 P(_l("Elenco dei debiti"), "debt.index", {"tab": "debts"}),
                 P(_l("Ammortamento"), "debt.index", {"tab": "amortization"}),
-                P(_l("Strumenti dei debiti"), "debt.index", {"tab": "tools"}))),
+                P(_l("Strumenti dei debiti"), "debt.index", {"tab": "tools"})), tbd=False),
             Entry("gigs", _l("Lavoretti"), "tools", P(_l("Lavoretti"), "gigs.index")),
             Entry("loans", _l("Prestiti tra persone"), "arrow-left-right", P(_l("Prestiti tra persone"), "loans.index")),
             Entry("insurance", _l("Assicurazioni"), "shield-check", P(_l("Assicurazioni"), "insurance.index")),

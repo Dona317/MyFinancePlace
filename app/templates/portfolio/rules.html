@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% block page_title %}{{ _('Regole e PAC') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Regole e PAC') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Regole e PAC') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.plan_new') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Nuovo PAC') }}</a>
@@ -10,7 +10,7 @@
 {% block content %}
 {% set nav_active = 'rules' %}{% include "portfolio/_nav.html" %}
 {% if alerts %}
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header"><div class="card-header-title">{{ _('Avvisi di oggi') }}</div></div>
   <div class="card-body">
     {% for a in alerts %}
@@ -20,7 +20,7 @@
 </div>
 {% endif %}
 
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header">
     <div>
       <div class="card-header-title">{{ _('Regole') }}</div>
@@ -53,25 +53,25 @@
   </div>
   {% endif %}
   <div class="card-body">
-    <form method="POST" action="{{ url_for('portfolio.rule_new') }}" id="rule-form" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
-      <div class="form-group" style="margin:0;min-width:260px;">
+    <form method="POST" action="{{ url_for('portfolio.rule_new') }}" id="rule-form" class="d-flex flex-wrap gap-12 items-end">
+      <div class="form-group m-0 minw-260">
         <label class="form-label" for="rule-kind">{{ _('Nuova regola') }}</label>
         <select name="kind" id="rule-kind" class="form-select">
           {% for key, label in kinds.items() %}<option value="{{ key }}">{{ _(label) }}</option>{% endfor %}
         </select>
       </div>
-      <div class="form-group" style="margin:0;min-width:200px;">
+      <div class="form-group m-0 minw-200">
         <label class="form-label" for="rule-holding">{{ _('Titolo') }}</label>
         <select name="holding_id" id="rule-holding" class="form-select">
           <option value="">{{ _('— tutti —') }}</option>
           {% for h in holdings %}<option value="{{ h.id }}">{{ h.name }}</option>{% endfor %}
         </select>
       </div>
-      <div class="form-group" style="margin:0;width:140px;">
+      <div class="form-group m-0 w-140">
         <label class="form-label" for="rule-threshold">{{ _('Soglia') }}</label>
         <input type="text" inputmode="decimal" name="threshold" id="rule-threshold" class="form-control" placeholder="15" />
       </div>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+      <button type="submit" class="btn btn-outline"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
     </form>
   </div>
 </div>

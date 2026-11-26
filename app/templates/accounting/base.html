@@ -1,21 +1,16 @@
 {% extends "base.html" %}
-{# Contabilità: one page, four tabs — each tab is a page of its own (its address, its controls), the bar on top
-   leads from one to the other in this order. A statement switched off in the settings has no tab. #}
+{% from "partials/tabs.html" import tab_bar %}
+{# Contabilità: one page, five tabs — each tab is a page of its own (its address, its controls), the bar on top
+   leads from one to the other in this order. A statement switched off in the settings has no tab. The one kind of
+   tabs of the app (UI-53), labelled as in the menu. #}
 
 {% block content %}
 {% set tabs = [] %}
-{% if settings.accounting_balance_sheet %}{{ tabs.append(('accounting.balance_sheet', 'clipboard-data', _('Stato patrimoniale'))) or '' }}{% endif %}
-{% if settings.accounting_income_statement %}{{ tabs.append(('accounting.income_statement', 'receipt', _('Conto economico'))) or '' }}{% endif %}
-{% if settings.accounting_cash_flow %}{{ tabs.append(('accounting.cash_flow', 'arrow-left-right', _('Flusso di cassa'))) or '' }}{% endif %}
-{{ tabs.append(('accounting.growth', 'graph-up-arrow', _('Crescita del patrimonio'))) or '' }}
-{{ tabs.append(('accounting.closes', 'journal-text', _('Bilanci annuali'))) or '' }}
-<nav class="statement-tabs accounting-tabs" aria-label="{{ _('Prospetti') }}">
-  {% for endpoint, icon, label in tabs %}
-  <a class="statement-tab" href="{{ url_for(endpoint) }}"
-     {% if request.endpoint == endpoint %}aria-current="page" aria-selected="true"{% else %}aria-selected="false"{% endif %}>
-    <i class="bi bi-{{ icon }}"></i> {{ label }}
-  </a>
-  {% endfor %}
-</nav>
+{% if settings.accounting_balance_sheet %}{{ tabs.append(('accounting.balance_sheet', url_for('accounting.balance_sheet'), _('Stato patrimoniale'), 'clipboard-data')) or '' }}{% endif %}
+{% if settings.accounting_income_statement %}{{ tabs.append(('accounting.income_statement', url_for('accounting.income_statement'), _('Conto economico'), 'receipt')) or '' }}{% endif %}
+{% if settings.accounting_cash_flow %}{{ tabs.append(('accounting.cash_flow', url_for('accounting.cash_flow'), _('Flusso di cassa'), 'arrow-left-right')) or '' }}{% endif %}
+{{ tabs.append(('accounting.growth', url_for('accounting.growth'), _('Crescita del patrimonio'), 'graph-up-arrow')) or '' }}
+{{ tabs.append(('accounting.closes', url_for('accounting.closes'), _('Bilanci annuali'), 'journal-text')) or '' }}
+<div class="page-tabs">{{ tab_bar(tabs, request.endpoint, _('Prospetti')) }}</div>
 {% block statement %}{% endblock %}
 {% endblock %}

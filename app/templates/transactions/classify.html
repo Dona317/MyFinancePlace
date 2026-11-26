@@ -8,7 +8,7 @@
 {% block content %}
 
 {% set suggested = rows|selectattr(1)|list %}
-<div class="alert alert-info mb-16" style="display:block;">
+<div class="alert alert-info mb-16 d-block">
   <i class="bi bi-stars"></i>
   <strong>{{ _('%(count)s suggerimenti', count=suggested|length) }}</strong> {{ _('su %(total)s transazioni, dal modello', total=rows|length) }} <code>{{ model }}</code>{{ _(', basati sulla causale della banca. Sono preselezionati quelli che cambiano qualcosa e di cui il modello è abbastanza sicuro: controlla, correggi e applica.') }}
 </div>
@@ -59,9 +59,9 @@
             <td><input type="text" name="category-{{ tx.id }}" value="{{ tx.category if worse else s.category }}" list="category-options"
                        class="form-control" style="padding:6px 8px;{{ 'border-color:var(--clr-warning);' if s.confidence == 'bassa' else 'border-color:var(--chart-5);' }}" /></td>
             <td><input type="text" name="counterparty-{{ tx.id }}" value="{{ s.counterparty or tx.counterparty or '' }}"
-                       class="form-control" style="padding:6px 8px;" placeholder="{{ _('Controparte (tag)') }}" /></td>
+                       class="form-control p-cell" placeholder="{{ _('Controparte (tag)') }}" /></td>
             {% if with_tags %}<td><input type="text" name="tag-{{ tx.id }}" value="{{ s.tag }}" list="tag-options"
-                       class="form-control" style="padding:6px 8px;" /></td>{% endif %}
+                       class="form-control p-cell" /></td>{% endif %}
             <td>
               <span class="badge {{ 'badge-positive' if s.confidence == 'alta' else ('badge-negative' if s.confidence == 'bassa' else 'badge-muted') }}">
                 {{ s.confidence }}</span>

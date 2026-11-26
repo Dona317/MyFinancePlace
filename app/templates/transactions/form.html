@@ -19,11 +19,11 @@
       <div class="card-header-title">
         {% if request.values.get("from") == "add" %}<button type="button" class="btn btn-ghost btn-icon form-back" data-popup-back title="{{ _('Indietro') }}" aria-label="{{ _('Indietro') }}"><i class="bi bi-arrow-left"></i></button>{% endif %}
         {% if is_edit %}<i class="bi bi-pencil"></i>{% endif %}
-        {{ _('Modifica Transazione') if is_edit else _('Nuova transazione') }}
+        {{ _('Modifica transazione') if is_edit else _('Nuova transazione') }}
       </div>
       <div class="form-top-actions">
         {% if is_edit %}
-        <button type="submit" form="delete-form" class="btn btn-ghost btn-sm" style="color:var(--clr-negative);" title="{{ _('Elimina questa transazione') }}">
+        <button type="submit" form="delete-form" class="btn btn-ghost btn-sm text-negative" title="{{ _('Elimina questa transazione') }}">
           <i class="bi bi-trash3"></i> {{ _('Elimina') }}
         </button>
         {% endif %}
@@ -117,7 +117,7 @@
         {% endmacro %}
         {% set split_open = v.splits|length >= 2 %}
         <div class="form-group" id="category-single" {% if split_open %}hidden{% endif %}>
-          <div class="d-flex align-center" style="justify-content:space-between;gap:8px;">
+          <div class="d-flex align-center justify-between gap-8">
             <label class="form-label" for="f-category">{{ _('Categoria') }}</label>
             <button type="button" class="btn btn-ghost btn-sm" id="split-open"><i class="bi bi-diagram-2"></i> {{ _('Suddividi') }}</button>
           </div>
@@ -129,7 +129,7 @@
 
         <!-- Gruppo di spesa: the cluster above the category (spending on two levels) -->
         <div class="form-group">
-          <label class="form-label" for="f-cluster">{{ _('Gruppo di spesa') }} {{ info(_('Automatico: usa la scelta fatta per transazioni simili, altrimenti la categoria. Scegliere un gruppo a mano lo ricorda.'), _('Gruppo di spesa')) }} <span class="text-muted" style="font-weight:400;">{{ _('(sopra la categoria, solo uscite)') }}</span></label>
+          <label class="form-label" for="f-cluster">{{ _('Gruppo di spesa') }} {{ info(_('Automatico: usa la scelta fatta per transazioni simili, altrimenti la categoria. Scegliere un gruppo a mano lo ricorda.'), _('Gruppo di spesa')) }} <span class="text-muted fw-normal">{{ _('(sopra la categoria, solo uscite)') }}</span></label>
           <select id="f-cluster" name="cluster" class="form-select">
             <option value="">{{ _('Automatico (dalle regole)') }}</option>
             {% for key, name in cluster_choices.items() %}<option value="{{ key }}" {{ 'selected' if v.cluster == key }}>{{ name }}</option>{% endfor %}
@@ -141,7 +141,7 @@
             {% for category, amount in (v.splits if split_open else [('', ''), ('', '')]) %}{{ split_row(category, amount) }}{% endfor %}
           </div>
           <template id="split-template">{{ split_row() }}</template>
-          <div class="d-flex align-center" style="justify-content:space-between;gap:8px;flex-wrap:wrap;">
+          <div class="d-flex align-center justify-between gap-8 flex-wrap">
             <button type="button" class="btn btn-ghost btn-sm" id="split-add"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi una parte') }}</button>
             <span class="text-sm" id="split-left" data-left="{{ _('Da assegnare: {amount}') }}" data-over="{{ _('Oltre l\'importo: {amount}') }}" data-ok="{{ _('Tutto assegnato') }}"></span>
             <button type="button" class="btn btn-ghost btn-sm" id="split-close"><i class="bi bi-x"></i> {{ _('Una sola categoria') }}</button>
@@ -158,7 +158,7 @@
             </select>
           </div>
           <div class="form-group" id="counter-account-group" {% if not v.transfer %}hidden{% endif %}>
-            <label class="form-label" for="f-counter">{{ _('Verso il conto') }} <span class="text-muted" style="font-weight:400;">{{ _('(trasferimenti)') }}</span></label>
+            <label class="form-label" for="f-counter">{{ _('Verso il conto') }} <span class="text-muted fw-normal">{{ _('(trasferimenti)') }}</span></label>
             <select id="f-counter" name="counter_account_id" class="form-select">
               <option value="">{{ _('— Fuori dai miei conti —') }}</option>
               {% for a in accounts %}<option value="{{ a.id }}" data-currency="{{ a.currency or 'EUR' }}" {{ 'selected' if v.counter_account_id == a.id|string }}>{{ a.name }}</option>{% endfor %}
@@ -194,7 +194,7 @@
         <div class="grid-2">
           {% if holdings %}
           <div class="form-group">
-            <label class="form-label" for="f-holding">{{ _('Investimento') }} <span class="text-muted" style="font-weight:400;">{{ _('(acquisto, vendita, dividendo)') }}</span></label>
+            <label class="form-label" for="f-holding">{{ _('Investimento') }} <span class="text-muted fw-normal">{{ _('(acquisto, vendita, dividendo)') }}</span></label>
             <select id="f-holding" name="holding_id" class="form-select">
               <option value="">{{ _('— Nessuno —') }}</option>
               {% for h in holdings %}<option value="{{ h.id }}" {{ 'selected' if v.holding_id == h.id|string }}>{{ h.name }}</option>{% endfor %}
@@ -203,7 +203,7 @@
           {% endif %}
           {% if debts %}
           <div class="form-group">
-            <label class="form-label" for="f-debt">{{ _('Debito') }} <span class="text-muted" style="font-weight:400;">{{ _('(rata, erogazione)') }}</span></label>
+            <label class="form-label" for="f-debt">{{ _('Debito') }} <span class="text-muted fw-normal">{{ _('(rata, erogazione)') }}</span></label>
             <select id="f-debt" name="debt_id" class="form-select">
               <option value="">{{ _('— Nessuno —') }}</option>
               {% for d in debts %}<option value="{{ d.id }}" {{ 'selected' if v.debt_id == d.id|string }}>{{ d.name }}</option>{% endfor %}
@@ -212,7 +212,7 @@
           {% endif %}
           {% if events %}
           <div class="form-group">
-            <label class="form-label" for="f-event">{{ _('Evento') }} <span class="text-muted" style="font-weight:400;">{{ _('(viaggio, matrimonio…)') }}</span></label>
+            <label class="form-label" for="f-event">{{ _('Evento') }} <span class="text-muted fw-normal">{{ _('(viaggio, matrimonio…)') }}</span></label>
             <select id="f-event" name="event_id" class="form-select">
               <option value="">{{ _('— Nessuno —') }}</option>
               {% for e in events %}<option value="{{ e.id }}" {{ 'selected' if v.event_id == e.id|string }}>{{ e.name }}</option>{% endfor %}
@@ -291,14 +291,14 @@
               <input class="check" type="checkbox" id="is_recurring" name="is_recurring"
                      {{ 'checked' if v.is_recurring else '' }}
                      onchange="document.getElementById('recurring-opts').style.display=this.checked?'block':'none'" />
-              <label for="is_recurring" style="font-weight:600;color:var(--clr-text-primary);cursor:pointer;">
+              <label for="is_recurring" class="font-semibold text-strong cursor-pointer">
                 {{ _('Ricorrente pianificata') }} {{ info(_('Entrata o uscita che si ripete (es. stipendio, affitto, abbonamento): entra nelle previsioni e in Abbonamenti. L’importo può cambiare di volta in volta.'), _('Ricorrente pianificata')) }}
               </label>
             </div>
             {# an income too: the salary, a rent received — the amount can change each time, the forecast follows it #}
             <div id="recurring-opts" style="display:{{ 'block' if v.is_recurring else 'none' }};">
               <div class="grid-2">
-                <div class="form-group" style="margin-bottom:0;">
+                <div class="form-group mb-0">
                   <label class="form-label">{{ _('Frequenza') }}</label>
                   <select name="recurrence" class="form-select">
                     {% set current = v.recurrence or 'monthly' %}
@@ -307,7 +307,7 @@
                     {% endfor %}
                   </select>
                 </div>
-                <div class="form-group" style="margin-bottom:0;">
+                <div class="form-group mb-0">
                   <label class="form-label">{{ _('Fine') }}</label>
                   <div class="end-choice" role="radiogroup" aria-label="{{ _('Come finisce') }}">
                     <label><input type="radio" name="recurrence_end_mode" value="date" class="check" {{ 'checked' if v.recurrence_end_mode != 'count' }} /> {{ _('Data') }}</label>

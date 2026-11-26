@@ -14,10 +14,10 @@
 {% block content %}
 
 <div class="kpi-grid mb-24">
-  {{ kpi('credit-card-2-back', _('Residuo Oggi'), value=summary.balance|money, cls='kpi-purple', sub=(_('dal conto del prestito') if d.account_id else _('saldo inserito da te') if d.balance is not none else _('dal piano di ammortamento'))) }}
-  {% call kpi('calendar-check', _('Rata Mensile'), value=(summary.installment|money if summary.installment else '—'), cls='kpi-warning') %}{{ d.type|tr }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}{% endcall %}
-  {{ kpi('hourglass-split', _('Rate Rimanenti'), value=summary.months_left, sub=(_('ultima il %(date)s', date=summary.end_date|it_date) if summary.end_date else '')) }}
-  {{ kpi('percent', _('Interessi Ancora da Pagare'), value=summary.interest_left|money, cls='kpi-primary', sub=(_("%(amount)s pagati quest'anno", amount=summary.interest_ytd|money))) }}
+  {{ kpi('credit-card-2-back', _('Residuo oggi'), value=summary.balance|money, cls='kpi-purple', sub=(_('dal conto del prestito') if d.account_id else _('saldo inserito da te') if d.balance is not none else _('dal piano di ammortamento'))) }}
+  {% call kpi('calendar-check', _('Rata mensile'), value=(summary.installment|money if summary.installment else '—'), cls='kpi-warning') %}{{ d.type|tr }} · {{ _('tasso %(rate)s%%', rate=d.annual_rate|number(3)) }}{% endcall %}
+  {{ kpi('hourglass-split', _('Rate rimanenti'), value=summary.months_left, sub=(_('ultima il %(date)s', date=summary.end_date|it_date) if summary.end_date else '')) }}
+  {{ kpi('percent', _('Interessi ancora da pagare'), value=summary.interest_left|money, cls='kpi-primary', sub=(_("%(amount)s pagati quest'anno", amount=summary.interest_ytd|money))) }}
 </div>
 
 {% if summary.never_ends %}
@@ -38,7 +38,7 @@
   </div>
   {% if d.account and banks %}
   <div class="card-body">
-    <form method="POST" action="{{ url_for('debt.payment', debt_id=d.id) }}" class="grid-4" style="align-items:end;">
+    <form method="POST" action="{{ url_for('debt.payment', debt_id=d.id) }}" class="grid-4 items-end">
       <div class="form-group"><label class="form-label" for="lp-amount">{{ _('Rata pagata (€)') }} {{ info(_('Gli interessi del piano di quel mese diventano una spesa «Prestito», il resto riduce il debito.'), _('Rata pagata (€)')) }}</label>
         <input type="text" inputmode="decimal" id="lp-amount" name="amount" class="form-control" required autocomplete="off"
                value="{{ summary.installment|plain if summary.installment else '' }}" /></div>
@@ -57,7 +57,7 @@
 <div class="card">
   <div class="card-header">
     <div>
-      <div class="card-header-title">{{ _('Piano di Ammortamento') }}</div>
+      <div class="card-header-title">{{ _('Piano di ammortamento') }}</div>
       <div class="card-header-sub">{{ _("Rata costante (alla francese): all'inizio si pagano soprattutto interessi, poi capitale") }}</div>
     </div>
   </div>
@@ -99,7 +99,7 @@
   </div>
   {% else %}
   {% call empty_state(text=_('Per calcolare il piano servono la <strong>data di inizio</strong> e la <strong>durata</strong> (o la rata mensile).')) %}
-    <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> {{ _('Completa i dati') }}</a>
+    <a href="{{ url_for('debt.edit', debt_id=d.id) }}" class="btn btn-outline"><i class="bi bi-pencil"></i> {{ _('Completa i dati') }}</a>
   {% endcall %}
   {% endif %}
 </div>

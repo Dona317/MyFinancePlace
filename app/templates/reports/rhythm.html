@@ -5,26 +5,29 @@
 {% block page_title %}{{ _('Report') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('reports.index') }}">{{ _('Report') }}</a></li><li>{{ _('Ritmo') }}</li>{% endblock %}
 
+{% block topbar_actions %}
+  {% include "partials/year_select.html" %}
+{% endblock %}
+
 {% block content %}
-<div class="report-bar mb-16">
+<div class="page-tabs">
   {% set tab_items = namespace(list=[]) %}
   {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, url_for('reports.index', tab=key), label)] %}{% endfor %}
   {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo')), ('rhythm', url_for('reports.rhythm', year=year), _('Ritmo')), ('year', url_for('reports.year_review'), _('Bilancio dell’anno'))], 'rhythm', _('Tipo di report')) }}
-  <div class="report-controls">{% include "partials/year_select.html" %}</div>
 </div>
 
-<div class="kpi-grid" style="margin-bottom:24px;">
+<div class="kpi-grid mb-24">
   {{ kpi('cash-stack', _('Spese del %(year)s', year=year), value=calendar.total|money, cls='kpi-primary') }}
   {{ kpi('calendar-check', _('Giorni con spese'), value=calendar.days_with ~ ' / ' ~ calendar.days) }}
   {{ kpi('calendar', _('Giorni senza spese'), value=calendar.days - calendar.days_with) }}
 </div>
 
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header"><div>
     <div class="card-header-title">{{ _('Calendario delle spese') }}</div>
     <div class="card-header-sub">{{ _('Ogni quadrato è un giorno: più è scuro, più hai speso. Passa sopra per l\'importo, clicca per i movimenti.') }}</div>
   </div></div>
-  <div class="card-body" style="overflow-x:auto;">
+  <div class="card-body overflow-x">
     <div class="rhythm-grid" role="img" aria-label="{{ _('Calendario delle spese') }}">
       {% for week in calendar.weeks %}
       <div class="rhythm-week">
@@ -38,7 +41,7 @@
       {% endfor %}
     </div>
     {% if calendar.busiest %}
-    <div class="text-sm text-muted" style="margin-top:12px;">{{ _('Giorni più cari:') }}
+    <div class="text-sm text-muted mt-12">{{ _('Giorni più cari:') }}
       {% for day, amount in calendar.busiest %}{{ day|it_date }} ({{ amount|money }}){{ ', ' if not loop.last }}{% endfor %}</div>
     {% endif %}
   </div>
@@ -57,7 +60,7 @@
     <div class="card-body">
       {% for title, rows in ((_('In aumento'), changes.up), (_('In calo'), changes.down)) %}
       {% if rows %}
-      <div class="font-semibold text-sm" style="margin-top:8px;">{{ title }}</div>
+      <div class="font-semibold text-sm mt-8">{{ title }}</div>
       {% for r in rows %}
       <div style="display:flex;justify-content:space-between;gap:8px;">
         <span>{{ r.category|tr }}</span>

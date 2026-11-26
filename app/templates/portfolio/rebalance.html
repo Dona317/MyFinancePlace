@@ -2,7 +2,7 @@
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ _('Ribilanciamento') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Ribilanciamento') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Ribilanciamento') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.models_edit', template_id=plan.template.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica modello') }}</a>
@@ -11,7 +11,7 @@
 
 {% block content %}
 {% set nav_active = 'model' %}{% include "portfolio/_nav.html" %}
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header">
     <div>
       <div class="card-header-title">{{ plan.template.name }}</div>
@@ -23,16 +23,16 @@
     </div>
   </div>
   <div class="card-body">
-    <form method="GET" style="display:flex;flex-wrap:wrap;gap:16px;align-items:end;">
+    <form method="GET" class="d-flex flex-wrap gap-16 items-end">
       {% if scopes|length > 1 or folio_id %}
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label" for="portfolio">{{ _('Portafoglio') }}</label>
         <select name="portfolio" id="portfolio" class="form-select" onchange="this.form.submit()">
           {% for id, name in scopes %}<option value="{{ id or '' }}" {{ 'selected' if id == folio_id }}>{{ name }}</option>{% endfor %}
         </select>
       </div>
       {% endif %}
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label" for="mode">{{ _('Modalità') }}</label>
         <select name="mode" id="mode" class="form-select">
           <option value="new" {{ 'selected' if plan.mode == 'new' else '' }}>{{ _('Solo con nuovi versamenti (solo acquisti)') }}</option>
@@ -41,7 +41,7 @@
           <option value="withdraw" {{ 'selected' if plan.mode == 'withdraw' else '' }}>{{ _('Prelievo con ribilanciamento (solo vendite)') }}</option>
         </select>
       </div>
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label" for="amount">{{ _('Importo da prelevare (€)') if plan.mode == 'withdraw' else _('Importo da investire (€)') }}</label>
         <input type="text" inputmode="decimal" name="amount" id="amount" class="form-control" value="{{ ('%.2f'|format(plan.amount)).replace('.', ',') if plan.amount else '' }}" placeholder="0,00" />
       </div>
@@ -51,7 +51,7 @@
 </div>
 
 {% if bands.labels %}
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header">
     <div class="card-header-title">{{ _('Peso attuale e obiettivo') }} {{ info(_('Per ogni parte: la barra è il peso di oggi, il trattino verticale l\'obiettivo e la fascia chiara la tolleranza (obiettivo ± %(band)s punti). Una barra rossa è fuori dalla tolleranza.', band=plan.template.band|number(2))) }}</div>
   </div>
@@ -104,9 +104,9 @@
   <div class="card-body text-sm"><i class="bi bi-receipt"></i> {{ _('Tasse stimate sulle vendite: %(amount)s.', amount=plan.tax|money) }}</div>
   {% endif %}
   {% if plan.lines|selectattr('move')|selectattr('via')|list %}
-  <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;">
+  <div class="card-body d-flex gap-8 justify-end items-center flex-wrap">
     {{ info(_('Esegui gli ordini dal tuo broker, poi conferma quote, prezzi e commissioni reali: diventano acquisti e vendite.')) }}
-    <a href="{{ url_for('portfolio.rebalance_orders', mode=plan.mode, amount=request.args.get('amount', ''), portfolio=folio_id) }}" class="btn btn-primary"><i class="bi bi-list-check"></i> {{ _('Prepara gli ordini') }}</a>
+    <a href="{{ url_for('portfolio.rebalance_orders', mode=plan.mode, amount=request.args.get('amount', ''), portfolio=folio_id) }}" class="btn btn-outline"><i class="bi bi-list-check"></i> {{ _('Prepara gli ordini') }}</a>
   </div>
   {% endif %}
   {% if plan.mode == 'new' and not plan.amount %}

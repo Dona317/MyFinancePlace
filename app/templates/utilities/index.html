@@ -4,11 +4,12 @@
 {% from "partials/actions.html" import delete_button, icon_link %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
+{% from "partials/tabs.html" import tab_bar %}
 {% block page_title %}{{ _('Bollette') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Bollette') }}</li>{% endblock %}
 
 {% macro reading_fields(prefix, values) -%}
-<div class="grid-3" style="gap:12px;">
+<div class="grid-3 gap-12">
   <div class="form-group"><label class="form-label" for="{{ prefix }}-utility">{{ _('Utenza') }}</label>
     <select id="{{ prefix }}-utility" name="utility" class="form-select">{% for key, item in utilities.items() %}<option value="{{ key }}" {{ 'selected' if key == values.utility }}>{{ _(item.label) }}</option>{% endfor %}</select></div>
   <div class="form-group"><label class="form-label" for="{{ prefix }}-supplier">{{ _('Fornitore') }}</label>
@@ -35,12 +36,11 @@
 {% set u = utilities[utility] %}{% set unit = u.unit %}
 <p class="text-sm text-muted mb-16">{{ _('Le bollette con il periodo e il consumo: quanto paghi al mese e per unità, come cambia con le stagioni e quanto avresti speso con un’altra offerta.') }}</p>
 
-<nav class="report-tabs mb-16" aria-label="{{ _('Utenze') }}">
-  {% for s in summaries %}
-  <a href="{{ url_for('utilities.index', utility=s.utility.key) }}" class="report-tab{{ ' active' if s.utility.key == utility }}"{% if s.utility.key == utility %} aria-current="page"{% endif %}>
-    <i class="bi bi-{{ s.utility.icon }}"></i> {{ _(s.utility.label) }}{% if s.count %} <span class="text-xs text-muted">{{ s.count }}</span>{% endif %}</a>
-  {% endfor %}
-</nav>
+{# UI-53: the one kind of tabs, one per utility with how many bills it has #}
+{% set utility_tabs = [] %}
+{% for s in summaries %}{{ utility_tabs.append((s.utility.key, url_for('utilities.index', utility=s.utility.key),
+   _(s.utility.label) ~ (' · ' ~ s.count if s.count else ''), s.utility.icon)) or '' }}{% endfor %}
+<div class="page-tabs">{{ tab_bar(utility_tabs, utility, _('Utenze')) }}</div>
 
 <div class="kpi-grid mb-16">
   {{ kpi(u.icon, _('Ultimi 12 mesi'), value=summary.year_cost|money, sub=(summary.year_use|number(0) ~ ' ' ~ unit) if unit and summary.year_use else none) }}
@@ -53,7 +53,7 @@
 <div class="grid-2 mb-16 utilities-grid">
   <div class="card">
     <div class="card-header"><div class="card-header-title"><i class="bi bi-bar-chart-line"></i> {{ _('Costo al mese per bolletta') }}{% if unit %} {{ _('e costo per %(unit)s', unit=unit) }}{% endif %}</div></div>
-    <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="utilityChart"></canvas></div></div>
+    <div class="card-body"><div class="chart-container h-260"><canvas id="utilityChart"></canvas></div></div>
   </div>
   {% if unit %}
   <div class="card">
@@ -135,14 +135,14 @@
       {% if edit %}
       <form method="POST" action="{{ url_for('utilities.edit', reading_id=edit.id) }}">
         {{ reading_fields('e', {'utility': edit.utility, 'supplier': edit.supplier, 'amount': edit.amount, 'start': edit.period_start.isoformat(), 'end': edit.period_end.isoformat(), 'consumption': edit.consumption, 'notes': edit.notes}) }}
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
         <a class="btn btn-ghost" href="{{ url_for('utilities.index', utility=utility) }}">{{ _('Annulla') }}</a>
       </form>
       {% else %}
       <form method="POST" action="{{ url_for('utilities.create') }}">
         {% if read and read.document_id %}<input type="hidden" name="document_id" value="{{ read.document_id }}" />{% endif %}
         {{ reading_fields('n', {'utility': utility, 'supplier': read.supplier if read else '', 'amount': read.amount if read else none, 'start': read.start if read else '', 'end': read.end if read else '', 'consumption': read.consumption if read else none}) }}
-        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Registra') }}</button>
+        <button type="submit" class="btn btn-outline"><i class="bi bi-plus-lg"></i> {{ _('Registra') }}</button>
       </form>
       {% endif %}
     </div>

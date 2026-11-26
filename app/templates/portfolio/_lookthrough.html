@@ -17,7 +17,7 @@
     {% endif %}
   </div>
   {% if look.count %}
-  <div class="card-body grid-2" style="gap:16px;">
+  <div class="card-body grid-2 gap-16">
     {% for kind, title in (('country', _('Paesi')), ('sector', _('Settori')), ('currency', _('Valute')), ('holding', _('Prime società'))) %}
     {% set shown = 10 if kind == 'holding' else 6 %}
     {% if look[kind] %}
@@ -35,42 +35,42 @@
   </div>
   {% endif %}
   <div class="card-body">
-    <form method="POST" action="{{ url_for('portfolio.lookthrough_upload', holding_id=holding.id) }}" enctype="multipart/form-data" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
-      <div class="form-group" style="margin:0;">
+    <form method="POST" action="{{ url_for('portfolio.lookthrough_upload', holding_id=holding.id) }}" enctype="multipart/form-data" class="d-flex flex-wrap gap-12 items-end">
+      <div class="form-group m-0">
         <label class="form-label" for="look-file">{{ _("Carica il file dell'emittente") }}
           {{ info(_("Sul sito dell'emittente, nella pagina del fondo: iShares → «Partecipazioni» → «Scarica» (CSV o Excel); Vanguard → «Portafoglio» → «Esporta i dati»; Xtrackers → «Composizione» → «Scarica» (Excel); Amundi → «Composizione» → «Scarica»; SPDR → «Holdings» → «Download» (Excel). Il file resta sul tuo computer: l'app non si collega a internet. Si leggono il peso di ogni titolo, il paese, il settore e la valuta; si tengono le prime 25 società."), _("Carica il file dell'emittente")) }}</label>
         <input type="file" name="file" id="look-file" class="form-control" accept=".csv,.txt,.xlsx,.xlsm,.xls,.ods,.xml" required />
       </div>
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label" for="look-date">{{ _('Dati al') }} {{ info(_('Facoltativa: se la lasci vuota vale la data scritta nel file, altrimenti oggi.'), _('Dati al')) }}</label>
         <input type="date" name="as_of" id="look-date" class="form-control" />
       </div>
-      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-upload"></i> {{ _('Carica') }}</button>
+      <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-upload"></i> {{ _('Carica') }}</button>
     </form>
   </div>
   <details class="card-body">
     <summary style="cursor:pointer;"><strong>{{ _('Scrivi a mano i primi 10 paesi e settori') }}</strong>
       {{ info(_('Dalla scheda del fondo (factsheet o KID): il nome del paese in italiano o in inglese e il peso in percentuale. Sostituisce i paesi e i settori di prima; il resto conta come «Senza dati».')) }}</summary>
-    <form method="POST" action="{{ url_for('portfolio.lookthrough_manual', holding_id=holding.id) }}" style="margin-top:12px;">
-      <div class="grid-2" style="gap:16px;">
+    <form method="POST" action="{{ url_for('portfolio.lookthrough_manual', holding_id=holding.id) }}" class="mt-12">
+      <div class="grid-2 gap-16">
         {% for kind, title in (('country', _('Paese')), ('sector', _('Settore'))) %}
         <fieldset>
           <legend class="form-label">{{ title }} · %</legend>
           {% for i in range(manual_rows) %}
           {% set row = look.manual[kind][i] if i < look.manual[kind]|length else none %}
-          <div class="d-flex gap-8" style="margin-bottom:4px;">
+          <div class="d-flex gap-8 mb-4">
             <input type="text" name="{{ kind }}_name" class="form-control" value="{{ (row[0]|tr) if row else '' }}" aria-label="{{ title }} {{ i + 1 }}" />
-            <input type="text" inputmode="decimal" name="{{ kind }}_weight" class="form-control" style="width:90px;" value="{{ row[1]|number(2) if row else '' }}" aria-label="{{ title }} {{ i + 1 }} (%)" />
+            <input type="text" inputmode="decimal" name="{{ kind }}_weight" class="form-control w-90" value="{{ row[1]|number(2) if row else '' }}" aria-label="{{ title }} {{ i + 1 }} (%)" />
           </div>
           {% endfor %}
         </fieldset>
         {% endfor %}
       </div>
-      <div class="form-group" style="margin-top:8px;">
+      <div class="form-group mt-8">
         <label class="form-label" for="look-manual-date">{{ _('Dati al') }}</label>
-        <input type="date" name="as_of" id="look-manual-date" class="form-control" style="max-width:200px;" />
+        <input type="date" name="as_of" id="look-manual-date" class="form-control maxw-200" />
       </div>
-      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+      <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
     </form>
   </details>
 </div>

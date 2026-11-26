@@ -5,12 +5,12 @@
 {% from "partials/kpi.html" import kpi %}
 
 {% block title %}{{ _('Assicurazioni') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Gestione Assicurazioni') }}{% endblock %}
+{% block page_title %}{{ _('Assicurazioni') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Assicurazioni') }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('insurance.new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> {{ _('Nuova Polizza') }}
+    <i class="bi bi-plus-lg"></i> {{ _('Nuova polizza') }}
   </a>
 {% endblock %}
 
@@ -18,10 +18,10 @@
 
 <!-- KPI ──────────────────────────────────────────────────────────────────── -->
 <div class="kpi-grid mb-24">
-  {{ kpi('shield-check', _('Polizze Attive'), value=active_count, cls='kpi-primary', sub=(_('non scadute'))) }}
-  {{ kpi('cash-stack', _('Premio Annuo Totale'), value=annual_total|money, cls='kpi-negative', sub=(_('%(amount)s al mese', amount=(annual_total / 12)|money))) }}
-  {{ kpi('calendar-event', _('Prossima Scadenza'), value=(next_expiry.expiry_date|it_date if next_expiry else '—'), cls='kpi-warning', sub=((next_expiry.type ~ ' · ' ~ next_expiry.company) if next_expiry else _('Nessuna scadenza'))) }}
-  {{ kpi('umbrella', _('Copertura Totale'), value=coverage_total|money, cls='kpi-positive', sub=(_('massimali cumulati'))) }}
+  {{ kpi('shield-check', _('Polizze attive'), value=active_count, cls='kpi-primary', sub=(_('non scadute'))) }}
+  {{ kpi('cash-stack', _('Premio annuo totale'), value=annual_total|money, cls='kpi-negative', sub=(_('%(amount)s al mese', amount=(annual_total / 12)|money))) }}
+  {{ kpi('calendar-event', _('Prossima scadenza'), value=(next_expiry.expiry_date|it_date if next_expiry else '—'), cls='kpi-warning', sub=((next_expiry.type ~ ' · ' ~ next_expiry.company) if next_expiry else _('Nessuna scadenza'))) }}
+  {{ kpi('umbrella', _('Copertura totale'), value=coverage_total|money, cls='kpi-positive', sub=(_('massimali cumulati'))) }}
 </div>
 
 {% if upcoming %}
@@ -95,7 +95,7 @@
     {% endcall %}
     {% else %}
     {% call empty_state(text=_('Nessuna polizza registrata. Aggiungi la prima copertura: ti ricorderemo le scadenze.'), icon='bi-shield-slash') %}
-      <a href="{{ url_for('insurance.new') }}" class="btn btn-primary"><i class="bi bi-plus"></i> {{ _('Aggiungi Polizza') }}</a>
+      <a href="{{ url_for('insurance.new') }}" class="btn btn-primary"><i class="bi bi-plus"></i> {{ _('Aggiungi polizza') }}</a>
     {% endcall %}
     {% endif %}
   </div>
@@ -103,12 +103,12 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-header-title">{{ _('Premi per Tipo') }}</div>
+        <div class="card-header-title">{{ _('Premi per tipo') }}</div>
         <div class="card-header-sub">{{ _('Premio annuo delle polizze attive') }}</div>
       </div>
     </div>
     <div class="card-body">
-      <div class="chart-container" style="height:220px;">
+      <div class="chart-container h-220">
         {% if by_type %}<canvas id="premiumPieChart"></canvas>
         {% else %}<div class="chart-empty">{{ _('Nessuna polizza attiva.') }}</div>{% endif %}
       </div>

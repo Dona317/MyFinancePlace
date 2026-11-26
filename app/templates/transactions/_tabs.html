@@ -4,7 +4,7 @@
 {% macro transactions_tabs(active) -%}
 {% set items = [('register', url_for('transactions.index'), _('Transazioni'), 'list-ul')] %}
 {# UI-48: Conti e Carte is the second tab, its page as it was (with its own tabs below) #}
-{% if shown('accounts') %}{% set items = items + [('accounts', url_for('accounts.index'), _('Conti e Carte'), 'bank')] %}{% endif %}
+{% if shown('accounts') %}{% set items = items + [('accounts', url_for('accounts.index'), _('Conti e carte'), 'bank')] %}{% endif %}
 {% if shown('reports') %}
 {% set items = items + [('income', url_for('reports.income'), _('Entrate'), 'arrow-down-circle'),
                         ('spending', url_for('reports.spending'), _('Uscite'), 'arrow-up-circle')] %}
@@ -12,5 +12,5 @@
 {% if shown('subscriptions') %}{% set items = items + [('recurring', url_for('subscriptions.index'), _('Entrate e uscite ricorrenti'), 'arrow-repeat')] %}{% endif %}
 {% if shown('portfolio') %}{% set items = items + [('investments', url_for('transactions.investments_page'), _('Investimenti'), 'briefcase')] %}{% endif %}
 {% set items = items + [('flows', url_for('transactions.flows_page'), _('Flussi'), 'diagram-3')] %}
-<div class="section-tabs mb-16">{{ tab_bar(items, active, _('Transazioni')) }}</div>
+<div class="page-tabs tabs-first">{{ tab_bar(items, active, _('Transazioni')) }}</div>
 {%- endmacro %}

@@ -6,7 +6,7 @@
 
 {% block title %}{{ _('Panoramica investimenti') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Panoramica investimenti') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Panoramica') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Panoramica') }}</li>{% endblock %}
 
 {% macro pct(value) -%}{{ ((value|number(2)) ~ ' %') if value is not none else '—' }}{%- endmacro %}
 
@@ -27,7 +27,7 @@
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Valore e versato') }} {{ info(_('Il valore a fine mese ai prezzi registrati fino a quel giorno, e quanto ci hai messo: la distanza tra le due linee è il guadagno.')) }}</div>
       <a href="{{ url_for('portfolio.performance_page') }}" class="btn btn-ghost btn-sm">{{ _('Rendimenti') }} <i class="bi bi-arrow-right"></i></a></div>
-    <div class="card-body"><div class="chart-container" style="height:240px;">
+    <div class="card-body"><div class="chart-container h-240">
       {% if o.series.value|length >= 2 %}<canvas id="ovValueChart"></canvas>
       {% else %}<div class="chart-empty">{{ _('Servono almeno due mesi di prezzi e operazioni.') }}</div>{% endif %}
     </div></div>
@@ -35,7 +35,7 @@
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Per classe di attivo') }} {{ info(_('Azionario, obbligazionario, misto, commodities…: a cosa sei esposto.')) }}</div>
       <a href="{{ url_for('portfolio.index') }}" class="btn btn-ghost btn-sm">{{ _('Posizioni') }} <i class="bi bi-arrow-right"></i></a></div>
-    <div class="card-body"><div class="chart-container" style="height:240px;">
+    <div class="card-body"><div class="chart-container h-240">
       {% if o.classes %}<canvas id="ovClassChart"></canvas>
       {% else %}<div class="chart-empty">{{ _('Nessun investimento.') }}</div>{% endif %}
     </div></div>
@@ -49,7 +49,7 @@
     {% if o.models %}
     <div class="card-body">
       {% for m in o.models %}
-      <div class="d-flex align-center gap-8 mb-8" style="justify-content:space-between;">
+      <div class="d-flex align-center gap-8 mb-8 justify-between">
         <strong>{{ m.template.portfolio.name if m.template.portfolio else _('Tutti gli investimenti') }} · {{ m.template.name }}</strong>
         <a href="{{ url_for('portfolio.rebalance', portfolio=m.template.portfolio_id) }}" class="btn btn-ghost btn-sm {{ 'text-negative' if m.off }}">
           {% if m.off %}<i class="bi bi-exclamation-triangle"></i> {{ _('%(count)s fuori tolleranza', count=m.off) }}{% else %}<i class="bi bi-check2-circle"></i> {{ _('In linea') }}{% endif %}</a>

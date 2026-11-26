@@ -214,7 +214,7 @@
       <div class="sidebar-user-row">
         <div class="sidebar-user-wrap">
           <button type="button" class="sidebar-user" id="user-menu-btn" aria-haspopup="menu" aria-expanded="false"
-                  aria-controls="user-menu" title="{{ (current_user.username ~ ' · ' ~ (_('Amministratore') if current_user.is_admin else _('Utente'))) if signed_in else _('Utente') ~ ' · ' ~ _('Account Personale') }}" {{ 'disabled' if not signed_in }}>
+                  aria-controls="user-menu" title="{{ (current_user.username ~ ' · ' ~ (_('Amministratore') if current_user.is_admin else _('Utente'))) if signed_in else _('Utente') ~ ' · ' ~ _('Account personale') }}" {{ 'disabled' if not signed_in }}>
             <span class="sidebar-user-avatar">{{ current_user.username[0]|upper if signed_in else 'U' }}</span>
             <span class="sidebar-user-info">
               <span class="sidebar-user-name">{{ current_user.username if signed_in else _('Utente') }}</span>
@@ -332,7 +332,7 @@
 {% set add_positions = request.blueprint == 'portfolio' and allowed('portfolio') %}
 {% if (add_positions or allowed('transactions')) and not embedded %}
 <!-- Nuova transazione: a round + at the bottom left of the page, like the AI button on the right -->
-{% set add_label = _('Nuova posizione') if add_positions else _('Nuova Transazione') %}
+{% set add_label = _('Nuova posizione') if add_positions else _('Nuova transazione') %}
 <a href="{{ url_for('portfolio.new') if add_positions else url_for('transactions.add') }}" class="add-bubble" id="add-bubble" title="{{ add_label }}" aria-label="{{ add_label }}"><i class="bi bi-plus-lg"></i></a>
 <div class="modal-overlay" id="add-chooser" onclick="if (event.target === this) closeModal('add-chooser')">
   <div class="modal add-chooser" role="dialog" aria-modal="true" aria-labelledby="add-chooser-title">

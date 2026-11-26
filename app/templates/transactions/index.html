@@ -42,10 +42,10 @@
 
 
 {% if duplicate_groups %}
-<div class="alert alert-warning mb-16" style="display:flex;align-items:center;gap:8px;">
+<div class="alert alert-warning mb-16 d-flex items-center gap-8">
   <i class="bi bi-intersect"></i>
   <span>{{ ngettext('%(num)d gruppo di possibili duplicati da ricontrollare.', '%(num)d gruppi di possibili duplicati da ricontrollare.', duplicate_groups) }}</span>
-  <a href="{{ url_for('transactions.duplicates_page') }}" style="font-weight:600;">{{ _('Controlla ora →') }}</a>
+  <a href="{{ url_for('transactions.duplicates_page') }}" class="font-semibold">{{ _('Controlla ora →') }}</a>
 </div>
 {% endif %}
 

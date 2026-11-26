@@ -25,7 +25,7 @@
 </div>
 {% endif %}
 
-<div class="kpi-grid" style="margin-bottom:24px;">
+<div class="kpi-grid mb-24">
   {{ kpi('bank', _('Patrimonio netto'), value=data.net_worth|money, cls='kpi-positive' if data.net_worth >= 0 else 'kpi-negative',
          sub=_('liquidità %(cash)s · investimenti %(investments)s', cash=data.cash|money, investments=data.investments|money)) }}
   {{ kpi('credit-card', _('Debiti'), value=data.liabilities|money, cls='kpi-purple') }}
@@ -73,7 +73,7 @@
   </div>
 </div>
 
-<div class="grid-2 mb-24" style="gap:16px;">
+<div class="grid-2 mb-24 gap-16">
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Patrimonio netto negli ultimi 12 mesi') }}</div></div>
     <div class="card-body"><div style="height:280px;"><canvas id="groupTrend"></canvas></div></div>
@@ -84,7 +84,7 @@
   </div>
 </div>
 
-<div class="grid-2 mb-24" style="gap:16px;">
+<div class="grid-2 mb-24 gap-16">
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Spese per categoria, ultimi 12 mesi') }}</div></div>
     <div class="card-body">
@@ -128,7 +128,7 @@
 </div>
 {% endif %}
 
-<div class="grid-2 mb-24" style="gap:16px;">
+<div class="grid-2 mb-24 gap-16">
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Debiti') }}</div></div>
     {% if data.debts %}

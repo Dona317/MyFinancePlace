@@ -9,7 +9,7 @@ def test_the_round_plus_on_the_portfolio_offers_positions(client, db):
     assert "Posizione singola" in page and "Più posizioni da un file" in page
     assert "/portfolio/new?embed=1" in page and "/portfolio/import?embed=1" in page
     elsewhere = client.get("/dashboard").get_data(as_text=True)
-    assert 'id="add-bubble" title="Nuova Transazione"' in elsewhere and "Posizione singola" not in elsewhere
+    assert 'id="add-bubble" title="Nuova transazione"' in elsewhere and "Posizione singola" not in elsewhere
 
 
 def test_the_position_form_in_the_popup_closes_it_after_saving(client, db):
@@ -34,12 +34,13 @@ def test_the_overview_shows_portfolio_and_debts(client, db):
     assert "Portafoglio e debiti" in page and "Nessun debito" in page
 
 
-def test_the_portfolio_has_fewer_tabs_with_a_switch_inside(client, db):
+def test_the_portfolio_has_five_tabs_each_with_a_second_row(client, db):
+    # UI-53: five tabs; the pages of each one as a second row of the same tabs
     page = client.get("/portfolio/").get_data(as_text=True)
-    assert "Panoramica e posizioni" in page and 'aria-current="page">Posizioni' in page and "Riepilogo" in page
-    tabs = page.split('class="portfolio-tabs')[1].split("</nav>")[0]  # the row of tabs (the page search lists them all)
-    assert "Importa dal broker" not in tabs and "Ordini teorici" not in tabs
+    assert "Pagine della sezione" in page and 'aria-current="page">Posizioni' in page and "Riepilogo" in page
+    tabs = page.split('aria-label="Sezioni del portafoglio"')[1].split("</nav>")[0]  # the first row (the page search lists them all)
+    assert tabs.count('class="report-tab') == 5 and "Importa dal broker" not in tabs and "Ordini teorici" not in tabs
     orders = client.get("/portfolio/planned").get_data(as_text=True)
-    assert 'aria-current="page">Teorici' in orders and "Eseguiti" in orders
+    assert 'aria-current="page">Teorici' in orders and "Eseguiti" in orders and "Calcolo commissioni" in orders
     perf = client.get("/portfolio/performance").get_data(as_text=True)
-    assert 'aria-current="page">Rendimenti' in perf and "Portafogli e conti titoli" in perf
+    assert 'aria-current="page">Rendimenti' in perf and "Rendite" in perf and "Composizione" in perf

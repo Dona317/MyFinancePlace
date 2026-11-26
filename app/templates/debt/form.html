@@ -2,14 +2,14 @@
 {% import "partials/fields.html" as f %}
 {% set is_edit = debt is not none %}
 {% set d = debt or {} %}
-{% block page_title %}{{ _('Modifica Debito') if is_edit else _('Nuovo Debito') }}{% endblock %}
+{% block page_title %}{{ _('Modifica debito') if is_edit else _('Nuovo debito') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('debt.index') }}">{{ _('Debiti') }}</a></li><li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title">{{ _('Modifica «%(name)s»', name=debt.name) if is_edit else _('Inserisci Nuovo Debito') }}</div>
+      <div class="card-header-title">{{ _('Modifica «%(name)s»', name=debt.name) if is_edit else _('Nuovo debito') }}</div>
     </div>
     <div class="card-body">
       <form method="POST">
@@ -43,7 +43,7 @@
         {{ f.owner(values, d.owner) }}
         {{ f.textarea(values, 'notes', _('Note'), d.notes) }}
         {{ f.actions(url_for('debt.detail', debt_id=debt.id) if is_edit else url_for('debt.index'),
-                     _('Salva Modifiche') if is_edit else _('Aggiungi Debito')) }}
+                     _('Salva modifiche') if is_edit else _('Aggiungi debito')) }}
       </form>
     </div>
   </div>

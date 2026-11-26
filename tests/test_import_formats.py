@@ -335,7 +335,7 @@ def test_pdf_report_download(client, sample_data):
     assert f'filename="{date.today():%Y%m%d}_report_finanziario_2026.pdf"' in response.headers["Content-Disposition"]
     with pdfplumber.open(io.BytesIO(response.data)) as pdf:
         text = "\n".join(page.extract_text() for page in pdf.pages)
-    for expected in ("Report Finanziario 2026", "Conto Economico", "Andamento Mensile", "Rendiconto Finanziario",
+    for expected in ("Report Finanziario 2026", "Conto economico", "Andamento mensile", "Rendiconto finanziario",
                      "€ 5.800,00", "Stipendio", "Alimentari", "-€ 500,00", "Giu"):
         assert expected in text, expected
 

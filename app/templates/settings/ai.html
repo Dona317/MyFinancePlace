@@ -18,7 +18,7 @@
   <div class="card-body">
     <form method="POST" action="{{ url_for('settings.ai_save') }}"
           style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end;">
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label">{{ _('Provider') }}</label>
         <select name="provider" class="form-select" id="provider-select">
           <option value="none" {{ 'selected' if not provider else '' }}>{{ _('Disattivata') }}</option>
@@ -26,7 +26,7 @@
           <option value="anthropic" {{ 'selected' if provider == 'anthropic' else '' }}>{{ _('Anthropic Claude (cloud) — i documenti vengono inviati') }}</option>
         </select>
       </div>
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label">{{ _('Modello per leggere i documenti') }}</label>
         <input type="text" name="model" class="form-control" value="{{ model }}" list="model-options"
                placeholder="{{ _('es. qwen2.5vl:7b') }}" autocomplete="off" />
@@ -35,7 +35,7 @@
           {% for name in anthropic_models %}<option value="{{ name }}">{% endfor %}
         </datalist>
       </div>
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label">{{ _('Modello per classificare') }} <span style="font-weight:400;color:var(--clr-text-muted);">{{ _('(facoltativo)') }}</span></label>
         <input type="text" name="classify_model" class="form-control" value="{{ classify_by_provider.get(provider or '', '') }}"
                list="model-options" placeholder="{{ _('vuoto = lo stesso') }}" autocomplete="off" />
@@ -46,7 +46,7 @@
       {{ _('La') }} <strong>{{ _('classificazione') }}</strong> {{ _('(categoria e controparte dalla causale) lavora solo sul testo: basta un modello piccolo o tiny, molto più veloce (es.') }} <code>{{ _('qwen3:1.7b') }}</code>, <code>{{ _('llama3.2:3b') }}</code>{% if provider == 'anthropic' %}, <code>{{ _('claude-haiku-4-5') }}</code>{% endif %}).
     </p>
     {% if provider == 'ollama' and model and ollama.running and model not in ollama.installed %}
-    <div class="alert alert-warning" style="margin-top:16px;">
+    <div class="alert alert-warning mt-16">
       <i class="bi bi-exclamation-triangle"></i> {{ _('Il modello %(model)s non è ancora installato: installalo dal catalogo qui sotto.', model=model) }}
     </div>
     {% endif %}
@@ -60,7 +60,7 @@
 
 <!-- Stato Ollama ─────────────────────────────────────────────────────── -->
 <div class="card mb-16" id="ollama-status">
-  <div class="card-body" style="display:flex;align-items:flex-start;gap:14px;">
+  <div class="card-body d-flex items-start gap-14">
     {% if ollama.running %}
       <i class="bi bi-check-circle" style="font-size:22px;color:var(--clr-positive);"></i>
       <div>
@@ -106,7 +106,7 @@
   </td>
   <td class="model-status">
     {% if pull and not pull.done %}
-      <div class="progress-bar-wrap" style="height:6px;"><div class="progress-bar-fill" style="width:{{ pull.percent }}%;"></div></div>
+      <div class="progress-bar-wrap h-6"><div class="progress-bar-fill" style="width:{{ pull.percent }}%;"></div></div>
       <span class="text-xs text-muted">{{ pull.status }} {{ pull.percent }}%</span>
     {% elif pull and pull.error %}
       <span class="badge badge-negative" title="{{ pull.error }}">{{ _('Errore download') }}</span>
@@ -119,18 +119,18 @@
   <td class="text-right nowrap">
     {% if installed %}
       {% if not (provider == 'ollama' and model == m.name) %}
-      <form method="POST" action="{{ url_for('settings.ai_save') }}" style="display:inline;">
+      <form method="POST" action="{{ url_for('settings.ai_save') }}" class="d-inline">
         <input type="hidden" name="provider" value="ollama" /><input type="hidden" name="model" value="{{ m.name }}" />
         <button type="submit" class="btn btn-ghost btn-sm">{{ _('Usa') }}</button>
       </form>
       {% endif %}
-      <form method="POST" action="{{ url_for('settings.ai_delete') }}" style="display:inline;"
+      <form method="POST" action="{{ url_for('settings.ai_delete') }}" class="d-inline"
             data-confirm="{{ _('Rimuovere il modello %(name)s (~%(size)s GB)?', name=m.name, size=m.size_gb) }}">
         <input type="hidden" name="name" value="{{ m.name }}" />
-        <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--clr-negative);">{{ _('Rimuovi') }}</button>
+        <button type="submit" class="btn btn-ghost btn-sm text-negative">{{ _('Rimuovi') }}</button>
       </form>
     {% else %}
-      <form method="POST" action="{{ url_for('settings.ai_pull') }}" style="display:inline;">
+      <form method="POST" action="{{ url_for('settings.ai_pull') }}" class="d-inline">
         <input type="hidden" name="name" value="{{ m.name }}" />
         <button type="submit" class="btn btn-outline btn-sm" {{ 'disabled' if not ollama.running or (pull and not pull.done) else '' }}>
           <i class="bi bi-download"></i> {{ _('Installa') }}
@@ -178,8 +178,8 @@
     </div>
   </div>
   <div class="card-body">
-    <form method="POST" action="{{ url_for('settings.ai_pull') }}" style="display:flex;gap:12px;">
-      <input type="text" name="name" class="form-control" placeholder="{{ _('nome:tag') }}" required style="max-width:320px;" />
+    <form method="POST" action="{{ url_for('settings.ai_pull') }}" class="d-flex gap-12">
+      <input type="text" name="name" class="form-control maxw-320" placeholder="{{ _('nome:tag') }}" required />
       <button type="submit" class="btn btn-outline" {{ 'disabled' if not ollama.running else '' }}><i class="bi bi-download"></i> {{ _('Installa') }}</button>
     </form>
     {% if extra_installed %}

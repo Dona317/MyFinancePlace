@@ -1,19 +1,20 @@
 {% extends "base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/stat_row.html" import stat_row %}
+{% from "partials/period_box.html" import choice_box %}
 {% from "partials/tabs.html" import tab_bar %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/info.html" import info %}
 {% set month_name = month|dateformat('MMMM y') %}
 {% block title %}{{ _('Budget') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Budget') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di Vita') }}</a></li><li>{{ _('Budget') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di vita') }}</a></li><li>{{ _('Budget') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <a href="{{ url_for('lifestyle.budget', month=prev.strftime('%Y-%m')) }}" class="btn btn-ghost btn-sm" aria-label="{{ _('Mese precedente') }}"><i class="bi bi-chevron-left"></i></a>
-  <span class="font-semibold text-sm" style="min-width:120px;text-align:center;">{{ month_name|capitalize }}
-    <i class="bi bi-link-45deg period-shared" title="{{ _('Periodo condiviso: cambiando mese qui cambia anche in Dashboard, Entrate, Uscite, Transazioni e Report') }}"></i></span>
-  <a href="{{ url_for('lifestyle.budget', month=next.strftime('%Y-%m')) }}" class="btn btn-ghost btn-sm" aria-label="{{ _('Mese successivo') }}"><i class="bi bi-chevron-right"></i></a>
+  {# UI-52: the month in the one period box; it is the shared period (Dashboard, Entrate, Uscite, Transazioni, Report) #}
+  {% set month_choices = [] %}
+  {% for m in (month_options + [month])|unique|sort(reverse=True) %}{{ month_choices.append((m.strftime('%Y-%m'), m|dateformat('MMMM y')|capitalize)) or '' }}{% endfor %}
+  {{ choice_box('month', month_choices, month.strftime('%Y-%m'), keep={'tab': tab} if tab != 'month' else {}, shared=True) }}
 {% endblock %}
 
 {% block content %}
@@ -48,7 +49,7 @@
     <span class="badge {{ 'badge-negative' if pace.projected > pace.planned else 'badge-muted' }}">{{ _('A questo ritmo chiudi a %(amount)s', amount=pace.projected|money) }}</span>
     {% endif %}
   </div>
-  <div class="card-body"><div class="chart-container" style="height:260px;"><canvas id="paceChart" role="img" aria-label="{{ _('Spesa cumulata del mese contro il ritmo ideale') }}"></canvas></div></div>
+  <div class="card-body"><div class="chart-container h-260"><canvas id="paceChart" role="img" aria-label="{{ _('Spesa cumulata del mese contro il ritmo ideale') }}"></canvas></div></div>
 </div>
 {% endif %}
 <div class="card">
@@ -77,7 +78,7 @@
           {{ _("Avviso all'%(share)s%% e quando lo superi. Lascia vuoto per nessun budget.", share=warning) }}
         </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+      <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
     </div>
     <div class="table-wrapper">
       <table>
@@ -100,7 +101,7 @@
             <td class="amount text-right">{{ row.spent|money }}</td>
             <td>
               {% if line %}
-              <div class="progress-bar-wrap" style="height:8px;position:relative;" title="{{ _('Linea: quanto del mese è passato') }}">
+              <div class="progress-bar-wrap h-8 relative" title="{{ _('Linea: quanto del mese è passato') }}">
                 <div class="progress-bar-fill {{ 'negative' if line.state == 'over' else 'warning' if line.state == 'warning' else 'positive' }}" style="width:{{ [line.share, 100]|min }}%;"></div>
                 <span style="position:absolute;top:-3px;bottom:-3px;left:{{ line.pace }}%;width:2px;background:var(--clr-text-muted);"></span>
               </div>

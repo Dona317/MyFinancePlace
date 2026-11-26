@@ -31,7 +31,7 @@
       <div class="d-flex gap-8 flex-wrap">
         {% if client.id != open_client.id and not client.archived %}
         <form method="POST" action="{{ url_for('clients.open_client', client_id=client.id) }}">
-          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-in-right"></i> {{ _('Apri') }}</button>
+          <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-box-arrow-in-right"></i> {{ _('Apri') }}</button>
         </form>
         {% endif %}
         <a class="btn btn-ghost btn-sm" href="{{ url_for('clients.backup', client_id=client.id) }}"><i class="bi bi-download"></i> {{ _('Esporta archivio') }}</a>
@@ -102,7 +102,7 @@ document.querySelectorAll('.client-card[data-edit]').forEach(card => {
   <div class="card-header"><div class="card-header-title"><i class="bi bi-person-plus"></i> {{ _('Nuovo cliente') }}</div></div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('clients.create') }}">
-      <div class="grid-2" style="gap:16px;">
+      <div class="grid-2 gap-16">
         <div class="form-group">
           <label class="form-label" for="new-name">{{ _('Nome del cliente') }}</label>
           <input type="text" id="new-name" name="name" class="form-control" required maxlength="120" placeholder="{{ _('es. Mario Rossi') }}" />

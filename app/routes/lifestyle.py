@@ -11,7 +11,7 @@ from app.models.budget import Budget
 from app.models.wealth import Goal
 from app.routes.helpers import delete_and_redirect, form_date, form_decimal, form_text, save_form
 from app.services import accounts, analytics, budgets, categories, display, planning, shared_period, wealth
-from app.services.periods import add_months
+from app.services.periods import add_months, first_of_month
 from app.services.ui_settings import autonomy_target
 
 lifestyle_bp = APIBlueprint(
@@ -66,6 +66,8 @@ def budget():
         spent_total=sum(line["spent"] for line in lines.values()),
         unbudgeted=sum(v for k, v in spent.items() if k not in lines),
         prev=add_months(month, -1), next=add_months(month, 1), warning=budgets.WARNING_SHARE,
+        # UI-52: the month in the one period box — two years back, three months ahead, and the month shown
+        month_options=[add_months(first_of_month(date.today()), n) for n in range(3, -25, -1)],
         pace=budgets.pace(month, lines=status),
     )
 

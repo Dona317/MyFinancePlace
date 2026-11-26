@@ -9,7 +9,7 @@
 <div class="page-form">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title"><i class="bi bi-shield-plus"></i> {{ _('Modifica Polizza') if is_edit else _('Nuova Polizza Assicurativa') }}</div>
+      <div class="card-header-title"><i class="bi bi-shield-plus"></i> {{ _('Modifica polizza') if is_edit else _('Nuova polizza') }}</div>
     </div>
     <div class="card-body">
       <form method="POST">
@@ -31,7 +31,7 @@
           {{ f.date(values, 'expiry_date', _('Data di scadenza'), p.expiry_date, hint=_('Vuota per polizze senza scadenza fissa.')) }}
         </div>
         {{ f.textarea(values, 'notes', _('Note'), p.notes, placeholder=_('Condizioni particolari, franchigie, esclusioni...')) }}
-        {{ f.actions(url_for('insurance.index'), _('Salva Modifiche') if is_edit else _('Aggiungi Polizza')) }}
+        {{ f.actions(url_for('insurance.index'), _('Salva modifiche') if is_edit else _('Aggiungi polizza')) }}
       </form>
     </div>
   </div>

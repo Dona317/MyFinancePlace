@@ -4,6 +4,8 @@
 {% block page_title %}{{ _('Fisco') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('tax.index') }}">{{ _('Fisco') }}</a></li><li>{{ _('Bollo e IVAFE') }}</li>{% endblock %}
 
+{% block topbar_actions %}{% include "partials/year_select.html" %}{% endblock %}
+
 {% block content %}
 {% include "tax/_tabs.html" %}
 

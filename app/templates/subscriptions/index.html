@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/period_box.html" import choice_box %}
 {% from "transactions/_tabs.html" import transactions_tabs with context %}
 {% from "partials/tabs.html" import tab_bar %}
 {% from "partials/actions.html" import delete_button, icon_link %}
@@ -11,19 +12,17 @@
 
 {% block topbar_actions %}
 {# F101: the horizon of the page — how far ahead «what is coming» looks; the choice is kept #}
-<div class="dash-presets" role="group" aria-label="{{ _('Orizzonte') }}">
-  {% for d in horizons %}
-  <a href="{{ url_for('subscriptions.index', kind=kind, horizon=d) }}" class="preset-btn{{ ' is-active' if d == horizon }}" aria-pressed="{{ 'true' if d == horizon else 'false' }}">
-    {{ _('30 giorni') if d == 30 else ngettext('%(num)d mese', '%(num)d mesi', d // 30) if d < 365 else _('12 mesi') }}</a>
-  {% endfor %}
-</div>
+{# UI-52: the horizon in the one period box of the top bar #}
+{% set horizon_options = [] %}
+{% for d in horizons %}{{ horizon_options.append((d, _('Prossimi 30 giorni') if d == 30 else _('Prossimi %(count)s mesi', count=d // 30) if d < 365 else _('Prossimi 12 mesi'))) or '' }}{% endfor %}
+{{ choice_box('horizon', horizon_options, horizon, keep={'kind': kind}, hint=_('Fin dove guardare «cosa arriva». La scelta viene ricordata.')) }}
 {% endblock %}
 
 {% block content %}
 {{ transactions_tabs('recurring') }}
-<div class="report-bar mb-16">
+<div class="page-tabs">
   {{ tab_bar([('expense', url_for('subscriptions.index'), _('Abbonamenti e spese fisse')),
-               ('income', url_for('subscriptions.index', kind='income'), _('Entrate ricorrenti'))], kind, _('Uscite o entrate ricorrenti')) }}
+               ('income', url_for('subscriptions.index', kind='income'), _('Entrate ricorrenti'))], kind, _('Uscite o entrate ricorrenti'), level=2) }}
 </div>
 
 <div class="kpi-grid mb-16">
@@ -100,7 +99,7 @@
 
 {% if data.ended %}
 <details class="card">
-  <summary class="card-header" style="cursor:pointer;"><div class="card-header-title">{{ _('Terminati (%(count)s)', count=data.ended|length) }}</div></summary>
+  <summary class="card-header cursor-pointer"><div class="card-header-title">{{ _('Terminati (%(count)s)', count=data.ended|length) }}</div></summary>
   <div class="table-wrapper">
     <table class="table-compact">
       <thead><tr><th>{{ _('Descrizione') }}</th><th>{{ _('Frequenza') }}</th><th class="text-right">{{ _('Ultimo importo') }}</th><th>{{ _('Ultimo pagamento') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>

@@ -5,7 +5,7 @@
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ account.name }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ account.name }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e carte') }}</a></li><li>{{ account.name }}</li>{% endblock %}
 
 {% block topbar_actions %}
   {# F101: the range of the balance chart, in the one period box #}
@@ -17,8 +17,8 @@
 
 {% block content %}
 <div class="kpi-grid mb-24">
-  {% call kpi('bank', _('Saldo Oggi'), value=balance|money(symbol), cls='kpi-primary', value_class=('text-negative' if balance < 0)) %}{{ kinds.get(account.kind, account.kind) }}{% if account.iban_tail %} · …{{ account.iban_tail }}{% endif %}{% endcall %}
-  {{ kpi('flag', _('Saldo Iniziale'), value=account.opening_balance|money(symbol), sub=(_('prima della prima transazione'))) }}
+  {% call kpi('bank', _('Saldo oggi'), value=balance|money(symbol), cls='kpi-primary', value_class=('text-negative' if balance < 0)) %}{{ kinds.get(account.kind, account.kind) }}{% if account.iban_tail %} · …{{ account.iban_tail }}{% endif %}{% endcall %}
+  {{ kpi('flag', _('Saldo iniziale'), value=account.opening_balance|money(symbol), sub=(_('prima della prima transazione'))) }}
   {{ kpi('check2-circle', _('Riconciliato'), value=(account.reconciled_on|it_date if account.reconciled_on else _('Mai')), cls=('kpi-positive' if account.reconciled_on else 'kpi-warning'), sub=(_('saldo %(amount)s', amount=account.reconciled_balance|money(symbol)) if account.reconciled_on else _("confronta con l'estratto qui sotto"))) }}
 </div>
 
@@ -111,7 +111,7 @@
 <div class="card mb-16" id="balance-history">
   <div class="card-header"><div class="card-header-title"><i class="bi bi-graph-up"></i> {{ _('Saldo negli ultimi 12 mesi') }}
     {{ info(_('Il saldo a fine giornata: saldo iniziale più tutti i movimenti fino a quel giorno, giroconti compresi; quelli in altra valuta con l’importo della banca o al cambio del giorno.')) }}</div></div>
-  <div class="card-body"><div class="chart-container" style="height:240px;"><canvas id="balanceChart" role="img" aria-label="{{ _('Saldo del conto negli ultimi 12 mesi') }}"></canvas></div></div>
+  <div class="card-body"><div class="chart-container h-240"><canvas id="balanceChart" role="img" aria-label="{{ _('Saldo del conto negli ultimi 12 mesi') }}"></canvas></div></div>
 </div>
 {% endif %}
 {% if account.kind == 'cash' %}
@@ -158,7 +158,7 @@
     <div class="card-header-sub">{{ _('Scrivi quanto hai nel portafoglio: se è meno del saldo la differenza diventa «Spese non annotate», se è di più «Contanti trovati».') }}</div>
   </div></div>
   <div class="card-body">
-    <form method="POST" action="{{ url_for('accounts.count_cash', account_id=account.id) }}" class="grid-3" style="align-items:end;">
+    <form method="POST" action="{{ url_for('accounts.count_cash', account_id=account.id) }}" class="grid-3 items-end">
       <div class="form-group"><label class="form-label" for="cc-amount">{{ _('Contanti che hai ora') }} ({{ symbol }})</label>
         <input type="text" inputmode="decimal" id="cc-amount" name="counted" class="form-control" autocomplete="off" required placeholder="{{ _('es. 85') }}" /></div>
       <div class="form-group"><button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> {{ _('Conta') }}</button></div>
@@ -176,13 +176,13 @@
     </div>
   </div>
   <div class="card-body">
-    <form method="POST" action="{{ url_for('accounts.reconcile', account_id=account.id) }}" class="grid-3" style="align-items:end;">
+    <form method="POST" action="{{ url_for('accounts.reconcile', account_id=account.id) }}" class="grid-3 items-end">
       <div class="form-group"><label class="form-label" for="rc-on">{{ _('Data') }}</label>
         <input type="date" id="rc-on" name="on" class="form-control" value="{{ (result.on if result else today).isoformat() }}" required /></div>
       <div class="form-group"><label class="form-label" for="rc-bal">{{ _('Saldo letto sul conto') }} ({{ symbol }})</label>
         <input type="text" inputmode="decimal" id="rc-bal" name="statement_balance" class="form-control" autocomplete="off"
                value="{{ result.statement_balance|plain if result else '' }}" placeholder="{{ _('es. 2.345,67') }}" required /></div>
-      <div class="form-group"><button type="submit" class="btn btn-primary"><i class="bi bi-check2-all"></i> {{ _('Riconcilia') }}</button></div>
+      <div class="form-group"><button type="submit" class="btn btn-outline"><i class="bi bi-check2-all"></i> {{ _('Riconcilia') }}</button></div>
     </form>
     {% if result %}
       {% if result.difference == 0 %}

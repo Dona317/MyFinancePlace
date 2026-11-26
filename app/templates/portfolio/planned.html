@@ -5,7 +5,7 @@
 
 {% block title %}{{ _('Ordini teorici') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Ordini teorici') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Ordini teorici') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Ordini teorici') }}</li>{% endblock %}
 
 {% block content %}
 {% include "portfolio/_nav.html" %}
@@ -14,7 +14,7 @@
 <div class="card">{{ empty_state(_('Dal ribilanciamento o dalla rata di un PAC scegli «Salva come ordini teorici»: restano qui, come stima, finché non li confermi eseguiti.'), 'bi-hourglass-split', _('Nessun ordine teorico')) }}</div>
 {% else %}
 
-<div class="alert alert-info mb-16" role="note" style="display:block;">
+<div class="alert alert-info mb-16 d-block" role="note">
   <i class="bi bi-info-circle"></i>
   {{ _('Questi ordini non sono ancora stati eseguiti: quote, prezzo medio e liquidità qui sotto sono teorici. La liquidità è stimata al lordo delle commissioni (e delle tasse su una vendita in guadagno). Le posizioni vere cambiano solo quando confermi gli ordini eseguiti.') }}
 </div>
@@ -99,7 +99,7 @@
   </div>
   <div class="card-body">
     <div class="font-semibold text-sm mb-8">{{ _('Commissioni') }} {{ info(_('Scegli come dirle: ordine per ordine; un totale, diviso sugli ordini in proporzione al controvalore; oppure la liquidità che ti resta sul conto dopo gli ordini: la differenza con la stima è quanto hai pagato di commissioni.')) }}</div>
-    <div class="d-flex gap-16 mb-12" style="flex-wrap:wrap;">
+    <div class="d-flex gap-16 mb-12 flex-wrap">
       <label class="checkbox-label"><input type="radio" name="fee_mode" value="cash" checked /> {{ _('Dalla liquidità rimasta') }}</label>
       <label class="checkbox-label"><input type="radio" name="fee_mode" value="total" /> {{ _('Totale') }}</label>
       <label class="checkbox-label"><input type="radio" name="fee_mode" value="each" /> {{ _('Per ordine') }}</label>
@@ -108,17 +108,17 @@
       {% for c in cash[b.batch] %}{% if c.account %}
       <div class="form-group">
         <label class="form-label" for="cash-{{ b.batch }}-{{ c.account.id }}">{{ _('Liquidità ora su «%(account)s»', account=c.account.name) }}</label>
-        <input type="text" inputmode="decimal" name="cash-{{ c.account.id }}" id="cash-{{ b.batch }}-{{ c.account.id }}" class="form-control" style="max-width:220px;" placeholder="{{ c.expected|plain }}" />
+        <input type="text" inputmode="decimal" name="cash-{{ c.account.id }}" id="cash-{{ b.batch }}-{{ c.account.id }}" class="form-control maxw-220" placeholder="{{ c.expected|plain }}" />
         <div class="text-xs text-muted">{{ _('Attesa senza commissioni: %(amount)s', amount=c.expected|money) }}</div>
       </div>
       {% endif %}{% endfor %}
     </div>
     <div class="fee-total form-group" hidden>
       <label class="form-label" for="fee-total-{{ loop.index }}">{{ _('Commissioni totali (€)') }}</label>
-      <input type="text" inputmode="decimal" name="fee_total" id="fee-total-{{ loop.index }}" class="form-control" style="max-width:220px;" placeholder="0,00" />
+      <input type="text" inputmode="decimal" name="fee_total" id="fee-total-{{ loop.index }}" class="form-control maxw-220" placeholder="0,00" />
     </div>
   </div>
-  <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+  <div class="card-body d-flex gap-8 justify-end">
     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma ordini eseguiti') }}</button>
   </div>
 </form>

@@ -4,7 +4,7 @@
 {% block breadcrumb %}<li><a href="{{ url_for('tax.index') }}">{{ _('Fisco') }}</a></li><li>{{ _('Tetti di versamento') }}</li>{% endblock %}
 
 {% macro limit_fields(prefix, limit=none) -%}
-<div class="grid-2" style="gap:12px;">
+<div class="grid-2 gap-12">
   <div class="form-group">
     <label class="form-label" for="{{ prefix }}-name">{{ _('Nome') }}</label>
     <input type="text" id="{{ prefix }}-name" name="name" class="form-control" maxlength="120" value="{{ limit.name if limit else '' }}"
@@ -38,7 +38,7 @@
     </select>
   </div>
 </div>
-<div class="grid-2" style="gap:12px;">
+<div class="grid-2 gap-12">
   <fieldset class="form-group">
     <legend class="form-label">{{ _('Conti su cui arrivano i versamenti') }}</legend>
     {% for a in accounts %}<label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="account_ids" value="{{ a.id }}" {{ 'checked' if limit and a.id in limit.account_ids }} /> {{ a.name }}</label>
@@ -55,6 +55,8 @@
   <input type="text" id="{{ prefix }}-notes" name="notes" class="form-control" value="{{ (limit.notes if limit else '') or '' }}" />
 </div>
 {%- endmacro %}
+
+{% block topbar_actions %}{% include "partials/year_select.html" %}{% endblock %}
 
 {% block content %}
 {% include "tax/_tabs.html" %}
@@ -90,7 +92,7 @@
       <summary class="text-sm">{{ _('Modifica') }}</summary>
       <form method="POST" action="{{ url_for('tax.limit_edit', limit_id=s.limit.id) }}" class="mt-8">
         {{ limit_fields('l' ~ s.limit.id, s.limit) }}
-        <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
+        <button type="submit" class="btn btn-outline btn-sm">{{ _('Salva') }}</button>
       </form>
       <form method="POST" action="{{ url_for('tax.limit_delete', limit_id=s.limit.id) }}" class="mt-8"
             data-confirm="{{ _("Eliminare il tetto «%(name)s»?", name=s.limit.name) }}">

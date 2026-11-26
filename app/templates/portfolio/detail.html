@@ -4,7 +4,7 @@
 {% from "partials/kpi.html" import kpi %}
 {% from "partials/info.html" import info %}
 {% block page_title %}{{ holding.name }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ holding.name }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ holding.name }}</li>{% endblock %}
 
 {% block topbar_actions %}
   <a href="{{ url_for('portfolio.edit', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a>
@@ -47,7 +47,7 @@
 {% if chart.prices >= 2 %}
 <div class="card mb-16">
   <div class="card-header"><div class="card-header-title">{{ _('Prezzo') }} {{ info(_('Il prezzo registrato giorno per giorno, con gli acquisti (triangoli in su) e le vendite (triangoli in giù) al loro prezzo per quota, i dividendi e le cedole nel giorno in cui li hai incassati, e il prezzo medio di carico delle quote che hai ora (tratteggiato). L\'asse dei prezzi non parte da zero.')) }}</div></div>
-  <div class="card-body"><div class="chart-container" style="height:280px;"><canvas id="priceChart"></canvas></div></div>
+  <div class="card-body"><div class="chart-container h-280"><canvas id="priceChart"></canvas></div></div>
 </div>
 {% endif %}
 
@@ -92,17 +92,17 @@
   </div>
   {% if option_settle %}
   <div class="card-body" style="border-top:1px solid var(--clr-border-light);">
-    <div class="alert alert-warning mb-16" style="display:block;"><i class="bi bi-hourglass-bottom"></i> {{ _("L'opzione è arrivata a scadenza: chiudila come è andata.") }}</div>
-    <form method="POST" action="{{ url_for('portfolio.option_settle', holding_id=holding.id) }}" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
-      <div class="form-group" style="margin-bottom:0;">
+    <div class="alert alert-warning mb-16 d-block"><i class="bi bi-hourglass-bottom"></i> {{ _("L'opzione è arrivata a scadenza: chiudila come è andata.") }}</div>
+    <form method="POST" action="{{ url_for('portfolio.option_settle', holding_id=holding.id) }}" class="d-flex gap-16 flex-wrap items-end">
+      <div class="form-group mb-0">
         <span class="form-label">{{ _('Come si è chiusa') }}</span>
         {% for key, text in option_settle.outcomes.items() %}
         <label class="d-flex align-center gap-8 text-sm"><input type="radio" name="outcome" value="{{ key }}" {{ 'checked' if key == option_settle.suggested }}> {{ text|tr }}</label>
         {% endfor %}
       </div>
-      <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="underlying-price">{{ _('Prezzo del sottostante alla scadenza') }}{% if holding.currency %} ({{ holding.currency }}){% endif %}</label>
-        <input class="form-control" id="underlying-price" name="underlying_price" inputmode="decimal" value="{{ option_settle.price|number(2) if option_settle.price is not none else '' }}" style="width:160px;"></div>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check2-circle"></i> {{ _('Chiudi l\'opzione') }}</button>
+      <div class="form-group mb-0"><label class="form-label" for="underlying-price">{{ _('Prezzo del sottostante alla scadenza') }}{% if holding.currency %} ({{ holding.currency }}){% endif %}</label>
+        <input class="form-control w-160" id="underlying-price" name="underlying_price" inputmode="decimal" value="{{ option_settle.price|number(2) if option_settle.price is not none else '' }}"></div>
+      <button type="submit" class="btn btn-outline"><i class="bi bi-check2-circle"></i> {{ _('Chiudi l\'opzione') }}</button>
     </form>
     <div class="form-hint">{{ _("Suggerito dal prezzo del sottostante: fuori dal denaro scade senza valore; dentro, si liquida in contanti o si consegna il sottostante allo strike (una call comprata o una put venduta lo comprano, una put comprata o una call venduta lo vendono).") }}</div>
   </div>
@@ -184,17 +184,17 @@
   </div>
 </div>
 
-<details class="card" style="margin-top:16px;">
-  <summary class="card-body" style="cursor:pointer;"><strong>{{ _('Frazionamento o raggruppamento delle azioni') }}</strong>
+<details class="card mt-16">
+  <summary class="card-body cursor-pointer"><strong>{{ _('Frazionamento o raggruppamento delle azioni') }}</strong>
     <span class="text-sm text-muted">{{ _('quando la società divide (o unisce) le azioni: le quantità e i prezzi precedenti si adeguano') }}</span></summary>
   <div class="card-body">
-    <form method="POST" action="{{ url_for('portfolio.split', holding_id=holding.id) }}" id="split-form" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;"
+    <form method="POST" action="{{ url_for('portfolio.split', holding_id=holding.id) }}" id="split-form" class="d-flex flex-wrap gap-12 items-end"
           data-confirm="{{ _('Adeguare quantità e prezzi precedenti?') }}">
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label" for="split-ratio">{{ _('1 vecchia = quante nuove') }} {{ info(_('es. 10 per un frazionamento 1:10; 0,1 per un raggruppamento 10:1'), _('1 vecchia = quante nuove')) }}</label>
         <input type="text" inputmode="decimal" name="ratio" id="split-ratio" class="form-control" placeholder="10" required />
       </div>
-      <div class="form-group" style="margin:0;">
+      <div class="form-group m-0">
         <label class="form-label" for="split-on">{{ _('Dal giorno') }}</label>
         <input type="date" name="on" id="split-on" class="form-control" required />
       </div>
@@ -204,8 +204,8 @@
 </details>
 
 {% if taxonomies %}
-<details class="card" style="margin-top:16px;" id="classify" {{ 'open' if request.args.get('classify') }}>
-  <summary class="card-body" style="cursor:pointer;"><strong>{{ _('Classificazioni') }}</strong>
+<details class="card mt-16" id="classify" {{ 'open' if request.args.get('classify') }}>
+  <summary class="card-body cursor-pointer"><strong>{{ _('Classificazioni') }}</strong>
     <span class="text-sm text-muted">{{ _('le tue (Impostazioni → Classificazioni): in Composizione ognuna ha il suo grafico') }}</span></summary>
   <div class="card-body">
     <form method="POST" action="{{ url_for('portfolio.classify', holding_id=holding.id) }}">
@@ -217,18 +217,18 @@
         <div class="d-flex gap-8 flex-wrap">
           {% for c in t.categories %}
           <label class="text-sm d-flex align-center gap-8">{{ c.name }}
-            <input type="text" inputmode="decimal" name="w-{{ c.id }}" class="form-control" style="width:80px;" value="{{ given[c.id]|plain if c.id in given else '' }}" aria-label="{{ t.name }}: {{ c.name }} (%%)" /></label>
+            <input type="text" inputmode="decimal" name="w-{{ c.id }}" class="form-control w-80" value="{{ given[c.id]|plain if c.id in given else '' }}" aria-label="{{ t.name }}: {{ c.name }} (%%)" /></label>
           {% endfor %}
         </div>
         {% else %}
-        <select name="t-{{ t.id }}" class="form-select" style="max-width:320px;" aria-label="{{ t.name }}">
+        <select name="t-{{ t.id }}" class="form-select maxw-320" aria-label="{{ t.name }}">
           <option value="">{{ _('— non indicato —') }}</option>
           {% for c in t.categories %}<option value="{{ c.id }}" {{ 'selected' if c.id in given }}>{{ c.name }}</option>{% endfor %}
         </select>
         {% endif %}
       </fieldset>
       {% endfor %}
-      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
+      <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva') }}</button>
     </form>
   </div>
 </details>

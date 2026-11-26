@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block page_title %}{{ _('Rata del PAC') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li><a href="{{ url_for('portfolio.rules') }}">{{ _('Regole e PAC') }}</a></li><li>{{ plan.name }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li><a href="{{ url_for('portfolio.rules') }}">{{ _('Regole e PAC') }}</a></li><li>{{ plan.name }}</li>{% endblock %}
 
 {% block content %}
 <form method="POST" id="plan-run-form">
@@ -46,7 +46,7 @@
         </tbody>
       </table>
     </div>
-    <div class="card-body" style="display:flex;gap:8px;justify-content:flex-end;">
+    <div class="card-body d-flex gap-8 justify-end">
       <a href="{{ url_for('portfolio.rules') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
       <button type="submit" name="action" value="plan" class="btn btn-outline" title="{{ _('Prima di andare dal broker: gli acquisti restano teorici finché non li confermi eseguiti, con le commissioni o la liquidità rimasta.') }}"><i class="bi bi-hourglass-split"></i> {{ _('Salva come ordini teorici') }}</button>
       <button type="submit" name="action" value="done" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma acquisti') }}</button>

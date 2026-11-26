@@ -290,6 +290,7 @@ Nessuna (le A1–A5 del 18 nov sono diventate UI-12…UI-16). Una domanda nuova 
 | UI-52 | 26 nov 2026 | **Un solo selettore del periodo** (aggiorna UI-05): il riquadro di `partials/period_box.html` nella barra in alto, con solo i controlli che servono (solo anno per Fisco e Lavoretti, solo mese per Budget); niente frecce, preset o selettori dentro la pagina |
 | UI-53 | 26 nov 2026 | **Un solo stile di schede** (aggiorna UI-06, UI-14): `tab_bar`, nel contenitore `page-tabs`; due livelli ammessi (es. Transazioni → Conti) con lo stesso stile, al massimo 7 schede per riga; niente `statement-tabs` né schede fatte a mano |
 | UI-54 | 26 nov 2026 | **TBD come contatore** (aggiorna UI-13): il badge «TBD» di una sezione si toglie quando le sue pagine passano la checklist «pagina allineata» di [REDESIGN_SCHERMATE.md](../piano/REDESIGN_SCHERMATE.md) (giri 0–5 del 26 nov) |
+| UI-55 | 26 nov 2026 | **«Primi passi» flottante** (aggiorna UI-47): la pillola galleggia in basso al centro della pagina, come le altre bolle (il + a sinistra, l'assistente a destra); non ha più uno spazio suo sotto la barra in alto |
 
 ## 16. Fotografia di partenza (18 nov 2026)
 Da dove si parte, per misurare i progressi della pulizia:

@@ -3,7 +3,7 @@
 {% from "partials/empty.html" import empty_state %}
 {% import "partials/fields.html" as f %}
 {% block title %}{{ _('Regole di categoria') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Regole di Categoria') }}{% endblock %}
+{% block page_title %}{{ _('Regole di categoria') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('settings.index') }}">{{ _('Impostazioni') }}</a></li><li>{{ _('Regole') }}</li>{% endblock %}
 
 {% block content %}
@@ -16,7 +16,7 @@
     </div>
   </div>
   <div class="card-body">
-    <form method="POST" action="{{ url_for('settings.rule_save') }}" class="grid-3" style="align-items:end;">
+    <form method="POST" action="{{ url_for('settings.rule_save') }}" class="grid-3 items-end">
       <div class="form-group"><label class="form-label" for="r-keyword">{{ _('Parola chiave *') }}</label>
         <input id="r-keyword" name="keyword" class="form-control" required placeholder="{{ _('es. decathlon') }}" /></div>
       <div class="form-group"><label class="form-label" for="r-category">{{ _('Categoria *') }}</label>
@@ -69,7 +69,7 @@
 
 <div class="card">
   <details>
-    <summary class="card-header" style="cursor:pointer;">
+    <summary class="card-header cursor-pointer">
       <div>
         <div class="card-header-title">{{ _('Regole predefinite') }}</div>
         <div class="card-header-sub">{{ _('Usate dopo le tue. Per cambiarne una, crea una tua regola con la stessa parola') }}</div>

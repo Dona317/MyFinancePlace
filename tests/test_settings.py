@@ -23,7 +23,7 @@ def test_saved_choices_are_shown_and_applied(client, db):
 
     # applied everywhere: the dashboard card and the sidebar link disappear
     dashboard = client.get("/dashboard").get_data(as_text=True)
-    assert "Debito Totale" not in dashboard and 'href="/portfolio/"' not in dashboard
+    assert "Debito totale" not in dashboard and 'href="/portfolio/"' not in dashboard
 
 
 def test_choices_survive_a_new_browser(app, client, db):
@@ -53,7 +53,7 @@ def test_bad_saved_values_are_ignored(app, db):
 def test_old_session_choices_still_apply_until_saved(client, db):
     with client.session_transaction() as session:
         session["settings"] = {**DEFAULT_SETTINGS, "dashboard_debt": False}
-    assert "Debito Totale" not in client.get("/dashboard").get_data(as_text=True)
+    assert "Debito totale" not in client.get("/dashboard").get_data(as_text=True)
 
 
 def save_all_but(client, *off):

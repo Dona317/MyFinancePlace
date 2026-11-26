@@ -9,17 +9,18 @@
 {% if value is none %}—{% else %}{{ ('+' if value > 0 else '') ~ value|number(1) }} %{% endif %}
 {%- endmacro %}
 
+{% block topbar_actions %}
+  {% include "partials/year_select.html" %}
+  <a href="{{ url_for('reports.year_review_pdf', year=year) }}" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> {{ _('PDF') }}</a>
+  {% for g in groups %}<a href="{{ url_for('reports.year_review_group_pdf', group_id=g.id, year=year) }}" class="btn btn-ghost btn-sm"><i class="bi bi-file-earmark-pdf"></i> {{ _('PDF di «%(group)s»', group=g.name) }}</a>{% endfor %}
+{% endblock %}
+
 {% block content %}
 {% set d = data %}
-<div class="report-bar mb-16">
+<div class="page-tabs">
   {% set tab_items = namespace(list=[]) %}
   {% for key, label in tabs.items() %}{% set tab_items.list = tab_items.list + [(key, url_for('reports.index', tab=key), label)] %}{% endfor %}
   {{ tab_bar(tab_items.list + [('summary', url_for('reports.summary', year=year), _('Riepilogo')), ('rhythm', url_for('reports.rhythm', year=year), _('Ritmo')), ('year', url_for('reports.year_review', year=year), _('Bilancio dell’anno'))], 'year', _('Tipo di report')) }}
-  <div class="report-controls">
-    {% include "partials/year_select.html" %}
-    <a href="{{ url_for('reports.year_review_pdf', year=year) }}" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> {{ _('PDF') }}</a>
-    {% for g in groups %}<a href="{{ url_for('reports.year_review_group_pdf', group_id=g.id, year=year) }}" class="btn btn-ghost btn-sm"><i class="bi bi-file-earmark-pdf"></i> {{ _('PDF di «%(group)s»', group=g.name) }}</a>{% endfor %}
-  </div>
 </div>
 
 {% if not d.complete %}<p class="text-sm text-muted mb-16">{{ _('L’anno non è finito: i numeri arrivano fino a oggi, %(day)s.', day=d.until|it_date) }}</p>{% endif %}

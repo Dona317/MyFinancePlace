@@ -4,7 +4,7 @@
 {% import "partials/fields.html" as f %}
 
 {% block title %}{{ _('Documenti') }} — MyFinancePlace{% endblock %}
-{% block page_title %}{{ _('Archivio Documenti') }}{% endblock %}
+{% block page_title %}{{ _('Documenti') }}{% endblock %}
 {% block breadcrumb %}<li>{{ _('Documenti') }}</li>{% endblock %}
 
 {% block content %}
@@ -14,7 +14,7 @@
 <div class="card mb-16">
   <div class="card-header">
     <div>
-      <div class="card-header-title"><i class="bi bi-upload"></i> {{ _('Carica Documenti') }}</div>
+      <div class="card-header-title"><i class="bi bi-upload"></i> {{ _('Carica documenti') }}</div>
       <div class="card-header-sub">{{ _('Fatture, scontrini, estratti conto, contratti: qualsiasi formato, nessun limite di dimensione') }}</div>
     </div>
   </div>
@@ -61,7 +61,7 @@
 <!-- Filtri ────────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
   <form method="GET" class="filter-bar">
-    <input type="search" name="q" value="{{ filters.q }}" class="form-control" placeholder="{{ _('Cerca per nome o note...') }}" style="flex:1;" aria-label="{{ _('Cerca documento') }}" />
+    <input type="search" name="q" value="{{ filters.q }}" class="form-control flex-1" placeholder="{{ _('Cerca per nome o note...') }}" aria-label="{{ _('Cerca documento') }}" />
     <select name="doc_type" class="form-select" aria-label="{{ _('Tipo') }}">
       <option value="">{{ _('Tutti i tipi') }}</option>
       {% for t in doc_types %}<option value="{{ t }}" {{ 'selected' if t == filters.doc_type }}>{{ t|tr }}</option>{% endfor %}

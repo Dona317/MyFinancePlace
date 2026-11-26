@@ -4,7 +4,7 @@
 {% from "partials/actions.html" import delete_button %}
 {% set c = card or {} %}
 {% block page_title %}{{ card.name if card else _('Nuova carta') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li>{{ card.name if card else _('Nuova carta') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e carte') }}</a></li><li>{{ card.name if card else _('Nuova carta') }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">
@@ -29,7 +29,7 @@
             <input type="text" inputmode="numeric" id="f-number" name="number" class="form-control" autocomplete="off"
                    placeholder="4821" value="{{ values.number if 'number' in values else (c.last4 or '') }}" />
             {% if card and card.number_enc %}
-            <div class="d-flex align-center gap-8 text-sm" style="margin-top:6px;flex-wrap:wrap;">
+            <div class="d-flex align-center gap-8 text-sm mt-6 flex-wrap">
               <span class="badge badge-muted"><i class="bi bi-shield-lock"></i> {{ _('numero intero salvato cifrato') }}</span>
               <button type="button" class="btn btn-ghost btn-sm" id="show-number" data-url="{{ url_for('accounts.card_number', card_id=card.id) }}"
                       data-hide="{{ _('Nascondi il numero') }}" data-show="{{ _('Mostra il numero') }}"><i class="bi bi-eye"></i> <span>{{ _('Mostra il numero') }}</span></button>

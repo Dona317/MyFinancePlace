@@ -75,12 +75,12 @@ def test_pages_have_balanced_divs(client, sample_data, url):
 
 def test_sidebar_sections_are_collapsible(client, app):
     html = client.get("/transactions/").get_data(as_text=True)
-    # UI-34: Dashboard, Transazioni, Portfolio, Obiettivi on top; the rest in «Da smistare», closed at first
+    # UI-34: Dashboard, Transazioni, Portafoglio, Obiettivi on top; the rest in «Da smistare», closed at first
     sections = re.findall(r'<div class="nav-section(?: collapsed)?" data-section="(\w+)"', html)
     assert sections == ["dati", "altro"]  # Dati (Cambi, Prezzi storici), then «Da smistare»
     top = html.split('<div class="nav-top">')[1].split("</div>")[0]
     assert [label for label in re.findall(r'<span class="nav-label"[^>]*>([^<]+)</span>', top)] == [
-        "Dashboard", "Transazioni", "Portfolio", "Obiettivi"]
+        "Dashboard", "Transazioni", "Portafoglio", "Obiettivi"]
     assert 'id="page-find-btn"' in html and 'class="page-find-macro"' in html
     for key in sections:
         # each title is a button controlling its own group of links
@@ -154,7 +154,7 @@ def test_static_files_carry_a_version(client, app):
 def test_spese_e_tendenze_is_part_of_uscite(client, db):
     assert client.get("/lifestyle/").headers["Location"].endswith("/reports/spending")
     html = client.get("/reports/spending").get_data(as_text=True)
-    assert "Andamento Mensile per Categoria" in html and "Natura delle spese" in html and "Spese per gruppo e categoria" in html
+    assert "Andamento mensile per categoria" in html and "Natura delle spese" in html and "Spese per gruppo e categoria" in html
     assert "Natura delle spese" not in client.get("/reports/income").get_data(as_text=True)
     menu = client.get("/dashboard").get_data(as_text=True)
     assert 'href="/lifestyle/"' not in menu and 'class="nav-item nav-sub' not in menu  # Entrate, Uscite, Ricorrenti live in the cards

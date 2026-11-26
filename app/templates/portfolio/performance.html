@@ -3,7 +3,7 @@
 {% from "partials/info.html" import info %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% block page_title %}{{ _('Rendimenti') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('Rendimenti') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('Rendimenti') }}</li>{% endblock %}
 
 {% macro pct(value) %}{% if value is none %}—{% else %}<span class="{{ 'text-positive' if value > 0 else ('text-negative' if value < 0) }}">{{ '+' if value > 0 else '' }}{{ value|number(2) }} %</span>{% endif %}{% endmacro %}
 {% macro signed(value) %}<span class="{{ 'text-positive' if value > 0 else ('text-negative' if value < 0) }}">{{ '+' if value > 0 else '' }}{{ value|money }}</span>{% endmacro %}
@@ -27,7 +27,7 @@
 {% if not report.returns %}
 <div class="card"><div class="card-body text-muted">{{ _('Servono almeno un mese di storia e i prezzi dei titoli: registra le operazioni o aggiorna i prezzi da internet.') }}</div></div>
 {% else %}
-<div class="kpi-grid" style="margin-bottom:16px;">
+<div class="kpi-grid mb-16">
   {# XIRR first (what your money earned, when you put it in counts), the TWR beside it (the instruments alone) #}
   {{ kpi('cash-coin', _('Rendimento sui tuoi soldi (XIRR)'), value=(xirr|number(2) ~ ' %') if xirr is not none else '—', cls='kpi-primary', sub=_('all\'anno, conta quando hai versato')) }}
   {{ kpi('graph-up-arrow', _('Rendimento dei titoli (TWR)'), value=pct(report.twr),
@@ -42,7 +42,7 @@
 {% set l_duration %}{{ _('Durata del calo più lungo') }} {{ info(_('I mesi dal punto più alto a quando il portafoglio (TWR) ci è tornato. Se non ci è ancora tornato, il calo è in corso.')) }}{% endset %}
 {% set l_peak %}{{ _('Distanza dal massimo') }} {{ info(_('Di quanto il portafoglio (TWR) è oggi sotto il suo massimo storico: zero se è al massimo.')) }}{% endset %}
 {% set l_best12 %}{{ _('12 mesi migliori') }} {{ info(_('Il rendimento più alto e quello più basso su 12 mesi di fila (TWR), con il mese in cui finiscono. Servono almeno 12 mesi di storia.')) }}{% endset %}
-<div class="kpi-grid" style="margin-bottom:24px;">
+<div class="kpi-grid mb-24">
   {{ kpi('speedometer2', l_sharpe, value=report.sharpe|number(2) if report.sharpe is not none else '—',
          sub=_('tasso senza rischio %(rate)s %%', rate=report.risk_free|number(2))) }}
   {{ kpi('shield-check', l_sortino, value=report.sortino|number(2) if report.sortino is not none else '—',
@@ -56,7 +56,7 @@
          sub=(_('fino a %(month)s · peggiori %(pct)s %% (fino a %(worst)s)', month=report.best_12[0], pct=report.worst_12[1]|number(2), worst=report.worst_12[0]) if report.best_12 else _('servono 12 mesi'))) }}
 </div>
 
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header"><div>
     <div class="card-header-title">{{ _('Rendimento cumulato') }}</div>
     <div class="card-header-sub">{{ _('Il TWR misura quanto hanno reso i titoli, senza l\'effetto di quando e quanto hai versato: è il numero da confrontare con un indice.') }}</div>
@@ -65,8 +65,8 @@
 </div>
 
 {# F47, Fase 2: the value on every weekday, from the daily closes of the price history where there are some #}
-<div class="card" style="margin-bottom:24px;" id="daily">
-  <div class="card-header" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+<div class="card mb-24" id="daily">
+  <div class="card-header d-flex justify-between gap-12 flex-wrap">
     <div>
       <div class="card-header-title">{{ _('Valore giorno per giorno') }} {{ info(_('Il valore dei titoli ogni giorno lavorativo, con le quote che avevi quel giorno e il prezzo di quel giorno: la chiusura dello Storico dei prezzi (Prezzi → Storico dei prezzi) per ETF, azioni e fondi in euro collegati, altrimenti l\'ultimo prezzo registrato fino a quel giorno. La linea tratteggiata è quanto avevi versato.')) }}</div>
       <div class="card-header-sub">{% if daily.linked %}{{ _('%(count)s titoli con lo storico giornaliero', count=daily.linked) }}{% else %}{{ _('Nessun titolo collegato allo storico: si usano i prezzi registrati.') }} <a href="{{ url_for('portfolio.prices') }}#links">{{ _('Collega i titoli') }}</a>{% endif %}</div>
@@ -122,16 +122,16 @@
       </ul>
       {% endif %}
       {% if benchmarks|length < max_benchmarks %}
-      <form method="POST" id="benchmark-form" style="display:flex;gap:8px;align-items:end;">
-        <div class="form-group" style="margin:0;flex:1;">
+      <form method="POST" id="benchmark-form" class="d-flex gap-8 items-end">
+        <div class="form-group m-0 flex-1">
           <label class="form-label" for="ticker">{{ _('Ticker') }}</label>
           <input type="text" name="ticker" id="ticker" class="form-control" value="" placeholder="VWCE.MI" required />
         </div>
         <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
       </form>
       {% endif %}
-      <form method="POST" style="display:flex;gap:8px;align-items:end;margin-top:12px;">
-        <div class="form-group" style="margin:0;flex:1;">
+      <form method="POST" class="d-flex gap-8 items-end mt-12">
+        <div class="form-group m-0 flex-1">
           <label class="form-label" for="risk_free">{{ _('Tasso senza rischio (%% all\'anno)') }} {{ info(_('Il rendimento che avresti senza rischi, es. un conto deposito o i BOT: serve agli indici di Sharpe e di Sortino. Di solito 2 %%.')) }}</label>
           <input type="text" inputmode="decimal" name="risk_free" id="risk_free" class="form-control" value="{{ report.risk_free|number(2) }}" />
         </div>
@@ -143,7 +143,7 @@
 
 {% if fx.effects %}
 {# F43, F49: what the exchange rates added or took on the holdings quoted in another currency #}
-<div class="card" style="margin-top:24px;" id="fx-effect">
+<div class="card mt-24" id="fx-effect">
   <div class="card-header">
     <div>
       <div class="card-header-title"><i class="bi bi-currency-exchange"></i> {{ _('Effetto cambio') }} {{ info(_('Per i titoli quotati in un\'altra valuta: quanto del rendimento in euro viene dal titolo e quanto dal cambio, dal primo prezzo registrato dopo l\'acquisto all\'ultimo. (1 + rendimento in euro) = (1 + rendimento nella sua valuta) × (1 + variazione del cambio). Gli euro sono quelli che il cambio ha aggiunto o tolto al valore di oggi.')) }}</div>
@@ -171,8 +171,8 @@
 {% endif %}
 
 {% if contribution.rows %}
-<div class="card" style="margin-top:24px;">
-  <div class="card-header" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+<div class="card mt-24">
+  <div class="card-header d-flex justify-between gap-12 flex-wrap">
     <div>
       <div class="card-header-title">{{ _('Contributo dei titoli') }} {{ info(_('Quanto ha aggiunto ogni titolo al risultato del periodo: plus o minusvalenza (realizzata e non: valore finale − valore iniziale − acquisti + vendite) + dividendi e cedole − commissioni − imposte. I punti %% sono sul capitale investito in media nel periodo: la loro somma è il rendimento semplice del periodo, che non coincide con il TWR (concatena i mesi) e, a differenza del TWR, toglie commissioni e imposte. I titoli venduti del tutto contano fino alla vendita.')) }}</div>
       <div class="card-header-sub">{{ _('Dal %(day)s a oggi', day=contribution.start|it_date) }}</div>
@@ -211,7 +211,7 @@
 
 {% if report.returns %}
 {% set top = (report.returns|map('abs')|max) or 1 %}
-<div class="card mt-24" style="margin-top:24px;">
+<div class="card mt-24">
   <div class="card-header"><div class="card-header-title">{{ _('Rendimenti mese per mese') }} {{ info(_('Il rendimento di ogni mese (TWR): verde se positivo, rosso se negativo, più intenso quanto più è grande. L\'ultima colonna è l\'anno, dai mesi concatenati.')) }}</div></div>
   <div class="table-wrapper">
     <table class="summary-table">
@@ -234,7 +234,7 @@
   </div>
 </div>
 
-<div class="card" style="margin-top:24px;">
+<div class="card mt-24">
   <div class="card-header"><div class="card-header-title">{{ _('Calo dal massimo') }} {{ info(_('Di quanto il portafoglio era sotto il suo punto più alto precedente, mese per mese (TWR): zero quando è al massimo.')) }}</div></div>
   <div class="card-body"><div style="height:220px;"><canvas id="drawdownChart"></canvas></div></div>
 </div>

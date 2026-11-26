@@ -35,7 +35,7 @@
 {% endblock %}
 
 {% macro reminder_fields(prefix, r=none) -%}
-<div class="grid-2" style="gap:12px;">
+<div class="grid-2 gap-12">
   <div class="form-group"><label class="form-label" for="{{ prefix }}-title">{{ _('Cosa scade') }}</label>
     <input type="text" id="{{ prefix }}-title" name="title" class="form-control" required maxlength="200" value="{{ r.title if r else '' }}" placeholder="{{ _('es. bollo auto, revisione, abbonamento ai mezzi') }}" /></div>
   <div class="form-group"><label class="form-label" for="{{ prefix }}-due">{{ _('Data') }}</label>
@@ -45,7 +45,7 @@
   <div class="form-group"><label class="form-label" for="{{ prefix }}-amount">{{ _('Importo (€, facoltativo)') }}</label>
     <input type="text" inputmode="decimal" id="{{ prefix }}-amount" name="amount" class="form-control" value="{{ r.amount|plain if r and r.amount is not none else '' }}" /></div>
 </div>
-<div class="grid-2" style="gap:12px;">
+<div class="grid-2 gap-12">
   <div class="form-group"><label class="form-label" for="{{ prefix }}-notice">{{ _('Avvisami') }}</label>
     <select id="{{ prefix }}-notice" name="notice_days" class="form-select" data-no-search>{% for days, label in notices.items() %}<option value="{{ days }}" {{ 'selected' if (r.notice_days if r else 7) == days }}>{{ _(label) }}</option>{% endfor %}</select></div>
   <div class="form-group"><label class="form-label" for="{{ prefix }}-notes">{{ _('Nota') }}</label>
@@ -114,7 +114,7 @@
     {% endif %}
     {% if hidden %}
     <details class="card-footer">
-      <summary class="text-sm text-muted" style="cursor:pointer;">{{ _('Già visti (%(count)s)', count=hidden|length) }}</summary>
+      <summary class="text-sm text-muted cursor-pointer">{{ _('Già visti (%(count)s)', count=hidden|length) }}</summary>
       <ul class="notification-list">
         {% for n in hidden %}
         <li class="notification text-muted"><i class="bi bi-{{ n.icon }}"></i><a href="{{ n.url }}" class="notification-body"><span>{{ n.title }}</span><span class="text-xs">{{ n.detail }}</span></a></li>
@@ -201,7 +201,7 @@
         {% else %}
         <form method="POST" action="{{ url_for('deadlines.create') }}">
           {{ reminder_fields('n') }}
-          <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
+          <button type="submit" class="btn btn-outline"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi') }}</button>
         </form>
         {% endif %}
       </div>

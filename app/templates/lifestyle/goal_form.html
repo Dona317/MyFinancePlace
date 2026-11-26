@@ -4,7 +4,7 @@
 {% set g = goal or {} %}
 {% block page_title %}{{ _('Modifica obiettivo') if is_edit else _('Nuovo obiettivo') }}{% endblock %}
 {% block breadcrumb %}
-  <li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di Vita') }}</a></li>
+  <li><a href="{{ url_for('lifestyle.index') }}">{{ _('Stile di vita') }}</a></li>
   <li><a href="{{ url_for('lifestyle.goals') }}">{{ _('Obiettivi') }}</a></li>
   <li>{{ _('Modifica') if is_edit else _('Nuovo') }}</li>
 {% endblock %}
@@ -13,7 +13,7 @@
 <div class="page-form">
   <div class="card">
     <div class="card-header">
-      <div class="card-header-title"><i class="bi bi-trophy"></i> {{ _('Modifica Obiettivo') if is_edit else _('Nuovo Obiettivo di Risparmio') }}</div>
+      <div class="card-header-title"><i class="bi bi-trophy"></i> {{ _('Modifica obiettivo') if is_edit else _('Nuovo obiettivo di risparmio') }}</div>
     </div>
     <div class="card-body">
       <form method="POST">
@@ -36,7 +36,7 @@
           </div>
         </fieldset>
         {{ f.textarea(values, 'notes', _('Note'), g.notes, placeholder=_('Dove tieni i soldi, perché è importante...')) }}
-        {{ f.actions(url_for('lifestyle.goals'), _('Salva Modifiche') if is_edit else _('Crea Obiettivo')) }}
+        {{ f.actions(url_for('lifestyle.goals'), _('Salva modifiche') if is_edit else _('Crea obiettivo')) }}
       </form>
     </div>
   </div>

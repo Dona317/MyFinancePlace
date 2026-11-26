@@ -5,16 +5,23 @@
 {% from "partials/tabs.html" import tab_bar %}
 {% from "partials/info.html" import info %}
 {% from "transactions/_tabs.html" import transactions_tabs with context %}
-{% block page_title %}{{ _('Conti e Carte') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Conti e Carte') }}</li>{% endblock %}
+{% block page_title %}{{ _('Conti e carte') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('transactions.index') }}">{{ _('Transazioni') }}</a></li><li>{{ _('Conti e carte') }}</li>{% endblock %}
 
 {% block topbar_actions %}
-  <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm" data-popup="{{ url_for('accounts.new', embed=1, next=url_for('transactions.embed_done', reload=1)) }}" data-popup-size="wide" title="{{ _('Nuovo Conto') }}"><i class="bi bi-plus-lg"></i> {{ _('Nuovo Conto') }}</a>
+  <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm" data-popup="{{ url_for('accounts.new', embed=1, next=url_for('transactions.embed_done', reload=1)) }}" data-popup-size="wide" title="{{ _('Nuovo conto') }}"><i class="bi bi-plus-lg"></i> {{ _('Nuovo conto') }}</a>
 {% endblock %}
 
 {% block content %}
 {# UI-48: a tab of Transazioni; then, as before (UI-21), «come sto» in one row and its own tabs #}
 {{ transactions_tabs('accounts') }}
+{# UI-53: the second row of tabs right under the first, then the figures #}
+<div class="page-tabs">{{ tab_bar([
+  ('accounts', url_for('accounts.index'), _('Conti'), 'bank'),
+  ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),
+  ('reconcile', url_for('accounts.index', tab='reconcile'), _('Riconciliazioni'), 'check2-square'),
+  ('banking', url_for('banking.index'), _('Collegamenti bancari'), 'link-45deg'),
+], tab, _('Sezioni di conti e carte'), level=2) }}</div>
 {# the cash in each currency, under its figure #}
 {% set cash_parts = namespace(text='') %}
 {% for code, value in currencies.items() %}{% set cash_parts.text = cash_parts.text ~ (' · ' if not loop.first else '') ~ value|money(code) %}{% endfor %}
@@ -30,12 +37,7 @@
   {'label': _('Senza conto'), 'value': unassigned, 'cls': 'warning' if unassigned else 'positive',
    'href': url_for('transactions.index', account='none') if unassigned else None, 'sub': _('transazioni da assegnare') if unassigned else _('tutte assegnate')},
 ], _('Conti in breve')) }}
-<div class="page-tabs">{{ tab_bar([
-  ('accounts', url_for('accounts.index'), _('Conti'), 'bank'),
-  ('cards', url_for('accounts.index', tab='cards'), _('Carte'), 'credit-card'),
-  ('reconcile', url_for('accounts.index', tab='reconcile'), _('Riconciliazioni'), 'check2-square'),
-  ('banking', url_for('banking.index'), _('Collegamenti bancari'), 'link-45deg'),
-], tab, _('Sezioni di conti e carte')) }}</div>
+
 
 {% if tab == 'cards' %}
 <div class="card">
@@ -142,7 +144,7 @@
   {% endif %}
   {% if not rows %}
   {% call empty_state(text=_('Aggiungi conti correnti, carte, conti deposito e contanti: vedrai il saldo di ognuno, potrai importare gli estratti sul conto giusto e riconciliarli con la banca.'), icon='bi-bank', title=_('Nessun conto')) %}
-    <a href="{{ url_for('accounts.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi Conto') }}</a>
+    <a href="{{ url_for('accounts.new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi conto') }}</a>
   {% endcall %}
   {% endif %}
 </div>

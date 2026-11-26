@@ -44,7 +44,7 @@
         </div>
       </div>
       {% if group.notes %}<p class="text-sm text-muted mb-8">{{ group.notes }}</p>{% endif %}
-      <a class="btn btn-primary btn-sm" href="{{ url_for('groups.consolidated', group_id=group.id) }}"><i class="bi bi-bar-chart-line"></i> {{ _('Consolidato') }}</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('groups.consolidated', group_id=group.id) }}"><i class="bi bi-bar-chart-line"></i> {{ _('Consolidato') }}</a>
       <details class="mt-8">
         <summary class="text-sm">{{ _('Modifica') }}</summary>
         <form method="POST" action="{{ url_for('groups.edit', group_id=group.id) }}" class="mt-8">
@@ -58,7 +58,7 @@
             <label class="form-label" for="notes-{{ group.id }}">{{ _('Note') }}</label>
             <textarea id="notes-{{ group.id }}" name="notes" class="form-control" rows="2">{{ group.notes or '' }}</textarea>
           </div>
-          <button type="submit" class="btn btn-primary btn-sm">{{ _('Salva') }}</button>
+          <button type="submit" class="btn btn-outline btn-sm">{{ _('Salva') }}</button>
         </form>
         <form method="POST" action="{{ url_for('groups.delete', group_id=group.id) }}" class="mt-8"
               data-confirm="{{ _("Eliminare il gruppo «%(name)s»? Gli archivi e i loro dati restano.", name=group.name) }}">
@@ -80,7 +80,7 @@
     <p class="text-sm text-muted">{{ _('Per un gruppo servono almeno due archivi: crea prima l’archivio di ogni persona in Clienti.') }}</p>
     {% else %}
     <form method="POST" action="{{ url_for('groups.create') }}">
-      <div class="grid-2" style="gap:16px;">
+      <div class="grid-2 gap-16">
         <div class="form-group">
           <label class="form-label" for="new-name">{{ _('Nome del gruppo') }}</label>
           <input type="text" id="new-name" name="name" class="form-control" required maxlength="120" placeholder="{{ _('es. Famiglia Rossi') }}" />

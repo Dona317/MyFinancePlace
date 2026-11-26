@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/empty.html" import empty_state %}
 {% block page_title %}{{ _('In evidenza') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portfolio') }}</a></li><li>{{ _('In evidenza') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('portfolio.index') }}">{{ _('Portafoglio') }}</a></li><li>{{ _('In evidenza') }}</li>{% endblock %}
 
 {% macro move_rows(moves) -%}
 {% for m in moves %}
@@ -44,7 +44,7 @@
         <a href="{{ url_for('portfolio.detail', holding_id=h.id) }}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ h.name }}</a>
         <span class="nowrap">{{ share|number(1) }}%</span>
       </div>
-      <div class="progress-bar-wrap mb-8" style="height:6px;"><div class="progress-bar-fill {{ 'warning' if share > 40 }}" style="width:{{ share }}%;"></div></div>
+      <div class="progress-bar-wrap mb-8 h-6"><div class="progress-bar-fill {{ 'warning' if share > 40 }}" style="width:{{ share }}%;"></div></div>
       {% endfor %}
     </div>
   </div>
@@ -87,7 +87,7 @@
     <div class="card-header"><div class="card-header-title">{{ _('Prezzi da controllare') }}</div></div>
     <div class="card-body text-sm">
       {% for h, why in data.stale %}
-      <div class="d-flex gap-8 mb-8"><a href="{{ url_for('portfolio.history', holding_id=h.id) }}" style="flex:1;">{{ h.name }}</a>
+      <div class="d-flex gap-8 mb-8"><a href="{{ url_for('portfolio.history', holding_id=h.id) }}" class="flex-1">{{ h.name }}</a>
         <span class="text-muted nowrap">{% if why == 'manual' %}{{ _('solo a mano') }}{% elif h.price_date %}{{ _('fermo dal %(day)s', day=h.price_date|it_date) }}{% else %}{{ _('mai aggiornato') }}{% endif %}</span></div>
       {% else %}
       <span class="text-positive"><i class="bi bi-check-circle"></i> {{ _('Tutti i prezzi sono degli ultimi 30 giorni.') }}</span>

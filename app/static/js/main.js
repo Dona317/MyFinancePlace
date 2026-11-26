@@ -1128,7 +1128,7 @@ function initToBottom() {
 /* Areas that scroll sideways (tables, rows of tabs): two arrows appear on the edges while there is more to see;
    a click scrolls by most of the width, and the area can be focused and moved with the arrow keys */
 function initScrollArrows() {
-  const boxes = () => document.querySelectorAll(".table-wrapper, .settings-nav, .tabs, .tab-bar, .statement-tabs");
+  const boxes = () => document.querySelectorAll(".table-wrapper, .settings-nav, .tabs, .tab-bar, .statement-tabs, .report-tabs");
   const wire = (box) => {
     if (box.dataset.arrows) return;
     box.dataset.arrows = "1";

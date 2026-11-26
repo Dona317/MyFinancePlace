@@ -58,7 +58,7 @@
     <label title="{{ _('Quanti mesi completi recenti usare per stimare le spese e le entrate variabili') }}">
       <span>{{ _('Finestra mobile') }}</span>
       <input type="number" name="window" value="{{ prefs.window }}" min="{{ window_range[0] }}" max="{{ window_range[1] }}"
-             list="window-presets" class="form-control" style="width:80px;" />
+             list="window-presets" class="form-control w-80" />
       <span>{{ _('mesi') }}</span>
       <datalist id="window-presets">{% for n in [3, 6, 9, 12, 18, 24, 36] %}<option value="{{ n }}">{% endfor %}</datalist>
     </label>
@@ -96,7 +96,7 @@
     <div class="layout-hidden" id="layout-hidden"></div>
     <div class="layout-bar-actions">
       <button type="button" class="btn btn-ghost btn-sm" id="layout-reset"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina predefinito') }}</button>
-      <button type="button" class="btn btn-primary btn-sm" id="layout-done"><i class="bi bi-check2"></i> {{ _('Fatto') }}</button>
+      <button type="button" class="btn btn-outline btn-sm" id="layout-done"><i class="bi bi-check2"></i> {{ _('Fatto') }}</button>
     </div>
   </div>
 </div>
@@ -130,7 +130,7 @@
         </div>
       </div>
       <div class="card-body">
-        <div class="chart-container" style="height:300px;"><canvas id="netChart"></canvas></div>
+        <div class="chart-container h-300"><canvas id="netChart"></canvas></div>
       </div>
     </div>
   {% elif w.id == 'methods' %}
@@ -181,7 +181,7 @@
         </div>
       </div>
       <div class="card-body">
-        <div class="chart-container" style="height:240px;"><canvas id="incomeChart"></canvas></div>
+        <div class="chart-container h-240"><canvas id="incomeChart"></canvas></div>
       </div>
     </div>
   {% elif w.id == 'expenses' %}
@@ -193,7 +193,7 @@
         </div>
       </div>
       <div class="card-body">
-        <div class="chart-container" style="height:240px;"><canvas id="expensesChart"></canvas></div>
+        <div class="chart-container h-240"><canvas id="expensesChart"></canvas></div>
       </div>
     </div>
   {% elif w.id == 'balance' %}
@@ -205,7 +205,7 @@
         </div>
       </div>
       <div class="card-body">
-        <div class="chart-container" style="height:280px;"><canvas id="balanceChart"></canvas></div>
+        <div class="chart-container h-280"><canvas id="balanceChart"></canvas></div>
       </div>
     </div>
   {% elif w.id == 'months' %}
@@ -252,7 +252,7 @@
               <td style="text-align:right;white-space:nowrap;color:var(--clr-text-muted);">{{ (sign * c.average)|money }}</td>
               <td class="col-optional text-right nowrap">{{ (sign * c.scheduled)|money if c.scheduled else '—' }}</td>
               <td class="col-optional text-right nowrap">{{ (sign * c.variable)|money if c.variable else '—' }}</td>
-              <td class="amount {{ c.type|tone }}" style="text-align:right;white-space:nowrap;font-weight:600;">
+              <td class="amount {{ c.type|tone }} text-right nowrap font-semibold">
                 {{ (sign * c.total)|money }}
                 {% if c.average and c.total > c.average * 1.2 %}<i class="bi bi-arrow-up-short" title="{{ _('Oltre il 20%% sopra la media') }}"></i>{% endif %}
               </td>
@@ -321,7 +321,7 @@
                   <select name="frequency" class="form-select" aria-label="{{ _('Frequenza') }}">
                     {% for key, f in frequencies.items() %}<option value="{{ key }}" {{ 'selected' if key == c.frequency else '' }}>{{ f[0] }}</option>{% endfor %}
                   </select>
-                  <button type="submit" class="btn btn-primary btn-sm" title="{{ _('Segna come ricorrente') }}"><i class="bi bi-check2"></i> {{ _('Conferma') }}</button>
+                  <button type="submit" class="btn btn-outline btn-sm" title="{{ _('Segna come ricorrente') }}"><i class="bi bi-check2"></i> {{ _('Conferma') }}</button>
                 </form>
               </td>
             </tr>

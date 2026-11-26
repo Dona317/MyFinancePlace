@@ -3,6 +3,8 @@
 {% block page_title %}{{ _('Fisco') }}{% endblock %}
 {% block breadcrumb %}<li><a href="{{ url_for('tax.index') }}">{{ _('Fisco') }}</a></li><li>{{ _('Lavori occasionali') }}</li>{% endblock %}
 
+{% block topbar_actions %}{% include "partials/year_select.html" %}{% endblock %}
+
 {% block content %}
 {% include "tax/_tabs.html" %}
 <p class="text-sm text-muted mb-16">{{ _('Le prestazioni occasionali sono «redditi diversi»: nel 730 il quadro D (rigo D5, codice 2), nel modello Redditi il quadro RL. Il reddito è il lordo meno le spese del lavoro; le ritenute già versate dai committenti si scalano dall’imposta.') }}</p>

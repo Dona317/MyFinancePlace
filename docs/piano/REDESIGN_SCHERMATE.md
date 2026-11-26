@@ -38,11 +38,11 @@ ridisposizione, `--clr-neutral` ancora blu). Le decisioni del 26 nov sono **UI-5
 | Giro | Cosa | Stato |
 |---|---|---|
 | 0 Fondamenta | colori (T42), riga dei numeri unica (`kpi()` disegna una cella della riga), `tab_bar` a due livelli con la riga sotto le schede, variabili (T47: spaziature, raggi, 4 larghezze), pesi 400/600 (T46), `scripts/design_audit.py` come metro | fatto il 26 nov; il periodo «solo mese» va nel giro 5 (Budget) |
-| 1 Movimenti | Transazioni + Conti (secondo livello), Ricorrenti, Report e sotto-pagine, Panoramica Finanziaria | da fare |
-| 2 Patrimonio | Portafoglio (10 schede → due livelli ≤ 7, «Portafoglio» in italiano, KPI → riga), Fisco | da fare |
-| 3 Servizio | Assicurazioni, Bollette, Lavoretti, Prestiti, Documenti, Istantanee, Clienti, Gruppi | da fare |
-| 4 Strumenti | Importa ed Esporta, Salute dei dati, Impostazioni | da fare |
-| 5 Rifiniture | Dashboard, Previsioni (una riga, «Modifica» al posto di «Personalizza»), Pensione, Promemoria, Budget (periodo), Debiti | da fare |
+| 1 Movimenti | Transazioni + Conti (secondo livello), Ricorrenti, Report e sotto-pagine, Panoramica Finanziaria | fatto il 26 nov: Conti e Ricorrenti con il secondo livello di schede; Report e Fisco con l'anno nella barra; Ricorrenti con l'orizzonte nel riquadro del periodo; Panoramica finanziaria con `tab_bar` e i nomi del menu |
+| 2 Patrimonio | Portafoglio (10 schede → due livelli ≤ 7, «Portafoglio» in italiano, KPI → riga), Fisco | fatto il 26 nov: Portafoglio con 5 schede, ognuna con un secondo livello; «Portfolio» → «Portafoglio»; Fisco con l'anno nella barra |
+| 3 Servizio | Assicurazioni, Bollette, Lavoretti, Prestiti, Documenti, Istantanee, Clienti, Gruppi | in gran parte il 26 nov: riga dei numeri, un solo pulsante arancio, titoli («Assicurazioni», «Documenti», «Istantanee»), Bollette con `tab_bar`. Restano la revisione a schermo e gli stili scritti a mano rimasti |
+| 4 Strumenti | Importa ed Esporta, Salute dei dati, Impostazioni | in parte il 26 nov: un solo pulsante arancio, titoli, Categorie con lo stile unico. Restano molti stili scritti a mano (Impostazioni, Esporta, anteprima dell'import) |
+| 5 Rifiniture | Dashboard, Previsioni (una riga, «Modifica» al posto di «Personalizza»), Pensione, Promemoria, Budget (periodo), Debiti | in parte il 26 nov: Budget con il mese nel riquadro del periodo; badge TBD tolti a Budget, Obiettivi, Promemoria, Eventi, Debiti, Previsioni, Report e Panoramica finanziaria; «Primi passi» flottante (UI-55). Restano l'editor «Personalizza» di Previsioni → «Modifica» e il passaggio su telefono (T43) |
 
 Trasversali a ogni giro: telefono (T43, UI-16) e stili scritti a mano (T48). Ogni giro si chiude con la checklist,
 `scripts/design_audit.py` con i numeri che scendono, commit e push. Obiettivo finale: 0 `kpi(` fuori dalla dashboard,

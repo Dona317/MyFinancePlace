@@ -2,15 +2,15 @@
 {% from "partials/period_box.html" import choice_box, year_box %}
 {% from "partials/kpi.html" import kpi %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
-{% block page_title %}{{ _('Panoramica Finanziaria') }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica Finanziaria') }}</a></li><li>{{ _('Crescita del patrimonio') }}</li>{% endblock %}
+{% block page_title %}{{ _('Panoramica finanziaria') }}{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounting.index') }}">{{ _('Panoramica finanziaria') }}</a></li><li>{{ _('Crescita del patrimonio') }}</li>{% endblock %}
 
 {% block topbar_actions %}
 {{ choice_box('months', options, months) }}
 {% endblock %}
 
 {% block statement %}
-<div class="kpi-grid" style="margin-bottom:24px;">
+<div class="kpi-grid mb-24">
   {{ kpi('speedometer2', _('Crescita media al mese'), value=('+' if velocity.monthly > 0 else '') ~ velocity.monthly|money,
          cls='kpi-positive' if velocity.monthly >= 0 else 'kpi-negative') }}
   {{ kpi('piggy-bank', _('Dal risparmio'), value=velocity.savings|money,
@@ -18,7 +18,7 @@
   {{ kpi('graph-up-arrow', _('Dai mercati'), value=velocity.markets|money) }}
 </div>
 
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header"><div>
     <div class="card-header-title">{{ _('Da dove viene ogni mese') }}</div>
     <div class="card-header-sub">{{ _('La variazione del patrimonio netto divisa in risparmio (entrate meno uscite), mercati (guadagni e perdite dei titoli), debito rimborsato (la quota capitale delle rate) e nuovi beni.') }}</div>

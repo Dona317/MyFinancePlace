@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ _('Quale conto?') }} — MyFinancePlace{% endblock %}
 {% block page_title %}{{ _('Quale conto della banca è «%(name)s»?', name=account.name) }}{% endblock %}
-{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e Carte') }}</a></li><li><a href="{{ url_for('accounts.edit', account_id=account.id) }}">{{ account.name }}</a></li><li>{{ _('Collegamento') }}</li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url_for('accounts.index') }}">{{ _('Conti e carte') }}</a></li><li><a href="{{ url_for('accounts.edit', account_id=account.id) }}">{{ account.name }}</a></li><li>{{ _('Collegamento') }}</li>{% endblock %}
 
 {% block content %}
 <div class="page-form">

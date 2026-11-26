@@ -7,7 +7,7 @@
 {% set active = 'prices' %}{% include "data/_tabs.html" %}
 {% include "data/_coverage.html" %}
 {# F112: «Incolla il link» — the page of a holding on justETF, Borsa Italiana, Morningstar…, read by its ISIN #}
-<div class="card" id="paste-link" style="margin-top:16px;">
+<div class="card mt-16" id="paste-link">
   <div class="card-header"><div>
     <div class="card-header-title"><i class="bi bi-link-45deg"></i> {{ _('Incolla il link') }}
       {{ info(_('Per un titolo che Yahoo e Stooq non trovano, o con dei buchi: incolla il link della sua pagina su justETF, Borsa Italiana o un altro sito con l\'ISIN nell\'indirizzo. L\'app non apre il link: ne prende l\'ISIN e legge da justETF le chiusure dalla prima operazione a oggi. Il link resta salvato con il titolo e l\'aggiornamento di ogni giorno lo rilegge. Per investing.com scarica il CSV dei «Dati storici» e caricalo con «Carica lo storico».'), _('Incolla il link')) }}</div>
@@ -15,12 +15,12 @@
   </div></div>
   <div class="card-body">
     {% if coverage %}
-    <form method="POST" action="{{ url_for('data.price_link') }}" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-      <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="link-symbol">{{ _('Titolo') }}</label>
+    <form method="POST" action="{{ url_for('data.price_link') }}" class="d-flex gap-12 flex-wrap items-end">
+      <div class="form-group mb-0"><label class="form-label" for="link-symbol">{{ _('Titolo') }}</label>
         <select class="form-control" id="link-symbol" name="symbol" required>
           {% for c in coverage %}<option value="{{ c.symbol }}">{{ c.symbol }} · {{ c.name }}</option>{% endfor %}
         </select></div>
-      <div class="form-group" style="flex:1;min-width:240px;margin-bottom:0;"><label class="form-label" for="link-url">{{ _('Link della pagina') }}</label>
+      <div class="form-group flex-1 minw-240 mb-0"><label class="form-label" for="link-url">{{ _('Link della pagina') }}</label>
         <input class="form-control" id="link-url" name="url" type="url" required placeholder="https://www.justetf.com/it/etf-profile.html?isin=IE00BK5BQT80"></div>
       <button type="submit" class="btn btn-primary" {% if not online %}disabled title="{{ _('Accendi i prezzi da internet in Impostazioni') }}"{% endif %}><i class="bi bi-download"></i> {{ _('Leggi lo storico') }}</button>
     </form>
@@ -35,7 +35,7 @@
           {% for symbol, url in links|dictsort %}
           <tr>
             <td class="font-mono">{{ symbol }}</td>
-            <td class="text-sm" style="word-break:break-all;"><a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ url }}</a></td>
+            <td class="text-sm break-all"><a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ url }}</a></td>
             <td class="text-right">
               <form method="POST" action="{{ url_for('data.price_link_forget') }}">
                 <input type="hidden" name="symbol" value="{{ symbol }}">
@@ -51,7 +51,7 @@
   </div>
 </div>
 {# F113: the price database, shared by every archive — how much it holds, out and back as a zip #}
-<div class="card" id="store" style="margin-top:16px;">
+<div class="card mt-16" id="store">
   <div class="card-header">
     <div>
       <div class="card-header-title"><i class="bi bi-database"></i> {{ _('Database dei prezzi') }}
@@ -76,7 +76,7 @@
       <div><div class="text-xs text-muted">{{ _('Chiusure') }}</div><div class="font-semibold">{{ '{:,}'.format(store.closes).replace(',', '.') }}</div></div>
       {% if store.first %}<div><div class="text-xs text-muted">{{ _('Dal… al…') }}</div><div class="font-semibold">{{ store.first|it_date }} → {{ store.last|it_date }}</div></div>{% endif %}
     </div>
-    {% if store.where %}<div class="text-xs text-muted mt-8" style="word-break:break-all;">{{ store.where }}</div>{% endif %}
+    {% if store.where %}<div class="text-xs text-muted mt-8 break-all">{{ store.where }}</div>{% endif %}
     {% if store.instruments %}<div class="text-xs text-muted">{% if all_updated %}{{ _('Tutto il database aggiornato il %(day)s; lo rifà da solo ogni settimana.', day=all_updated|it_date) }}{% else %}{{ _('Tutto il database: si aggiorna da solo una volta a settimana, con i prezzi da internet accesi.') }}{% endif %}</div>{% endif %}
     {% if seed %}
     <form method="POST" action="{{ url_for('data.prices_seed') }}" class="mt-16">
@@ -84,8 +84,8 @@
       <span class="text-xs text-muted">{{ _('Le chiusure dal 2000 di circa 200 strumenti (ETF di Borsa Italiana, FTSE MIB, grandi titoli europei e americani, indici, oro, petrolio, cripto), già nell\'app: servono anche senza internet.') }}</span>
     </form>
     {% endif %}
-    <form method="POST" action="{{ url_for('data.prices_import') }}" enctype="multipart/form-data" class="mt-16" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-      <div class="form-group" style="margin-bottom:0;"><label class="form-label" for="store-file">{{ _('Database esportato (.zip)') }}</label>
+    <form method="POST" action="{{ url_for('data.prices_import') }}" enctype="multipart/form-data" class="mt-16 d-flex gap-12 flex-wrap items-end">
+      <div class="form-group mb-0"><label class="form-label" for="store-file">{{ _('Database esportato (.zip)') }}</label>
         <input class="form-control" type="file" id="store-file" name="file" accept=".zip" required></div>
       <button type="submit" class="btn btn-outline"><i class="bi bi-box-arrow-in-down"></i> {{ _('Importa') }}</button>
     </form>

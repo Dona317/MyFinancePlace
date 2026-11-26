@@ -4,7 +4,7 @@
 {% block breadcrumb %}<li><a href="{{ url_for('events.index') }}">{{ _('Eventi') }}</a></li><li>{{ event.name }}</li>{% endblock %}
 
 {% block content %}
-<div class="kpi-grid" style="margin-bottom:24px;">
+<div class="kpi-grid mb-24">
   {{ kpi('cash-coin', _('Costo'), value=summary.net|money, cls='kpi-primary', sub=_('%(count)s movimenti', count=summary.count)) }}
   {{ kpi('calendar-event', _('Al giorno'), value=summary.per_day|money, sub=_('%(days)s giorni', days=summary.days)) }}
   {% if event.budget is not none %}
@@ -18,7 +18,7 @@
   {% endif %}
 </div>
 
-<div class="grid-2" style="margin-bottom:24px;">
+<div class="grid-2 mb-24">
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Per categoria') }}</div></div>
     <div class="card-body">
@@ -52,7 +52,7 @@
 </div>
 
 {% macro tx_table(items, form_id, button, event_value, title, empty) %}
-<div class="card" style="margin-bottom:24px;">
+<div class="card mb-24">
   <div class="card-header"><div class="card-header-title">{{ title }}</div></div>
   {% if items %}
   <form method="POST" action="{{ url_for('events.assign') }}" id="{{ form_id }}">
