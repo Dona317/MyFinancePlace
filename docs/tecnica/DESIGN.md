@@ -187,7 +187,7 @@ Dall'urgente al lento, in fasce:
    contro la media, mesi coperti dalla liquidità (barra verso l'obiettivo), «Da sistemare».
 2. **Questo mese** — ritmo di spesa, bridge del mese (cascata), dove va il denaro (Sankey o treemap), budget più vicini
    al limite, prossimi 30 giorni.
-3. **Nel tempo** — patrimonio, valore contro versato, risparmio per anno; chiusa di default, la pagina ricorda la scelta.
+3. **Nel tempo** — patrimonio, valore contro versato, risparmio per anno; aperta di default (UI-25), la pagina ricorda la scelta.
 4. **Futuro** — saldo dei prossimi 12 mesi, uscite grosse dell'anno; con la «i» (UI-19) finché mancano: patrimonio
    tra 10 anni, pensione e FIRE, obiettivi, debiti, rendite.
 
@@ -285,6 +285,11 @@ Nessuna (le A1–A5 del 18 nov sono diventate UI-12…UI-16). Una domanda nuova 
 | UI-48 | 26 nov 2026 | **Conti e Carte dentro Transazioni**: è la seconda scheda di Transazioni (dopo «Transazioni», prima di «Entrate»), non più voce del menu a sinistra; sulle sue pagine il menu illumina Transazioni. La pagina resta com'era: riquadro «Conti in breve» e le sue sottoschede (Conti, Carte, Riconciliazioni, Collegamenti bancari) sotto le schede di Transazioni; briciole «Transazioni › Conti e Carte». Resta trovabile con Ctrl+K |
 | UI-49 | 26 nov 2026 | **Dashboard più leggibile**: le schede in alto diventano Panoramica · Questo mese · **Nel tempo** · **Futuro** · Patrimonio · Investimenti. La Panoramica tiene «Come sto» (card ed «Entrate e uscite del periodo») e un grafico per sezione: Flusso del denaro (Questo mese), Flusso di cassa e risparmio (Nel tempo), Saldo dei prossimi 12 mesi (Futuro); accanto al titolo di ogni sezione «Tutti i grafici →» apre la sua scheda. Gli altri blocchi restano in «Modifica» come nascosti (si rimettono in vista quando si vuole); una disposizione salvata prima li nasconde una volta sola |
 | UI-50 | 26 nov 2026 | **Grafici di «Nel tempo» con le stesse opzioni**: anche «Tasso di risparmio mese per mese» ha «Vedi tutto →» (Report → Riepilogo, con il tasso mese per mese) e il pulsante «Deseleziona tutto / Seleziona tutto» a destra dei pulsanti degli anni, con lo stile della legenda degli altri grafici. Gli anni restano scelti con i pulsanti: per gli altri grafici gli anni li dà il selettore del periodo in alto |
+
+| UI-51 | 26 nov 2026 | **Una sola riga dei numeri**: in cima a ogni pagina la riga compatta `stat_row` (3–5 numeri); le schede numeriche grandi (`kpi()`) restano solo nei 4 numeri di «Come sto» della dashboard |
+| UI-52 | 26 nov 2026 | **Un solo selettore del periodo** (aggiorna UI-05): il riquadro di `partials/period_box.html` nella barra in alto, con solo i controlli che servono (solo anno per Fisco e Lavoretti, solo mese per Budget); niente frecce, preset o selettori dentro la pagina |
+| UI-53 | 26 nov 2026 | **Un solo stile di schede** (aggiorna UI-06, UI-14): `tab_bar`, nel contenitore `page-tabs`; due livelli ammessi (es. Transazioni → Conti) con lo stesso stile, al massimo 7 schede per riga; niente `statement-tabs` né schede fatte a mano |
+| UI-54 | 26 nov 2026 | **TBD come contatore** (aggiorna UI-13): il badge «TBD» di una sezione si toglie quando le sue pagine passano la checklist «pagina allineata» di [REDESIGN_SCHERMATE.md](../piano/REDESIGN_SCHERMATE.md) (giri 0–5 del 26 nov) |
 
 ## 16. Fotografia di partenza (18 nov 2026)
 Da dove si parte, per misurare i progressi della pulizia:

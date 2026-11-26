@@ -10,6 +10,46 @@ registro di DESIGN.md (UI-nn) e il lavoro diventa una card del piano.
 
 ---
 
+## Piano di riallineamento grafico (26 nov 2026) — il piano in corso
+
+In tre settimane sono state rifatte dashboard, Budget, Promemoria, Conti, Debiti, Obiettivi e Previsioni; le altre
+pagine sono rimaste com'erano. Ricognizione del 26 nov:
+- in cima alle pagine convivono due modelli: `stat_row` in 6 pagine, le schede `kpi()` in circa 30;
+- le schede hanno 5 stili;
+- il periodo si sceglie in 6 modi;
+- ci sono circa 11 KPI sempre arancio e fino a 5 pulsanti arancio pieni per vista;
+- titoli, menu e schede usano nomi diversi;
+- in alcune etichette c'è ancora inglese.
+
+Le card T42–T48 sono tutte aperte (674 stili scritti a mano, 57 pesi 700 e 21 pesi 500, 17 larghezze di
+ridisposizione, `--clr-neutral` ancora blu). Le decisioni del 26 nov sono **UI-51…UI-54** in DESIGN.md.
+
+**Checklist «pagina allineata»**:
+1. barra in alto con titolo uguale al menu e un solo `btn-primary`;
+2. periodo solo nel riquadro della barra (UI-52);
+3. `stat_row` al posto di `kpi()`, con i colori di significato;
+4. schede `tab_bar` in `page-tabs` (UI-53);
+5. prima lettera maiuscola, italiano;
+6. tabelle compatte, `empty_state()`, «i» per i dati mancanti;
+7. nessuno stile scritto a mano nuovo;
+8. pagina guardata in chiaro e scuro a 1440, 992 e 375 px;
+9. badge TBD tolto (UI-54).
+
+| Giro | Cosa | Stato |
+|---|---|---|
+| 0 Fondamenta | colori (T42), `stat_row` con icona e previsione, `tab_bar` a due livelli e un solo contenitore, `period_box` con «solo anno» e «solo mese», variabili (T47), pesi e scala (T46), `scripts/design_audit.py` come metro | da fare |
+| 1 Movimenti | Transazioni + Conti (secondo livello), Ricorrenti, Report e sotto-pagine, Panoramica Finanziaria | da fare |
+| 2 Patrimonio | Portafoglio (10 schede → due livelli ≤ 7, «Portafoglio» in italiano, KPI → riga), Fisco | da fare |
+| 3 Servizio | Assicurazioni, Bollette, Lavoretti, Prestiti, Documenti, Istantanee, Clienti, Gruppi | da fare |
+| 4 Strumenti | Importa ed Esporta, Salute dei dati, Impostazioni | da fare |
+| 5 Rifiniture | Dashboard, Previsioni (una riga, «Modifica» al posto di «Personalizza»), Pensione, Promemoria, Budget (periodo), Debiti | da fare |
+
+Trasversali a ogni giro: telefono (T43, UI-16) e stili scritti a mano (T48). Ogni giro si chiude con la checklist,
+`scripts/design_audit.py` con i numeri che scendono, commit e push. Obiettivo finale: 0 `kpi(` fuori dalla dashboard,
+1 stile di schede, ≤ 1 `btn-primary` per vista, 0 pesi 500/700, 4 larghezze, meno di 50 stili scritti a mano.
+
+---
+
 ## Lo schema comune (vale per tutte)
 
 | Parte | Cosa | Regola |
@@ -39,7 +79,7 @@ Richiesta del 21 nov: queste pagine passano allo **stile a schede** della dashbo
 
 | Pagina | Riga «come sto» | Schede |
 |---|---|---|
-| **Conti e Carte** | liquidità · carte (speso / plafond) · conti da riconciliare · ultimo aggiornamento | **Panoramica** (saldi per tipo, andamento a 3 mesi) · **Conti** (tabella compatta per tipo) · **Carte** · **Riconciliazioni** (storico, promemoria T11, candidati T12) |
+| **Conti e Carte** | liquidità · carte (speso / plafond) · conti da riconciliare · ultimo aggiornamento | **Conti** (tabella compatta per tipo; la Panoramica è stata tolta, UI-30) · **Carte** · **Riconciliazioni** (storico, promemoria T11, candidati T12) · **Collegamenti bancari** (UI-23) |
 | **Obiettivi** | totale messo da parte · obiettivi in linea / in ritardo · prossima scadenza | **Obiettivi** (una riga per obiettivo: barra, data prevista, versamento che servirebbe) · **Fondo d'emergenza** · **Versamenti** (storico) · **Suggeriti** |
 | **Budget** | speso / previsto del mese · giorni passati · categorie sforate | **Questo mese** (ritmo di spesa + barre con la tacca) · **Categorie** (tabella dei budget, modifica in riga) · **Accantonamenti** · **Storico** (mese per mese) |
 | **Promemoria** (con **Eventi**) | uscite previste nei 30 giorni · la più grossa · senza importo · eventi in corso | **Prossimi** (lista per settimana, «Fatto»/«Sposta») · **Calendario** · **Eventi** (oggi pagina a sé: elenco, budget dell'evento, movimenti assegnati) · **Ricorrenti** |
