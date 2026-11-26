@@ -353,7 +353,9 @@
     <div class="card-header"><div>
       <div class="card-header-title">{{ _('Tasso di risparmio mese per mese') }}</div>
       <div class="card-header-sub">{{ _('Quanto resta delle entrate di ogni mese. Scegli gli anni da confrontare: la scelta viene ricordata.') }}</div>
-    </div></div>
+    </div>
+    {# UI-50: the same options as the other charts of «Nel tempo» #}
+    <a href="{{ url_for('reports.summary') }}" class="btn btn-ghost btn-sm">{{ _('Vedi tutto') }} <i class="bi bi-arrow-right"></i></a></div>
     <div class="card-body">
       {% if savings.years %}
       <div class="year-chips" id="savings-years" role="group" aria-label="{{ _('Anni da confrontare') }}">
@@ -362,6 +364,7 @@
           <span class="year-chip-dot"></span>{{ y.year }} <span class="text-muted">{{ y.rate|number(1) }}%</span>
         </button>
         {% endfor %}
+        <button type="button" class="chart-legend-all year-chips-all" id="savings-all"></button>
       </div>
       <div class="chart-container" style="height:240px;"><canvas id="savingsChart"></canvas></div>
       {% else %}
@@ -708,22 +711,26 @@ if (shown('savings_trend')) (function () {
   }));
   makeLineChart('savingsChart', savings.labels, datasets, { percent: true, legend: false });
   const chips = [...document.querySelectorAll('#savings-years .year-chip')];
+  const all = document.getElementById('savings-all');
   const paint = () => {
     const chart = Chart.getChart('savingsChart');
     chips.forEach((chip, i) => {
       chip.setAttribute('aria-pressed', String(!datasets[i].hidden));
       chip.querySelector('.year-chip-dot').style.background = chart.data.datasets[i].borderColor;
     });
+    // UI-50: one button selects or deselects every year, as the legend of the other charts
+    all.textContent = datasets.every(d => !d.hidden) ? {{ _('Deseleziona tutto')|tojson }} : {{ _('Seleziona tutto')|tojson }};
   };
-  chips.forEach((chip, i) => chip.addEventListener('click', () => {
-    datasets[i].hidden = !datasets[i].hidden;
+  const show = (indexes, on) => {
     const chart = Chart.getChart('savingsChart');
-    chart.setDatasetVisibility(i, !datasets[i].hidden);
+    indexes.forEach(i => { datasets[i].hidden = !on; chart.setDatasetVisibility(i, on); });
     chart.update();
     paint();
     const years = savings.years.filter((y, j) => !datasets[j].hidden).map(y => y.year);
     try { localStorage.setItem(KEY, JSON.stringify(years)); } catch (e) { /* private window: not remembered */ }
-  }));
+  };
+  chips.forEach((chip, i) => chip.addEventListener('click', () => show([i], datasets[i].hidden)));
+  all.addEventListener('click', () => show(datasets.map((_d, i) => i), !datasets.every(d => !d.hidden)));
   document.addEventListener('mfp:themechange', () => setTimeout(paint));
   paint();
 }());

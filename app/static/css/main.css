@@ -1422,7 +1422,8 @@ a.tag-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); 
 @media (max-width: 480px) { .split-row { grid-template-columns: minmax(0, 1fr) 96px auto; } }
 
 /* ── Year chips: which years a chart compares (dashboard savings rate) ─────────────────────────────── */
-.year-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.year-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; }
+.year-chips-all { margin-left: auto; }  /* UI-50: «Deseleziona tutto» at the right, as on the other charts */
 .year-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; cursor: pointer;
              border: 1px solid var(--clr-border); background: var(--clr-bg-card); color: var(--clr-text-muted);
              font-size: var(--font-size-sm); font-weight: 600; }
