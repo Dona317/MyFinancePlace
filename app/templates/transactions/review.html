@@ -57,7 +57,7 @@
           <td><input type="checkbox" class="check" name="apply" value="{{ f.token }}" checked /></td>
           <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ f.tx.date|it_date }}</td>
           <td>
-            <div style="font-weight:500;color:var(--clr-text-primary);">{{ f.tx.description }}</div>
+            <div style="font-weight:600;color:var(--clr-text-primary);">{{ f.tx.description }}</div>
             <div class="text-xs text-muted">
               {% if f.tx.type == 'income' %}{{ _('Entrata') }}{% elif f.tx.type == 'expense' %}{{ _('Uscita') }}{% else %}{{ _('Trasferimento') }}{% endif %}
               {% if f.tx.category %}· {{ f.tx.category }}{% endif %}

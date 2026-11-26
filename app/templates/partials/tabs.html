@@ -1,8 +1,9 @@
-{# The one kind of tabs of the app (decided 15 Nov): underlined, with an optional icon; on a narrow window they scroll
-   sideways instead of wrapping. `items` are (key, url, label) or (key, url, label, icon); the one whose key is
-   `active` is the current page. Pills stay for filters and switches only. #}
-{% macro tab_bar(items, active, label) -%}
-<nav class="report-tabs" aria-label="{{ label }}">
+{# The one kind of tabs of the app (decided 15 Nov, UI-53 of 26 Nov): underlined, with an optional icon; on a narrow
+   window they scroll sideways instead of wrapping. `items` are (key, url, label) or (key, url, label, icon); the one
+   whose key is `active` is the current page. `level=2`: the second row of tabs of a section (e.g. Transazioni →
+   Conti e Carte), the same bar smaller, right under the first; never a third. Pills stay for filters and switches. #}
+{% macro tab_bar(items, active, label, level=1) -%}
+<nav class="report-tabs{{ ' tabs-sub' if level == 2 }}" aria-label="{{ label }}">
   {%- for item in items %}
   {%- set key, url, text = item[0], item[1], item[2] %}
   <a href="{{ url }}" class="report-tab{{ ' active' if key == active }}"{% if key == active %} aria-current="page"{% endif %}>

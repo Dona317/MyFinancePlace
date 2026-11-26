@@ -15,7 +15,7 @@
         <i class="bi bi-{{ 'image' if meta.kind == 'photo' else ('file-earmark-pdf' if meta.kind == 'scan' else 'file-earmark-text') }}"></i>
       </div>
       <div>
-        <div style="font-weight:700;color:var(--clr-text-primary);">{{ meta.filename }} <span style="font-weight:400;color:var(--clr-text-muted);">· {{ _('%(size)s KB', size=size_kb) }}</span></div>
+        <div style="font-weight:600;color:var(--clr-text-primary);">{{ meta.filename }} <span style="font-weight:400;color:var(--clr-text-muted);">· {{ _('%(size)s KB', size=size_kb) }}</span></div>
         <p style="margin:6px 0 0;color:var(--clr-text-muted);font-size:var(--font-size-sm);">
           {% if meta.ocr_rows is defined %}{{ _("L'OCR ha letto %(count)s movimenti ma sembra averne persi o uniti alcuni.", count=meta.ocr_rows) }}
           {% elif meta.kind == 'scan' %}{{ _('È un PDF scansionato: contiene solo immagini delle pagine, senza testo leggibile.') }}
@@ -38,7 +38,7 @@
   <!-- AI non configurata ─────────────────────────────────────────────── -->
   <div class="card mb-16">
     <div class="card-body">
-      <div style="font-weight:700;margin-bottom:6px;">{{ _('La lettura AI non è ancora configurata') }}</div>
+      <div style="font-weight:600;margin-bottom:6px;">{{ _('La lettura AI non è ancora configurata') }}</div>
       <p style="color:var(--clr-text-muted);font-size:var(--font-size-sm);margin:0 0 12px;">
         {{ _('Installa un modello locale (i dati restano sul tuo computer) oppure collega Claude. Il file resta in attesa per 2 ore: dopo la configurazione torna a questa pagina.') }}
       </p>
@@ -54,7 +54,7 @@
   {% elif not usable %}
   <div class="card mb-16">
     <div class="card-body">
-      <div style="font-weight:700;margin-bottom:6px;">{{ _('Nessun modello installato può leggere questo file') }}</div>
+      <div style="font-weight:600;margin-bottom:6px;">{{ _('Nessun modello installato può leggere questo file') }}</div>
       <p style="color:var(--clr-text-muted);font-size:var(--font-size-sm);margin:0 0 12px;">
         {% if needs_vision %}{{ _('Per scansioni e foto serve un modello "vision" (es.') }} <code>{{ _('qwen2.5vl:7b') }}</code> {{ _('o, più leggero,') }} <code>{{ _('qwen2.5vl:3b') }}</code>).
         {% else %}{{ _('Installa almeno un modello dal catalogo.') }}{% endif %}

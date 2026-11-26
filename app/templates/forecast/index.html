@@ -311,7 +311,7 @@
             {% for c in fc.candidates %}
             {% set tx = c.template %}
             <tr>
-              <td><div style="font-weight:500;">{{ tx.description }}</div>
+              <td><div style="font-weight:600;">{{ tx.description }}</div>
                   <div class="text-xs text-muted">{{ _('%(count)s volte, ultima il %(last)s · prossima il %(next)s', count=c.count, last=tx.date|it_date, next=c.next_date|it_date) }}</div></td>
               <td class="col-optional">{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
               <td class="amount {{ tx.type|tone }} text-right nowrap">

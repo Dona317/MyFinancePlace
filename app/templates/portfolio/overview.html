@@ -58,8 +58,8 @@
       {% set off = (line.drift|abs) > m.template.band %}
       <div class="d-flex align-center gap-8 text-sm mb-8">
         <span style="min-width:140px;">{{ line.label }}</span>
-        <div style="flex:1;background:var(--clr-border);border-radius:4px;height:8px;position:relative;">
-          <div style="width:{{ [line.weight, 100]|min }}%;height:8px;border-radius:4px;background:var(--clr-{{ 'negative' if off else 'primary' }});"></div>
+        <div style="flex:1;background:var(--clr-border);border-radius:var(--border-radius-sm);height:8px;position:relative;">
+          <div style="width:{{ [line.weight, 100]|min }}%;height:8px;border-radius:var(--border-radius-sm);background:var(--clr-{{ 'negative' if off else 'primary' }});"></div>
           <div style="position:absolute;left:{{ [line.target, 100]|min }}%;top:-3px;width:2px;height:14px;background:var(--clr-text);" title="{{ _('Obiettivo') }}"></div>
         </div>
         <span class="nowrap {{ 'text-negative' if off }}" style="min-width:110px;text-align:right;">{{ line.weight|number(1) }} / {{ line.target|number(1) }} %</span>

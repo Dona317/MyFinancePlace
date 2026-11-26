@@ -97,7 +97,7 @@
           {% if is_edit and transaction.bank_description %}
           <div style="margin-top:6px;font-size:var(--font-size-xs);color:var(--clr-text-muted);">
             <i class="bi bi-bank"></i> <strong>{{ _('Causale della banca') }}</strong> {{ _('(conservata così come importata, non modificabile):') }}
-            <div style="font-family:monospace;background:var(--clr-bg-input);padding:6px 8px;border-radius:6px;margin-top:4px;">{{ transaction.bank_description }}</div>
+            <div style="font-family:monospace;background:var(--clr-bg-input);padding:6px 8px;border-radius:var(--border-radius-sm);margin-top:4px;">{{ transaction.bank_description }}</div>
           </div>
           {% endif %}
         </div>

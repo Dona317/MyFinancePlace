@@ -44,7 +44,7 @@
         </thead>
         <tbody>
           <tr style="background:var(--clr-positive-bg);">
-            <td colspan="{{ cols }}" style="font-weight:700;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+            <td colspan="{{ cols }}" style="font-weight:600;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
               {{ _('Ricavi') }}
             </td>
           </tr>
@@ -58,14 +58,14 @@
           {% else %}
           <tr><td class="text-muted" colspan="{{ cols }}">{{ _('Nessuna entrata registrata') }}</td></tr>
           {% endfor %}
-          <tr style="font-weight:700;background:var(--clr-bg-input);">
+          <tr style="font-weight:600;background:var(--clr-bg-input);">
             <td>{{ _('Totale Entrate') }}</td><td class="amount positive text-right">{{ report.summary.income|money }}</td><td class="text-right">{{ '100%' if report.summary.income else '—' }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.summary.income|money }}</td><td class="text-right">{{ change(report.summary.income, previous.summary.income) }}</td>{% endif %}
           </tr>
 
           <tr style="height:8px;"><td colspan="{{ cols }}"></td></tr>
 
           <tr style="background:var(--clr-negative-bg);">
-            <td colspan="{{ cols }}" style="font-weight:700;color:var(--clr-negative-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+            <td colspan="{{ cols }}" style="font-weight:600;color:var(--clr-negative-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
               {{ _('Spese') }}
             </td>
           </tr>
@@ -79,7 +79,7 @@
           {% else %}
           <tr><td class="text-muted" colspan="{{ cols }}">{{ _('Nessuna spesa registrata') }}</td></tr>
           {% endfor %}
-          <tr style="font-weight:700;background:var(--clr-bg-input);">
+          <tr style="font-weight:600;background:var(--clr-bg-input);">
             <td>{{ _('Totale Uscite') }}</td><td class="amount negative text-right">{{ report.summary.expenses|money }}</td>
             <td class="text-right">{{ "%.1f%%"|format(100 - report.summary.savings_rate) if report.summary.income else '—' }}</td>
             {% if previous %}<td class="amount text-right text-muted">{{ previous.summary.expenses|money }}</td><td class="text-right">{{ change(report.summary.expenses, previous.summary.expenses) }}</td>{% endif %}

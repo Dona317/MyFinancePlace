@@ -37,7 +37,7 @@ ridisposizione, `--clr-neutral` ancora blu). Le decisioni del 26 nov sono **UI-5
 
 | Giro | Cosa | Stato |
 |---|---|---|
-| 0 Fondamenta | colori (T42), `stat_row` con icona e previsione, `tab_bar` a due livelli e un solo contenitore, `period_box` con «solo anno» e «solo mese», variabili (T47), pesi e scala (T46), `scripts/design_audit.py` come metro | da fare |
+| 0 Fondamenta | colori (T42), riga dei numeri unica (`kpi()` disegna una cella della riga), `tab_bar` a due livelli con la riga sotto le schede, variabili (T47: spaziature, raggi, 4 larghezze), pesi 400/600 (T46), `scripts/design_audit.py` come metro | fatto il 26 nov; il periodo «solo mese» va nel giro 5 (Budget) |
 | 1 Movimenti | Transazioni + Conti (secondo livello), Ricorrenti, Report e sotto-pagine, Panoramica Finanziaria | da fare |
 | 2 Patrimonio | Portafoglio (10 schede → due livelli ≤ 7, «Portafoglio» in italiano, KPI → riga), Fisco | da fare |
 | 3 Servizio | Assicurazioni, Bollette, Lavoretti, Prestiti, Documenti, Istantanee, Clienti, Gruppi | da fare |

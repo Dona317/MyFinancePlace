@@ -64,7 +64,7 @@
     {% if ollama.running %}
       <i class="bi bi-check-circle" style="font-size:22px;color:var(--clr-positive);"></i>
       <div>
-        <div style="font-weight:700;">{{ _('Ollama attivo') }}{% if ollama.version %} {{ _('(versione %(version)s)', version=ollama.version) }}{% endif %}</div>
+        <div style="font-weight:600;">{{ _('Ollama attivo') }}{% if ollama.version %} {{ _('(versione %(version)s)', version=ollama.version) }}{% endif %}</div>
         <div style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
           {{ _('%(count)s modelli installati', count=ollama.installed|length) }} · {{ ollama_url }}
         </div>
@@ -72,7 +72,7 @@
     {% else %}
       <i class="bi bi-exclamation-triangle" style="font-size:22px;color:var(--clr-warning);"></i>
       <div style="font-size:var(--font-size-sm);">
-        <div style="font-weight:700;font-size:var(--font-size-md);">{{ _('Ollama non è in esecuzione') }}</div>
+        <div style="font-weight:600;font-size:var(--font-size-md);">{{ _('Ollama non è in esecuzione') }}</div>
         <p style="color:var(--clr-text-muted);margin:4px 0 8px;">{{ ollama.error }}</p>
         <ol style="margin:0;padding-left:18px;line-height:1.8;">
           <li>{{ _('Scarica e installa Ollama da') }} <a href="https://ollama.com/download" target="_blank" rel="noopener">{{ _('ollama.com/download') }}</a>

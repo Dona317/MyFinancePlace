@@ -7,6 +7,9 @@
  */
 
 :root {
+  /* T47 (26 Nov 2026): one spacing scale, steps of 4px — margins, paddings, gaps */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px;  --space-4: 16px;  --space-5: 24px;  --space-6: 32px;
+  --shadow-card-hover: 0 4px 14px rgba(0, 0, 0, .10);
 
   /* ── Brand ────────────────────────────────────────────────────── */
   --clr-primary:        #C8500F;   /* main accent (buttons, links, active nav) */
@@ -29,8 +32,8 @@
   --clr-negative:       #E03131;   /* expenses, losses, red */
   --clr-negative-bg:    #FFF0F0;
   --clr-negative-text:  #C92A2A;
-  --clr-neutral:        #1971C2;   /* neutral financial info, blue */
-  --clr-neutral-bg:     #E7F5FF;
+  --clr-neutral:        #5B6B7F;   /* neutral financial info: slate grey (UI-08), blue is for the investments */
+  --clr-neutral-bg:     #EEF1F5;
   --clr-warning:        #E67700;   /* warnings, alerts */
   --clr-warning-bg:     #FFF4E6;
 
@@ -119,8 +122,8 @@
   --clr-negative:       #FF6B6B;
   --clr-negative-bg:    #2A0D0D;
   --clr-negative-text:  #FF8787;
-  --clr-neutral:        #4DABF7;
-  --clr-neutral-bg:     #0D1F2E;
+  --clr-neutral:        #9AA8B8;
+  --clr-neutral-bg:     #1E252E;
   --clr-warning:        #FFB84D;
   --clr-warning-bg:     #2A1800;
 

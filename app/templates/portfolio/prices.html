@@ -102,7 +102,7 @@
     <div class="card-body text-sm text-muted">{{ _('Ancora vuoto.') }} {% if not online %}{{ _('Accendi i prezzi da internet in Impostazioni per scaricarlo.') }}{% endif %}</div>
     {% endif %}
     {# Fase 2: closes from a file, for a source other than Yahoo or a computer without internet #}
-    <div class="card-body" style="border-top:1px solid var(--border);">
+    <div class="card-body" style="border-top:1px solid var(--clr-border);">
       <form method="POST" action="{{ url_for('portfolio.market_import') }}" enctype="multipart/form-data" class="form-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
         <div class="form-group"><label class="form-label" for="market-symbol">{{ _('Simbolo') }}</label>
           <input class="form-control" id="market-symbol" name="symbol" placeholder="VWCE.MI" required style="width:130px;"></div>
