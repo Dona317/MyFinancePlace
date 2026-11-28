@@ -81,7 +81,7 @@ def test_search_filters_and_bulk_edit_live_inside_the_table_card(client, db):
                   'id="bulk-delete"', 'id="bulk-count"', 'id="assign-form"', 'id="bulk-assign"', 'id="event-form"',
                   'id="bulk-event"', 'id="confirm-form"', 'id="bulk-confirm"', 'id="bulk-delete-icon"',
                   'type="text" inputmode="decimal" name="min"', 'type="text" inputmode="decimal" name="max"',
-                  "Azioni sulla selezione", "Cambia i campi"):
+                  "Azioni sulla selezione", "Modifica campi"):
         assert piece in card, piece
     form = card[card.index('id="filter-form"'):card.index('</form>', card.index('name="recurring"'))]
     assert 'name="q"' in form and 'name="min"' in form and 'name="category"' in form  # one form: search and filters

@@ -32,6 +32,14 @@ document.addEventListener('click', () => document.querySelectorAll('.col-pop').f
     store.set(panel.dataset.remember, on ? '1' : '0');
   });
 });
+// «Modifica campi» in the Modifica massiva: closed at first, then as the user left it
+{
+  const fields = document.getElementById('bulk-fields');
+  if (fields) {
+    fields.open = store.get(fields.dataset.remember) === '1';
+    fields.addEventListener('toggle', () => store.set(fields.dataset.remember, fields.open ? '1' : '0'));
+  }
+}
 // the amount: written, then Enter (the form's own) or leaving the field after changing it
 document.querySelectorAll('#search-box .tx-amount').forEach(input => input.addEventListener('change', () => input.form.requestSubmit()));
 // «Altro»: a click outside closes it

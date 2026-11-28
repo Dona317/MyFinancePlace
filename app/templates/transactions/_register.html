@@ -233,7 +233,9 @@
   {# Modifica massiva: the ticked rows, or every transaction the search finds (the box on the header of the table) #}
   <div class="tx-panel" id="bulk-box" data-remember="mfp-bulk-open">
     <div class="tx-panel-inner">
-      <div class="tx-panel-title">{{ _('Cambia i campi') }} {{ info(_('Modifica insieme i campi delle transazioni selezionate.')) }}</div>
+      {# «Modifica campi»: closed at first, so the table stays in view; the page remembers it (mfp-bulk-fields-open) #}
+      <details class="tx-bulk-fields" id="bulk-fields" data-remember="mfp-bulk-fields-open">
+      <summary class="tx-panel-title tx-panel-toggle"><i class="bi bi-chevron-right tx-panel-chevron" aria-hidden="true"></i> {{ _('Modifica campi') }} {{ info(_('Modifica insieme i campi delle transazioni selezionate.')) }}</summary>
       <form method="POST" action="{{ url_for('transactions.bulk_edit') }}" id="bulk-edit-form" class="tx-bulk-form">
         <input type="hidden" name="next" value="{{ request.full_path }}" />
         {% for key, value in filters.items() %}<input type="hidden" name="{{ key }}" value="{{ value or '' }}" />{% endfor %}
@@ -273,6 +275,7 @@
           <div class="tx-field tx-apply"><button type="submit" class="btn btn-outline btn-sm bulk-apply"><i class="bi bi-check2"></i> {{ _('Applica') }}</button></div>
         </div>
       </form>
+      </details>
       <div class="tx-panel-title">{{ _('Azioni sulla selezione') }}</div>
       <div class="tx-bulk-actions">
         <button type="submit" form="bulk-form" class="btn btn-sm tx-danger" id="bulk-delete" disabled>

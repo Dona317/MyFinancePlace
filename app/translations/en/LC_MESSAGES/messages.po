@@ -19007,3 +19007,7 @@ msgstr "Total value"
 #: retitled
 msgid "Variazione netta della cassa"
 msgstr "Net change in cash"
+
+#: app/templates/transactions/_register.html
+msgid "Modifica campi"
+msgstr "Edit fields"

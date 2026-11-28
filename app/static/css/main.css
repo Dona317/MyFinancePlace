@@ -3058,3 +3058,11 @@ main.page-content { padding-bottom: calc(var(--space-6) + 56px) !important; }
 .w-64 { width: 64px !important; }
 .w-70 { width: 70px !important; }
 .w-96 { width: 96px !important; }
+/* Transazioni → Modifica massiva: «Modifica campi» opens and closes (closed at first) so the table stays in view */
+.tx-bulk-fields > summary { list-style: none; cursor: pointer; }
+.tx-bulk-fields > summary::-webkit-details-marker { display: none; }
+.tx-panel-toggle:hover { color: var(--clr-text-primary); }
+.tx-panel-chevron { font-size: 10px; transition: transform var(--transition); }
+.tx-bulk-fields[open] .tx-panel-chevron { transform: rotate(90deg); }
+.tx-bulk-fields:not([open]) > summary { margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .tx-panel-chevron { transition: none; } }
