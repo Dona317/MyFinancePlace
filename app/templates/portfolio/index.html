@@ -262,16 +262,12 @@ makeDoughnutChart('assetClassChart',
 );
 {% endif %}
 {% if summary.domiciles %}
-makeDoughnutChart('domicileChart',
-  {{ summary.domiciles | map(attribute=0) | map('tr') | list | tojson }},
-  {{ summary.domiciles | map(attribute=1) | map('round', 2) | list | tojson }}
-);
+makeBarChart('domicileChart', {{ summary.domiciles | map(attribute=0) | map('tr') | list | tojson }},
+  [{ label: {{ _('Valore')|tojson }}, data: {{ summary.domiciles | map(attribute=1) | map('round', 2) | list | tojson }}, palette: true }], { horizontal: true, legend: false });  // DESIGN 9: one doughnut a page, the other shares as bars
 {% endif %}
 {% if summary.allocation %}
-makeDoughnutChart('allocationChart',
-  {{ summary.allocation | map(attribute=0) | map('tr') | list | tojson }},
-  {{ summary.allocation | map(attribute=1) | map('round', 2) | list | tojson }}
-);
+makeBarChart('allocationChart', {{ summary.allocation | map(attribute=0) | map('tr') | list | tojson }},
+  [{ label: {{ _('Valore')|tojson }}, data: {{ summary.allocation | map(attribute=1) | map('round', 2) | list | tojson }}, palette: true }], { horizontal: true, legend: false });  // DESIGN 9: one doughnut a page, the other shares as bars
 {% endif %}
 {% if tree %}
 makeTreemapChart('allocationTreemap', {{ tree | tojson }});

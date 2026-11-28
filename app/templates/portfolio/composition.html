@@ -110,7 +110,8 @@ makeBarChart('chart-{{ key }}', {{ look[key]|map(attribute='name')|list|tojson }
 makeDoughnutChart('chart-currency', {{ look.currency|map(attribute='name')|list|tojson }}, {{ look.currency|map(attribute='value')|list|tojson }});
 {% endif %}
 {% for t, rows in own %}{% if rows %}
-makeDoughnutChart('chart-t{{ t.id }}', {{ rows|map(attribute=0)|map('tr')|list|tojson }}, {{ rows|map(attribute=1)|list|tojson }});
+makeBarChart('chart-t{{ t.id }}', {{ rows|map(attribute=0)|map('tr')|list|tojson }},
+  [{ label: {{ _('Valore')|tojson }}, data: {{ rows|map(attribute=1)|list|tojson }}, palette: true }], { horizontal: true, legend: false });  // DESIGN 9: one doughnut a page
 {% endif %}{% endfor %}
 </script>
 {% endblock %}

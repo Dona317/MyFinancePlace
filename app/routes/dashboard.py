@@ -200,6 +200,8 @@ def dashboard():
     layout = [w for w in arranged if settings.get(dashboard_prefs.WIDGETS[w["id"]][2], True)]
     # «Debito totale» in Settings switched the old card of the debts: now it switches the block that took its place
     layout = [w for w in layout if w["id"] != "debt_summary" or settings.get("dashboard_debt", True)]
+    # and «Investimenti» the block of the investments in short
+    layout = [w for w in layout if w["id"] != "investments" or settings.get("dashboard_investments", True)]
     # UI-18: the blocks band by band (the order inside a band is the user's)
     band_order = list(dashboard_prefs.BANDS)
     if view == "overview":

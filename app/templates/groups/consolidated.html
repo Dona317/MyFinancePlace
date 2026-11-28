@@ -179,6 +179,7 @@ makeBarChart('groupFlows', {{ data.months|tojson }}, [
   { label: {{ _('Uscite')|tojson }}, data: {{ data.expenses|tojson }}, color: 'expense' },
 ]);
 {% if data.spending %}makeDoughnutChart('groupSpending', {{ data.spending|map(attribute=0)|list|tojson }}, {{ data.spending|map(attribute=1)|list|tojson }}, { palette: 'expense' });{% endif %}
-{% if data.allocation %}makeDoughnutChart('groupAllocation', {{ data.allocation|map(attribute=0)|map('tr')|list|tojson }}, {{ data.allocation|map(attribute=1)|list|tojson }});{% endif %}
+{% if data.allocation %}makeBarChart('groupAllocation', {{ data.allocation|map(attribute=0)|map('tr')|list|tojson }},
+  [{ label: {{ _('Valore')|tojson }}, data: {{ data.allocation|map(attribute=1)|list|tojson }}, palette: true }], { horizontal: true, legend: false });  // DESIGN 9: one doughnut a page, the other shares as bars{% endif %}
 </script>
 {% endblock %}

@@ -426,16 +426,22 @@
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Entrate e uscite — %(period)s', period=period_label) }} {{ info(_('Il periodo della barra in alto; sotto ogni cifra la previsione e, con «Confronta», il periodo prima.')) }}</div></div>
     <div class="card-body"><div class="kpi-grid kpi-strip">
+      {% if settings.dashboard_income %}{# Settings → Dashboard: the figure can be switched off #}
       {{ window_card('income', 'arrow-down-circle', _('Entrate'), 'kpi-positive',
                      url_for('reports.income', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
                      amount=cards.income.totals.income, forecast=fc, forecast_value=(fc.income|money if fc else ''), before=(before_totals.income|money if before_totals else none)) }}
+      {% endif %}
+      {% if settings.dashboard_expenses %}{# Settings → Dashboard: the figure can be switched off #}
       {{ window_card('expenses', 'arrow-up-circle', _('Uscite'), 'kpi-negative',
                      url_for('reports.spending', period='custom', start=pie_start.isoformat(), end=pie_last.isoformat()),
                      amount=cards.expenses.totals.expenses, forecast=fc, forecast_value=(fc.expenses|money if fc else ''), before=(before_totals.expenses|money if before_totals else none)) }}
+      {% endif %}
+      {% if settings.dashboard_savings_rate %}{# Settings → Dashboard: the figure can be switched off #}
       {{ window_card('savings_rate', 'piggy-bank', _('Tasso di risparmio'), 'kpi-neutral',
                      url_for('accounting.cash_flow', year=pie_last.year),
                      value=("%.1f"|format(cards.savings_rate.totals.savings_rate) ~ '%'), forecast=fc,
                      forecast_value=(("%.1f"|format(fc.savings_rate) ~ '%') if fc else ''), before=(("%.1f"|format(before_totals.savings_rate) ~ '%') if before_totals else none)) }}
+      {% endif %}
       {# 22 Nov 2026: what is invested and what is owed, at the end of the period (today for the one under way) #}
       <div class="kpi-card kpi-click kpi-purple" data-href="{{ url_for('portfolio.index') if allowed('portfolio') else url_for('accounting.balance_sheet', date=as_of.isoformat()) }}" title="{{ _('Apri il portafoglio') }}">
         <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
