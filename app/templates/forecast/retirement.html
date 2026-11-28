@@ -33,7 +33,7 @@
     <div class="card-header-title">{{ _('Il patrimonio negli anni') }}</div>
     <div class="card-header-sub">{{ _('%(runs)s simulazioni con rendimenti casuali: la linea centrale è il caso mediano, le altre il 10%% peggiore e il 10%% migliore.', runs=runs) }}</div>
   </div></div>
-  <div class="card-body"><div style="height:320px;"><canvas id="retirementChart"></canvas></div></div>
+  <div class="card-body"><div class="h-320"><canvas id="retirementChart"></canvas></div></div>
 </div>
 {% if result.without %}
 <div class="card mb-24" id="glide">
@@ -42,7 +42,7 @@
     <div class="card-header-sub">{{ _('Stesse simulazioni: con il passaggio la probabilità di successo è %(with)s%%, senza %(without)s%%. Il caso del 10%% peggiore all’ultima età: %(p10)s con, %(p10_without)s senza.',
                                      with=result.success|number(1), without=result.without.success|number(1), p10=result.p10[-1]|money, p10_without=result.without.p10_end|money) }}</div>
   </div></div>
-  <div class="card-body"><div style="height:200px;"><canvas id="glideChart"></canvas></div></div>
+  <div class="card-body"><div class="h-200"><canvas id="glideChart"></canvas></div></div>
 </div>
 {% endif %}
 {% endif %}
@@ -82,7 +82,7 @@
           {{ field('bond_volatility', _('Volatilità obbligazioni (%%)'), plan.bond_volatility) }}
         </div>
       </fieldset>
-      <div style="display:flex;gap:8px;">
+      <div class="d-flex gap-8">
         <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> {{ _('Ricalcola') }}</button>
         <button type="submit" name="reset" value="1" class="btn btn-ghost">{{ _('Riparti dai dati dell\'archivio') }}</button>
       </div>

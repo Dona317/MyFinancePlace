@@ -385,7 +385,7 @@ def test_preview_suggests_the_tags_already_used_for_the_counterparty(client, db)
     html = _upload(client, fineco_xlsx(), "movimenti.xlsx").get_data(as_text=True)
     pool = html.split('<datalist id="tag-pool">')[1].split("</datalist>")[0]
     assert '<option value="Esselunga">' in pool and '<option value="spesa">' in pool
-    assert 'class="form-control row-field row-counterparty" list="tag-pool"' in html
+    assert re.search(r'class="form-control row-field row-counterparty[^"]*" list="tag-pool"', html)  # the field offers the tags
     # the counterparty typed in the preview becomes the first tag
     _confirm(client, html, include=["0"], **{"counterparty-0": "Esselunga"})
     imported = Transaction.query.filter(Transaction.import_ref.isnot(None)).one()

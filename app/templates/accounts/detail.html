@@ -222,7 +222,7 @@
 </div>
 {# T11: after a reconciliation, «remind me to do it again in…» — a month proposed, the Scadenzario keeps it #}
 <div class="modal-overlay" id="reconcile-reminder" onclick="if (event.target === this) closeModal('reconcile-reminder')">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="reconcile-reminder-title" style="max-width:440px;">
+  <div class="modal maxw-440" role="dialog" aria-modal="true" aria-labelledby="reconcile-reminder-title">
     <form method="POST" action="{{ url_for('accounts.reconcile_reminder', account_id=account.id) }}">
       <div class="modal-header">
         <h3 class="modal-title" id="reconcile-reminder-title"><i class="bi bi-bell"></i> {{ _('Ricordami di riconciliare') }}</h3>
@@ -234,7 +234,7 @@
         <label class="d-flex align-center gap-8 text-sm mb-8"><input type="radio" name="when" value="{{ value }}" {{ 'checked' if loop.first }} /> {{ label }}</label>
         {% endfor %}
         <label class="d-flex align-center gap-8 text-sm mb-0"><input type="radio" name="when" value="date" id="rr-date-choice" /> {{ _('Il giorno') }}
-          <input type="date" name="on" class="form-control" style="max-width:170px;" value="{{ remind_default.isoformat() }}" min="{{ today.isoformat() }}"
+          <input type="date" name="on" class="form-control maxw-170" value="{{ remind_default.isoformat() }}" min="{{ today.isoformat() }}"
                  onfocus="document.getElementById('rr-date-choice').checked = true" aria-label="{{ _('Data del promemoria') }}" /></label>
         {% if reconcile_reminder %}<p class="text-xs text-muted mt-8 mb-0">{{ _('C’è già un promemoria per il %(day)s: verrà spostato.', day=reconcile_reminder.due|it_date) }}</p>{% endif %}
       </div>

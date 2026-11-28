@@ -22,8 +22,8 @@
   <label class="d-flex align-center gap-8 text-sm"><input class="check" type="checkbox" name="divide_100" {{ 'checked' if s and s.divide_100 }} /> {{ _('Prezzo in %% del nominale (obbligazioni): dividi per 100') }}</label>
 </div>
 <div class="d-flex gap-8 flex-wrap align-center mt-8">
-  <input type="text" name="test_isin" class="form-control" style="max-width:170px;" placeholder="ISIN" aria-label="{{ _('ISIN per la prova') }}" />
-  <input type="text" name="test_ticker" class="form-control" style="max-width:130px;" placeholder="Ticker" aria-label="{{ _('Ticker per la prova') }}" />
+  <input type="text" name="test_isin" class="form-control maxw-170" placeholder="ISIN" aria-label="{{ _('ISIN per la prova') }}" />
+  <input type="text" name="test_ticker" class="form-control maxw-130" placeholder="Ticker" aria-label="{{ _('Ticker per la prova') }}" />
   <button type="submit" name="test" value="1" class="btn btn-outline btn-sm" formnovalidate><i class="bi bi-play"></i> {{ _('Prova') }}</button>
   <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-check-lg"></i> {{ _('Salva la fonte') }}</button>
 </div>
@@ -49,7 +49,7 @@
         </div>
         <div class="d-flex align-center gap-8">
           <label class="text-xs text-muted" for="order-{{ r.key }}">{{ _('Ordine') }}</label>
-          <input type="number" min="1" max="9" id="order-{{ r.key }}" name="order-{{ r.key }}" value="{{ r.position }}" class="form-control" style="width:64px;" />
+          <input type="number" min="1" max="9" id="order-{{ r.key }}" name="order-{{ r.key }}" value="{{ r.position }}" class="form-control w-64" />
           <label class="toggle-switch">
             <input type="checkbox" name="on-{{ r.key }}" value="1" {{ 'checked' if r.on }} aria-label="{{ r.name }}" />
             <span class="toggle-slider"></span>

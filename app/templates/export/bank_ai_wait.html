@@ -17,17 +17,16 @@
 {% macro duration(seconds) %}{{ seconds // 60 }}:{{ '%02d' % (seconds % 60) }}{% endmacro %}
 
 {% block content %}
-<div style="max-width:820px;">
+<div class="maxw-820">
 
   <div class="card mb-16">
     <div class="card-body d-flex gap-16 items-start">
-      <div style="width:44px;height:44px;border-radius:var(--border-radius-sm);background:var(--clr-neutral-bg);color:var(--clr-neutral);
-                  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
+      <div class="w-44 h-44 rounded-sm bg-neutral text-neutral d-flex items-center justify-center text-22 shrink-0">
         <i class="bi bi-stars"></i>
       </div>
-      <div style="flex:1;min-width:0;">
+      <div class="flex-1 minw-0">
         <div style="font-weight:600;color:var(--clr-text-primary);overflow-wrap:anywhere;">{{ meta.filename }}</div>
-        <p style="margin:6px 0 0;color:var(--clr-text-muted);font-size:var(--font-size-sm);">
+        <p class="mt-6 text-muted text-sm">
           {{ _('Modello:') }} <strong id="ai-model">{{ job.label or job.model }}</strong>
           {{ _('· Tempo trascorso:') }} <strong id="ai-elapsed">{{ duration(job.elapsed) }}</strong>
         </p>
@@ -39,7 +38,7 @@
   <!-- In corso ──────────────────────────────────────────────────────── -->
   <div class="card mb-16">
     <div class="card-body">
-      <div style="font-weight:600;margin-bottom:10px;">
+      <div class="font-semibold mb-10">
         <i class="bi bi-arrow-repeat ai-spinner"></i>
         <span id="ai-status">
           {% if job.cancel_requested %}{{ _('Annullamento in corso…') }}
@@ -62,7 +61,7 @@
       <p style="margin:12px 0 0;font-size:var(--font-size-sm);color:var(--clr-text-muted);">
         <i class="bi bi-info-circle"></i> {{ _('Con un modello locale senza scheda video può servire circa un minuto per pagina. La pagina si aggiorna da sola e al termine mostra i movimenti da controllare.') }}
       </p>
-      <form method="POST" action="{{ url_for('export.bank_ai_cancel', token=token) }}" style="margin-top:14px;">
+      <form method="POST" action="{{ url_for('export.bank_ai_cancel', token=token) }}" class="mt-14">
         <input type="hidden" name="scope" value="job">
         <button type="submit" class="btn btn-ghost" id="ai-cancel" {{ 'disabled' if job.cancel_requested else '' }}>
           <i class="bi bi-x-circle"></i> {{ _('Annulla') }}
@@ -81,7 +80,7 @@
     <i class="bi bi-exclamation-triangle"></i> {{ _("La lettura si è interrotta prima di finire (l'applicazione è stata riavviata).") }}
   </div>
   {% endif %}
-  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+  <div class="d-flex gap-10 flex-wrap">
     <form method="POST" action="{{ url_for('export.bank_ai', token=token) }}">
       <input type="hidden" name="model" value="{{ job.model }}">
       <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-clockwise"></i> {{ _('Riprova') }}</button>

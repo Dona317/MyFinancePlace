@@ -321,13 +321,13 @@
     <table class="tx-table{% for col in register_prefs.hide %} hide-{{ col }}{% endfor %}" id="tx-table">
       <thead>
         <tr>
-          <th style="width:36px;"><input class="check" type="checkbox" id="select-all" title="{{ ngettext('Seleziona tutta la ricerca (%(num)d transazione)', 'Seleziona tutta la ricerca (%(num)d transazioni, tutte le pagine)', total) }}" /></th>
-          <th data-col="date" data-min="content" data-grip="off" style="width:104px;"><span class="col-title">{{ sort_title('date', _('Data')) }}</span></th>
-          <th data-col="description" style="width:320px;"><span class="col-title">{{ sort_title('description', _('Descrizione')) }}</span></th>
-          <th data-col="category" style="width:190px;"><span class="col-title">{{ sort_title('category', _('Categoria')) }}{{ col_filter('category') }}</span></th>
-          <th data-col="tags" style="width:220px;"><span class="col-title">{{ _('Tag') }}</span></th>
+          <th class="w-36"><input class="check" type="checkbox" id="select-all" title="{{ ngettext('Seleziona tutta la ricerca (%(num)d transazione)', 'Seleziona tutta la ricerca (%(num)d transazioni, tutte le pagine)', total) }}" /></th>
+          <th data-col="date" data-min="content" data-grip="off" class="w-104"><span class="col-title">{{ sort_title('date', _('Data')) }}</span></th>
+          <th data-col="description" class="w-320"><span class="col-title">{{ sort_title('description', _('Descrizione')) }}</span></th>
+          <th data-col="category" class="w-190"><span class="col-title">{{ sort_title('category', _('Categoria')) }}{{ col_filter('category') }}</span></th>
+          <th data-col="tags" class="w-220"><span class="col-title">{{ _('Tag') }}</span></th>
           <th data-col="amount" data-min="content" data-grip="off" class="text-right w-150"><span class="col-title">{{ sort_title('amount', _('Importo')) }}{{ col_filter('amount') }}</span></th>
-          <th data-col="actions" data-fixed class="text-center" style="width:96px;">{{ _('Azioni') }}</th>
+          <th data-col="actions" data-fixed class="text-center w-96">{{ _('Azioni') }}</th>
         </tr>
       </thead>
       <tbody>

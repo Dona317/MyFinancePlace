@@ -59,7 +59,7 @@
       <div class="card-header-sub">{{ _('Condiviso da tutti gli archivi: titoli, chiusure e link.') }}</div>
     </div>
     {% if store.instruments %}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <div class="d-flex gap-8 flex-wrap">
       {% if online %}
       <form method="POST" action="{{ url_for('data.update', next=request.path ~ '#store') }}">
         <input type="hidden" name="all" value="1">
@@ -71,7 +71,7 @@
     {% endif %}
   </div>
   <div class="card-body">
-    <div style="display:flex;gap:32px;flex-wrap:wrap;">
+    <div class="d-flex gap-32 flex-wrap">
       <div><div class="text-xs text-muted">{{ _('Titoli') }}</div><div class="font-semibold">{{ store.instruments }}</div></div>
       <div><div class="text-xs text-muted">{{ _('Chiusure') }}</div><div class="font-semibold">{{ '{:,}'.format(store.closes).replace(',', '.') }}</div></div>
       {% if store.first %}<div><div class="text-xs text-muted">{{ _('Dal… al…') }}</div><div class="font-semibold">{{ store.first|it_date }} → {{ store.last|it_date }}</div></div>{% endif %}

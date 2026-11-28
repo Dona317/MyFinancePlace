@@ -91,7 +91,7 @@
   {% if rows %}
   <div class="table-wrapper">
     <table>
-      <thead><tr><th style="width:36px;"><span class="sr-only">{{ _('Preferito') }}</span></th><th>{{ _('Conto') }}</th><th>{{ _('Tipo') }}</th><th class="text-right">{{ _('Saldo') }}</th><th>{{ _('Riconciliato') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
+      <thead><tr><th class="w-36"><span class="sr-only">{{ _('Preferito') }}</span></th><th>{{ _('Conto') }}</th><th>{{ _('Tipo') }}</th><th class="text-right">{{ _('Saldo') }}</th><th>{{ _('Riconciliato') }}</th><th class="text-right">{{ _('Transazioni') }}</th><th class="text-right">{{ _('Azioni') }}</th></tr></thead>
       <tbody>
         {% for row in rows %}
         {% set a = row.account %}

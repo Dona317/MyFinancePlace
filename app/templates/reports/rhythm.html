@@ -50,7 +50,7 @@
 <div class="grid-2">
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Spesa media per giorno della settimana') }}</div></div>
-    <div class="card-body"><div style="height:240px;"><canvas id="weekdayChart"></canvas></div></div>
+    <div class="card-body"><div class="h-240"><canvas id="weekdayChart"></canvas></div></div>
   </div>
   <div class="card">
     <div class="card-header"><div>
@@ -62,7 +62,7 @@
       {% if rows %}
       <div class="font-semibold text-sm mt-8">{{ title }}</div>
       {% for r in rows %}
-      <div style="display:flex;justify-content:space-between;gap:8px;">
+      <div class="d-flex justify-between gap-8">
         <span>{{ r.category|tr }}</span>
         <span class="nowrap"><span class="{{ 'text-negative' if r.diff > 0 else 'text-positive' }}">{{ '+' if r.diff > 0 else '' }}{{ r.diff|money }}</span>
           <span class="text-xs text-muted">{{ _('media %(amount)s', amount=r.average|money) }}</span></span>

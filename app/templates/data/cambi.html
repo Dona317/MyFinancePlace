@@ -51,7 +51,7 @@
   {% else %}
   <div class="card-body">{{ empty_state(text=_('Usi solo %(base)s: non servono cambi.', base=base), icon='bi-currency-exchange', compact=True) }}</div>
   {% endif %}
-  <div class="card-body text-sm text-muted" style="border-top:1px solid var(--clr-border-light);">
+  <div class="card-body text-sm text-muted border-t">
     {{ _('Un cambio a mano (per una valuta che la BCE non pubblica):') }} <a href="{{ url_for('settings.currencies_page') }}">{{ _('Impostazioni → Valute') }}</a>
   </div>
 </div>
@@ -82,8 +82,8 @@
   {% else %}
   <div class="card-body text-sm text-muted">{{ _('Ancora nessun cambio: importa il database di partenza (Prezzi storici) o aggiungi una valuta qui sotto.') }}</div>
   {% endif %}
-  <div class="card-body" style="border-top:1px solid var(--clr-border-light);">
-    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+  <div class="card-body border-t">
+    <div class="d-flex gap-24 flex-wrap items-end">
       {% if addable %}
       <form method="POST" action="{{ url_for('data.rates_add') }}" class="d-flex gap-8 items-end">
         <div class="form-group mb-0"><label class="form-label" for="fx-code">{{ _('Aggiungi una valuta dalla BCE') }}</label>

@@ -104,7 +104,7 @@
           <td>
             <div class="d-flex align-center gap-12">
               <i class="doc-icon bi bi-{{ 'file-earmark-pdf' if doc.is_pdf else 'file-earmark-image' if doc.is_image else 'file-earmark' }}"></i>
-              <div style="min-width:0;">
+              <div class="minw-0">
                 <a class="cell-title" href="{{ url_for('documents.file', doc_id=doc.id) }}" target="_blank" rel="noopener">{{ doc.filename }}</a>
                 <div class="text-xs text-muted">{{ doc.size|filesize }} · {{ _('caricato il %(date)s', date=doc.uploaded_at|it_date) }}</div>
                 {% if doc.notes %}<div class="text-xs text-muted">{{ doc.notes }}</div>{% endif %}

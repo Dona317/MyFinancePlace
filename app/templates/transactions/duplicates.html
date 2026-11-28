@@ -9,10 +9,10 @@
 <!-- Criteri ──────────────────────────────────────────────────────────── -->
 <div class="card mb-16">
   <form class="filter-bar" method="GET" action="{{ url_for('transactions.duplicates_page') }}">
-    <span style="font-size:var(--font-size-sm);color:var(--clr-text-muted);">
+    <span class="text-sm text-muted">
       {{ _('Stesso tipo e importo, date vicine e descrizione simile.') }}
     </span>
-    <label style="font-size:var(--font-size-sm);display:flex;align-items:center;gap:6px;margin-left:auto;">
+    <label class="text-sm d-flex items-center gap-6 ml-auto">
       {{ _('Sensibilità') }}
       <select name="sensitivity" class="form-select w-auto" onchange="this.form.submit()">
         {% for key, label in [('alta', _('Alta — descrizioni anche poco simili')), ('normale', _('Normale')), ('bassa', _('Bassa — quasi identiche'))] %}
@@ -20,7 +20,7 @@
         {% endfor %}
       </select>
     </label>
-    <label style="font-size:var(--font-size-sm);display:flex;align-items:center;gap:6px;">
+    <label class="text-sm d-flex items-center gap-6">
       {{ _('Distanza date') }}
       <select name="window" class="form-select w-auto" onchange="this.form.submit()">
         {% for days, label in [(0, _('stesso giorno')), (1, _('± 1 giorno')), (3, _('± 3 giorni')), (7, _('± 7 giorni'))] %}
@@ -53,7 +53,7 @@
     <table>
       <thead>
         <tr>
-          <th style="width:70px;">{{ _('Tieni') }}</th><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th>{{ _('Origine') }}</th>
+          <th class="w-70">{{ _('Tieni') }}</th><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th>{{ _('Origine') }}</th>
           <th class="text-center">{{ _('Azioni') }}</th>
         </tr>
       </thead>
@@ -61,9 +61,9 @@
         {% for tx in group.transactions %}
         <tr>
           <td><input class="check" type="radio" name="keep" value="{{ tx.id }}" form="keep-{{ g }}" {{ 'checked' if loop.first else '' }} /></td>
-          <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ (tx.date|it_date) }}</td>
+          <td class="nowrap text-xs text-muted">{{ (tx.date|it_date) }}</td>
           <td>
-            <div style="font-weight:600;color:var(--clr-text-primary);">{{ tx.description }}</div>
+            <div class="font-semibold text-strong">{{ tx.description }}</div>
             {% if tx.bank_description and tx.bank_description != tx.description %}
             <div class="text-xs text-muted" title="{{ _('Causale originale della banca') }}"><i class="bi bi-bank"></i> {{ tx.bank_description|truncate(80) }}</div>
             {% elif tx.notes %}<div class="text-xs text-muted">{{ tx.notes|truncate(80) }}</div>{% endif %}
@@ -76,7 +76,7 @@
             {% else %}<span class="badge badge-muted">{{ _('inserita a mano') }}</span>{% endif %}
           </td>
           <td class="text-center">
-            <div style="display:flex;gap:4px;justify-content:center;">
+            <div class="d-flex gap-4 justify-center">
               <a href="{{ url_for('transactions.edit', tx_id=tx.id, next=here) }}" class="btn btn-ghost btn-icon btn-sm" title="{{ _('Modifica') }}">
                 <i class="bi bi-pencil"></i></a>
               <form method="POST" action="{{ url_for('transactions.delete', tx_id=tx.id) }}" data-confirm="{{ _('Eliminare questa transazione?') }}">
@@ -91,7 +91,7 @@
       </tbody>
     </table>
   </div>
-  <div class="card-body" style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--clr-border);padding-top:12px;padding-bottom:12px;">
+  <div class="card-body d-flex gap-10 justify-end border-t-strong pt-12 pb-12">
     <form method="POST" action="{{ url_for('transactions.duplicates_dismiss') }}">
       {% for tx in group.transactions %}<input type="hidden" name="ids" value="{{ tx.id }}" />{% endfor %}
       <input type="hidden" name="next" value="{{ here }}" />

@@ -98,8 +98,8 @@
             {% if s.never_ends %}<span class="badge badge-negative" title="{{ _('La rata non copre gli interessi') }}">{{ _('mai') }}</span>
             {% else %}{{ s.end_date|it_date }}{% if s.months_left %}<div class="text-muted">{{ _('%(count)s rate', count=s.months_left) }}</div>{% endif %}{% endif %}
           </td>
-          <td style="min-width:120px;">
-            <div class="progress-bar-wrap" style="height:6px;margin-bottom:2px;">
+          <td class="minw-120">
+            <div class="progress-bar-wrap h-6 mb-2">
               <div class="progress-bar-fill positive" style="width:{{ s.repaid_pct }}%;"></div>
             </div>
             <span class="text-xs text-muted">{{ s.repaid_pct|number(1) }}%</span>

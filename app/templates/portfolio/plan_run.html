@@ -15,7 +15,7 @@
           {% if not is_due %}<span class="text-muted">{{ _('(nessuna rata in scadenza: puoi comunque investire ora)') }}</span>{% endif %}
         </div>
       </div>
-      <div style="min-width:180px;">
+      <div class="minw-180">
         <label class="form-label" for="on">{{ _('Data') }}</label>
         <input type="date" name="on" id="on" class="form-control" value="{{ today.isoformat() }}" />
       </div>
@@ -24,8 +24,8 @@
     <div class="table-wrapper">
       <table>
         <thead>
-          <tr><th style="width:32px;"></th><th>{{ _('Parte') }}</th><th>{{ _('Titolo') }}</th><th class="text-right">{{ _('Importo') }}</th>
-            <th style="width:130px;">{{ _('Quote') }}</th><th style="width:130px;">{{ _('Prezzo €') }}</th></tr>
+          <tr><th class="w-32"></th><th>{{ _('Parte') }}</th><th>{{ _('Titolo') }}</th><th class="text-right">{{ _('Importo') }}</th>
+            <th class="w-130">{{ _('Quote') }}</th><th class="w-130">{{ _('Prezzo €') }}</th></tr>
         </thead>
         <tbody>
           {% for p in purchases %}

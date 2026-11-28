@@ -14,7 +14,7 @@
   <div class="card-header"><div class="card-header-title">{{ _('Avvisi di oggi') }}</div></div>
   <div class="card-body">
     {% for a in alerts %}
-    <div style="margin-bottom:8px;"><a href="{{ a.url }}"><strong>{{ a.title }}</strong></a> <span class="text-sm text-muted">{{ a.detail }}</span></div>
+    <div class="mb-8"><a href="{{ a.url }}"><strong>{{ a.title }}</strong></a> <span class="text-sm text-muted">{{ a.detail }}</span></div>
     {% endfor %}
   </div>
 </div>

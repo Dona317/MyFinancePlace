@@ -49,7 +49,7 @@
     </form>
   </div>
   <details class="card-body">
-    <summary style="cursor:pointer;"><strong>{{ _('Scrivi a mano i primi 10 paesi e settori') }}</strong>
+    <summary class="cursor-pointer"><strong>{{ _('Scrivi a mano i primi 10 paesi e settori') }}</strong>
       {{ info(_('Dalla scheda del fondo (factsheet o KID): il nome del paese in italiano o in inglese e il peso in percentuale. Sostituisce i paesi e i settori di prima; il resto conta come «Senza dati».')) }}</summary>
     <form method="POST" action="{{ url_for('portfolio.lookthrough_manual', holding_id=holding.id) }}" class="mt-12">
       <div class="grid-2 gap-16">

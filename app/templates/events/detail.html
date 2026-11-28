@@ -23,7 +23,7 @@
     <div class="card-header"><div class="card-header-title">{{ _('Per categoria') }}</div></div>
     <div class="card-body">
       {% for name, amount in summary.by_category %}
-      <div style="display:flex;justify-content:space-between;"><span>{{ name|tr }}</span><span class="nowrap">{{ amount|money }}</span></div>
+      <div class="d-flex justify-between"><span>{{ name|tr }}</span><span class="nowrap">{{ amount|money }}</span></div>
       {% else %}<span class="text-muted">{{ _('Ancora nessuna spesa.') }}</span>{% endfor %}
     </div>
   </div>
@@ -60,7 +60,7 @@
     <input type="hidden" name="next" value="{{ url_for('events.detail', event_id=event.id) }}" />
     <div class="table-wrapper">
       <table>
-        <thead><tr><th style="width:32px;"></th><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th></tr></thead>
+        <thead><tr><th class="w-32"></th><th>{{ _('Data') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Categoria') }}</th><th class="text-right">{{ _('Importo') }}</th></tr></thead>
         <tbody>
           {% for tx in items %}
           <tr>

@@ -102,14 +102,14 @@
     <div class="card-body text-sm text-muted">{{ _('Ancora vuoto.') }} {% if not online %}{{ _('Accendi i prezzi da internet in Impostazioni per scaricarlo.') }}{% endif %}</div>
     {% endif %}
     {# Fase 2: closes from a file, for a source other than Yahoo or a computer without internet #}
-    <div class="card-body" style="border-top:1px solid var(--clr-border);">
+    <div class="card-body border-t-strong">
       <form method="POST" action="{{ url_for('portfolio.market_import') }}" enctype="multipart/form-data" class="form-row d-flex gap-12 flex-wrap items-end">
         <div class="form-group"><label class="form-label" for="market-symbol">{{ _('Simbolo') }}</label>
           <input class="form-control w-130" id="market-symbol" name="symbol" placeholder="VWCE.MI" required></div>
         <div class="form-group"><label class="form-label" for="market-isin">{{ _('ISIN') }}</label>
           <input class="form-control w-150" id="market-isin" name="isin" maxlength="12"></div>
         <div class="form-group"><label class="form-label" for="market-currency">{{ _('Valuta') }}</label>
-          <input class="form-control" id="market-currency" name="currency" value="EUR" maxlength="3" style="width:70px;"></div>
+          <input class="form-control w-70" id="market-currency" name="currency" value="EUR" maxlength="3"></div>
         <div class="form-group"><label class="form-label" for="market-file">{{ _('File CSV delle chiusure') }}</label>
           <input class="form-control" type="file" id="market-file" name="file" accept=".csv,.txt" required></div>
         <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-upload"></i> {{ _('Carica lo storico') }}</button>

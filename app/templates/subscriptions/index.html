@@ -56,7 +56,7 @@
         {% set tx = s.template %}
         <tr class="{{ '' if s.confirmed else 'subscription-candidate' }}">
           <td>
-            <div style="font-weight:600;">{{ tx.description }}
+            <div class="font-semibold">{{ tx.description }}
               {% if not s.confirmed %}<span class="badge badge-warning">{{ _('da confermare') }}</span>{% endif %}
               {% if s.change %}<span class="badge {{ 'badge-negative' if (s.change > 0) == (kind == 'expense') else 'badge-positive' }}"
                     title="{{ _('Prima: %(amount)s', amount=s.previous|money) }}">{{ '+' if s.change > 0 else '−' }}{{ s.change|abs|money }}</span>{% endif %}

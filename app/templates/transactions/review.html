@@ -35,7 +35,7 @@
 <form method="POST" action="{{ url_for('transactions.review_apply') }}" class="card">
   <div class="card-header">
     <div class="card-header-title">{{ _('Suggerimenti (%(count)s)', count=findings|length) }}</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <div class="d-flex gap-8 flex-wrap">
       <button type="button" class="btn btn-ghost btn-sm" id="review-toggle">{{ _('Seleziona tutti') }}</button>
       <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check2"></i> {{ _('Applica i selezionati') }}</button>
     </div>
@@ -44,7 +44,7 @@
     <table>
       <thead>
         <tr>
-          <th style="width:32px;"></th>
+          <th class="w-32"></th>
           <th>{{ _('Data') }}</th>
           <th>{{ _('Transazione') }}</th>
           <th class="text-right">{{ _('Importo') }}</th>
@@ -55,9 +55,9 @@
         {% for f in findings %}
         <tr>
           <td><input type="checkbox" class="check" name="apply" value="{{ f.token }}" checked /></td>
-          <td style="white-space:nowrap;color:var(--clr-text-muted);font-size:var(--font-size-xs);">{{ f.tx.date|it_date }}</td>
+          <td class="nowrap text-muted text-xs">{{ f.tx.date|it_date }}</td>
           <td>
-            <div style="font-weight:600;color:var(--clr-text-primary);">{{ f.tx.description }}</div>
+            <div class="font-semibold text-strong">{{ f.tx.description }}</div>
             <div class="text-xs text-muted">
               {% if f.tx.type == 'income' %}{{ _('Entrata') }}{% elif f.tx.type == 'expense' %}{{ _('Uscita') }}{% else %}{{ _('Trasferimento') }}{% endif %}
               {% if f.tx.category %}· {{ f.tx.category }}{% endif %}
@@ -65,7 +65,7 @@
           </td>
           <td class="text-right amount" data-amount="{{ f.tx.signed_amount }}">—</td>
           <td>
-            <div style="font-weight:600;color:var(--clr-text-primary);">{{ f.title }}</div>
+            <div class="font-semibold text-strong">{{ f.title }}</div>
             <div class="text-xs text-muted">{{ f.reason }}</div>
             <div class="text-xs">
               {% if f.kind == 'type' %}{{ _('Diventa:') }} <strong>{% if f.value == 'income' %}{{ _('Entrata') }}{% elif f.value == 'expense' %}{{ _('Uscita') }}{% else %}{{ _('Trasferimento') }}{% endif %}</strong>

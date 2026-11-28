@@ -17,7 +17,7 @@
   <button type="button" class="report-tab" role="tab" data-names-tab="tag" aria-selected="false"><i class="bi bi-hash"></i> {{ _('Tag') }} <span class="text-xs text-muted">{{ tags|length }}</span></button>
 </div>
 
-<div class="form-group mb-16" style="max-width:420px;">
+<div class="form-group mb-16 maxw-420">
   <input type="search" id="names-search" class="form-control" placeholder="{{ _('Cerca nell’elenco…') }}" aria-label="{{ _('Cerca nell’elenco') }}" />
 </div>
 
@@ -90,7 +90,7 @@
             <option value="">—</option>
             {% for m in mains if m != c.name %}<option value="{{ m }}" {{ 'selected' if c.parent_id and by_id[c.parent_id].name == m }}>{{ m }}</option>{% endfor %}
           </select></td>
-          <td><select form="{{ form_id }}" name="kind" class="form-select" style="min-width:110px;" aria-label="{{ _('Tipo di %(name)s', name=c.name) }}">
+          <td><select form="{{ form_id }}" name="kind" class="form-select minw-110" aria-label="{{ _('Tipo di %(name)s', name=c.name) }}">
             {% for k, label in kinds.items() %}<option value="{{ k }}" {{ 'selected' if c.kind == k }}>{{ label }}</option>{% endfor %}
           </select></td>
           <td><input form="{{ form_id }}" name="hint" class="form-control" value="{{ c.hint or '' }}" aria-label="{{ _('Cosa comprende %(name)s', name=c.name) }}" /></td>
@@ -123,7 +123,7 @@
     {% for name in unmanaged %}
     <form method="POST" action="{{ url_for('settings.category_save') }}" class="d-inline">
       <input type="hidden" name="name" value="{{ name }}" /><input type="hidden" name="kind" value="expense" />
-      <button type="submit" class="badge badge-neutral" style="border:0;cursor:pointer;" title="{{ _("Aggiungi all'elenco") }}">+ {{ name }}</button>
+      <button type="submit" class="badge badge-neutral border-0 cursor-pointer" title="{{ _("Aggiungi all'elenco") }}">+ {{ name }}</button>
     </form>
     {% endfor %}
   </div>

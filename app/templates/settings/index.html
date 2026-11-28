@@ -132,7 +132,7 @@
         {{ _('Dashboard — sezioni') }}
       </div>
       <div class="settings-section-body">
-        <p class="toggle-hint" style="padding-top:10px;">{{ _('Nello stesso ordine della dashboard: per spostarli, «Modifica» nella dashboard.') }}</p>
+        <p class="toggle-hint pt-10">{{ _('Nello stesso ordine della dashboard: per spostarli, «Modifica» nella dashboard.') }}</p>
         {% set section_texts = {
           'dashboard_cashflow_chart': (_('Flusso di cassa e risparmio'), _('Entrate, uscite e risparmio degli ultimi 12 mesi, con il risparmio cumulato')),
           'dashboard_net_worth_trend': (_('Andamento del patrimonio'), _('Liquidità, investimenti, altri beni e debiti a fine mese, con il patrimonio netto')),
@@ -318,16 +318,16 @@
           {% endfor %}
         </div>
 
-        <div style="margin-top:16px;padding:14px;background:var(--clr-bg-input);border-radius:var(--border-radius-sm);">
-          <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">
+        <div class="mt-16 p-14 bg-input rounded-sm">
+          <div class="text-xs text-muted mb-6 font-semibold uppercase tracking">
             {{ _('Anteprima') }}
           </div>
-          <span style="font-family:var(--font-mono);font-size:var(--font-size-sm);">
+          <span class="font-mono text-sm">
             {{ 1234.56|money }} &nbsp;·&nbsp; {{ preview_date|it_date }}
           </span>
         </div>
 
-        <div style="margin-top:16px;" class="toggle-wrap">
+        <div class="toggle-wrap mt-16">
           <div class="toggle-info">
             <div class="toggle-label">{{ _('Modalità scura') }}</div>
             <div class="toggle-hint">{{ _("Tema scuro per l'intera interfaccia — disponibile prossimamente") }}</div>

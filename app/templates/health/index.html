@@ -32,7 +32,7 @@
   </div>
   {% if check.count and check.items %}
   <div class="card-body">
-    <ul style="margin:0;padding-left:18px;">
+    <ul class="m-0 pl-18">
       {% for item in check.items %}<li><a href="{{ item.url }}">{{ item.label }}</a></li>{% endfor %}
       {% if check.count > check.items|length %}<li class="text-muted">{{ _('e altri %(count)s', count=check.count - check.items|length) }}</li>{% endif %}
     </ul>

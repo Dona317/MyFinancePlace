@@ -69,7 +69,7 @@
 <div class="card mb-24">
   <div class="card-header"><div class="card-header-title">{{ _('Caratteristiche') }}</div>
     <a href="{{ url_for('portfolio.edit', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a></div>
-  <div class="card-body d-flex gap-8" style="flex-wrap:wrap;column-gap:28px;">
+  <div class="card-body d-flex gap-8 flex-wrap colgap-28">
     {% for label, value in facts if value %}<div><div class="text-xs text-muted">{{ label }}</div><div>{{ value }}</div></div>{% endfor %}
   </div>
 </div>
@@ -80,7 +80,7 @@
 <div class="card mb-24" id="option-card">
   <div class="card-header"><div class="card-header-title">{{ _('Opzione') }} · {{ option_label }}
       {{ info(_("Il valore è contratti × moltiplicatore × prezzo: sotto zero per un'opzione venduta, perché è quanto costerebbe ricomprarla. Il guadagno di un'opzione venduta è il premio incassato meno quel costo.")) }}</div></div>
-  <div class="card-body" style="display:flex;gap:32px;flex-wrap:wrap;">
+  <div class="card-body d-flex gap-32 flex-wrap">
     <div><div class="text-xs text-muted">{{ _('Tipo') }}</div><div>{{ option_kinds[holding.option_kind]|tr }}{% if holding.is_short %} · <span class="badge badge-warning">{{ _('venduta') }}</span>{% endif %}</div></div>
     <div><div class="text-xs text-muted">{{ _('Strike') }}</div><div>{{ holding.strike|number(2) }}{% if holding.currency %} {{ holding.currency }}{% endif %}</div></div>
     <div><div class="text-xs text-muted">{{ _('Scadenza') }}</div><div>{{ holding.option_expiry|it_date }} · {% if option_days is none %}—{% elif option_days < 0 %}{{ _('scaduta') }}{% elif option_days == 0 %}{{ _('scade oggi') }}{% else %}{{ ngettext('tra %(num)d giorno', 'tra %(num)d giorni', option_days) }}{% endif %}</div></div>
@@ -91,7 +91,7 @@
     {% if holding.is_short %}<div><div class="text-xs text-muted">{{ _('Premio incassato') }}</div><div>{{ (-holding.cost)|money }}</div></div>{% endif %}
   </div>
   {% if option_settle %}
-  <div class="card-body" style="border-top:1px solid var(--clr-border-light);">
+  <div class="card-body border-t">
     <div class="alert alert-warning mb-16 d-block"><i class="bi bi-hourglass-bottom"></i> {{ _("L'opzione è arrivata a scadenza: chiudila come è andata.") }}</div>
     <form method="POST" action="{{ url_for('portfolio.option_settle', holding_id=holding.id) }}" class="d-flex gap-16 flex-wrap items-end">
       <div class="form-group mb-0">
@@ -115,7 +115,7 @@
   <div class="card-header"><div class="card-header-title">{{ _("Obbligazione") }}{% if bond.type %} · {{ bond.type|tr }}{% endif %}
       {{ info(_("Stime: il rendimento a scadenza è il tasso che rende le cedole e il rimborso pari al prezzo di oggi più il rateo (capitalizzazione annua). Il netto toglie l'aliquota (%(rate)s %%) dalle cedole e dal guadagno fino al rimborso. Non considera l'indicizzazione all'inflazione di BTP Italia e BTP€i, le cedole crescenti e il premio fedeltà dei BTP Valore, la variazione delle cedole dei CCT, il bollo e le commissioni.", rate=bond.tax_rate|number(1))) }}</div>
     <a href="{{ url_for('portfolio.edit', holding_id=holding.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i> {{ _('Modifica') }}</a></div>
-  <div class="card-body d-flex gap-8" style="flex-wrap:wrap;column-gap:28px;">
+  <div class="card-body d-flex gap-8 flex-wrap colgap-28">
     <div><div class="text-xs text-muted">{{ _('Cedola annua lorda') }}</div><div>{{ bond.coupon_rate|number(3) }} %{% if bond.coupon_rate %} · {{ bond.frequency|tr }}{% endif %}</div></div>
     <div><div class="text-xs text-muted">{{ _('Scadenza') }}</div><div>{{ bond.maturity|it_date }} · {{ _('scaduta') if bond.expired else _('tra %(years)s anni', years=bond.years|number(1)) }}</div></div>
     <div><div class="text-xs text-muted">{{ _('Rimborso') }}</div><div>{{ bond.redemption|number(2) }} %</div></div>

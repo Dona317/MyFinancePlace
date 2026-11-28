@@ -13,13 +13,13 @@
   <!-- CSV -->
   <div class="card">
     <div class="card-body">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <div class="d-flex items-center gap-14 mb-16">
         <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:var(--clr-positive-bg);
                     display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--clr-positive-text);">
           <i class="bi bi-filetype-csv"></i>
         </div>
         <div>
-          <div style="font-weight:600;color:var(--clr-text-primary);">CSV</div>
+          <div class="font-semibold text-strong">CSV</div>
           <div class="text-xs text-muted">{{ _('Compatibile con Excel, Google Sheets') }}</div>
         </div>
       </div>
@@ -54,17 +54,17 @@
   <!-- JSON -->
   <div class="card">
     <div class="card-body">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <div class="d-flex items-center gap-14 mb-16">
         <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:var(--clr-neutral-bg);
                     display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--clr-neutral);">
           <i class="bi bi-filetype-json"></i>
         </div>
         <div>
-          <div style="font-weight:600;color:var(--clr-text-primary);">JSON</div>
+          <div class="font-semibold text-strong">JSON</div>
           <div class="text-xs text-muted">{{ _('Solo transazioni, reimportabile') }}</div>
         </div>
       </div>
-      <p style="font-size:var(--font-size-sm);color:var(--clr-text-muted);margin-bottom:16px;">
+      <p class="text-sm text-muted mb-16">
         {{ _('Tutte le transazioni in JSON strutturato. Si reimporta da «Ripristina» qui sotto: le transazioni già presenti vengono saltate.') }}
       </p>
       <form method="GET" action="{{ url_for('export.export_json') }}">
@@ -86,13 +86,13 @@
   <!-- PDF -->
   <div class="card">
     <div class="card-body">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <div class="d-flex items-center gap-14 mb-16">
         <div style="width:48px;height:48px;border-radius:var(--border-radius-sm);background:var(--clr-negative-bg);
                     display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--clr-negative-text);">
           <i class="bi bi-file-earmark-pdf"></i>
         </div>
         <div>
-          <div style="font-weight:600;color:var(--clr-text-primary);">{{ _('Report PDF') }}</div>
+          <div class="font-semibold text-strong">{{ _('Report PDF') }}</div>
           <div class="text-xs text-muted">{{ _("Conto economico, mesi e rendiconto dell'anno") }}</div>
         </div>
       </div>
@@ -103,7 +103,7 @@
             {% for y in years %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
           </select>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div class="d-flex gap-8 flex-wrap">
           <button type="submit" class="btn btn-outline flex-1 justify-center">
             <i class="bi bi-download"></i> {{ _('Scarica PDF') }}
           </button>
@@ -280,7 +280,7 @@
     </div>
   </div>
   <div class="card-body">
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <div class="d-flex gap-12 flex-wrap">
       {% for year in years %}
       <a href="{{ url_for('export.export_tax', year=year) }}"
          class="btn btn-outline">

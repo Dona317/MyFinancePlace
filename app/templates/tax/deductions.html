@@ -103,7 +103,7 @@
           </div>
           {% if item.per_person %}
           <label class="form-label mt-8" for="people-{{ item.code }}">{{ _('Quanti studenti o figli') }}</label>
-          <input type="number" min="1" max="20" id="people-{{ item.code }}" name="people-{{ item.code }}" class="form-control" style="max-width:120px;" value="{{ people.get(item.code, 1) }}" />
+          <input type="number" min="1" max="20" id="people-{{ item.code }}" name="people-{{ item.code }}" class="form-control maxw-120" value="{{ people.get(item.code, 1) }}" />
           {% endif %}
         </details>
       {% endfor %}

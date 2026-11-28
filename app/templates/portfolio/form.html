@@ -91,7 +91,7 @@
           </div>
           <div class="grid-2">
             {{ f.text(values, 'index_name', _('Indice replicato'), h.index_name, placeholder=_('es. MSCI World, FTSE All-World')) }}
-            <div class="form-group" style="align-self:end;">
+            <div class="form-group self-end">
               <label class="d-flex align-center gap-8 text-sm"><input type="checkbox" name="currency_hedged" class="check" {{ 'checked' if (values.currency_hedged if values else h.currency_hedged) }} /> {{ _('Con copertura del cambio (EUR hedged)') }}</label>
             </div>
           </div>

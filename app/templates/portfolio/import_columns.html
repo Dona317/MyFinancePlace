@@ -30,7 +30,7 @@
           </select>
         </div>
         {% endfor %}
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <div class="d-flex gap-8 justify-end">
           <a href="{{ url_for('portfolio.broker_upload') }}" class="btn btn-ghost">{{ _('Annulla') }}</a>
           <button type="submit" class="btn btn-primary"><i class="bi bi-eye"></i> {{ _('Mostra l’anteprima') }}</button>
         </div>

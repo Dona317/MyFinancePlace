@@ -32,6 +32,9 @@ def main(pages: bool) -> None:
     everything = css + "\n".join(templates.values())
 
     styles = {name: len(re.findall(r'style="', text)) for name, text in templates.items()}
+    # a style computed from the data ({{ }}: the width of a bar, a colour of the data) is allowed (DESIGN.md 12)
+    static_styles = {name: len(re.findall(r'style="[^"{]*"', text)) for name, text in templates.items()
+                     if name != "export/report.html"}
     # the big cards drawn outside the dashboard («Come sto» keeps them): kpi() draws a cell of the row since UI-51
     big_kpi = "kpi-card" in templates.get("partials/kpi.html", "")
     kpis = {name: text.count("kpi-card") + (text.count("kpi(") if big_kpi else 0) for name, text in templates.items()
@@ -56,7 +59,8 @@ def main(pages: bool) -> None:
     radii = Counter(v.strip() for v in re.findall(r"border-radius:\s*([^;\"}]+)", pages_and_main))
 
     rows = [
-        ("stili scritti a mano (style=)", sum(styles.values()), "< 50"),
+        ("stili scritti a mano fissi (style= senza {{ }})", sum(static_styles.values()), "< 50"),
+        ("stili calcolati dai dati (ammessi)", sum(styles.values()) - sum(static_styles.values()), "—"),
         ("schede numeriche grandi fuori dalla dashboard", sum(kpis.values()), "0"),
         ("template con più di un btn-primary", sum(1 for n in primaries.values() if n > 1), "0"),
         ("statement-tabs", sum(statement.values()), "0"),

@@ -58,7 +58,7 @@
         <i class="bi bi-search"></i> {{ _('Analizza file') }}
       </button>
     </form>
-    <p style="font-size:var(--font-size-xs);margin-top:8px;display:flex;align-items:center;gap:6px;">
+    <p class="text-xs mt-8 d-flex items-center gap-6">
       <i class="bi bi-stars text-accent"></i>
       {% if ai_reader %}
         <span><strong>{{ _('Lettura AI disponibile') }}</strong> ({{ ai_reader }}){{ _(': se un file non si riesce a leggere, ti verrà chiesto se usarla.') }}
@@ -84,11 +84,11 @@
   </div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('export.import_csv') }}" enctype="multipart/form-data" id="import-form">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div class="d-grid grid-2 gap-24">
 
       <!-- Step 1 -->
       <div>
-        <div style="font-weight:600;color:var(--clr-text-primary);margin-bottom:12px;">
+        <div class="font-semibold text-strong mb-12">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
                        background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">1</span>
           {{ _('Carica il file') }} {{ info(_('Si legge il primo foglio; date AAAA-MM-GG o GG/MM/AAAA.')) }}
@@ -117,7 +117,7 @@
 
       <!-- Step 2 -->
       <div>
-        <div style="font-weight:600;color:var(--clr-text-primary);margin-bottom:12px;">
+        <div class="font-semibold text-strong mb-12">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
                        background:var(--clr-primary);color:var(--clr-on-primary);border-radius:50%;font-size:12px;margin-right:8px;">2</span>
           {{ _('Mappa le colonne') }}

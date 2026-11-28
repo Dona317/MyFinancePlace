@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block chart_scripts %}{% include "partials/charts.html" %}{% endblock %}
 {% from "partials/stat_row.html" import stat_row %}
+{% import "partials/blocks.html" as blocks with context %}
 {% from "forecast/_tabs.html" import forecast_tabs with context %}
 {% from "partials/empty.html" import empty_state %}
 {% from "partials/kpi.html" import kpi %}
@@ -23,6 +24,7 @@
 </div>
 {% if shown('accounting') %}<a href="{{ url_for('accounting.cash_flow') }}" class="btn btn-ghost btn-sm" title="{{ _('Il flusso di cassa da cui partono le previsioni') }}"><i class="bi bi-arrow-left-right"></i> {{ _('Flusso di cassa') }} <i class="bi bi-arrow-right"></i></a>{% endif %}
 <a href="{{ url_for('forecast.retirement') }}" class="btn btn-ghost btn-sm"><i class="bi bi-hourglass-split"></i> {{ _('Pensione e FIRE') }}</a>
+{% if fc.history_months or fc.scheduled %}{{ blocks.edit_controls(_('Modifica delle previsioni'), _('Sposta, allarga o nascondi i pannelli della scheda')) }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -72,9 +74,6 @@
     </label>
     <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-repeat"></i> {{ _('Aggiorna') }}</button>
     <span class="forecast-note"><i class="bi bi-bookmark-check"></i> {{ _('Le scelte vengono ricordate') }}</span>
-    {% if fc.history_months or fc.scheduled %}
-    <button type="button" class="btn btn-outline btn-sm" id="layout-edit" aria-pressed="false"><i class="bi bi-grid-1x2"></i> {{ _('Personalizza') }}</button>
-    {% endif %}
   </form>
 </div>
 
@@ -86,33 +85,12 @@
 </div>
 {% else %}
 
-<!-- Pannelli: una griglia a due colonne uguali; ordine, larghezza e visibilità si scelgono con «Personalizza» -->
-<div class="layout-bar card mb-16" id="layout-bar" hidden>
-  <div class="card-body">
-    <div class="layout-bar-text">
-      <i class="bi bi-grid-1x2"></i>
-      <div><strong>{{ _('Personalizza la pagina.') }}</strong> {{ _('Trascina un pannello per spostarlo (o usa le frecce), scegli se occupa mezza riga o la riga intera e nascondi quelli che non ti servono. Le modifiche vengono salvate subito.') }}</div>
-    </div>
-    <div class="layout-hidden" id="layout-hidden"></div>
-    <div class="layout-bar-actions">
-      <button type="button" class="btn btn-ghost btn-sm" id="layout-reset"><i class="bi bi-arrow-counterclockwise"></i> {{ _('Ripristina predefinito') }}</button>
-      <button type="button" class="btn btn-outline btn-sm" id="layout-done"><i class="bi bi-check2"></i> {{ _('Fatto') }}</button>
-    </div>
-  </div>
-</div>
-
 <div class="fc-grid" id="fc-grid">
 {% for w in layout if w.id != 'kpi' and w.id in tab_blocks %}
 <section class="fc-widget" data-widget="{{ w.id }}" data-span="{{ w.span }}" data-title="{{ widgets[w.id][0] }}"{{ ' hidden' if not w.visible else '' }}>
-  <div class="fc-widget-tools">
-    <span class="fc-drag" title="{{ _('Trascina per spostare') }}"><i class="bi bi-grip-vertical"></i> {{ widgets[w.id][0] }}</span>
-    <button type="button" data-act="prev" title="{{ _('Sposta prima') }}"><i class="bi bi-chevron-left"></i></button>
-    <button type="button" data-act="next" title="{{ _('Sposta dopo') }}"><i class="bi bi-chevron-right"></i></button>
-    <button type="button" data-act="span" title="{{ _('Mezza riga / riga intera') }}"><i class="bi bi-arrows-angle-expand"></i><i class="bi bi-arrows-angle-contract"></i></button>
-    <button type="button" data-act="hide" title="{{ _('Nascondi') }}"><i class="bi bi-eye-slash"></i></button>
-  </div>
+  {% call blocks.tools() %}{{ widgets[w.id][0] }}{% endcall %}
   {% if w.id == 'kpi' %}
-  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));">
+  <div class="kpi-grid">
     {{ kpi('calendar-check', _('Chiusura %(month)s', month=cur.label), amount=cur.net, cls='kpi-primary', value_class=('positive' if cur.net >= 0 else 'negative'), sub=(_('Registrato fino al %(day)s + previsto', day=fc.cutoff|it_date))) }}
     {% if nxt %}
     {{ kpi('arrow-down-circle', _('Entrate %(month)s', month=nxt.label), amount=nxt.income, cls='kpi-positive', sub=(_('di cui ricorrenti %(amount)s', amount=nxt.scheduled_income|money))) }}
@@ -249,7 +227,7 @@
             {% set sign = -1 if c.type == 'expense' else 1 %}
             <tr>
               <td><span class="badge {{ 'badge-positive' if c.type == 'income' else 'badge-primary' }}">{{ c.category }}</span></td>
-              <td style="text-align:right;white-space:nowrap;color:var(--clr-text-muted);">{{ (sign * c.average)|money }}</td>
+              <td class="text-right nowrap text-muted">{{ (sign * c.average)|money }}</td>
               <td class="col-optional text-right nowrap">{{ (sign * c.scheduled)|money if c.scheduled else '—' }}</td>
               <td class="col-optional text-right nowrap">{{ (sign * c.variable)|money if c.variable else '—' }}</td>
               <td class="amount {{ c.type|tone }} text-right nowrap font-semibold">
@@ -280,7 +258,7 @@
             {% for item in fc.upcoming[:15] %}
             {% set tx = item.tx %}
             <tr>
-              <td style="white-space:nowrap;font-size:var(--font-size-xs);color:var(--clr-text-muted);">{{ (item.date|it_date) }}</td>
+              <td class="nowrap text-xs text-muted">{{ (item.date|it_date) }}</td>
               <td>{{ tx.description }}</td>
               <td class="col-optional"><span class="badge badge-muted">{{ frequencies[tx.recurrence][0] if tx.recurrence in frequencies else _('Mensile') }}</span></td>
               <td class="amount {{ tx.type|tone }} text-right nowrap">
@@ -311,7 +289,7 @@
             {% for c in fc.candidates %}
             {% set tx = c.template %}
             <tr>
-              <td><div style="font-weight:600;">{{ tx.description }}</div>
+              <td><div class="font-semibold">{{ tx.description }}</div>
                   <div class="text-xs text-muted">{{ _('%(count)s volte, ultima il %(last)s · prossima il %(next)s', count=c.count, last=tx.date|it_date, next=c.next_date|it_date) }}</div></td>
               <td class="col-optional">{% if tx.category %}<span class="badge badge-primary">{{ tx.category }}</span>{% else %}—{% endif %}</td>
               <td class="amount {{ tx.type|tone }} text-right nowrap">
@@ -378,7 +356,7 @@
             {% for key, (label, description) in methods.items() %}<dt>{{ label }}</dt><dd>{{ description }}</dd>{% endfor %}
           </dl>
         </details>
-        <p style="margin-bottom:0;color:var(--clr-text-muted);">{{ _('Storico disponibile: %(n)s mesi completi.', n=fc.history_months) }}
+        <p class="mb-0 text-muted">{{ _('Storico disponibile: %(n)s mesi completi.', n=fc.history_months) }}
           {% if fc.history_months < fc.window %}{{ _('La finestra ne usa quindi solo %(n)s.', n=fc.history_months) }}{% endif %}</p>
       </div>
     </div>
@@ -390,6 +368,7 @@
 {% endblock %}
 
 {% block scripts %}
+{{ blocks.script() }}
 {% if fc.history_months or fc.scheduled %}
 <script>
 {
@@ -424,100 +403,11 @@ form.querySelectorAll('select').forEach(el => el.addEventListener('change', () =
 form.querySelector('[name=window]').addEventListener('change', e => { if (e.target.checkValidity()) form.requestSubmit(); });
 }
 
-/* ── Personalizza: order, width and visibility of the panels, saved at every change ── */
-{
-const grid = document.getElementById('fc-grid');
-const bar = document.getElementById('layout-bar');
-const editButton = document.getElementById('layout-edit');
-const hiddenList = document.getElementById('layout-hidden');
-const widgets = () => [...grid.querySelectorAll(':scope > .fc-widget')];
-let editing = false, dragged = null, saveTimer = null;
-
-function redrawCharts(widget) {
-  requestAnimationFrame(() => (widget ? [widget] : widgets()).forEach(w =>
-    w.querySelectorAll('canvas').forEach(c => Chart.getChart(c)?.resize())));
-}
-
-function save() {
-  renderHidden();
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => fetch('{{ url_for('forecast.save_layout') }}', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ widgets: widgets().map(w => ({ id: w.dataset.widget, span: +w.dataset.span, visible: !w.hidden })) }),
-  }), 250);
-}
-
-// Hidden panels are listed in the bar, one click shows them again
-function renderHidden() {
-  const hidden = widgets().filter(w => w.hidden);
-  hiddenList.replaceChildren(...(hidden.length ? [Object.assign(document.createElement('span'), { textContent: {{ _('Pannelli nascosti:')|tojson }} })] : []),
-    ...hidden.map(w => {
-      const chip = Object.assign(document.createElement('button'), { type: 'button', className: 'layout-chip' });
-      chip.innerHTML = '<i class="bi bi-plus-lg"></i> ';
-      chip.append(w.dataset.title);
-      chip.addEventListener('click', () => { w.hidden = false; redrawCharts(w); save(); });
-      return chip;
-    }));
-}
-
-function setEditing(on) {
-  editing = on;
-  document.body.classList.toggle('fc-editing', on);
-  bar.hidden = !on;
-  editButton?.setAttribute('aria-pressed', String(on));
-  widgets().forEach(w => { w.draggable = on; });
-  if (on) renderHidden();
-}
-
-editButton?.addEventListener('click', () => setEditing(!editing));
-document.getElementById('layout-done').addEventListener('click', () => setEditing(false));
-document.getElementById('layout-reset').addEventListener('click', async () => {
-  await fetch('{{ url_for('forecast.save_layout') }}', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"reset": true}' });
-  location.reload();
+/* ── Modifica: order, width (half or whole row) and visibility of the panels, as on every page (blocks.js) ── */
+if (document.getElementById('fc-grid')) initBlockEditor({
+  saveUrl: {{ url_for('forecast.save_layout')|tojson }},
+  grids: [{ el: document.getElementById('fc-grid'), key: 'widgets', spans: 2 }],
 });
-
-const visibleSibling = (w, dir) => { let s = w[dir]; while (s && s.hidden) s = s[dir]; return s; };
-grid.addEventListener('click', e => {
-  const button = e.target.closest('.fc-widget-tools [data-act]');
-  if (!button) return;
-  const w = button.closest('.fc-widget');
-  const act = button.dataset.act;
-  if (act === 'prev') { const s = visibleSibling(w, 'previousElementSibling'); if (s) s.before(w); }
-  if (act === 'next') { const s = visibleSibling(w, 'nextElementSibling'); if (s) s.after(w); }
-  if (act === 'span') { w.dataset.span = w.dataset.span === '2' ? '1' : '2'; redrawCharts(w); }
-  if (act === 'hide') { w.hidden = true; }
-  save();
-  if (act === 'prev' || act === 'next') w.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-});
-
-// Drag and drop: the panel moves while dragging; before or after the target by the pointer position
-grid.addEventListener('dragstart', e => {
-  const w = e.target.closest?.('.fc-widget');
-  if (!editing || !w) return;
-  dragged = w;
-  w.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', w.dataset.widget);
-});
-grid.addEventListener('dragover', e => {
-  if (!dragged) return;
-  e.preventDefault();
-  const target = e.target.closest('.fc-widget');
-  if (!target || target === dragged) return;
-  const r = target.getBoundingClientRect();
-  const before = target.dataset.span === '2' ? e.clientY < r.top + r.height / 2 : e.clientX < r.left + r.width / 2;
-  const reference = before ? target : target.nextElementSibling;
-  if (reference !== dragged && dragged.nextElementSibling !== reference) grid.insertBefore(dragged, reference);
-});
-grid.addEventListener('drop', e => { if (dragged) e.preventDefault(); });
-grid.addEventListener('dragend', () => {
-  if (!dragged) return;
-  dragged.classList.remove('dragging');
-  dragged = null;
-  redrawCharts();
-  save();
-});
-}
 </script>
 {% endif %}
 {% endblock %}

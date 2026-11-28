@@ -22,7 +22,7 @@
           <tr>
             <td><span class="font-mono">{{ c.symbol }}</span><div class="text-xs text-muted">{{ c.name }}{% if c.currency and c.currency != 'EUR' %} · {{ c.currency }}{% endif %}</div></td>
             <td class="nowrap">{{ c.start|it_date }}</td>
-            <td style="min-width:180px;">
+            <td class="minw-180">
               {% if c.count %}
               <div class="coverage-bar" title="{{ _('%(n)s chiusure, dal %(first)s al %(last)s', n=c.count, first=c.first|it_date, last=c.last|it_date) }}"><span style="width: {{ c.share }}%"></span></div>
               <div class="text-xs text-muted">{{ c.share }}% · {{ c.first|it_date }} → {{ c.last|it_date }}</div>

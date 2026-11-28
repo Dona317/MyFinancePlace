@@ -20,14 +20,14 @@
 {% block statement %}
 
 <!-- Summary KPIs ──────────────────────────────────────────────────────── -->
-<div class="kpi-grid mb-24" style="grid-template-columns:repeat(4,1fr);">
+<div class="kpi-grid mb-24">
   {{ kpi('arrow-down-circle', _('Totale entrate'), value=report.summary.income|money, cls='kpi-positive', value_class='text-positive', sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.income|money) if previous else none)) }}
   {{ kpi('arrow-up-circle', _('Totale uscite'), value=report.summary.expenses|money, cls='kpi-negative', value_class='text-negative', sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.expenses|money) if previous else none)) }}
   {{ kpi('piggy-bank', _('Risparmio netto'), value=report.summary.net|money, cls='kpi-primary', value_class=('text-negative' if report.summary.net < 0 else ''), sub=(_('nel %(year)s: %(value)s', year=year - 1, value=previous.summary.net|money) if previous else none)) }}
   {{ kpi('percent', _('Tasso di risparmio'), value="%.1f"|format(report.summary.savings_rate) ~ '%') }}
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+<div class="d-grid grid-2 gap-16">
 
   <!-- P&L Table -->
   <div class="card">
@@ -43,8 +43,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr style="background:var(--clr-positive-bg);">
-            <td colspan="{{ cols }}" style="font-weight:600;color:var(--clr-positive-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+          <tr class="bg-positive">
+            <td colspan="{{ cols }}" class="font-semibold text-positive-strong text-xs uppercase tracking">
               {{ _('Ricavi') }}
             </td>
           </tr>
@@ -52,20 +52,20 @@
           <tr>
             <td>{{ line.category }}</td>
             <td class="amount text-right">{{ line.amount|money }}</td>
-            <td style="text-align:right;color:var(--clr-text-muted);">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
+            <td class="text-right text-muted">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
             {% if previous %}<td class="amount text-right text-muted">{{ before[line.category]|money if line.category in before else '—' }}</td><td class="text-right">{{ change(line.amount, before.get(line.category)) }}</td>{% endif %}
           </tr>
           {% else %}
           <tr><td class="text-muted" colspan="{{ cols }}">{{ _('Nessuna entrata registrata') }}</td></tr>
           {% endfor %}
-          <tr style="font-weight:600;background:var(--clr-bg-input);">
+          <tr class="font-semibold bg-input">
             <td>{{ _('Totale entrate') }}</td><td class="amount positive text-right">{{ report.summary.income|money }}</td><td class="text-right">{{ '100%' if report.summary.income else '—' }}</td>{% if previous %}<td class="amount text-right text-muted">{{ previous.summary.income|money }}</td><td class="text-right">{{ change(report.summary.income, previous.summary.income) }}</td>{% endif %}
           </tr>
 
-          <tr style="height:8px;"><td colspan="{{ cols }}"></td></tr>
+          <tr class="h-8"><td colspan="{{ cols }}"></td></tr>
 
-          <tr style="background:var(--clr-negative-bg);">
-            <td colspan="{{ cols }}" style="font-weight:600;color:var(--clr-negative-text);font-size:var(--font-size-xs);text-transform:uppercase;letter-spacing:.06em;">
+          <tr class="bg-negative">
+            <td colspan="{{ cols }}" class="font-semibold text-negative-strong text-xs uppercase tracking">
               {{ _('Spese') }}
             </td>
           </tr>
@@ -73,13 +73,13 @@
           <tr{% if line.apart %} class="line-apart"{% endif %}>
             <td>{{ line.category }}{% if line.apart %} <span class="badge badge-muted" title="{{ _('Contanti spesi senza sapere per cosa: una voce a sé, non una categoria') }}">{{ _('a parte') }}</span>{% endif %}</td>
             <td class="amount text-right">{{ line.amount|money }}</td>
-            <td style="text-align:right;color:var(--clr-text-muted);">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
+            <td class="text-right text-muted">{{ "%.1f%%"|format(line.share_of_income) if line.share_of_income is not none else '—' }}</td>
             {% if previous %}<td class="amount text-right text-muted">{{ before[line.category]|money if line.category in before else '—' }}</td><td class="text-right">{{ change(line.amount, before.get(line.category)) }}</td>{% endif %}
           </tr>
           {% else %}
           <tr><td class="text-muted" colspan="{{ cols }}">{{ _('Nessuna spesa registrata') }}</td></tr>
           {% endfor %}
-          <tr style="font-weight:600;background:var(--clr-bg-input);">
+          <tr class="font-semibold bg-input">
             <td>{{ _('Totale uscite') }}</td><td class="amount negative text-right">{{ report.summary.expenses|money }}</td>
             <td class="text-right">{{ "%.1f%%"|format(100 - report.summary.savings_rate) if report.summary.income else '—' }}</td>
             {% if previous %}<td class="amount text-right text-muted">{{ previous.summary.expenses|money }}</td><td class="text-right">{{ change(report.summary.expenses, previous.summary.expenses) }}</td>{% endif %}
@@ -98,7 +98,7 @@
   </div>
 
   <!-- Charts -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
+  <div class="d-flex flex-col gap-16">
     <div class="card">
       <div class="card-header"><div class="card-header-title">{{ _('Andamento mensile') }}</div></div>
       <div class="card-body">

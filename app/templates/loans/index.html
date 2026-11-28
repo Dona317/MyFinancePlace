@@ -15,7 +15,7 @@
 {% for p in people %}
 <details class="card mb-8" id="person-{{ loop.index }}" {{ 'open' if p.balance and loop.index <= 3 }}>
   <summary class="card-body d-flex gap-8 align-center cursor-pointer">
-    <strong style="flex:1;">{{ p.name }}</strong>
+    <strong class="flex-1">{{ p.name }}</strong>
     {% if p.balance > 0 %}<span class="text-positive nowrap">{{ _('ti deve %(amount)s', amount=p.balance|money) }}</span>
     {% elif p.balance < 0 %}<span class="text-negative nowrap">{{ _('gli devi %(amount)s', amount=(-p.balance)|money) }}</span>
     {% else %}<span class="text-muted">{{ _('in pari') }}</span>{% endif %}

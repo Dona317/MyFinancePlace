@@ -2956,7 +2956,6 @@ a.onb-way:hover { border-color: var(--clr-primary); text-decoration: none; color
 .w-90 { width: 90px !important; }
 .w-auto { width: auto !important; }
 
-/* T48 (26 Nov 2026): the utility classes that took the place of the inline styles of the templates */
 .gap-14 { gap: 14px !important; }
 .h-6 { height: 6px !important; }
 .h-8 { height: 8px !important; }
@@ -2975,3 +2974,87 @@ a.onb-way:hover { border-color: var(--clr-primary); text-decoration: none; color
 .tracking { letter-spacing: .06em !important; }
 .uppercase { text-transform: uppercase !important; }
 .ws-normal { white-space: normal !important; }
+/* T43 / DESIGN §6.3 (26 Nov 2026): the floating bubbles (+, «Primi passi», the assistant) never cover the last row:
+   the end of every page leaves their height free */
+main.page-content { padding-bottom: calc(var(--space-6) + 56px) !important; }
+
+.border-0 { border: 0 !important; }
+.border-t { border-top: 1px solid var(--clr-border-light) !important; }
+.flex-col { flex-direction: column !important; }
+.maxw-120 { max-width: 120px !important; }
+.p-chip { padding: 4px 8px !important; }
+
+.d-grid { display: grid !important; }
+.grid-3-auto { grid-template-columns: 1fr 1fr 1fr auto !important; }
+.mb-12 { margin-bottom: var(--space-3) !important; }
+.p-head { padding: 12px 20px 0 !important; }
+.text-22 { font-size: 22px !important; }
+.text-left { text-align: left !important; }
+.text-negative-strong { color: var(--clr-negative-text) !important; }
+.text-neutral { color: var(--clr-neutral) !important; }
+.text-positive-strong { color: var(--clr-positive-text) !important; }
+
+.bg-input { background: var(--clr-bg-input) !important; }
+.bg-negative { background: var(--clr-negative-bg) !important; }
+.bg-neutral { background: var(--clr-neutral-bg) !important; }
+.bg-positive { background: var(--clr-positive-bg) !important; }
+.bg-warning { background: var(--clr-warning-bg) !important; }
+.gap-10 { gap: 10px !important; }
+.gap-24 { gap: var(--space-5) !important; }
+.gap-4 { gap: var(--space-1) !important; }
+.leading-loose { line-height: 1.8 !important; }
+.m-note { margin: 4px 0 8px !important; }
+.mb-6 { margin-bottom: 6px !important; }
+.minw-0 { min-width: 0 !important; }
+.minw-140 { min-width: 140px !important; }
+.minw-180 { min-width: 180px !important; }
+.minw-220 { min-width: 220px !important; }
+.mt-10 { margin-top: 10px !important; }
+.pl-18 { padding-left: 18px !important; }
+.text-md { font-size: var(--font-size-md) !important; }
+.w-110 { width: 110px !important; }
+.w-120 { width: 120px !important; }
+.w-180 { width: 180px !important; }
+.w-32 { width: 32px !important; }
+.w-60 { width: 60px !important; }
+
+.border-t-strong { border-top: 1px solid var(--clr-border) !important; }
+.colgap-28 { column-gap: 28px !important; }
+.gap-32 { gap: 32px !important; }
+.h-10 { height: 10px !important; }
+.h-44 { height: 44px !important; }
+.m-0-0-12 { margin: 0 0 12px !important; }
+.maxw-130 { max-width: 130px !important; }
+.maxw-170 { max-width: 170px !important; }
+.maxw-420 { max-width: 420px !important; }
+.maxw-440 { max-width: 440px !important; }
+.maxw-720 { max-width: 720px !important; }
+.maxw-820 { max-width: 820px !important; }
+.mb-10 { margin-bottom: 10px !important; }
+.mb-18 { margin-bottom: 18px !important; }
+.mb-2 { margin-bottom: 2px !important; }
+.minw-110 { min-width: 110px !important; }
+.minw-170 { min-width: 170px !important; }
+.mt-14 { margin-top: 14px !important; }
+.mt-n8 { margin-top: -8px !important; }
+.p-11 { padding: 11px !important; }
+.p-14 { padding: 14px !important; }
+.p-32 { padding: 32px !important; }
+.pl-28 { padding-left: 28px !important; }
+.pt-10 { padding-top: 10px !important; }
+.rounded-sm { border-radius: var(--border-radius-sm) !important; }
+.self-end { align-self: end !important; }
+.shrink-0 { flex-shrink: 0 !important; }
+.w-104 { width: 104px !important; }
+.w-170 { width: 170px !important; }
+.w-190 { width: 190px !important; }
+.w-220 { width: 220px !important; }
+.w-240 { width: 240px !important; }
+.w-320 { width: 320px !important; }
+.w-36 { width: 36px !important; }
+.w-40 { width: 40px !important; }
+.w-44 { width: 44px !important; }
+.w-48 { width: 48px !important; }
+.w-64 { width: 64px !important; }
+.w-70 { width: 70px !important; }
+.w-96 { width: 96px !important; }

@@ -75,7 +75,7 @@
       {% endfor %}
     </div>
     {% else %}
-    <div class="empty-state" style="padding:32px;"><div class="empty-state-text">{{ _('Nessuna spesa in questo anno.') }}</div></div>
+    <div class="empty-state p-32"><div class="empty-state-text">{{ _('Nessuna spesa in questo anno.') }}</div></div>
     {% endif %}
   </div>
 </div>
@@ -94,14 +94,14 @@
           <th class="text-right">{{ _('Questo mese') }}</th>
           <th class="text-right">{{ _('Mese scorso') }}</th>
           <th class="text-right">{{ _('Variazione') }}</th>
-          <th style="min-width:140px;">{{ _('%% sul Totale') }}</th>
+          <th class="minw-140">{{ _('%% sul Totale') }}</th>
         </tr>
       </thead>
       <tbody>
         {% for row in report.rows %}
         <tr>
           <td>
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div class="d-flex items-center gap-8">
               <div style="width:28px;height:28px;border-radius:var(--border-radius-sm);background:var(--clr-primary-light);display:flex;align-items:center;justify-content:center;color:var(--clr-primary);font-size:13px;">
                 <i class="bi bi-tag"></i>
               </div>
@@ -120,11 +120,11 @@
             {% endif %}
           </td>
           <td>
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div class="d-flex items-center gap-8">
               <div class="progress-bar-wrap flex-1 h-6">
                 <div class="progress-bar-fill" style="width:{{ row.share }}%;"></div>
               </div>
-              <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);width:40px;text-align:right;">{{ "%.0f"|format(row.share) }}%</span>
+              <span class="text-xs text-muted w-40 text-right">{{ "%.0f"|format(row.share) }}%</span>
             </div>
           </td>
         </tr>

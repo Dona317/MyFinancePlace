@@ -47,7 +47,7 @@
     <div class="card-header"><div class="card-header-title">{{ t.name }}</div></div>
     <div class="card-body">
       {% if rows %}
-      <div style="height:220px;"><canvas id="chart-t{{ t.id }}"></canvas></div>
+      <div class="h-220"><canvas id="chart-t{{ t.id }}"></canvas></div>
       <table class="table-compact mt-12">
         <tbody>
           {% for name, value, pct in rows %}

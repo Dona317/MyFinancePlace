@@ -76,11 +76,11 @@
 <div class="grid-2 mb-24 gap-16">
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Patrimonio netto negli ultimi 12 mesi') }}</div></div>
-    <div class="card-body"><div style="height:280px;"><canvas id="groupTrend"></canvas></div></div>
+    <div class="card-body"><div class="h-280"><canvas id="groupTrend"></canvas></div></div>
   </div>
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Entrate e uscite') }}</div></div>
-    <div class="card-body"><div style="height:280px;"><canvas id="groupFlows"></canvas></div></div>
+    <div class="card-body"><div class="h-280"><canvas id="groupFlows"></canvas></div></div>
   </div>
 </div>
 
@@ -88,14 +88,14 @@
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Spese per categoria, ultimi 12 mesi') }}</div></div>
     <div class="card-body">
-      {% if data.spending %}<div style="height:280px;"><canvas id="groupSpending"></canvas></div>
+      {% if data.spending %}<div class="h-280"><canvas id="groupSpending"></canvas></div>
       {% else %}{{ empty_state(_('Nessuna spesa negli ultimi 12 mesi.'), compact=True) }}{% endif %}
     </div>
   </div>
   <div class="card">
     <div class="card-header"><div class="card-header-title">{{ _('Investimenti per classe') }}</div></div>
     <div class="card-body">
-      {% if data.allocation %}<div style="height:280px;"><canvas id="groupAllocation"></canvas></div>
+      {% if data.allocation %}<div class="h-280"><canvas id="groupAllocation"></canvas></div>
       {% else %}{{ empty_state(_('Nessun investimento.'), compact=True) }}{% endif %}
     </div>
   </div>

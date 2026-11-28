@@ -196,7 +196,7 @@
         <div class="card-header-title">{{ _('Controlla e correggi i movimenti') }} {{ info(_('Togli la spunta alle righe da non salvare.')) }}</div>
         <div class="card-header-sub">{{ _('Ogni campo è modificabile. Deseleziona le righe da escludere, eliminale con') }} <i class="bi bi-trash3"></i> {{ _('o aggiungine di nuove.') }}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:14px;">
+      <div class="d-flex items-center gap-14">
         {% if ai_classifier %}
         <button type="button" class="btn btn-outline btn-sm" id="ai-classify" data-cloud="{{ 'true' if ai_cloud else 'false' }}"
                 title="Suggerisce categoria e controparte dalla causale ({{ ai_classifier }})">
@@ -206,7 +206,7 @@
         <a href="{{ url_for('settings.ai_models_page') }}" class="text-xs nowrap">
           <i class="bi bi-stars"></i> {{ _('Attiva la classificazione AI') }}</a>
         {% endif %}
-        <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);cursor:pointer;white-space:nowrap;">
+        <label class="d-flex items-center gap-6 text-sm cursor-pointer nowrap">
           <input type="checkbox" id="toggle-all" style="accent-color:var(--clr-primary);" /> {{ _('Seleziona tutti') }}
         </label>
       </div>
@@ -234,13 +234,13 @@
       <table id="preview-table">
         <thead>
           <tr>
-            <th style="width:32px;"></th>
-            <th style="width:150px;"><button type="button" class="sort-th" data-sort="date">{{ _('Data') }} <i class="bi bi-arrow-down-up"></i></button></th>
+            <th class="w-32"></th>
+            <th class="w-150"><button type="button" class="sort-th" data-sort="date">{{ _('Data') }} <i class="bi bi-arrow-down-up"></i></button></th>
             <th><button type="button" class="sort-th" data-sort="description">{{ _('Descrizione') }} <i class="bi bi-arrow-down-up"></i></button></th>
-            <th style="width:170px;"><button type="button" class="sort-th" data-sort="category">{{ _('Categoria') }} <i class="bi bi-arrow-down-up"></i></button></th>
-            <th style="width:140px;"><button type="button" class="sort-th" data-sort="type">{{ _('Tipo') }} <i class="bi bi-arrow-down-up"></i></button></th>
-            <th style="width:130px;text-align:right;"><button type="button" class="sort-th" data-sort="amount">{{ _('Importo €') }} <i class="bi bi-arrow-down-up"></i></button></th>
-            <th style="width:40px;"></th>
+            <th class="w-170"><button type="button" class="sort-th" data-sort="category">{{ _('Categoria') }} <i class="bi bi-arrow-down-up"></i></button></th>
+            <th class="w-140"><button type="button" class="sort-th" data-sort="type">{{ _('Tipo') }} <i class="bi bi-arrow-down-up"></i></button></th>
+            <th class="w-130 text-right"><button type="button" class="sort-th" data-sort="amount">{{ _('Importo €') }} <i class="bi bi-arrow-down-up"></i></button></th>
+            <th class="w-40"></th>
           </tr>
         </thead>
         <tbody>
@@ -249,7 +249,7 @@
           {% if row.duplicate %}
           <tr class="statement-row" style="opacity:.45;" data-signed="{{ row.amount }}">
             <td><i class="bi bi-check2-all text-muted" title="{{ _('Già importato') }}"></i></td>
-            <td style="white-space:nowrap;font-size:var(--font-size-xs);">{{ (row.date|it_date) }}</td>
+            <td class="nowrap text-xs">{{ (row.date|it_date) }}</td>
             <td>{{ row.description }} <span class="badge badge-muted">{{ _('Già importato') }}</span></td>
             <td>{{ row.category }}</td>
             <td>—</td>
@@ -272,8 +272,8 @@
                 <button type="button" class="long-toggle" title="{{ _('Mostra tutta la descrizione') }}" aria-label="{{ _('Mostra tutta la descrizione') }}"><i class="bi bi-chevron-down"></i></button>
               </div>
               {% if row.details %}<div class="text-xs text-muted long-details" title="{{ row.details }}">{{ row.details|truncate(90) }}</div>{% endif %}
-              <input type="text" name="counterparty-{{ i }}" value="{{ row.counterparty or '' }}" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
-                     style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" {{ '' if checked else 'disabled' }} />
+              <input type="text" name="counterparty-{{ i }}" value="{{ row.counterparty or '' }}" class="form-control row-field row-counterparty p-chip mt-4 text-xs" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
+                     {{ '' if checked else 'disabled' }} />
               {% if row.pairs_with %}
               <label class="badge badge-neutral mt-4 ws-normal cursor-pointer" title="{{ _("Lo stesso movimento è già stato importato dall'estratto conto dell'altro conto") }}">
                 <input type="checkbox" name="pair-{{ i }}" value="1" class="row-field" checked />
@@ -307,11 +307,11 @@
       </table>
     </div>
     <div id="ai-classify-status" class="alert" style="display:none;margin:0 20px 12px;"></div>
-    <div class="card-body" style="border-top:1px solid var(--clr-border);padding-top:12px;padding-bottom:12px;">
+    <div class="card-body border-t-strong pt-12 pb-12">
       <button type="button" class="btn btn-outline btn-sm" id="add-row"><i class="bi bi-plus-lg"></i> {{ _('Aggiungi riga') }}</button>
-      <span style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-left:8px;">{{ _('per un movimento mancante o letto male') }}</span>
+      <span class="text-xs text-muted ml-8">{{ _('per un movimento mancante o letto male') }}</span>
       {% if preview.balance_check %}
-      <div style="font-size:var(--font-size-xs);color:var(--clr-text-muted);margin-top:6px;">
+      <div class="text-xs text-muted mt-6">
         {{ _("La quadratura considera tutte le righe dell'estratto conto, anche quelle deselezionate o già importate; non quelle eliminate con") }} <i class="bi bi-trash3"></i>.
       </div>
       {% endif %}
@@ -323,8 +323,8 @@
       <td><input type="checkbox" name="include" value="__i__" class="row-include check" checked /></td>
       <td><input type="date" name="date-__i__" class="form-control row-field p-cell" required /></td>
       <td><input type="text" name="description-__i__" class="form-control row-field p-cell" required placeholder="{{ _('Descrizione') }}" />
-          <input type="text" name="counterparty-__i__" class="form-control row-field row-counterparty" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
-                 style="padding:4px 8px;margin-top:4px;font-size:var(--font-size-xs);" />
+          <input type="text" name="counterparty-__i__" class="form-control row-field row-counterparty p-chip mt-4 text-xs" list="tag-pool" autocomplete="off" placeholder="{{ _('Controparte (tag)') }}"
+                 />
           <span class="badge badge-primary mt-4">{{ _('Aggiunta a mano') }}</span></td>
       <td><input type="text" name="category-__i__" list="category-options" class="form-control row-field row-category p-cell" placeholder="{{ _('Categoria') }}" /></td>
       <td>{{ type_select('type-__i__', 'expense') }}</td>

@@ -61,7 +61,7 @@
           {% if preview.unread %} · {{ _('%(count)s righe ignorate (versamenti, dividendi o righe illeggibili)', count=preview.unread|length) }}{% endif %}
         </div>
       </div>
-      <div style="min-width:220px;">
+      <div class="minw-220">
         <label class="form-label" for="account-id">{{ _('Conto del broker') }}</label>
         <select name="account_id" id="account-id" class="form-select">
           <option value="">{{ _('— nessun conto —') }}</option>
@@ -73,7 +73,7 @@
       <table>
         <thead>
           <tr>
-            <th style="width:32px;"></th>
+            <th class="w-32"></th>
             <th>{{ _('Data') }}{% if positions %} {{ info(_('Il giorno in cui la posizione viene registrata: quello del file, come una riconciliazione.')) }}{% endif %}</th>
             <th>{{ _('Titolo nel file') }}</th>
             {% if positions %}
@@ -85,7 +85,7 @@
             <th class="text-right">{{ _('Prezzo €') }}</th>
             <th class="text-right">{{ _('Commissione €') }}</th>
             {% endif %}
-            <th style="width:240px;">{{ _('Titolo del portafoglio') }}</th>
+            <th class="w-240">{{ _('Titolo del portafoglio') }}</th>
           </tr>
         </thead>
         <tbody>

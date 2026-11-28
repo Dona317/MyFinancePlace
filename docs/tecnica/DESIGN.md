@@ -97,7 +97,7 @@ Solo quattro: **576px** (telefono) · **768px** (tablet verticale) · **992px** 
 
 ### 6.3 Pulsanti fluttuanti
 Il + (nuova transazione o file, tasto «n») in basso a sinistra, l'assistente AI e «torna su/giù» in basso a destra.
-Il fondo di ogni pagina lascia lo spazio perché non coprano contenuto (ultima riga, colonna Importo) **(da fare)**.
+Il fondo di ogni pagina lascia lo spazio perché non coprano contenuto (ultima riga, colonna Importo): `main.page-content` ha in fondo l'altezza delle bolle (26 nov).
 
 ## 7. Componenti
 ### 7.1 Pulsanti
@@ -208,7 +208,7 @@ Contrasto sufficiente in entrambi i temi; focus visibile su ogni controllo; puls
 pannelli con `aria-expanded`/`aria-controls`; niente informazioni affidate solo al colore (segno ±, icona o testo).
 
 ## 12. Regole per chi sviluppa
-- **Niente `style="…"` nei template** (oggi 626, da ridurre): classi in `main.css`.
+- **Niente `style="…"` nei template**: classi in `main.css` (le utilità di T48 in fondo al file). Ammessi solo gli stili calcolati dai dati (`{{ }}`: la larghezza di una barra, un colore dei dati). Al 28 nov: 39 fissi rimasti (erano 674) e 58 calcolati; `python scripts/design_audit.py` li conta.
 - Colori, dimensioni, angoli e durate solo tramite le variabili; nessun codice colore a mano.
 - CSS nuovo in una sezione con il suo titolo di commento in `main.css` (in inglese), vicino ai componenti simili.
 - Prima di un elemento nuovo si cerca la macro esistente; se manca, la si crea in `partials/`.

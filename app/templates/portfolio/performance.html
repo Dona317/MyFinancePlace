@@ -61,7 +61,7 @@
     <div class="card-header-title">{{ _('Rendimento cumulato') }}</div>
     <div class="card-header-sub">{{ _('Il TWR misura quanto hanno reso i titoli, senza l\'effetto di quando e quanto hai versato: è il numero da confrontare con un indice.') }}</div>
   </div></div>
-  <div class="card-body"><div style="height:300px;"><canvas id="perfChart"></canvas></div></div>
+  <div class="card-body"><div class="h-300"><canvas id="perfChart"></canvas></div></div>
 </div>
 
 {# F47, Fase 2: the value on every weekday, from the daily closes of the price history where there are some #}
@@ -71,11 +71,11 @@
       <div class="card-header-title">{{ _('Valore giorno per giorno') }} {{ info(_('Il valore dei titoli ogni giorno lavorativo, con le quote che avevi quel giorno e il prezzo di quel giorno: la chiusura dello Storico dei prezzi (Prezzi → Storico dei prezzi) per ETF, azioni e fondi in euro collegati, altrimenti l\'ultimo prezzo registrato fino a quel giorno. La linea tratteggiata è quanto avevi versato.')) }}</div>
       <div class="card-header-sub">{% if daily.linked %}{{ _('%(count)s titoli con lo storico giornaliero', count=daily.linked) }}{% else %}{{ _('Nessun titolo collegato allo storico: si usano i prezzi registrati.') }} <a href="{{ url_for('portfolio.prices') }}#links">{{ _('Collega i titoli') }}</a>{% endif %}</div>
     </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    <div class="d-flex gap-6 flex-wrap">
       {% for key, label in daily_ranges %}<a class="btn btn-sm {{ 'btn-primary' if key == days else 'btn-outline' }}" href="{{ url_for('portfolio.performance_page', person=person, period=request.args.get('period', ''), days=key) }}#daily">{{ label }}</a>{% endfor %}
     </div>
   </div>
-  <div class="card-body">{% if daily.value|length >= 2 %}<div style="height:280px;"><canvas id="dailyChart"></canvas></div>{% else %}<span class="text-sm text-muted">{{ _('Ancora nessun giorno da mostrare.') }}</span>{% endif %}</div>
+  <div class="card-body">{% if daily.value|length >= 2 %}<div class="h-280"><canvas id="dailyChart"></canvas></div>{% else %}<span class="text-sm text-muted">{{ _('Ancora nessun giorno da mostrare.') }}</span>{% endif %}</div>
 </div>
 
 <div class="grid-2">
@@ -111,7 +111,7 @@
         {% for b in benchmarks %}
         <li style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 0;">
           <span><strong>{{ b.ticker }}</strong>{% if b.updated %} <span class="text-xs text-muted">{{ _('aggiornato il %(day)s', day=b.updated) }}</span>{% endif %}</span>
-          <span style="display:flex;gap:4px;">
+          <span class="d-flex gap-4">
             <form method="POST"><input type="hidden" name="ticker" value="{{ b.ticker }}" />
               <button type="submit" class="btn btn-ghost btn-sm" title="{{ _('Scarica di nuovo') }}" aria-label="{{ _('Scarica di nuovo') }}"><i class="bi bi-arrow-repeat"></i></button></form>
             <form method="POST"><input type="hidden" name="remove" value="{{ b.ticker }}" />
@@ -236,7 +236,7 @@
 
 <div class="card mt-24">
   <div class="card-header"><div class="card-header-title">{{ _('Calo dal massimo') }} {{ info(_('Di quanto il portafoglio era sotto il suo punto più alto precedente, mese per mese (TWR): zero quando è al massimo.')) }}</div></div>
-  <div class="card-body"><div style="height:220px;"><canvas id="drawdownChart"></canvas></div></div>
+  <div class="card-body"><div class="h-220"><canvas id="drawdownChart"></canvas></div></div>
 </div>
 {% endif %}
 {% endblock %}

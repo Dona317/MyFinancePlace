@@ -54,7 +54,7 @@ def test_overview_page_and_dashboard_blocks(client, db):
     page = client.get("/portfolio/overview")
     assert page.status_code == 200 and "Panoramica investimenti" in page.text and "ovClassChart" in page.text
     assert "Rata del PAC" in page.text and "Ultimi ordini" in page.text
-    dash = client.get("/dashboard").text
+    dash = client.get("/dashboard?view=investments").text  # the block lives in the tab Investimenti (UI-49)
     assert "Investimenti in breve" in dash and "dashInvClassChart" in dash
     assert portfolio_overview.dashboard_blocks()["empty"] is False
 

@@ -70,16 +70,16 @@
       <div class="card-header-sub">{{ b.orders[0].plan.name if b.orders[0].plan else (b.orders[0].notes or '') }}
         · {{ _('acquisti %(buy)s, vendite %(sell)s', buy=b.bought|money, sell=b.sold|money) }}</div>
     </div>
-    <div style="min-width:170px;">
+    <div class="minw-170">
       <label class="form-label" for="on-{{ loop.index }}">{{ _('Data di esecuzione') }}</label>
       <input type="date" name="on" id="on-{{ loop.index }}" class="form-control" value="{{ today.isoformat() }}" max="{{ today.isoformat() }}" />
     </div>
   </div>
   <div class="table-wrapper">
     <table>
-      <thead><tr><th style="width:32px;"></th><th>{{ _('Ordine') }}</th><th>{{ _('Titolo') }}</th><th>{{ _('Dove') }}</th>
-        <th style="width:120px;">{{ _('Quote eseguite') }}</th><th style="width:130px;">{{ _('Prezzo eseguito €') }}</th>
-        <th style="width:120px;" class="fee-each">{{ _('Commissione €') }}</th><th class="text-right">{{ _('Controvalore') }}</th></tr></thead>
+      <thead><tr><th class="w-32"></th><th>{{ _('Ordine') }}</th><th>{{ _('Titolo') }}</th><th>{{ _('Dove') }}</th>
+        <th class="w-120">{{ _('Quote eseguite') }}</th><th class="w-130">{{ _('Prezzo eseguito €') }}</th>
+        <th class="fee-each w-120">{{ _('Commissione €') }}</th><th class="text-right">{{ _('Controvalore') }}</th></tr></thead>
       <tbody>
         {% for o in b.orders %}
         <tr>
@@ -122,7 +122,7 @@
     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ _('Conferma ordini eseguiti') }}</button>
   </div>
 </form>
-<form method="POST" action="{{ url_for('portfolio.planned_discard', batch=b.batch) }}" class="mb-24" style="display:flex;justify-content:flex-end;margin-top:-8px;"
+<form method="POST" action="{{ url_for('portfolio.planned_discard', batch=b.batch) }}" class="mb-24 d-flex justify-end mt-n8"
       data-confirm="{{ _('Eliminare questi ordini teorici?') }}">
   <button type="submit" class="btn btn-ghost btn-sm"><i class="bi bi-trash"></i> {{ _('Elimina questi ordini teorici') }}</button>
 </form>
